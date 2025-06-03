@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Soccer Prediction Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-gray: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-color);
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .prediction-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .prediction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .team-vs {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 1rem 0;
+        }
+        
+        .prob-bar {
+            height: 8px;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            overflow: hidden;
+        }
+        
+        .prob-home { background-color: var(--success-color); }
+        .prob-draw { background-color: var(--warning-color); }
+        .prob-away { background-color: var(--danger-color); }
+        
+        .prediction-result {
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .result-home { background-color: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .result-draw { background-color: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+        .result-away { background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+        
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .confidence-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        
+        .confidence-high { background-color: rgba(16, 185, 129, 0.2); color: var(--success-color); }
+        .confidence-medium { background-color: rgba(245, 158, 11, 0.2); color: var(--warning-color); }
+        .confidence-low { background-color: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-online { background-color: var(--success-color); }
+        .status-offline { background-color: var(--danger-color); }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-futbol me-2"></i>
+                Soccer Prediction Dashboard
+            </span>
+            <span class="navbar-text">
+                <span class="status-indicator status-online"></span>
+                <span id="system-status">System Online</span>
+            </span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- System Metrics Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="accuracy-metric">--</div>
+                    <div class="text-muted">Accuracy</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="predictions-count">--</div>
+                    <div class="text-muted">Total Predictions</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="draw-precision">--</div>
+                    <div class="text-muted">Draw Precision</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="calibration-rate">--</div>
+                    <div class="text-muted">Calibration Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Form -->
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="prediction-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-calculator me-2"></i>
+                            Make Prediction
+                        </h5>
+                        <form id="prediction-form">
+                            <div class="mb-3">
+                                <label for="home-team-id" class="form-label">Home Team ID</label>
+                                <input type="number" class="form-control" id="home-team-id" placeholder="e.g., 33" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="home-team-name" class="form-label">Home Team Name</label>
+                                <input type="text" class="form-control" id="home-team-name" placeholder="e.g., Manchester United">
+                            </div>
+                            <div class="mb-3">
+                                <label for="away-team-id" class="form-label">Away Team ID</label>
+                                <input type="number" class="form-control" id="away-team-id" placeholder="e.g., 40" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="away-team-name" class="form-label">Away Team Name</label>
+                                <input type="text" class="form-control" id="away-team-name" placeholder="e.g., Liverpool">
+                            </div>
+                            <div class="mb-3">
+                                <label for="league-id" class="form-label">League ID</label>
+                                <input type="number" class="form-control" id="league-id" value="39" placeholder="39 (Premier League)">
+                            </div>                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-magic me-2"></i>
+                                Predict Match
+                            </button>
+                            <button type="button" class="btn btn-outline-primary w-100 mt-2" onclick="predictFormatted()">
+                                <i class="fas fa-file-code me-2"></i>
+                                Get Beautiful JSON
+                            </button>
+                        </form>
+                        
+                        <div class="loading" id="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div class="mt-2">Analyzing match...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Examples -->
+                <div class="prediction-card mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-star me-2"></i>
+                            Quick Examples
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="fillExample(33, 'Manchester United', 40, 'Liverpool')">
+                                Man United vs Liverpool
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="fillExample(50, 'Manchester City', 49, 'Chelsea')">
+                                Man City vs Chelsea
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="fillExample(42, 'Arsenal', 47, 'Tottenham')">
+                                Arsenal vs Tottenham
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div class="col-lg-8">
+                <div id="results-area">
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                        <h5>Ready for Predictions</h5>
+                        <p>Enter team details and click "Predict Match" to see advanced analysis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Predictions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="prediction-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-history me-2"></i>
+                            Recent Predictions
+                        </h5>
+                        <div id="recent-predictions">
+                            <!-- Recent predictions will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let systemOnline = false;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSystemMetrics();
+            loadRecentPredictions();
+            checkSystemStatus();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadSystemMetrics();
+                loadRecentPredictions();
+            }, 30000);
+        });
+
+        // Fill example data
+        function fillExample(homeId, homeName, awayId, awayName) {
+            document.getElementById('home-team-id').value = homeId;
+            document.getElementById('home-team-name').value = homeName;
+            document.getElementById('away-team-id').value = awayId;
+            document.getElementById('away-team-name').value = awayName;
+        }
+
+        // Handle form submission
+        document.getElementById('prediction-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const resultsArea = document.getElementById('results-area');
+            
+            // Show loading
+            loading.style.display = 'block';
+            resultsArea.innerHTML = '';
+            
+            try {
+                const formData = {
+                    home_team_id: parseInt(document.getElementById('home-team-id').value),
+                    away_team_id: parseInt(document.getElementById('away-team-id').value),
+                    league_id: parseInt(document.getElementById('league-id').value),
+                    home_team_name: document.getElementById('home-team-name').value || `Team ${document.getElementById('home-team-id').value}`,
+                    away_team_name: document.getElementById('away-team-name').value || `Team ${document.getElementById('away-team-id').value}`,
+                    use_enhanced: true
+                };
+
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    displayPredictionResult(result);
+                } else {
+                    showError(result.error || 'Prediction failed');
+                }
+                
+            } catch (error) {
+                showError('Network error: ' + error.message);            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // Predict with formatted JSON output
+        async function predictFormatted() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            try {
+                const formData = {
+                    home_team_id: parseInt(document.getElementById('home-team-id').value),
+                    away_team_id: parseInt(document.getElementById('away-team-id').value),
+                    league_id: parseInt(document.getElementById('league-id').value),
+                    home_team_name: document.getElementById('home-team-name').value || `Team ${document.getElementById('home-team-id').value}`,
+                    away_team_name: document.getElementById('away-team-name').value || `Team ${document.getElementById('away-team-id').value}`,
+                    use_enhanced: true
+                };
+
+                const response = await fetch('/api/predict/formatted', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result['🏆 SOCCER MATCH PREDICTION']) {
+                    displayFormattedResult(result);
+                } else {
+                    showError(result.error || 'Formatted prediction failed');
+                }
+                
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Display formatted JSON result
+        function displayFormattedResult(result) {
+            const predictionData = result['🏆 SOCCER MATCH PREDICTION'];
+            
+            const html = `
+                <div class="prediction-card">
+                    <div class="card-body">
+                        <h5 class="card-title text-center mb-4">
+                            <i class="fas fa-file-code me-2"></i>
+                            Beautiful JSON Prediction Result
+                        </h5>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-lightbulb me-2"></i>Human-Readable AI Analysis</h6>
+                            <p class="mb-0">${predictionData['🎯 Prediction Result']['💡 Summary']}</p>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>🏠 ${predictionData['📅 Match Details']['🏠 Home Team']}</strong>
+                                <div class="text-muted">vs</div>
+                                <strong>🛣️ ${predictionData['📅 Match Details']['🛣️ Away Team']}</strong>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="badge bg-primary fs-6">
+                                    ${predictionData['🎯 Prediction Result']['🏅 Predicted Outcome']}
+                                </div>
+                                <div class="text-muted mt-1">
+                                    ${predictionData['🎯 Prediction Result']['📊 Confidence Level']}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>📈 Probability Breakdown</h6>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="prob-bar prob-home" style="width: ${predictionData['📈 Probability Breakdown'][Object.keys(predictionData['📈 Probability Breakdown'])[0]].replace('%', '')}%"></div>
+                                    <strong>${predictionData['📈 Probability Breakdown'][Object.keys(predictionData['📈 Probability Breakdown'])[0]]}</strong>
+                                    <div class="text-muted small">Home Win</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="prob-bar prob-draw" style="width: ${predictionData['📈 Probability Breakdown']['🤝 Draw'].replace('%', '')}%"></div>
+                                    <strong>${predictionData['📈 Probability Breakdown']['🤝 Draw']}</strong>
+                                    <div class="text-muted small">Draw</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="prob-bar prob-away" style="width: ${predictionData['📈 Probability Breakdown'][Object.keys(predictionData['📈 Probability Breakdown'])[2]].replace('%', '')}%"></div>
+                                    <strong>${predictionData['📈 Probability Breakdown'][Object.keys(predictionData['📈 Probability Breakdown'])[2]]}</strong>
+                                    <div class="text-muted small">Away Win</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>🧠 AI Analysis</h6>
+                            <div class="alert alert-light">
+                                <div><strong>💯 Confidence:</strong> ${predictionData['🧠 AI Analysis']['💯 Confidence Explanation']}</div>
+                                <div><strong>⚖️ Analysis:</strong> ${predictionData['🧠 AI Analysis']['⚖️ Probability Analysis']}</div>
+                                <div><strong>💼 Recommendation:</strong> ${predictionData['🧠 AI Analysis']['💼 Recommendation']}</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-outline-secondary btn-sm" onclick="showFullJSON()">
+                            <i class="fas fa-code me-2"></i>
+                            View Complete JSON
+                        </button>
+                        
+                        <div id="full-json" style="display: none;" class="mt-3">
+                            <h6>Complete JSON Response:</h6>
+                            <pre class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"><code>${JSON.stringify(result, null, 2)}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results-area').innerHTML = html;
+        }
+
+        // Toggle full JSON view
+        function showFullJSON() {
+            const jsonDiv = document.getElementById('full-json');
+            if (jsonDiv.style.display === 'none') {
+                jsonDiv.style.display = 'block';
+            } else {
+                jsonDiv.style.display = 'none';
+            }
+        }
+
+        // Display prediction result
+        function displayPredictionResult(result) {
+            const { match_info, prediction, probabilities, advanced_metrics } = result;
+            
+            let resultClass = 'result-home';
+            let resultIcon = 'fas fa-home';
+            
+            if (prediction.winner === 'draw') {
+                resultClass = 'result-draw';
+                resultIcon = 'fas fa-handshake';
+            } else if (prediction.winner === 'away_win') {
+                resultClass = 'result-away';
+                resultIcon = 'fas fa-plane';
+            }
+            
+            const confidenceClass = `confidence-${prediction.confidence_level.toLowerCase()}`;
+            
+            const html = `
+                <div class="prediction-card">
+                    <div class="card-body">
+                        <div class="team-vs text-center">
+                            <i class="fas fa-home text-success me-2"></i>
+                            ${match_info.home_team}
+                            <span class="mx-3 text-muted">vs</span>
+                            ${match_info.away_team}
+                            <i class="fas fa-plane text-danger ms-2"></i>
+                        </div>
+                        
+                        <div class="prediction-result ${resultClass}">
+                            <i class="${resultIcon} me-2"></i>
+                            ${prediction.outcome}
+                            <div class="mt-2">
+                                <span class="confidence-badge ${confidenceClass}">
+                                    ${prediction.confidence}% - ${prediction.confidence_level} Confidence
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-4">
+                                <div class="text-center">
+                                    <div class="prob-bar prob-home" style="width: ${probabilities.home_win}%"></div>
+                                    <strong>${probabilities.home_win}%</strong>
+                                    <div class="text-muted small">Home Win</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center">
+                                    <div class="prob-bar prob-draw" style="width: ${probabilities.draw}%"></div>
+                                    <strong>${probabilities.draw}%</strong>
+                                    <div class="text-muted small">Draw</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center">
+                                    <div class="prob-bar prob-away" style="width: ${probabilities.away_win}%"></div>
+                                    <strong>${probabilities.away_win}%</strong>
+                                    <div class="text-muted small">Away Win</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <small class="text-muted">Entropy</small>
+                                <div><strong>${advanced_metrics.entropy}</strong></div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Prob. Spread</small>
+                                <div><strong>${advanced_metrics.probability_spread}</strong></div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Draw Favorability</small>
+                                <div><strong>${advanced_metrics.draw_favorability}</strong></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 text-muted small">
+                            <i class="fas fa-clock me-1"></i>
+                            Prediction ID: ${result.prediction_id}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results-area').innerHTML = html;
+            
+            // Refresh recent predictions
+            setTimeout(loadRecentPredictions, 1000);
+        }
+
+        // Load system metrics
+        async function loadSystemMetrics() {
+            try {
+                const response = await fetch('/api/performance');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const metrics = data.metrics;
+                    document.getElementById('accuracy-metric').textContent = metrics.accuracy + '%';
+                    document.getElementById('predictions-count').textContent = metrics.total_predictions;
+                    document.getElementById('draw-precision').textContent = metrics.draw_precision + '%';
+                    document.getElementById('calibration-rate').textContent = metrics.calibration_rate + '%';
+                }
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+            }
+        }
+
+        // Load recent predictions
+        async function loadRecentPredictions() {
+            try {
+                const response = await fetch('/api/recent_predictions?limit=5');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const container = document.getElementById('recent-predictions');
+                    
+                    if (data.predictions.length === 0) {
+                        container.innerHTML = '<div class="text-muted text-center">No recent predictions</div>';
+                        return;
+                    }
+                    
+                    const html = data.predictions.map(pred => `
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <strong>Team ${pred.home_team_id} vs Team ${pred.away_team_id}</strong>
+                                <div class="small text-muted">${pred.predicted_outcome}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small">
+                                    <span class="text-success">${pred.probabilities.home_win}%</span> |
+                                    <span class="text-warning">${pred.probabilities.draw}%</span> |
+                                    <span class="text-danger">${pred.probabilities.away_win}%</span>
+                                </div>
+                                <div class="small text-muted">${new Date(pred.timestamp).toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading recent predictions:', error);
+            }
+        }
+
+        // Check system status
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/api/system_status');
+                const data = await response.json();
+                
+                systemOnline = response.ok;
+                
+                const statusElement = document.getElementById('system-status');
+                const statusIndicator = document.querySelector('.status-indicator');
+                
+                if (systemOnline) {
+                    statusElement.textContent = 'System Online';
+                    statusIndicator.className = 'status-indicator status-online';
+                } else {
+                    statusElement.textContent = 'System Offline';
+                    statusIndicator.className = 'status-indicator status-offline';
+                }
+            } catch (error) {
+                systemOnline = false;
+                document.getElementById('system-status').textContent = 'Connection Error';
+                document.querySelector('.status-indicator').className = 'status-indicator status-offline';
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('results-area').innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
