@@ -1010,39 +1010,55 @@ def get_weather_data(city: str, date: str) -> Dict[str, Any]:
 
 def get_team_statistics(team_id: int, league_id: int, season: int) -> Dict[str, Any]:
     """
-    Obtiene estadísticas históricas de un equipo en una liga.
+    Get historical team statistics for a given league and season.
+    
+    Args:
+        team_id: ID of the team
+        league_id: ID of the league
+        season: Season year
+        
+    Returns:
+        Dictionary containing team statistics
     """
     try:
-        # Get current season
-        from datetime import datetime
-        current_season = datetime.now().year
+        # Get statistics using the team_statistics module for consistent stats across the app
+        from team_statistics import get_team_statistics as get_detailed_stats
+        stats = get_detailed_stats(team_id, league_id, season)
         
-        # Obtener datos de forma del equipo
-        team_form = get_team_form(team_id, league_id=league_id, last_matches=5) 
-        if not team_form:
-            return {}
+        if not stats:
+            # Fall back to recent form data if no historical stats available
+            team_form = get_team_form(team_id, league_id=league_id, last_matches=5)
+            if not team_form:
+                return {}
+                
+            stats = {
+                "corners_per_game": float(team_form.get("avg_corners_for", 5.0)),
+                "cards_per_game": float(team_form.get("avg_cards", 2.0)),
+                "goals_per_game": float(team_form.get("avg_goals_scored", 1.2)),
+                "goals_conceded_per_game": float(team_form.get("avg_goals_conceded", 1.1)),                "matches_played": float(team_form.get("matches_played", 1)),
+                "form_score": float(team_form.get("form_score", 0.5))
+            }
 
-        # Extraer estadísticas relevantes
-        stats = {
-            "avg_corners_for": float(team_form.get("avg_corners_for", 5.0)),
-            "avg_corners_against": float(team_form.get("avg_corners_against", 4.5)),
-            "avg_cards": float(team_form.get("avg_cards", 2.0)),
-            "avg_fouls": float(team_form.get("avg_fouls", 11.0)),
-            "goals_scored": float(team_form.get("goals_scored", 0)),
-            "goals_conceded": float(team_form.get("goals_conceded", 0)),
-            "matches_played": float(team_form.get("matches_played", 1))
-        }
-
-        # Normalizar por partidos jugados
-        matches = max(1, stats["matches_played"])
-        stats["avg_goals_scored"] = stats["goals_scored"] / matches
-        stats["avg_goals_conceded"] = stats["goals_conceded"] / matches
+        # Add extended statistics if available
+        if "matches_won" in team_form:
+            stats.update({
+                "win_rate": float(team_form.get("win_percentage", 0.33)),
+                "draw_rate": float(team_form.get("draw_percentage", 0.33)),
+                "loss_rate": float(team_form.get("loss_percentage", 0.34))
+            })
 
         return stats
 
     except Exception as e:
-        logger.error(f"Error obteniendo estadísticas del equipo {team_id}: {e}")
-        return {}
+        logger.error(f"Error getting team statistics for team {team_id}: {e}")
+        return {
+            "corners_per_game": 5.0,
+            "cards_per_game": 2.0,
+            "goals_per_game": 1.2,
+            "goals_conceded_per_game": 1.1,
+            "matches_played": 1,
+            "form_score": 0.5
+        }
 
 def calculate_over_probability(expected_value: float, line: float, std_dev: float) -> float:
     """

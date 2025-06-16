@@ -38,6 +38,7 @@ from enhanced_odds_integration import EnhancedOddsIntegration
 from metrics_tracker import MetricsTracker
 from backup_manager import BackupManager
 from fixed_tactical_integration import get_simplified_tactical_analysis, enrich_prediction_with_tactical_analysis, create_default_tactical_analysis
+from master_prediction_pipeline_simple import generate_master_prediction
 from flask_caching import Cache
 import pandas as pd
 import os
@@ -73,7 +74,7 @@ fnn_model, feature_scaler = load_fnn_model()
 injury_analyzer = InjuryAnalyzer()
 odds_analyzer = OddsAnalyzer()
 metrics_tracker = MetricsTracker()
-backup_manager = BackupManager()
+backup_manager = BackupManager(project_root=os.path.dirname(os.path.abspath(__file__)))
 
 app = Flask(__name__)
 cache_manager = CacheManager(app)
@@ -172,6 +173,22 @@ def process_match(match, weather_condition, weather_intensity, overunder_param, 
 @app.route("/api/upcoming_predictions", methods=["GET"])
 def upcoming_predictions():
     try:
+        # Check if using automatic discovery mode (NEW FEATURE)
+        auto_discovery = request.args.get("auto_discovery", "true").lower() == "true"
+        
+        if auto_discovery:
+            # NEW: Use automatic match discovery with Master Pipeline
+            from automatic_match_discovery import AutomaticMatchDiscovery
+            
+            discovery = AutomaticMatchDiscovery()
+            
+            # Get today's predictions automatically without filtering by league
+            result = discovery.get_todays_predictions()
+            
+            # Return the automatic discovery result
+            return jsonify(result)
+        
+        # FALLBACK: Original manual method
         # Get request parameters
         league_id = request.args.get("league_id", type=int)
         season = request.args.get("season", type=int)
@@ -180,7 +197,7 @@ def upcoming_predictions():
         include_additional_data = request.args.get("include_additional_data", "false").lower() == "true"
 
         if not league_id or not season:
-            return jsonify({"error": "league_id and season are required"}), 400
+            return jsonify({"error": "league_id and season are required for manual mode. Use auto_discovery=true for automatic mode"}), 400
 
         # Get upcoming matches
         upcoming_matches = get_fixtures_filtered(league_id, season, status="NS", days_range=7, limit=limit)
@@ -299,12 +316,76 @@ def normalize_prediction_structure(prediction):
                 prediction["confidence"] = calculate_dynamic_confidence(prediction)
             except Exception as e:
                 logger.warning(f"Error calculating confidence: {e}")
-                prediction["confidence"] = 0.7
-
-        return prediction
+                prediction["confidence"] = 0.7        
+                return prediction
     except Exception as e:
         logger.error(f"Error normalizing prediction: {e}")
         return prediction
+
+@app.route("/api/comprehensive_prediction", methods=["GET"])
+def comprehensive_prediction():
+    """
+    Endpoint for comprehensive predictions using the Master Pipeline.
+    Provides enhanced predictions with injury analysis, referee analysis, 
+    market value analysis, and auto-calibrated models.
+    """
+    try:
+        # Get required parameters
+        fixture_id = request.args.get("fixture_id", type=int)
+        home_team_id = request.args.get("home_team_id", type=int)
+        away_team_id = request.args.get("away_team_id", type=int)
+        league_id = request.args.get("league_id", type=int)
+        
+        # Optional parameters
+        referee_id = request.args.get("referee_id", type=int)
+        
+        # Validate required parameters
+        if not all([fixture_id, home_team_id, away_team_id, league_id]):
+            return jsonify({
+                "error": "Missing required parameters",
+                "required": ["fixture_id", "home_team_id", "away_team_id", "league_id"]
+            }), 400
+        
+        logger.info(f"Generating comprehensive prediction for fixture {fixture_id}")
+        
+        # Get odds data if available
+        odds_data = None
+        try:
+            if odds_analyzer:
+                odds_data = odds_analyzer.get_fixture_odds(fixture_id)
+        except Exception as e:
+            logger.warning(f"Could not get odds data: {e}")
+        
+        # Generate comprehensive prediction using Master Pipeline
+        result = generate_master_prediction(
+            fixture_id=fixture_id,
+            home_team_id=home_team_id,
+            away_team_id=away_team_id,
+            league_id=league_id,
+            odds_data=odds_data,
+            referee_id=referee_id
+        )
+        
+        # Format response
+        pretty = request.args.get("pretty", 0, type=int)
+        if pretty == 1:
+            response = app.response_class(
+                json.dumps(result, indent=2, ensure_ascii=False),
+                mimetype='application/json'
+            )
+        else:
+            response = jsonify(result)
+        
+        logger.info(f"Comprehensive prediction generated successfully for fixture {fixture_id}")
+        return response
+        
+    except Exception as e:
+        logger.exception("Error in /api/comprehensive_prediction")
+        return jsonify({
+            "error": str(e),
+            "endpoint": "comprehensive_prediction",
+            "status": "error"
+        }), 500
 
 if __name__ == '__main__':
     try:

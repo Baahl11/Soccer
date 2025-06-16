@@ -20,12 +20,16 @@ from datetime import datetime, timedelta
 import json
 import sqlite3
 from pathlib import Path
+from dataclasses import asdict
+from prediction_response_enricher import PredictionResponseEnricher
 
 # Import existing modules
 from enhanced_match_winner import EnhancedPredictionSystem
-from probability_calibration import ProbabilityCalibrator, calibration_assessment
+from platt_calibration import PlattCalibrator
 from class_balancing import SoccerSMOTE, BalancedTrainingPipeline
 from match_winner import MatchOutcome
+from performance_monitoring import PerformanceMonitor, PerformanceMetric
+from realtime_monitoring import RealTimeMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +53,29 @@ class Advanced1X2System:
         
         # Initialize core components
         self.enhanced_system = EnhancedPredictionSystem()
-        self.calibrator = None
+        self.calibrators = {
+            MatchOutcome.HOME_WIN.value: PlattCalibrator(),
+            MatchOutcome.DRAW.value: PlattCalibrator(), 
+            MatchOutcome.AWAY_WIN.value: PlattCalibrator()
+        }
         self.smote_balancer = None
         self.performance_data = []
+        
+        # Initialize performance monitoring
+        if self.config.get('monitoring_enabled', True):
+            self.perf_monitor = PerformanceMonitor(
+                db_path='soccer_performance.db',
+                monitoring_window=1000
+            )
+            self.rt_monitor = RealTimeMonitor(
+                db_path='soccer_realtime.db',
+                metrics_window=1000
+            )
+            # Add retraining callback
+            self.perf_monitor.add_retraining_callback(self._retrain_model)
+        else:
+            self.perf_monitor = None
+            self.rt_monitor = None
         
         # Initialize advanced features
         self._initialize_advanced_features()
@@ -60,15 +84,18 @@ class Advanced1X2System:
         self.db_path = "advanced_1x2_monitoring.db"
         self._setup_monitoring_db()
         
+        # Initialize response enricher
+        self.response_enricher = PredictionResponseEnricher()
+        
     def _initialize_advanced_features(self):
         """Initialize advanced prediction features."""
         try:
             # Initialize Platt scaling calibrator
             if self.config.get('use_platt_scaling', True):
-                self.calibrator = ProbabilityCalibrator(
-                    method=self.config.get('calibration_method', 'platt')
-                )
-                logger.info("✅ Platt scaling calibrator initialized")
+                for outcome in [MatchOutcome.HOME_WIN.value, MatchOutcome.DRAW.value, MatchOutcome.AWAY_WIN.value]:
+                    self.calibrators[outcome] = PlattCalibrator()
+                
+                logger.info("✅ Platt scaling calibrators initialized")
             
             # Initialize SMOTE balancer
             if self.config.get('use_smote_balancing', True):
@@ -150,6 +177,8 @@ class Advanced1X2System:
             Enhanced prediction with advanced features
         """
         try:
+            start_time = datetime.now()
+            
             # 1. Get base enhanced prediction
             base_prediction = self.enhanced_system.predict(
                 home_team_id=home_team_id,
@@ -159,7 +188,7 @@ class Advanced1X2System:
             )
             
             # 2. Apply probability calibration if enabled and calibrator is fitted
-            if use_calibration and self.calibrator and getattr(self.calibrator, 'is_fitted', False):
+            if use_calibration and all(calibrator.is_fitted for calibrator in self.calibrators.values()):
                 calibrated_probs = self._apply_calibration(base_prediction)
                 base_prediction['probabilities'] = calibrated_probs
                 base_prediction['calibrated'] = True
@@ -171,8 +200,11 @@ class Advanced1X2System:
             advanced_metrics = self._calculate_advanced_metrics(base_prediction)
             
             # 4. Create comprehensive result
+            prediction_id = f"{home_team_id}_{away_team_id}_{league_id}_{int(datetime.now().timestamp())}"
+            
+            # Create final result
             result = {
-                'prediction_id': f"{home_team_id}_{away_team_id}_{league_id}_{int(datetime.now().timestamp())}",
+                'prediction_id': prediction_id,
                 'timestamp': datetime.now().isoformat(),
                 'match_info': {
                     'home_team_id': home_team_id,
@@ -182,14 +214,52 @@ class Advanced1X2System:
                 'base_prediction': base_prediction,
                 'advanced_metrics': advanced_metrics,
                 'system_info': {
-                    'calibration_enabled': use_calibration and self.calibrator is not None,
+                    'calibration_enabled': use_calibration and self.calibrators is not None,
                     'smote_balanced': self.config.get('use_smote_balancing', False),
                     'enhanced_system': True,
                     'version': '2.0'
                 }
             }
             
-            # 5. Store for monitoring if enabled
+            # 5. Monitor performance
+            if self.config.get('monitoring_enabled', True):
+                response_time = (datetime.now() - start_time).total_seconds() * 1000
+                
+                # Log to real-time monitor
+                self.rt_monitor.record_prediction(
+                    prediction_id=prediction_id,
+                    prediction={
+                        'probabilities': base_prediction['probabilities'],
+                        'most_likely_outcome': base_prediction.get('predicted_outcome'),
+                        'confidence': base_prediction.get('confidence', 0.0)
+                    },
+                    response_time=response_time
+                )
+                
+                # Log to performance monitor
+                confidence_score = base_prediction.get('confidence', 0.0)
+                
+                self.perf_monitor.log_prediction(
+                    match_id=prediction_id,
+                    home_team=f"team_{home_team_id}",
+                    away_team=f"team_{away_team_id}",
+                    predicted_probs=np.array([
+                        base_prediction['probabilities'].get(MatchOutcome.HOME_WIN.value, 0),
+                        base_prediction['probabilities'].get(MatchOutcome.DRAW.value, 0),
+                        base_prediction['probabilities'].get(MatchOutcome.AWAY_WIN.value, 0)
+                    ]),
+                    model_version='advanced_1x2',
+                    confidence_score=confidence_score
+                )
+                
+                # Add monitoring metrics to result
+                current_metrics = self.rt_monitor.get_current_metrics()
+                result['monitoring'] = {
+                    'realtime_metrics': asdict(current_metrics),
+                    'response_time_ms': response_time
+                }
+            
+            # 6. Store for monitoring if enabled
             if self.config.get('monitoring_enabled', True):
                 self._store_prediction(result)
             
@@ -211,89 +281,99 @@ class Advanced1X2System:
             # Extract probabilities
             probs = prediction.get('probabilities', {})
             
-            # Convert to numpy array format expected by calibrator
-            prob_array = np.array([[
-                probs.get(MatchOutcome.HOME_WIN.value, 0),
-                probs.get(MatchOutcome.DRAW.value, 0),
-                probs.get(MatchOutcome.AWAY_WIN.value, 0)
-            ]])
+            # Apply calibration separately for each outcome using PlattCalibrator
+            calibrated_probs = {}
+            for outcome, calibrator in self.calibrators.items():
+                if calibrator.is_fitted:
+                    # Extract probability for current outcome
+                    prob = np.array([probs.get(outcome, 0.0)])
+                    # Calibrate probability
+                    calibrated = calibrator.calibrate(prob)
+                    # Store calibrated probability
+                    calibrated_probs[outcome] = float(calibrated[0])
+                else:
+                    # If calibrator not fitted, use original probability
+                    calibrated_probs[outcome] = probs.get(outcome, 0.0)
             
-            # Apply calibration if calibrator is not None
-            if self.calibrator is not None:
-                calibrated_array = self.calibrator.calibrate(prob_array)
-                
-                # Convert back to dictionary format
-                calibrated_probs = {
-                    MatchOutcome.HOME_WIN.value: float(calibrated_array[0][0]),
-                    MatchOutcome.DRAW.value: float(calibrated_array[0][1]),
-                    MatchOutcome.AWAY_WIN.value: float(calibrated_array[0][2])
-                }
-                
-                return calibrated_probs
-            else:
-                return prediction.get('probabilities', {})
+            # Normalize probabilities to sum to 1
+            total = sum(calibrated_probs.values())
+            if total > 0:
+                for outcome in calibrated_probs:
+                    calibrated_probs[outcome] /= total
+            
+            return calibrated_probs
             
         except Exception as e:
             logger.error(f"❌ Error applying calibration: {e}")
             return prediction.get('probabilities', {})
     
-    def _calculate_advanced_metrics(self, prediction: Dict[str, Any]) -> Dict[str, Any]:
-        """Calculate advanced prediction metrics."""
-        probs = prediction.get('probabilities', {})
-        
-        # Calculate entropy (uncertainty measure)
-        prob_values = list(probs.values())
-        entropy = -sum(p * np.log(p + 1e-10) for p in prob_values if p > 0)
-        
-        # Calculate maximum probability
-        max_prob = max(prob_values) if prob_values else 0
-        
-        # Calculate probability spread
-        prob_spread = max(prob_values) - min(prob_values) if prob_values else 0
-        
-        # Calculate draw favorability
-        draw_prob = probs.get(MatchOutcome.DRAW.value, 0)
-        draw_favorability = draw_prob / max(prob_values) if max(prob_values) > 0 else 0
-        
-        return {
-            'entropy': float(entropy),
-            'max_probability': float(max_prob),
-            'probability_spread': float(prob_spread),
-            'draw_favorability': float(draw_favorability),
-            'confidence_level': 'high' if max_prob > 0.6 else 'medium' if max_prob > 0.4 else 'low'
-        }
+    def _calculate_advanced_metrics(self, prediction: Dict[str, Any]):
+        """Calculate advanced metrics for the prediction."""
+        try:
+            # Placeholder for advanced metrics calculation
+            metrics = {
+                'confidence': prediction.get('confidence', 0.0),
+                'probability_range': max(prediction['probabilities'].values()) - min(prediction['probabilities'].values()),
+                'average_probability': np.mean(list(prediction['probabilities'].values())),
+                'home_advantage': self._calculate_home_advantage(prediction['match_info']['home_team_id']),
+                'travel_impact': self._calculate_travel_impact(prediction['match_info']['away_team_id']),
+                'weather_impact': self._calculate_weather_impact(prediction['match_info'].get('weather', {}))
+            }
+            
+            # Add more metrics as needed
+            
+            return metrics
+            
+        except Exception as e:
+            logger.error(f"❌ Error calculating advanced metrics: {e}")
+            return {}
     
-    def _store_prediction(self, prediction_result: Dict[str, Any]):
-        """Store prediction for monitoring and analysis."""
+    def _calculate_home_advantage(self, home_team_id: int) -> float:
+        """Estimate home advantage for the given team."""
+        # Placeholder implementation
+        return 0.1  # 10% home advantage
+    
+    def _calculate_travel_impact(self, away_team_id: int) -> float:
+        """Estimate travel impact for the away team."""
+        # Placeholder implementation
+        return -0.05  # 5% travel disadvantage
+    
+    def _calculate_weather_impact(self, weather_data: Dict[str, Any]) -> float:
+        """Estimate weather impact on the match."""
+        # Placeholder implementation
+        return 0.0  # No weather impact by default
+    
+    def _store_prediction(self, prediction: Dict[str, Any]):
+        """Store the prediction result in the monitoring database."""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            match_info = prediction_result.get('match_info', {})
-            base_pred = prediction_result.get('base_prediction', {})
-            probs = base_pred.get('probabilities', {})
-            
+            # Insert prediction data
             cursor.execute('''
                 INSERT INTO predictions (
                     home_team_id, away_team_id, league_id,
                     predicted_outcome, home_win_prob, draw_prob, away_win_prob,
-                    confidence, calibrated, smote_balanced
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    confidence, actual_outcome, is_correct, calibrated, smote_balanced
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
-                match_info.get('home_team_id'),
-                match_info.get('away_team_id'),
-                match_info.get('league_id'),
-                base_pred.get('predicted_outcome'),
-                probs.get(MatchOutcome.HOME_WIN.value, 0),
-                probs.get(MatchOutcome.DRAW.value, 0),
-                probs.get(MatchOutcome.AWAY_WIN.value, 0),
-                base_pred.get('confidence', 0),
-                base_pred.get('calibrated', False),
+                prediction['match_info']['home_team_id'],
+                prediction['match_info']['away_team_id'],
+                prediction['match_info']['league_id'],
+                prediction['base_prediction'].get('predicted_outcome'),
+                prediction['base_prediction'].get('home_win_prob', 0.0),
+                prediction['base_prediction'].get('draw_prob', 0.0),
+                prediction['base_prediction'].get('away_win_prob', 0.0),
+                prediction['base_prediction'].get('confidence', 0.0),
+                prediction.get('actual_outcome'),
+                prediction.get('is_correct', False),
+                prediction['calibrated'],
                 self.config.get('use_smote_balancing', False)
             ))
             
             conn.commit()
             conn.close()
+            logger.info("✅ Prediction stored in monitoring database")
             
         except Exception as e:
             logger.error(f"❌ Error storing prediction: {e}")
@@ -306,322 +386,494 @@ class Advanced1X2System:
             historical_data: List of historical predictions with actual outcomes
         """
         try:
-            if not self.calibrator:
-                logger.error("❌ Calibrator not initialized")
+            if not self.calibrators:
+                logger.error("❌ Calibrators not initialized")
                 return
             
-            # Prepare training data
-            predictions = []
-            true_outcomes = []
+            # Prepare training data for each outcome
+            outcome_data = {
+                MatchOutcome.HOME_WIN.value: {"predictions": [], "targets": []},
+                MatchOutcome.DRAW.value: {"predictions": [], "targets": []},
+                MatchOutcome.AWAY_WIN.value: {"predictions": [], "targets": []}
+            }
             
             for data in historical_data:
                 pred_probs = data.get('probabilities', {})
                 actual_outcome = data.get('actual_outcome')
                 
                 if pred_probs and actual_outcome:
-                    # Convert to array format
-                    prob_array = [
-                        pred_probs.get(MatchOutcome.HOME_WIN.value, 0),
-                        pred_probs.get(MatchOutcome.DRAW.value, 0),
-                        pred_probs.get(MatchOutcome.AWAY_WIN.value, 0)
-                    ]
-                    predictions.append(prob_array)
+                    # Process each outcome
+                    for outcome in outcome_data:
+                        # Get probability for current outcome
+                        prob = pred_probs.get(outcome, 0.0)
+                        outcome_data[outcome]["predictions"].append(prob)
+                        # Set target as 1 if this was the actual outcome, 0 otherwise
+                        outcome_data[outcome]["targets"].append(1 if actual_outcome == outcome else 0)
+            
+            # Train calibrator for each outcome
+            min_samples = 50
+            for outcome, data in outcome_data.items():
+                if len(data["predictions"]) < min_samples:
+                    logger.warning(f"⚠️ Insufficient data for calibration training for {outcome}")
+                    continue
                     
-                    # Convert outcome to index
-                    outcome_mapping = {
-                        MatchOutcome.HOME_WIN.value: 0,
-                        MatchOutcome.DRAW.value: 1,
-                        MatchOutcome.AWAY_WIN.value: 2
+                # Convert to numpy arrays
+                X = np.array(data["predictions"])
+                y = np.array(data["targets"])
+                
+                # Train calibrator
+                calibrator = self.calibrators[outcome]
+                calibrator.fit(X, y)
+                
+                logger.info(f"✅ Calibrator trained for {outcome} on {len(X)} samples")
+                
+                # Add calibration metrics
+                if calibrator.is_fitted:
+                    calibrated = calibrator.calibrate(X)
+                    metrics = {
+                        'mean_prediction': float(np.mean(X)),
+                        'mean_calibrated': float(np.mean(calibrated)),
+                        'positive_rate': float(np.mean(y))
                     }
-                    true_outcomes.append(outcome_mapping.get(actual_outcome, 0))
-            
-            if len(predictions) < 50:
-                logger.warning("⚠️ Insufficient data for calibration training")
-                return
-            
-            # Convert to numpy arrays
-            X = np.array(predictions)
-            y = np.array(true_outcomes)
-            
-            # Train calibrator
-            outcome_names = ['home_win', 'draw', 'away_win']
-            self.calibrator.fit(X, y, outcome_names)
-            
-            logger.info(f"✅ Calibrator trained on {len(predictions)} samples")
-            
-            # Evaluate calibration
-            calibration_metrics = self.calibrator.evaluate_calibration(X, y)
-            logger.info(f"📊 Calibration metrics: {calibration_metrics}")
-            
+                    logger.debug(f"📊 {outcome} calibration metrics: {metrics}")
+                
         except Exception as e:
             logger.error(f"❌ Error training calibrator: {e}")
+            logger.debug(f"Detailed error: {str(e)}", exc_info=True)
     
-    def prepare_balanced_training_data(
-        self, 
-        training_data: List[Dict[str, Any]]
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def monitor_performance(self, actual_outcome: str, predicted_probs: Dict[str, float]):
         """
-        Prepare balanced training data using SMOTE.
+        Monitor and log the performance of the predictions.
         
         Args:
-            training_data: Raw training data
-            
-        Returns:
-            Balanced feature matrix and target array
+            actual_outcome: Actual outcome of the match
+            predicted_probs: Predicted probabilities for each outcome
         """
         try:
-            if not self.smote_balancer:
-                logger.error("❌ SMOTE balancer not initialized")
-                return np.array([]), np.array([])
+            # Extract performance metrics
+            accuracy = 1.0 if predicted_probs.get(actual_outcome, 0.0) > 0.5 else 0.0
+            brier_score = (1 - predicted_probs.get(actual_outcome, 0.0)) ** 2
+            calibration_error = abs(predicted_probs.get(actual_outcome, 0.0) - 0.5)
             
-            # Extract features and targets
-            features = []
-            targets = []
+            # Log performance metrics
+            logger.info(f"📈 Performance - Accuracy: {accuracy}, Brier Score: {brier_score}, Calibration Error: {calibration_error}")
             
-            for data in training_data:
-                # Extract relevant features for training
-                feature_vector = [
-                    data.get('home_elo', 1500),
-                    data.get('away_elo', 1500),
-                    data.get('home_form', 0),
-                    data.get('away_form', 0),
-                    data.get('h2h_home_wins', 0),
-                    data.get('h2h_draws', 0),
-                    data.get('h2h_away_wins', 0),
-                    data.get('league_position_home', 10),
-                    data.get('league_position_away', 10),
-                    data.get('home_advantage', 1)
-                ]
-                features.append(feature_vector)
-                
-                # Map outcome to class index
-                outcome = data.get('actual_outcome')
-                outcome_mapping = {
-                    MatchOutcome.HOME_WIN.value: 0,
-                    MatchOutcome.DRAW.value: 1,
-                    MatchOutcome.AWAY_WIN.value: 2
-                }
-                # Ensure outcome is str before using get
-                outcome_str = outcome if isinstance(outcome, str) else ''
-                targets.append(outcome_mapping.get(outcome_str, 0))
-            
-            # Convert to numpy arrays
-            X = np.array(features)
-            y = np.array(targets)
-            
-            # Apply SMOTE balancing
-            feature_names = [
-                'home_elo', 'away_elo', 'home_form', 'away_form',
-                'h2h_home_wins', 'h2h_draws', 'h2h_away_wins',
-                'league_position_home', 'league_position_away', 'home_advantage'
-            ]
-            
-            X_balanced, y_balanced = self.smote_balancer.fit_resample(
-                X, y, feature_names, method=self.config.get('smote_method', 'smote')
-            )
-            
-            logger.info(f"✅ SMOTE balancing applied: {len(X)} → {len(X_balanced)} samples")
-            
-            # Get balancing report
-            report = self.smote_balancer.get_resampling_report()
-            logger.info(f"📊 Balance improvement: {report.get('balance_improvement', {})}")
-            
-            return X_balanced, y_balanced
-            
+            # Store in database
+            self._store_performance_metrics(accuracy, brier_score, calibration_error)
+        
         except Exception as e:
-            logger.error(f"❌ Error preparing balanced data: {e}")
-            return np.array([]), np.array([])
+            logger.error(f"❌ Error monitoring performance: {e}")
     
-    def evaluate_system_performance(self) -> Dict[str, Any]:
-        """Evaluate the overall system performance."""
+    def _store_performance_metrics(self, accuracy: float, brier_score: float, calibration_error: float):
+        """Store the performance metrics in the monitoring database."""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Get recent predictions
-            cursor.execute('''
-                SELECT predicted_outcome, actual_outcome, home_win_prob, 
-                       draw_prob, away_win_prob, is_correct, calibrated
-                FROM predictions 
-                WHERE actual_outcome IS NOT NULL
-                ORDER BY timestamp DESC 
-                LIMIT 1000
-            ''')
-            
-            results = cursor.fetchall()
-            conn.close()
-            
-            if not results:
-                return {'error': 'No evaluation data available'}
-            
-            # Calculate metrics
-            total_predictions = len(results)
-            correct_predictions = sum(1 for r in results if r[5])  # is_correct
-            accuracy = correct_predictions / total_predictions
-            
-            # Calculate draw-specific metrics
-            draw_predictions = [r for r in results if r[0] == MatchOutcome.DRAW.value]
-            draw_correct = sum(1 for r in draw_predictions if r[5])
-            draw_precision = draw_correct / len(draw_predictions) if draw_predictions else 0
-            
-            actual_draws = [r for r in results if r[1] == MatchOutcome.DRAW.value]
-            draw_recall = draw_correct / len(actual_draws) if actual_draws else 0
-            
-            # Calculate Brier score for calibrated predictions
-            calibrated_results = [r for r in results if r[6]]  # calibrated
-            brier_score = 0
-            if calibrated_results:
-                brier_scores = []
-                for r in calibrated_results:
-                    # Convert actual outcome to one-hot
-                    actual_vector = [0, 0, 0]
-                    outcome_mapping = {
-                        MatchOutcome.HOME_WIN.value: 0,
-                        MatchOutcome.DRAW.value: 1,
-                        MatchOutcome.AWAY_WIN.value: 2
-                    }
-                    actual_idx = outcome_mapping.get(r[1], 0)
-                    actual_vector[actual_idx] = 1
-                    
-                    # Calculate Brier score
-                    pred_vector = [r[2], r[3], r[4]]  # home, draw, away probs
-                    bs = sum((pred_vector[i] - actual_vector[i])**2 for i in range(3))
-                    brier_scores.append(bs)
-                
-                brier_score = np.mean(brier_scores)
-            
-            performance_metrics = {
-                'total_predictions': total_predictions,
-                'accuracy': accuracy,
-                'draw_precision': draw_precision,
-                'draw_recall': draw_recall,
-                'brier_score': brier_score,
-                'calibrated_predictions': len(calibrated_results),
-                'calibration_rate': len(calibrated_results) / total_predictions,
-                'evaluation_timestamp': datetime.now().isoformat()
-            }
-            
-            # Store performance metrics
-            self._store_performance_metrics(performance_metrics)
-            
-            return performance_metrics
-            
-        except Exception as e:
-            logger.error(f"❌ Error evaluating performance: {e}")
-            return {'error': str(e)}
-    
-    def _store_performance_metrics(self, metrics: Dict[str, Any]):
-        """Store performance metrics in database."""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
+            # Insert performance metrics data
             cursor.execute('''
                 INSERT INTO performance_metrics (
                     accuracy, brier_score, calibration_error,
                     draw_precision, draw_recall, total_predictions
                 ) VALUES (?, ?, ?, ?, ?, ?)
             ''', (
-                metrics.get('accuracy', 0),
-                metrics.get('brier_score', 0),
-                0,  # calibration_error - to be calculated
-                metrics.get('draw_precision', 0),
-                metrics.get('draw_recall', 0),
-                metrics.get('total_predictions', 0)
+                accuracy,
+                brier_score,
+                calibration_error,
+                0.0,  # Draw precision (not calculated)
+                0.0,  # Draw recall (not calculated)
+                1  # Total predictions (assuming 1 for each call)
             ))
             
             conn.commit()
             conn.close()
+            logger.info("✅ Performance metrics stored in monitoring database")
             
         except Exception as e:
             logger.error(f"❌ Error storing performance metrics: {e}")
     
-    def get_system_status(self) -> Dict[str, Any]:
-        """Get current system status and configuration."""
+    def analyze_team_composition(self, team_id: int, match_context: Dict[str, Any]):
+        """
+        Analyze the team composition and its impact on the match outcome.
+        
+        Args:
+            team_id: ID of the team to analyze
+            match_context: Context of the match (e.g., opponent, location)
+        
+        Returns:
+            Analysis report on the team composition
+        """
+        try:
+            # Placeholder for team composition analysis
+            report = {
+                'team_id': team_id,
+                'match_context': match_context,
+                'key_players': self._identify_key_players(team_id),
+                'tactical_advantage': self._assess_tactical_advantage(team_id, match_context)
+            }
+            
+            return report
+        
+        except Exception as e:
+            logger.error(f"❌ Error analyzing team composition: {e}")
+            return {}
+    
+    def _identify_key_players(self, team_id: int) -> List[int]:
+        """Identify key players in the team based on historical data."""
+        # Placeholder implementation
+        return [1, 2, 3]  # Example player IDs
+    
+    def _assess_tactical_advantage(self, team_id: int, match_context: Dict[str, Any]) -> str:
+        """Assess the tactical advantage of the team in the given match context."""
+        # Placeholder implementation
+        return "Neutral"  # Neutral, Advantage, or Disadvantage
+    
+    def analyze_weather_impact(self, weather_data: Dict[str, Any]):
+        """
+        Analyze the impact of weather conditions on the match outcome.
+        
+        Args:
+            weather_data: Weather data for the match
+        
+        Returns:
+            Impact assessment report
+        """
+        try:
+            # Placeholder for weather impact analysis
+            report = {
+                'temperature_impact': self._assess_temperature_impact(weather_data.get('temperature')),
+                'humidity_impact': self._assess_humidity_impact(weather_data.get('humidity')),
+                'wind_speed_impact': self._assess_wind_speed_impact(weather_data.get('wind_speed'))
+            }
+            
+            return report
+        
+        except Exception as e:
+            logger.error(f"❌ Error analyzing weather impact: {e}")
+            return {}
+    
+    def _assess_temperature_impact(self, temperature: Optional[float]) -> str:
+        """Assess the impact of temperature on the match outcome."""
+        # Placeholder implementation
+        if temperature is None:
+            return "No data"
+        elif temperature > 30:
+            return "Negative"
+        elif temperature < 10:
+            return "Positive"
+        else:
+            return "Neutral"
+    
+    def _assess_humidity_impact(self, humidity: Optional[float]) -> str:
+        """Assess the impact of humidity on the match outcome."""
+        # Placeholder implementation
+        if humidity is None:
+            return "No data"
+        elif humidity > 70:
+            return "Negative"
+        elif humidity < 30:
+            return "Positive"
+        else:
+            return "Neutral"
+    
+    def _assess_wind_speed_impact(self, wind_speed: Optional[float]) -> str:
+        """Assess the impact of wind speed on the match outcome."""
+        # Placeholder implementation
+        if wind_speed is None:
+            return "No data"
+        elif wind_speed > 20:
+            return "Negative"
+        elif wind_speed < 5:
+            return "Positive"
+        else:
+            return "Neutral"
+    
+    def _retrain_model(self, alert: Any) -> None:
+        """Callback for retraining model when performance degrades"""
+        try:
+            logger.warning(f"Initiating model retraining due to alert: {alert.message}")
+            
+            # Get latest training data
+            historical_data = self._get_historical_data(days=180)  # Last 6 months
+            
+            # First retrain calibrators
+            if self.calibrators:
+                self.train_calibrator(historical_data)
+            
+            # Then retrain SMOTE if enabled
+            if self.smote_balancer and self.config.get('use_smote_balancing'):
+                X_balanced, y_balanced = self.prepare_balanced_training_data(historical_data)
+                
+                if len(X_balanced) > 0:
+                    logger.info(f"Retraining with {len(X_balanced)} balanced samples")
+                else:
+                    logger.error("No balanced data available for retraining")
+            
+            logger.info("✅ Model retraining completed")
+            
+        except Exception as e:
+            logger.error(f"❌ Error during model retraining: {e}")
+        
+    def _get_historical_data(self, days: int = 180) -> List[Dict[str, Any]]:
+        """Get historical prediction data for retraining"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
+            
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT home_team_id, away_team_id, league_id, 
+                       predicted_outcome, home_win_prob, draw_prob, away_win_prob, 
+                       actual_outcome, confidence 
+                FROM predictions
+                WHERE timestamp >= ? AND actual_outcome IS NOT NULL
+            ''', (cutoff_date,))
+            
+            results = cursor.fetchall()
+            conn.close()
+            
+            historical_data = []
+            for row in results:
+                historical_data.append({
+                    'home_team_id': row[0],
+                    'away_team_id': row[1],
+                    'league_id': row[2],
+                    'probabilities': {
+                        MatchOutcome.HOME_WIN.value: row[4],
+                        MatchOutcome.DRAW.value: row[5],
+                        MatchOutcome.AWAY_WIN.value: row[6]
+                    },
+                    'actual_outcome': row[7],
+                    'confidence': row[8]
+                })
+            
+            return historical_data
+            
+        except Exception as e:
+            logger.error(f"Error getting historical data: {e}")
+            return []
+    
+    def update_match_result(self, prediction_id: str, actual_outcome: str, match_data: Optional[Dict[str, Any]] = None) -> None:
+        """
+        Update monitoring metrics with actual match result.
+        
+        Args:
+            prediction_id: ID of the prediction
+            actual_outcome: Actual match outcome (e.g., 'home_win', 'draw', 'away_win')
+            match_data: Additional match data
+        """
+        try:
+            if not self.config.get('monitoring_enabled', True):
+                return
+            
+            # Update real-time monitor
+            self.rt_monitor.update_actual_result(
+                prediction_id=prediction_id,
+                actual_result={
+                    'outcome': actual_outcome,
+                    'match_data': match_data
+                }
+            )
+            
+            # Get prediction from database
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT home_team_id, away_team_id, league_id,
+                       predicted_outcome, home_win_prob, draw_prob, away_win_prob,
+                       confidence, calibrated
+                FROM predictions 
+                WHERE prediction_id = ?
+            ''', (prediction_id,))
+            
+            row = cursor.fetchone()
+            
+            if row:
+                # Update prediction record
+                cursor.execute('''
+                    UPDATE predictions
+                    SET actual_outcome = ?, is_correct = ?
+                    WHERE prediction_id = ?
+                ''', (
+                    actual_outcome,
+                    row[3] == actual_outcome,  # predicted_outcome == actual_outcome
+                    prediction_id
+                ))
+                conn.commit()
+                
+                # Log metrics
+                if self.perf_monitor:
+                    # Calculate prediction accuracy
+                    is_correct = (row[3] == actual_outcome)
+                    confidence = row[7]
+                    calibrated = row[8]
+                    
+                    # Log accuracy metric
+                    self.perf_monitor.log_metric(PerformanceMetric(
+                        timestamp=datetime.now(),
+                        metric_name='accuracy',
+                        metric_value=float(is_correct),
+                        model_version='advanced_1x2',
+                        data_source='production',
+                        additional_info={
+                            'prediction_id': prediction_id,
+                            'calibrated': calibrated,
+                            'confidence': confidence
+                        }
+                    ))
+                    
+                    # Calculate and log Brier score
+                    actual_probs = [0.0, 0.0, 0.0]  # [home, draw, away]
+                    outcome_idx = {
+                        MatchOutcome.HOME_WIN.value: 0,
+                        MatchOutcome.DRAW.value: 1,
+                        MatchOutcome.AWAY_WIN.value: 2
+                    }.get(actual_outcome, 0)
+                    actual_probs[outcome_idx] = 1.0
+                    
+                    pred_probs = [row[4], row[5], row[6]]  # [home_win_prob, draw_prob, away_win_prob]
+                    brier_score = sum((pred_probs[i] - actual_probs[i])**2 for i in range(3)) / 3
+                    
+                    self.perf_monitor.log_metric(PerformanceMetric(
+                        timestamp=datetime.now(),
+                        metric_name='brier_score',
+                        metric_value=float(brier_score),
+                        model_version='advanced_1x2',
+                        data_source='production',
+                        additional_info={
+                            'prediction_id': prediction_id,
+                            'calibrated': calibrated
+                        }
+                    ))
+                    
+                    # Log prediction confidence calibration
+                    if confidence is not None:
+                        calibration_error = abs(confidence - float(is_correct))
+                        self.perf_monitor.log_metric(PerformanceMetric(
+                            timestamp=datetime.now(),
+                            metric_name='confidence_calibration',
+                            metric_value=1.0 - calibration_error,
+                            model_version='advanced_1x2',
+                            data_source='production',
+                            additional_info={
+                                'prediction_id': prediction_id,
+                                'raw_error': calibration_error
+                            }
+                        ))
+            
+            conn.close()
+            
+        except Exception as e:
+            logger.error(f"❌ Error updating match result: {e}")
+            logger.debug(f"Detailed error: {str(e)}", exc_info=True)
+    
+    def predict_match(
+        self, 
+        home_team_id: int, 
+        away_team_id: int, 
+        match_id: int = None,
+        weather_data: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Make a complete match prediction with all enhancements
+        
+        Args:
+            home_team_id: ID of home team
+            away_team_id: ID of away team
+            match_id: Optional match ID
+            weather_data: Optional weather data
+            
+        Returns:
+            Complete prediction with all analysis
+        """
+        try:
+            # Get base prediction from ensemble
+            base_prediction = self._get_base_prediction(home_team_id, away_team_id)
+            
+            # Prepare team data
+            team_data = {
+                'home_team_id': home_team_id,
+                'away_team_id': away_team_id,
+                'match_id': match_id,
+                'home_team_name': self._get_team_name(home_team_id),
+                'away_team_name': self._get_team_name(away_team_id)
+            }
+            
+            # Enrich prediction with all additional analysis
+            enriched_prediction = self.response_enricher.enrich_prediction(
+                base_prediction, team_data, weather_data
+            )
+            
+            return enriched_prediction
+            
+        except Exception as e:
+            logger.error(f"Error in advanced prediction: {e}")
+            return self._get_fallback_prediction()
+    
+    def predict_match_formatted(
+        self, 
+        home_team_id: int, 
+        away_team_id: int, 
+        match_id: int = None,
+        weather_data: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Make a prediction and format it for dashboard presentation
+        """
+        try:
+            # Get enriched prediction
+            prediction = self.predict_match(home_team_id, away_team_id, match_id, weather_data)
+            
+            # Prepare team data
+            team_data = {
+                'home_team_id': home_team_id,
+                'away_team_id': away_team_id,
+                'home_team_name': self._get_team_name(home_team_id),
+                'away_team_name': self._get_team_name(away_team_id)
+            }
+            
+            # Format for presentation
+            return self.response_enricher.format_for_presentation(prediction, team_data)
+            
+        except Exception as e:
+            logger.error(f"Error in formatted prediction: {e}")
+            return {"error": str(e)}
+    
+    def _get_base_prediction(self, home_team_id: int, away_team_id: int) -> Dict[str, Any]:
+        """Get base prediction from ensemble model"""
+        # TODO: Implement actual ensemble prediction
+        # For now return dummy data
         return {
-            'advanced_1x2_system': 'operational',
-            'version': '2.0',
-            'features': {
-                'enhanced_match_winner': True,
-                'probability_calibration': self.calibrator is not None,
-                'smote_balancing': self.smote_balancer is not None,
-                'performance_monitoring': self.config.get('monitoring_enabled', False),
-                'platt_scaling': self.config.get('use_platt_scaling', False),
-                'class_balancing': self.config.get('use_smote_balancing', False)
-            },
-            'calibrator_status': {
-                'initialized': self.calibrator is not None,
-                'fitted': self.calibrator.is_fitted if self.calibrator else False,
-                'method': self.config.get('calibration_method', 'platt')
-            },
-            'smote_status': {
-                'initialized': self.smote_balancer is not None,
-                'fitted': self.smote_balancer.is_fitted if self.smote_balancer else False,
-                'method': self.config.get('smote_method', 'smote')
-            },
-            'monitoring': {
-                'database_path': self.db_path,
-                'enabled': self.config.get('monitoring_enabled', False)
-            },
-            'timestamp': datetime.now().isoformat()
+            'prob_1': 0.45,
+            'prob_X': 0.25,
+            'prob_2': 0.30,
+            'confidence': 0.7
         }
-
-def create_advanced_1x2_system(config: Optional[Dict[str, Any]] = None) -> Advanced1X2System:
-    """
-    Factory function to create an Advanced 1X2 System.
     
-    Args:
-        config: Optional configuration dictionary
-        
-    Returns:
-        Configured Advanced1X2System instance
-    """
-    default_config = {
-        'use_platt_scaling': True,
-        'use_smote_balancing': True,
-        'use_performance_monitoring': True,
-        'calibration_method': 'platt',
-        'smote_method': 'smote',
-        'monitoring_enabled': True
-    }
+    def _get_team_name(self, team_id: int) -> str:
+        """Get team name from ID"""
+        # TODO: Implement actual team name lookup
+        return f"Team {team_id}"
     
-    if config:
-        default_config.update(config)
-    
-    return Advanced1X2System(default_config)
-
-if __name__ == "__main__":
-    # Example usage and testing
-    logging.basicConfig(level=logging.INFO)
-    
-    print("🚀 Advanced 1X2 Prediction System - Priority 2 Implementation")
-    print("=" * 60)
-    
-    # Create system
-    system = create_advanced_1x2_system()
-    
-    # Check status
-    status = system.get_system_status()
-    print("\n📊 System Status:")
-    for key, value in status.items():
-        print(f"   {key}: {value}")
-    
-    # Test prediction
-    print("\n🔮 Testing Advanced Prediction...")
-    try:
-        result = system.predict_match_advanced(
-            home_team_id=33,  # Manchester United
-            away_team_id=40,  # Liverpool
-            league_id=39,     # Premier League
-            use_calibration=True
-        )
-        
-        print("✅ Advanced prediction completed!")
-        print(f"   Prediction ID: {result.get('prediction_id')}")
-        print(f"   Enhanced system: {result.get('system_info', {}).get('enhanced_system')}")
-        print(f"   Calibration enabled: {result.get('system_info', {}).get('calibration_enabled')}")
-        
-    except Exception as e:
-        print(f"❌ Error: {e}")
-    
-    print("\n🎉 Advanced 1X2 System Integration Complete!")
+    def _get_fallback_prediction(self) -> Dict[str, Any]:
+        """Get fallback prediction for error cases"""
+        return {
+            "prediction": {
+                "home_win_probability": 0.45,
+                "draw_probability": 0.25,
+                "away_win_probability": 0.30,
+                "confidence": 0.5,
+                "calibrated_probabilities": {
+                    "home_win": 0.45,
+                    "draw": 0.25,
+                    "away_win": 0.30
+                }
+            },
+            "system_info": {
+                "version": "2.0.0",
+                "timestamp": datetime.now().isoformat(),
+                "enhanced_system": False,
+                "calibration_enabled": False,
+                "contextual_analysis_enabled": False
+            }
+        }

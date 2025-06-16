@@ -1,4 +1,5 @@
 import tensorflow as tf
+import keras
 from keras import Model, Sequential, utils
 from keras.layers import Dense, Dropout, BatchNormalization, LeakyReLU, Input, Add, Activation
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard

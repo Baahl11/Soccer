@@ -13,6 +13,10 @@ References:
 import numpy as np
 import pandas as pd
 import logging
+import json
+import gc
+import glob
+from typing import Generator
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -23,6 +27,8 @@ import os
 from datetime import datetime
 import matplotlib.pyplot as plt
 from corner_data_collector import FormationDataCollector
+from time_series_cross_validation import TimeSeriesValidator
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -31,22 +37,26 @@ def load_corner_training_data(filepath: Optional[str] = None) -> pd.DataFrame:
     Load training data for corner predictions.
     
     Args:
-        filepath: Optional path to data file. If None, uses default path.
+        filepath: Optional path to data file. If None, uses latest sample data.
         
     Returns:
         DataFrame with training data
     """
     try:
-        # If filepath provided, use it, otherwise use default
+        # If filepath provided, use it, otherwise find most recent sample data
         if filepath is None:
-            filepath = "data/corner_training_data.csv"
+            files = glob.glob("data/corners_training_data_SAMPLE_*.csv")
+            if files:
+                filepath = max(files, key=os.path.getctime)
+            else:
+                filepath = "data/corner_training_data.csv"
             
         if not os.path.exists(filepath):
             logger.error(f"Training data file not found: {filepath}")
             return pd.DataFrame()  # Return empty dataframe
             
         data = pd.read_csv(filepath)
-        logger.info(f"Loaded {len(data)} samples for corner model training")
+        logger.info(f"Loaded {len(data)} samples from {filepath}")
         return data
     except Exception as e:
         logger.error(f"Error loading corner training data: {e}")
@@ -164,36 +174,49 @@ def process_formation_features(data: pd.DataFrame) -> pd.DataFrame:
     
     return data
 
-def preprocess_corner_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def preprocess_corner_data(data: pd.DataFrame, batch_size: int = 1000) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Preprocesa datos incluyendo features de formación.
+    Preprocesa datos para el modelo de predicción de corners.
     
     Args:
         data: DataFrame con datos crudos
+        batch_size: Tamaño de los lotes para procesamiento
         
     Returns:
         X_train, X_test, y_train, y_test
     """
     try:
-        # Procesar features de formación
-        data = process_formation_features(data)
+        logger.info("Starting batch processing...")
         
-        # Features para el modelo
-        feature_columns = [
+        # Features básicas que deberían estar disponibles
+        base_features = [
             'home_team_id', 'away_team_id',
-            'home_formation_id', 'away_formation_id',
-            'home_wing_attack', 'home_high_press', 'home_possession',
-            'away_wing_attack', 'away_high_press', 'away_possession',
-            'formation_advantage'
+            'home_avg_corners_for', 'home_avg_corners_against',
+            'away_avg_corners_for', 'away_avg_corners_against',
+            'home_form_score', 'away_form_score',
+            'home_total_shots', 'away_total_shots',
+            'home_ball_possession', 'away_ball_possession',
+            'league_id'
         ]
         
         # Verificar columnas y manejar valores faltantes
-        for col in feature_columns:
+        for col in base_features:
             if col not in data.columns:
                 logger.warning(f"Columna {col} no encontrada, añadiendo con valores por defecto")
-                data[col] = 0
+                if 'form_score' in col:
+                    data[col] = 50  # valor medio para form_score
+                elif 'possession' in col:
+                    data[col] = 50  # valor medio para posesión
+                else:
+                    data[col] = 0
+        
+        # Features adicionales si están disponibles
+        additional_features = ['is_derby']
+        for col in additional_features:
+            if col in data.columns:
+                base_features.append(col)
                 
-        X = data[feature_columns].values
+        X = data[base_features].values
         y = data['total_corners'].values
         
         # Split train/test asegurando arrays numpy
@@ -204,7 +227,7 @@ def preprocess_corner_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray, 
         # Log dimensiones
         logger.info(f"Training data shape: {X_train.shape}")
         logger.info(f"Test data shape: {X_test.shape}")
-        logger.info(f"Features: {feature_columns}")
+        logger.info(f"Features used: {base_features}")
         
         return X_train, X_test, y_train, y_test
         
@@ -218,7 +241,8 @@ def train_random_forest_corners_model(
     X_train: np.ndarray,
     y_train: np.ndarray,
     params: Optional[Dict[str, Any]] = None,
-    tune_hyperparams: bool = False
+    tune_hyperparams: bool = False,
+    batch_size: int = 1000
 ) -> RandomForestRegressor:
     """
     Entrena un modelo Random Forest para predicción de corners con CV.
@@ -616,7 +640,7 @@ def train_voting_ensemble(league_ids: List[int] = [39, 140, 135, 78, 61], model_
         analyze_feature_importance(xgb_model, feature_names, "XGBoost")
         
         # Evaluar modelos
-        logger.info("\nEvaluating models...")
+        logger.info("\nEvaluating modelos...")
         metrics_rf = evaluate_corners_model(rf_model, X_test, y_test, "Random Forest")
         metrics_xgb = evaluate_corners_model(xgb_model, X_test, y_test, "XGBoost")
         
@@ -720,7 +744,342 @@ def cross_validate_ensemble(X: np.ndarray, y: np.ndarray, n_splits: int = 5) -> 
     
     return cv_results
 
+def train_ensemble_with_temporal_cv(
+    n_splits: int = 5,
+    gap: int = 10,
+    tune_hyperparams: bool = False,
+    output_dir: str = "models/ts_cv_ensemble"
+) -> Dict[str, Any]:
+    """
+    Entrena y evalúa el ensemble usando validación cruzada temporal.
+    
+    Args:
+        n_splits: Número de divisiones temporales
+        gap: Número de muestras a omitir entre conjuntos de entrenamiento y prueba
+        tune_hyperparams: Si se deben optimizar hiperparámetros
+        output_dir: Directorio para guardar modelos y resultados
+        
+    Returns:
+        Dict con resultados de validación
+    """
+    try:
+        # Cargar datos con fechas incluidas
+        logger.info("Loading and preparing data...")
+        data = load_corner_training_data()
+        data['date'] = pd.to_datetime(data['date'])
+        dates = np.array(data['date'].astype(np.int64) // 10**9)
+        
+        # Preparar features y target
+        feature_columns = [
+            'home_team_id', 'away_team_id', 'home_formation_id', 'away_formation_id',
+            'home_wing_attack', 'home_high_press', 'home_possession',
+            'away_wing_attack', 'away_high_press', 'away_possession',
+            'formation_advantage'
+        ]
+        X = data[feature_columns].values
+        y = data['total_corners'].values        # Función factory para crear modelo ensemble
+        def ensemble_factory(X_train, y_train):
+            # Entrenar RF de forma incremental
+            rf = train_random_forest_corners_model(
+                X_train, y_train,
+                tune_hyperparams=tune_hyperparams,
+                batch_size=1000
+            )
+            rf = train_model_incrementally(rf, X_train, y_train)
+            
+            # Entrenar XGBoost de forma incremental
+            xgb_model = train_xgboost_corners_model(
+                X_train, y_train,
+                tune_hyperparams=tune_hyperparams
+            )
+            xgb_model = train_model_incrementally(xgb_model, X_train, y_train)
+              # Crear y retornar ensemble dinámico
+            return DynamicWeightEnsemble(rf, xgb_model, window_size=10)
 
+        # Crear y configurar validador temporal
+        validator = TimeSeriesValidator(
+            n_splits=n_splits,
+            gap=gap,
+            verbose=True
+        )
+        
+        # Ejecutar validación cruzada
+        results = validator.validate(
+            X=X,
+            y=y,
+            dates=dates,
+            model_factory=ensemble_factory,
+            metrics=['mae', 'rmse', 'r2'],
+            save_models=True,
+            output_dir=output_dir
+        )
+        
+        # Analizar estabilidad temporal
+        stability_results = {
+            'rmse_stability': evaluate_temporal_stability(results, 'rmse'),
+            'mae_stability': evaluate_temporal_stability(results, 'mae'),
+            'r2_stability': evaluate_temporal_stability(results, 'r2')
+        }
+        
+        # Añadir resultados de estabilidad
+        results['stability_analysis'] = stability_results
+        
+        # Generar visualizaciones
+        validator.plot_results(output_dir=output_dir)
+        validator.plot_validation_scheme(
+            n_samples=len(X),
+            output_dir=output_dir
+        )
+        
+        # Guardar resultados completos
+        os.makedirs(output_dir, exist_ok=True)
+        with open(os.path.join(output_dir, 'temporal_cv_results.json'), 'w') as f:
+            json.dump(results, f, indent=2)
+        
+        return results
+        
+    except Exception as e:
+        logger.error(f"Error in temporal cross-validation: {e}")
+        raise
+
+def evaluate_temporal_stability(results: Dict[str, Any], metric: str = 'rmse') -> Dict[str, float]:
+    """
+    Evalúa la estabilidad temporal del modelo analizando la variación
+    de las métricas a lo largo del tiempo.
+    
+    Args:
+        results: Diccionario con resultados de validación temporal
+        metric: Métrica a analizar ('rmse', 'mae', 'r2')
+        
+    Returns:
+        Dict con métricas de estabilidad
+    """
+    try:
+        # Extraer valores de la métrica para cada fold temporal
+        values = np.array([fold[metric] for fold in results.get('fold_metrics', [])])
+        
+        if len(values) < 2:
+            logger.warning("Insufficient data for stability analysis")
+            return {}
+            
+        # Calcular métricas de estabilidad
+        stability_metrics = {
+            'temporal_variance': np.var(values),  # Varianza entre folds
+            'temporal_trend': np.polyfit(np.arange(len(values)), values, 1)[0],  # Tendencia lineal
+            'max_deviation': np.max(np.abs(values - np.mean(values))),  # Máxima desviación
+            'stability_score': 1 / (1 + np.std(values))  # Score de estabilidad (más alto = más estable)
+        }
+        
+        # Análisis de degradación
+        stability_metrics['degradation_rate'] = (values[-1] - values[0]) / len(values)
+        
+        # Logging de resultados
+        logger.info(f"\nTemporal Stability Analysis for {metric}:")
+        for name, value in stability_metrics.items():
+            logger.info(f"{name}: {value:.4f}")
+            
+        return stability_metrics
+        
+    except Exception as e:
+        logger.error(f"Error in stability analysis: {e}")
+        return {}
+
+class DynamicWeightEnsemble:
+    """
+    Ensemble con pesos dinámicos que se ajustan según el rendimiento reciente.
+    """
+    def __init__(self, rf_model, xgb_model, window_size=10):
+        self.rf_model = rf_model
+        self.xgb_model = xgb_model
+        self.window_size = window_size
+        self.rf_errors = []
+        self.xgb_errors = []
+        self.rf_weight = 0.55  # Peso inicial RF
+        self.xgb_weight = 0.45  # Peso inicial XGB
+        
+    def _update_weights(self):
+        """Actualiza los pesos basados en el error promedio reciente."""
+        if len(self.rf_errors) < self.window_size:
+            return
+            
+        # Calcular error promedio en la ventana reciente
+        rf_mean_error = np.mean(self.rf_errors[-self.window_size:])
+        xgb_mean_error = np.mean(self.xgb_errors[-self.window_size:])
+        
+        # Evitar división por cero
+        total_error = rf_mean_error + xgb_mean_error
+        if total_error == 0:
+            return
+            
+        # Actualizar pesos inversamente proporcional al error
+        self.rf_weight = xgb_mean_error / total_error
+        self.xgb_weight = rf_mean_error / total_error
+        
+        # Normalizar pesos
+        total_weight = self.rf_weight + self.xgb_weight
+        self.rf_weight /= total_weight
+        self.xgb_weight /= total_weight
+        
+        # Limpiar memoria histórica si excede el tamaño de ventana
+        if len(self.rf_errors) > self.window_size * 2:
+            self.rf_errors = self.rf_errors[-self.window_size:]
+            self.xgb_errors = self.xgb_errors[-self.window_size:]
+            gc.collect()  # Forzar liberación de memoria
+        
+        logger.info(f"Updated weights - RF: {self.rf_weight:.3f}, XGB: {self.xgb_weight:.3f}")
+        
+    def predict(self, X: np.ndarray, y_true: Optional[np.ndarray] = None) -> np.ndarray:
+        """
+        Realiza predicción con el ensemble y opcionalmente actualiza los pesos.
+        
+        Args:
+            X: Features para predicción
+            y_true: Valores reales para actualizar pesos (opcional)
+            
+        Returns:
+            Array con predicciones
+        """
+        # Procesar en lotes si el input es grande
+        if len(X) > 1000:
+            predictions = []
+            for i in range(0, len(X), 1000):
+                batch = X[i:i+1000]
+                rf_pred_batch = self.rf_model.predict(batch)
+                xgb_pred_batch = self.xgb_model.predict(batch)
+                pred_batch = self.rf_weight * rf_pred_batch + self.xgb_weight * xgb_pred_batch
+                predictions.append(pred_batch)
+                del rf_pred_batch, xgb_pred_batch, pred_batch
+                gc.collect()
+            return np.concatenate(predictions)
+            
+        # Para conjuntos pequeños, procesar todo junto
+        rf_pred = self.rf_model.predict(X)
+        xgb_pred = self.xgb_model.predict(X)
+        predictions = self.rf_weight * rf_pred + self.xgb_weight * xgb_pred
+        
+        # Si tenemos valores reales, actualizar errores y pesos
+        if y_true is not None:
+            self.rf_errors.extend(np.abs(rf_pred - y_true))
+            self.xgb_errors.extend(np.abs(xgb_pred - y_true))
+            self._update_weights()
+            
+            # Limpiar variables temporales
+            del rf_pred, xgb_pred
+            gc.collect()
+        
+        return predictions
+        
+    def get_current_weights(self) -> Dict[str, float]:
+        """Retorna los pesos actuales del ensemble."""
+        return {
+            'random_forest': self.rf_weight,
+            'xgboost': self.xgb_weight
+        }
+
+def plot_weight_evolution(results: Dict[str, Any], output_dir: str) -> None:
+    """
+    Visualiza la evolución de los pesos del ensemble a lo largo del tiempo.
+    
+    Args:
+        results: Diccionario con resultados que incluye pesos
+        output_dir: Directorio para guardar la visualización
+    """
+    try:
+        # Extraer pesos del ensemble a lo largo del tiempo
+        rf_weights = [fold.get('weights', {}).get('random_forest', 0.55) 
+                     for fold in results.get('fold_metrics', [])]
+        xgb_weights = [fold.get('weights', {}).get('xgboost', 0.45) 
+                      for fold in results.get('fold_metrics', [])]
+        
+        # Crear visualización
+        plt.figure(figsize=(10, 6))
+        x = range(len(rf_weights))
+        
+        plt.plot(x, rf_weights, 'b-', label='Random Forest', marker='o')
+        plt.plot(x, xgb_weights, 'r-', label='XGBoost', marker='s')
+        
+        plt.xlabel('Fold Temporal')
+        plt.ylabel('Peso del Modelo')
+        plt.title('Evolución de Pesos del Ensemble')
+        plt.grid(True)
+        plt.legend()
+        
+        # Guardar gráfico
+        os.makedirs(output_dir, exist_ok=True)
+        plt.savefig(os.path.join(output_dir, 'weight_evolution.png'))
+        logger.info(f"Weight evolution plot saved to {output_dir}/weight_evolution.png")
+        plt.close()
+        
+    except Exception as e:
+        logger.error(f"Error plotting weight evolution: {e}")
+
+def process_in_batches(data: pd.DataFrame, batch_size: int = 1000) -> Generator[pd.DataFrame, None, None]:
+    """
+    Procesa el DataFrame en lotes para optimizar memoria.
+    
+    Args:
+        data: DataFrame a procesar
+        batch_size: Tamaño de cada lote
+        
+    Yields:
+        Generator que produce lotes del DataFrame
+    """
+    num_batches = len(data) // batch_size + (1 if len(data) % batch_size != 0 else 0)
+    
+    for i in range(num_batches):
+        start_idx = i * batch_size
+        end_idx = min((i + 1) * batch_size, len(data))
+        
+        # Obtener lote
+        batch = data.iloc[start_idx:end_idx].copy()
+        
+        yield batch
+        
+        # Limpiar memoria explícitamente
+        del batch
+        gc.collect()
+
+def monitor_memory_usage(label: str = '', detailed: bool = False) -> Dict[str, float]:
+    """
+    Monitorea el uso de memoria actual con detalles opcionales.
+    
+    Args:
+        label: Etiqueta para identificar el punto de monitoreo
+        detailed: Si se debe incluir información detallada de memoria
+        
+    Returns:
+        Dict con métricas de memoria
+    """
+    try:
+        process = psutil.Process()
+        memory_info = process.memory_info()
+        
+        metrics = {
+            'rss': memory_info.rss / 1024 / 1024,  # Memoria RSS en MB
+            'vms': memory_info.vms / 1024 / 1024   # Memoria virtual en MB
+        }
+        
+        if detailed:
+            memory_maps = process.memory_maps()
+            metrics.update({
+                'shared': sum(m.shared for m in memory_maps) / 1024 / 1024,
+                'private': sum(m.private for m in memory_maps) / 1024 / 1024,
+                'peak': process.memory_info().peak_wset / 1024 / 1024
+            })
+            
+            # Información del recolector de basura
+            gc.collect()  # Forzar recolección
+            metrics['gc_objects'] = len(gc.get_objects())
+            metrics['gc_generations'] = [count for count in gc.get_count()]
+        
+        if label:
+            logger.info(f"Memory usage at {label}: {metrics['rss']:.2f} MB RSS")
+            
+        return metrics
+        
+    except Exception as e:
+        logger.error(f"Error monitoring memory: {e}")
+        return {'error': str(e)}
 
 if __name__ == '__main__':
     # Configurar logging
@@ -729,5 +1088,99 @@ if __name__ == '__main__':
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
     
-    # Entrenar modelos con datos de todas las ligas
-    results = train_voting_ensemble()
+    # Ejecutar validación cruzada temporal
+    logger.info("Starting temporal cross-validation for ensemble model...")
+    results = train_ensemble_with_temporal_cv(
+        n_splits=5,  # 5 divisiones temporales
+        gap=10,      # 10 partidos de separación 
+        tune_hyperparams=True  # Optimizar hiperparámetros
+    )
+    
+    # Mostrar resultados
+    logger.info("\nResults:")
+    for metric, values in results.items():
+        if metric not in ['train_size', 'test_size', 'train_start', 'train_end', 'test_start', 'test_end']:
+            mean_val = np.mean(values)
+            std_val = np.std(values)
+            logger.info(f"{metric}: {mean_val:.4f} ± {std_val:.4f}")
+
+def train_model_incrementally(
+    model: Any,
+    X: np.ndarray,
+    y: np.ndarray,
+    batch_size: int = 1000,
+    warm_start: bool = True,
+    monitor_memory: bool = True
+) -> Any:
+    """
+    Entrena un modelo de forma incremental por lotes para optimizar memoria.
+    
+    Args:
+        model: Modelo a entrenar (RF o XGBoost)
+        X: Features de entrenamiento
+        y: Target variable
+        batch_size: Tamaño de los lotes
+        warm_start: Si se debe usar warm start para entrenamiento incremental
+        monitor_memory: Si se debe monitorear el uso de memoria
+        
+    Returns:
+        Modelo entrenado
+    """
+    n_samples = X.shape[0]
+    n_batches = n_samples // batch_size + (1 if n_samples % batch_size > 0 else 0)
+    
+    logger.info(f"Training model incrementally with {n_batches} batches...")
+    
+    if monitor_memory:
+        initial_memory = monitor_memory_usage("Initial state", detailed=True)
+    
+    try:
+        for i in range(n_batches):
+            start_idx = i * batch_size
+            end_idx = min((i + 1) * batch_size, n_samples)
+            
+            # Obtener lote actual
+            X_batch = X[start_idx:end_idx]
+            y_batch = y[start_idx:end_idx]
+            
+            # Entrenar en el lote actual
+            if isinstance(model, RandomForestRegressor):
+                if i == 0 or not warm_start:
+                    model.fit(X_batch, y_batch)
+                else:
+                    # Añadir árboles adicionales
+                    additional_estimators = model.n_estimators
+                    model.n_estimators += additional_estimators
+                    model.fit(X_batch, y_batch)
+            else:
+                # Para XGBoost, usar xgb.train con actualización incremental
+                if i == 0:
+                    model.fit(X_batch, y_batch)
+                else:
+                    model.fit(X_batch, y_batch, xgb_model=model)
+            
+            # Monitorear memoria y limpiar
+            if monitor_memory:
+                batch_memory = monitor_memory_usage(f"After batch {i+1}/{n_batches}")
+                
+                # Si el uso de memoria es alto, forzar limpieza
+                if batch_memory['rss'] > initial_memory['rss'] * 1.5:
+                    logger.warning("High memory usage detected, forcing cleanup...")
+                    del X_batch, y_batch
+                    gc.collect()
+                    
+            # Logging de progreso
+            logger.info(f"Batch {i+1}/{n_batches} completed")
+        
+        return model
+        
+    except Exception as e:
+        logger.error(f"Error in incremental training: {e}")
+        raise
+    
+    finally:
+        # Limpieza final
+        gc.collect()
+        if monitor_memory:
+            final_memory = monitor_memory_usage("Final state", detailed=True)
+            logger.info(f"Memory change: {final_memory['rss'] - initial_memory['rss']:.2f} MB")

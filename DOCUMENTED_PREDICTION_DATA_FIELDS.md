@@ -99,6 +99,22 @@
 - best_bet_type (str)
 - period (str)
 
+## Fixture Statistics Analysis:
+- fixture_statistics: {available (bool), confidence_boost (float), goal_modifiers: {home, away} (float), comparative_analysis: {}, note (str)}
+- home_team_stats: {shots_per_game, shot_accuracy, possession_avg, disciplinary_risk} (float)
+- away_team_stats: {shots_per_game, shot_accuracy, possession_avg, disciplinary_risk} (float)
+- statistical_advantages: {shooting_advantage, possession_advantage, discipline_advantage} (str: 'home' or 'away')
+
+## Enhanced Team Statistics:
+- shots_per_game (float)
+- shots_on_target_per_game (float)
+- possession_percentage (float)
+- fouls_per_game (float)
+- goals_per_game (float)
+- goals_conceded_per_game (float)
+- passes_completed_per_game (float)
+- passes_attempted_per_game (float)
+
 ## Dashboard and Summary:
 - total_matches_today (int)
 - predictions_generated (int)

@@ -12,11 +12,12 @@ import os
 import hashlib
 import sys
 
-# Importar CacheManager para integración
+# Set up logger early
+logger = logging.getLogger(__name__)
+
+# Rest of the imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from cache_manager import CacheManager
-
-logger = logging.getLogger(__name__)
 
 # Instancia global de CacheManager - será inicializada por app.py
 _cache_manager = None
@@ -35,10 +36,10 @@ def get_cache_manager() -> Optional[CacheManager]:
 _api_instance = None
 
 def get_api_instance():
-    """Get or create the FootballAPI instance."""
+    """Get or create the ApiClient instance."""
     global _api_instance
     if _api_instance is None:
-        _api_instance = FootballAPI()
+        _api_instance = ApiClient()
     return _api_instance
 
 # Interface functions for app.py
@@ -123,14 +124,13 @@ def get_fixtures_filtered(
             
         fixture = fix.get('fixture', {})
         teams = fix.get('teams', {})
-        
         result.append({
             'fixture_id': fixture.get('id'),
             'date': fixture.get('date'),
-            'home_team': teams.get('home', {}).get('name'),
-            'away_team': teams.get('away', {}).get('name'),
+            'home_team': teams.get('home', {}).get('name', ''),
+            'away_team': teams.get('away', {}).get('name', ''),
             'home_team_id': teams.get('home', {}).get('id'),
-            'away_team_id': teams.get('away', {}).get('id'),
+            'away_team_id': teams.get('away', {}).get('id')
         })
     
     return result
@@ -168,8 +168,7 @@ def get_team_statistics(team_id: int, league_id: int, season: str) -> Dict[str, 
         
         # Obtener estadísticas del equipo
         stats = api.get_team_stats(team_id)
-        
-        # Si no hay datos, retornar valores predeterminados
+          # Si no hay datos, retornar valores predeterminados
         if not stats:
             return {
                 'corners_per_game': 5.2,
@@ -177,7 +176,16 @@ def get_team_statistics(team_id: int, league_id: int, season: str) -> Dict[str, 
                 'home_corners_for': 5.5,
                 'away_corners_against': 4.5,
                 'home_corners_against': 5.0,
-                'away_corners_for': 4.5
+                'away_corners_for': 4.5,
+                # Add enhanced fixture statistics defaults
+                'shots_per_game': 12.5,
+                'shots_on_target_per_game': 4.5,
+                'possession_percentage': 50.0,
+                'fouls_per_game': 11.5,
+                'goals_per_game': 1.2,
+                'goals_conceded_per_game': 1.1,
+                'passes_completed_per_game': 400,
+                'passes_attempted_per_game': 500
             }
             
         # Calcular estadísticas de corners
@@ -189,8 +197,7 @@ def get_team_statistics(team_id: int, league_id: int, season: str) -> Dict[str, 
         total_yellows = stats.get('cards', {}).get('yellow', {}).get('total', total_matches * 2)
         total_reds = stats.get('cards', {}).get('red', {}).get('total', total_matches * 0.1)
         cards_per_game = (total_yellows + total_reds) / max(1, total_matches)
-        
-        # Separar estadísticas de local/visitante
+          # Separar estadísticas de local/visitante
         home_matches = stats.get('fixtures', {}).get('played', {}).get('home', total_matches/2)
         away_matches = stats.get('fixtures', {}).get('played', {}).get('away', total_matches/2)
         
@@ -203,7 +210,16 @@ def get_team_statistics(team_id: int, league_id: int, season: str) -> Dict[str, 
             'home_corners_for': home_corners / max(1, home_matches),
             'away_corners_against': away_corners / max(1, away_matches),
             'home_corners_against': (total_corners - home_corners) / max(1, away_matches),
-            'away_corners_for': (total_corners - away_corners) / max(1, home_matches)
+            'away_corners_for': (total_corners - away_corners) / max(1, home_matches),
+            # Add enhanced fixture statistics
+            'shots_per_game': stats.get('goals', {}).get('for', {}).get('total', total_matches * 1.2) * 10 / max(1, total_matches),  # Estimate shots from goals
+            'shots_on_target_per_game': stats.get('goals', {}).get('for', {}).get('total', total_matches * 1.2) * 4 / max(1, total_matches),  # Estimate SOT
+            'possession_percentage': 50.0,  # Default, would need live data
+            'fouls_per_game': total_matches * 11.5 / max(1, total_matches),  # League average estimate
+            'goals_per_game': stats.get('goals', {}).get('for', {}).get('total', total_matches * 1.2) / max(1, total_matches),
+            'goals_conceded_per_game': stats.get('goals', {}).get('against', {}).get('total', total_matches * 1.1) / max(1, total_matches),
+            'passes_completed_per_game': 400,  # Estimate, would need detailed match data
+            'passes_attempted_per_game': 500   # Estimate, would need detailed match data
         }
         
     except Exception as e:
@@ -214,7 +230,16 @@ def get_team_statistics(team_id: int, league_id: int, season: str) -> Dict[str, 
             'home_corners_for': 5.5,
             'away_corners_against': 4.5,
             'home_corners_against': 5.0,
-            'away_corners_for': 4.5
+            'away_corners_for': 4.5,
+            # Add enhanced fixture statistics defaults
+            'shots_per_game': 12.5,
+            'shots_on_target_per_game': 4.5,
+            'possession_percentage': 50.0,
+            'fouls_per_game': 11.5,
+            'goals_per_game': 1.2,
+            'goals_conceded_per_game': 1.1,
+            'passes_completed_per_game': 400,
+            'passes_attempted_per_game': 500
         }
 
 class DataCache:
@@ -429,14 +454,33 @@ class DataCache:
             
             return count >= expected_matches.get(league_id, 0) * 0.9
 
-class FootballAPI:
+from typing import Dict, Any, List, Optional
+import os
+import time
+import logging
+import requests
+import json
+from datetime import datetime, timedelta
+import pandas as pd
+from pathlib import Path
+import re
+import sqlite3
+from cache_manager import CacheManager
+
+logger = logging.getLogger(__name__)
+
+class ApiClient:
     BASE_URL = "https://v3.football.api-sports.io"
     API_KEY = os.getenv("API_FOOTBALL_KEY")
     RATE_LIMIT = 30  # requests per minute
-    
+
     def __init__(self):
         self.session = requests.Session()
-        api_key = self.API_KEY or ""
+        api_key = self.API_KEY
+        
+        if not api_key:
+            raise ValueError("API_FOOTBALL_KEY no está configurada en las variables de entorno")
+            
         self.session.headers = {
             'x-rapidapi-host': 'v3.football.api-sports.io',
             'x-rapidapi-key': api_key
@@ -444,70 +488,90 @@ class FootballAPI:
         self.cache = get_cache_manager()
         self.last_request_time = time.time()
         self.request_times = []  # Track last minute of requests
-        
-    def _respect_rate_limit(self):
-        """Ensure we respect the requests per minute limit."""
-        min_delay = 60.0 / self.RATE_LIMIT  # minimum time between requests in seconds
-        current_time = time.time()
-
-        # Clean up old requests (older than 1 minute)
-        self.request_times = [t for t in self.request_times if current_time - t < 60]
-
-        # Calculate time since last request
-        if self.request_times:
-            time_since_last_request = current_time - self.request_times[-1]
-            if time_since_last_request < min_delay:
-                time_to_wait = min_delay - time_since_last_request
-                time.sleep(time_to_wait)
-
-        # If we have too many requests, wait until we're under the limit
-        if len(self.request_times) >= self.RATE_LIMIT:
-            oldest_request = self.request_times[0]
-            wait_time = 60 - (current_time - oldest_request)
-            if wait_time > 0:
-                time.sleep(wait_time)
-
-        # Add current request timestamp
-        current_time = time.time()
-        self.request_times.append(current_time)
-        self.last_request_time = current_time
-
-    # Alias para mantener compatibilidad con las pruebas
-    def get_team_statistics(self, team_id: int, league_id: int, season: str) -> Dict[str, Any]:
-        """Alias para get_team_stats para mantener compatibilidad."""
-        return self.get_team_stats(team_id)
     
+    def _respect_rate_limit(self):
+        """Ensure we respect the requests per minute limit with safety margin."""
+        # Use a conservative limit (80% of actual limit)
+        effective_limit = int(self.RATE_LIMIT * 0.8)
+        min_delay = 60.0 / effective_limit
+        current_time = time.time()
+        
+        # Clean up old requests (more than 60 seconds old)
+        self.request_times = [t for t in self.request_times if current_time - t < 60]
+        
+        # If we're near the limit, wait longer
+        if len(self.request_times) >= (effective_limit - 2):
+            wait_time = 60 - (current_time - self.request_times[0]) + 1
+            if wait_time > 0:
+                logger.info(f"Approaching rate limit, waiting {wait_time:.2f} seconds")
+                time.sleep(wait_time)
+                current_time = time.time()
+                self.request_times = []
+        
+        # Ensure minimum delay between requests
+        if self.request_times:
+            time_since_last = current_time - self.request_times[-1]
+            if time_since_last < min_delay:
+                time.sleep(min_delay - time_since_last)
+        
+        # Record this request
+        self.request_times.append(time.time())
+        self.last_request_time = self.request_times[-1]    
+    def get_team_statistics(self, team_id: int, league_id: int = None, season: str = None) -> Dict[str, Any]:
+        """Get team statistics from the API."""
+        try:
+            params = {'team': team_id}
+            if league_id:
+                params['league'] = league_id
+            if season:
+                params['season'] = season
+                
+            return self._make_request('teams/statistics', params)
+        except Exception as e:
+            logger.error(f"Error getting team stats for team {team_id}: {e}")
+            return {}
+
     def _make_request(self, endpoint: str, params: Optional[Dict[str, Any]] = None, 
                      max_age_hours: int = 24, cache_bypass: bool = False) -> Dict[str, Any]:
-        """Hace una petición a la API usando el caché"""
+        """Make an API request using cache when available"""
         params = params or {}
+        max_retries = 3
+        retry_delay = 2  # base seconds between retries
         
-        # Intentar obtener del caché primero, a menos que se omita
+        # Try to get from cache first, unless bypassed
         if not cache_bypass and self.cache:
-            # Crear una clave única basada en el endpoint y los parámetros
             cache_key = f"{endpoint}_{hash(frozenset(params.items()))}"
             cached_data = self.cache.get_data(cache_key)
             if cached_data is not None:
-                logger.info(f"Usando datos en caché para {endpoint}")
+                logger.info(f"Using cached data for {endpoint}")
                 return cached_data
         
-        # Si no está en caché o se omite, respetar el rate limit
-        self._respect_rate_limit()
-            
-        # Hacer la petición
-        response = self.session.get(f"{self.BASE_URL}/{endpoint}", params=params)
+        for attempt in range(max_retries):
+            try:
+                # If not in cache or bypassed, respect rate limit
+                self._respect_rate_limit()
+                
+                # Make the request
+                response = self.session.get(f"{self.BASE_URL}/{endpoint}", params=params)
+                response.raise_for_status()
+                  # Parse and return the response
+                data = response.json()
+                if isinstance(data, dict):
+                    # Store in cache if successful
+                    if self.cache:
+                        self.cache.set_data(cache_key, data, max_age_hours * 3600)
+                    return data
+                else:
+                    raise ValueError("Invalid response format")
+                    
+            except Exception as e:
+                if attempt < max_retries - 1:  # Don't sleep on last attempt
+                    time.sleep(retry_delay * (attempt + 1))  # Exponential backoff
+                else:
+                    logger.error(f"Error making request to {endpoint}: {e}")
+                    return {"errors": str(e)}
         
-        if response.status_code == 200:
-            data = response.json()
-            # Guardar en caché
-            if self.cache:
-                # Usar la misma clave para guardar los datos
-                cache_key = f"{endpoint}_{hash(frozenset(params.items()))}"
-                self.cache.set_data(cache_key, data)
-            return data
-        else:
-            logger.error(f"Error en petición a {endpoint}: {response.status_code}")
-            return {"response": []}
+        return {"errors": "Max retries exceeded"}
     
     def get_fixtures(self, league_id: int, season: int) -> List[Dict[str, Any]]:
         """Obtiene partidos para una liga y temporada."""
@@ -721,7 +785,7 @@ class FootballAPI:
         
         data = self._make_request('fixtures/statistics', params)
         return data.get('response', [])
-    
+
     def _process_team_stats(self, team_stats: Dict[str, Any]) -> Dict[str, float]:
         """Procesa las estadísticas de un equipo."""
         stats_dict = self._get_default_stats()
@@ -745,39 +809,69 @@ class FootballAPI:
             'goalkeeper saves': 'goalkeeper_saves',
             'total passes': 'total_passes',
             'passes accurate': 'passes_accurate',
-            'passes %': 'passes_percentage'
+            'passes %': 'passes_percentage',
+            'shots on target': 'shots_on_goal'  # Additional mapping for alternative API key
         }
-        
-        for stat in team_stats.get('statistics', []):
+
+        # Get statistics from team_stats
+        team_statistics = team_stats.get('statistics', [])
+        if not team_statistics:
+            logger.warning("No statistics found in team_stats")
+            return stats_dict
+
+        # Process each statistic
+        for stat in team_statistics:
             api_key = stat.get('type', '').lower()
             our_key = key_mapping.get(api_key)
             
             if not our_key:
-                continue  # Ignorar estadísticas que no reconocemos
+                continue  # Skip unrecognized statistics
                 
             value = stat.get('value', 0)
             
-            # Convertir valores a float
+            # Convert value to float
             try:
+                # Handle percentage strings (e.g. "65.5%")
                 if isinstance(value, str):
+                    value = value.strip()
                     if '%' in value:
                         value = float(value.replace('%', ''))
-                    else:
+                    elif value.replace('.', '').isdigit():  # Handle decimal strings
                         value = float(value)
+                    else:
+                        # Try to extract any numeric part
+                        import re
+                        numbers = re.findall(r'[\d.]+', value)
+                        value = float(numbers[0]) if numbers else 0.0
                 elif value is None:
                     value = 0.0
                 else:
-                    value = float(value)  # Convertir cualquier otro tipo a float
-                    
-                stats_dict[our_key] = value  # Asignar el valor ya convertido a float
-            except (ValueError, TypeError):
-                stats_dict[our_key] = 0.0  # Valor por defecto si hay error de conversión
-        
+                    value = float(value)  # Convert any other numeric type to float
+            except (ValueError, TypeError, IndexError):
+                # On any conversion error, use 0.0 as fallback
+                value = 0.0
+                logger.debug(f"Could not convert value '{value}' for {api_key} to float")
+                stats_dict[our_key] = value
+            
         return stats_dict
-
-    def get_team_stats(self, team_id: int) -> Dict[str, Any]:
-        """Get team statistics."""
+        
+    def get_team_stats(self, team_id: int, league_id: Optional[int] = None, season: Optional[int] = None) -> Dict[str, Any]:
+        """Get team statistics.
+        
+        Args:
+            team_id: ID of the team
+            league_id: Optional ID of the league to filter stats
+            season: Optional season year to filter stats
+            
+        Returns:
+            Dictionary containing team statistics
+        """
         params = {'team': team_id}
+        if league_id is not None:
+            params['league'] = league_id
+        if season is not None:
+            params['season'] = season
+            
         data = self._make_request('teams/statistics', params)
         
         # Handle both list and dict responses
@@ -787,7 +881,7 @@ class FootballAPI:
         elif isinstance(stats, list):
             stats = {}
             
-        # Procesar estadísticas para asegurar que tenemos todos los campos requeridos
+        # Process statistics to ensure we have all required fields
         fixtures_data = stats.get('fixtures', {})
         if isinstance(fixtures_data, list) and fixtures_data:
             fixtures_data = fixtures_data[0]
@@ -1002,6 +1096,41 @@ class FootballAPI:
         min_fixtures = expected_matches.get(league_id, 0) * 0.9
         return len(fixtures) >= min_fixtures
         
+    def get_team_info(self, team_id: int) -> Dict[str, Any]:
+        """Get team information by team ID.
+        
+        Args:
+            team_id: The ID of the team
+            
+        Returns:
+            Dictionary containing team information including name
+        """
+        params = {'id': team_id}
+        return self._make_request('teams', params)
+
+    def get_multiple_teams_info(self, team_ids: List[int]) -> Dict[int, str]:
+        """Get team names for multiple team IDs efficiently.
+        
+        Args:
+            team_ids: List of team IDs
+            
+        Returns:
+            Dictionary mapping team_id to team_name
+        """
+        team_names = {}
+        for team_id in team_ids:
+            try:
+                team_data = self.get_team_info(team_id)
+                if team_data and 'response' in team_data and team_data['response']:
+                    team_info = team_data['response'][0]
+                    team_names[team_id] = team_info.get('team', {}).get('name', f'Team {team_id}')
+                else:
+                    team_names[team_id] = f'Team {team_id}'
+            except Exception as e:
+                logger.warning(f"Error getting team name for ID {team_id}: {e}")
+                team_names[team_id] = f'Team {team_id}'
+        return team_names
+
 def get_upcoming_fixtures(days_ahead: int = 3) -> List[Dict[str, Any]]:
     """
     Get upcoming fixture data for the specified number of days ahead.
@@ -1041,4 +1170,8 @@ def get_upcoming_fixtures(days_ahead: int = 3) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Error getting upcoming fixtures: {e}")
         return []
+
+# Backward compatibility: Make FootballAPI an alias to ApiClient
+# This ensures all existing code that uses FootballAPI will work with the new ApiClient
+FootballAPI = ApiClient
 

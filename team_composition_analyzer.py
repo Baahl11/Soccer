@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 import logging
 from sklearn.preprocessing import StandardScaler
 import json
+from weather_impact_analyzer import WeatherImpactAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,13 @@ class LineupChange:
 
 class TeamCompositionAnalyzer:
     """
-    Analyzes team composition changes and their impact on performance
+    Analyzes team composition changes and their impact on performance.
+    Includes analysis of:
+    - Team stability and rotation
+    - Weather impact on tactics
+    - Player availability and injuries
+    - Formation flexibility
+    - Squad depth and quality
     """
     
     def __init__(self, db_connection=None):
@@ -55,6 +62,8 @@ class TeamCompositionAnalyzer:
             'midfielder': 1.2,
             'forward': 1.3
         }
+        self.logger = logging.getLogger(__name__)
+        self.weather_analyzer = WeatherImpactAnalyzer()
         
     def analyze_lineup_stability(self, team_id: int, matches_window: int = 10) -> Dict[str, float]:
         """
@@ -140,7 +149,7 @@ class TeamCompositionAnalyzer:
             home_stability = self.analyze_lineup_stability(home_team_id)
             away_stability = self.analyze_lineup_stability(away_team_id)
             
-            home_changes = self.analyze_composition_changes(home_team_id, 0)  # 0 for upcoming
+            home_changes = self.analyze_composition_changes(home_team_id, 0) # 0 for upcoming
             away_changes = self.analyze_composition_changes(away_team_id, 0)
             
             features = {
@@ -175,6 +184,177 @@ class TeamCompositionAnalyzer:
         except Exception as e:
             logger.error(f"Error generating composition features: {e}")
             return self._default_composition_features()
+    
+    def analyze_team_context(self, team_id: int, match_id: int, 
+                           weather_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Comprehensive analysis of team context including weather, injuries, 
+        suspensions and tactical factors.
+        """
+        try:
+            # Get team composition metrics
+            stability_metrics = self.analyze_lineup_stability(team_id)
+            composition_risk = self._predict_lineup_changes(team_id, match_id)
+            
+            # Analyze weather impact if data available
+            weather_impact = {}
+            if weather_data:
+                team_style = self._get_team_tactical_style(team_id)
+                weather_impact = self.weather_analyzer.analyze_weather_impact(
+                    weather_data, team_style
+                )
+            
+            # Analyze squad depth and availability
+            squad_analysis = {
+                'depth_score': self._calculate_squad_depth_score(team_id),
+                'injury_impact': self._analyze_injury_list_impact(team_id),
+                'suspension_impact': self._analyze_suspension_impact(team_id)
+            }
+            
+            # Calculate overall risk and recommendations
+            risk_factors = [
+                stability_metrics.get('overall_stability', 0.5),
+                1 - squad_analysis['injury_impact'],
+                1 - squad_analysis['suspension_impact'],
+                weather_impact.get('overall_impact_score', 0.5)
+            ]
+            
+            overall_risk = sum(risk_factors) / len(risk_factors)
+            
+            return {
+                'stability_metrics': stability_metrics,
+                'composition_risk': composition_risk,
+                'weather_impact': weather_impact,
+                'squad_analysis': squad_analysis,
+                'overall_risk_score': round(overall_risk, 2),
+                'recommendations': self._generate_recommendations(
+                    stability_metrics, 
+                    composition_risk,
+                    weather_impact,
+                    squad_analysis
+                )
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing team context: {e}")
+            return {
+                'stability_metrics': {},
+                'composition_risk': {},
+                'weather_impact': {},
+                'squad_analysis': {},
+                'overall_risk_score': 0.5,
+                'recommendations': []
+            }
+            
+    def _get_team_tactical_style(self, team_id: int) -> Dict[str, Any]:
+        """Get team's predominant tactical style based on recent matches"""
+        try:
+            recent_lineups = self._get_recent_lineups(team_id, 5)
+            
+            # Count formation usage
+            formation_counts = {}
+            for lineup in recent_lineups:
+                formation = lineup.get('formation', '4-4-2')
+                formation_counts[formation] = formation_counts.get(formation, 0) + 1
+            
+            # Get most used formation
+            preferred_formation = max(formation_counts.items(), key=lambda x: x[1])[0]
+            
+            return {
+                'preferred_formation': preferred_formation,
+                'formation_flexibility': len(formation_counts),
+                'tactical_preferences': {
+                    'possession': self._calculate_possession_preference(recent_lineups),
+                    'pressing': self._calculate_pressing_intensity(recent_lineups),
+                    'attacking_style': self._analyze_attacking_style(recent_lineups)
+                }
+            }
+        except Exception as e:
+            self.logger.error(f"Error getting team tactical style: {e}")
+            return {
+                'preferred_formation': '4-4-2',
+                'formation_flexibility': 1,
+                'tactical_preferences': {
+                    'possession': 'balanced',
+                    'pressing': 'medium',
+                    'attacking_style': 'balanced'
+                }
+            }
+            
+    def _calculate_possession_preference(self, lineups: List[Dict]) -> str:
+        """Calculate team's possession style based on formations and player roles"""
+        possession_formations = {'4-3-3', '4-2-3-1', '4-1-4-1'}
+        direct_formations = {'4-4-2', '3-5-2', '5-3-2'}
+        
+        possession_count = sum(1 for l in lineups if l.get('formation') in possession_formations)
+        direct_count = sum(1 for l in lineups if l.get('formation') in direct_formations)
+        
+        if possession_count > direct_count:
+            return 'possession'
+        elif direct_count > possession_count:
+            return 'direct'
+        return 'balanced'
+        
+    def _calculate_pressing_intensity(self, lineups: List[Dict]) -> str:
+        """Estimate team's pressing intensity based on formations and player profiles"""
+        high_press_formations = {'4-3-3', '4-2-3-1', '3-4-3'}
+        low_press_formations = {'5-3-2', '4-5-1', '4-4-2'}
+        
+        high_press_count = sum(1 for l in lineups if l.get('formation') in high_press_formations)
+        low_press_count = sum(1 for l in lineups if l.get('formation') in low_press_formations)
+        
+        if high_press_count > low_press_count:
+            return 'high'
+        elif low_press_count > high_press_count:
+            return 'low'
+        return 'medium'
+        
+    def _analyze_attacking_style(self, lineups: List[Dict]) -> str:
+        """Analyze team's attacking style based on formations and player roles"""
+        attacking_formations = {'4-3-3', '3-4-3', '3-5-2'}
+        defensive_formations = {'5-3-2', '4-5-1', '4-4-2'}
+        
+        attacking_count = sum(1 for l in lineups if l.get('formation') in attacking_formations)
+        defensive_count = sum(1 for l in lineups if l.get('formation') in defensive_formations)
+        
+        if attacking_count > defensive_count:
+            return 'attacking'
+        elif defensive_count > attacking_count:
+            return 'defensive'
+        return 'balanced'
+        
+    def _generate_recommendations(self, 
+                                stability_metrics: Dict[str, Any],
+                                composition_risk: Dict[str, Any],
+                                weather_impact: Dict[str, Any],
+                                squad_analysis: Dict[str, Any]) -> List[str]:
+        """Generate tactical recommendations based on all analysis factors"""
+        recommendations = []
+        
+        # Stability based recommendations
+        stability_score = stability_metrics.get('overall_stability', 0.5)
+        if stability_score < 0.4:
+            recommendations.append("Consider maintaining more consistent lineup selections")
+        elif stability_score > 0.8:
+            recommendations.append("Could benefit from some rotation to prevent fatigue")
+            
+        # Weather impact recommendations
+        if weather_impact:
+            impact_score = weather_impact.get('overall_impact_score', 0)
+            if impact_score > 0.6:
+                recommendations.extend(weather_impact.get('recommended_tactical_adjustments', []))
+                
+        # Squad depth recommendations
+        depth_score = squad_analysis.get('depth_score', 0.5)
+        if depth_score < 0.4:
+            recommendations.append("Need to manage minutes carefully due to limited squad depth")
+        
+        # Injury impact recommendations
+        injury_impact = squad_analysis.get('injury_impact', 0)
+        if injury_impact > 0.5:
+            recommendations.append("Consider adjusting tactics to account for missing players")
+            
+        return recommendations
     
     def _get_recent_lineups(self, team_id: int, matches_count: int) -> List[Dict]:
         """Get recent team lineups"""

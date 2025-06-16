@@ -537,112 +537,98 @@ class LeagueSpecificCalibrator:
             logger.error(f"Error aplicando calibración para liga {league_id}: {e}")
             return prediction
             
+        # Mejorar los metadatos de calibración con estadísticas detalladas
+        if 'metadata' not in calibrated:
+            calibrated['metadata'] = {}
+            
+        calibrated['metadata']['league_analysis'] = {
+            'historical_stats': {
+                'avg_goals_per_game': characteristics.avg_goals_per_match,
+                'btts_percentage': characteristics.btts_rate * 100,
+                'over_2_5_percentage': characteristics.over_2_5_rate * 100,
+                'historical_draw_rate': characteristics.draw_rate,
+                'clean_sheets_home': characteristics.clean_sheets_home_pct,
+                'clean_sheets_away': characteristics.clean_sheets_away_pct
+            },
+            'seasonal_patterns': {
+                'early_season_goals': characteristics.season_patterns.get('early_season_goals'),
+                'mid_season_goals': characteristics.season_patterns.get('mid_season_goals'),
+                'end_season_goals': characteristics.season_patterns.get('end_season_goals'),            'current_phase': self._get_season_phase(),
+                'phase_impact': self._calculate_season_phase_factor(league_id)
+            },
+            'competitiveness_metrics': {
+                'league_competitiveness_rating': self._calculate_competitiveness_rating(characteristics),
+                'goal_distribution_variance': characteristics.goal_distribution_variance,
+                'home_advantage_strength': 'high' if characteristics.home_advantage > 0.35 else 'medium',
+                'league_type': 'high_scoring' if characteristics.is_high_scoring else 'defensive' if characteristics.is_defensive else 'balanced'
+            }
+        }
+        
+        calibrated['metadata']['calibration_info'].update({
+            'model_confidence': {
+                'overconfidence_factor': characteristics.overconfidence,
+                'prediction_bias': characteristics.prediction_bias,
+                'calibration_quality': self._get_calibration_quality(characteristics),
+                'data_points_used': len(self.prediction_history.get(league_id, [])),
+                'last_calibration': characteristics.last_calibration_date.isoformat() if hasattr(characteristics, 'last_calibration_date') else None
+            },            'adjustments_applied': {
+                'goals_adjustment': self._calculate_goals_adjustment(),
+                'home_advantage': self._calculate_home_factor(league_id),
+                'season_phase': self._calculate_season_phase_factor(league_id),
+                'league_specific': True
+            }
+        })
+        
         return calibrated
     
-    def _calibrate_goals_for_league(self, predicted_goals: float, league_id: int, is_home: bool) -> float:
-        """
-        Calibra predicción de goles según características de la liga.
-        
-        Args:
-            predicted_goals: Predicción de goles original
-            league_id: ID de la liga
-            is_home: Indica si es predicción para equipo local
-            
-        Returns:
-            Predicción de goles calibrada
-        """
-        if league_id not in self.league_characteristics:
-            return predicted_goals
-            
+    def _calculate_competitiveness_rating(self, characteristics: Any) -> float:
+        """Calcula la calificación de competitividad de la liga (0-10)"""
         try:
-            characteristics = self.league_characteristics[league_id]
+            # Calificación base a partir de la varianza de goles
+            base_rating = 5.0
             
-            # Factor base según media de goles de liga
-            # Usando 2.6 como media de referencia (promedio general entre ligas)
-            league_factor = characteristics.avg_goals_per_match / 2.6
-            
-            # Ajuste según si es equipo local/visitante y ventaja local de la liga
-            if is_home:
-                # Ajuste para ligas con fuerte ventaja local
-                if characteristics.has_strong_home_advantage:
-                    home_factor = 1 + (characteristics.home_advantage - 0.3) / 0.3 * 0.1
-                else:
-                    home_factor = 1.0
-            else:
-                # Ajuste para ligas con fuerte ventaja local (inverso para visitante)
-                if characteristics.has_strong_home_advantage:
-                    home_factor = 1 - (characteristics.home_advantage - 0.3) / 0.3 * 0.05
-                else:
-                    home_factor = 1.0
-            
-            # Calibrar predicción
-            calibrated_goals = predicted_goals * league_factor * home_factor
-            
-            # Limitar cambios extremos
-            max_change = predicted_goals * 0.25  # Máx 25% de cambio
-            if abs(calibrated_goals - predicted_goals) > max_change:
-                if calibrated_goals > predicted_goals:
-                    calibrated_goals = predicted_goals + max_change
-                else:
-                    calibrated_goals = predicted_goals - max_change
-            
-            return round(calibrated_goals, 3)
-            
-        except Exception as e:
-            logger.error(f"Error en calibración de goles para liga {league_id}: {e}")
-            return predicted_goals
-    
-    def get_league_characteristics(self, league_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Obtiene características de una liga.
-        
-        Args:
-            league_id: ID de la liga
-            
-        Returns:
-            Características de la liga o None si no existe
-        """
-        if league_id not in self.league_characteristics:
-            return None
-            
-        return self.league_characteristics[league_id].to_dict()
-    
-    def create_or_update_league(self, league_id: int, name: str, characteristics: Dict[str, Any]) -> bool:
-        """
-        Crea o actualiza características de una liga.
-        
-        Args:
-            league_id: ID de la liga
-            name: Nombre de la liga
-            characteristics: Características a establecer
-            
-        Returns:
-            True si la operación fue exitosa
-        """
-        try:
-            # Crear objeto base si no existe
-            if league_id not in self.league_characteristics:
-                self.league_characteristics[league_id] = LeagueCharacteristics(
-                    league_id=league_id,
-                    name=name
-                )
+            # Ajustar según la distribución de goles
+            if characteristics.goal_distribution_variance < 1.2:
+                base_rating += 2  # Más competitivo (marcadores más ajustados)
+            elif characteristics.goal_distribution_variance > 1.6:
+                base_rating -= 2  # Menos competitivo (marcadores más variados)
                 
-            # Actualizar características proporcionadas
-            league = self.league_characteristics[league_id]
-            
-            # Actualizar campos individuales si están presentes
-            for key, value in characteristics.items():
-                if hasattr(league, key):
-                    setattr(league, key, value)
-                    
-            # Guardar cambios
-            self._save_league_characteristics(league_id)
-            
-            return True
+            # Ajustar según la ventaja local
+            if characteristics.home_advantage < 0.25:
+                base_rating += 1  # Más competitivo (menos ventaja local)
+            elif characteristics.home_advantage > 0.35:
+                base_rating -= 1  # Menos competitivo (fuerte ventaja local)
+                
+            # Ajustar según la tasa de empates
+            if characteristics.draw_rate > 0.28:
+                base_rating += 1  # Más competitivo (más empates)
+            elif characteristics.draw_rate < 0.22:
+                base_rating -= 1  # Menos competitivo (menos empates)
+                
+            return round(min(max(base_rating, 0), 10), 1)
             
         except Exception as e:
-            logger.error(f"Error actualizando liga {league_id}: {e}")
-            return False
+            logger.error(f"Error calculando la calificación de competitividad: {e}")
+            return 5.0
+    
+    def _get_calibration_quality(self, characteristics: Any) -> str:
+        """Determina la calidad de calibración basada en métricas"""
+        try:
+            if not hasattr(characteristics, 'overconfidence') or not hasattr(characteristics, 'prediction_bias'):
+                return 'unknown'
+                
+            if (abs(characteristics.prediction_bias) < 0.05 and
+                abs(1 - characteristics.overconfidence) < 0.1):
+                return 'high'
+            elif (abs(characteristics.prediction_bias) < 0.1 and
+                  abs(1 - characteristics.overconfidence) < 0.2):
+                return 'medium'
+            else:
+                return 'low'
+                
+        except Exception as e:
+            logger.error(f"Error determinando la calidad de calibración: {e}")
+            return 'unknown'
     
     def analyze_league_performance(self, league_id: int) -> Dict[str, Any]:
         """
@@ -830,15 +816,15 @@ class LeagueSpecificCalibrator:
                 if ('home_win_prob' in pred and 'draw_prob' in pred and 'away_win_prob' in pred and
                    'home_goals' in actual and 'away_goals' in actual):
                     
-                    # Home win
+                    # Victoria local
                     home_preds.append(pred['home_win_prob'])
                     home_actuals.append(1 if actual['home_goals'] > actual['away_goals'] else 0)
                     
-                    # Draw
+                    # Empate
                     draw_preds.append(pred['draw_prob'])
                     draw_actuals.append(1 if actual['home_goals'] == actual['away_goals'] else 0)
                     
-                    # Away win
+                    # Victoria visitante
                     away_preds.append(pred['away_win_prob'])
                     away_actuals.append(1 if actual['home_goals'] < actual['away_goals'] else 0)
             
@@ -861,21 +847,37 @@ class LeagueSpecificCalibrator:
             for i, (preds, actuals, outcome, color) in enumerate(zip(pred_sets, actual_sets, outcome_types, colors)):
                 ax = axes[i]
                 
+                # Convertir a arrays numpy
+                preds = np.array(preds)
+                actuals = np.array(actuals)
+                
                 # Calcular curva de calibración
-                prob_true, prob_pred = calibration_curve(actuals, preds, n_bins=10)
+                fraction_positive, mean_predicted_value = calibration_curve(
+                    actuals, preds, n_bins=10, strategy='quantile'
+                )
                 
-                # Dibujar curva de calibración
-                ax.plot(prob_pred, prob_true, marker='o', linewidth=2, label='Calibration curve', color=color)
+                # Graficar curva de calibración
+                ax.plot(mean_predicted_value, fraction_positive, 
+                       "s-", label=f"Calibration curve", color=color)
                 
-                # Dibujar línea de referencia de calibración perfecta
-                ax.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Perfectly calibrated')
+                # Graficar línea perfecta
+                ax.plot([0, 1], [0, 1], "k:", label="Perfect calibration")
+                
+                # Calcular y mostrar métricas
+                brier = brier_score_loss(actuals, preds)
                 
                 # Configurar gráfico
-                ax.set_title(f"{outcome} Calibration")
-                ax.set_xlabel("Predicted probability")
-                ax.set_ylabel("True probability")
-                ax.legend(loc='best')
-                ax.grid(True, alpha=0.3)
+                ax.set_xlabel("Mean predicted probability")
+                ax.set_ylabel("Fraction of positives")
+                ax.set_title(f"{outcome}\nBrier Score: {brier:.3f}")
+                ax.grid(True)
+                ax.legend(loc="best")
+                
+                # Histograma de predicciones
+                ax_hist = ax.twinx()
+                ax_hist.hist(preds, range=(0, 1), bins=10, 
+                           alpha=0.1, color=color, density=True)
+                ax_hist.set_ylabel("Count")
                 
             plt.tight_layout()
             plt.subplots_adjust(top=0.9)
@@ -905,7 +907,7 @@ class LeagueSpecificCalibrator:
             try:
                 history = self.prediction_history[league_id]
                 
-                # Verificar si hay datos suficientes
+                # Verificar si hay suficientes datos
                 if len(history) < MIN_MATCHES_FOR_CALIBRATION:
                     result["skipped_leagues"] += 1
                     result["details"][str(league_id)] = {
@@ -914,23 +916,49 @@ class LeagueSpecificCalibrator:
                         "matches_count": len(history)
                     }
                     continue
-                    
+                
                 # Calibrar liga
                 self._calibrate_league_model(league_id)
                 
-                result["calibrated_leagues"] += 1
-                result["details"][str(league_id)] = {
-                    "status": "calibrated",
-                    "matches_count": len(history)
-                }
-                
+                # Verificar si se creó el calibrador
+                if league_id in self.league_calibrators:
+                    result["calibrated_leagues"] += 1
+                    result["details"][str(league_id)] = {
+                        "status": "success",
+                        "matches_used": len(history),
+                        "last_update": self.league_calibrators[league_id]["last_update"].isoformat()
+                    }
+                    
+                    # Añadir métricas si existen características
+                    if league_id in self.league_characteristics:
+                        chars = self.league_characteristics[league_id]
+                        result["details"][str(league_id)]["metrics"] = {
+                            "prediction_bias": round(chars.prediction_bias, 3),
+                            "home_bias": round(chars.home_bias, 3),
+                            "overconfidence": round(chars.overconfidence, 3)
+                        }
+                else:
+                    result["failed_leagues"] += 1
+                    result["details"][str(league_id)] = {
+                        "status": "failed",
+                        "reason": "calibration_failed"
+                    }
+                    
             except Exception as e:
-                logger.error(f"Error en calibración por lotes para liga {league_id}: {e}")
                 result["failed_leagues"] += 1
                 result["details"][str(league_id)] = {
-                    "status": "failed",
-                    "error": str(e)
+                    "status": "error",
+                    "reason": str(e)
                 }
+                logger.error(f"Error en calibración de liga {league_id}: {e}")
+                
+        # Añadir timestamp
+        result["timestamp"] = datetime.now().isoformat()
+        result["total_leagues"] = (
+            result["calibrated_leagues"] + 
+            result["skipped_leagues"] + 
+            result["failed_leagues"]
+        )
                 
         return result
     

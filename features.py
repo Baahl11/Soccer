@@ -12,11 +12,12 @@ from weather_api import WeatherConditions
 
 logger = logging.getLogger(__name__)
 
-class FeatureExtractor:
+class FeatureExtractor:    
     def __init__(self):
         self.transformers = {}
         self.window_size = 5
-        self.data_api = FootballAPI()
+        from data import get_api_instance
+        self.data_api = get_api_instance()
         self.historical_analyzer = HistoricalAnalyzer()
         self.form_analyzer = FormAnalyzer()
         self.weather_api = WeatherConditions()

@@ -91,16 +91,17 @@ BACKUP_CONFIG = {
 
 # Cache Configuration
 CACHE_CONFIG = {
-    "predictions": timedelta(minutes=30),
-    "fixtures": timedelta(hours=1),
-    "odds": timedelta(minutes=15),
+    "predictions": timedelta(hours=2),      # Aumentado a 2 horas para reducir API calls
+    "fixtures": timedelta(hours=24),       # Aumentado a 24 horas para partidos analizados
+    "odds": timedelta(minutes=15),         # Mantener 15 min para odds en tiempo real
     "weather": timedelta(hours=3),
     "injuries": timedelta(hours=6),
     "form": timedelta(hours=12),
     "standings": timedelta(days=1),
     "lineups": timedelta(hours=1),
     "events": timedelta(minutes=5),
-    "league_data": timedelta(days=7)
+    "league_data": timedelta(days=7),
+    "analyzed_matches": timedelta(hours=24)  # Cache específico para partidos analizados
 }
 
 # Odds API Constants

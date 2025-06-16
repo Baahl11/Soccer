@@ -393,60 +393,58 @@ class HistoricalAnalyzer:
                 'home_advantage': 0.6,
                 'top_team_dominance': 0.5,
                 'upset_frequency': 0.3
-            }
-
+            }    
     def get_team_stats(self, team_id: int, league_id: int, season: str) -> Dict[str, Any]:
         """
-        Obtiene estadísticas detalladas de un equipo en una liga y temporada específicas.
+        Get detailed team statistics for a specific league and season.
         
         Args:
-            team_id: ID del equipo
-            league_id: ID de la liga
-            season: Temporada
+            team_id: ID of the team
+            league_id: ID of the league
+            season: Season
             
         Returns:
-            Diccionario con estadísticas del equipo
+            Dictionary containing team statistics
         """
         try:
-            params = {
-                'team': str(team_id),
-                'league': str(league_id),
-                'season': season
-            }
-            team_data = self.api._make_request('teams/statistics', params)
+            # Use the unified team_statistics module
+            from team_statistics import get_team_statistics
+            stats = get_team_statistics(team_id, league_id, season)
             
-            if not team_data or 'response' not in team_data:
+            if not stats:
                 return self._get_default_team_stats()
             
-            stats = team_data.get('response', {})
-            
+            # Convert stats to historical format
             return {
-                'avg_goals_scored': stats.get('goals', {}).get('for', {}).get('average', {}).get('total', 1.5),
-                'avg_goals_conceded': stats.get('goals', {}).get('against', {}).get('average', {}).get('total', 1.2),
-                'clean_sheets': stats.get('clean_sheet', {}).get('total', 5),
-                'failed_to_score': stats.get('failed_to_score', {}).get('total', 3),
-                'penalty_success': stats.get('penalty', {}).get('scored', {}).get('percentage', 75),
-                'win_rate': stats.get('fixtures', {}).get('wins', {}).get('total', 0.5),
-                'draw_rate': stats.get('fixtures', {}).get('draws', {}).get('total', 0.25),
-                'loss_rate': stats.get('fixtures', {}).get('loses', {}).get('total', 0.25)
+                'avg_goals_scored': stats.get('goals_per_game', 1.5),
+                'avg_goals_conceded': stats.get('goals_conceded_per_game', 1.2),
+                'clean_sheets': stats.get('clean_sheets', 5),
+                'failed_to_score': stats.get('failed_to_score', 3),
+                'form_score': stats.get('form_score', 0.5),
+                'win_rate': stats.get('win_rate', 0.33),                'draw_rate': stats.get('draw_rate', 0.33),
+                'loss_rate': stats.get('loss_rate', 0.34),
+                'corners_per_game': stats.get('corners_per_game', 5.0),
+                'cards_per_game': stats.get('cards_per_game', 2.0)
             }
         except Exception as e:
             logger.error(f"Error getting team stats: {e}")
             return self._get_default_team_stats()
-            
+
     def _get_default_team_stats(self) -> Dict[str, Any]:
         """
-        Retorna estadísticas por defecto cuando no hay datos disponibles.
+        Returns default statistics when no data is available.
         """
         return {
             'avg_goals_scored': 1.5,
             'avg_goals_conceded': 1.2,
             'clean_sheets': 5,
             'failed_to_score': 3,
-            'penalty_success': 75,
-            'win_rate': 0.5,
-            'draw_rate': 0.25,
-            'loss_rate': 0.25
+            'form_score': 0.5,
+            'win_rate': 0.33,
+            'draw_rate': 0.33,
+            'loss_rate': 0.34,
+            'corners_per_game': 5.0,
+            'cards_per_game': 2.0
         }
 
     def get_team_matches(self, team_id: int) -> List[Dict[str, Any]]:
