@@ -4,8 +4,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from typing import Any
 
 import httpx
-from mcp.server import MCPServer
-from mcp.server.transport_security import TransportSecuritySettings
+from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -13,13 +12,15 @@ API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sport
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
 REQUEST_TIMEOUT_SECONDS = float(os.getenv("API_FOOTBALL_TIMEOUT", "20"))
 
-mcp = MCPServer(
+mcp = FastMCP(
     "Soccer Edge API",
     instructions=(
         "Read-only structured soccer data gateway for SPORTS EDGE ENGINE. "
         "API-Football data is factual input, not a betting recommendation. "
         "Missing data must remain unverified; never infer injuries, lineups, odds, or statistics."
     ),
+    stateless_http=True,
+    json_response=True,
 )
 
 
@@ -223,39 +224,10 @@ async def health(request: Request) -> Response:
         {
             "status": "ok",
             "service": "soccer-edge-api",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
         }
     )
 
 
-def _transport_security() -> TransportSecuritySettings:
-    render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()
-    configured_hosts = [
-        item.strip()
-        for item in os.getenv("MCP_ALLOWED_HOSTS", "").split(",")
-        if item.strip()
-    ]
-    allowed_hosts = ["localhost:*", "127.0.0.1:*"]
-    if render_host:
-        allowed_hosts.extend([render_host, f"{render_host}:*"])
-    allowed_hosts.extend(configured_hosts)
-
-    allowed_origins = [
-        "https://chatgpt.com",
-        "https://chat.openai.com",
-        "https://platform.openai.com",
-    ]
-
-    return TransportSecuritySettings(
-        enable_dns_rebinding_protection=True,
-        allowed_hosts=list(dict.fromkeys(allowed_hosts)),
-        allowed_origins=allowed_origins,
-    )
-
-
-app = mcp.streamable_http_app(
-    stateless_http=True,
-    json_response=True,
-    transport_security=_transport_security(),
-)
+app = mcp.streamable_http_app()
