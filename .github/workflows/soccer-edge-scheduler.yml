@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Checkout state branch source
+      - name: Checkout state branch
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: soccer-edge-state
           fetch-depth: 0
 
       - name: Obtain GitHub OIDC token
@@ -75,4 +75,4 @@ jobs:
             exit 0
           fi
           git commit -m "Soccer Edge tick ${RUN_DATE}"
-          git push origin HEAD:main
+          git push origin HEAD:soccer-edge-state
