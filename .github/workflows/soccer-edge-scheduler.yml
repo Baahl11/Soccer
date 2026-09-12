@@ -48,7 +48,7 @@ jobs:
             -H "Authorization: Bearer ${OIDC_TOKEN}" \
             -H "Content-Type: application/json" \
             https://soccer-edge-api.onrender.com/internal/tick)
-          cat /tmp/soccer_tick.json | jq '{service,version,generated_at_local,fixture_scan_count,event_count,actionable_refresh_count,quota,error,detail,database_persisted,database_error}'
+          cat /tmp/soccer_tick.json | jq '{service,version,model_version,generated_at_local,fixture_scan_count,event_count,actionable_refresh_count,bet_candidate_count,quota,error,detail,database_persisted,database_error}'
           if [ "$HTTP_CODE" -ne 200 ]; then
             echo "Scheduler endpoint failed with HTTP $HTTP_CODE"
             exit 1
@@ -56,6 +56,65 @@ jobs:
           EVENT_COUNT=$(jq -r '.event_count // 0' /tmp/soccer_tick.json)
           echo "event_count=$EVENT_COUNT" >> "$GITHUB_OUTPUT"
           echo "run_date=$(jq -r '.generated_at_local[0:10]' /tmp/soccer_tick.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Build compact notification state
+        if: steps.tick.outputs.event_count != '0'
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq '{
+            service,
+            version,
+            model_version,
+            generated_at_utc,
+            generated_at_local,
+            timezone,
+            fixture_scan_count,
+            event_count,
+            actionable_refresh_count,
+            bet_candidate_count,
+            quota,
+            database_persisted,
+            events: [
+              .events[] | {
+                event_type,
+                stage,
+                classification,
+                tier,
+                stake_units,
+                bet_eligible,
+                availability_confidence,
+                fixture,
+                coverage: (if (.coverage|type) == "object" then {data_tier: .coverage.data_tier} else .coverage end),
+                lineups: (if (.lineups|type) == "object" then {
+                  lineup_state: .lineups.lineup_state,
+                  both_xi_confirmed: .lineups.both_xi_confirmed,
+                  both_goalkeepers_confirmed: .lineups.both_goalkeepers_confirmed,
+                  teams: [.lineups.teams[]? | {team_id,team,formation,goalkeepers}]
+                } else .lineups end),
+                raw_projection: (if (.raw_projection|type) == "object" then {
+                  status: .raw_projection.status,
+                  projection_model: .raw_projection.projection_model,
+                  advanced_metrics: .raw_projection.advanced_metrics,
+                  raw_home_goal_rate: .raw_projection.raw_home_goal_rate,
+                  raw_away_goal_rate: .raw_projection.raw_away_goal_rate,
+                  raw_total_goals: .raw_projection.raw_total_goals,
+                  raw_home_win_prob: .raw_projection.raw_home_win_prob,
+                  raw_draw_prob: .raw_projection.raw_draw_prob,
+                  raw_away_win_prob: .raw_projection.raw_away_win_prob,
+                  raw_btts_yes_prob: .raw_projection.raw_btts_yes_prob,
+                  raw_over_2_5_prob: .raw_projection.raw_over_2_5_prob,
+                  scoring_path: .raw_projection.scoring_path,
+                  screen_scores: .raw_projection.screen_scores
+                } else .raw_projection end),
+                best_market,
+                notes,
+                result,
+                error
+              }
+            ]
+          }' /tmp/soccer_tick.json > /tmp/soccer_compact.json
+          jq -e . /tmp/soccer_compact.json >/dev/null
 
       - name: Persist scheduler state
         if: steps.tick.outputs.event_count != '0'
@@ -65,8 +124,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p soccer_edge_state/history
-          cp /tmp/soccer_tick.json soccer_edge_state/latest.json
-          jq -c '.' /tmp/soccer_tick.json >> "soccer_edge_state/history/${RUN_DATE}.jsonl"
+          cp /tmp/soccer_compact.json soccer_edge_state/latest.json
+          jq -c '.' /tmp/soccer_compact.json >> "soccer_edge_state/history/${RUN_DATE}.jsonl"
 
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
