@@ -9,6 +9,7 @@ on:
     - cron: "*/10 * * * *"
   workflow_dispatch:
 
+# Temporary push trigger is removed after this smoke test passes.
 concurrency:
   group: soccer-edge-scheduler
   cancel-in-progress: false
@@ -52,7 +53,7 @@ jobs:
             -H "Authorization: Bearer ${OIDC_TOKEN}" \
             -H "Content-Type: application/json" \
             https://soccer-edge-api.onrender.com/internal/tick)
-          cat /tmp/soccer_tick.json | jq '{service,version,generated_at_local,fixture_scan_count,event_count,actionable_refresh_count,quota,error,detail}'
+          cat /tmp/soccer_tick.json | jq '{service,version,generated_at_local,fixture_scan_count,event_count,actionable_refresh_count,quota,error,detail,database_persisted,database_error}'
           if [ "$HTTP_CODE" -ne 200 ]; then
             echo "Scheduler endpoint failed with HTTP $HTTP_CODE"
             exit 1
