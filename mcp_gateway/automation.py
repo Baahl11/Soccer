@@ -1,4 +1,7 @@
+import json
+import logging
 import os
+import sqlite3
 from datetime import datetime, timedelta, timezone as dt_timezone
 from zoneinfo import ZoneInfo
 from typing import Any
@@ -9,13 +12,15 @@ API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sport
 TIMEZONE_NAME = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
 TIMEZONE = ZoneInfo(TIMEZONE_NAME)
 TIMEOUT = float(os.getenv("API_FOOTBALL_TIMEOUT", "20"))
+CACHE_DB_PATH = os.getenv("SOCCER_EDGE_CACHE_PATH", "/tmp/soccer_edge_cache.sqlite3")
 
-# In-process caches. GitHub Actions wakes the Render service every 10 minutes,
-# so these materially reduce API usage while the instance remains alive.
-_coverage_cache: dict[tuple[int, int], tuple[datetime, dict[str, Any]]] = {}
-_team_cache: dict[tuple[int, int, int], tuple[datetime, dict[str, Any]]] = {}
-_recent_cache: dict[int, tuple[datetime, dict[str, Any]]] = {}
-_processed_stage: dict[tuple[int, str], datetime] = {}
+# The heavy scheduler runs in a short-lived child process. Persistent local SQLite
+# keeps API caches and stage de-duplication across child-process runs without
+# growing the long-lived web process RSS.
+_CACHE_CONN: sqlite3.Connection | None = None
+_HTTP_CLIENT: httpx.AsyncClient | None = None
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 FINISHED_STATUSES = {"FT", "AET", "PEN"}
 CANCELLED_STATUSES = {"CANC", "ABD", "AWD", "WO"}
@@ -29,12 +34,95 @@ def _api_key() -> str:
     return key
 
 
+def _cache_conn() -> sqlite3.Connection:
+    global _CACHE_CONN
+    if _CACHE_CONN is None:
+        conn = sqlite3.connect(CACHE_DB_PATH, timeout=15)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS cache_entries (
+                namespace TEXT NOT NULL,
+                cache_key TEXT NOT NULL,
+                updated_at REAL NOT NULL,
+                value_json TEXT NOT NULL,
+                PRIMARY KEY(namespace, cache_key)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS processed_stages (
+                fixture_id INTEGER NOT NULL,
+                stage TEXT NOT NULL,
+                updated_at REAL NOT NULL,
+                PRIMARY KEY(fixture_id, stage)
+            )
+            """
+        )
+        conn.commit()
+        _CACHE_CONN = conn
+    return _CACHE_CONN
+
+
+def _cache_get(namespace: str, key: str, ttl: timedelta, now: datetime) -> Any | None:
+    conn = _cache_conn()
+    row = conn.execute(
+        "SELECT updated_at, value_json FROM cache_entries WHERE namespace=? AND cache_key=?",
+        (namespace, key),
+    ).fetchone()
+    if not row:
+        return None
+    if now.timestamp() - float(row[0]) > ttl.total_seconds():
+        conn.execute("DELETE FROM cache_entries WHERE namespace=? AND cache_key=?", (namespace, key))
+        conn.commit()
+        return None
+    try:
+        return json.loads(row[1])
+    except (TypeError, json.JSONDecodeError):
+        conn.execute("DELETE FROM cache_entries WHERE namespace=? AND cache_key=?", (namespace, key))
+        conn.commit()
+        return None
+
+
+def _cache_set(namespace: str, key: str, value: Any, now: datetime) -> None:
+    conn = _cache_conn()
+    conn.execute(
+        """
+        INSERT INTO cache_entries(namespace, cache_key, updated_at, value_json)
+        VALUES(?,?,?,?)
+        ON CONFLICT(namespace, cache_key) DO UPDATE SET
+            updated_at=excluded.updated_at,
+            value_json=excluded.value_json
+        """,
+        (namespace, key, now.timestamp(), json.dumps(value, separators=(",", ":"))),
+    )
+    conn.commit()
+
+
+def _prune_cache(now: datetime) -> None:
+    conn = _cache_conn()
+    cutoff = (now - timedelta(days=8)).timestamp()
+    conn.execute("DELETE FROM cache_entries WHERE updated_at < ?", (cutoff,))
+    conn.execute("DELETE FROM processed_stages WHERE updated_at < ?", ((now - timedelta(hours=12)).timestamp(),))
+    conn.commit()
+
+
 async def _api_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
     headers = {"x-apisports-key": _api_key(), "Accept": "application/json"}
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+    client = _HTTP_CLIENT
+    owns_client = client is None
+    if owns_client:
+        client = httpx.AsyncClient(timeout=TIMEOUT)
+    assert client is not None
+    try:
         response = await client.get(f"{API_BASE_URL}/{endpoint.lstrip('/')}", headers=headers, params=params)
         response.raise_for_status()
         payload = response.json()
+    finally:
+        if owns_client:
+            await client.aclose()
     if payload.get("errors"):
         raise RuntimeError(f"API-Football error on {endpoint}: {payload['errors']}")
     return {
@@ -115,13 +203,13 @@ def _coverage_flags(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 async def _coverage(league_id: int, season: int, now: datetime) -> dict[str, Any]:
-    key = (league_id, season)
-    cached = _coverage_cache.get(key)
-    if cached and now - cached[0] < timedelta(days=7):
-        return cached[1]
+    key = f"{league_id}:{season}"
+    cached = _cache_get("coverage", key, timedelta(days=7), now)
+    if isinstance(cached, dict):
+        return cached
     payload = await _api_get("leagues", {"id": league_id, "season": season})
     flags = _coverage_flags(payload)
-    _coverage_cache[key] = (now, flags)
+    _cache_set("coverage", key, flags, now)
     return flags
 
 
@@ -129,40 +217,36 @@ def _compact_team_stats(payload: dict[str, Any]) -> dict[str, Any]:
     r = payload.get("response") or {}
     fixtures = r.get("fixtures") or {}
     goals = r.get("goals") or {}
-    clean_sheet = r.get("clean_sheet") or {}
-    failed = r.get("failed_to_score") or {}
     return {
         "form": r.get("form"),
         "fixtures": fixtures,
-        "goals": {
-            "for": goals.get("for"),
-            "against": goals.get("against"),
-        },
-        "clean_sheet": clean_sheet,
-        "failed_to_score": failed,
-        "biggest": r.get("biggest"),
-        "lineups": r.get("lineups"),
+        "goals": {"for": goals.get("for"), "against": goals.get("against")},
+        "clean_sheet": r.get("clean_sheet") or {},
+        "failed_to_score": r.get("failed_to_score") or {},
+        "biggest": r.get("biggest") or {},
+        "lineups": (r.get("lineups") or [])[:20],
     }
 
 
 async def _team_stats(team_id: int, league_id: int, season: int, now: datetime) -> dict[str, Any]:
-    key = (team_id, league_id, season)
-    cached = _team_cache.get(key)
-    if cached and now - cached[0] < timedelta(hours=6):
-        return cached[1]
+    key = f"{team_id}:{league_id}:{season}"
+    cached = _cache_get("team_stats", key, timedelta(hours=6), now)
+    if isinstance(cached, dict):
+        return cached
     payload = await _api_get("teams/statistics", {"team": team_id, "league": league_id, "season": season})
     compact = _compact_team_stats(payload)
-    _team_cache[key] = (now, compact)
+    _cache_set("team_stats", key, compact, now)
     return compact
 
 
 async def _recent(team_id: int, now: datetime) -> list[dict[str, Any]]:
-    cached = _recent_cache.get(team_id)
-    if cached and now - cached[0] < timedelta(hours=6):
-        return cached[1].get("matches", [])
+    key = str(team_id)
+    cached = _cache_get("recent", key, timedelta(hours=6), now)
+    if isinstance(cached, list):
+        return cached
     payload = await _api_get("fixtures", {"team": team_id, "last": 8, "timezone": TIMEZONE_NAME})
     matches = [_compact_fixture(x) for x in payload.get("response", [])]
-    _recent_cache[team_id] = (now, {"matches": matches})
+    _cache_set("recent", key, matches, now)
     return matches
 
 
@@ -240,9 +324,10 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
                 name = bet.get("name") or ""
                 if not _wanted_market(name):
                     continue
-                values = []
-                for value in bet.get("values") or []:
-                    values.append({"selection": value.get("value"), "price": value.get("odd")})
+                values = [
+                    {"selection": value.get("value"), "price": value.get("odd")}
+                    for value in (bet.get("values") or [])
+                ]
                 rows.append({
                     "bookmaker_id": book.get("id"),
                     "bookmaker": book.get("name"),
@@ -251,12 +336,10 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
                     "values": values,
                     "provider_update": update,
                 })
-    return {"markets": rows[:120], "market_count": len(rows), "truncated": len(rows) > 120}
+    return {"markets": rows[:60], "market_count": len(rows), "truncated": len(rows) > 60}
 
 
-def _stage_for(minutes_to_kickoff: float, status: str, local_now: datetime) -> str | None:
-    # One scheduler run every 10 minutes. Windows overlap slightly so delayed GitHub
-    # scheduled jobs still have a good chance to hit the intended checkpoint.
+def _stage_for(minutes_to_kickoff: float, status: str) -> str | None:
     if status in FINISHED_STATUSES:
         return "POSTGAME"
     if status in CANCELLED_STATUSES or status in POSTPONED_STATUSES:
@@ -265,22 +348,31 @@ def _stage_for(minutes_to_kickoff: float, status: str, local_now: datetime) -> s
         (90, "T-90"), (60, "T-60"), (40, "T-40"), (30, "T-30"),
         (20, "T-20"), (10, "T-10"), (0, "CLOSE"),
     ]
+    # Scheduler runs every 10 minutes; the wider window tolerates normal GitHub
+    # scheduled-job delay while persistent stage de-duplication prevents repeats.
     for target, name in targets:
-        if abs(minutes_to_kickoff - target) <= 5.5:
+        if abs(minutes_to_kickoff - target) <= 7.5:
             return name
     return None
 
 
 def _dedupe_stage(fixture_id: int, stage: str, now: datetime) -> bool:
-    key = (fixture_id, stage)
-    previous = _processed_stage.get(key)
-    if previous and now - previous < timedelta(hours=6):
+    conn = _cache_conn()
+    row = conn.execute(
+        "SELECT updated_at FROM processed_stages WHERE fixture_id=? AND stage=?",
+        (fixture_id, stage),
+    ).fetchone()
+    if row and now.timestamp() - float(row[0]) < timedelta(hours=6).total_seconds():
         return False
-    _processed_stage[key] = now
-    # Bound memory.
-    stale = [k for k, ts in _processed_stage.items() if now - ts > timedelta(hours=12)]
-    for k in stale:
-        _processed_stage.pop(k, None)
+    conn.execute(
+        """
+        INSERT INTO processed_stages(fixture_id, stage, updated_at)
+        VALUES(?,?,?)
+        ON CONFLICT(fixture_id, stage) DO UPDATE SET updated_at=excluded.updated_at
+        """,
+        (fixture_id, stage, now.timestamp()),
+    )
+    conn.commit()
     return True
 
 
@@ -314,8 +406,7 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
         "notes": [],
     }
 
-    # Sporting data is gathered before market data. No raw model probability is
-    # derived from odds in this pipeline.
+    # SPORT FIRST: gather sporting inputs before market data.
     if stage in {"T-90", "T-60", "T-40"}:
         event["sporting"] = await _sport_bundle(fx, coverage, now)
 
@@ -336,9 +427,8 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
         event["lineups"] = "NOT VERIFIED"
         event["availability_confidence"] = 0.60
 
-    # Operational broad market snapshot is allowed for history, but never feeds
-    # the RAW SPORT PROJECTION. Classification remains WATCH until the Soccer
-    # engine creates a projection and verifies value.
+    # Market snapshots are stored only after sporting data collection and never
+    # define the raw sporting projection.
     if stage in {"T-40", "T-20", "T-10", "CLOSE"} and coverage.get("odds"):
         event["market"] = _compact_odds(await _api_get("odds", {"fixture": fx["fixture_id"], "page": 1}))
         event["market_use"] = "HISTORY_AND_LATER_MARKET_COMPARISON_ONLY"
@@ -352,7 +442,6 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
         event["result"] = {"goals": fx.get("goals"), "score": fx.get("score"), "status": fx.get("status")}
         event["classification"] = "POSTGAME"
 
-    # This infrastructure never promotes a bet without the sport-specific model.
     if stage == "T-20":
         lineup = event.get("lineups")
         if isinstance(lineup, dict) and not lineup.get("both_xi_confirmed"):
@@ -362,77 +451,90 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
 
 
 async def run_tick() -> dict[str, Any]:
+    global _HTTP_CLIENT
     now_utc = datetime.now(dt_timezone.utc)
     local_now = now_utc.astimezone(TIMEZONE)
-    dates = [local_now.date(), (local_now + timedelta(days=1)).date()]
+    _prune_cache(now_utc)
 
-    all_rows: list[dict[str, Any]] = []
+    # Most of the day only today's slate is needed. Tomorrow is added late at
+    # night so T-90/T-60 windows around local midnight are still covered.
+    dates = [local_now.date()]
+    if local_now.hour >= 22:
+        dates.append((local_now + timedelta(days=1)).date())
+
+    fixtures: list[dict[str, Any]] = []
     quota: dict[str, Any] = {}
-    for d in dates:
-        payload = await _api_get("fixtures", {"date": d.isoformat(), "timezone": TIMEZONE_NAME})
-        quota = payload.get("quota", quota)
-        all_rows.extend(payload.get("response", []))
 
-    fixtures = [_compact_fixture(x) for x in all_rows]
-    fixtures = [x for x in fixtures if x.get("fixture_id") and x.get("kickoff")]
+    _HTTP_CLIENT = httpx.AsyncClient(timeout=TIMEOUT, limits=httpx.Limits(max_connections=8, max_keepalive_connections=4))
+    try:
+        for d in dates:
+            payload = await _api_get("fixtures", {"date": d.isoformat(), "timezone": TIMEZONE_NAME})
+            quota = payload.get("quota", quota)
+            for row in payload.get("response", []):
+                fx = _compact_fixture(row)
+                if fx.get("fixture_id") and fx.get("kickoff"):
+                    fixtures.append(fx)
 
-    events: list[dict[str, Any]] = []
+        events: list[dict[str, Any]] = []
 
-    # Morning discovery event. It intentionally contains no odds.
-    if local_now.hour == 6 and local_now.minute < 15:
-        upcoming = []
-        for fx in fixtures:
-            kickoff = _dt(fx["kickoff"])
-            if kickoff >= now_utc and fx.get("status") not in CANCELLED_STATUSES | POSTPONED_STATUSES:
-                upcoming.append(fx)
-        events.append({
-            "event_type": "DAILY_DISCOVERY",
-            "stage": "MORNING",
-            "date": local_now.date().isoformat(),
-            "timezone": TIMEZONE_NAME,
-            "upcoming_count": len(upcoming),
-            "fixtures": upcoming,
-            "classification": "PRE-FINAL",
-            "sport_first": True,
-            "market_data_included": False,
-        })
-
-    # Process the game-specific stages.
-    for fx in fixtures:
-        kickoff = _dt(fx["kickoff"])
-        minutes_to = (kickoff - now_utc).total_seconds() / 60.0
-        stage = _stage_for(minutes_to, fx.get("status") or "", local_now)
-        if not stage:
-            continue
-        # Avoid POSTGAME for matches from tomorrow/old matches and keep the window sane.
-        if stage == "POSTGAME":
-            minutes_since = -minutes_to
-            if minutes_since < 95 or minutes_since > 240:
-                continue
-        if not _dedupe_stage(fx["fixture_id"], stage, now_utc):
-            continue
-        try:
-            events.append(await _event_for_fixture(fx, stage, now_utc))
-        except Exception as exc:
+        if local_now.hour == 6 and local_now.minute < 15:
+            upcoming = []
+            for fx in fixtures:
+                kickoff = _dt(fx["kickoff"])
+                if kickoff >= now_utc and fx.get("status") not in CANCELLED_STATUSES | POSTPONED_STATUSES:
+                    upcoming.append(fx)
             events.append({
-                "event_type": "PIPELINE_ERROR",
-                "stage": stage,
-                "fixture": fx,
-                "classification": "WATCH",
-                "error": str(exc)[:500],
+                "event_type": "DAILY_DISCOVERY",
+                "stage": "MORNING",
+                "date": local_now.date().isoformat(),
+                "timezone": TIMEZONE_NAME,
+                "upcoming_count": len(upcoming),
+                "fixtures": upcoming,
+                "classification": "PRE-FINAL",
+                "sport_first": True,
+                "market_data_included": False,
             })
 
-    actionable = [e for e in events if e.get("stage") in {"T-40", "T-20", "T-10", "CLOSE"}]
-    return {
-        "service": "soccer-edge-automation",
-        "version": "1.0.0",
-        "generated_at_utc": now_utc.isoformat(),
-        "generated_at_local": local_now.isoformat(),
-        "timezone": TIMEZONE_NAME,
-        "fixture_scan_count": len(fixtures),
-        "event_count": len(events),
-        "actionable_refresh_count": len(actionable),
-        "events": events,
-        "quota": quota,
-        "database_persistence": "OPTIONAL_NOT_REQUIRED_FOR_SCHEDULER",
-    }
+        for fx in fixtures:
+            kickoff = _dt(fx["kickoff"])
+            minutes_to = (kickoff - now_utc).total_seconds() / 60.0
+            stage = _stage_for(minutes_to, fx.get("status") or "")
+            if not stage:
+                continue
+            if stage == "POSTGAME":
+                minutes_since = -minutes_to
+                if minutes_since < 95 or minutes_since > 240:
+                    continue
+            if not _dedupe_stage(fx["fixture_id"], stage, now_utc):
+                continue
+            try:
+                events.append(await _event_for_fixture(fx, stage, now_utc))
+            except Exception as exc:
+                events.append({
+                    "event_type": "PIPELINE_ERROR",
+                    "stage": stage,
+                    "fixture": fx,
+                    "classification": "WATCH",
+                    "error": str(exc)[:500],
+                })
+
+        actionable = [e for e in events if e.get("stage") in {"T-40", "T-20", "T-10", "CLOSE"}]
+        return {
+            "service": "soccer-edge-automation",
+            "version": "1.1.0",
+            "generated_at_utc": now_utc.isoformat(),
+            "generated_at_local": local_now.isoformat(),
+            "timezone": TIMEZONE_NAME,
+            "fixture_scan_count": len(fixtures),
+            "event_count": len(events),
+            "actionable_refresh_count": len(actionable),
+            "events": events,
+            "quota": quota,
+            "database_persistence": "OPTIONAL_NOT_REQUIRED_FOR_SCHEDULER",
+        }
+    finally:
+        if _HTTP_CLIENT is not None:
+            await _HTTP_CLIENT.aclose()
+            _HTTP_CLIENT = None
+        if _CACHE_CONN is not None:
+            _CACHE_CONN.commit()
