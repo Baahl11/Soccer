@@ -5,12 +5,28 @@ from typing import Any
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
 REQUEST_TIMEOUT_SECONDS = float(os.getenv("API_FOOTBALL_TIMEOUT", "20"))
+
+TRANSPORT_SECURITY = TransportSecuritySettings(
+    enable_dns_rebinding_protection=True,
+    allowed_hosts=[
+        "soccer-edge-api.onrender.com",
+        "soccer-edge-api.onrender.com:*",
+        "localhost:*",
+        "127.0.0.1:*",
+    ],
+    allowed_origins=[
+        "https://chatgpt.com",
+        "https://chat.openai.com",
+        "https://platform.openai.com",
+    ],
+)
 
 mcp = FastMCP(
     "Soccer Edge API",
@@ -21,6 +37,7 @@ mcp = FastMCP(
     ),
     stateless_http=True,
     json_response=True,
+    transport_security=TRANSPORT_SECURITY,
 )
 
 
@@ -224,7 +241,7 @@ async def health(request: Request) -> Response:
         {
             "status": "ok",
             "service": "soccer-edge-api",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
         }
     )
