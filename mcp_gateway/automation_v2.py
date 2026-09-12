@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Any
 
@@ -12,6 +13,40 @@ SPORTING_STAGES = {"T-90", "T-60", "T-40", "T-20", "T-10"}
 MARKET_STAGES = {"T-40", "T-20", "T-10", "CLOSE"}
 LINEUP_STAGES = {"T-60", "T-40", "T-30", "T-20", "T-10"}
 INJURY_STAGES = {"T-90", "T-60", "T-40", "T-20"}
+MAX_API_CALLS_PER_TICK = int(os.getenv("SOCCER_EDGE_MAX_API_CALLS_PER_TICK", "35"))
+_API_CALLS_THIS_TICK = 0
+_LAST_DAILY_REMAINING: int | None = None
+_ORIGINAL_API_GET = base._api_get
+
+
+class TickBudgetExceeded(RuntimeError):
+    pass
+
+
+async def _budgeted_api_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
+    global _API_CALLS_THIS_TICK, _LAST_DAILY_REMAINING
+    if _API_CALLS_THIS_TICK >= MAX_API_CALLS_PER_TICK:
+        raise TickBudgetExceeded(
+            f"Per-tick API budget reached ({MAX_API_CALLS_PER_TICK}); lower-priority work deferred."
+        )
+    if _LAST_DAILY_REMAINING is not None and _LAST_DAILY_REMAINING <= 50:
+        raise TickBudgetExceeded("Daily API reserve guard reached; lower-priority work deferred.")
+    _API_CALLS_THIS_TICK += 1
+    payload = await _ORIGINAL_API_GET(endpoint, params)
+    remaining = (payload.get("quota") or {}).get("daily_remaining")
+    try:
+        if remaining is not None:
+            _LAST_DAILY_REMAINING = int(remaining)
+    except (TypeError, ValueError):
+        pass
+    return payload
+
+
+# All API calls made by the base helper functions in this short-lived worker are
+# routed through the same hard budget. At 35 calls/tick and 10-minute cadence,
+# the theoretical scheduler maximum is 5,040/day, leaving substantial room from
+# a 7,500/day Pro quota for interactive calls, failures and unusual slates.
+base._api_get = _budgeted_api_get
 
 
 async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> dict[str, Any]:
@@ -29,6 +64,13 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
         "availability_confidence": None,
         "notes": [],
     }
+
+    # Automated BET requires Data Tier A/B. Do not spend scarce API quota doing
+    # team/lineup/odds deep dives for C/D fixtures that cannot pass that gate.
+    if coverage.get("data_tier") not in {"A", "B"}:
+        event["classification"] = "PASS" if coverage.get("data_tier") == "D" else "WATCH"
+        event["notes"].append("Automated deep dive skipped: Data Tier A/B required for automated BET eligibility.")
+        return event
 
     # SPORT FIRST. Sporting inputs and raw projection are created before market retrieval.
     sporting: dict[str, Any] | None = None
@@ -130,6 +172,10 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
 
 
 async def run_tick() -> dict[str, Any]:
+    global _API_CALLS_THIS_TICK, _LAST_DAILY_REMAINING
+    _API_CALLS_THIS_TICK = 0
+    _LAST_DAILY_REMAINING = None
+
     now_utc = datetime.now(dt_timezone.utc)
     local_now = now_utc.astimezone(base.TIMEZONE)
     base._prune_cache(now_utc)
@@ -156,8 +202,6 @@ async def run_tick() -> dict[str, Any]:
 
         events: list[dict[str, Any]] = []
 
-        # Daily discovery stays market-free. Full model work is distributed into
-        # fixture-specific pregame windows to respect API quota and Render memory.
         if local_now.hour == 6 and local_now.minute < 15:
             upcoming = []
             for fx in fixtures:
@@ -176,10 +220,12 @@ async def run_tick() -> dict[str, Any]:
                 "market_data_included": False,
                 "model_version": "SOCCER EDGE ENGINE v1.0",
                 "notes": [
-                    "Complete configured slate discovered. Resource-aware sporting/model screens run automatically as each fixture enters its T-90/T-60/T-40/T-20/T-10 window."
+                    "Complete configured slate discovered. Resource-aware sporting/model screens run automatically as each fixture enters its pregame window."
                 ],
             })
 
+        due: list[tuple[int, datetime, dict[str, Any], str]] = []
+        priority = {"T-40": 0, "T-20": 1, "T-10": 2, "CLOSE": 3, "T-60": 4, "T-90": 5, "T-30": 6, "POSTGAME": 7}
         for fx in fixtures:
             kickoff = base._dt(fx["kickoff"])
             minutes_to = (kickoff - now_utc).total_seconds() / 60.0
@@ -190,10 +236,26 @@ async def run_tick() -> dict[str, Any]:
                 minutes_since = -minutes_to
                 if minutes_since < 95 or minutes_since > 240:
                     continue
+            due.append((priority.get(stage, 99), kickoff, fx, stage))
+
+        due.sort(key=lambda item: (item[0], item[1]))
+        deferred_due_to_budget = 0
+        for _, _, fx, stage in due:
             if not base._dedupe_stage(fx["fixture_id"], stage, now_utc):
                 continue
             try:
                 events.append(await _event_for_fixture(fx, stage, now_utc))
+            except TickBudgetExceeded as exc:
+                deferred_due_to_budget += 1
+                events.append({
+                    "event_type": "QUOTA_GUARD",
+                    "stage": stage,
+                    "fixture": fx,
+                    "model_version": "SOCCER EDGE ENGINE v1.0",
+                    "classification": "WATCH",
+                    "error": str(exc),
+                })
+                break
             except Exception as exc:
                 events.append({
                     "event_type": "PIPELINE_ERROR",
@@ -208,15 +270,20 @@ async def run_tick() -> dict[str, Any]:
         bets = [e for e in events if e.get("classification") == "BET"]
         return {
             "service": "soccer-edge-automation",
-            "version": "1.2.0",
+            "version": "1.2.1",
             "model_version": "SOCCER EDGE ENGINE v1.0",
             "generated_at_utc": now_utc.isoformat(),
             "generated_at_local": local_now.isoformat(),
             "timezone": base.TIMEZONE_NAME,
             "fixture_scan_count": len(fixtures),
+            "due_fixture_count": len(due),
             "event_count": len(events),
             "actionable_refresh_count": len(actionable),
             "bet_candidate_count": len(bets),
+            "api_calls_this_tick": _API_CALLS_THIS_TICK,
+            "max_api_calls_per_tick": MAX_API_CALLS_PER_TICK,
+            "last_daily_remaining": _LAST_DAILY_REMAINING,
+            "deferred_due_to_budget": deferred_due_to_budget,
             "events": events,
             "quota": quota,
             "database_persistence": "OPTIONAL_NOT_REQUIRED_FOR_SCHEDULER",
