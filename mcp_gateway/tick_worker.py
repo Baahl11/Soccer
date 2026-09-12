@@ -3,7 +3,7 @@ import json
 import logging
 import sys
 
-from mcp_gateway.automation_v2 import run_tick
+from mcp_gateway.automation_v3 import run_tick
 from mcp_gateway.persistence_v2 import persist_tick
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
