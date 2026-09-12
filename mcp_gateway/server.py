@@ -230,32 +230,4 @@ async def health(request: Request) -> Response:
     )
 
 
-def _temporary_startup_probe() -> None:
-    """One-time deployment verification. Remove after confirming the provider accepts the key."""
-    key = os.getenv("API_FOOTBALL_KEY", "").strip()
-    if not key:
-        print("SOCCER_EDGE_API_PROBE: MISSING_KEY", flush=True)
-        return
-    try:
-        response = httpx.get(
-            f"{API_BASE_URL}/countries",
-            headers={"x-apisports-key": key, "Accept": "application/json"},
-            timeout=10.0,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        if not isinstance(payload, dict) or payload.get("errors"):
-            print("SOCCER_EDGE_API_PROBE: PROVIDER_REJECTED_OR_ERRORED", flush=True)
-            return
-        print(
-            "SOCCER_EDGE_API_PROBE: OK "
-            f"results={payload.get('results')} "
-            f"daily_remaining={response.headers.get('x-ratelimit-requests-remaining')}",
-            flush=True,
-        )
-    except Exception as exc:
-        print(f"SOCCER_EDGE_API_PROBE: FAILED type={type(exc).__name__}", flush=True)
-
-
-_temporary_startup_probe()
 app = mcp.streamable_http_app()
