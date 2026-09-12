@@ -12,6 +12,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from mcp_gateway.automation import run_tick
+from mcp_gateway.persistence import persist_tick, persistence_configured
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -294,9 +295,10 @@ async def health(request: Request) -> Response:
     return JSONResponse({
         "status": "ok",
         "service": "soccer-edge-api",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
         "scheduler_endpoint": True,
+        "database_persistence_configured": persistence_configured(),
     })
 
 
@@ -308,6 +310,11 @@ async def internal_tick(request: Request) -> Response:
         return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
     try:
         payload = await run_tick()
+        try:
+            payload["database_persisted"] = persist_tick(payload)
+        except Exception as db_exc:
+            payload["database_persisted"] = False
+            payload["database_error"] = str(db_exc)[:300]
         return JSONResponse(payload, status_code=200)
     except Exception as exc:
         return JSONResponse({"error": "tick_failed", "detail": str(exc)[:500]}, status_code=500)
