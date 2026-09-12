@@ -4,14 +4,24 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from typing import Any
 
 import httpx
+import jwt
+from jwt import PyJWKClient
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from mcp_gateway.automation import run_tick
+
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
 REQUEST_TIMEOUT_SECONDS = float(os.getenv("API_FOOTBALL_TIMEOUT", "20"))
+GITHUB_OIDC_AUDIENCE = os.getenv("GITHUB_OIDC_AUDIENCE", "soccer-edge-render")
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY_ALLOWED", "Baahl11/Soccer")
+GITHUB_WORKFLOW_PATH = ".github/workflows/soccer-edge-scheduler.yml"
+GITHUB_ISSUER = "https://token.actions.githubusercontent.com"
+GITHUB_JWKS_URL = "https://token.actions.githubusercontent.com/.well-known/jwks"
+_JWK_CLIENT = PyJWKClient(GITHUB_JWKS_URL, cache_keys=True)
 
 TRANSPORT_SECURITY = TransportSecuritySettings(
     enable_dns_rebinding_protection=True,
@@ -129,7 +139,6 @@ def _compact_fixture(item: dict[str, Any]) -> dict[str, Any]:
     away = teams.get("away") or {}
     status = fixture.get("status") or {}
     venue = fixture.get("venue") or {}
-
     return {
         "fixture_id": fixture.get("id"),
         "kickoff": fixture.get("date"),
@@ -150,6 +159,31 @@ def _compact_fixture(item: dict[str, Any]) -> dict[str, Any]:
         "venue": venue.get("name"),
         "city": venue.get("city"),
     }
+
+
+def _github_oidc_claims(request: Request) -> dict[str, Any]:
+    auth = request.headers.get("authorization", "")
+    if not auth.startswith("Bearer "):
+        raise PermissionError("Missing bearer token")
+    token = auth[7:].strip()
+    signing_key = _JWK_CLIENT.get_signing_key_from_jwt(token)
+    claims = jwt.decode(
+        token,
+        signing_key.key,
+        algorithms=["RS256"],
+        audience=GITHUB_OIDC_AUDIENCE,
+        issuer=GITHUB_ISSUER,
+        options={"require": ["exp", "iat", "iss", "aud", "sub"]},
+    )
+    if claims.get("repository") != GITHUB_REPOSITORY:
+        raise PermissionError("Repository not allowed")
+    workflow_ref = claims.get("workflow_ref", "")
+    expected_prefix = f"{GITHUB_REPOSITORY}/{GITHUB_WORKFLOW_PATH}@"
+    if not workflow_ref.startswith(expected_prefix):
+        raise PermissionError("Workflow not allowed")
+    if claims.get("ref") != "refs/heads/main":
+        raise PermissionError("Only main branch scheduler is allowed")
+    return claims
 
 
 @mcp.tool()
@@ -176,7 +210,6 @@ async def get_today_fixtures(
     raw = await _get("fixtures", {"date": match_date, "timezone": timezone})
     items = raw.get("response") or []
     compact = [_compact_fixture(item) for item in items[:100]]
-
     return {
         "source": raw.get("source"),
         "retrieved_at_utc": raw.get("retrieved_at_utc"),
@@ -199,59 +232,37 @@ async def get_fixture(fixture_id: int) -> dict[str, Any]:
 @mcp.tool()
 async def get_league_coverage(league_id: int, season: int) -> dict[str, Any]:
     """Get league-season metadata and coverage flags before calling optional downstream endpoints."""
-    return await _get(
-        "leagues",
-        {
-            "id": _positive_int(league_id, "league_id"),
-            "season": _valid_season(season),
-        },
-    )
+    return await _get("leagues", {"id": _positive_int(league_id, "league_id"), "season": _valid_season(season)})
 
 
 @mcp.tool()
 async def get_team_stats(team_id: int, league_id: int, season: int) -> dict[str, Any]:
     """Get API-Football team season statistics for one team in one league-season."""
-    return await _get(
-        "teams/statistics",
-        {
-            "team": _positive_int(team_id, "team_id"),
-            "league": _positive_int(league_id, "league_id"),
-            "season": _valid_season(season),
-        },
-    )
+    return await _get("teams/statistics", {
+        "team": _positive_int(team_id, "team_id"),
+        "league": _positive_int(league_id, "league_id"),
+        "season": _valid_season(season),
+    })
 
 
 @mcp.tool()
 async def get_injuries(fixture_id: int) -> dict[str, Any]:
-    """Get provider-reported injuries/suspensions for a fixture.
-    Empty results mean no provider records were returned, not proof that every player is available.
-    """
+    """Get provider-reported injuries/suspensions for a fixture. Empty results are not proof that all players are available."""
     return await _get("injuries", {"fixture": _positive_int(fixture_id, "fixture_id")})
 
 
 @mcp.tool()
 async def get_lineups(fixture_id: int) -> dict[str, Any]:
-    """Get provider-reported lineups, formations, coaches and substitutes for a fixture.
-    Treat incomplete/empty responses as NOT VERIFIED until a current reliable source confirms them.
-    """
+    """Get provider-reported lineups, formations, coaches and substitutes for a fixture."""
     return await _get("fixtures/lineups", {"fixture": _positive_int(fixture_id, "fixture_id")})
 
 
 @mcp.tool()
-async def get_odds(
-    fixture_id: int,
-    bookmaker_id: int | None = None,
-    page: int = 1,
-) -> dict[str, Any]:
-    """Get current API-Football prematch odds for a fixture.
-    Market prices must be timestamped by the calling system; do not treat stale snapshots as current.
-    """
+async def get_odds(fixture_id: int, bookmaker_id: int | None = None, page: int = 1) -> dict[str, Any]:
+    """Get current API-Football prematch odds for a fixture."""
     if page < 1:
         raise ValueError("page must be >= 1")
-    params: dict[str, Any] = {
-        "fixture": _positive_int(fixture_id, "fixture_id"),
-        "page": page,
-    }
+    params: dict[str, Any] = {"fixture": _positive_int(fixture_id, "fixture_id"), "page": page}
     if bookmaker_id is not None:
         params["bookmaker"] = _positive_int(bookmaker_id, "bookmaker_id")
     return await _get("odds", params)
@@ -270,12 +281,8 @@ async def get_player_match_stats(fixture_id: int) -> dict[str, Any]:
 
 
 @mcp.tool()
-async def get_head_to_head(
-    team_a_id: int,
-    team_b_id: int,
-    last: int = 10,
-) -> dict[str, Any]:
-    """Get recent head-to-head fixtures as supporting context only; never use raw H2H as primary evidence."""
+async def get_head_to_head(team_a_id: int, team_b_id: int, last: int = 10) -> dict[str, Any]:
+    """Get recent head-to-head fixtures as supporting context only."""
     if last < 1 or last > 100:
         raise ValueError("last must be between 1 and 100")
     h2h = f"{_positive_int(team_a_id, 'team_a_id')}-{_positive_int(team_b_id, 'team_b_id')}"
@@ -284,14 +291,26 @@ async def get_head_to_head(
 
 @mcp.custom_route("/health", methods=["GET"])
 async def health(request: Request) -> Response:
-    return JSONResponse(
-        {
-            "status": "ok",
-            "service": "soccer-edge-api",
-            "version": "1.0.3",
-            "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
-        }
-    )
+    return JSONResponse({
+        "status": "ok",
+        "service": "soccer-edge-api",
+        "version": "1.1.0",
+        "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
+        "scheduler_endpoint": True,
+    })
+
+
+@mcp.custom_route("/internal/tick", methods=["POST"])
+async def internal_tick(request: Request) -> Response:
+    try:
+        _github_oidc_claims(request)
+    except Exception as exc:
+        return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+    try:
+        payload = await run_tick()
+        return JSONResponse(payload, status_code=200)
+    except Exception as exc:
+        return JSONResponse({"error": "tick_failed", "detail": str(exc)[:500]}, status_code=500)
 
 
 app = mcp.streamable_http_app()
