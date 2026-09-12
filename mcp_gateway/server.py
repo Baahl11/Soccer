@@ -121,14 +121,46 @@ async def _get(endpoint: str, params: dict[str, Any] | None = None) -> dict[str,
     }
 
 
+def _compact_fixture(item: dict[str, Any]) -> dict[str, Any]:
+    fixture = item.get("fixture") or {}
+    league = item.get("league") or {}
+    teams = item.get("teams") or {}
+    home = teams.get("home") or {}
+    away = teams.get("away") or {}
+    status = fixture.get("status") or {}
+    venue = fixture.get("venue") or {}
+
+    return {
+        "fixture_id": fixture.get("id"),
+        "kickoff": fixture.get("date"),
+        "timestamp": fixture.get("timestamp"),
+        "timezone": fixture.get("timezone"),
+        "status": status.get("short"),
+        "status_long": status.get("long"),
+        "elapsed": status.get("elapsed"),
+        "league_id": league.get("id"),
+        "league": league.get("name"),
+        "country": league.get("country"),
+        "season": league.get("season"),
+        "round": league.get("round"),
+        "home_team_id": home.get("id"),
+        "home_team": home.get("name"),
+        "away_team_id": away.get("id"),
+        "away_team": away.get("name"),
+        "venue": venue.get("name"),
+        "city": venue.get("city"),
+    }
+
+
 @mcp.tool()
 async def get_today_fixtures(
     match_date: str | None = None,
     timezone: str = DEFAULT_TIMEZONE,
 ) -> dict[str, Any]:
-    """Get soccer fixtures for a calendar date in an IANA timezone.
+    """Get a compact soccer slate for a calendar date in an IANA timezone.
     Defaults to the current date in America/Mexico_City.
-    Use this as the structured slate source; verify configured competition eligibility separately.
+    Returns compact fixture metadata instead of the full API-Football payload so ChatGPT can reliably consume it.
+    Up to 100 fixtures are returned; total_results and truncated indicate whether more existed.
     """
     try:
         zone = ZoneInfo(timezone)
@@ -140,7 +172,22 @@ async def get_today_fixtures(
         Date.fromisoformat(match_date)
     except ValueError as exc:
         raise ValueError("match_date must be YYYY-MM-DD") from exc
-    return await _get("fixtures", {"date": match_date, "timezone": timezone})
+
+    raw = await _get("fixtures", {"date": match_date, "timezone": timezone})
+    items = raw.get("response") or []
+    compact = [_compact_fixture(item) for item in items[:100]]
+
+    return {
+        "source": raw.get("source"),
+        "retrieved_at_utc": raw.get("retrieved_at_utc"),
+        "match_date": match_date,
+        "timezone": timezone,
+        "total_results": len(items),
+        "returned_results": len(compact),
+        "truncated": len(items) > len(compact),
+        "fixtures": compact,
+        "quota": raw.get("quota"),
+    }
 
 
 @mcp.tool()
@@ -241,7 +288,7 @@ async def health(request: Request) -> Response:
         {
             "status": "ok",
             "service": "soccer-edge-api",
-            "version": "1.0.2",
+            "version": "1.0.3",
             "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
         }
     )
