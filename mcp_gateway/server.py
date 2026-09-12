@@ -1,4 +1,6 @@
+import asyncio
 import os
+import sys
 from datetime import date as Date, datetime, timezone as dt_timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from typing import Any
@@ -11,8 +13,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from mcp_gateway.automation import run_tick
-from mcp_gateway.persistence import persist_tick, persistence_configured
+from mcp_gateway.persistence import persistence_configured
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -192,11 +193,7 @@ async def get_today_fixtures(
     match_date: str | None = None,
     timezone: str = DEFAULT_TIMEZONE,
 ) -> dict[str, Any]:
-    """Get a compact soccer slate for a calendar date in an IANA timezone.
-    Defaults to the current date in America/Mexico_City.
-    Returns compact fixture metadata instead of the full API-Football payload so ChatGPT can reliably consume it.
-    Up to 100 fixtures are returned; total_results and truncated indicate whether more existed.
-    """
+    """Get a compact soccer slate for a calendar date in an IANA timezone."""
     try:
         zone = ZoneInfo(timezone)
     except ZoneInfoNotFoundError as exc:
@@ -295,9 +292,10 @@ async def health(request: Request) -> Response:
     return JSONResponse({
         "status": "ok",
         "service": "soccer-edge-api",
-        "version": "1.1.1",
+        "version": "1.2.0",
         "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
         "scheduler_endpoint": True,
+        "scheduler_isolated_worker": True,
         "database_persistence_configured": persistence_configured(),
     })
 
@@ -308,14 +306,34 @@ async def internal_tick(request: Request) -> Response:
         _github_oidc_claims(request)
     except Exception as exc:
         return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+
+    env = os.environ.copy()
+    env.setdefault("MALLOC_ARENA_MAX", "2")
     try:
-        payload = await run_tick()
+        proc = await asyncio.create_subprocess_exec(
+            sys.executable,
+            "-m",
+            "mcp_gateway.tick_worker",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
+        )
         try:
-            payload["database_persisted"] = persist_tick(payload)
-        except Exception as db_exc:
-            payload["database_persisted"] = False
-            payload["database_error"] = str(db_exc)[:300]
-        return JSONResponse(payload, status_code=200)
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=420)
+        except TimeoutError:
+            proc.kill()
+            await proc.communicate()
+            return JSONResponse({"error": "tick_timeout"}, status_code=504)
+
+        if proc.returncode != 0:
+            detail = stderr.decode("utf-8", errors="replace")[-1000:]
+            return JSONResponse({"error": "tick_failed", "detail": detail}, status_code=500)
+        if not stdout:
+            return JSONResponse({"error": "tick_failed", "detail": "worker returned empty output"}, status_code=500)
+
+        # Return worker JSON bytes directly. Avoid parsing and re-serializing the
+        # potentially large payload in the long-lived MCP process.
+        return Response(content=stdout, media_type="application/json", status_code=200)
     except Exception as exc:
         return JSONResponse({"error": "tick_failed", "detail": str(exc)[:500]}, status_code=500)
 
