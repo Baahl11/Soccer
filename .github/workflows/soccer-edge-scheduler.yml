@@ -55,6 +55,15 @@ jobs:
             https://soccer-edge-api.onrender.com/internal/tick)
           cat /tmp/soccer_tick.json | jq '{service,version,model_version,generated_at_local,fixture_scan_count,event_count,actionable_refresh_count,bet_candidate_count,quota,error,detail,database_persisted,database_error}'
           if [ "$HTTP_CODE" -ne 200 ]; then
+            mkdir -p soccer_edge_state
+            jq --arg http_code "$HTTP_CODE" '{captured_at: now|todateiso8601, http_code: $http_code, response: .}' /tmp/soccer_tick.json > soccer_edge_state/last_error.json
+            git config user.name "soccer-edge-bot"
+            git config user.email "soccer-edge-bot@users.noreply.github.com"
+            git add -f soccer_edge_state/last_error.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Soccer Edge scheduler error"
+              git push origin HEAD:soccer-edge-state
+            fi
             echo "Scheduler endpoint failed with HTTP $HTTP_CODE"
             exit 1
           fi
@@ -131,10 +140,11 @@ jobs:
           mkdir -p soccer_edge_state/history
           cp /tmp/soccer_compact.json soccer_edge_state/latest.json
           jq -c '.' /tmp/soccer_compact.json >> "soccer_edge_state/history/${RUN_DATE}.jsonl"
+          rm -f soccer_edge_state/last_error.json
 
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
-          git add -f soccer_edge_state/latest.json "soccer_edge_state/history/${RUN_DATE}.jsonl"
+          git add -A soccer_edge_state/latest.json "soccer_edge_state/history/${RUN_DATE}.jsonl" soccer_edge_state/last_error.json 2>/dev/null || true
           if git diff --cached --quiet; then
             exit 0
           fi
