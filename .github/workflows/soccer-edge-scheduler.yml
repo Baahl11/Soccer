@@ -1,0 +1,78 @@
+name: Soccer Edge Scheduler
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: soccer-edge-scheduler
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout state branch source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Obtain GitHub OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE=$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          TOKEN=$(echo "$RESPONSE" | jq -r '.value')
+          test -n "$TOKEN" && test "$TOKEN" != "null"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Run Soccer Edge tick
+        id: tick
+        shell: bash
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          HTTP_CODE=$(curl -sS -o /tmp/soccer_tick.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${OIDC_TOKEN}" \
+            -H "Content-Type: application/json" \
+            https://soccer-edge-api.onrender.com/internal/tick)
+          cat /tmp/soccer_tick.json | jq '{service,version,generated_at_local,fixture_scan_count,event_count,actionable_refresh_count,quota,error,detail}'
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "Scheduler endpoint failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+          EVENT_COUNT=$(jq -r '.event_count // 0' /tmp/soccer_tick.json)
+          echo "event_count=$EVENT_COUNT" >> "$GITHUB_OUTPUT"
+          echo "run_date=$(jq -r '.generated_at_local[0:10]' /tmp/soccer_tick.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Persist scheduler state
+        if: steps.tick.outputs.event_count != '0'
+        shell: bash
+        env:
+          RUN_DATE: ${{ steps.tick.outputs.run_date }}
+        run: |
+          set -euo pipefail
+          mkdir -p soccer_edge_state/history
+          cp /tmp/soccer_tick.json soccer_edge_state/latest.json
+          jq -c '.' /tmp/soccer_tick.json >> "soccer_edge_state/history/${RUN_DATE}.jsonl"
+
+          git config user.name "soccer-edge-bot"
+          git config user.email "soccer-edge-bot@users.noreply.github.com"
+          git add soccer_edge_state/latest.json "soccer_edge_state/history/${RUN_DATE}.jsonl"
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Soccer Edge tick ${RUN_DATE}"
+          git push origin HEAD:main
