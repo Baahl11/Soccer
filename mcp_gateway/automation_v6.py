@@ -11,7 +11,7 @@ from mcp_gateway import automation_v4 as v4
 from mcp_gateway import automation_v5 as v5
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
-AUTOMATION_VERSION = "1.6.1"
+AUTOMATION_VERSION = "1.6.2"
 SHORTLIST_SEED_MAX_AGE = timedelta(hours=18)
 SHORTLIST_EXPORT_MAX_AGE = timedelta(hours=14)
 MAX_SEED_ITEMS = 500
@@ -20,6 +20,16 @@ _BASE_MAX_API_CALLS_PER_TICK = int(os.getenv("SOCCER_EDGE_MAX_API_CALLS_PER_TICK
 _ORIGINAL_PACED_API_GET = v4._paced_api_get
 _ORIGINAL_SAFE_EVALUATE_MARKET = v4._safe_evaluate_market
 _BUDGET_MODE = "NORMAL"
+
+_CANONICAL_FT_MARKETS = {
+    "match winner",
+    "winner",
+    "goals over/under",
+    "over/under",
+    "goals over under",
+    "both teams to score",
+    "both teams score",
+}
 
 
 def _budget_for_remaining(remaining: int | None) -> tuple[str, int]:
@@ -52,8 +62,12 @@ async def _adaptive_paced_api_get(endpoint: str, params: dict[str, Any]) -> dict
     return payload
 
 
+def _market_name(name: str) -> str:
+    return " ".join((name or "").strip().lower().split())
+
+
 def _is_period_market(name: str) -> bool:
-    n = f" {(name or '').strip().lower()} "
+    n = f" {_market_name(name)} "
     phrases = (
         "first half", "second half", "1st half", "2nd half",
         "first-half", "second-half", "1st-half", "2nd-half",
@@ -63,7 +77,11 @@ def _is_period_market(name: str) -> bool:
     return any(p in n for p in phrases)
 
 
-def _safe_period_evaluate_market(
+def _is_canonical_ft_market(name: str) -> bool:
+    return _market_name(name) in _CANONICAL_FT_MARKETS
+
+
+def _safe_market_evaluate(
     raw: dict[str, Any],
     market: Any,
     coverage: dict[str, Any],
@@ -71,21 +89,43 @@ def _safe_period_evaluate_market(
     stage: str,
     lineup: Any,
 ) -> dict[str, Any]:
-    """Block period-specific markets until a matching period model exists."""
+    """Only price explicitly supported canonical full-match markets.
+
+    Period, team-total, alternate, compound and other derivative prices remain
+    stored for later modeling but cannot inherit full-match probabilities.
+    """
     if not isinstance(market, dict):
         return _ORIGINAL_SAFE_EVALUATE_MARKET(raw, market, coverage, availability, stage, lineup)
 
     rows = list(market.get("markets") or [])
     period_rows = [r for r in rows if _is_period_market(r.get("market") or "")]
-    supported_rows = [r for r in rows if not _is_period_market(r.get("market") or "")]
+    noncanonical_rows = [
+        r for r in rows
+        if not _is_period_market(r.get("market") or "")
+        and not _is_canonical_ft_market(r.get("market") or "")
+    ]
+    supported_rows = [
+        r for r in rows
+        if not _is_period_market(r.get("market") or "")
+        and _is_canonical_ft_market(r.get("market") or "")
+    ]
 
-    if period_rows and not supported_rows:
+    if not supported_rows:
+        reason = "NO_SUPPORTED_CANONICAL_FT_MARKET"
+        if period_rows and not noncanonical_rows:
+            reason = "PERIOD_MARKET_MODEL_NOT_IMPLEMENTED"
+        elif noncanonical_rows and not period_rows:
+            reason = "DERIVATIVE_MARKET_MODEL_NOT_IMPLEMENTED"
         return {
             "status": "WATCH",
-            "reason": "PERIOD_MARKET_MODEL_NOT_IMPLEMENTED",
+            "reason": reason,
             "decisions": [],
             "period_markets_ignored": len(period_rows),
-            "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+            "unsupported_derivative_markets_ignored": len(noncanonical_rows),
+            "market_safety_reason": (
+                "Only canonical full-match 1X2, Goals Over/Under and BTTS are automatically priced; "
+                "all other derivatives require an explicit matching model."
+            ),
         }
 
     filtered = dict(market)
@@ -93,11 +133,16 @@ def _safe_period_evaluate_market(
     decision = _ORIGINAL_SAFE_EVALUATE_MARKET(
         raw, filtered, coverage, availability, stage, lineup
     )
+    decision = dict(decision)
     if period_rows:
-        decision = dict(decision)
         decision["period_markets_ignored"] = len(period_rows)
         decision["period_market_reason"] = (
             "Dedicated period model required; full-match probabilities cannot be reused."
+        )
+    if noncanonical_rows:
+        decision["unsupported_derivative_markets_ignored"] = len(noncanonical_rows)
+        decision["derivative_market_reason"] = (
+            "Derivative/compound/team-specific market requires an explicit matching model."
         )
     return decision
 
@@ -180,7 +225,7 @@ async def run_tick() -> dict[str, Any]:
     previous_paced_symbol = v4._paced_api_get
     previous_market_symbol = v4._safe_evaluate_market
     v4._paced_api_get = _adaptive_paced_api_get
-    v4._safe_evaluate_market = _safe_period_evaluate_market
+    v4._safe_evaluate_market = _safe_market_evaluate
     try:
         payload = await v5.run_tick()
     finally:
@@ -202,4 +247,5 @@ async def run_tick() -> dict[str, Any]:
     payload["shortlist_state_count"] = len(shortlist_state)
     payload["shortlist_state"] = shortlist_state
     payload["period_market_model"] = "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+    payload["automated_market_scope"] = "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY"
     return payload
