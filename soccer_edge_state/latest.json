@@ -2,28 +2,28 @@
   "service": "soccer-edge-automation",
   "version": "1.7.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-13T21:38:04.234537+00:00",
-  "generated_at_local": "2026-09-13T15:38:04.234537-06:00",
+  "generated_at_utc": "2026-09-13T21:44:48.919755+00:00",
+  "generated_at_local": "2026-09-13T15:44:48.919755-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1106,
-  "due_fixture_count": 27,
-  "event_count": 4,
+  "due_fixture_count": 29,
+  "event_count": 3,
   "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 8,
+  "api_calls_this_tick": 4,
   "max_api_calls_per_tick": 16,
   "effective_max_api_calls_per_tick": 16,
-  "last_daily_remaining": 3963,
+  "last_daily_remaining": 3951,
   "daily_budget_mode": "REDUCED",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 3,
-  "shortlist_event_count": 3,
-  "screened_out_low_data_count": 8,
+  "deep_dive_processed_count": 2,
+  "shortlist_event_count": 2,
+  "screened_out_low_data_count": 1,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 8,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
-  "urgent_late_shortlist_due": 1,
+  "urgent_late_shortlist_due": 2,
   "urgent_late_shortlist_processed": 1,
   "request_pacing_seconds": 0.75,
   "rate_limit_max_retries": 2,
@@ -32,40 +32,40 @@
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
   "shortlist_state_count": 45,
-  "shortlist_seed_imported": 44,
+  "shortlist_seed_imported": 45,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "3970",
+    "daily_remaining": "3954",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
-      "classification": "LEAN",
+      "stage": "T-30",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.9,
+      "availability_confidence": 0.6,
       "fixture": {
-        "fixture_id": 1517347,
-        "kickoff": "2026-09-13T16:00:00-06:00",
-        "timestamp": 1789336800,
+        "fixture_id": 1493130,
+        "kickoff": "2026-09-13T16:15:00-06:00",
+        "timestamp": 1789337700,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 479,
-        "league": "Canadian Premier League",
-        "country": "Canada",
+        "league_id": 128,
+        "league": "Liga Profesional Argentina",
+        "country": "Argentina",
         "season": 2026,
-        "round": "Group Stage",
-        "home_team_id": 2622,
-        "home_team": "Pacific FC",
-        "away_team_id": 2619,
-        "away_team": "Cavalry FC",
-        "venue": "Starlight Stadium",
-        "city": null,
+        "round": "Clausura - 9",
+        "home_team_id": 453,
+        "home_team": "Independiente",
+        "away_team_id": 460,
+        "away_team": "San Lorenzo",
+        "venue": null,
+        "city": "Avellaneda",
         "goals": {
           "home": null,
           "away": null
@@ -94,102 +94,156 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 77.5,
+        "rank": 67.9,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 51.3,
+        "goal_environment_score": 32.1,
+        "two_way_scoring_score": 64.7,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-40",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.7,
+      "fixture": {
+        "fixture_id": 1490478,
+        "kickoff": "2026-09-13T16:30:00-06:00",
+        "timestamp": 1789338600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 253,
+        "league": "Major League Soccer",
+        "country": "USA",
+        "season": 2026,
+        "round": "Regular Season - 25",
+        "home_team_id": 1603,
+        "home_team": "Vancouver Whitecaps",
+        "away_team_id": 16489,
+        "away_team": "Austin",
+        "venue": "BC Place",
+        "city": "Vancouver",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 83.0,
         "tracks": [
           "SIDE",
+          "GOALS_OVER",
           "TWO_WAY"
         ],
-        "side_edge_score": 70.9,
-        "goal_environment_score": 64.9,
-        "two_way_scoring_score": 77.5,
+        "side_edge_score": 83.0,
+        "goal_environment_score": 74.6,
+        "two_way_scoring_score": 80.0,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": {
         "shortlisted": true,
-        "rank": 75.0,
+        "rank": 88.4,
         "tracks": [
           "SIDE",
+          "GOALS_OVER",
           "TWO_WAY"
         ],
-        "side_edge_score": 71.2,
-        "goal_environment_score": 62.6,
-        "two_way_scoring_score": 75.0,
+        "side_edge_score": 88.4,
+        "goal_environment_score": 80.8,
+        "two_way_scoring_score": 82.8,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_refined": {
         "shortlisted": true,
-        "rank": 77.5,
+        "rank": 83.0,
         "tracks": [
           "SIDE",
+          "GOALS_OVER",
           "TWO_WAY"
         ],
-        "side_edge_score": 70.9,
-        "goal_environment_score": 64.9,
-        "two_way_scoring_score": 77.5,
+        "side_edge_score": 83.0,
+        "goal_environment_score": 74.6,
+        "two_way_scoring_score": 80.0,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 2622,
-            "team": "Pacific FC",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 51276,
-                "name": "S. Melvin",
-                "number": 55,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          },
-          {
-            "team_id": 2619,
-            "team": "Cavalry FC",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 78519,
-                "name": "N. Ingham",
-                "number": 29,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          }
-        ]
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 0.9938,
-        "raw_away_goal_rate": 1.8875,
-        "raw_total_goals": 2.8813,
-        "raw_home_win_prob": 0.195082,
-        "raw_draw_prob": 0.222116,
-        "raw_away_win_prob": 0.582801,
-        "raw_btts_yes_prob": 0.534428,
-        "raw_over_2_5_prob": 0.549684,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "raw_home_goal_rate": 2.2812,
+        "raw_away_goal_rate": 0.9469,
+        "raw_total_goals": 3.2281,
+        "raw_home_win_prob": 0.673848,
+        "raw_draw_prob": 0.184203,
+        "raw_away_win_prob": 0.141949,
+        "raw_btts_yes_prob": 0.549522,
+        "raw_over_2_5_prob": 0.625925,
+        "scoring_path": "FAVORITE-CARRY OVER",
         "screen_scores": {
-          "side_edge_score": 70.9,
-          "goal_environment_score": 64.9,
-          "two_way_scoring_score": 77.5,
+          "side_edge_score": 79.0,
+          "goal_environment_score": 74.6,
+          "two_way_scoring_score": 79.0,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
         }
       },
       "market_decision": {
-        "status": "LEAN",
+        "status": "WATCH",
         "reason": null,
         "first_half_markets_ignored": null,
         "first_half_reason": null,
-        "period_markets_ignored": 34,
+        "period_markets_ignored": 26,
         "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused."
       },
       "best_market": {
@@ -197,233 +251,21 @@
         "market": "Goals Over/Under",
         "selection": "under",
         "line": 3.5,
-        "decimal_price": 1.53,
-        "bookmaker": "BetVictor",
-        "p_breakeven": 0.653595,
-        "p_market_fair": 0.599476,
-        "p_raw": 0.673819,
-        "p_shrunk": 0.618805,
-        "prob_edge_pp": 1.933,
-        "estimated_ev": -0.053228,
-        "shrink_weight": 0.26,
+        "decimal_price": 1.8,
+        "bookmaker": "Bet365",
+        "p_breakeven": 0.555556,
+        "p_market_fair": 0.514825,
+        "p_raw": 0.596281,
+        "p_shrunk": 0.527858,
+        "prob_edge_pp": 1.303,
+        "estimated_ev": -0.049856,
+        "shrink_weight": 0.16,
         "tier": null,
-        "classification": "LEAN",
+        "classification": "WATCH",
         "stake_units": 0.0
       },
       "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1575496,
-        "kickoff": "2026-09-13T13:30:00-06:00",
-        "timestamp": 1789327800,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 94,
-        "league": "Primeira Liga",
-        "country": "Portugal",
-        "season": 2026,
-        "round": "Regular Season - 6",
-        "home_team_id": 242,
-        "home_team": "Famalicao",
-        "away_team_id": 228,
-        "away_team": "Sporting CP",
-        "venue": "Estadio Municipal de Famalicao",
-        "city": "Vila Nova de Famalicao",
-        "goals": {
-          "home": 1,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 81.0,
-        "tracks": [
-          "SIDE",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 81.0,
-        "goal_environment_score": 61.6,
-        "two_way_scoring_score": 67.7,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-90",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1549780,
-        "kickoff": "2026-09-13T17:10:00-06:00",
-        "timestamp": 1789341000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 239,
-        "league": "Primera A",
-        "country": "Colombia",
-        "season": 2026,
-        "round": "Clausura - 10",
-        "home_team_id": 1136,
-        "home_team": "Once Caldas",
-        "away_team_id": 1127,
-        "away_team": "Deportivo Cali",
-        "venue": "Estadio Palogrande",
-        "city": "Manizales",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 75.1,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 54.9,
-        "goal_environment_score": 53.6,
-        "two_way_scoring_score": 75.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 75.6,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 57.7,
-        "goal_environment_score": 55.6,
-        "two_way_scoring_score": 75.6,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 75.1,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 54.9,
-        "goal_environment_score": 53.6,
-        "two_way_scoring_score": 75.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": null,
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.42,
-        "raw_away_goal_rate": 1.058,
-        "raw_total_goals": 2.478,
-        "raw_home_win_prob": 0.453098,
-        "raw_draw_prob": 0.266016,
-        "raw_away_win_prob": 0.280886,
-        "raw_btts_yes_prob": 0.495047,
-        "raw_over_2_5_prob": 0.450531,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 54.9,
-          "goal_environment_score": 53.6,
-          "two_way_scoring_score": 75.1,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
