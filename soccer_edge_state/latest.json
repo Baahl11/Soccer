@@ -2,21 +2,21 @@
   "service": "soccer-edge-automation",
   "version": "1.3.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-13T00:23:01.023830+00:00",
-  "generated_at_local": "2026-09-12T18:23:01.023830-06:00",
+  "generated_at_utc": "2026-09-13T01:11:24.378546+00:00",
+  "generated_at_local": "2026-09-12T19:11:24.378546-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1641,
-  "due_fixture_count": 25,
-  "event_count": 12,
-  "actionable_refresh_count": 11,
+  "due_fixture_count": 7,
+  "event_count": 6,
+  "actionable_refresh_count": 5,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7472,
+  "last_daily_remaining": 7251,
   "deferred_due_to_budget": 1,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7491",
+    "daily_remaining": "7270",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -44,30 +44,30 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "stage": "T-20",
       "classification": "WATCH",
       "tier": "S",
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.7,
+      "availability_confidence": 0.9,
       "fixture": {
-        "fixture_id": 1549483,
-        "kickoff": "2026-09-12T19:00:00-06:00",
-        "timestamp": 1789261200,
+        "fixture_id": 1490474,
+        "kickoff": "2026-09-12T19:30:00-06:00",
+        "timestamp": 1789263000,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 281,
-        "league": "Primera División",
-        "country": "Peru",
+        "league_id": 253,
+        "league": "Major League Soccer",
+        "country": "USA",
         "season": 2026,
-        "round": "Clausura - 9",
-        "home_team_id": 2553,
-        "home_team": "Alianza Lima",
-        "away_team_id": 2540,
-        "away_team": "Universitario",
-        "venue": "Estadio Alejandro Villanueva",
-        "city": "Lima",
+        "round": "Regular Season - 25",
+        "home_team_id": 1606,
+        "home_team": "Real Salt Lake",
+        "away_team_id": 1604,
+        "away_team": "New York City FC",
+        "venue": "America First Field",
+        "city": "Sandy",
         "goals": {
           "home": null,
           "away": null
@@ -92,31 +92,60 @@
         }
       },
       "coverage": {
-        "data_tier": "B"
+        "data_tier": "A"
       },
       "lineups": {
-        "lineup_state": "PENDING",
-        "both_xi_confirmed": false,
-        "both_goalkeepers_confirmed": false,
-        "teams": []
+        "lineup_state": "CONFIRMED_API",
+        "both_xi_confirmed": true,
+        "both_goalkeepers_confirmed": true,
+        "teams": [
+          {
+            "team_id": 1606,
+            "team": "Real Salt Lake",
+            "formation": "5-4-1",
+            "goalkeepers": [
+              {
+                "id": 30443,
+                "name": "Rafael Cabral",
+                "number": 1,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          },
+          {
+            "team_id": 1604,
+            "team": "New York City FC",
+            "formation": "4-3-3",
+            "goalkeepers": [
+              {
+                "id": 50728,
+                "name": "M. Freese",
+                "number": 49,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          }
+        ]
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.6937,
-        "raw_away_goal_rate": 1.1781,
-        "raw_total_goals": 2.8719,
-        "raw_home_win_prob": 0.49438,
-        "raw_draw_prob": 0.240036,
-        "raw_away_win_prob": 0.265584,
-        "raw_btts_yes_prob": 0.564908,
-        "raw_over_2_5_prob": 0.5475,
+        "raw_home_goal_rate": 1.65,
+        "raw_away_goal_rate": 1.2594,
+        "raw_total_goals": 2.9094,
+        "raw_home_win_prob": 0.465497,
+        "raw_draw_prob": 0.242128,
+        "raw_away_win_prob": 0.292374,
+        "raw_btts_yes_prob": 0.578628,
+        "raw_over_2_5_prob": 0.556202,
         "scoring_path": "TWO-WAY OPEN GAME",
         "screen_scores": {
-          "side_edge_score": 59.8,
-          "goal_environment_score": 64.6,
-          "two_way_scoring_score": 79.0,
+          "side_edge_score": 56.2,
+          "goal_environment_score": 65.7,
+          "two_way_scoring_score": 87.7,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
         }
@@ -126,21 +155,20 @@
         "market": "Goals Over/Under First Half",
         "selection": "over",
         "line": 1.5,
-        "decimal_price": 3.5,
-        "bookmaker": "William Hill",
-        "p_breakeven": 0.285714,
-        "p_market_fair": 0.263158,
-        "p_raw": 0.78088,
-        "p_shrunk": 0.345993,
-        "prob_edge_pp": 8.284,
-        "estimated_ev": 0.210977,
-        "shrink_weight": 0.16,
+        "decimal_price": 2.41,
+        "bookmaker": "Marathonbet",
+        "p_breakeven": 0.414938,
+        "p_market_fair": 0.383632,
+        "p_raw": 0.7869,
+        "p_shrunk": 0.496547,
+        "prob_edge_pp": 11.292,
+        "estimated_ev": 0.196678,
+        "shrink_weight": 0.28,
         "tier": "S",
         "classification": "WATCH",
         "stake_units": 0.0
       },
       "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
@@ -148,396 +176,30 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1581418,
-        "kickoff": "2026-09-12T19:00:00-06:00",
-        "timestamp": 1789261200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 263,
-        "league": "Liga de Expansión MX",
-        "country": "Mexico",
-        "season": 2026,
-        "round": "Apertura - 8",
-        "home_team_id": 2297,
-        "home_team": "Dorados",
-        "away_team_id": 14278,
-        "away_team": "Tapatío",
-        "venue": "Estadio El Encanto",
-        "city": "Mazatlan",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "C"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1581419,
-        "kickoff": "2026-09-12T19:00:00-06:00",
-        "timestamp": 1789261200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 263,
-        "league": "Liga de Expansión MX",
-        "country": "Mexico",
-        "season": 2026,
-        "round": "Apertura - 8",
-        "home_team_id": 2299,
-        "home_team": "Mineros de Zacatecas",
-        "away_team_id": 2284,
-        "away_team": "Monarcas",
-        "venue": "Estadio Carlos Vega Villalba",
-        "city": "Zacatecas",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "C"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1600599,
-        "kickoff": "2026-09-12T19:00:00-06:00",
-        "timestamp": 1789261200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 370,
-        "league": "Primera Division",
-        "country": "El-Salvador",
-        "season": 2026,
-        "round": "Apertura - 10",
-        "home_team_id": 4302,
-        "home_team": "FAS",
-        "away_team_id": 4299,
-        "away_team": "Alianza",
-        "venue": null,
-        "city": "Santa Ana",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1601432,
-        "kickoff": "2026-09-12T19:00:00-06:00",
-        "timestamp": 1789261200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 163,
-        "league": "Liga de Ascenso",
-        "country": "Costa-Rica",
-        "season": 2026,
-        "round": "Regular Season - 7",
-        "home_team_id": 818,
-        "home_team": "Municipal Grecia",
-        "away_team_id": 2043,
-        "away_team": "ADR Jicaral",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "C"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1635962,
-        "kickoff": "2026-09-12T19:00:00-06:00",
-        "timestamp": 1789261200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 1242,
-        "league": "Primera Premier",
-        "country": "Mexico",
-        "season": 2026,
-        "round": "Regular Season - 3",
-        "home_team_id": 15932,
-        "home_team": "Irapuato",
-        "away_team_id": 24952,
-        "away_team": "Tigres de Alica",
-        "venue": null,
-        "city": "Irapuato",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1635963,
-        "kickoff": "2026-09-12T19:00:00-06:00",
-        "timestamp": 1789261200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 1242,
-        "league": "Primera Premier",
-        "country": "Mexico",
-        "season": 2026,
-        "round": "Regular Season - 3",
-        "home_team_id": 17787,
-        "home_team": "Lobos ULMX",
-        "away_team_id": 19908,
-        "away_team": "Los Cabos United",
-        "venue": null,
-        "city": "Celaya",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "stage": "T-20",
       "classification": "WATCH",
       "tier": "S",
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.7,
+      "availability_confidence": 0.9,
       "fixture": {
-        "fixture_id": 1550965,
-        "kickoff": "2026-09-12T19:10:00-06:00",
-        "timestamp": 1789261800,
+        "fixture_id": 1490475,
+        "kickoff": "2026-09-12T19:30:00-06:00",
+        "timestamp": 1789263000,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 262,
-        "league": "Liga MX",
-        "country": "Mexico",
+        "league_id": 253,
+        "league": "Major League Soccer",
+        "country": "USA",
         "season": 2026,
-        "round": "Apertura - 8",
-        "home_team_id": 2282,
-        "home_team": "Monterrey",
-        "away_team_id": 2279,
-        "away_team": "Tigres UANL",
-        "venue": "Estadio BBVA",
-        "city": "Monterrey",
+        "round": "Regular Season - 25",
+        "home_team_id": 1610,
+        "home_team": "Colorado Rapids",
+        "away_team_id": 1614,
+        "away_team": "CF Montreal",
+        "venue": "Dick's Sporting Goods Park",
+        "city": "Trade City",
         "goals": {
           "home": null,
           "away": null
@@ -562,31 +224,60 @@
         }
       },
       "coverage": {
-        "data_tier": "B"
+        "data_tier": "A"
       },
       "lineups": {
-        "lineup_state": "PENDING",
-        "both_xi_confirmed": false,
-        "both_goalkeepers_confirmed": false,
-        "teams": []
+        "lineup_state": "CONFIRMED_API",
+        "both_xi_confirmed": true,
+        "both_goalkeepers_confirmed": true,
+        "teams": [
+          {
+            "team_id": 1610,
+            "team": "Colorado Rapids",
+            "formation": "4-3-3",
+            "goalkeepers": [
+              {
+                "id": 153426,
+                "name": "N. Defreitas",
+                "number": 41,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          },
+          {
+            "team_id": 1614,
+            "team": "CF Montreal",
+            "formation": "4-3-3",
+            "goalkeepers": [
+              {
+                "id": 56807,
+                "name": "S. Breza",
+                "number": 1,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          }
+        ]
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 2.3469,
-        "raw_away_goal_rate": 1.4531,
-        "raw_total_goals": 3.8,
-        "raw_home_win_prob": 0.574709,
-        "raw_draw_prob": 0.194402,
-        "raw_away_win_prob": 0.230889,
-        "raw_btts_yes_prob": 0.692862,
-        "raw_over_2_5_prob": 0.731094,
+        "raw_home_goal_rate": 2.175,
+        "raw_away_goal_rate": 1.0688,
+        "raw_total_goals": 3.2437,
+        "raw_home_win_prob": 0.625435,
+        "raw_draw_prob": 0.198212,
+        "raw_away_win_prob": 0.176352,
+        "raw_btts_yes_prob": 0.58197,
+        "raw_over_2_5_prob": 0.629145,
         "scoring_path": "TWO-WAY OPEN GAME",
         "screen_scores": {
-          "side_edge_score": 70.3,
-          "goal_environment_score": 79.0,
-          "two_way_scoring_score": 79.0,
+          "side_edge_score": 76.7,
+          "goal_environment_score": 75.0,
+          "two_way_scoring_score": 84.7,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
         }
@@ -596,21 +287,20 @@
         "market": "Goals Over/Under First Half",
         "selection": "over",
         "line": 2.5,
-        "decimal_price": 6.5,
+        "decimal_price": 6.0,
         "bookmaker": "Bet365",
-        "p_breakeven": 0.153846,
-        "p_market_fair": 0.145861,
-        "p_raw": 0.731094,
-        "p_shrunk": 0.239498,
-        "prob_edge_pp": 9.364,
-        "estimated_ev": 0.556737,
-        "shrink_weight": 0.16,
+        "p_breakeven": 0.166667,
+        "p_market_fair": 0.157303,
+        "p_raw": 0.629145,
+        "p_shrunk": 0.289419,
+        "prob_edge_pp": 13.212,
+        "estimated_ev": 0.736515,
+        "shrink_weight": 0.28,
         "tier": "S",
         "classification": "WATCH",
         "stake_units": 0.0
       },
       "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
@@ -618,30 +308,30 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "stage": "T-20",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1603357,
-        "kickoff": "2026-09-12T19:10:00-06:00",
-        "timestamp": 1789261800,
+        "fixture_id": 1583761,
+        "kickoff": "2026-09-12T19:30:00-06:00",
+        "timestamp": 1789263000,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 673,
-        "league": "Liga MX Femenil",
-        "country": "Mexico",
+        "league_id": 304,
+        "league": "Liga Panameña de Fútbol",
+        "country": "Panama",
         "season": 2026,
-        "round": "Regular Season - 7",
-        "home_team_id": 14869,
-        "home_team": "Juárez W",
-        "away_team_id": 14880,
-        "away_team": "Necaxa W",
-        "venue": null,
-        "city": null,
+        "round": "Apertura - 8",
+        "home_team_id": 2885,
+        "home_team": "Tauro FC",
+        "away_team_id": 2888,
+        "away_team": "Deportivo Universitario",
+        "venue": "Estadio Rommel Fernandez",
+        "city": "Panama City",
         "goals": {
           "home": null,
           "away": null
@@ -681,28 +371,28 @@
       "event_type": "SOCCER_REFRESH",
       "stage": "T-20",
       "classification": "WATCH",
-      "tier": "S",
+      "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.9,
+      "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1508543,
-        "kickoff": "2026-09-12T18:45:00-06:00",
-        "timestamp": 1789260300,
+        "fixture_id": 1636805,
+        "kickoff": "2026-09-12T19:30:00-06:00",
+        "timestamp": 1789263000,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 254,
-        "league": "NWSL Women",
-        "country": "USA",
+        "league_id": 234,
+        "league": "Liga Nacional",
+        "country": "Honduras",
         "season": 2026,
-        "round": "Group Stage",
-        "home_team_id": 2998,
-        "home_team": "Houston Dash W",
-        "away_team_id": 3004,
-        "away_team": "Utah Royals W",
-        "venue": "Shell Energy Stadium",
-        "city": null,
+        "round": "Apertura - 7",
+        "home_team_id": 1055,
+        "home_team": "CD Motagua",
+        "away_team_id": 21858,
+        "away_team": "Génesis",
+        "venue": "Estadio Nacional Jose de la Paz Herrera Ucles",
+        "city": "Tegucigalpa",
         "goals": {
           "home": null,
           "away": null
@@ -727,84 +417,13 @@
         }
       },
       "coverage": {
-        "data_tier": "B"
+        "data_tier": "C"
       },
-      "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 2998,
-            "team": "Houston Dash W",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 102301,
-                "name": "J. Campbell",
-                "number": 1,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          },
-          {
-            "team_id": 3004,
-            "team": "Utah Royals W",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 536234,
-                "name": "M. Justus",
-                "number": 23,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          }
-        ]
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.5531,
-        "raw_away_goal_rate": 1.5469,
-        "raw_total_goals": 3.1,
-        "raw_home_win_prob": 0.382098,
-        "raw_draw_prob": 0.238512,
-        "raw_away_win_prob": 0.37939,
-        "raw_btts_yes_prob": 0.620551,
-        "raw_over_2_5_prob": 0.598836,
-        "scoring_path": "TWO-WAY OPEN GAME",
-        "screen_scores": {
-          "side_edge_score": 50.1,
-          "goal_environment_score": 71.0,
-          "two_way_scoring_score": 100,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "best_market": {
-        "family": "BTTS",
-        "market": "Both Teams To Score in Both Halves",
-        "selection": "yes",
-        "line": null,
-        "decimal_price": 9.2,
-        "bookmaker": "Marathonbet",
-        "p_breakeven": 0.108696,
-        "p_market_fair": 0.098923,
-        "p_raw": 0.620551,
-        "p_shrunk": 0.234546,
-        "prob_edge_pp": 13.562,
-        "estimated_ev": 1.157823,
-        "shrink_weight": 0.26,
-        "tier": "S",
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
+      "lineups": null,
+      "raw_projection": null,
+      "best_market": null,
       "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
       ],
       "result": null,
       "error": null
@@ -818,23 +437,23 @@
       "bet_eligible": null,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1490471,
-        "kickoff": "2026-09-12T18:30:00-06:00",
-        "timestamp": 1789259400,
+        "fixture_id": 1549773,
+        "kickoff": "2026-09-12T19:20:00-06:00",
+        "timestamp": 1789262400,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 253,
-        "league": "Major League Soccer",
-        "country": "USA",
+        "league_id": 239,
+        "league": "Primera A",
+        "country": "Colombia",
         "season": 2026,
-        "round": "Regular Season - 25",
-        "home_team_id": 1611,
-        "home_team": "Sporting Kansas City",
-        "away_team_id": 1616,
-        "away_team": "Los Angeles FC",
-        "venue": "Children's Mercy Park",
-        "city": "Kansas City",
+        "round": "Clausura - 10",
+        "home_team_id": 1141,
+        "home_team": "Alianza Valledupar",
+        "away_team_id": 1135,
+        "away_team": "Junior",
+        "venue": "Estadio Armando Maestre Pavajeau",
+        "city": "Valledupar",
         "goals": {
           "home": null,
           "away": null
