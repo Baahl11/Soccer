@@ -2,29 +2,29 @@
   "service": "soccer-edge-automation",
   "version": "1.7.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-13T17:52:24.910515+00:00",
-  "generated_at_local": "2026-09-13T11:52:24.910515-06:00",
+  "generated_at_utc": "2026-09-13T18:09:03.785130+00:00",
+  "generated_at_local": "2026-09-13T12:09:03.785130-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1106,
-  "due_fixture_count": 69,
-  "event_count": 6,
-  "actionable_refresh_count": 6,
+  "due_fixture_count": 23,
+  "event_count": 5,
+  "actionable_refresh_count": 4,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 4775,
+  "last_daily_remaining": 4465,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 5,
-  "shortlist_event_count": 5,
+  "deep_dive_processed_count": 3,
+  "shortlist_event_count": 3,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 8,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
-  "urgent_late_shortlist_due": 4,
-  "urgent_late_shortlist_processed": 2,
+  "urgent_late_shortlist_due": 5,
+  "urgent_late_shortlist_processed": 3,
   "request_pacing_seconds": 0.75,
   "rate_limit_max_retries": 2,
   "first_half_market_model": "BLOCKED_PENDING_EXPLICIT_1H_MODEL",
@@ -32,219 +32,65 @@
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
   "shortlist_state_count": 22,
-  "shortlist_seed_imported": 19,
+  "shortlist_seed_imported": 22,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "4794",
-    "per_minute_remaining": "299"
+    "daily_remaining": "4493",
+    "per_minute_remaining": "293"
   },
   "database_persisted": false,
   "events": [
     {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-10",
-      "classification": "WATCH",
-      "tier": "B",
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.9,
-      "fixture": {
-        "fixture_id": 1552169,
-        "kickoff": "2026-09-13T12:00:00-06:00",
-        "timestamp": 1789322400,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 88,
-        "league": "Eredivisie",
-        "country": "Netherlands",
-        "season": 2026,
-        "round": "Regular Season - 6",
-        "home_team_id": 197,
-        "home_team": "PSV Eindhoven",
-        "away_team_id": 426,
-        "away_team": "Sparta Rotterdam",
-        "venue": "Philips Stadion",
-        "city": "Eindhoven",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "A"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 100.0,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 66.4,
-        "goal_environment_score": 98.8,
-        "two_way_scoring_score": 100.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 100.0,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 66.3,
-        "goal_environment_score": 100.0,
-        "two_way_scoring_score": 100.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 100.0,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 66.4,
-        "goal_environment_score": 98.8,
-        "two_way_scoring_score": 100.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 197,
-            "team": "PSV Eindhoven",
-            "formation": "4-3-3",
-            "goalkeepers": [
-              {
-                "id": 138804,
-                "name": "M. Kovář",
-                "number": 32,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          },
-          {
-            "team_id": 426,
-            "team": "Sparta Rotterdam",
-            "formation": "3-4-3",
-            "goalkeepers": [
-              {
-                "id": 37247,
-                "name": "M. Brouwer",
-                "number": 1,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          }
-        ]
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 2.4219,
-        "raw_away_goal_rate": 1.6719,
-        "raw_total_goals": 4.0938,
-        "raw_home_win_prob": 0.544337,
-        "raw_draw_prob": 0.192512,
-        "raw_away_win_prob": 0.263151,
-        "raw_btts_yes_prob": 0.740023,
-        "raw_over_2_5_prob": 0.775303,
-        "scoring_path": "TWO-WAY OPEN GAME",
-        "screen_scores": {
-          "side_edge_score": 66.4,
-          "goal_environment_score": 98.8,
-          "two_way_scoring_score": 100,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": {
-        "status": "WATCH",
-        "reason": null,
-        "first_half_markets_ignored": null,
-        "first_half_reason": null,
-        "period_markets_ignored": 31,
-        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused."
-      },
-      "best_market": {
-        "family": "1X2",
-        "market": "Match Winner",
-        "selection": "away",
-        "line": null,
-        "decimal_price": 15.0,
-        "bookmaker": "Bet365",
-        "p_breakeven": 0.066667,
-        "p_market_fair": 0.062804,
-        "p_raw": 0.263151,
-        "p_shrunk": 0.104877,
-        "prob_edge_pp": 4.207,
-        "estimated_ev": 0.573151,
-        "shrink_weight": 0.21,
-        "tier": "B",
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
+      "event_type": "DAILY_DISCOVERY",
+      "stage": "LATE_DISCOVERY",
+      "classification": "PRE-FINAL",
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
+      "fixture": null,
+      "coverage": null,
+      "sporting_shortlist": null,
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
       "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
+        "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
+        "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-10",
+      "stage": "T-20",
       "classification": "WATCH",
-      "tier": "B",
+      "tier": "A",
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": 0.9,
       "fixture": {
-        "fixture_id": 1505526,
-        "kickoff": "2026-09-13T12:00:00-06:00",
-        "timestamp": 1789322400,
+        "fixture_id": 1593315,
+        "kickoff": "2026-09-13T12:30:00-06:00",
+        "timestamp": 1789324200,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 265,
-        "league": "Primera División",
-        "country": "Chile",
+        "league_id": 197,
+        "league": "Super League 1",
+        "country": "Greece",
         "season": 2026,
-        "round": "Regular Season - 23",
-        "home_team_id": 2341,
-        "home_team": "D. La Serena",
-        "away_team_id": 2323,
-        "away_team": "Universidad de Chile",
-        "venue": "Estadio La Portada",
-        "city": "La Serena",
+        "round": "Regular Season - 4",
+        "home_team_id": 617,
+        "home_team": "Panathinaikos",
+        "away_team_id": 949,
+        "away_team": "Panetolikos",
+        "venue": "Olympic Stadium of Athens",
+        "city": "Athens",
         "goals": {
           "home": null,
           "away": null
@@ -273,35 +119,35 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 86.7,
+        "rank": 95.2,
         "tracks": [
           "TWO_WAY"
         ],
-        "side_edge_score": 50.0,
-        "goal_environment_score": 58.1,
-        "two_way_scoring_score": 86.7,
+        "side_edge_score": 51.4,
+        "goal_environment_score": 67.8,
+        "two_way_scoring_score": 95.2,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": {
         "shortlisted": true,
-        "rank": 80.6,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 51.3,
-        "goal_environment_score": 54.2,
-        "two_way_scoring_score": 80.6,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 86.7,
+        "rank": 97.7,
         "tracks": [
           "TWO_WAY"
         ],
         "side_edge_score": 50.0,
-        "goal_environment_score": 58.1,
-        "two_way_scoring_score": 86.7,
+        "goal_environment_score": 68.2,
+        "two_way_scoring_score": 97.7,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 95.2,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 51.4,
+        "goal_environment_score": 67.8,
+        "two_way_scoring_score": 95.2,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "lineups": {
@@ -310,28 +156,28 @@
         "both_goalkeepers_confirmed": true,
         "teams": [
           {
-            "team_id": 2341,
-            "team": "D. La Serena",
+            "team_id": 617,
+            "team": "Panathinaikos",
             "formation": "4-2-3-1",
             "goalkeepers": [
               {
-                "id": 357317,
-                "name": "J. Tapia",
-                "number": 31,
+                "id": 126,
+                "name": "Iñaki Peña",
+                "number": 1,
                 "pos": "G",
                 "grid": "1:1"
               }
             ]
           },
           {
-            "team_id": 2323,
-            "team": "Universidad de Chile",
-            "formation": "4-2-3-1",
+            "team_id": 949,
+            "team": "Panetolikos",
+            "formation": "4-1-4-1",
             "goalkeepers": [
               {
-                "id": 11655,
-                "name": "G. Castellón",
-                "number": 25,
+                "id": 142193,
+                "name": "Y. Kucherenko",
+                "number": 99,
                 "pos": "G",
                 "grid": "1:1"
               }
@@ -343,19 +189,19 @@
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.3188,
-        "raw_away_goal_rate": 1.3219,
-        "raw_total_goals": 2.6406,
-        "raw_home_win_prob": 0.368504,
-        "raw_draw_prob": 0.261539,
-        "raw_away_win_prob": 0.369958,
-        "raw_btts_yes_prob": 0.537212,
-        "raw_over_2_5_prob": 0.49172,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "raw_home_goal_rate": 1.5469,
+        "raw_away_goal_rate": 1.4375,
+        "raw_total_goals": 2.9844,
+        "raw_home_win_prob": 0.402433,
+        "raw_draw_prob": 0.24333,
+        "raw_away_win_prob": 0.354237,
+        "raw_btts_yes_prob": 0.600138,
+        "raw_over_2_5_prob": 0.5733,
+        "scoring_path": "TWO-WAY OPEN GAME",
         "screen_scores": {
-          "side_edge_score": 50.0,
-          "goal_environment_score": 58.1,
-          "two_way_scoring_score": 86.7,
+          "side_edge_score": 51.4,
+          "goal_environment_score": 67.8,
+          "two_way_scoring_score": 95.2,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
         }
@@ -365,24 +211,24 @@
         "reason": null,
         "first_half_markets_ignored": null,
         "first_half_reason": null,
-        "period_markets_ignored": 29,
+        "period_markets_ignored": 25,
         "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused."
       },
       "best_market": {
         "family": "1X2",
         "market": "Match Winner",
-        "selection": "home",
+        "selection": "away",
         "line": null,
-        "decimal_price": 4.0,
-        "bookmaker": "Bet365",
-        "p_breakeven": 0.25,
-        "p_market_fair": 0.23238,
-        "p_raw": 0.368504,
-        "p_shrunk": 0.267772,
-        "prob_edge_pp": 3.539,
-        "estimated_ev": 0.071088,
-        "shrink_weight": 0.26,
-        "tier": "B",
+        "decimal_price": 12.0,
+        "bookmaker": "Marathonbet",
+        "p_breakeven": 0.083333,
+        "p_market_fair": 0.0777,
+        "p_raw": 0.354237,
+        "p_shrunk": 0.130242,
+        "prob_edge_pp": 5.254,
+        "estimated_ev": 0.562907,
+        "shrink_weight": 0.19,
+        "tier": "A",
         "classification": "WATCH",
         "stake_units": 0.0
       },
@@ -394,14 +240,14 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "stage": "T-20",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.7,
+      "availability_confidence": 0.6,
       "fixture": {
-        "fixture_id": 1606490,
+        "fixture_id": 1606494,
         "kickoff": "2026-09-13T12:30:00-06:00",
         "timestamp": 1789324200,
         "status": "NS",
@@ -412,12 +258,12 @@
         "country": "Argentina",
         "season": 2026,
         "round": "Losers Stage - 8",
-        "home_team_id": 27572,
-        "home_team": "Defensores de Vilelas",
-        "away_team_id": 1960,
-        "away_team": "Independiente De Chivilcoy",
-        "venue": "Estadio del Club Defensores De Vilelas",
-        "city": "Puerto Vilelas",
+        "home_team_id": 3945,
+        "home_team": "Gimnasia Concepción",
+        "away_team_id": 1953,
+        "away_team": "Sarmiento Resistencia",
+        "venue": "Estadio Manuel y Ramon Nunez",
+        "city": null,
         "goals": {
           "home": null,
           "away": null
@@ -446,38 +292,37 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 69.2,
+        "rank": 75.4,
         "tracks": [
-          "GOALS_UNDER",
-          "TWO_WAY"
+          "SIDE",
+          "GOALS_UNDER"
         ],
-        "side_edge_score": 56.0,
-        "goal_environment_score": 47.4,
-        "two_way_scoring_score": 69.2,
+        "side_edge_score": 75.4,
+        "goal_environment_score": 47.1,
+        "two_way_scoring_score": 57.7,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": {
         "shortlisted": true,
-        "rank": 68.3,
+        "rank": 76.1,
         "tracks": [
-          "GOALS_UNDER",
-          "TWO_WAY"
+          "SIDE"
         ],
-        "side_edge_score": 59.0,
-        "goal_environment_score": 48.6,
-        "two_way_scoring_score": 68.3,
+        "side_edge_score": 76.1,
+        "goal_environment_score": 50.0,
+        "two_way_scoring_score": 59.0,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_refined": {
         "shortlisted": true,
-        "rank": 69.2,
+        "rank": 75.4,
         "tracks": [
-          "GOALS_UNDER",
-          "TWO_WAY"
+          "SIDE",
+          "GOALS_UNDER"
         ],
-        "side_edge_score": 56.0,
-        "goal_environment_score": 47.4,
-        "two_way_scoring_score": 69.2,
+        "side_edge_score": 75.4,
+        "goal_environment_score": 47.1,
+        "two_way_scoring_score": 57.7,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "lineups": {
@@ -490,64 +335,48 @@
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.3312,
-        "raw_away_goal_rate": 0.925,
-        "raw_total_goals": 2.2562,
-        "raw_home_win_prob": 0.460751,
-        "raw_draw_prob": 0.279302,
-        "raw_away_win_prob": 0.259946,
-        "raw_btts_yes_prob": 0.444064,
-        "raw_over_2_5_prob": 0.392327,
+        "raw_home_goal_rate": 1.6344,
+        "raw_away_goal_rate": 0.6125,
+        "raw_total_goals": 2.2469,
+        "raw_home_win_prob": 0.622388,
+        "raw_draw_prob": 0.241196,
+        "raw_away_win_prob": 0.136416,
+        "raw_btts_yes_prob": 0.368661,
+        "raw_over_2_5_prob": 0.389826,
         "scoring_path": "MIXED / NO STRONG SCORING PATH",
         "screen_scores": {
-          "side_edge_score": 56.0,
-          "goal_environment_score": 47.4,
-          "two_way_scoring_score": 69.2,
+          "side_edge_score": 75.4,
+          "goal_environment_score": 47.1,
+          "two_way_scoring_score": 57.7,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
         }
       },
       "market_decision": {
         "status": "WATCH",
-        "reason": null,
+        "reason": "NO_SUPPORTED_CANONICAL_FT_MARKET",
         "first_half_markets_ignored": null,
         "first_half_reason": null,
-        "period_markets_ignored": 32,
-        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused."
+        "period_markets_ignored": 0,
+        "period_market_reason": null
       },
-      "best_market": {
-        "family": "1X2",
-        "market": "Match Winner",
-        "selection": "away",
-        "line": null,
-        "decimal_price": 7.5,
-        "bookmaker": "Bet365",
-        "p_breakeven": 0.133333,
-        "p_market_fair": 0.119545,
-        "p_raw": 0.259946,
-        "p_shrunk": 0.142009,
-        "prob_edge_pp": 2.246,
-        "estimated_ev": 0.065071,
-        "shrink_weight": 0.16,
-        "tier": null,
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
+      "best_market": null,
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
+        "T-20 lineup/GK gate failed: BET eligibility blocked."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "stage": "T-20",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.7,
+      "availability_confidence": 0.6,
       "fixture": {
         "fixture_id": 1606493,
         "kickoff": "2026-09-13T12:30:00-06:00",
@@ -683,21 +512,22 @@
       },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
+        "T-20 lineup/GK gate failed: BET eligibility blocked."
       ],
       "result": null,
       "error": null
     },
     {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "event_type": "QUOTA_GUARD",
+      "stage": "T-20",
       "classification": "WATCH",
       "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.7,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1606494,
+        "fixture_id": 1606490,
         "kickoff": "2026-09-13T12:30:00-06:00",
         "timestamp": 1789324200,
         "status": "NS",
@@ -708,142 +538,12 @@
         "country": "Argentina",
         "season": 2026,
         "round": "Losers Stage - 8",
-        "home_team_id": 3945,
-        "home_team": "Gimnasia Concepción",
-        "away_team_id": 1953,
-        "away_team": "Sarmiento Resistencia",
-        "venue": "Estadio Manuel y Ramon Nunez",
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 75.4,
-        "tracks": [
-          "SIDE",
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 75.4,
-        "goal_environment_score": 47.1,
-        "two_way_scoring_score": 57.7,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 76.1,
-        "tracks": [
-          "SIDE"
-        ],
-        "side_edge_score": 76.1,
-        "goal_environment_score": 50.0,
-        "two_way_scoring_score": 59.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 75.4,
-        "tracks": [
-          "SIDE",
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 75.4,
-        "goal_environment_score": 47.1,
-        "two_way_scoring_score": 57.7,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": {
-        "lineup_state": "PENDING",
-        "both_xi_confirmed": false,
-        "both_goalkeepers_confirmed": false,
-        "teams": []
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.6344,
-        "raw_away_goal_rate": 0.6125,
-        "raw_total_goals": 2.2469,
-        "raw_home_win_prob": 0.622388,
-        "raw_draw_prob": 0.241196,
-        "raw_away_win_prob": 0.136416,
-        "raw_btts_yes_prob": 0.368661,
-        "raw_over_2_5_prob": 0.389826,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 75.4,
-          "goal_environment_score": 47.1,
-          "two_way_scoring_score": 57.7,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": {
-        "status": "WATCH",
-        "reason": "NO_SUPPORTED_CANONICAL_FT_MARKET",
-        "first_half_markets_ignored": null,
-        "first_half_reason": null,
-        "period_markets_ignored": 0,
-        "period_market_reason": null
-      },
-      "best_market": null,
-      "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "QUOTA_GUARD",
-      "stage": "T-10",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1519491,
-        "kickoff": "2026-09-13T12:00:00-06:00",
-        "timestamp": 1789322400,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 242,
-        "league": "Liga Pro",
-        "country": "Ecuador",
-        "season": 2026,
-        "round": "Regular Season - 30",
-        "home_team_id": 19034,
-        "home_team": "Leones del Norte",
-        "away_team_id": 1151,
-        "away_team": "Tecnico Universitario",
-        "venue": "Estadio Olimpico de Ibarra",
-        "city": "Ibarra",
+        "home_team_id": 27572,
+        "home_team": "Defensores de Vilelas",
+        "away_team_id": 1960,
+        "away_team": "Independiente De Chivilcoy",
+        "venue": "Estadio del Club Defensores De Vilelas",
+        "city": "Puerto Vilelas",
         "goals": {
           "home": null,
           "away": null
