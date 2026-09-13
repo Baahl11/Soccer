@@ -11,13 +11,14 @@ from mcp_gateway import automation_v4 as v4
 from mcp_gateway import automation_v5 as v5
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
-AUTOMATION_VERSION = "1.6.0"
+AUTOMATION_VERSION = "1.6.1"
 SHORTLIST_SEED_MAX_AGE = timedelta(hours=18)
 SHORTLIST_EXPORT_MAX_AGE = timedelta(hours=14)
 MAX_SEED_ITEMS = 500
 
 _BASE_MAX_API_CALLS_PER_TICK = int(os.getenv("SOCCER_EDGE_MAX_API_CALLS_PER_TICK", str(v2.MAX_API_CALLS_PER_TICK)))
 _ORIGINAL_PACED_API_GET = v4._paced_api_get
+_ORIGINAL_SAFE_EVALUATE_MARKET = v4._safe_evaluate_market
 _BUDGET_MODE = "NORMAL"
 
 
@@ -49,6 +50,56 @@ async def _adaptive_paced_api_get(endpoint: str, params: dict[str, Any]) -> dict
     if cap < v2.MAX_API_CALLS_PER_TICK:
         v2.MAX_API_CALLS_PER_TICK = cap
     return payload
+
+
+def _is_period_market(name: str) -> bool:
+    n = f" {(name or '').strip().lower()} "
+    phrases = (
+        "first half", "second half", "1st half", "2nd half",
+        "first-half", "second-half", "1st-half", "2nd-half",
+        "half time", "half-time", "halftime", "both halves",
+        "highest scoring half", "1h ", " 1h ", "2h ", " 2h ",
+    )
+    return any(p in n for p in phrases)
+
+
+def _safe_period_evaluate_market(
+    raw: dict[str, Any],
+    market: Any,
+    coverage: dict[str, Any],
+    availability: float | None,
+    stage: str,
+    lineup: Any,
+) -> dict[str, Any]:
+    """Block period-specific markets until a matching period model exists."""
+    if not isinstance(market, dict):
+        return _ORIGINAL_SAFE_EVALUATE_MARKET(raw, market, coverage, availability, stage, lineup)
+
+    rows = list(market.get("markets") or [])
+    period_rows = [r for r in rows if _is_period_market(r.get("market") or "")]
+    supported_rows = [r for r in rows if not _is_period_market(r.get("market") or "")]
+
+    if period_rows and not supported_rows:
+        return {
+            "status": "WATCH",
+            "reason": "PERIOD_MARKET_MODEL_NOT_IMPLEMENTED",
+            "decisions": [],
+            "period_markets_ignored": len(period_rows),
+            "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+        }
+
+    filtered = dict(market)
+    filtered["markets"] = supported_rows
+    decision = _ORIGINAL_SAFE_EVALUATE_MARKET(
+        raw, filtered, coverage, availability, stage, lineup
+    )
+    if period_rows:
+        decision = dict(decision)
+        decision["period_markets_ignored"] = len(period_rows)
+        decision["period_market_reason"] = (
+            "Dedicated period model required; full-match probabilities cannot be reused."
+        )
+    return decision
 
 
 def import_shortlist_state(seed: Any) -> int:
@@ -126,15 +177,15 @@ async def run_tick() -> dict[str, Any]:
     _BUDGET_MODE = "NORMAL"
     v2.MAX_API_CALLS_PER_TICK = _BASE_MAX_API_CALLS_PER_TICK
 
-    # v1.5 installs the v1.4 paced getter at tick start. Replace that symbol
-    # temporarily with the adaptive wrapper so the same pacing/backoff remains
-    # active while the daily reserve can tighten the per-tick cap.
-    previous_symbol = v4._paced_api_get
+    previous_paced_symbol = v4._paced_api_get
+    previous_market_symbol = v4._safe_evaluate_market
     v4._paced_api_get = _adaptive_paced_api_get
+    v4._safe_evaluate_market = _safe_period_evaluate_market
     try:
         payload = await v5.run_tick()
     finally:
-        v4._paced_api_get = previous_symbol
+        v4._paced_api_get = previous_paced_symbol
+        v4._safe_evaluate_market = previous_market_symbol
 
     shortlist_state = export_shortlist_state()
     payload["version"] = AUTOMATION_VERSION
@@ -150,4 +201,5 @@ async def run_tick() -> dict[str, Any]:
     payload["shortlist_persistence"] = "GITHUB_STATE_SEEDED"
     payload["shortlist_state_count"] = len(shortlist_state)
     payload["shortlist_state"] = shortlist_state
+    payload["period_market_model"] = "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
     return payload
