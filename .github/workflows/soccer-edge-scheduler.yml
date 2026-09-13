@@ -71,7 +71,7 @@ jobs:
             -H "Authorization: Bearer ${OIDC_TOKEN}" \
             -H "Content-Type: application/json" \
             https://soccer-edge-api.onrender.com/internal/tick)
-          cat /tmp/soccer_tick.json | jq '{service,version,model_version,generated_at_local,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,effective_max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,deferred_due_to_budget,deferred_due_to_priority,deep_dive_processed_count,shortlist_event_count,screened_out_low_data_count,market_requests_avoided_by_sport_screen,shortlist_state_count,shortlist_seed_imported,period_market_model,quota,error,detail,database_persisted,database_error}'
+          cat /tmp/soccer_tick.json | jq '{service,version,model_version,generated_at_local,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,effective_max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,deferred_due_to_budget,deferred_due_to_priority,deep_dive_processed_count,shortlist_event_count,screened_out_low_data_count,market_requests_avoided_by_sport_screen,shortlist_state_count,shortlist_seed_imported,urgent_late_shortlist_due,urgent_late_shortlist_processed,period_market_model,automated_market_scope,quota,error,detail,database_persisted,database_error}'
           if [ "$HTTP_CODE" -ne 200 ]; then
             mkdir -p soccer_edge_state
             jq --arg http_code "$HTTP_CODE" '{captured_at: now|todateiso8601, http_code: $http_code, response: .}' /tmp/soccer_tick.json > soccer_edge_state/last_error.json
@@ -124,10 +124,13 @@ jobs:
             market_requests_avoided_by_sport_screen,
             max_deep_dive_fixtures_per_tick,
             priority_queue,
+            urgent_late_shortlist_due,
+            urgent_late_shortlist_processed,
             request_pacing_seconds,
             rate_limit_max_retries,
             first_half_market_model,
             period_market_model,
+            automated_market_scope,
             shortlist_persistence,
             shortlist_state_count,
             shortlist_seed_imported,
