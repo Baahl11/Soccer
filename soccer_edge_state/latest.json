@@ -2,1343 +2,37 @@
   "service": "soccer-edge-automation",
   "version": "1.3.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-13T12:46:04.218996+00:00",
-  "generated_at_local": "2026-09-13T06:46:04.218996-06:00",
+  "generated_at_utc": "2026-09-13T12:53:04.213183+00:00",
+  "generated_at_local": "2026-09-13T06:53:04.213183-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1106,
-  "due_fixture_count": 183,
-  "event_count": 36,
-  "actionable_refresh_count": 36,
+  "due_fixture_count": 285,
+  "event_count": 15,
+  "actionable_refresh_count": 15,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6113,
+  "last_daily_remaining": 6093,
   "deferred_due_to_budget": 1,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6132",
+    "daily_remaining": "6112",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1574340,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 510,
-        "league": "1. Liga Promotion",
-        "country": "Switzerland",
-        "season": 2026,
-        "round": "Regular Season - 7",
-        "home_team_id": 17441,
-        "home_team": "Lugano II",
-        "away_team_id": 10585,
-        "away_team": "Basel II",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "C"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "WATCH",
-      "tier": "A",
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.7,
-      "fixture": {
-        "fixture_id": 1575159,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 78,
-        "league": "Bundesliga",
-        "country": "Germany",
-        "season": 2026,
-        "round": "Regular Season - 3",
-        "home_team_id": 173,
-        "home_team": "RB Leipzig",
-        "away_team_id": 175,
-        "away_team": "Hamburger SV",
-        "venue": "Red Bull Arena",
-        "city": "Leipzig",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "A"
-      },
-      "lineups": {
-        "lineup_state": "PENDING",
-        "both_xi_confirmed": false,
-        "both_goalkeepers_confirmed": false,
-        "teams": []
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 2.3906,
-        "raw_away_goal_rate": 0.3906,
-        "raw_total_goals": 2.7812,
-        "raw_home_win_prob": 0.820535,
-        "raw_draw_prob": 0.134823,
-        "raw_away_win_prob": 0.044642,
-        "raw_btts_yes_prob": 0.293753,
-        "raw_over_2_5_prob": 0.526045,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 79.0,
-          "goal_environment_score": 62.1,
-          "two_way_scoring_score": 54.0,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "best_market": {
-        "family": "BTTS",
-        "market": "Both Teams Score",
-        "selection": "no",
-        "line": null,
-        "decimal_price": 2.7,
-        "bookmaker": "William Hill",
-        "p_breakeven": 0.37037,
-        "p_market_fair": 0.347826,
-        "p_raw": 0.706247,
-        "p_shrunk": 0.405173,
-        "prob_edge_pp": 5.735,
-        "estimated_ev": 0.093968,
-        "shrink_weight": 0.16,
-        "tier": "A",
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
-      "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "WATCH",
-      "tier": "S",
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.7,
-      "fixture": {
-        "fixture_id": 1577527,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 236,
-        "league": "First League",
-        "country": "Russia",
-        "season": 2026,
-        "round": "Regular Season - 11",
-        "home_team_id": 3985,
-        "home_team": "Torpedo Moskva",
-        "away_team_id": 2011,
-        "away_team": "Nizhny Novgorod",
-        "venue": "Arena Khimki",
-        "city": "Khimki",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "lineups": {
-        "lineup_state": "PENDING",
-        "both_xi_confirmed": false,
-        "both_goalkeepers_confirmed": false,
-        "teams": []
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.5906,
-        "raw_away_goal_rate": 1.5781,
-        "raw_total_goals": 3.1688,
-        "raw_home_win_prob": 0.384899,
-        "raw_draw_prob": 0.235566,
-        "raw_away_win_prob": 0.379535,
-        "raw_btts_yes_prob": 0.631896,
-        "raw_over_2_5_prob": 0.613535,
-        "scoring_path": "TWO-WAY OPEN GAME",
-        "screen_scores": {
-          "side_edge_score": 50.2,
-          "goal_environment_score": 72.9,
-          "two_way_scoring_score": 79.0,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "best_market": {
-        "family": "TOTAL",
-        "market": "Goals Over/Under First Half",
-        "selection": "over",
-        "line": 1.5,
-        "decimal_price": 3.18,
-        "bookmaker": "Pinnacle",
-        "p_breakeven": 0.314465,
-        "p_market_fair": 0.298013,
-        "p_raw": 0.824678,
-        "p_shrunk": 0.38228,
-        "prob_edge_pp": 8.427,
-        "estimated_ev": 0.215649,
-        "shrink_weight": 0.16,
-        "tier": "S",
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
-      "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "stage": "T-20",
       "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1579109,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 353,
-        "league": "4. liga - Divizie D",
-        "country": "Czech-Republic",
-        "season": 2026,
-        "round": "Group D - 7",
-        "home_team_id": 7301,
-        "home_team": "Humpolec",
-        "away_team_id": 24190,
-        "away_team": "FS Třebíč",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1579110,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 353,
-        "league": "4. liga - Divizie D",
-        "country": "Czech-Republic",
-        "season": 2026,
-        "round": "Group D - 7",
-        "home_team_id": 21651,
-        "home_team": "Pelhřimov",
-        "away_team_id": 7373,
-        "away_team": "Velké Meziříčí",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1579111,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 353,
-        "league": "4. liga - Divizie D",
-        "country": "Czech-Republic",
-        "season": 2026,
-        "round": "Group D - 7",
-        "home_team_id": 7355,
-        "home_team": "Sokol Tasovice",
-        "away_team_id": 14649,
-        "away_team": "Bystrc Kníničky",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1579112,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 353,
-        "league": "4. liga - Divizie D",
-        "country": "Czech-Republic",
-        "season": 2026,
-        "round": "Group D - 7",
-        "home_team_id": 7388,
-        "home_team": "Ždírec nad Doubravou",
-        "away_team_id": 27927,
-        "away_team": "Bedrichov",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1579232,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 354,
-        "league": "4. liga - Divizie E",
-        "country": "Czech-Republic",
-        "season": 2026,
-        "round": "Group E - 7",
-        "home_team_id": 26230,
-        "home_team": "Kroměříž II",
-        "away_team_id": 7322,
-        "away_team": "Nové Sady",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1579348,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 686,
-        "league": "4. liga - Divizie F",
-        "country": "Czech-Republic",
-        "season": 2026,
-        "round": "Group F - 7",
-        "home_team_id": 16875,
-        "home_team": "Bílovec",
-        "away_team_id": 24188,
-        "away_team": "Pustá Polom",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1579349,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 686,
-        "league": "4. liga - Divizie F",
-        "country": "Czech-Republic",
-        "season": 2026,
-        "round": "Group F - 7",
-        "home_team_id": 7277,
-        "home_team": "Bospor Bohumín",
-        "away_team_id": 21912,
-        "away_team": "Kravare",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1581118,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 750,
-        "league": "Oberliga - Hessen",
-        "country": "Germany",
-        "season": 2026,
-        "round": "Hessen - 9",
-        "home_team_id": 16102,
-        "home_team": "Rot-Weiß Walldorf",
-        "away_team_id": 27934,
-        "away_team": "Kassel 2",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1590382,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 552,
-        "league": "3. Lig - Group 1",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "3. Lig Group 1 - 2",
-        "home_team_id": 7405,
-        "home_team": "Gölcükspor",
-        "away_team_id": 7422,
-        "away_team": "Silivrispor",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1590386,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 552,
-        "league": "3. Lig - Group 1",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "3. Lig Group 1 - 2",
-        "home_team_id": 3611,
-        "home_team": "Zonguldak Kömürspor",
-        "away_team_id": 20294,
-        "away_team": "Karabük İdman Yurdu",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1590687,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 553,
-        "league": "3. Lig - Group 2",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "3. Lig Group 2 - 2",
-        "home_team_id": 24602,
-        "home_team": "Nilüfer Belediye",
-        "away_team_id": 3587,
-        "away_team": "Etimesgut SK",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1590692,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 553,
-        "league": "3. Lig - Group 2",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "3. Lig Group 2 - 2",
-        "home_team_id": 3610,
-        "home_team": "Uşak Spor",
-        "away_team_id": 3572,
-        "away_team": "Eskişehirspor",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1591298,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 205,
-        "league": "2. Lig",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "2. Lig White Group - 2",
-        "home_team_id": 21993,
-        "home_team": "Aliağa FAŞ",
-        "away_team_id": 6523,
-        "away_team": "Isparta 32 Spor",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1591300,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 205,
-        "league": "2. Lig",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "2. Lig White Group - 2",
-        "home_team_id": 22451,
-        "home_team": "Çorluspor 1947",
-        "away_team_id": 3575,
-        "away_team": "Hatayspor",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1591601,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 205,
-        "league": "2. Lig",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "2. Lig Red Group - 2",
-        "home_team_id": 6504,
-        "home_team": "12 Bingölspor",
-        "away_team_id": 1010,
-        "away_team": "Ankaragücü",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1591605,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 205,
-        "league": "2. Lig",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "2. Lig Red Group - 2",
-        "home_team_id": 7406,
-        "home_team": "Beyoğlu Yeni Çarşı",
-        "away_team_id": 11092,
-        "away_team": "Kütahyaspor",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1592512,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 751,
-        "league": "Oberliga - Niederrhein",
-        "country": "Germany",
-        "season": 2026,
-        "round": "Niederrhein - 5",
-        "home_team_id": 19466,
-        "home_team": "SC St. Tönis",
-        "away_team_id": 9375,
-        "away_team": "Wuppertaler SV",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1610306,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
+        "fixture_id": 1610305,
+        "kickoff": "2026-09-13T07:15:00-06:00",
+        "timestamp": 1789305300,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
@@ -1347,378 +41,12 @@
         "country": "Germany",
         "season": 2026,
         "round": "Mittelrhein - 3",
-        "home_team_id": 26275,
-        "home_team": "Bornheim",
-        "away_team_id": 12754,
-        "away_team": "Düren Merzenich",
+        "home_team_id": 14708,
+        "home_team": "Hürth",
+        "away_team_id": 14751,
+        "away_team": "Porz",
         "venue": null,
         "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1610307,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 746,
-        "league": "Oberliga - Mittelrhein",
-        "country": "Germany",
-        "season": 2026,
-        "round": "Mittelrhein - 3",
-        "home_team_id": 19465,
-        "home_team": "Eintracht Hohkeppel",
-        "away_team_id": 12784,
-        "away_team": "Hennef 05",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1610308,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 746,
-        "league": "Oberliga - Mittelrhein",
-        "country": "Germany",
-        "season": 2026,
-        "round": "Mittelrhein - 3",
-        "home_team_id": 14681,
-        "home_team": "Fortuna Köln II",
-        "away_team_id": 12768,
-        "away_team": "Frechen",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1610309,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 746,
-        "league": "Oberliga - Mittelrhein",
-        "country": "Germany",
-        "season": 2026,
-        "round": "Mittelrhein - 3",
-        "home_team_id": 12853,
-        "home_team": "Siegburger SV",
-        "away_team_id": 28348,
-        "away_team": "Neunkirchen-Seelscheid",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1610502,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 746,
-        "league": "Oberliga - Mittelrhein",
-        "country": "Germany",
-        "season": 2026,
-        "round": "Mittelrhein - 3",
-        "home_team_id": 20860,
-        "home_team": "Lindenthal-Hohenlind",
-        "away_team_id": 28056,
-        "away_team": "Chlodwig Zulpich",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "D"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1620145,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 20,
-        "league": "CAF Confederation Cup",
-        "country": "World",
-        "season": 2026,
-        "round": "1st Preliminary Round",
-        "home_team_id": 28147,
-        "home_team": "Bazar Brothers",
-        "away_team_id": 28155,
-        "away_team": "Virunga",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "C"
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "best_market": null,
-      "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1637630,
-        "kickoff": "2026-09-13T07:30:00-06:00",
-        "timestamp": 1789306200,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 275,
-        "league": "Liga 2",
-        "country": "Indonesia",
-        "season": 2026,
-        "round": "Regular Season - 1",
-        "home_team_id": 4242,
-        "home_team": "Persiraja Banda Aceh",
-        "away_team_id": 2456,
-        "away_team": "Semen Padang",
-        "venue": "Harapan Bangsa Stadium",
-        "city": "Banda Aceh",
         "goals": {
           "home": null,
           "away": null
@@ -1757,6 +85,67 @@
     {
       "event_type": "SOCCER_REFRESH",
       "stage": "T-20",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1637434,
+        "kickoff": "2026-09-13T07:15:00-06:00",
+        "timestamp": 1789305300,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 1244,
+        "league": "B-Liga Women",
+        "country": "Denmark",
+        "season": 2026,
+        "round": "Regular Season - 5",
+        "home_team_id": 28371,
+        "home_team": "Esbjerg W",
+        "away_team_id": 13980,
+        "away_team": "AaB W",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "C"
+      },
+      "lineups": null,
+      "raw_projection": null,
+      "best_market": null,
+      "notes": [
+        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -1817,7 +206,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": "S",
       "stake_units": 0.0,
@@ -1949,7 +338,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2010,7 +399,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2071,7 +460,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2132,7 +521,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2193,7 +582,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2254,7 +643,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2314,13 +703,13 @@
       "error": null
     },
     {
-      "event_type": "QUOTA_GUARD",
-      "stage": "T-20",
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-10",
       "classification": "WATCH",
-      "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
-      "availability_confidence": null,
+      "tier": "S",
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.9,
       "fixture": {
         "fixture_id": 1550122,
         "kickoff": "2026-09-13T07:00:00-06:00",
@@ -2339,6 +728,463 @@
         "away_team": "Monza",
         "venue": "Stadio Via del Mare",
         "city": "Lecce",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "lineups": {
+        "lineup_state": "CONFIRMED_API",
+        "both_xi_confirmed": true,
+        "both_goalkeepers_confirmed": true,
+        "teams": [
+          {
+            "team_id": 867,
+            "team": "Lecce",
+            "formation": "4-3-3",
+            "goalkeepers": [
+              {
+                "id": 56459,
+                "name": "Wladimiro Falcone",
+                "number": 30,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          },
+          {
+            "team_id": 1579,
+            "team": "Monza",
+            "formation": "3-4-2-1",
+            "goalkeepers": [
+              {
+                "id": 31191,
+                "name": "Demba Thiam",
+                "number": 20,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          }
+        ]
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "advanced_metrics": "NOT VERIFIED",
+        "raw_home_goal_rate": 1.3125,
+        "raw_away_goal_rate": 2.2812,
+        "raw_total_goals": 3.5938,
+        "raw_home_win_prob": 0.211788,
+        "raw_draw_prob": 0.196284,
+        "raw_away_win_prob": 0.591928,
+        "raw_btts_yes_prob": 0.65619,
+        "raw_over_2_5_prob": 0.696137,
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 72.5,
+          "goal_environment_score": 84.8,
+          "two_way_scoring_score": 97.9,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        }
+      },
+      "best_market": {
+        "family": "TOTAL",
+        "market": "Goals Over/Under First Half",
+        "selection": "over",
+        "line": 2.5,
+        "decimal_price": 10.0,
+        "bookmaker": "Bet365",
+        "p_breakeven": 0.1,
+        "p_market_fair": 0.095841,
+        "p_raw": 0.696137,
+        "p_shrunk": 0.221903,
+        "prob_edge_pp": 12.606,
+        "estimated_ev": 1.21903,
+        "shrink_weight": 0.21,
+        "tier": "S",
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
+      "notes": [
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-10",
+      "classification": "WATCH",
+      "tier": "S",
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.9,
+      "fixture": {
+        "fixture_id": 1552760,
+        "kickoff": "2026-09-13T07:00:00-06:00",
+        "timestamp": 1789304400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 61,
+        "league": "Ligue 1",
+        "country": "France",
+        "season": 2026,
+        "round": "Regular Season - 4",
+        "home_team_id": 79,
+        "home_team": "Lille",
+        "away_team_id": 110,
+        "away_team": "Estac Troyes",
+        "venue": "Stade Pierre-Mauroy",
+        "city": "Lille",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "lineups": {
+        "lineup_state": "CONFIRMED_API",
+        "both_xi_confirmed": true,
+        "both_goalkeepers_confirmed": true,
+        "teams": [
+          {
+            "team_id": 79,
+            "team": "Lille",
+            "formation": "4-2-3-1",
+            "goalkeepers": [
+              {
+                "id": 1337,
+                "name": "B. Özer",
+                "number": 1,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          },
+          {
+            "team_id": 110,
+            "team": "Estac Troyes",
+            "formation": "4-2-3-1",
+            "goalkeepers": [
+              {
+                "id": 353883,
+                "name": "P. Beach",
+                "number": 33,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          }
+        ]
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "advanced_metrics": "NOT VERIFIED",
+        "raw_home_goal_rate": 1.5625,
+        "raw_away_goal_rate": 1.9375,
+        "raw_total_goals": 3.5,
+        "raw_home_win_prob": 0.313937,
+        "raw_draw_prob": 0.219063,
+        "raw_away_win_prob": 0.467,
+        "raw_btts_yes_prob": 0.676521,
+        "raw_over_2_5_prob": 0.679151,
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 56.1,
+          "goal_environment_score": 82.2,
+          "two_way_scoring_score": 100,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        }
+      },
+      "best_market": {
+        "family": "TOTAL",
+        "market": "Goals Over/Under First Half",
+        "selection": "over",
+        "line": 2.5,
+        "decimal_price": 5.5,
+        "bookmaker": "William Hill",
+        "p_breakeven": 0.181818,
+        "p_market_fair": 0.171687,
+        "p_raw": 0.679151,
+        "p_shrunk": 0.278254,
+        "prob_edge_pp": 10.657,
+        "estimated_ev": 0.530398,
+        "shrink_weight": 0.21,
+        "tier": "S",
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
+      "notes": [
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-10",
+      "classification": "WATCH",
+      "tier": "S",
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.9,
+      "fixture": {
+        "fixture_id": 1557400,
+        "kickoff": "2026-09-13T07:00:00-06:00",
+        "timestamp": 1789304400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 39,
+        "league": "Premier League",
+        "country": "England",
+        "season": 2026,
+        "round": "Regular Season - 4",
+        "home_team_id": 1346,
+        "home_team": "Coventry",
+        "away_team_id": 51,
+        "away_team": "Brighton",
+        "venue": "Coventry Building Society Arena",
+        "city": "Coventry",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "lineups": {
+        "lineup_state": "CONFIRMED_API",
+        "both_xi_confirmed": true,
+        "both_goalkeepers_confirmed": true,
+        "teams": [
+          {
+            "team_id": 1346,
+            "team": "Coventry",
+            "formation": "3-4-2-1",
+            "goalkeepers": [
+              {
+                "id": 278088,
+                "name": "C. Rushworth",
+                "number": 19,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          },
+          {
+            "team_id": 51,
+            "team": "Brighton",
+            "formation": "4-2-3-1",
+            "goalkeepers": [
+              {
+                "id": 129058,
+                "name": "B. Verbruggen",
+                "number": 1,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          }
+        ]
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "advanced_metrics": "NOT VERIFIED",
+        "raw_home_goal_rate": 1.8281,
+        "raw_away_goal_rate": 1.9375,
+        "raw_total_goals": 3.7656,
+        "raw_home_win_prob": 0.371478,
+        "raw_draw_prob": 0.213679,
+        "raw_away_win_prob": 0.414843,
+        "raw_btts_yes_prob": 0.718374,
+        "raw_over_2_5_prob": 0.725503,
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 51.4,
+          "goal_environment_score": 89.6,
+          "two_way_scoring_score": 100,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        }
+      },
+      "best_market": {
+        "family": "TOTAL",
+        "market": "Goals Over/Under First Half",
+        "selection": "over",
+        "line": 2.5,
+        "decimal_price": 6.5,
+        "bookmaker": "Bet365",
+        "p_breakeven": 0.153846,
+        "p_market_fair": 0.145861,
+        "p_raw": 0.725503,
+        "p_shrunk": 0.267586,
+        "prob_edge_pp": 12.172,
+        "estimated_ev": 0.739307,
+        "shrink_weight": 0.21,
+        "tier": "S",
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
+      "notes": [
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-10",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1558012,
+        "kickoff": "2026-09-13T07:00:00-06:00",
+        "timestamp": 1789304400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 373,
+        "league": "1. SNL",
+        "country": "Slovenia",
+        "season": 2026,
+        "round": "Regular Season - 9",
+        "home_team_id": 4197,
+        "home_team": "Mura",
+        "away_team_id": 4358,
+        "away_team": "Aluminij",
+        "venue": "Mestni stadion Fazanerija",
+        "city": "Murska Sobota",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "C"
+      },
+      "lineups": null,
+      "raw_projection": null,
+      "best_market": null,
+      "notes": [
+        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "QUOTA_GUARD",
+      "stage": "T-10",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1560021,
+        "kickoff": "2026-09-13T07:00:00-06:00",
+        "timestamp": 1789304400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 345,
+        "league": "Czech Liga",
+        "country": "Czech-Republic",
+        "season": 2026,
+        "round": "Regular Season - 8",
+        "home_team_id": 567,
+        "home_team": "Plzen",
+        "away_team_id": 2250,
+        "away_team": "Sigma Olomouc",
+        "venue": "Doosan Arena",
+        "city": "Plzen",
         "goals": {
           "home": null,
           "away": null
