@@ -2,21 +2,21 @@
   "service": "soccer-edge-automation",
   "version": "1.3.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-13T03:09:26.775562+00:00",
-  "generated_at_local": "2026-09-12T21:09:26.775562-06:00",
+  "generated_at_utc": "2026-09-13T03:27:53.550703+00:00",
+  "generated_at_local": "2026-09-12T21:27:53.550703-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1636,
-  "due_fixture_count": 1,
-  "event_count": 2,
-  "actionable_refresh_count": 1,
+  "due_fixture_count": 2,
+  "event_count": 3,
+  "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 8,
+  "api_calls_this_tick": 2,
   "max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7201,
+  "last_daily_remaining": 7170,
   "deferred_due_to_budget": 0,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7208",
+    "daily_remaining": "7171",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -44,30 +44,30 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-10",
+      "stage": "T-90",
       "classification": "WATCH",
-      "tier": "A",
+      "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.9,
+      "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1550961,
-        "kickoff": "2026-09-12T21:15:00-06:00",
-        "timestamp": 1789269300,
+        "fixture_id": 1638610,
+        "kickoff": "2026-09-12T23:00:00-06:00",
+        "timestamp": 1789275600,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 262,
-        "league": "Liga MX",
-        "country": "Mexico",
+        "league_id": 192,
+        "league": "New South Wales NPL",
+        "country": "Australia",
         "season": 2026,
-        "round": "Apertura - 8",
-        "home_team_id": 2295,
-        "home_team": "Cruz Azul",
-        "away_team_id": 2287,
-        "away_team": "Club America",
-        "venue": "Estadio Banorte",
-        "city": "Mexico City",
+        "round": "Final",
+        "home_team_id": 3764,
+        "home_team": "APIA Leichhardt Tigers",
+        "away_team_id": 3776,
+        "away_team": "Sydney United",
+        "venue": "Lambert Park",
+        "city": "Sydney",
         "goals": {
           "home": null,
           "away": null
@@ -92,84 +92,74 @@
         }
       },
       "coverage": {
-        "data_tier": "B"
+        "data_tier": "C"
       },
-      "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 2295,
-            "team": "Cruz Azul",
-            "formation": "5-3-2",
-            "goalkeepers": [
-              {
-                "id": 13278,
-                "name": "K. Mier",
-                "number": 23,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
+      "lineups": null,
+      "raw_projection": null,
+      "best_market": null,
+      "notes": [
+        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-30",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1638609,
+        "kickoff": "2026-09-12T22:00:00-06:00",
+        "timestamp": 1789272000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 481,
+        "league": "Northern NSW NPL",
+        "country": "Australia",
+        "season": 2026,
+        "round": "Final",
+        "home_team_id": 10210,
+        "home_team": "Weston Bears",
+        "away_team_id": 10208,
+        "away_team": "Maitland",
+        "venue": "Rockwell Automation Park",
+        "city": "Newcastle",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
           },
-          {
-            "team_id": 2287,
-            "team": "Club America",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 35473,
-                "name": "R. Cota",
-                "number": 30,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
           }
-        ]
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.0156,
-        "raw_away_goal_rate": 1.4563,
-        "raw_total_goals": 2.4719,
-        "raw_home_win_prob": 0.263472,
-        "raw_draw_prob": 0.263795,
-        "raw_away_win_prob": 0.472732,
-        "raw_btts_yes_prob": 0.489142,
-        "raw_over_2_5_prob": 0.448952,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 57.3,
-          "goal_environment_score": 53.4,
-          "two_way_scoring_score": 73.4,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
         }
       },
-      "best_market": {
-        "family": "TOTAL",
-        "market": "Goals Over/Under First Half",
-        "selection": "over",
-        "line": 1.5,
-        "decimal_price": 2.62,
-        "bookmaker": "Bet365",
-        "p_breakeven": 0.381679,
-        "p_market_fair": 0.35468,
-        "p_raw": 0.706882,
-        "p_shrunk": 0.421598,
-        "prob_edge_pp": 6.692,
-        "estimated_ev": 0.104587,
-        "shrink_weight": 0.19,
-        "tier": "A",
-        "classification": "WATCH",
-        "stake_units": 0.0
+      "coverage": {
+        "data_tier": "C"
       },
+      "lineups": null,
+      "raw_projection": null,
+      "best_market": null,
       "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
       ],
       "result": null,
       "error": null
