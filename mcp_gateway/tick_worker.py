@@ -5,7 +5,7 @@ import sys
 
 import httpx
 
-from mcp_gateway import automation_v6
+from mcp_gateway import automation_v6, automation_v7
 from mcp_gateway.persistence_v2 import persist_tick
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -18,7 +18,6 @@ SHORTLIST_STATE_URL = (
 
 
 def _read_seed() -> dict:
-    # Prefer explicit stdin when present (useful for future private-state handoff).
     try:
         if not sys.stdin.isatty():
             raw = sys.stdin.buffer.read()
@@ -31,8 +30,6 @@ def _read_seed() -> dict:
     except Exception:
         pass
 
-    # Current repository is public and already stores scheduler state. Pull only
-    # the compact shortlist seed; this does not consume API-Football quota.
     try:
         response = httpx.get(SHORTLIST_STATE_URL, timeout=5.0, follow_redirects=True)
         if response.status_code == 200:
@@ -46,7 +43,7 @@ def _read_seed() -> dict:
 async def _main() -> int:
     try:
         imported = automation_v6.import_shortlist_state(_read_seed())
-        payload = await automation_v6.run_tick()
+        payload = await automation_v7.run_tick()
         payload["shortlist_seed_imported"] = imported
         try:
             db_payload = dict(payload)
