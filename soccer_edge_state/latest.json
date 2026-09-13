@@ -2,89 +2,49 @@
   "service": "soccer-edge-automation",
   "version": "1.3.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-13T03:52:34.048693+00:00",
-  "generated_at_local": "2026-09-12T21:52:34.048693-06:00",
+  "generated_at_utc": "2026-09-13T04:22:35.055461+00:00",
+  "generated_at_local": "2026-09-12T22:22:35.055461-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 1636,
-  "due_fixture_count": 2,
+  "fixture_scan_count": 2736,
+  "due_fixture_count": 1,
   "event_count": 2,
   "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 1,
+  "api_calls_this_tick": 3,
   "max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7167,
+  "last_daily_remaining": 7164,
   "deferred_due_to_budget": 0,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7167",
-    "per_minute_remaining": "299"
+    "daily_remaining": "7165",
+    "per_minute_remaining": "298"
   },
   "database_persisted": false,
   "events": [
     {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-10",
-      "classification": "WATCH",
+      "event_type": "DAILY_DISCOVERY",
+      "stage": "LATE_DISCOVERY",
+      "classification": "PRE-FINAL",
       "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
+      "stake_units": null,
+      "bet_eligible": null,
       "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1638609,
-        "kickoff": "2026-09-12T22:00:00-06:00",
-        "timestamp": 1789272000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 481,
-        "league": "Northern NSW NPL",
-        "country": "Australia",
-        "season": 2026,
-        "round": "Final",
-        "home_team_id": 10210,
-        "home_team": "Weston Bears",
-        "away_team_id": 10208,
-        "away_team": "Maitland",
-        "venue": "Rockwell Automation Park",
-        "city": "Newcastle",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "C"
-      },
+      "fixture": null,
+      "coverage": null,
       "lineups": null,
       "raw_projection": null,
       "best_market": null,
       "notes": [
-        "Automated deep dive skipped: Data Tier A/B required for automated BET eligibility."
+        "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
+        "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
+        "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-60",
+      "stage": "T-40",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
