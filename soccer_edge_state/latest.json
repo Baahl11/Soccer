@@ -1,24 +1,24 @@
 {
   "service": "soccer-edge-automation",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-13T16:40:03.131997+00:00",
-  "generated_at_local": "2026-09-13T10:40:03.131997-06:00",
+  "generated_at_utc": "2026-09-13T16:42:28.947165+00:00",
+  "generated_at_local": "2026-09-13T10:42:28.947165-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1106,
-  "due_fixture_count": 68,
-  "event_count": 7,
-  "actionable_refresh_count": 7,
+  "due_fixture_count": 56,
+  "event_count": 4,
+  "actionable_refresh_count": 3,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
-  "effective_max_api_calls_per_tick": null,
-  "last_daily_remaining": 5052,
-  "daily_budget_mode": null,
+  "effective_max_api_calls_per_tick": 20,
+  "last_daily_remaining": 5006,
+  "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 6,
-  "shortlist_event_count": 6,
+  "deep_dive_processed_count": 2,
+  "shortlist_event_count": 2,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 8,
@@ -26,216 +26,67 @@
   "request_pacing_seconds": 0.75,
   "rate_limit_max_retries": 2,
   "first_half_market_model": "BLOCKED_PENDING_EXPLICIT_1H_MODEL",
-  "shortlist_persistence": null,
-  "shortlist_state_count": null,
-  "shortlist_seed_imported": null,
+  "shortlist_persistence": "GITHUB_STATE_SEEDED",
+  "shortlist_state_count": 9,
+  "shortlist_seed_imported": 6,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "5071",
+    "daily_remaining": "5025",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
-      "classification": "WATCH",
-      "tier": "S",
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.9,
-      "fixture": {
-        "fixture_id": 1584407,
-        "kickoff": "2026-09-13T11:00:00-06:00",
-        "timestamp": 1789318800,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 203,
-        "league": "Süper Lig",
-        "country": "Turkey",
-        "season": 2026,
-        "round": "Regular Season - 5",
-        "home_team_id": 645,
-        "home_team": "Galatasaray",
-        "away_team_id": 7411,
-        "away_team": "Kocaelispor",
-        "venue": "Rams Park",
-        "city": "Istanbul",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "A"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 100.0,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 56.4,
-        "goal_environment_score": 78.3,
-        "two_way_scoring_score": 100.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 100.0,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 59.5,
-        "goal_environment_score": 82.2,
-        "two_way_scoring_score": 100.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 100.0,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 56.4,
-        "goal_environment_score": 78.3,
-        "two_way_scoring_score": 100.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 645,
-            "team": "Galatasaray",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 49866,
-                "name": "Uğurcan Çakır",
-                "number": 1,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          },
-          {
-            "team_id": 7411,
-            "team": "Kocaelispor",
-            "formation": "4-3-3",
-            "goalkeepers": [
-              {
-                "id": 302863,
-                "name": "Serhat Öztaşdelen",
-                "number": 83,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          }
-        ]
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.875,
-        "raw_away_goal_rate": 1.4844,
-        "raw_total_goals": 3.3594,
-        "raw_home_win_prob": 0.469341,
-        "raw_draw_prob": 0.223674,
-        "raw_away_win_prob": 0.306984,
-        "raw_btts_yes_prob": 0.654757,
-        "raw_over_2_5_prob": 0.652356,
-        "scoring_path": "TWO-WAY OPEN GAME",
-        "screen_scores": {
-          "side_edge_score": 56.4,
-          "goal_environment_score": 78.3,
-          "two_way_scoring_score": 100,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": {
-        "status": "WATCH",
-        "reason": null,
-        "first_half_markets_ignored": 17,
-        "first_half_reason": "Dedicated 1H model required; full-match probabilities cannot be reused."
-      },
-      "best_market": {
-        "family": "BTTS",
-        "market": "Both Teams To Score - Second Half",
-        "selection": "yes",
-        "line": null,
-        "decimal_price": 3.8,
-        "bookmaker": "William Hill",
-        "p_breakeven": 0.263158,
-        "p_market_fair": 0.243028,
-        "p_raw": 0.654757,
-        "p_shrunk": 0.329491,
-        "prob_edge_pp": 8.646,
-        "estimated_ev": 0.252066,
-        "shrink_weight": 0.21,
-        "tier": "S",
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
+      "event_type": "DAILY_DISCOVERY",
+      "stage": "MORNING",
+      "classification": "PRE-FINAL",
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
+      "fixture": null,
+      "coverage": null,
+      "sporting_shortlist": null,
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
       "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
+        "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
+        "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-40",
       "classification": "WATCH",
       "tier": "B",
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.6,
+      "availability_confidence": 0.7,
       "fixture": {
-        "fixture_id": 1584404,
-        "kickoff": "2026-09-13T11:00:00-06:00",
-        "timestamp": 1789318800,
+        "fixture_id": 1494757,
+        "kickoff": "2026-09-13T11:15:00-06:00",
+        "timestamp": 1789319700,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 203,
-        "league": "Süper Lig",
-        "country": "Turkey",
+        "league_id": 103,
+        "league": "Eliteserien",
+        "country": "Norway",
         "season": 2026,
-        "round": "Regular Season - 5",
-        "home_team_id": 3579,
-        "home_team": "Amed",
-        "away_team_id": 564,
-        "away_team": "Başakşehir",
-        "venue": "Diyarbakir Stadium",
-        "city": null,
+        "round": "Regular Season - 21",
+        "home_team_id": 2149,
+        "home_team": "Fredrikstad",
+        "away_team_id": 333,
+        "away_team": "Sarpsborg 08 FF",
+        "venue": "Fredrikstad Stadion",
+        "city": "Fredrikstad",
         "goals": {
           "home": null,
           "away": null
@@ -264,38 +115,35 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 78.0,
+        "rank": 78.7,
         "tracks": [
-          "SIDE",
           "TWO_WAY"
         ],
-        "side_edge_score": 78.0,
-        "goal_environment_score": 66.9,
-        "two_way_scoring_score": 75.2,
+        "side_edge_score": 54.4,
+        "goal_environment_score": 56.6,
+        "two_way_scoring_score": 78.7,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": {
         "shortlisted": true,
-        "rank": 88.0,
+        "rank": 77.5,
         "tracks": [
-          "SIDE",
           "TWO_WAY"
         ],
-        "side_edge_score": 88.0,
-        "goal_environment_score": 68.2,
-        "two_way_scoring_score": 70.0,
+        "side_edge_score": 54.6,
+        "goal_environment_score": 55.6,
+        "two_way_scoring_score": 77.5,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_refined": {
         "shortlisted": true,
-        "rank": 78.0,
+        "rank": 78.7,
         "tracks": [
-          "SIDE",
           "TWO_WAY"
         ],
-        "side_edge_score": 78.0,
-        "goal_environment_score": 66.9,
-        "two_way_scoring_score": 75.2,
+        "side_edge_score": 54.4,
+        "goal_environment_score": 56.6,
+        "two_way_scoring_score": 78.7,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "lineups": {
@@ -308,194 +156,19 @@
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 2.0469,
-        "raw_away_goal_rate": 0.9062,
-        "raw_total_goals": 2.9531,
-        "raw_home_win_prob": 0.637969,
-        "raw_draw_prob": 0.204256,
-        "raw_away_win_prob": 0.157775,
-        "raw_btts_yes_prob": 0.519001,
-        "raw_over_2_5_prob": 0.566222,
-        "scoring_path": "FAVORITE-CARRY OVER",
-        "screen_scores": {
-          "side_edge_score": 78.0,
-          "goal_environment_score": 66.9,
-          "two_way_scoring_score": 75.2,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": {
-        "status": "WATCH",
-        "reason": null,
-        "first_half_markets_ignored": 17,
-        "first_half_reason": "Dedicated 1H model required; full-match probabilities cannot be reused."
-      },
-      "best_market": {
-        "family": "TOTAL",
-        "market": "Goals Over/Under - Second Half",
-        "selection": "over",
-        "line": 2.5,
-        "decimal_price": 4.0,
-        "bookmaker": "Bet365",
-        "p_breakeven": 0.25,
-        "p_market_fair": 0.233716,
-        "p_raw": 0.566222,
-        "p_shrunk": 0.286917,
-        "prob_edge_pp": 5.32,
-        "estimated_ev": 0.147669,
-        "shrink_weight": 0.16,
-        "tier": "B",
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
-      "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
-        "T-20 lineup/GK gate failed: BET eligibility blocked."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
-      "classification": "WATCH",
-      "tier": "A",
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.9,
-      "fixture": {
-        "fixture_id": 1575492,
-        "kickoff": "2026-09-13T11:00:00-06:00",
-        "timestamp": 1789318800,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 94,
-        "league": "Primeira Liga",
-        "country": "Portugal",
-        "season": 2026,
-        "round": "Regular Season - 6",
-        "home_team_id": 240,
-        "home_team": "Arouca",
-        "away_team_id": 227,
-        "away_team": "Santa Clara",
-        "venue": null,
-        "city": "Arouca",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 68.2,
-        "tracks": [
-          "SIDE",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 63.4,
-        "goal_environment_score": 52.0,
-        "two_way_scoring_score": 68.2,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 74.4,
-        "tracks": [
-          "SIDE"
-        ],
-        "side_edge_score": 74.4,
-        "goal_environment_score": 54.2,
-        "two_way_scoring_score": 64.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 68.2,
-        "tracks": [
-          "SIDE",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 63.4,
-        "goal_environment_score": 52.0,
-        "two_way_scoring_score": 68.2,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 240,
-            "team": "Arouca",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 51762,
-                "name": "I. de Arruabarrena",
-                "number": 12,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          },
-          {
-            "team_id": 227,
-            "team": "Santa Clara",
-            "formation": "4-3-3",
-            "goalkeepers": [
-              {
-                "id": 41458,
-                "name": "Lucas França",
-                "number": 1,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          }
-        ]
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.5312,
-        "raw_away_goal_rate": 0.8906,
-        "raw_total_goals": 2.4219,
-        "raw_home_win_prob": 0.523054,
-        "raw_draw_prob": 0.257881,
-        "raw_away_win_prob": 0.219065,
-        "raw_btts_yes_prob": 0.462091,
-        "raw_over_2_5_prob": 0.435996,
+        "raw_home_goal_rate": 1.4625,
+        "raw_away_goal_rate": 1.1219,
+        "raw_total_goals": 2.5844,
+        "raw_home_win_prob": 0.449482,
+        "raw_draw_prob": 0.260271,
+        "raw_away_win_prob": 0.290247,
+        "raw_btts_yes_prob": 0.518118,
+        "raw_over_2_5_prob": 0.477641,
         "scoring_path": "MIXED / NO STRONG SCORING PATH",
         "screen_scores": {
-          "side_edge_score": 63.4,
-          "goal_environment_score": 52.0,
-          "two_way_scoring_score": 68.2,
+          "side_edge_score": 54.4,
+          "goal_environment_score": 56.6,
+          "two_way_scoring_score": 78.7,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
         }
@@ -511,20 +184,21 @@
         "market": "Goals Over/Under - Second Half",
         "selection": "over",
         "line": 1.5,
-        "decimal_price": 2.4,
+        "decimal_price": 1.91,
         "bookmaker": "William Hill",
-        "p_breakeven": 0.416667,
-        "p_market_fair": 0.384615,
-        "p_raw": 0.696291,
-        "p_shrunk": 0.443834,
-        "prob_edge_pp": 5.922,
-        "estimated_ev": 0.065201,
-        "shrink_weight": 0.19,
-        "tier": "A",
+        "p_breakeven": 0.52356,
+        "p_market_fair": 0.485175,
+        "p_raw": 0.729583,
+        "p_shrunk": 0.52428,
+        "prob_edge_pp": 3.911,
+        "estimated_ev": 0.001376,
+        "shrink_weight": 0.16,
+        "tier": "B",
         "classification": "WATCH",
         "stake_units": 0.0
       },
       "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
@@ -532,200 +206,29 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-40",
       "classification": "WATCH",
-      "tier": "A",
+      "tier": "B",
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.9,
+      "availability_confidence": 0.7,
       "fixture": {
-        "fixture_id": 1575493,
-        "kickoff": "2026-09-13T11:00:00-06:00",
-        "timestamp": 1789318800,
+        "fixture_id": 1558634,
+        "kickoff": "2026-09-13T11:15:00-06:00",
+        "timestamp": 1789319700,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 94,
-        "league": "Primeira Liga",
-        "country": "Portugal",
+        "league_id": 144,
+        "league": "Jupiler Pro League",
+        "country": "Belgium",
         "season": 2026,
         "round": "Regular Season - 6",
-        "home_team_id": 211,
-        "home_team": "Benfica",
-        "away_team_id": 762,
-        "away_team": "GIL Vicente",
-        "venue": null,
-        "city": "Lisbon",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 60.0,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 56.5,
-        "goal_environment_score": 40.0,
-        "two_way_scoring_score": 63.9,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 66.8,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 53.2,
-        "goal_environment_score": 33.2,
-        "two_way_scoring_score": 62.8,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 60.0,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 56.5,
-        "goal_environment_score": 40.0,
-        "two_way_scoring_score": 63.9,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 211,
-            "team": "Benfica",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 162595,
-                "name": "Samuel Soares",
-                "number": 24,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          },
-          {
-            "team_id": 762,
-            "team": "GIL Vicente",
-            "formation": "4-2-3-1",
-            "goalkeepers": [
-              {
-                "id": 140450,
-                "name": "Lucão",
-                "number": 30,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          }
-        ]
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.2121,
-        "raw_away_goal_rate": 0.7812,
-        "raw_total_goals": 1.9933,
-        "raw_home_win_prob": 0.462349,
-        "raw_draw_prob": 0.299209,
-        "raw_away_win_prob": 0.238443,
-        "raw_btts_yes_prob": 0.380826,
-        "raw_over_2_5_prob": 0.321511,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 56.5,
-          "goal_environment_score": 40.0,
-          "two_way_scoring_score": 63.9,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": {
-        "status": "WATCH",
-        "reason": null,
-        "first_half_markets_ignored": 17,
-        "first_half_reason": "Dedicated 1H model required; full-match probabilities cannot be reused."
-      },
-      "best_market": {
-        "family": "TOTAL",
-        "market": "Goals Over/Under",
-        "selection": "under",
-        "line": 2.5,
-        "decimal_price": 2.88,
-        "bookmaker": "Bet365",
-        "p_breakeven": 0.347222,
-        "p_market_fair": 0.327103,
-        "p_raw": 0.678489,
-        "p_shrunk": 0.393866,
-        "prob_edge_pp": 6.676,
-        "estimated_ev": 0.134335,
-        "shrink_weight": 0.19,
-        "tier": "A",
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
-      "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.9,
-      "fixture": {
-        "fixture_id": 1508544,
-        "kickoff": "2026-09-13T11:00:00-06:00",
-        "timestamp": 1789318800,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 254,
-        "league": "NWSL Women",
-        "country": "USA",
-        "season": 2026,
-        "round": "Group Stage",
-        "home_team_id": 3005,
-        "home_team": "Washington Spirit W",
-        "away_team_id": 27377,
-        "away_team": "Boston Legacy W",
-        "venue": "Audi Field",
+        "home_team_id": 5902,
+        "home_team": "RAAL La Louvière",
+        "away_team_id": 734,
+        "away_team": "Kortrijk",
+        "venue": "Easi Arena",
         "city": null,
         "goals": {
           "home": null,
@@ -755,92 +258,63 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 71.5,
+        "rank": 75.5,
         "tracks": [
           "SIDE",
           "TWO_WAY"
         ],
-        "side_edge_score": 62.6,
-        "goal_environment_score": 54.6,
-        "two_way_scoring_score": 71.5,
+        "side_edge_score": 62.5,
+        "goal_environment_score": 58.1,
+        "two_way_scoring_score": 75.5,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": {
         "shortlisted": true,
-        "rank": 66.5,
+        "rank": 76.2,
         "tracks": [
           "SIDE",
           "TWO_WAY"
         ],
-        "side_edge_score": 63.7,
-        "goal_environment_score": 50.0,
-        "two_way_scoring_score": 66.5,
+        "side_edge_score": 66.7,
+        "goal_environment_score": 61.2,
+        "two_way_scoring_score": 76.2,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_refined": {
         "shortlisted": true,
-        "rank": 71.5,
+        "rank": 75.5,
         "tracks": [
           "SIDE",
           "TWO_WAY"
         ],
-        "side_edge_score": 62.6,
-        "goal_environment_score": 54.6,
-        "two_way_scoring_score": 71.5,
+        "side_edge_score": 62.5,
+        "goal_environment_score": 58.1,
+        "two_way_scoring_score": 75.5,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 3005,
-            "team": "Washington Spirit W",
-            "formation": "4-3-3",
-            "goalkeepers": [
-              {
-                "id": 196468,
-                "name": "S. MacIver",
-                "number": 18,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          },
-          {
-            "team_id": 27377,
-            "team": "Boston Legacy W",
-            "formation": "4-4-2",
-            "goalkeepers": [
-              {
-                "id": 87566,
-                "name": "C. Murphy",
-                "number": 1,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          }
-        ]
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.5625,
-        "raw_away_goal_rate": 0.95,
-        "raw_total_goals": 2.5125,
-        "raw_home_win_prob": 0.516233,
-        "raw_draw_prob": 0.254141,
-        "raw_away_win_prob": 0.229625,
-        "raw_btts_yes_prob": 0.484713,
-        "raw_over_2_5_prob": 0.459389,
+        "raw_home_goal_rate": 1.625,
+        "raw_away_goal_rate": 1.0156,
+        "raw_total_goals": 2.6406,
+        "raw_home_win_prob": 0.515869,
+        "raw_draw_prob": 0.247468,
+        "raw_away_win_prob": 0.236664,
+        "raw_btts_yes_prob": 0.512229,
+        "raw_over_2_5_prob": 0.49172,
         "scoring_path": "MIXED / NO STRONG SCORING PATH",
         "screen_scores": {
-          "side_edge_score": 62.6,
-          "goal_environment_score": 54.6,
-          "two_way_scoring_score": 71.5,
+          "side_edge_score": 62.5,
+          "goal_environment_score": 58.1,
+          "two_way_scoring_score": 75.5,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
         }
@@ -848,182 +322,29 @@
       "market_decision": {
         "status": "WATCH",
         "reason": null,
-        "first_half_markets_ignored": null,
-        "first_half_reason": null
-      },
-      "best_market": null,
-      "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
-      "classification": "WATCH",
-      "tier": "A",
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.9,
-      "fixture": {
-        "fixture_id": 1553865,
-        "kickoff": "2026-09-13T11:00:00-06:00",
-        "timestamp": 1789318800,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 286,
-        "league": "Super Liga",
-        "country": "Serbia",
-        "season": 2026,
-        "round": "Regular Season - 9",
-        "home_team_id": 12316,
-        "home_team": "IMT Novi Beograd",
-        "away_team_id": 598,
-        "away_team": "FK Crvena Zvezda",
-        "venue": null,
-        "city": "Belgrade",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 66.4,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 54.4,
-        "goal_environment_score": 33.6,
-        "two_way_scoring_score": 61.4,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 73.8,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 57.9,
-        "goal_environment_score": 26.2,
-        "two_way_scoring_score": 53.5,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 66.4,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 54.4,
-        "goal_environment_score": 33.6,
-        "two_way_scoring_score": 61.4,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": {
-        "lineup_state": "CONFIRMED_API",
-        "both_xi_confirmed": true,
-        "both_goalkeepers_confirmed": true,
-        "teams": [
-          {
-            "team_id": 12316,
-            "team": "IMT Novi Beograd",
-            "formation": "4-1-3-2",
-            "goalkeepers": [
-              {
-                "id": 65409,
-                "name": "O. Čančarević",
-                "number": 1,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          },
-          {
-            "team_id": 598,
-            "team": "FK Crvena Zvezda",
-            "formation": "3-2-4-1",
-            "goalkeepers": [
-              {
-                "id": 41089,
-                "name": "Matheus",
-                "number": 1,
-                "pos": "G",
-                "grid": "1:1"
-              }
-            ]
-          }
-        ]
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.0491,
-        "raw_away_goal_rate": 0.7143,
-        "raw_total_goals": 1.7634,
-        "raw_home_win_prob": 0.428658,
-        "raw_draw_prob": 0.326121,
-        "raw_away_win_prob": 0.24522,
-        "raw_btts_yes_prob": 0.33167,
-        "raw_over_2_5_prob": 0.259597,
-        "scoring_path": "MUTUAL SUPPRESSION UNDER",
-        "screen_scores": {
-          "side_edge_score": 54.4,
-          "goal_environment_score": 33.6,
-          "two_way_scoring_score": 61.4,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": {
-        "status": "WATCH",
-        "reason": null,
-        "first_half_markets_ignored": 16,
+        "first_half_markets_ignored": 17,
         "first_half_reason": "Dedicated 1H model required; full-match probabilities cannot be reused."
       },
       "best_market": {
-        "family": "1X2",
-        "market": "Match Winner",
-        "selection": "home",
-        "line": null,
-        "decimal_price": 11.0,
+        "family": "TOTAL",
+        "market": "Goals Over/Under - Second Half",
+        "selection": "over",
+        "line": 1.5,
+        "decimal_price": 2.1,
         "bookmaker": "Bet365",
-        "p_breakeven": 0.090909,
-        "p_market_fair": 0.085375,
-        "p_raw": 0.428658,
-        "p_shrunk": 0.150599,
-        "prob_edge_pp": 6.522,
-        "estimated_ev": 0.656586,
-        "shrink_weight": 0.19,
-        "tier": "A",
+        "p_breakeven": 0.47619,
+        "p_market_fair": 0.442971,
+        "p_raw": 0.740362,
+        "p_shrunk": 0.490553,
+        "prob_edge_pp": 4.758,
+        "estimated_ev": 0.030162,
+        "shrink_weight": 0.16,
+        "tier": "B",
         "classification": "WATCH",
         "stake_units": 0.0
       },
       "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
@@ -1031,30 +352,30 @@
     },
     {
       "event_type": "QUOTA_GUARD",
-      "stage": "T-20",
+      "stage": "T-40",
       "classification": "WATCH",
       "tier": null,
       "stake_units": null,
       "bet_eligible": null,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1585751,
-        "kickoff": "2026-09-13T11:00:00-06:00",
-        "timestamp": 1789318800,
+        "fixture_id": 1559161,
+        "kickoff": "2026-09-13T11:15:00-06:00",
+        "timestamp": 1789319700,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 204,
-        "league": "1. Lig",
-        "country": "Turkey",
+        "league_id": 145,
+        "league": "Challenger Pro League",
+        "country": "Belgium",
         "season": 2026,
-        "round": "Regular Season - 7",
-        "home_team_id": 1003,
-        "home_team": "Bursaspor",
-        "away_team_id": 7402,
-        "away_team": "Esenler Erokspor",
-        "venue": "Timsah Park",
-        "city": "Bursa",
+        "round": "Regular Season - 5",
+        "home_team_id": 6222,
+        "home_team": "Patro Eisden",
+        "away_team_id": 739,
+        "away_team": "AS Eupen",
+        "venue": "Patrostadion",
+        "city": "Maasmechelen",
         "goals": {
           "home": null,
           "away": null
