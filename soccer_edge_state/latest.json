@@ -2,29 +2,29 @@
   "service": "soccer-edge-automation",
   "version": "1.7.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-13T17:26:25.816934+00:00",
-  "generated_at_local": "2026-09-13T11:26:25.816934-06:00",
+  "generated_at_utc": "2026-09-13T17:35:38.218830+00:00",
+  "generated_at_local": "2026-09-13T11:35:38.218830-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1106,
   "due_fixture_count": 109,
-  "event_count": 4,
-  "actionable_refresh_count": 4,
+  "event_count": 9,
+  "actionable_refresh_count": 6,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 20,
+  "api_calls_this_tick": 10,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 4844,
+  "last_daily_remaining": 4834,
   "daily_budget_mode": "NORMAL",
-  "deferred_due_to_budget": 1,
-  "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 3,
-  "shortlist_event_count": 3,
-  "screened_out_low_data_count": 0,
+  "deferred_due_to_budget": 0,
+  "deferred_due_to_priority": 27,
+  "deep_dive_processed_count": 8,
+  "shortlist_event_count": 8,
+  "screened_out_low_data_count": 74,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 8,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
-  "urgent_late_shortlist_due": 6,
-  "urgent_late_shortlist_processed": 2,
+  "urgent_late_shortlist_due": 8,
+  "urgent_late_shortlist_processed": 8,
   "request_pacing_seconds": 0.75,
   "rate_limit_max_retries": 2,
   "first_half_market_model": "BLOCKED_PENDING_EXPLICIT_1H_MODEL",
@@ -32,17 +32,17 @@
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
   "shortlist_state_count": 17,
-  "shortlist_seed_imported": 16,
+  "shortlist_seed_imported": 17,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "4863",
+    "daily_remaining": "4843",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -204,15 +204,14 @@
       },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
-        "T-20 lineup/GK gate failed: BET eligibility blocked."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "LEAN",
       "tier": null,
       "stake_units": 0.0,
@@ -388,12 +387,418 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "stage": "CLOSE",
+      "classification": "CLOSE",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1555502,
+        "kickoff": "2026-09-13T11:30:00-06:00",
+        "timestamp": 1789320600,
+        "status": "1H",
+        "status_long": "First Half",
+        "elapsed": 6,
+        "league_id": 383,
+        "league": "Ligat Ha'al",
+        "country": "Israel",
+        "season": 2026,
+        "round": "Regular Season - 4",
+        "home_team_id": 4488,
+        "home_team": "Hapoel Petah Tikva",
+        "away_team_id": 563,
+        "away_team": "Hapoel Beer Sheva",
+        "venue": "HaMoshava Stadium",
+        "city": "Petah Tikva",
+        "goals": {
+          "home": 0,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 75.5,
+        "tracks": [
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 50.2,
+        "goal_environment_score": 45.9,
+        "two_way_scoring_score": 75.5,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "CLOSE",
+      "classification": "CLOSE",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1565247,
+        "kickoff": "2026-09-13T11:30:00-06:00",
+        "timestamp": 1789320600,
+        "status": "1H",
+        "status_long": "First Half",
+        "elapsed": 5,
+        "league_id": 283,
+        "league": "Liga I",
+        "country": "Romania",
+        "season": 2026,
+        "round": "Regular Season - 9",
+        "home_team_id": 20034,
+        "home_team": "Corvinul Hunedoara",
+        "away_team_id": 632,
+        "away_team": "Universitatea Craiova",
+        "venue": "Stadionul Francisc von Neuman",
+        "city": "Arad",
+        "goals": {
+          "home": 0,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 73.8,
+        "tracks": [
+          "SIDE",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 73.8,
+        "goal_environment_score": 60.8,
+        "two_way_scoring_score": 71.4,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "CLOSE",
+      "classification": "CLOSE",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1583986,
+        "kickoff": "2026-09-13T11:30:00-06:00",
+        "timestamp": 1789320600,
+        "status": "1H",
+        "status_long": "First Half",
+        "elapsed": 6,
+        "league_id": 80,
+        "league": "3. Liga",
+        "country": "Germany",
+        "season": 2026,
+        "round": "Regular Season - 5",
+        "home_team_id": 9364,
+        "home_team": "Hoffenheim II",
+        "away_team_id": 1326,
+        "away_team": "Fortuna Köln",
+        "venue": "Dietmar-Hopp Stadion",
+        "city": "Sinsheim",
+        "goals": {
+          "home": 0,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 59.5,
+        "goal_environment_score": 82.2,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "CLOSE",
+      "classification": "CLOSE",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1551103,
+        "kickoff": "2026-09-13T11:30:00-06:00",
+        "timestamp": 1789320600,
+        "status": "1H",
+        "status_long": "First Half",
+        "elapsed": 3,
+        "league_id": 172,
+        "league": "First League",
+        "country": "Bulgaria",
+        "season": 2026,
+        "round": "Regular Season - 9",
+        "home_team_id": 634,
+        "home_team": "Botev Plovdiv",
+        "away_team_id": 858,
+        "away_team": "Lokomotiv Plovdiv",
+        "venue": "Stadion Hristo Botev",
+        "city": "Plovdiv",
+        "goals": {
+          "home": 0,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 66.2,
+        "tracks": [
+          "SIDE",
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 62.4,
+        "goal_environment_score": 48.5,
+        "two_way_scoring_score": 66.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-30",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.7,
+      "availability_confidence": 0.9,
+      "fixture": {
+        "fixture_id": 1552169,
+        "kickoff": "2026-09-13T12:00:00-06:00",
+        "timestamp": 1789322400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 88,
+        "league": "Eredivisie",
+        "country": "Netherlands",
+        "season": 2026,
+        "round": "Regular Season - 6",
+        "home_team_id": 197,
+        "home_team": "PSV Eindhoven",
+        "away_team_id": 426,
+        "away_team": "Sparta Rotterdam",
+        "venue": "Philips Stadion",
+        "city": "Eindhoven",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 66.4,
+        "goal_environment_score": 98.8,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": {
+        "lineup_state": "CONFIRMED_API",
+        "both_xi_confirmed": true,
+        "both_goalkeepers_confirmed": true,
+        "teams": [
+          {
+            "team_id": 197,
+            "team": "PSV Eindhoven",
+            "formation": "4-3-3",
+            "goalkeepers": [
+              {
+                "id": 138804,
+                "name": "M. Kovář",
+                "number": 32,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          },
+          {
+            "team_id": 426,
+            "team": "Sparta Rotterdam",
+            "formation": "3-4-3",
+            "goalkeepers": [
+              {
+                "id": 37247,
+                "name": "M. Brouwer",
+                "number": 1,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          }
+        ]
+      },
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-30",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.6,
       "fixture": {
         "fixture_id": 1505526,
         "kickoff": "2026-09-13T12:00:00-06:00",
@@ -449,137 +854,32 @@
         "two_way_scoring_score": 86.7,
         "reason": "SPORTING_SCREEN_PASS"
       },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 80.6,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 51.3,
-        "goal_environment_score": 54.2,
-        "two_way_scoring_score": 80.6,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 86.7,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 50.0,
-        "goal_environment_score": 58.1,
-        "two_way_scoring_score": 86.7,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
       "lineups": {
         "lineup_state": "PENDING",
         "both_xi_confirmed": false,
         "both_goalkeepers_confirmed": false,
         "teams": []
       },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.3188,
-        "raw_away_goal_rate": 1.3219,
-        "raw_total_goals": 2.6406,
-        "raw_home_win_prob": 0.368504,
-        "raw_draw_prob": 0.261539,
-        "raw_away_win_prob": 0.369958,
-        "raw_btts_yes_prob": 0.537212,
-        "raw_over_2_5_prob": 0.49172,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 50.0,
-          "goal_environment_score": 58.1,
-          "two_way_scoring_score": 79.0,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": {
-        "status": "WATCH",
-        "reason": null,
-        "first_half_markets_ignored": null,
-        "first_half_reason": null,
-        "period_markets_ignored": 29,
-        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused."
-      },
-      "best_market": {
-        "family": "1X2",
-        "market": "Match Winner",
-        "selection": "home",
-        "line": null,
-        "decimal_price": 4.0,
-        "bookmaker": "Bet365",
-        "p_breakeven": 0.25,
-        "p_market_fair": 0.23238,
-        "p_raw": 0.368504,
-        "p_shrunk": 0.25416,
-        "prob_edge_pp": 2.178,
-        "estimated_ev": 0.016638,
-        "shrink_weight": 0.16,
-        "tier": null,
-        "classification": "WATCH",
-        "stake_units": 0.0
-      },
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
       "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Material lineup/goalkeeper information remains NOT VERIFIED."
       ],
       "result": null,
       "error": null
     },
     {
-      "event_type": "QUOTA_GUARD",
-      "stage": "T-40",
-      "classification": "WATCH",
+      "event_type": "LOW_DATA_SCREEN_SUMMARY",
+      "stage": "SLATE_SCREEN",
+      "classification": "PASS",
       "tier": null,
       "stake_units": null,
       "bet_eligible": null,
       "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1519491,
-        "kickoff": "2026-09-13T12:00:00-06:00",
-        "timestamp": 1789322400,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 242,
-        "league": "Liga Pro",
-        "country": "Ecuador",
-        "season": 2026,
-        "round": "Regular Season - 30",
-        "home_team_id": 19034,
-        "home_team": "Leones del Norte",
-        "away_team_id": 1151,
-        "away_team": "Tecnico Universitario",
-        "venue": "Estadio Olimpico de Ibarra",
-        "city": "Ibarra",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
+      "fixture": null,
       "coverage": null,
       "sporting_shortlist": null,
       "sporting_screen_initial": null,
@@ -588,9 +888,12 @@
       "raw_projection": null,
       "market_decision": null,
       "best_market": null,
-      "notes": null,
+      "notes": [
+        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
+        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
+      ],
       "result": null,
-      "error": "Per-tick API budget reached (20); lower-priority work deferred."
+      "error": null
     }
   ]
 }
