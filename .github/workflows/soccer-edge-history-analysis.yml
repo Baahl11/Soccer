@@ -18,6 +18,7 @@ on:
       - "mcp_gateway/analyze_1x2_prior_calibration.py"
       - "mcp_gateway/analyze_1x2_relative_strength.py"
       - "mcp_gateway/analyze_ft_totals.py"
+      - "mcp_gateway/analyze_1h_goals_model.py"
       - "mcp_gateway/analyze_learning_pipeline.py"
       - "mcp_gateway/analyze_api_efficiency_versions.py"
   workflow_dispatch:
@@ -108,7 +109,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # v1.1 joins pre-kickoff projections to final results by fixture_id.
           python engine/mcp_gateway/analyze_1x2_relative_strength.py \
             --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
             --output state/soccer_edge_state/analysis/one_x_two_relative_strength.json
@@ -120,6 +120,14 @@ jobs:
           python engine/mcp_gateway/analyze_ft_totals.py \
             --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
             --output state/soccer_edge_state/analysis/ft_totals_validation.json
+
+      - name: Evaluate explicit 1H goals research model
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_1h_goals_model.py \
+            --history-dir state/soccer_edge_state/history \
+            --output state/soccer_edge_state/analysis/one_h_goals_model.json
 
       - name: Build learning pipeline reports
         shell: bash
@@ -160,6 +168,7 @@ jobs:
               'state/soccer_edge_state/analysis/one_x_two_prior_calibration.json',
               'state/soccer_edge_state/analysis/one_x_two_relative_strength.json',
               'state/soccer_edge_state/analysis/ft_totals_validation.json',
+              'state/soccer_edge_state/analysis/one_h_goals_model.json',
               'state/soccer_edge_state/analysis/decision_decomposition_summary.json',
               'state/soccer_edge_state/analysis/discrepancy_recheck.json',
               'state/soccer_edge_state/analysis/lineup_impact.json',
