@@ -2,24 +2,24 @@
   "service": "soccer-edge-automation",
   "version": "1.9.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-14T12:41:34.400828+00:00",
-  "generated_at_local": "2026-09-14T06:41:34.400828-06:00",
+  "generated_at_utc": "2026-09-14T12:57:43.827632+00:00",
+  "generated_at_local": "2026-09-14T06:57:43.827632-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 161,
-  "due_fixture_count": 5,
-  "event_count": 2,
+  "due_fixture_count": 13,
+  "event_count": 3,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 2,
+  "api_calls_this_tick": 7,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6755,
+  "last_daily_remaining": 6731,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 0,
-  "shortlist_event_count": 0,
-  "screened_out_low_data_count": 5,
+  "deep_dive_processed_count": 1,
+  "shortlist_event_count": 1,
+  "screened_out_low_data_count": 12,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 8,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -31,11 +31,11 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 11,
-  "shortlist_seed_imported": 12,
+  "shortlist_state_count": 8,
+  "shortlist_seed_imported": 11,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6756",
+    "daily_remaining": "6737",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -61,6 +61,127 @@
         "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
         "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
         "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-60",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.7,
+      "fixture": {
+        "fixture_id": 1612239,
+        "kickoff": "2026-09-14T08:00:00-06:00",
+        "timestamp": 1789394400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 233,
+        "league": "Premier League",
+        "country": "Egypt",
+        "season": 2026,
+        "round": "Regular Season - 5",
+        "home_team_id": 1039,
+        "home_team": "El Geish",
+        "away_team_id": 1044,
+        "away_team": "Smouha SC",
+        "venue": "Gehaz El Reyada El Askari Stadium",
+        "city": "Cairo",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 83.0,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 56.3,
+        "goal_environment_score": 17.0,
+        "two_way_scoring_score": 47.7,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 87.8,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 56.5,
+        "goal_environment_score": 12.2,
+        "two_way_scoring_score": 44.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 83.0,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 56.3,
+        "goal_environment_score": 17.0,
+        "two_way_scoring_score": 47.7,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "advanced_metrics": "NOT VERIFIED",
+        "raw_home_goal_rate": 0.8281,
+        "raw_away_goal_rate": 0.3438,
+        "raw_total_goals": 1.1719,
+        "raw_home_win_prob": 0.45061,
+        "raw_draw_prob": 0.40445,
+        "raw_away_win_prob": 0.14494,
+        "raw_btts_yes_prob": 0.163812,
+        "raw_over_2_5_prob": 0.114472,
+        "scoring_path": "MUTUAL SUPPRESSION UNDER",
+        "screen_scores": {
+          "side_edge_score": 56.3,
+          "goal_environment_score": 17.0,
+          "two_way_scoring_score": 47.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        }
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
       "error": null
