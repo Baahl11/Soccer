@@ -5,6 +5,7 @@ import json
 import math
 import os
 from collections import Counter, defaultdict
+from datetime import datetime
 from typing import Any
 
 
@@ -12,6 +13,15 @@ def fnum(x: Any) -> float | None:
     try:
         return float(x)
     except (TypeError, ValueError):
+        return None
+
+
+def parse_dt(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
         return None
 
 
@@ -47,33 +57,49 @@ def main() -> None:
     ap.add_argument("--output", default="soccer_edge_state/analysis/one_x_two_calibration.json")
     args = ap.parse_args()
 
-    latest: dict[int, dict[str, Any]] = {}
+    all_rows: list[dict[str, Any]] = []
+    finals: dict[int, str] = {}
     with open(args.ledger, "r", encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
             if not line:
                 continue
             row = json.loads(line)
+            all_rows.append(row)
             fid = row.get("fixture_id")
-            raw = row.get("raw_projection") or {}
-            result = row.get("result")
-            probs = [fnum(raw.get(k)) for k in ("raw_home_win_prob", "raw_draw_prob", "raw_away_win_prob")]
-            if not fid or any(p is None for p in probs) or final_outcome(result) is None:
-                continue
-            if any(p < 0 or p > 1 for p in probs):
-                continue
-            s = sum(probs)
-            if s <= 0:
-                continue
-            probs = [p / s for p in probs]
-            ts = str(row.get("generated_at_local") or "")
-            rec = {
-                "fixture_id": int(fid), "league": row.get("league"), "data_tier": row.get("data_tier"),
-                "stage": row.get("stage"), "timestamp": ts, "p": probs, "actual": final_outcome(result),
-            }
-            old = latest.get(int(fid))
-            if old is None or ts > old["timestamp"]:
-                latest[int(fid)] = rec
+            actual = final_outcome(row.get("result"))
+            if fid and actual:
+                finals[int(fid)] = actual
+
+    latest: dict[int, dict[str, Any]] = {}
+    for row in all_rows:
+        fid = row.get("fixture_id")
+        if not fid or int(fid) not in finals:
+            continue
+        raw = row.get("raw_projection") or {}
+        probs = [fnum(raw.get(k)) for k in ("raw_home_win_prob", "raw_draw_prob", "raw_away_win_prob")]
+        if any(p is None for p in probs) or any(p < 0 or p > 1 for p in probs):
+            continue
+        ts = parse_dt(row.get("generated_at_local"))
+        ko = parse_dt(row.get("kickoff_local"))
+        if ts is None or ko is None or ts >= ko:
+            continue
+        s = sum(probs)
+        if s <= 0:
+            continue
+        probs = [p / s for p in probs]
+        rec = {
+            "fixture_id": int(fid),
+            "league": row.get("league"),
+            "data_tier": row.get("data_tier"),
+            "stage": row.get("stage"),
+            "timestamp": row.get("generated_at_local"),
+            "p": probs,
+            "actual": finals[int(fid)],
+        }
+        old = latest.get(int(fid))
+        if old is None or str(rec["timestamp"] or "") > str(old["timestamp"] or ""):
+            latest[int(fid)] = rec
 
     labels = ["H", "D", "A"]
     n = len(latest)
@@ -122,27 +148,27 @@ def main() -> None:
                 "observed_rate": round(sum(vals) / len(vals), 4) if vals else None,
             }
 
-    fav_out = {k: {"n": len(v), "accuracy": round(sum(v)/len(v), 4) if v else None} for k, v in sorted(favorite_groups.items())}
-    stage_out = {k: {"n": len(v), "accuracy": round(sum(v)/len(v), 4) if v else None} for k, v in sorted(by_stage.items())}
     result = {
-        "schema_version": "1.0.1",
+        "schema_version": "1.1.0",
         "timezone_basis": "America/Mexico_City",
         "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
+        "finalized_fixtures_available": len(finals),
         "sample_fixtures": n,
         "top1_accuracy": round(correct / n, 4) if n else None,
         "multiclass_brier": round(brier_sum / n, 4) if n else None,
         "multiclass_log_loss": round(logloss_sum / n, 4) if n else None,
         "predicted_outcome_counts": dict(predicted_counts),
         "actual_outcome_counts": dict(actual_counts),
-        "accuracy_by_max_probability": fav_out,
-        "accuracy_by_latest_stage": stage_out,
+        "accuracy_by_max_probability": {k: {"n": len(v), "accuracy": round(sum(v)/len(v), 4) if v else None} for k, v in sorted(favorite_groups.items())},
+        "accuracy_by_latest_stage": {k: {"n": len(v), "accuracy": round(sum(v)/len(v), 4) if v else None} for k, v in sorted(by_stage.items())},
         "calibration_by_outcome": cal_out,
         "activation_gate": {
             "enabled": False,
             "reason": "1X2 remains research-only until sample size and calibration quality are sufficient; no backend classification may be upgraded from this report.",
         },
         "notes": [
-            "Uses one latest available raw 1X2 projection per finalized fixture to avoid overweighting repeated refresh stages.",
+            "Joins the latest pre-kickoff raw 1X2 projection to a final result by fixture_id.",
+            "Uses one projection per finalized fixture to avoid repeated-stage weighting.",
             "Probabilities are normalized to sum to 1 before scoring.",
             "Calibration bins are descriptive and require larger samples before model changes are justified."
         ],
