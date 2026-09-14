@@ -18,6 +18,7 @@ on:
       - "mcp_gateway/analyze_1x2_relative_strength.py"
       - "mcp_gateway/analyze_ft_totals.py"
       - "mcp_gateway/analyze_learning_pipeline.py"
+      - "mcp_gateway/analyze_api_efficiency_versions.py"
   workflow_dispatch:
 
 permissions:
@@ -119,6 +120,14 @@ jobs:
             --history-dir state/soccer_edge_state/history \
             --analysis-dir state/soccer_edge_state/analysis
 
+      - name: Analyze urgent-window efficiency by version
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_api_efficiency_versions.py \
+            --history-dir state/soccer_edge_state/history \
+            --output state/soccer_edge_state/analysis/api_efficiency_versions.json
+
       - name: Analyze complete history
         shell: bash
         run: |
@@ -144,6 +153,7 @@ jobs:
               'state/soccer_edge_state/analysis/discrepancy_recheck.json',
               'state/soccer_edge_state/analysis/lineup_impact.json',
               'state/soccer_edge_state/analysis/api_efficiency.json',
+              'state/soccer_edge_state/analysis/api_efficiency_versions.json',
               'state/soccer_edge_state/analysis/derivative_model_registry.json',
               'state/soccer_edge_state/analysis/learning_dashboard.json',
               'state/soccer_edge_state/analysis/compact.json',
