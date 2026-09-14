@@ -1,6 +1,8 @@
 name: Soccer Edge History Analysis
 
 on:
+  schedule:
+    - cron: "0 8 * * *"
   push:
     branches:
       - main
