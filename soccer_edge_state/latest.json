@@ -2,24 +2,24 @@
   "service": "soccer-edge-automation",
   "version": "1.9.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-14T13:32:07.087760+00:00",
-  "generated_at_local": "2026-09-14T07:32:07.087760-06:00",
+  "generated_at_utc": "2026-09-14T13:44:51.261420+00:00",
+  "generated_at_local": "2026-09-14T07:44:51.261420-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 161,
-  "due_fixture_count": 21,
-  "event_count": 6,
-  "actionable_refresh_count": 0,
+  "due_fixture_count": 10,
+  "event_count": 2,
+  "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 20,
+  "api_calls_this_tick": 2,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6663,
+  "last_daily_remaining": 6640,
   "daily_budget_mode": "NORMAL",
-  "deferred_due_to_budget": 1,
+  "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 5,
-  "shortlist_event_count": 5,
-  "screened_out_low_data_count": 0,
+  "deep_dive_processed_count": 1,
+  "shortlist_event_count": 1,
+  "screened_out_low_data_count": 9,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 8,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -32,19 +32,19 @@
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
   "shortlist_state_count": 10,
-  "shortlist_seed_imported": 6,
+  "shortlist_seed_imported": 10,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6682",
+    "daily_remaining": "6641",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-30",
+      "stage": "T-20",
       "classification": "WATCH",
-      "tier": null,
+      "tier": "B",
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": 0.9,
@@ -103,8 +103,28 @@
         "two_way_scoring_score": 47.7,
         "reason": "SPORTING_SCREEN_PASS"
       },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 87.8,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 56.5,
+        "goal_environment_score": 12.2,
+        "two_way_scoring_score": 44.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 83.0,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 56.3,
+        "goal_environment_score": 17.0,
+        "two_way_scoring_score": 47.7,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
       "lineups": {
         "lineup_state": "CONFIRMED_API",
         "both_xi_confirmed": true,
@@ -140,125 +160,53 @@
           }
         ]
       },
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-90",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1565254,
-        "kickoff": "2026-09-14T09:00:00-06:00",
-        "timestamp": 1789398000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 283,
-        "league": "Liga I",
-        "country": "Romania",
-        "season": 2026,
-        "round": "Regular Season - 9",
-        "home_team_id": 2599,
-        "home_team": "Universitatea Cluj",
-        "away_team_id": 6886,
-        "away_team": "Oţelul",
-        "venue": "Cluj Arena",
-        "city": "Cluj-Napoca",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 96.0,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 54.3,
-        "goal_environment_score": 72.1,
-        "two_way_scoring_score": 96.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 97.0,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 58.1,
-        "goal_environment_score": 75.2,
-        "two_way_scoring_score": 97.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 96.0,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 54.3,
-        "goal_environment_score": 72.1,
-        "two_way_scoring_score": 96.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": null,
       "raw_projection": {
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.7312,
-        "raw_away_goal_rate": 1.4094,
-        "raw_total_goals": 3.1406,
-        "raw_home_win_prob": 0.452284,
-        "raw_draw_prob": 0.233575,
-        "raw_away_win_prob": 0.314141,
-        "raw_btts_yes_prob": 0.621897,
-        "raw_over_2_5_prob": 0.607566,
-        "scoring_path": "TWO-WAY OPEN GAME",
+        "raw_home_goal_rate": 0.8281,
+        "raw_away_goal_rate": 0.3438,
+        "raw_total_goals": 1.1719,
+        "raw_home_win_prob": 0.45061,
+        "raw_draw_prob": 0.40445,
+        "raw_away_win_prob": 0.14494,
+        "raw_btts_yes_prob": 0.163812,
+        "raw_over_2_5_prob": 0.114472,
+        "scoring_path": "MUTUAL SUPPRESSION UNDER",
         "screen_scores": {
-          "side_edge_score": 54.3,
-          "goal_environment_score": 72.1,
-          "two_way_scoring_score": 96.0,
+          "side_edge_score": 56.3,
+          "goal_environment_score": 17.0,
+          "two_way_scoring_score": 47.7,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
         }
       },
-      "market_decision": null,
-      "best_market": null,
+      "market_decision": {
+        "status": "WATCH",
+        "reason": null,
+        "first_half_markets_ignored": null,
+        "first_half_reason": null,
+        "period_markets_ignored": 32,
+        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused."
+      },
+      "best_market": {
+        "family": "TOTAL",
+        "market": "Goals Over/Under",
+        "selection": "under",
+        "line": 1.5,
+        "decimal_price": 2.1,
+        "bookmaker": "Bet365",
+        "p_breakeven": 0.47619,
+        "p_market_fair": 0.442971,
+        "p_raw": 0.672815,
+        "p_shrunk": 0.486641,
+        "prob_edge_pp": 4.367,
+        "estimated_ev": 0.021947,
+        "shrink_weight": 0.19,
+        "tier": "B",
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
       "notes": [
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
@@ -266,407 +214,14 @@
       "error": null
     },
     {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-90",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1638097,
-        "kickoff": "2026-09-14T09:00:00-06:00",
-        "timestamp": 1789398000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 244,
-        "league": "Veikkausliiga",
-        "country": "Finland",
-        "season": 2026,
-        "round": "Championship Group - 24",
-        "home_team_id": 1164,
-        "home_team": "Inter Turku",
-        "away_team_id": 650,
-        "away_team": "VPS",
-        "venue": "Veritas Stadion",
-        "city": "Turku",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 66.2,
-        "tracks": [
-          "GOALS_UNDER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 52.8,
-        "goal_environment_score": 37.6,
-        "two_way_scoring_score": 66.2,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 66.8,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 53.2,
-        "goal_environment_score": 33.2,
-        "two_way_scoring_score": 62.8,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 66.2,
-        "tracks": [
-          "GOALS_UNDER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 52.8,
-        "goal_environment_score": 37.6,
-        "two_way_scoring_score": 66.2,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": null,
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.0625,
-        "raw_away_goal_rate": 0.8438,
-        "raw_total_goals": 1.9062,
-        "raw_home_win_prob": 0.400832,
-        "raw_draw_prob": 0.314899,
-        "raw_away_win_prob": 0.284269,
-        "raw_btts_yes_prob": 0.372951,
-        "raw_over_2_5_prob": 0.297967,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 52.8,
-          "goal_environment_score": 37.6,
-          "two_way_scoring_score": 66.2,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-90",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1509187,
-        "kickoff": "2026-09-14T09:00:00-06:00",
-        "timestamp": 1789398000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 327,
-        "league": "Erovnuli Liga",
-        "country": "Georgia",
-        "season": 2026,
-        "round": "Regular Season - 26",
-        "home_team_id": 685,
-        "home_team": "Torpedo Kutaisi",
-        "away_team_id": 10017,
-        "away_team": "Samgurali",
-        "venue": "Stadion Ramaz Shengelia",
-        "city": "Kutaisi",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 97.1,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 60.9,
-        "goal_environment_score": 76.9,
-        "two_way_scoring_score": 97.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 93.3,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 63.8,
-        "goal_environment_score": 75.2,
-        "two_way_scoring_score": 93.3,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 97.1,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 60.9,
-        "goal_environment_score": 76.9,
-        "two_way_scoring_score": 97.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": null,
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.9313,
-        "raw_away_goal_rate": 1.3812,
-        "raw_total_goals": 3.3125,
-        "raw_home_win_prob": 0.503816,
-        "raw_draw_prob": 0.221165,
-        "raw_away_win_prob": 0.275019,
-        "raw_btts_yes_prob": 0.640193,
-        "raw_over_2_5_prob": 0.643075,
-        "scoring_path": "TWO-WAY OPEN GAME",
-        "screen_scores": {
-          "side_edge_score": 60.9,
-          "goal_environment_score": 76.9,
-          "two_way_scoring_score": 97.1,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-90",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1577523,
-        "kickoff": "2026-09-14T09:00:00-06:00",
-        "timestamp": 1789398000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 236,
-        "league": "First League",
-        "country": "Russia",
-        "season": 2026,
-        "round": "Regular Season - 11",
-        "home_team_id": 6801,
-        "home_team": "KAMAZ",
-        "away_team_id": 6790,
-        "away_team": "Chelyabinsk",
-        "venue": "KAMAZ Stadium",
-        "city": "Naberezhnye Chelny",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 83.6,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 52.7,
-        "goal_environment_score": 58.8,
-        "two_way_scoring_score": 83.6,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 83.0,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 53.9,
-        "goal_environment_score": 59.8,
-        "two_way_scoring_score": 83.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 83.6,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 52.7,
-        "goal_environment_score": 58.8,
-        "two_way_scoring_score": 83.6,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "lineups": null,
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "advanced_metrics": "NOT VERIFIED",
-        "raw_home_goal_rate": 1.2281,
-        "raw_away_goal_rate": 1.4375,
-        "raw_total_goals": 2.6656,
-        "raw_home_win_prob": 0.322348,
-        "raw_draw_prob": 0.25844,
-        "raw_away_win_prob": 0.419211,
-        "raw_btts_yes_prob": 0.539194,
-        "raw_over_2_5_prob": 0.497917,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 52.7,
-          "goal_environment_score": 58.8,
-          "two_way_scoring_score": 83.6,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "QUOTA_GUARD",
-      "stage": "T-90",
-      "classification": "WATCH",
+      "event_type": "LOW_DATA_SCREEN_SUMMARY",
+      "stage": "SLATE_SCREEN",
+      "classification": "PASS",
       "tier": null,
       "stake_units": null,
       "bet_eligible": null,
       "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1577526,
-        "kickoff": "2026-09-14T09:00:00-06:00",
-        "timestamp": 1789398000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 236,
-        "league": "First League",
-        "country": "Russia",
-        "season": 2026,
-        "round": "Regular Season - 11",
-        "home_team_id": 19449,
-        "home_team": "Spartak Kostroma",
-        "away_team_id": 2001,
-        "away_team": "FK Neftekhimik",
-        "venue": "Stadion Urozhay",
-        "city": "Karavaevo",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
+      "fixture": null,
       "coverage": null,
       "sporting_shortlist": null,
       "sporting_screen_initial": null,
@@ -675,9 +230,12 @@
       "raw_projection": null,
       "market_decision": null,
       "best_market": null,
-      "notes": null,
+      "notes": [
+        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
+        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
+      ],
       "result": null,
-      "error": "Per-tick API budget reached (20); lower-priority work deferred."
+      "error": null
     }
   ]
 }
