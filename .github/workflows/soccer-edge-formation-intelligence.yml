@@ -6,8 +6,10 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
       - soccer-edge-mcp-v1
     paths:
+      - ".github/workflows/soccer-edge-formation-intelligence.yml"
       - "mcp_gateway/analyze_formation_intelligence.py"
       - "mcp_gateway/analyze_formation_intelligence_v2.py"
       - "mcp_gateway/automation_v17.py"
