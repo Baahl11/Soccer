@@ -20,6 +20,8 @@ on:
       - "mcp_gateway/analyze_ft_totals.py"
       - "mcp_gateway/analyze_1h_goals_model.py"
       - "mcp_gateway/analyze_1h_calibration.py"
+      - "mcp_gateway/analyze_2h_goals_model.py"
+      - "mcp_gateway/refresh_derivative_registry.py"
       - "mcp_gateway/analyze_learning_pipeline.py"
       - "mcp_gateway/analyze_api_efficiency_versions.py"
   workflow_dispatch:
@@ -50,121 +52,98 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/build_signal_ledger.py \
-            --history-dir state/soccer_edge_state/history \
-            --output state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
+          python engine/mcp_gateway/build_signal_ledger.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/signal_ledger.jsonl --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
 
       - name: Evaluate postgame outcomes
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/evaluate_postgame.py \
-            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --output state/soccer_edge_state/analysis/postgame_evaluation.jsonl \
-            --summary-output state/soccer_edge_state/analysis/postgame_summary.json
+          python engine/mcp_gateway/evaluate_postgame.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/postgame_evaluation.jsonl --summary-output state/soccer_edge_state/analysis/postgame_summary.json
 
       - name: Track closing line value proxy
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_clv.py \
-            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --output state/soccer_edge_state/analysis/clv_tracking.jsonl \
-            --summary-output state/soccer_edge_state/analysis/clv_summary.json
+          python engine/mcp_gateway/analyze_clv.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/clv_tracking.jsonl --summary-output state/soccer_edge_state/analysis/clv_summary.json
 
       - name: Analyze dedicated true CLV
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_true_clv.py \
-            --history-dir state/soccer_edge_state/history \
-            --output state/soccer_edge_state/analysis/true_clv_tracking.jsonl \
-            --summary-output state/soccer_edge_state/analysis/true_clv_summary.json
+          python engine/mcp_gateway/analyze_true_clv.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/true_clv_tracking.jsonl --summary-output state/soccer_edge_state/analysis/true_clv_summary.json
 
       - name: Analyze 1X2 calibration
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_1x2_calibration.py \
-            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --output state/soccer_edge_state/analysis/one_x_two_calibration.json
+          python engine/mcp_gateway/analyze_1x2_calibration.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/one_x_two_calibration.json
 
       - name: Evaluate Dixon-Coles 1X2 challenger
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_1x2_dixon_coles.py \
-            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --output state/soccer_edge_state/analysis/one_x_two_dixon_coles.json
+          python engine/mcp_gateway/analyze_1x2_dixon_coles.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/one_x_two_dixon_coles.json
 
       - name: Evaluate 1X2 prior calibration challenger
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_1x2_prior_calibration.py \
-            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --output state/soccer_edge_state/analysis/one_x_two_prior_calibration.json
+          python engine/mcp_gateway/analyze_1x2_prior_calibration.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/one_x_two_prior_calibration.json
 
       - name: Evaluate relative-strength 1X2 challenger
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_1x2_relative_strength.py \
-            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --output state/soccer_edge_state/analysis/one_x_two_relative_strength.json
+          python engine/mcp_gateway/analyze_1x2_relative_strength.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/one_x_two_relative_strength.json
 
       - name: Validate FT totals
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_ft_totals.py \
-            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --output state/soccer_edge_state/analysis/ft_totals_validation.json
+          python engine/mcp_gateway/analyze_ft_totals.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/ft_totals_validation.json
 
       - name: Evaluate explicit 1H goals research model
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_1h_goals_model.py \
-            --history-dir state/soccer_edge_state/history \
-            --output state/soccer_edge_state/analysis/one_h_goals_model.json
+          python engine/mcp_gateway/analyze_1h_goals_model.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/one_h_goals_model.json
 
       - name: Evaluate 1H calibration challenger
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_1h_calibration.py \
-            --model-report state/soccer_edge_state/analysis/one_h_goals_model.json \
-            --output state/soccer_edge_state/analysis/one_h_goals_calibration.json
+          python engine/mcp_gateway/analyze_1h_calibration.py --model-report state/soccer_edge_state/analysis/one_h_goals_model.json --output state/soccer_edge_state/analysis/one_h_goals_calibration.json
+
+      - name: Evaluate explicit pregame 2H goals research model
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_2h_goals_model.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/two_h_goals_model.json
 
       - name: Build learning pipeline reports
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_learning_pipeline.py \
-            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --history-dir state/soccer_edge_state/history \
-            --analysis-dir state/soccer_edge_state/analysis
+          python engine/mcp_gateway/analyze_learning_pipeline.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --history-dir state/soccer_edge_state/history --analysis-dir state/soccer_edge_state/analysis
+
+      - name: Refresh derivative model registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/refresh_derivative_registry.py --history-dir state/soccer_edge_state/history --analysis-dir state/soccer_edge_state/analysis --output state/soccer_edge_state/analysis/derivative_model_registry.json
 
       - name: Analyze urgent-window efficiency by version
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_api_efficiency_versions.py \
-            --history-dir state/soccer_edge_state/history \
-            --output state/soccer_edge_state/analysis/api_efficiency_versions.json
+          python engine/mcp_gateway/analyze_api_efficiency_versions.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/api_efficiency_versions.json
 
       - name: Analyze complete history
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_history.py \
-            --history-dir state/soccer_edge_state/history \
-            --output state/soccer_edge_state/analysis/latest.json
-          python engine/mcp_gateway/summarize_analysis.py \
-            --input state/soccer_edge_state/analysis/latest.json \
-            --output state/soccer_edge_state/analysis/compact.json
+          python engine/mcp_gateway/analyze_history.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/latest.json
+          python engine/mcp_gateway/summarize_analysis.py --input state/soccer_edge_state/analysis/latest.json --output state/soccer_edge_state/analysis/compact.json
           python - <<'PY'
           import json
           for p in (
@@ -179,6 +158,7 @@ jobs:
               'state/soccer_edge_state/analysis/ft_totals_validation.json',
               'state/soccer_edge_state/analysis/one_h_goals_model.json',
               'state/soccer_edge_state/analysis/one_h_goals_calibration.json',
+              'state/soccer_edge_state/analysis/two_h_goals_model.json',
               'state/soccer_edge_state/analysis/decision_decomposition_summary.json',
               'state/soccer_edge_state/analysis/discrepancy_recheck.json',
               'state/soccer_edge_state/analysis/lineup_impact.json',
@@ -201,8 +181,6 @@ jobs:
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
           git add -f soccer_edge_state/analysis/
-          if git diff --cached --quiet; then
-            exit 0
-          fi
+          if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Soccer Edge learning pipeline analysis"
           git push origin HEAD:soccer-edge-state
