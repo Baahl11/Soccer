@@ -50,6 +50,15 @@ jobs:
             --output state/soccer_edge_state/analysis/postgame_evaluation.jsonl \
             --summary-output state/soccer_edge_state/analysis/postgame_summary.json
 
+      - name: Track closing line value
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_clv.py \
+            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --output state/soccer_edge_state/analysis/clv_tracking.jsonl \
+            --summary-output state/soccer_edge_state/analysis/clv_summary.json
+
       - name: Analyze complete history
         shell: bash
         run: |
@@ -65,6 +74,7 @@ jobs:
           for p in (
               'state/soccer_edge_state/analysis/signal_ledger_summary.json',
               'state/soccer_edge_state/analysis/postgame_summary.json',
+              'state/soccer_edge_state/analysis/clv_summary.json',
               'state/soccer_edge_state/analysis/compact.json',
           ):
               print(f'--- {p} ---')
@@ -85,9 +95,11 @@ jobs:
             soccer_edge_state/analysis/signal_ledger.jsonl \
             soccer_edge_state/analysis/signal_ledger_summary.json \
             soccer_edge_state/analysis/postgame_evaluation.jsonl \
-            soccer_edge_state/analysis/postgame_summary.json
+            soccer_edge_state/analysis/postgame_summary.json \
+            soccer_edge_state/analysis/clv_tracking.jsonl \
+            soccer_edge_state/analysis/clv_summary.json
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Update Soccer Edge historical ledger and postgame evaluation"
+          git commit -m "Update Soccer Edge historical ledger, postgame evaluation and CLV"
           git push origin HEAD:soccer-edge-state
