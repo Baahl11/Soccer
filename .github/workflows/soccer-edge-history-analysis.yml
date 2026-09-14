@@ -97,6 +97,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # v1.1 joins pre-kickoff projections to final results by fixture_id.
           python engine/mcp_gateway/analyze_1x2_relative_strength.py \
             --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
             --output state/soccer_edge_state/analysis/one_x_two_relative_strength.json
