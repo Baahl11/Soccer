@@ -2,23 +2,23 @@
   "service": "soccer-edge-automation",
   "version": "1.7.0",
   "model_version": "SOCCER EDGE ENGINE v1.0",
-  "generated_at_utc": "2026-09-14T02:50:58.615311+00:00",
-  "generated_at_local": "2026-09-13T20:50:58.615311-06:00",
+  "generated_at_utc": "2026-09-14T03:10:55.394998+00:00",
+  "generated_at_local": "2026-09-13T21:10:55.394998-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1100,
-  "due_fixture_count": 7,
-  "event_count": 8,
+  "due_fixture_count": 4,
+  "event_count": 5,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 9,
+  "api_calls_this_tick": 6,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7286,
+  "last_daily_remaining": 7278,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 7,
-  "shortlist_event_count": 7,
+  "deep_dive_processed_count": 4,
+  "shortlist_event_count": 4,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 8,
@@ -35,7 +35,7 @@
   "shortlist_seed_imported": 54,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7292",
+    "daily_remaining": "7283",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -63,6 +63,104 @@
         "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
       ],
       "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1550963,
+        "kickoff": "2026-09-13T19:07:00-06:00",
+        "timestamp": 1789348020,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 262,
+        "league": "Liga MX",
+        "country": "Mexico",
+        "season": 2026,
+        "round": "Apertura - 8",
+        "home_team_id": 2278,
+        "home_team": "Guadalajara Chivas",
+        "away_team_id": 2286,
+        "away_team": "U.N.A.M. - Pumas",
+        "venue": "Estadio Akron",
+        "city": "Zapopan",
+        "goals": {
+          "home": 3,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 50.2,
+        "goal_environment_score": 75.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 3,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
       "error": null
     },
     {
@@ -172,132 +270,35 @@
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1505523,
-        "kickoff": "2026-09-13T17:00:00-06:00",
-        "timestamp": 1789340400,
+        "fixture_id": 1549777,
+        "kickoff": "2026-09-13T19:15:00-06:00",
+        "timestamp": 1789348500,
         "status": "FT",
         "status_long": "Match Finished",
         "elapsed": 90,
-        "league_id": 265,
-        "league": "Primera División",
-        "country": "Chile",
+        "league_id": 239,
+        "league": "Primera A",
+        "country": "Colombia",
         "season": 2026,
-        "round": "Regular Season - 23",
-        "home_team_id": 2329,
-        "home_team": "A. Italiano",
-        "away_team_id": 2320,
-        "away_team": "O'Higgins",
-        "venue": "Estadio Bicentenario de La Florida",
-        "city": "Santiago de Chile",
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 92.9,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 53.3,
-        "goal_environment_score": 68.1,
-        "two_way_scoring_score": 92.9,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1508545,
-        "kickoff": "2026-09-13T17:00:00-06:00",
-        "timestamp": 1789340400,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 254,
-        "league": "NWSL Women",
-        "country": "USA",
-        "season": 2026,
-        "round": "Group Stage",
-        "home_team_id": 3001,
-        "home_team": "Portland Thorns W",
-        "away_team_id": 2997,
-        "away_team": "Chicago Red Stars W",
-        "venue": "Providence Park",
+        "round": "Clausura - 10",
+        "home_team_id": 1470,
+        "home_team": "Cucuta",
+        "away_team_id": 1125,
+        "away_team": "Millonarios",
+        "venue": "Estadio General Santander",
         "city": null,
         "goals": {
           "home": 1,
-          "away": 1
+          "away": 2
         },
         "score": {
           "halftime": {
-            "home": 1,
+            "home": 0,
             "away": 0
           },
           "fulltime": {
             "home": 1,
-            "away": 1
+            "away": 2
           },
           "extratime": {
             "home": null,
@@ -314,14 +315,13 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 89.6,
+        "rank": 85.6,
         "tracks": [
-          "SIDE",
           "TWO_WAY"
         ],
-        "side_edge_score": 89.6,
-        "goal_environment_score": 64.8,
-        "two_way_scoring_score": 65.4,
+        "side_edge_score": 50.0,
+        "goal_environment_score": 57.1,
+        "two_way_scoring_score": 85.6,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": null,
@@ -334,113 +334,16 @@
       "result": {
         "goals": {
           "home": 1,
-          "away": 1
+          "away": 2
         },
         "score": {
           "halftime": {
-            "home": 1,
+            "home": 0,
             "away": 0
           },
           "fulltime": {
             "home": 1,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1519492,
-        "kickoff": "2026-09-13T17:00:00-06:00",
-        "timestamp": 1789340400,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 242,
-        "league": "Liga Pro",
-        "country": "Ecuador",
-        "season": 2026,
-        "round": "Regular Season - 30",
-        "home_team_id": 18762,
-        "home_team": "Libertad",
-        "away_team_id": 1153,
-        "away_team": "Independiente del Valle",
-        "venue": "Estadio Federativo Reina del Cisne",
-        "city": "Loja",
-        "goals": {
-          "home": 2,
-          "away": 3
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
             "away": 2
-          },
-          "fulltime": {
-            "home": 2,
-            "away": 3
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 87.5,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 53.8,
-        "goal_environment_score": 63.7,
-        "two_way_scoring_score": 87.5,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 2,
-          "away": 3
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 2
-          },
-          "fulltime": {
-            "home": 2,
-            "away": 3
           },
           "extratime": {
             "home": null,
@@ -539,201 +442,6 @@
           "fulltime": {
             "home": 1,
             "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1549780,
-        "kickoff": "2026-09-13T17:10:00-06:00",
-        "timestamp": 1789341000,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 239,
-        "league": "Primera A",
-        "country": "Colombia",
-        "season": 2026,
-        "round": "Clausura - 10",
-        "home_team_id": 1136,
-        "home_team": "Once Caldas",
-        "away_team_id": 1127,
-        "away_team": "Deportivo Cali",
-        "venue": "Estadio Palogrande",
-        "city": "Manizales",
-        "goals": {
-          "home": 1,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 1
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 75.1,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 54.9,
-        "goal_environment_score": 53.6,
-        "two_way_scoring_score": 75.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 1
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1519488,
-        "kickoff": "2026-09-13T17:00:00-06:00",
-        "timestamp": 1789340400,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 242,
-        "league": "Liga Pro",
-        "country": "Ecuador",
-        "season": 2026,
-        "round": "Regular Season - 30",
-        "home_team_id": 1152,
-        "home_team": "Barcelona SC",
-        "away_team_id": 1149,
-        "away_team": "Delfin SC",
-        "venue": "Estadio Monumental Banco Pichincha",
-        "city": "Guayaquil",
-        "goals": {
-          "home": 1,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 1
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 65.5,
-        "tracks": [
-          "SIDE",
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 65.5,
-        "goal_environment_score": 40.2,
-        "two_way_scoring_score": 58.9,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 1
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 1
           },
           "extratime": {
             "home": null,
