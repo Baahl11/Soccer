@@ -36,13 +36,17 @@ def bucket(p: float) -> str:
     return f"{lo:02d}-{hi:02d}%"
 
 
+def bucket_midpoint(label: str) -> float:
+    left, right = label.rstrip("%").split("-", 1)
+    return (float(left) + float(right)) / 200.0
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Research-only 1X2 calibration diagnostics for Soccer Edge.")
     ap.add_argument("--ledger", default="soccer_edge_state/analysis/signal_ledger.jsonl")
     ap.add_argument("--output", default="soccer_edge_state/analysis/one_x_two_calibration.json")
     args = ap.parse_args()
 
-    # Keep the latest pre-kickoff raw projection per fixture to avoid repeated-stage weighting.
     latest: dict[int, dict[str, Any]] = {}
     with open(args.ledger, "r", encoding="utf-8") as fh:
         for line in fh:
@@ -112,18 +116,16 @@ def main() -> None:
     for lab, bins in calibration.items():
         cal_out[lab] = {}
         for b, vals in sorted(bins.items()):
-            lo = int(b[:2]) / 100.0
-            hi = int(b[3:5]) / 100.0
             cal_out[lab][b] = {
                 "n": len(vals),
-                "mean_forecast_midpoint": round((lo + hi) / 2, 3),
+                "mean_forecast_midpoint": round(bucket_midpoint(b), 3),
                 "observed_rate": round(sum(vals) / len(vals), 4) if vals else None,
             }
 
     fav_out = {k: {"n": len(v), "accuracy": round(sum(v)/len(v), 4) if v else None} for k, v in sorted(favorite_groups.items())}
     stage_out = {k: {"n": len(v), "accuracy": round(sum(v)/len(v), 4) if v else None} for k, v in sorted(by_stage.items())}
     result = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.1",
         "timezone_basis": "America/Mexico_City",
         "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
         "sample_fixtures": n,
