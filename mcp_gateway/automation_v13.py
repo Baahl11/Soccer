@@ -56,12 +56,15 @@ def _no_fabricated_1x2_projection(
         out["side_model_verified"] = True
         return out
 
-    # Preserve independently modeled FT totals/BTTS, but never fabricate a side
-    # probability vector when Galaxy has no verified 1X2 prediction.
+    # Preserve independently modeled FT totals/BTTS, but never fabricate side
+    # probabilities or a home/away goal split from a neutral placeholder prior.
     out["side_model_verified"] = False
     out["raw_home_win_prob"] = None
     out["raw_draw_prob"] = None
     out["raw_away_win_prob"] = None
+    out["raw_home_goal_rate"] = None
+    out["raw_away_goal_rate"] = None
+    out["home_away_goal_split_status"] = "NOT_MODELED_MISSING_VERIFIED_1X2"
 
     scores = dict(out.get("screen_scores") or {})
     scores["side_edge_score"] = 0.0
@@ -71,7 +74,7 @@ def _no_fabricated_1x2_projection(
     limitations = list(out.get("model_limitations") or [])
     message = (
         "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; "
-        "the previous neutral 0.365/0.27/0.365 fallback is explicitly prohibited."
+        "the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
     )
     if message not in limitations:
         limitations.append(message)
