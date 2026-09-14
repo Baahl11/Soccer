@@ -4,7 +4,7 @@ import argparse
 import json
 import math
 import os
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime
 from typing import Any
 
@@ -120,46 +120,76 @@ def main() -> None:
             if line:
                 rows.append(json.loads(line))
 
-    # One finalized fixture record per fixture_id.
+    # Merge all snapshots by fixture_id. Pre-kickoff projections and final results
+    # usually live on different ledger rows, so they must be joined explicitly.
     fixtures: dict[int, dict[str, Any]] = {}
     for row in rows:
         fid = row.get("fixture_id")
-        score = final_score(row.get("result"))
-        ko = parse_dt(row.get("kickoff_local"))
-        if not fid or score is None or ko is None:
+        if not fid:
             continue
-        rec = fixtures.setdefault(int(fid), {
-            "fixture_id": int(fid),
-            "kickoff": ko,
-            "league_id": row.get("league_id"),
-            "league": row.get("league"),
-            "home_team_id": row.get("home_team_id"),
-            "away_team_id": row.get("away_team_id"),
-            "home_team": row.get("home_team"),
-            "away_team": row.get("away_team"),
-            "score": score,
-            "actual": outcome(*score),
+        fid = int(fid)
+        rec = fixtures.setdefault(fid, {
+            "fixture_id": fid,
+            "kickoff": None,
+            "league_id": None,
+            "league": None,
+            "home_team_id": None,
+            "away_team_id": None,
+            "home_team": None,
+            "away_team": None,
+            "score": None,
+            "actual": None,
             "baseline": None,
             "baseline_ts": None,
         })
+
+        ko = parse_dt(row.get("kickoff_local"))
+        if ko is not None:
+            rec["kickoff"] = ko
+        for key in ("league_id", "league", "home_team_id", "away_team_id", "home_team", "away_team"):
+            value = row.get(key)
+            if value is not None:
+                rec[key] = value
+
+        score = final_score(row.get("result"))
+        if score is not None:
+            rec["score"] = score
+            rec["actual"] = outcome(*score)
+
         raw = row.get("raw_projection") or {}
         p = [fnum(raw.get(k)) for k in ("raw_home_win_prob", "raw_draw_prob", "raw_away_win_prob")]
         ts = parse_dt(row.get("generated_at_local"))
-        if ts is not None and ts < ko and all(v is not None and 0 <= v <= 1 for v in p):
+        effective_ko = rec.get("kickoff") or ko
+        if ts is not None and effective_ko is not None and ts < effective_ko and all(v is not None and 0 <= v <= 1 for v in p):
             s = sum(p)
             if s > 0 and (rec["baseline_ts"] is None or ts > rec["baseline_ts"]):
                 rec["baseline"] = [v / s for v in p]
                 rec["baseline_ts"] = ts
 
-    all_final = sorted(fixtures.values(), key=lambda r: (r["kickoff"], r["fixture_id"]))
-    eval_candidates = [r for r in all_final if r.get("baseline") is not None and r.get("league_id") and r.get("home_team_id") and r.get("away_team_id")]
+    all_final = sorted(
+        [r for r in fixtures.values() if r.get("score") is not None and r.get("kickoff") is not None],
+        key=lambda r: (r["kickoff"], r["fixture_id"]),
+    )
+    eval_candidates = [
+        r for r in all_final
+        if r.get("baseline") is not None
+        and r.get("league_id") is not None
+        and r.get("home_team_id") is not None
+        and r.get("away_team_id") is not None
+    ]
 
     baseline_eval: list[tuple[list[float], str]] = []
     challenger_eval: list[tuple[list[float], str]] = []
     diagnostics: list[dict[str, Any]] = []
 
     for target in eval_candidates:
-        prior = [r for r in all_final if r["kickoff"] < target["kickoff"] and r.get("league_id") == target.get("league_id")]
+        prior = [
+            r for r in all_final
+            if r["kickoff"] < target["kickoff"]
+            and r.get("league_id") == target.get("league_id")
+            and r.get("home_team_id") is not None
+            and r.get("away_team_id") is not None
+        ]
         if len(prior) < args.min_league_matches:
             continue
 
@@ -176,7 +206,6 @@ def main() -> None:
         h_games = [r for r in prior if r.get("home_team_id") == hid]
         a_games = [r for r in prior if r.get("away_team_id") == aid]
 
-        # Venue-specific strengths with Bayesian shrinkage toward league rates.
         h_gf = sum(r["score"][0] for r in h_games)
         h_ga = sum(r["score"][1] for r in h_games)
         a_gf = sum(r["score"][1] for r in a_games)
@@ -219,7 +248,7 @@ def main() -> None:
     c = metrics(challenger_eval)
     n = c.get("n", 0)
     result = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
         "timezone_basis": "America/Mexico_City",
         "method": "WALK_FORWARD_LEAGUE_BASELINE_RELATIVE_ATTACK_DEFENSE_STRENGTH",
@@ -230,6 +259,7 @@ def main() -> None:
             "team_shrinkage_prior_games": args.team_prior_games,
         },
         "anti_leakage": "For every target fixture, league and team strengths use only finalized fixtures with kickoff strictly earlier than the target kickoff.",
+        "finalized_fixtures_joined": len(all_final),
         "eligible_baseline_fixtures": len(eval_candidates),
         "walk_forward_evaluated": n,
         "minimum_prior_league_matches": args.min_league_matches,
@@ -252,6 +282,7 @@ def main() -> None:
             "No market odds are used to construct challenger probabilities.",
             "No xG is fabricated; this challenger uses only historical final goals already persisted by Soccer Edge.",
             "Venue-specific team rates are shrunk toward league home/away scoring baselines to reduce small-sample extremes.",
+            "Pre-kickoff baseline projections are joined to final results by fixture_id; they need not occur on the same ledger row.",
             "This report cannot upgrade BET/LEAN classifications and 1X2 remains research-only.",
         ],
         "diagnostics": diagnostics,
