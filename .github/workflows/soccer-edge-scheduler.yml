@@ -71,7 +71,7 @@ jobs:
             -H "Authorization: Bearer ${OIDC_TOKEN}" \
             -H "Content-Type: application/json" \
             https://soccer-edge-api.onrender.com/internal/tick)
-          cat /tmp/soccer_tick.json | jq '{service,version,model_version,generated_at_local,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,effective_max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,deferred_due_to_budget,deferred_due_to_priority,deep_dive_processed_count,shortlist_event_count,screened_out_low_data_count,market_requests_avoided_by_sport_screen,shortlist_state_count,shortlist_seed_imported,urgent_late_shortlist_due,urgent_late_shortlist_processed,urgent_window_completion_rate_this_tick,deep_dive_capacity_policy,base_deep_dive_cap,elastic_deep_dive_cap,provider_api_cap_unchanged,dedicated_close_snapshots_this_tick,dedicated_close_quotes_this_tick,clv_close_policy,galaxy_first_enabled,galaxy_first_metrics,actionable_model_scope,duplicate_request_policy,galaxy_sample_policy,tier_policy,period_market_model,automated_market_scope,quota,error,detail,database_persisted,database_error}'
+          cat /tmp/soccer_tick.json | jq '{service,version,model_version,generated_at_local,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,effective_max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,deferred_due_to_budget,deferred_due_to_priority,deep_dive_processed_count,shortlist_event_count,screened_out_low_data_count,market_requests_avoided_by_sport_screen,shortlist_state_count,shortlist_seed_imported,urgent_late_shortlist_due,urgent_late_shortlist_processed,urgent_window_completion_rate_this_tick,deep_dive_capacity_policy,base_deep_dive_cap,elastic_deep_dive_cap,provider_api_cap_unchanged,dedicated_close_snapshots_this_tick,dedicated_close_quotes_this_tick,clv_close_policy,derivative_research_snapshots_this_tick,derivative_research_quotes_this_tick,one_h_market_groups_this_tick,two_h_market_groups_this_tick,derivative_market_capture_policy,galaxy_first_enabled,galaxy_first_metrics,actionable_model_scope,duplicate_request_policy,galaxy_sample_policy,tier_policy,period_market_model,automated_market_scope,quota,error,detail,database_persisted,database_error}'
           if [ "$HTTP_CODE" -ne 200 ]; then
             mkdir -p soccer_edge_state
             jq --arg http_code "$HTTP_CODE" '{captured_at: now|todateiso8601, http_code: $http_code, response: .}' /tmp/soccer_tick.json > soccer_edge_state/last_error.json
@@ -135,6 +135,11 @@ jobs:
             dedicated_close_snapshots_this_tick,
             dedicated_close_quotes_this_tick,
             clv_close_policy,
+            derivative_research_snapshots_this_tick,
+            derivative_research_quotes_this_tick,
+            one_h_market_groups_this_tick,
+            two_h_market_groups_this_tick,
+            derivative_market_capture_policy,
             request_pacing_seconds,
             rate_limit_max_retries,
             first_half_market_model,
@@ -169,6 +174,7 @@ jobs:
                 galaxy_source,
                 market_source,
                 closing_market_snapshot,
+                derivative_research_market_snapshot,
                 lineups: (if (.lineups|type) == "object" then {
                   lineup_state: .lineups.lineup_state,
                   both_xi_confirmed: .lineups.both_xi_confirmed,
