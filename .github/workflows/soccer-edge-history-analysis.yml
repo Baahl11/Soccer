@@ -59,6 +59,14 @@ jobs:
             --output state/soccer_edge_state/analysis/clv_tracking.jsonl \
             --summary-output state/soccer_edge_state/analysis/clv_summary.json
 
+      - name: Analyze 1X2 calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_1x2_calibration.py \
+            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --output state/soccer_edge_state/analysis/one_x_two_calibration.json
+
       - name: Analyze complete history
         shell: bash
         run: |
@@ -75,6 +83,7 @@ jobs:
               'state/soccer_edge_state/analysis/signal_ledger_summary.json',
               'state/soccer_edge_state/analysis/postgame_summary.json',
               'state/soccer_edge_state/analysis/clv_summary.json',
+              'state/soccer_edge_state/analysis/one_x_two_calibration.json',
               'state/soccer_edge_state/analysis/compact.json',
           ):
               print(f'--- {p} ---')
@@ -97,9 +106,10 @@ jobs:
             soccer_edge_state/analysis/postgame_evaluation.jsonl \
             soccer_edge_state/analysis/postgame_summary.json \
             soccer_edge_state/analysis/clv_tracking.jsonl \
-            soccer_edge_state/analysis/clv_summary.json
+            soccer_edge_state/analysis/clv_summary.json \
+            soccer_edge_state/analysis/one_x_two_calibration.json
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Update Soccer Edge historical ledger, postgame evaluation and CLV"
+          git commit -m "Update Soccer Edge historical analysis, CLV and 1X2 calibration"
           git push origin HEAD:soccer-edge-state
