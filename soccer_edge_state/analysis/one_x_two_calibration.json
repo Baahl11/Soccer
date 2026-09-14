@@ -1,8 +1,8 @@
 {
   "accuracy_by_latest_stage": {
     "T-10": {
-      "accuracy": 0.5161,
-      "n": 62
+      "accuracy": 0.5079,
+      "n": 63
     },
     "T-20": {
       "accuracy": 0.5556,
@@ -23,8 +23,8 @@
       "n": 31
     },
     "50-59%": {
-      "accuracy": 0.5909,
-      "n": 22
+      "accuracy": 0.5652,
+      "n": 23
     },
     "<40%": {
       "accuracy": 0.5455,
@@ -42,7 +42,7 @@
   "actual_outcome_counts": {
     "A": 25,
     "D": 17,
-    "H": 35
+    "H": 36
   },
   "calibration_by_outcome": {
     "A": {
@@ -73,8 +73,8 @@
       },
       "50-60%": {
         "mean_forecast_midpoint": 0.55,
-        "n": 5,
-        "observed_rate": 0.6
+        "n": 6,
+        "observed_rate": 0.5
       },
       "60-70%": {
         "mean_forecast_midpoint": 0.65,
@@ -95,8 +95,8 @@
       },
       "20-30%": {
         "mean_forecast_midpoint": 0.25,
-        "n": 58,
-        "observed_rate": 0.2414
+        "n": 59,
+        "observed_rate": 0.2373
       },
       "30-40%": {
         "mean_forecast_midpoint": 0.35,
@@ -122,8 +122,8 @@
       },
       "10-20%": {
         "mean_forecast_midpoint": 0.15,
-        "n": 4,
-        "observed_rate": 0.25
+        "n": 5,
+        "observed_rate": 0.4
       },
       "20-30%": {
         "mean_forecast_midpoint": 0.25,
@@ -157,9 +157,9 @@
       }
     }
   },
-  "finalized_fixtures_available": 226,
-  "multiclass_brier": 0.6264,
-  "multiclass_log_loss": 1.0424,
+  "finalized_fixtures_available": 227,
+  "multiclass_brier": 0.6315,
+  "multiclass_log_loss": 1.0506,
   "notes": [
     "Joins the latest pre-kickoff raw 1X2 projection to a final result by fixture_id.",
     "Uses one projection per finalized fixture to avoid repeated-stage weighting.",
@@ -167,13 +167,13 @@
     "Calibration bins are descriptive and require larger samples before model changes are justified."
   ],
   "predicted_outcome_counts": {
-    "A": 20,
+    "A": 21,
     "D": 1,
     "H": 56
   },
-  "sample_fixtures": 77,
+  "sample_fixtures": 78,
   "schema_version": "1.1.0",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "top1_accuracy": 0.5325
+  "top1_accuracy": 0.5256
 }
