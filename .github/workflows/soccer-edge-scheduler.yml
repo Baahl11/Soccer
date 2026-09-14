@@ -71,7 +71,7 @@ jobs:
             -H "Authorization: Bearer ${OIDC_TOKEN}" \
             -H "Content-Type: application/json" \
             https://soccer-edge-api.onrender.com/internal/tick)
-          cat /tmp/soccer_tick.json | jq '{service,version,model_version,generated_at_local,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,effective_max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,deferred_due_to_budget,deferred_due_to_priority,deep_dive_processed_count,shortlist_event_count,screened_out_low_data_count,market_requests_avoided_by_sport_screen,shortlist_state_count,shortlist_seed_imported,urgent_late_shortlist_due,urgent_late_shortlist_processed,period_market_model,automated_market_scope,quota,error,detail,database_persisted,database_error}'
+          cat /tmp/soccer_tick.json | jq '{service,version,model_version,generated_at_local,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,effective_max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,deferred_due_to_budget,deferred_due_to_priority,deep_dive_processed_count,shortlist_event_count,screened_out_low_data_count,market_requests_avoided_by_sport_screen,shortlist_state_count,shortlist_seed_imported,urgent_late_shortlist_due,urgent_late_shortlist_processed,galaxy_first_enabled,galaxy_first_metrics,actionable_model_scope,duplicate_request_policy,galaxy_sample_policy,tier_policy,period_market_model,automated_market_scope,quota,error,detail,database_persisted,database_error}'
           if [ "$HTTP_CODE" -ne 200 ]; then
             mkdir -p soccer_edge_state
             jq --arg http_code "$HTTP_CODE" '{captured_at: now|todateiso8601, http_code: $http_code, response: .}' /tmp/soccer_tick.json > soccer_edge_state/last_error.json
@@ -134,6 +134,13 @@ jobs:
             shortlist_persistence,
             shortlist_state_count,
             shortlist_seed_imported,
+            galaxy_first_enabled,
+            galaxy_first_policy,
+            galaxy_first_metrics,
+            actionable_model_scope,
+            duplicate_request_policy,
+            galaxy_sample_policy,
+            tier_policy,
             quota,
             database_persisted,
             events: [
@@ -150,6 +157,8 @@ jobs:
                 sporting_shortlist,
                 sporting_screen_initial,
                 sporting_screen_refined,
+                galaxy_source,
+                market_source,
                 lineups: (if (.lineups|type) == "object" then {
                   lineup_state: .lineups.lineup_state,
                   both_xi_confirmed: .lineups.both_xi_confirmed,
@@ -159,7 +168,14 @@ jobs:
                 raw_projection: (if (.raw_projection|type) == "object" then {
                   status: .raw_projection.status,
                   projection_model: .raw_projection.projection_model,
+                  sport_source: .raw_projection.sport_source,
+                  market_independent: .raw_projection.market_independent,
                   advanced_metrics: .raw_projection.advanced_metrics,
+                  galaxy_contract_version: .raw_projection.galaxy_contract_version,
+                  galaxy_model_versions: .raw_projection.galaxy_model_versions,
+                  galaxy_data_cutoff: .raw_projection.galaxy_data_cutoff,
+                  galaxy_actionable_total_model: .raw_projection.galaxy_actionable_total_model,
+                  galaxy_actionable_reason: .raw_projection.galaxy_actionable_reason,
                   raw_home_goal_rate: .raw_projection.raw_home_goal_rate,
                   raw_away_goal_rate: .raw_projection.raw_away_goal_rate,
                   raw_total_goals: .raw_projection.raw_total_goals,
@@ -177,7 +193,10 @@ jobs:
                   first_half_markets_ignored: .market_decision.first_half_markets_ignored,
                   first_half_reason: .market_decision.first_half_reason,
                   period_markets_ignored: .market_decision.period_markets_ignored,
-                  period_market_reason: .market_decision.period_market_reason
+                  period_market_reason: .market_decision.period_market_reason,
+                  btts_market_mode: .market_decision.btts_market_mode,
+                  galaxy_publication_gate_downgraded: .market_decision.galaxy_publication_gate_downgraded,
+                  galaxy_sample_gate_substitutions: .market_decision.galaxy_sample_gate_substitutions
                 } else .market_decision end),
                 best_market,
                 notes,
