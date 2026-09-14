@@ -19,6 +19,7 @@ on:
       - "mcp_gateway/analyze_1x2_relative_strength.py"
       - "mcp_gateway/analyze_ft_totals.py"
       - "mcp_gateway/analyze_1h_goals_model.py"
+      - "mcp_gateway/analyze_1h_calibration.py"
       - "mcp_gateway/analyze_learning_pipeline.py"
       - "mcp_gateway/analyze_api_efficiency_versions.py"
   workflow_dispatch:
@@ -129,6 +130,14 @@ jobs:
             --history-dir state/soccer_edge_state/history \
             --output state/soccer_edge_state/analysis/one_h_goals_model.json
 
+      - name: Evaluate 1H calibration challenger
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_1h_calibration.py \
+            --model-report state/soccer_edge_state/analysis/one_h_goals_model.json \
+            --output state/soccer_edge_state/analysis/one_h_goals_calibration.json
+
       - name: Build learning pipeline reports
         shell: bash
         run: |
@@ -169,6 +178,7 @@ jobs:
               'state/soccer_edge_state/analysis/one_x_two_relative_strength.json',
               'state/soccer_edge_state/analysis/ft_totals_validation.json',
               'state/soccer_edge_state/analysis/one_h_goals_model.json',
+              'state/soccer_edge_state/analysis/one_h_goals_calibration.json',
               'state/soccer_edge_state/analysis/decision_decomposition_summary.json',
               'state/soccer_edge_state/analysis/discrepancy_recheck.json',
               'state/soccer_edge_state/analysis/lineup_impact.json',
