@@ -91,6 +91,11 @@ async def run_tick() -> dict[str, Any]:
         if compact is None:
             continue
         event["postgame_tactical_stats"] = compact
+        result = event.get("result")
+        if not isinstance(result, dict):
+            result = {}
+            event["result"] = result
+        result["tactical_stats"] = compact
         captured += 1
         if (compact.get("totals") or {}).get("corners") is not None:
             with_corners += 1
