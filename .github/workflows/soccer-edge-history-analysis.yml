@@ -12,6 +12,7 @@ on:
       - "mcp_gateway/build_signal_ledger.py"
       - "mcp_gateway/evaluate_postgame.py"
       - "mcp_gateway/analyze_clv.py"
+      - "mcp_gateway/analyze_true_clv.py"
       - "mcp_gateway/analyze_1x2_calibration.py"
       - "mcp_gateway/analyze_1x2_dixon_coles.py"
       - "mcp_gateway/analyze_1x2_prior_calibration.py"
@@ -61,7 +62,7 @@ jobs:
             --output state/soccer_edge_state/analysis/postgame_evaluation.jsonl \
             --summary-output state/soccer_edge_state/analysis/postgame_summary.json
 
-      - name: Track closing line value
+      - name: Track closing line value proxy
         shell: bash
         run: |
           set -euo pipefail
@@ -69,6 +70,15 @@ jobs:
             --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
             --output state/soccer_edge_state/analysis/clv_tracking.jsonl \
             --summary-output state/soccer_edge_state/analysis/clv_summary.json
+
+      - name: Analyze dedicated true CLV
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_true_clv.py \
+            --history-dir state/soccer_edge_state/history \
+            --output state/soccer_edge_state/analysis/true_clv_tracking.jsonl \
+            --summary-output state/soccer_edge_state/analysis/true_clv_summary.json
 
       - name: Analyze 1X2 calibration
         shell: bash
@@ -144,6 +154,7 @@ jobs:
               'state/soccer_edge_state/analysis/signal_ledger_summary.json',
               'state/soccer_edge_state/analysis/postgame_summary.json',
               'state/soccer_edge_state/analysis/clv_summary.json',
+              'state/soccer_edge_state/analysis/true_clv_summary.json',
               'state/soccer_edge_state/analysis/one_x_two_calibration.json',
               'state/soccer_edge_state/analysis/one_x_two_dixon_coles.json',
               'state/soccer_edge_state/analysis/one_x_two_prior_calibration.json',
