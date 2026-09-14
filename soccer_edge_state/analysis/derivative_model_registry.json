@@ -2,28 +2,113 @@
   "models": {
     "1H_GOALS": {
       "actionable": false,
-      "historical_market_observations": 52,
-      "requirements": [
-        "period-specific target",
-        "1H feature set",
-        "out-of-sample calibration"
+      "market_groups_persisted": 12,
+      "market_quotes_persisted": 71,
+      "requirements_remaining": [
+        "dedicated 1H market-vs-model calibration",
+        "stable OOS Brier/log-loss improvement",
+        "minimum 200 OOS observations before actionable review",
+        "availability/XI gates remain mandatory if ever activated"
       ],
-      "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
+      "research_model": {
+        "calibration": {
+          "baseline_same_sample": {
+            "accuracy_at_0_5": 0.6407,
+            "brier": 0.2281,
+            "log_loss": 0.6488,
+            "mean_predicted_probability": 0.4256,
+            "n": 167,
+            "observed_rate": 0.3353
+          },
+          "challenger": {
+            "accuracy_at_0_5": 0.6168,
+            "brier": 0.2275,
+            "log_loss": 0.6471,
+            "mean_predicted_probability": 0.4191,
+            "n": 167,
+            "observed_rate": 0.3353
+          },
+          "improvement": {
+            "accuracy_delta_pp": -2.39,
+            "brier_delta": -0.0006,
+            "log_loss_delta": -0.0017,
+            "mean_probability_delta_pp": -0.65
+          },
+          "method": "WALK_FORWARD_SHRUNK_MULTIPLICATIVE_1H_LAMBDA_CALIBRATION",
+          "promotion_gate": {
+            "decision": "KEEP_RESEARCH_ONLY",
+            "enabled": false,
+            "minimum_calibrated_oos_n": 100,
+            "requires": [
+              "challenger Brier <= baseline Brier",
+              "challenger log-loss <= baseline log-loss",
+              "dedicated 1H market comparison",
+              "no automatic BET/LEAN promotion"
+            ],
+            "sample_gate_met": true
+          },
+          "walk_forward_evaluated": 167
+        },
+        "explicit_period_model": true,
+        "metrics": {
+          "mean_abs_1h_total_goals_error": 1.0349,
+          "mean_predicted_over_1_5_probability": 0.4318,
+          "observed_over_1_5_rate": 0.3553,
+          "over_1_5_accuracy_at_0_5_threshold": 0.6142,
+          "over_1_5_brier": 0.2329,
+          "over_1_5_log_loss": 0.6584
+        },
+        "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
+        "promotion_gate": {
+          "decision": "KEEP_RESEARCH_ONLY",
+          "enabled": false,
+          "minimum_oos_n_for_actionable_review": 200,
+          "minimum_oos_n_for_market_comparison": 100,
+          "reason": "Dedicated 1H market calibration and larger out-of-sample validation are required before any BET/LEAN eligibility.",
+          "sample_gate_met_for_market_comparison": true
+        },
+        "reuses_ft_probability": false,
+        "walk_forward_evaluated": 197
+      },
+      "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
     "2H_GOALS": {
       "actionable": false,
-      "historical_market_observations": 55,
-      "requirements": [
-        "period-specific target",
-        "2H state/context features",
-        "out-of-sample calibration"
+      "market_groups_persisted": 8,
+      "market_quotes_persisted": 62,
+      "requirements_remaining": [
+        "dedicated pregame 2H market-vs-model calibration",
+        "stable OOS validation",
+        "separate live halftime-conditioned model if live 2H betting is ever desired",
+        "minimum 200 OOS observations before actionable review"
       ],
-      "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
+      "research_model": {
+        "explicit_period_model": true,
+        "metrics": {
+          "mean_abs_2h_total_goals_error": 0.9574,
+          "mean_predicted_over_1_5_probability": 0.5023,
+          "observed_over_1_5_rate": 0.5025,
+          "over_1_5_accuracy_at_0_5_threshold": 0.4569,
+          "over_1_5_brier": 0.2528,
+          "over_1_5_log_loss": 0.6989
+        },
+        "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
+        "promotion_gate": {
+          "decision": "KEEP_RESEARCH_ONLY",
+          "enabled": false,
+          "minimum_oos_n_for_actionable_review": 200,
+          "minimum_oos_n_for_market_comparison": 100,
+          "reason": "Dedicated 2H market calibration and larger out-of-sample validation are required. This pregame model must never be confused with a live halftime-conditioned model.",
+          "sample_gate_met_for_market_comparison": true
+        },
+        "reuses_ft_probability": false,
+        "walk_forward_evaluated": 197
+      },
+      "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
     "CARDS": {
       "actionable": false,
-      "historical_market_observations": 0,
-      "requirements": [
+      "requirements_remaining": [
         "referee/card history",
         "foul/tackle context",
         "league calibration"
@@ -32,8 +117,7 @@
     },
     "CORNERS": {
       "actionable": false,
-      "historical_market_observations": 0,
-      "requirements": [
+      "requirements_remaining": [
         "corner event history",
         "cross/shot pressure features",
         "team/league calibration"
@@ -42,8 +126,7 @@
     },
     "PLAYER_SHOTS": {
       "actionable": false,
-      "historical_market_observations": 0,
-      "requirements": [
+      "requirements_remaining": [
         "verified starters/minutes",
         "player shot volume",
         "opponent matchup",
@@ -53,8 +136,7 @@
     },
     "TEAM_TOTALS": {
       "actionable": false,
-      "historical_market_observations": 0,
-      "requirements": [
+      "requirements_remaining": [
         "team-specific scoring distribution",
         "opponent defensive model",
         "market-line calibration"
@@ -62,7 +144,7 @@
       "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
     }
   },
-  "note": "Framework/readiness gates are implemented. No derivative is enabled until a dedicated model and validation dataset exist.",
+  "note": "Explicit period research models may exist while remaining non-actionable. A research model does not become BET/LEAN eligible until its dedicated market calibration and OOS gates pass.",
   "policy": "NEVER_REUSE_FT_PROBABILITIES_FOR_DERIVATIVES",
-  "schema_version": "1.0.0"
+  "schema_version": "2.0.0"
 }
