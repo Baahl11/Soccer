@@ -15,6 +15,7 @@ on:
       - "mcp_gateway/analyze_1x2_calibration.py"
       - "mcp_gateway/analyze_1x2_dixon_coles.py"
       - "mcp_gateway/analyze_1x2_prior_calibration.py"
+      - "mcp_gateway/analyze_1x2_relative_strength.py"
       - "mcp_gateway/analyze_ft_totals.py"
       - "mcp_gateway/analyze_learning_pipeline.py"
   workflow_dispatch:
@@ -92,6 +93,14 @@ jobs:
             --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
             --output state/soccer_edge_state/analysis/one_x_two_prior_calibration.json
 
+      - name: Evaluate relative-strength 1X2 challenger
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_1x2_relative_strength.py \
+            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --output state/soccer_edge_state/analysis/one_x_two_relative_strength.json
+
       - name: Validate FT totals
         shell: bash
         run: |
@@ -128,6 +137,7 @@ jobs:
               'state/soccer_edge_state/analysis/one_x_two_calibration.json',
               'state/soccer_edge_state/analysis/one_x_two_dixon_coles.json',
               'state/soccer_edge_state/analysis/one_x_two_prior_calibration.json',
+              'state/soccer_edge_state/analysis/one_x_two_relative_strength.json',
               'state/soccer_edge_state/analysis/ft_totals_validation.json',
               'state/soccer_edge_state/analysis/decision_decomposition_summary.json',
               'state/soccer_edge_state/analysis/discrepancy_recheck.json',
