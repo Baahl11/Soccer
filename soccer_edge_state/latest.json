@@ -2,25 +2,25 @@
   "service": "soccer-edge-automation",
   "version": "2.1.0",
   "model_version": "SOCCER EDGE ENGINE v1.1",
-  "generated_at_utc": "2026-09-14T21:28:26.081125+00:00",
-  "generated_at_local": "2026-09-14T15:28:26.081125-06:00",
+  "generated_at_utc": "2026-09-14T21:38:47.187596+00:00",
+  "generated_at_local": "2026-09-14T15:38:47.187596-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 161,
-  "due_fixture_count": 16,
-  "event_count": 6,
-  "actionable_refresh_count": 0,
+  "due_fixture_count": 12,
+  "event_count": 3,
+  "actionable_refresh_count": 2,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 3,
+  "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 5495,
+  "last_daily_remaining": 5452,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 5,
-  "shortlist_event_count": 2,
-  "screened_out_low_data_count": 3,
-  "market_requests_avoided_by_sport_screen": 0,
+  "deep_dive_processed_count": 2,
+  "shortlist_event_count": 0,
+  "screened_out_low_data_count": 5,
+  "market_requests_avoided_by_sport_screen": 2,
   "max_deep_dive_fixtures_per_tick": 8,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
   "urgent_late_shortlist_due": 0,
@@ -32,16 +32,16 @@
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
   "shortlist_state_count": 40,
-  "shortlist_seed_imported": 39,
+  "shortlist_seed_imported": 40,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 5,
-    "galaxy_fixture_hits": 3,
-    "galaxy_fixture_misses": 2,
-    "galaxy_raw_used": 3,
-    "galaxy_raw_fallbacks": 2,
-    "api_team_stats_calls_avoided": 6,
+    "galaxy_fixture_reads": 2,
+    "galaxy_fixture_hits": 2,
+    "galaxy_fixture_misses": 0,
+    "galaxy_raw_used": 2,
+    "galaxy_raw_fallbacks": 0,
+    "api_team_stats_calls_avoided": 4,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
@@ -53,7 +53,7 @@
     "api_slate_calls_avoided": 0,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 6
+    "provider_requests_avoided": 4
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
   "duplicate_request_policy": {
@@ -68,401 +68,14 @@
   "tier_policy": "GALAXY_FT_TOTALS_TIER_B_OR_LEAN_ACTIONABLE_IF_ALL_OTHER_GATES_PASS; A_S_WATCH_PENDING_CROSS_MODEL_VALIDATION",
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "5497",
+    "daily_remaining": "5452",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-60",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.7,
-      "fixture": {
-        "fixture_id": 1520870,
-        "kickoff": "2026-09-14T16:30:00-06:00",
-        "timestamp": 1789425000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 72,
-        "league": "Serie B",
-        "country": "Brazil",
-        "season": 2026,
-        "round": "Regular Season - 28",
-        "home_team_id": 125,
-        "home_team": "America Mineiro",
-        "away_team_id": 7865,
-        "away_team": "São Bernardo",
-        "venue": "Arena Independência",
-        "city": "Belo Horizonte",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 77.3,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 59.9,
-        "goal_environment_score": 58.3,
-        "two_way_scoring_score": 77.3,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 73.8,
-        "tracks": [
-          "SIDE",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 60.7,
-        "goal_environment_score": 55.6,
-        "two_way_scoring_score": 73.8,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 77.3,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 59.9,
-        "goal_environment_score": 58.3,
-        "two_way_scoring_score": 77.3,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "galaxy_source": null,
-      "market_source": null,
-      "lineups": {
-        "lineup_state": "PENDING",
-        "both_xi_confirmed": false,
-        "both_goalkeepers_confirmed": false,
-        "teams": []
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "sport_source": null,
-        "market_independent": null,
-        "advanced_metrics": "NOT VERIFIED",
-        "galaxy_contract_version": null,
-        "galaxy_model_versions": null,
-        "galaxy_data_cutoff": null,
-        "galaxy_actionable_total_model": null,
-        "galaxy_actionable_reason": null,
-        "raw_home_goal_rate": 1.0625,
-        "raw_away_goal_rate": 1.5844,
-        "raw_total_goals": 2.6469,
-        "raw_home_win_prob": 0.254648,
-        "raw_draw_prob": 0.250838,
-        "raw_away_win_prob": 0.494514,
-        "raw_btts_yes_prob": 0.520206,
-        "raw_over_2_5_prob": 0.493273,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 59.9,
-          "goal_environment_score": 58.3,
-          "two_way_scoring_score": 77.3,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-60",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": 0.7,
-      "fixture": {
-        "fixture_id": 1520873,
-        "kickoff": "2026-09-14T16:30:00-06:00",
-        "timestamp": 1789425000,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 72,
-        "league": "Serie B",
-        "country": "Brazil",
-        "season": 2026,
-        "round": "Regular Season - 28",
-        "home_team_id": 2618,
-        "home_team": "Botafogo SP",
-        "away_team_id": 151,
-        "away_team": "Goias",
-        "venue": "Estadio Santa Cruz",
-        "city": "Ribeirao Preto",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 77.3,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 53.5,
-        "goal_environment_score": 54.0,
-        "two_way_scoring_score": 77.3,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 81.1,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 56.3,
-        "goal_environment_score": 59.8,
-        "two_way_scoring_score": 81.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 77.3,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 53.5,
-        "goal_environment_score": 54.0,
-        "two_way_scoring_score": 77.3,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "galaxy_source": null,
-      "market_source": null,
-      "lineups": {
-        "lineup_state": "PENDING",
-        "both_xi_confirmed": false,
-        "both_goalkeepers_confirmed": false,
-        "teams": []
-      },
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "sport_source": null,
-        "market_independent": null,
-        "advanced_metrics": "NOT VERIFIED",
-        "galaxy_contract_version": null,
-        "galaxy_model_versions": null,
-        "galaxy_data_cutoff": null,
-        "galaxy_actionable_total_model": null,
-        "galaxy_actionable_reason": null,
-        "raw_home_goal_rate": 1.3812,
-        "raw_away_goal_rate": 1.1125,
-        "raw_total_goals": 2.4937,
-        "raw_home_win_prob": 0.430184,
-        "raw_draw_prob": 0.267462,
-        "raw_away_win_prob": 0.302354,
-        "raw_btts_yes_prob": 0.502599,
-        "raw_over_2_5_prob": 0.454583,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 53.5,
-          "goal_environment_score": 54.0,
-          "two_way_scoring_score": 77.3,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "LIMITED_VERIFIED_INPUTS"
-        }
-      },
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-90",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1492371,
-        "kickoff": "2026-09-14T17:00:00-06:00",
-        "timestamp": 1789426800,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 71,
-        "league": "Serie A",
-        "country": "Brazil",
-        "season": 2026,
-        "round": "Regular Season - 27",
-        "home_team_id": 118,
-        "home_team": "Bahia",
-        "away_team_id": 1198,
-        "away_team": "Remo",
-        "venue": "Arena Fonte Nova",
-        "city": "El Salvador",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "A"
-      },
-      "sporting_shortlist": {
-        "shortlisted": false,
-        "rank": 0.0,
-        "tracks": [],
-        "side_edge_score": 50.0,
-        "goal_environment_score": 59.8,
-        "two_way_scoring_score": 49.7,
-        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": false,
-        "rank": 0.0,
-        "tracks": [],
-        "side_edge_score": 50.0,
-        "goal_environment_score": 59.8,
-        "two_way_scoring_score": 49.7,
-        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": false,
-        "rank": 0.0,
-        "tracks": [],
-        "side_edge_score": 50.0,
-        "goal_environment_score": 59.8,
-        "two_way_scoring_score": 49.7,
-        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
-      },
-      "galaxy_source": {
-        "status": "AVAILABLE",
-        "contract_version": "1.0.1",
-        "data_cutoff": "2026-09-14T18:34:50.714933+00:00",
-        "external_api_calls": 0
-      },
-      "market_source": null,
-      "lineups": null,
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
-        "sport_source": "GALAXYPARLAY_PERSISTED",
-        "market_independent": true,
-        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
-        "galaxy_contract_version": "1.0.1",
-        "galaxy_model_versions": [
-          "v3.3.0"
-        ],
-        "galaxy_data_cutoff": "2026-09-14T18:34:50.714933+00:00",
-        "galaxy_actionable_total_model": true,
-        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
-        "raw_home_goal_rate": 1.3501,
-        "raw_away_goal_rate": 1.3501,
-        "raw_total_goals": 2.7001,
-        "raw_home_win_prob": 0.365,
-        "raw_draw_prob": 0.27,
-        "raw_away_win_prob": 0.365,
-        "raw_btts_yes_prob": 0.497,
-        "raw_over_2_5_prob": 0.5064,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 50.0,
-          "goal_environment_score": 59.8,
-          "two_way_scoring_score": 49.7,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "GALAXYPARLAY_SPORT_FIRST"
-        }
-      },
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
-        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-30",
+      "stage": "T-20",
       "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
@@ -521,8 +134,24 @@
         "two_way_scoring_score": 48.9,
         "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
       },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 50.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 48.9,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 50.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 48.9,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
       "galaxy_source": {
         "status": "AVAILABLE",
         "contract_version": "1.0.1",
@@ -531,19 +160,48 @@
       },
       "market_source": null,
       "lineups": null,
-      "raw_projection": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-14T18:34:47.561084+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": 1.3501,
+        "raw_away_goal_rate": 1.3501,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": 0.365,
+        "raw_draw_prob": 0.27,
+        "raw_away_win_prob": 0.365,
+        "raw_btts_yes_prob": 0.489,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 50.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 48.9,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST"
+        }
+      },
       "market_decision": null,
       "best_market": null,
       "notes": [
         "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
-        "No active sporting shortlist for this refresh."
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-30",
+      "stage": "T-20",
       "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
@@ -602,8 +260,24 @@
         "two_way_scoring_score": 43.4,
         "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
       },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 50.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 43.4,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 50.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 43.4,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
       "galaxy_source": {
         "status": "AVAILABLE",
         "contract_version": "1.0.1",
@@ -612,12 +286,41 @@
       },
       "market_source": null,
       "lineups": null,
-      "raw_projection": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-14T18:34:49.191185+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": 1.3501,
+        "raw_away_goal_rate": 1.3501,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": 0.365,
+        "raw_draw_prob": 0.27,
+        "raw_away_win_prob": 0.365,
+        "raw_btts_yes_prob": 0.434,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 50.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 43.4,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST"
+        }
+      },
       "market_decision": null,
       "best_market": null,
       "notes": [
         "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
-        "No active sporting shortlist for this refresh."
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
       ],
       "result": null,
       "error": null
