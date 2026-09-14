@@ -1,0 +1,75 @@
+{
+  "anti_leakage": "Each challenger prediction fits rho only on fixtures earlier than that prediction.",
+  "baseline": {
+    "accuracy": 0.5208,
+    "brier": 0.6301,
+    "log_loss": 1.0505,
+    "mean_draw_probability": 0.2511,
+    "n": 48,
+    "observed_draw_rate": 0.2292,
+    "predicted_counts": {
+      "A": 14,
+      "D": 1,
+      "H": 33
+    }
+  },
+  "candidate_rho_grid": [
+    -0.15,
+    -0.12,
+    -0.1,
+    -0.08,
+    -0.06,
+    -0.04,
+    -0.02,
+    0.0,
+    0.02,
+    0.04
+  ],
+  "challenger": {
+    "accuracy": 0.5208,
+    "brier": 0.6299,
+    "log_loss": 1.0497,
+    "mean_draw_probability": 0.2428,
+    "n": 48,
+    "observed_draw_rate": 0.2292,
+    "predicted_counts": {
+      "A": 14,
+      "D": 1,
+      "H": 33
+    }
+  },
+  "eligible_fixtures": 78,
+  "improvement": {
+    "accuracy_delta_pp": 0.0,
+    "brier_delta": -0.0002,
+    "draw_probability_delta_pp": -0.83,
+    "log_loss_delta": -0.0008
+  },
+  "method": "DIXON_COLES_LOW_SCORE_CORRECTION_WALK_FORWARD",
+  "minimum_training_fixtures": 30,
+  "notes": [
+    "Baseline probabilities are the exact stored pre-kickoff Soccer Edge 1X2 probabilities.",
+    "Dixon-Coles changes only low-score dependence using the stored home/away goal rates; it does not fabricate xG or team-strength inputs.",
+    "Negative rho typically increases 0-0/1-1 mass and can improve draw calibration, but rho is selected walk-forward rather than hard-coded.",
+    "This report cannot upgrade any backend BET/LEAN classification."
+  ],
+  "promotion_gate": {
+    "decision": "KEEP_RESEARCH_ONLY",
+    "enabled": false,
+    "minimum_evaluation_n": 100,
+    "quality_metrics_better": true,
+    "reason": "Never promotes 1X2 automatically. Requires larger out-of-sample sample plus stable Brier/log-loss and draw calibration.",
+    "sample_gate_met": false
+  },
+  "rho_history_summary": {
+    "latest": 0.04,
+    "max": 0.04,
+    "mean": 0.0396,
+    "min": 0.02,
+    "n": 48
+  },
+  "schema_version": "1.0.0",
+  "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
+  "timezone_basis": "America/Mexico_City",
+  "walk_forward_evaluated": 48
+}
