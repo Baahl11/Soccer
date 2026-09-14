@@ -7,7 +7,8 @@
     "n": 0
   },
   "diagnostics": [],
-  "eligible_baseline_fixtures": 0,
+  "eligible_baseline_fixtures": 78,
+  "finalized_fixtures_joined": 227,
   "formula": {
     "away_lambda": "league_away_goal_rate * away_attack_strength * home_defensive_weakness",
     "home_advantage": "implicit in separate league home/away goal baselines",
@@ -26,6 +27,7 @@
     "No market odds are used to construct challenger probabilities.",
     "No xG is fabricated; this challenger uses only historical final goals already persisted by Soccer Edge.",
     "Venue-specific team rates are shrunk toward league home/away scoring baselines to reduce small-sample extremes.",
+    "Pre-kickoff baseline projections are joined to final results by fixture_id; they need not occur on the same ledger row.",
     "This report cannot upgrade BET/LEAN classifications and 1X2 remains research-only."
   ],
   "promotion_gate": {
@@ -35,7 +37,7 @@
     "reason": "Never promotes 1X2 automatically. Requires larger out-of-sample sample and stable improvements in Brier/log-loss plus H/D/A calibration.",
     "sample_gate_met": false
   },
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
   "walk_forward_evaluated": 0
