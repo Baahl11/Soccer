@@ -2,25 +2,25 @@
   "service": "soccer-edge-automation",
   "version": "2.1.0",
   "model_version": "SOCCER EDGE ENGINE v1.1",
-  "generated_at_utc": "2026-09-14T19:45:34.288810+00:00",
-  "generated_at_local": "2026-09-14T13:45:34.288810-06:00",
+  "generated_at_utc": "2026-09-14T19:52:43.275778+00:00",
+  "generated_at_local": "2026-09-14T13:52:43.275778-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 161,
-  "due_fixture_count": 15,
+  "due_fixture_count": 16,
   "event_count": 2,
-  "actionable_refresh_count": 1,
+  "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 1,
+  "api_calls_this_tick": 2,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 5561,
+  "last_daily_remaining": 5553,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
   "deep_dive_processed_count": 1,
-  "shortlist_event_count": 0,
-  "screened_out_low_data_count": 1,
-  "market_requests_avoided_by_sport_screen": 1,
+  "shortlist_event_count": 1,
+  "screened_out_low_data_count": 2,
+  "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 8,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
   "urgent_late_shortlist_due": 0,
@@ -36,8 +36,8 @@
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 1,
-    "galaxy_fixture_hits": 1,
+    "galaxy_fixture_reads": 0,
+    "galaxy_fixture_hits": 0,
     "galaxy_fixture_misses": 0,
     "galaxy_raw_used": 0,
     "galaxy_raw_fallbacks": 0,
@@ -68,49 +68,49 @@
   "tier_policy": "GALAXY_FT_TOTALS_TIER_B_OR_LEAN_ACTIONABLE_IF_ALL_OTHER_GATES_PASS; A_S_WATCH_PENDING_CROSS_MODEL_VALIDATION",
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "5561",
+    "daily_remaining": "5554",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "CLOSE",
-      "classification": "PASS",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1575494,
-        "kickoff": "2026-09-14T13:45:00-06:00",
-        "timestamp": 1789415100,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 94,
-        "league": "Primeira Liga",
-        "country": "Portugal",
+        "fixture_id": 1551817,
+        "kickoff": "2026-09-14T12:00:00-06:00",
+        "timestamp": 1789408800,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 89,
+        "league": "Eerste Divisie",
+        "country": "Netherlands",
         "season": 2026,
-        "round": "Regular Season - 6",
-        "home_team_id": 217,
-        "home_team": "SC Braga",
-        "away_team_id": 230,
-        "away_team": "Estoril",
-        "venue": null,
-        "city": "Braga",
+        "round": "Regular Season - 9",
+        "home_team_id": 411,
+        "home_team": "Jong PSV U21",
+        "away_team_id": 418,
+        "away_team": "Jong AZ",
+        "venue": "De Herdgang",
+        "city": "Eindhoven",
         "goals": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "score": {
           "halftime": {
-            "home": null,
-            "away": null
+            "home": 1,
+            "away": 0
           },
           "fulltime": {
-            "home": null,
-            "away": null
+            "home": 1,
+            "away": 1
           },
           "extratime": {
             "home": null,
@@ -125,7 +125,18 @@
       "coverage": {
         "data_tier": "B"
       },
-      "sporting_shortlist": null,
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 50.2,
+        "goal_environment_score": 100.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
       "sporting_screen_initial": null,
       "sporting_screen_refined": null,
       "galaxy_source": null,
@@ -134,10 +145,32 @@
       "raw_projection": null,
       "market_decision": null,
       "best_market": null,
-      "notes": [
-        "Closing market skipped: fixture never entered a sporting shortlist."
-      ],
-      "result": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
       "error": null
     },
     {
