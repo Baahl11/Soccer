@@ -1,0 +1,42 @@
+{
+  "anti_leakage": "For every target fixture, league and team strengths use only finalized fixtures with kickoff strictly earlier than the target kickoff.",
+  "baseline": {
+    "n": 0
+  },
+  "challenger": {
+    "n": 0
+  },
+  "diagnostics": [],
+  "eligible_baseline_fixtures": 0,
+  "formula": {
+    "away_lambda": "league_away_goal_rate * away_attack_strength * home_defensive_weakness",
+    "home_advantage": "implicit in separate league home/away goal baselines",
+    "home_lambda": "league_home_goal_rate * home_attack_strength * away_defensive_weakness",
+    "team_shrinkage_prior_games": 5.0
+  },
+  "improvement": {
+    "accuracy_delta_pp": null,
+    "brier_delta": null,
+    "draw_probability_delta_pp": null,
+    "log_loss_delta": null
+  },
+  "method": "WALK_FORWARD_LEAGUE_BASELINE_RELATIVE_ATTACK_DEFENSE_STRENGTH",
+  "minimum_prior_league_matches": 20,
+  "notes": [
+    "No market odds are used to construct challenger probabilities.",
+    "No xG is fabricated; this challenger uses only historical final goals already persisted by Soccer Edge.",
+    "Venue-specific team rates are shrunk toward league home/away scoring baselines to reduce small-sample extremes.",
+    "This report cannot upgrade BET/LEAN classifications and 1X2 remains research-only."
+  ],
+  "promotion_gate": {
+    "decision": "KEEP_RESEARCH_ONLY",
+    "enabled": false,
+    "minimum_evaluation_n": 100,
+    "reason": "Never promotes 1X2 automatically. Requires larger out-of-sample sample and stable improvements in Brier/log-loss plus H/D/A calibration.",
+    "sample_gate_met": false
+  },
+  "schema_version": "1.0.0",
+  "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
+  "timezone_basis": "America/Mexico_City",
+  "walk_forward_evaluated": 0
+}
