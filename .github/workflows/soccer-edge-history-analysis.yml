@@ -1,0 +1,69 @@
+name: Soccer Edge History Analysis
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/soccer-edge-history-analysis.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+
+      - name: Checkout engine
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: engine
+          fetch-depth: 1
+
+      - name: Analyze complete history
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_history.py \
+            --history-dir state/soccer_edge_state/history \
+            --output state/soccer_edge_state/analysis/latest.json
+          python - <<'PY'
+          import json
+          p='state/soccer_edge_state/analysis/latest.json'
+          d=json.load(open(p))
+          print(json.dumps({
+            'period': d.get('period'),
+            'ticks_parsed': d.get('ticks_parsed'),
+            'final_results_found': d.get('final_results_found'),
+            'unique_fixtures_with_shortlist': d.get('unique_fixtures_with_shortlist'),
+            'market_calls': d.get('market_calls', {}),
+            'generic_watch_count': d.get('generic_watch_count'),
+            'generic_watch_reasons': d.get('generic_watch_reasons'),
+            'sporting_signal_diagnostics': d.get('sporting_signal_diagnostics'),
+            'score_bin_diagnostics': d.get('score_bin_diagnostics'),
+          }, indent=2))
+          PY
+
+      - name: Persist analysis
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "soccer-edge-bot"
+          git config user.email "soccer-edge-bot@users.noreply.github.com"
+          git add -f soccer_edge_state/analysis/latest.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Update Soccer Edge historical analysis"
+          git push origin HEAD:soccer-edge-state
