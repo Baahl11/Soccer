@@ -37,21 +37,14 @@ jobs:
           python engine/mcp_gateway/analyze_history.py \
             --history-dir state/soccer_edge_state/history \
             --output state/soccer_edge_state/analysis/latest.json
+          python engine/mcp_gateway/summarize_analysis.py \
+            --input state/soccer_edge_state/analysis/latest.json \
+            --output state/soccer_edge_state/analysis/compact.json
           python - <<'PY'
           import json
-          p='state/soccer_edge_state/analysis/latest.json'
+          p='state/soccer_edge_state/analysis/compact.json'
           d=json.load(open(p))
-          print(json.dumps({
-            'period': d.get('period'),
-            'ticks_parsed': d.get('ticks_parsed'),
-            'final_results_found': d.get('final_results_found'),
-            'unique_fixtures_with_shortlist': d.get('unique_fixtures_with_shortlist'),
-            'market_calls': d.get('market_calls', {}),
-            'generic_watch_count': d.get('generic_watch_count'),
-            'generic_watch_reasons': d.get('generic_watch_reasons'),
-            'sporting_signal_diagnostics': d.get('sporting_signal_diagnostics'),
-            'score_bin_diagnostics': d.get('score_bin_diagnostics'),
-          }, indent=2))
+          print(json.dumps(d, indent=2))
           PY
 
       - name: Persist analysis
@@ -61,7 +54,7 @@ jobs:
           set -euo pipefail
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
-          git add -f soccer_edge_state/analysis/latest.json
+          git add -f soccer_edge_state/analysis/latest.json soccer_edge_state/analysis/compact.json
           if git diff --cached --quiet; then
             exit 0
           fi
