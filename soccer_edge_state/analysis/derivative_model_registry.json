@@ -1,0 +1,68 @@
+{
+  "models": {
+    "1H_GOALS": {
+      "actionable": false,
+      "historical_market_observations": 52,
+      "requirements": [
+        "period-specific target",
+        "1H feature set",
+        "out-of-sample calibration"
+      ],
+      "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
+    },
+    "2H_GOALS": {
+      "actionable": false,
+      "historical_market_observations": 55,
+      "requirements": [
+        "period-specific target",
+        "2H state/context features",
+        "out-of-sample calibration"
+      ],
+      "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
+    },
+    "CARDS": {
+      "actionable": false,
+      "historical_market_observations": 0,
+      "requirements": [
+        "referee/card history",
+        "foul/tackle context",
+        "league calibration"
+      ],
+      "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
+    },
+    "CORNERS": {
+      "actionable": false,
+      "historical_market_observations": 0,
+      "requirements": [
+        "corner event history",
+        "cross/shot pressure features",
+        "team/league calibration"
+      ],
+      "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
+    },
+    "PLAYER_SHOTS": {
+      "actionable": false,
+      "historical_market_observations": 0,
+      "requirements": [
+        "verified starters/minutes",
+        "player shot volume",
+        "opponent matchup",
+        "lineup gate"
+      ],
+      "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
+    },
+    "TEAM_TOTALS": {
+      "actionable": false,
+      "historical_market_observations": 0,
+      "requirements": [
+        "team-specific scoring distribution",
+        "opponent defensive model",
+        "market-line calibration"
+      ],
+      "status": "BLOCKED_PENDING_EXPLICIT_MODEL"
+    }
+  },
+  "note": "Framework/readiness gates are implemented. No derivative is enabled until a dedicated model and validation dataset exist.",
+  "policy": "NEVER_REUSE_FT_PROBABILITIES_FOR_DERIVATIVES",
+  "schema_version": "1.0.0"
+}
