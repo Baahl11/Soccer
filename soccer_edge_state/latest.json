@@ -2,24 +2,24 @@
   "service": "soccer-edge-automation",
   "version": "2.1.0",
   "model_version": "SOCCER EDGE ENGINE v1.1",
-  "generated_at_utc": "2026-09-14T19:19:45.078030+00:00",
-  "generated_at_local": "2026-09-14T13:19:45.078030-06:00",
+  "generated_at_utc": "2026-09-14T19:29:29.080148+00:00",
+  "generated_at_local": "2026-09-14T13:29:29.080148-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 161,
-  "due_fixture_count": 16,
-  "event_count": 4,
+  "due_fixture_count": 17,
+  "event_count": 3,
   "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 2,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 5573,
+  "last_daily_remaining": 5571,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 3,
+  "deep_dive_processed_count": 2,
   "shortlist_event_count": 1,
-  "screened_out_low_data_count": 3,
+  "screened_out_low_data_count": 4,
   "market_requests_avoided_by_sport_screen": 1,
   "max_deep_dive_fixtures_per_tick": 8,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -36,8 +36,8 @@
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 2,
-    "galaxy_fixture_hits": 2,
+    "galaxy_fixture_reads": 1,
+    "galaxy_fixture_hits": 1,
     "galaxy_fixture_misses": 0,
     "galaxy_raw_used": 1,
     "galaxy_raw_fallbacks": 0,
@@ -68,8 +68,8 @@
   "tier_policy": "GALAXY_FT_TOTALS_TIER_B_OR_LEAN_ACTIONABLE_IF_ALL_OTHER_GATES_PASS; A_S_WATCH_PENDING_CROSS_MODEL_VALIDATION",
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "5574",
-    "per_minute_remaining": "292"
+    "daily_remaining": "5572",
+    "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
@@ -82,35 +82,35 @@
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1494280,
-        "kickoff": "2026-09-14T11:00:00-06:00",
-        "timestamp": 1789405200,
+        "fixture_id": 1551108,
+        "kickoff": "2026-09-14T11:30:00-06:00",
+        "timestamp": 1789407000,
         "status": "FT",
         "status_long": "Match Finished",
         "elapsed": 90,
-        "league_id": 113,
-        "league": "Allsvenskan",
-        "country": "Sweden",
+        "league_id": 172,
+        "league": "First League",
+        "country": "Bulgaria",
         "season": 2026,
-        "round": "Regular Season - 21",
-        "home_team_id": 370,
-        "home_team": "Sirius",
-        "away_team_id": 2172,
-        "away_team": "Degerfors IF",
-        "venue": "Studenternas IP",
-        "city": "Uppsala",
+        "round": "Regular Season - 9",
+        "home_team_id": 566,
+        "home_team": "Ludogorets",
+        "away_team_id": 856,
+        "away_team": "Septemvri Sofia",
+        "venue": "Huvepharma Arena",
+        "city": "Razgrad",
         "goals": {
           "home": 2,
-          "away": 0
+          "away": 1
         },
         "score": {
           "halftime": {
-            "home": 2,
+            "home": 1,
             "away": 0
           },
           "fulltime": {
             "home": 2,
-            "away": 0
+            "away": 1
           },
           "extratime": {
             "home": null,
@@ -123,19 +123,18 @@
         }
       },
       "coverage": {
-        "data_tier": "A"
+        "data_tier": "B"
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 88.4,
+        "rank": 69.7,
         "tracks": [
           "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
+          "GOALS_UNDER"
         ],
-        "side_edge_score": 63.4,
-        "goal_environment_score": 70.5,
-        "two_way_scoring_score": 88.4,
+        "side_edge_score": 69.7,
+        "goal_environment_score": 48.2,
+        "two_way_scoring_score": 61.7,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": null,
@@ -150,16 +149,16 @@
       "result": {
         "goals": {
           "home": 2,
-          "away": 0
+          "away": 1
         },
         "score": {
           "halftime": {
-            "home": 2,
+            "home": 1,
             "away": 0
           },
           "fulltime": {
             "home": 2,
-            "away": 0
+            "away": 1
           },
           "extratime": {
             "home": null,
@@ -176,74 +175,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "CLOSE",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1575497,
-        "kickoff": "2026-09-14T13:15:00-06:00",
-        "timestamp": 1789413300,
-        "status": "1H",
-        "status_long": "First Half",
-        "elapsed": 5,
-        "league_id": 94,
-        "league": "Primeira Liga",
-        "country": "Portugal",
-        "season": 2026,
-        "round": "Regular Season - 6",
-        "home_team_id": 215,
-        "home_team": "Moreirense",
-        "away_team_id": 214,
-        "away_team": "Maritimo",
-        "venue": "Parque Joaquim de Almeida Freitas",
-        "city": "Moreira de Conegos",
-        "goals": {
-          "home": 0,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": null,
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Closing market skipped: fixture never entered a sporting shortlist."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-30",
+      "stage": "T-20",
       "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
@@ -302,8 +234,24 @@
         "two_way_scoring_score": 49.7,
         "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
       },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 50.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 50.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
       "galaxy_source": {
         "status": "AVAILABLE",
         "contract_version": "1.0.1",
@@ -312,12 +260,41 @@
       },
       "market_source": null,
       "lineups": null,
-      "raw_projection": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-14T18:34:46.054214+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": 1.3501,
+        "raw_away_goal_rate": 1.3501,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": 0.365,
+        "raw_draw_prob": 0.27,
+        "raw_away_win_prob": 0.365,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 50.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST"
+        }
+      },
       "market_decision": null,
       "best_market": null,
       "notes": [
         "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
-        "No active sporting shortlist for this refresh."
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
       ],
       "result": null,
       "error": null
