@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/analyze_formation_intelligence_v2.py \
+          PYTHONPATH=engine python engine/mcp_gateway/analyze_formation_intelligence_v2.py \
             --history-dir state/soccer_edge_state/history \
             --output state/soccer_edge_state/analysis/formation_intelligence.json
           python - <<'PY'
