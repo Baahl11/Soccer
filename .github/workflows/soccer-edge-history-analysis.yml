@@ -9,10 +9,7 @@ on:
       - ".github/workflows/soccer-edge-history-analysis.yml"
       - "mcp_gateway/*.py"
   workflow_dispatch:
-
-permissions:
-  contents: write
-
+permissions: {contents: write}
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -54,7 +51,7 @@ jobs:
         run: python engine/mcp_gateway/analyze_learning_pipeline.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --history-dir state/soccer_edge_state/history --analysis-dir state/soccer_edge_state/analysis
       - name: Analyze formation intelligence
         env: {PYTHONPATH: engine}
-        run: python engine/mcp_gateway/analyze_formation_matchups.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/formation_intelligence.json
+        run: python engine/mcp_gateway/analyze_formation_intelligence.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/formation_intelligence.json
       - name: Evaluate explicit corners research model
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/analyze_corners_baseline.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/corners_baseline.json
@@ -68,20 +65,6 @@ jobs:
           set -euo pipefail
           python engine/mcp_gateway/analyze_history.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/latest.json
           python engine/mcp_gateway/summarize_analysis.py --input state/soccer_edge_state/analysis/latest.json --output state/soccer_edge_state/analysis/compact.json
-          python - <<'PY'
-          import json
-          paths = [
-            'signal_ledger_summary.json','league_strength_baselines.json','postgame_summary.json','clv_summary.json','true_clv_summary.json',
-            'one_x_two_calibration.json','one_x_two_dixon_coles.json','one_x_two_prior_calibration.json','one_x_two_relative_strength.json',
-            'ft_totals_validation.json','one_h_goals_model.json','one_h_goals_calibration.json','two_h_goals_model.json',
-            'formation_intelligence.json','corners_baseline.json','decision_decomposition_summary.json','discrepancy_recheck.json',
-            'lineup_impact.json','api_efficiency.json','api_efficiency_versions.json','derivative_model_registry.json','learning_dashboard.json','compact.json'
-          ]
-          for name in paths:
-            p='state/soccer_edge_state/analysis/'+name
-            print('---',p,'---')
-            print(json.dumps(json.load(open(p,encoding='utf-8')),indent=2))
-          PY
       - name: Persist analysis
         working-directory: state
         shell: bash
