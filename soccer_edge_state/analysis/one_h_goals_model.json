@@ -1,7 +1,7 @@
 {
   "anti_leakage": "Every target uses only finalized fixtures with kickoff strictly earlier than the target; no target fixture halftime/fulltime result enters its own predictors.",
   "explicit_period_model": true,
-  "finalized_fixtures_with_halftime_target": 230,
+  "finalized_fixtures_with_halftime_target": 232,
   "formula": {
     "away_lambda_1h": "league_away_1h_rate * away_1h_attack_strength * home_1h_defensive_weakness",
     "hierarchy": "global 1H home/away rates -> league 1H rates shrunk to global -> venue-specific team 1H attack/defense shrunk to league",
@@ -11,12 +11,12 @@
   },
   "market_scope": "NO_ACTIONABLE_1H_MARKET_PRICING_YET",
   "metrics": {
-    "mean_abs_1h_total_goals_error": 1.031,
-    "mean_predicted_over_1_5_probability": 0.4307,
-    "observed_over_1_5_rate": 0.355,
-    "over_1_5_accuracy_at_0_5_threshold": 0.615,
-    "over_1_5_brier": 0.2328,
-    "over_1_5_log_loss": 0.6582
+    "mean_abs_1h_total_goals_error": 1.0322,
+    "mean_predicted_over_1_5_probability": 0.4303,
+    "observed_over_1_5_rate": 0.3614,
+    "over_1_5_accuracy_at_0_5_threshold": 0.6089,
+    "over_1_5_brier": 0.2342,
+    "over_1_5_log_loss": 0.6611
   },
   "minimum_training_fixtures": 30,
   "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
@@ -5220,6 +5220,58 @@
       "prior_home_home_matches": 0.0,
       "prior_league_matches": 3.0,
       "total_lambda_1h": 1.2603
+    },
+    {
+      "actual_halftime": {
+        "away": 1,
+        "home": 2,
+        "total": 3
+      },
+      "away_lambda_1h": 0.729249,
+      "away_team": "Orense SC",
+      "fixture_id": 1519495,
+      "global_away_1h_rate": 0.652174,
+      "global_home_1h_rate": 0.695652,
+      "home_lambda_1h": 0.677866,
+      "home_team": "Universidad Catolica",
+      "kickoff_local": "2026-09-14T18:00:00-06:00",
+      "league": "Liga Pro",
+      "league_away_1h_rate": 0.729249,
+      "league_home_1h_rate": 0.677866,
+      "league_id": 242,
+      "p_over_0_5_1h": 0.755151,
+      "p_over_1_5_1h": 0.410621,
+      "p_over_2_5_1h": 0.168224,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 2.0,
+      "total_lambda_1h": 1.407115
+    },
+    {
+      "actual_halftime": {
+        "away": 1,
+        "home": 1,
+        "total": 2
+      },
+      "away_lambda_1h": 0.602944,
+      "away_team": "Vila Nova",
+      "fixture_id": 1520872,
+      "global_away_1h_rate": 0.65368,
+      "global_home_1h_rate": 0.701299,
+      "home_lambda_1h": 0.681039,
+      "home_team": "Avai",
+      "kickoff_local": "2026-09-14T18:30:00-06:00",
+      "league": "Serie B",
+      "league_away_1h_rate": 0.602944,
+      "league_home_1h_rate": 0.681039,
+      "league_id": 72,
+      "p_over_0_5_1h": 0.723068,
+      "p_over_1_5_1h": 0.367492,
+      "p_over_2_5_1h": 0.139215,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 5.0,
+      "total_lambda_1h": 1.283983
     }
   ],
   "promotion_gate": {
@@ -5235,5 +5287,5 @@
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "target": "HALFTIME_HOME_AND_AWAY_GOALS",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 200
+  "walk_forward_evaluated": 202
 }

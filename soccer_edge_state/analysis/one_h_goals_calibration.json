@@ -1,19 +1,19 @@
 {
   "baseline_same_sample": {
-    "accuracy_at_0_5": 0.6412,
-    "brier": 0.2281,
-    "log_loss": 0.6488,
-    "mean_predicted_probability": 0.4245,
-    "n": 170,
-    "observed_rate": 0.3353
+    "accuracy_at_0_5": 0.6337,
+    "brier": 0.2298,
+    "log_loss": 0.6522,
+    "mean_predicted_probability": 0.4241,
+    "n": 172,
+    "observed_rate": 0.343
   },
   "challenger": {
-    "accuracy_at_0_5": 0.6176,
-    "brier": 0.2275,
-    "log_loss": 0.6472,
-    "mean_predicted_probability": 0.4176,
-    "n": 170,
-    "observed_rate": 0.3353
+    "accuracy_at_0_5": 0.6105,
+    "brier": 0.2297,
+    "log_loss": 0.6516,
+    "mean_predicted_probability": 0.4169,
+    "n": 172,
+    "observed_rate": 0.343
   },
   "diagnostics": [
     {
@@ -2055,15 +2055,39 @@
       "kickoff_local": "2026-09-14T17:30:00-06:00",
       "league": "Primera División",
       "prior_calibration_n": 199
+    },
+    {
+      "actual_over_1_5": 1,
+      "base_lambda_1h": 1.407115,
+      "baseline_p_over_1_5": 0.410621,
+      "calibration_scale": 0.932853,
+      "challenger_lambda_1h": 1.312631,
+      "challenger_p_over_1_5": 0.377645,
+      "fixture_id": 1519495,
+      "kickoff_local": "2026-09-14T18:00:00-06:00",
+      "league": "Liga Pro",
+      "prior_calibration_n": 200
+    },
+    {
+      "actual_over_1_5": 1,
+      "base_lambda_1h": 1.283983,
+      "baseline_p_over_1_5": 0.367492,
+      "calibration_scale": 0.93743,
+      "challenger_lambda_1h": 1.203644,
+      "challenger_p_over_1_5": 0.338689,
+      "fixture_id": 1520872,
+      "kickoff_local": "2026-09-14T18:30:00-06:00",
+      "league": "Serie B",
+      "prior_calibration_n": 201
     }
   ],
   "explicit_period_model": true,
-  "full_history_actual_to_predicted_goal_ratio": 0.916066,
+  "full_history_actual_to_predicted_goal_ratio": 0.92462,
   "improvement": {
-    "accuracy_delta_pp": -2.36,
-    "brier_delta": -0.0006,
-    "log_loss_delta": -0.0016,
-    "mean_probability_delta_pp": -0.69
+    "accuracy_delta_pp": -2.32,
+    "brier_delta": -0.0001,
+    "log_loss_delta": -0.0006,
+    "mean_probability_delta_pp": -0.72
   },
   "method": "WALK_FORWARD_SHRUNK_MULTIPLICATIVE_1H_LAMBDA_CALIBRATION",
   "minimum_calibration_history": 30,
@@ -2085,5 +2109,5 @@
   "source_model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 170
+  "walk_forward_evaluated": 172
 }
