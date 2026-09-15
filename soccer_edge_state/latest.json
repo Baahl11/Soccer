@@ -2,25 +2,25 @@
   "service": "soccer-edge-automation",
   "version": "3.2.1",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T19:34:32.640752+00:00",
-  "generated_at_local": "2026-09-15T13:34:32.640752-06:00",
+  "generated_at_utc": "2026-09-15T19:42:27.743028+00:00",
+  "generated_at_local": "2026-09-15T13:42:27.743028-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 244,
-  "due_fixture_count": 15,
-  "event_count": 2,
-  "actionable_refresh_count": 1,
+  "due_fixture_count": 12,
+  "event_count": 1,
+  "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 1,
+  "api_calls_this_tick": 5,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6095,
+  "last_daily_remaining": 6070,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
   "deep_dive_processed_count": 1,
-  "shortlist_event_count": 0,
-  "screened_out_low_data_count": 2,
-  "market_requests_avoided_by_sport_screen": 1,
+  "shortlist_event_count": 1,
+  "screened_out_low_data_count": 0,
+  "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
   "urgent_late_shortlist_due": 0,
@@ -39,7 +39,7 @@
   "one_h_market_groups_this_tick": 0,
   "two_h_market_groups_this_tick": 0,
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
-  "relative_strength_1x2_shadow_count_this_tick": 0,
+  "relative_strength_1x2_shadow_count_this_tick": 1,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
   "trend_context_count_this_tick": 0,
   "trend_signal_count_this_tick": 0,
@@ -56,16 +56,16 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 36,
+  "shortlist_state_count": 37,
   "shortlist_seed_imported": 36,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
     "galaxy_fixture_reads": 1,
-    "galaxy_fixture_hits": 1,
-    "galaxy_fixture_misses": 0,
+    "galaxy_fixture_hits": 0,
+    "galaxy_fixture_misses": 1,
     "galaxy_raw_used": 0,
-    "galaxy_raw_fallbacks": 0,
+    "galaxy_raw_fallbacks": 1,
     "api_team_stats_calls_avoided": 0,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
@@ -79,10 +79,10 @@
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
     "provider_requests_avoided": 0,
-    "odds_market_events": 1,
+    "odds_market_events": 0,
     "galaxy_odds_market_events": 0,
     "api_odds_fallback_events": 0,
-    "not_verified_odds_market_events": 1,
+    "not_verified_odds_market_events": 0,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T13:34:32.640752-06:00",
+    "generated_at_local": "2026-09-15T13:42:27.743028-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2246,7 +2246,7 @@
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "PASS": 1
+          "WATCH": 1
         }
       }
     },
@@ -2264,18 +2264,21 @@
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
   "match_table_rows": [
     {
-      "fixture_id": 1570388,
-      "country": "Spain",
-      "competition": "La Liga",
-      "data_tier": "A",
-      "kickoff": "2026-09-15T13:30:00-06:00",
-      "stage": "CLOSE",
-      "home": "Elche",
-      "away": "Real Madrid",
-      "tracks": [],
-      "side_score": null,
-      "goals_score": null,
-      "two_way_score": null,
+      "fixture_id": 1619013,
+      "country": "Bolivia",
+      "competition": "Primera División",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T15:15:00-06:00",
+      "stage": "T-90",
+      "home": "ABB",
+      "away": "The Strongest",
+      "tracks": [
+        "GOALS_OVER",
+        "TWO_WAY"
+      ],
+      "side_score": 54.6,
+      "goals_score": 74.8,
+      "two_way_score": 98.8,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2283,53 +2286,53 @@
       "line": null,
       "price": null,
       "bookmaker": null,
-      "classification": "PASS",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
-      "reason": "Closing market skipped: fixture never entered a sporting shortlist."
+      "reason": "SPORTING_SCREEN_PASS"
     }
   ],
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6095",
+    "daily_remaining": "6074",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "CLOSE",
-      "classification": "PASS",
+      "stage": "T-90",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1570388,
-        "kickoff": "2026-09-15T13:30:00-06:00",
-        "timestamp": 1789500600,
-        "status": "1H",
-        "status_long": "First Half",
-        "elapsed": 3,
-        "league_id": 140,
-        "league": "La Liga",
-        "country": "Spain",
+        "fixture_id": 1619013,
+        "kickoff": "2026-09-15T15:15:00-06:00",
+        "timestamp": 1789506900,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 344,
+        "league": "Primera División",
+        "country": "Bolivia",
         "season": 2026,
-        "round": "Regular Season - 6",
-        "home_team_id": 797,
-        "home_team": "Elche",
-        "away_team_id": 541,
-        "away_team": "Real Madrid",
-        "venue": "Estadio Manuel Martínez Valero",
-        "city": "Elche",
+        "round": "Apertura - 20",
+        "home_team_id": 17743,
+        "home_team": "ABB",
+        "away_team_id": 3711,
+        "away_team": "The Strongest",
+        "venue": null,
+        "city": "El Alto",
         "goals": {
-          "home": 0,
-          "away": 0
+          "home": null,
+          "away": null
         },
         "score": {
           "halftime": {
-            "home": 0,
-            "away": 0
+            "home": null,
+            "away": null
           },
           "fulltime": {
             "home": null,
@@ -2346,26 +2349,46 @@
         }
       },
       "coverage": {
-        "data_tier": "A"
+        "data_tier": "B"
       },
-      "sporting_shortlist": null,
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 98.8,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 54.6,
+        "goal_environment_score": 74.8,
+        "two_way_scoring_score": 98.8,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 97.7,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 50.0,
+        "goal_environment_score": 68.2,
+        "two_way_scoring_score": 97.7,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 98.8,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 54.6,
+        "goal_environment_score": 74.8,
+        "two_way_scoring_score": 98.8,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
       "galaxy_source": null,
       "market_source": null,
-      "market_provenance": {
-        "source": "NOT_VERIFIED",
-        "source_raw": null,
-        "latest_market_timestamp": null,
-        "age_minutes": null,
-        "galaxy_freshness_limit_minutes": 20,
-        "freshness": "NOT_VERIFIED",
-        "fresh": false,
-        "market_count": 0,
-        "fallback_reason": "NO_VERIFIED_MARKET",
-        "sport_first_order_preserved": true,
-        "provenance_contract_version": "1.1.0"
-      },
+      "market_provenance": null,
       "trend_context": {
         "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
         "actionable": false,
@@ -2375,42 +2398,83 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
       "lineups": null,
-      "raw_projection": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 1.4531,
+        "raw_away_goal_rate": 1.7812,
+        "raw_total_goals": 3.2344,
+        "raw_home_win_prob": 0.315682,
+        "raw_draw_prob": 0.229678,
+        "raw_away_win_prob": 0.45464,
+        "raw_btts_yes_prob": 0.637118,
+        "raw_over_2_5_prob": 0.627223,
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 54.6,
+          "goal_environment_score": 74.8,
+          "two_way_scoring_score": 98.8,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "RESEARCH_ONLY_SHADOW",
+          "actionable": false,
+          "projection_model": "LEAGUE_RELATIVE_STRENGTH_POISSON_v0.2",
+          "baseline_source": "PAIR_COMPLEMENTARY_VENUE_BASELINE",
+          "sample": {
+            "home_home_played": 9,
+            "away_away_played": 9,
+            "minimum_split_sample": 9,
+            "shrinkage_prior_games": 5.0
+          },
+          "strengths": {
+            "home_attack": 1.1071,
+            "home_defensive_weakness": 1.075,
+            "away_attack": 1.1661,
+            "away_defensive_weakness": 0.8527,
+            "baseline_home_goals": 1.5,
+            "baseline_away_goals": 1.5
+          },
+          "challenger": {
+            "raw_home_goal_rate": 1.4161,
+            "raw_away_goal_rate": 1.8803,
+            "raw_total_goals": 3.2963,
+            "raw_home_win_prob": 0.290819,
+            "raw_draw_prob": 0.224204,
+            "raw_away_win_prob": 0.484976,
+            "raw_btts_yes_prob": 0.641802,
+            "raw_over_1_5_prob": 0.840956,
+            "raw_over_2_5_prob": 0.639837,
+            "raw_over_3_5_prob": 0.418851
+          },
+          "baseline": {
+            "raw_home_goal_rate": 1.4531,
+            "raw_away_goal_rate": 1.7812,
+            "raw_total_goals": 3.2344,
+            "raw_home_win_prob": 0.315682,
+            "raw_draw_prob": 0.229678,
+            "raw_away_win_prob": 0.45464,
+            "raw_btts_yes_prob": 0.637118,
+            "raw_over_1_5_prob": 0.833229,
+            "raw_over_2_5_prob": 0.627223,
+            "raw_over_3_5_prob": 0.405122
+          },
+          "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
+        }
+      },
       "market_decision": null,
       "best_market": null,
       "notes": [
-        "Closing market skipped: fixture never entered a sporting shortlist."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "LOW_DATA_SCREEN_SUMMARY",
-      "stage": "SLATE_SCREEN",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
-      "availability_confidence": null,
-      "fixture": null,
-      "coverage": null,
-      "sporting_shortlist": null,
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": null,
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
-        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
       "error": null
