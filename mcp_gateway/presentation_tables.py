@@ -3,9 +3,13 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Any, Iterable
+from zoneinfo import ZoneInfo
 
 
 CLASS_ORDER = {"BET": 0, "LEAN": 1, "WATCH": 2, "PASS": 3, "CLOSE": 4, "POSTGAME": 5}
+VALID_CLASSES = set(CLASS_ORDER)
+VALID_DATA_TIERS = {"A", "B", "C", "D"}
+DISPLAY_TIMEZONE = ZoneInfo("America/Mexico_City")
 
 
 def _text(value: Any, default: str = "—") -> str:
@@ -28,6 +32,8 @@ def _kickoff(value: Any) -> str:
     text = str(value)
     try:
         dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(DISPLAY_TIMEZONE)
         return dt.strftime("%H:%M")
     except ValueError:
         return text
@@ -65,7 +71,7 @@ def _escape(value: Any) -> str:
 
 def _detail_table(rows: Iterable[dict[str, Any]]) -> str:
     header = (
-        "| Hora | País / Liga | Partido | Tier | Señal deportiva | Disp. | Mercado | Precio | Book | Tier bet | Stake | Razón |\n"
+        "| Hora CDMX | País / Liga | Partido | Tier | Señal deportiva | Disp. | Mercado | Precio | Book | Tier bet | Stake | Razón |\n"
         "|---|---|---|---:|---|---:|---|---:|---|---|---:|---|"
     )
     body: list[str] = []
@@ -140,3 +146,74 @@ def render_match_tables(rows: list[dict[str, Any]]) -> str:
     passes = [row for row in valid if row.get("classification") == "PASS"]
     sections.append("## ⚪ PASS — resumen por competición\n\n" + _pass_summary(passes))
     return "\n\n".join(sections)
+
+
+def validate_presentation_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Validate the v2.8 presentation/coverage contract without mutating decisions."""
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    registry = payload.get("league_coverage_registry")
+    if not isinstance(registry, dict):
+        errors.append("league_coverage_registry missing or not an object")
+        registry = {}
+    else:
+        if registry.get("provider_calls_per_league") != 0:
+            errors.append("provider_calls_per_league must be 0")
+        if registry.get("galaxy_activation_is_eligibility_gate") is not False:
+            errors.append("Galaxy activation must not be an eligibility gate")
+        count = registry.get("competition_count")
+        if not isinstance(count, int) or count < 0:
+            errors.append("competition_count must be a non-negative integer")
+        competitions = registry.get("competitions")
+        if not isinstance(competitions, list):
+            errors.append("competitions must be a list")
+            competitions = []
+        attached = registry.get("competition_rows_attached", len(competitions))
+        if attached != len(competitions):
+            errors.append("competition_rows_attached does not match competitions length")
+        if isinstance(count, int) and count < len(competitions):
+            errors.append("competition_count cannot be smaller than attached rows")
+        for idx, row in enumerate(competitions[:500]):
+            if not isinstance(row, dict):
+                errors.append(f"competition[{idx}] is not an object")
+                continue
+            if row.get("data_tier") not in VALID_DATA_TIERS:
+                errors.append(f"competition[{idx}] has invalid data_tier")
+            if row.get("galaxy_activation_required") is not False:
+                errors.append(f"competition[{idx}] incorrectly requires Galaxy activation")
+
+    rows = payload.get("match_table_rows")
+    if not isinstance(rows, list):
+        errors.append("match_table_rows missing or not a list")
+        rows = []
+    row_count = payload.get("match_table_row_count", len(rows))
+    attached_rows = payload.get("match_table_rows_attached", len(rows))
+    if attached_rows != len(rows):
+        errors.append("match_table_rows_attached does not match row list length")
+    if isinstance(row_count, int) and row_count < len(rows):
+        errors.append("match_table_row_count cannot be smaller than attached rows")
+    for idx, row in enumerate(rows[:500]):
+        if not isinstance(row, dict):
+            errors.append(f"match_table_rows[{idx}] is not an object")
+            continue
+        classification = str(row.get("classification") or "WATCH")
+        if classification not in VALID_CLASSES:
+            errors.append(f"match_table_rows[{idx}] has invalid classification")
+        tier = row.get("data_tier")
+        if tier is not None and tier not in VALID_DATA_TIERS:
+            warnings.append(f"match_table_rows[{idx}] has unverified data_tier")
+
+    contract = payload.get("presentation_contract")
+    if not isinstance(contract, dict):
+        errors.append("presentation_contract missing or not an object")
+    elif contract.get("default_format") != "MARKDOWN_TABLES":
+        errors.append("presentation_contract.default_format must be MARKDOWN_TABLES")
+
+    return {
+        "valid": not errors,
+        "error_count": len(errors),
+        "warning_count": len(warnings),
+        "errors": errors[:20],
+        "warnings": warnings[:20],
+    }
