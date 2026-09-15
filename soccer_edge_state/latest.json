@@ -2,30 +2,30 @@
   "service": "soccer-edge-automation",
   "version": "3.4.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T22:07:49.160160+00:00",
-  "generated_at_local": "2026-09-15T16:07:49.160160-06:00",
+  "generated_at_utc": "2026-09-15T22:21:44.261138+00:00",
+  "generated_at_local": "2026-09-15T16:21:44.261138-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 244,
-  "due_fixture_count": 15,
+  "due_fixture_count": 19,
   "event_count": 10,
-  "actionable_refresh_count": 2,
+  "actionable_refresh_count": 5,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 5851,
+  "last_daily_remaining": 5834,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 8,
-  "shortlist_event_count": 8,
+  "deep_dive_processed_count": 9,
+  "shortlist_event_count": 9,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
   "urgent_late_shortlist_due": 4,
-  "urgent_late_shortlist_processed": 2,
-  "urgent_window_completion_rate_this_tick": 0.5,
+  "urgent_late_shortlist_processed": 4,
+  "urgent_window_completion_rate_this_tick": 1.0,
   "urgent_window_policy": "EXISTING_T10_T20_CLOSE_SHORTLIST_FIRST; T40_DISCOVERY_AFTER; ELASTIC_DEEP_DIVE_CAP_MAY_USE_GALAXY_OR_CACHE_BUT_CANNOT_BYPASS_PROVIDER_CALL_BUDGET",
   "deep_dive_capacity_policy": "ELASTIC_WORK_CAP_WITH_UNCHANGED_PROVIDER_API_HARD_CAP",
   "base_deep_dive_cap": 8,
@@ -34,12 +34,12 @@
   "dedicated_close_snapshots_this_tick": 0,
   "dedicated_close_quotes_this_tick": 0,
   "clv_close_policy": "PERSIST_CANONICAL_FT_CLOSE_QUOTES; TRUE_CLV_ONLY_WHEN_CAPTURED_BEFORE_KICKOFF; LATE_CLOSE_SNAPSHOTS_RETAINED_BUT_NOT_LABELED_TRUE_PREKICKOFF_CLOSE",
-  "derivative_research_snapshots_this_tick": 2,
-  "derivative_research_quotes_this_tick": 138,
-  "one_h_market_groups_this_tick": 13,
-  "two_h_market_groups_this_tick": 7,
+  "derivative_research_snapshots_this_tick": 4,
+  "derivative_research_quotes_this_tick": 304,
+  "one_h_market_groups_this_tick": 29,
+  "two_h_market_groups_this_tick": 15,
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
-  "relative_strength_1x2_shadow_count_this_tick": 2,
+  "relative_strength_1x2_shadow_count_this_tick": 3,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
   "trend_context_count_this_tick": 0,
   "trend_signal_count_this_tick": 0,
@@ -61,33 +61,33 @@
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 2,
+    "galaxy_fixture_reads": 5,
     "galaxy_fixture_hits": 0,
-    "galaxy_fixture_misses": 2,
+    "galaxy_fixture_misses": 5,
     "galaxy_raw_used": 0,
-    "galaxy_raw_fallbacks": 2,
+    "galaxy_raw_fallbacks": 5,
     "api_team_stats_calls_avoided": 0,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
-    "galaxy_odds_stale_or_missing": 2,
-    "galaxy_slate_reads": 0,
+    "galaxy_odds_stale_or_missing": 4,
+    "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
-    "galaxy_slate_fallbacks": 0,
-    "galaxy_slate_stale_rejections": 0,
+    "galaxy_slate_fallbacks": 1,
+    "galaxy_slate_stale_rejections": 1,
     "api_slate_calls_avoided": 0,
-    "api_slate_reconciliation_calls": 1,
+    "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
     "provider_requests_avoided": 0,
-    "odds_market_events": 2,
+    "odds_market_events": 5,
     "galaxy_odds_market_events": 0,
-    "api_odds_fallback_events": 2,
-    "not_verified_odds_market_events": 0,
+    "api_odds_fallback_events": 4,
+    "not_verified_odds_market_events": 1,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
     "odds_provenance_accounting_valid": true,
-    "odds_provenance_metadata_repairs": 2,
+    "odds_provenance_metadata_repairs": 4,
     "unverified_market_source_safety_blocks": 0
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T16:07:49.160160-06:00",
+    "generated_at_local": "2026-09-15T16:21:44.261138-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2240,13 +2240,13 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 9,
-        "rows_attached": 9,
+        "row_count": 10,
+        "rows_attached": 10,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "WATCH": 3,
-          "POSTGAME": 6
+          "WATCH": 5,
+          "POSTGAME": 5
         }
       }
     },
@@ -2264,29 +2264,31 @@
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
   "match_table_rows": [
     {
-      "fixture_id": 1619012,
-      "country": "Bolivia",
-      "competition": "Primera División",
+      "fixture_id": 1638671,
+      "country": "Brazil",
+      "competition": "Copa Paulista",
       "data_tier": "B",
-      "kickoff": "2026-09-15T13:00:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Real Oruro",
-      "away": "Real Potosí",
-      "tracks": [],
-      "side_score": null,
-      "goals_score": null,
-      "two_way_score": null,
-      "availability_confidence": null,
+      "kickoff": "2026-09-15T16:30:00-06:00",
+      "stage": "T-10",
+      "home": "Grêmio Prudente",
+      "away": "Linense",
+      "tracks": [
+        "GOALS_UNDER"
+      ],
+      "side_score": 54.6,
+      "goals_score": 19.7,
+      "two_way_score": 51.9,
+      "availability_confidence": 0.6,
       "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 1.5,
+      "price": 2.6,
+      "bookmaker": "BetVictor",
       "classification": "WATCH",
-      "tier": null,
+      "tier": "B",
       "stake_units": 0.0,
-      "reason": "Per-tick API budget reached (20); lower-priority work deferred."
+      "reason": "SPORTING_SCREEN_PASS"
     },
     {
       "fixture_id": 1520877,
@@ -2294,7 +2296,7 @@
       "competition": "Serie B",
       "data_tier": "B",
       "kickoff": "2026-09-15T16:30:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Londrina",
       "away": "Ponte Preta",
       "tracks": [
@@ -2322,7 +2324,7 @@
       "competition": "Serie B",
       "data_tier": "B",
       "kickoff": "2026-09-15T16:30:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Nautico Recife",
       "away": "Operario-PR",
       "tracks": [
@@ -2345,22 +2347,18 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1563147,
-      "country": "England",
-      "competition": "Championship",
-      "data_tier": "A",
-      "kickoff": "2026-09-15T12:45:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Middlesbrough",
-      "away": "Millwall",
-      "tracks": [
-        "SIDE",
-        "GOALS_OVER",
-        "TWO_WAY"
-      ],
-      "side_score": 74.6,
-      "goals_score": 97.9,
-      "two_way_score": 100.0,
+      "fixture_id": 1493544,
+      "country": "USA",
+      "competition": "USL Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:00:00-06:00",
+      "stage": "T-40",
+      "home": "Indy Eleven",
+      "away": "Brooklyn",
+      "tracks": [],
+      "side_score": null,
+      "goals_score": null,
+      "two_way_score": null,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2368,83 +2366,55 @@
       "line": null,
       "price": null,
       "bookmaker": null,
-      "classification": "POSTGAME",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
+      "reason": "Per-tick API budget reached (20); lower-priority work deferred."
     },
     {
-      "fixture_id": 1563145,
-      "country": "England",
-      "competition": "Championship",
-      "data_tier": "A",
-      "kickoff": "2026-09-15T12:45:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Bristol City",
-      "away": "Lincoln",
+      "fixture_id": 1638761,
+      "country": "Venezuela",
+      "competition": "Primera División",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T16:30:00-06:00",
+      "stage": "T-10",
+      "home": "Deportivo Tachira FC",
+      "away": "Puerto Cabello",
       "tracks": [
         "GOALS_UNDER",
         "TWO_WAY"
       ],
-      "side_score": 53.9,
-      "goals_score": 47.6,
+      "side_score": 54.7,
+      "goals_score": 49.2,
       "two_way_score": 71.3,
-      "availability_confidence": null,
+      "availability_confidence": 0.9,
       "market_source": null,
-      "market": null,
-      "selection": null,
+      "market": "Match Winner",
+      "selection": "home",
       "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
+      "price": 2.2,
+      "bookmaker": "William Hill",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1635567,
-      "country": "England",
-      "competition": "League Cup",
-      "data_tier": "B",
-      "kickoff": "2026-09-15T12:30:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Peterborough",
-      "away": "Barnsley",
-      "tracks": [
-        "GOALS_UNDER"
-      ],
-      "side_score": 50.6,
-      "goals_score": 3.9,
-      "two_way_score": 47.1,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    },
-    {
-      "fixture_id": 1635568,
-      "country": "England",
-      "competition": "League Cup",
+      "fixture_id": 1619012,
+      "country": "Bolivia",
+      "competition": "Primera División",
       "data_tier": "B",
       "kickoff": "2026-09-15T13:00:00-06:00",
       "stage": "POSTGAME",
-      "home": "Reading",
-      "away": "Brentford",
+      "home": "Real Oruro",
+      "away": "Real Potosí",
       "tracks": [
-        "SIDE",
         "GOALS_OVER",
         "TWO_WAY"
       ],
-      "side_score": 99.7,
-      "goals_score": 84.1,
-      "two_way_score": 78.1,
+      "side_score": 59.4,
+      "goals_score": 71.8,
+      "two_way_score": 92.4,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2458,20 +2428,22 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1635563,
+      "fixture_id": 1635561,
       "country": "England",
       "competition": "League Cup",
       "data_tier": "B",
       "kickoff": "2026-09-15T13:00:00-06:00",
       "stage": "POSTGAME",
-      "home": "Liverpool",
-      "away": "Tottenham",
+      "home": "Ipswich",
+      "away": "Arsenal",
       "tracks": [
-        "GOALS_UNDER"
+        "SIDE",
+        "GOALS_UNDER",
+        "TWO_WAY"
       ],
-      "side_score": 50.4,
-      "goals_score": 3.4,
-      "two_way_score": 47.1,
+      "side_score": 64.4,
+      "goals_score": 48.5,
+      "two_way_score": 65.1,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2485,21 +2457,76 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1556642,
+      "fixture_id": 1629058,
+      "country": "Italy",
+      "competition": "Coppa Italia",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T13:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Fiorentina",
+      "away": "Pisa",
+      "tracks": [
+        "SIDE",
+        "TWO_WAY"
+      ],
+      "side_score": 75.4,
+      "goals_score": 59.8,
+      "two_way_score": 69.3,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1553112,
+      "country": "Poland",
+      "competition": "Ekstraklasa",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T12:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Korona Kielce",
+      "away": "Gornik Zabrze",
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_score": 55.4,
+      "goals_score": 52.4,
+      "two_way_score": 73.5,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1556641,
       "country": "Scotland",
       "competition": "Premiership",
       "data_tier": "B",
       "kickoff": "2026-09-15T12:45:00-06:00",
       "stage": "POSTGAME",
-      "home": "Hibernian",
-      "away": "Kilmarnock",
+      "home": "Falkirk",
+      "away": "Heart Of Midlothian",
       "tracks": [
-        "GOALS_OVER",
+        "SIDE",
         "TWO_WAY"
       ],
-      "side_score": 52.8,
-      "goals_score": 76.9,
-      "two_way_score": 100.0,
+      "side_score": 71.7,
+      "goals_score": 66.9,
+      "two_way_score": 79.2,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2515,46 +2542,14 @@
   ],
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "5856",
-    "per_minute_remaining": "299"
+    "daily_remaining": "5832",
+    "per_minute_remaining": "296"
   },
   "database_persisted": false,
   "events": [
     {
-      "event_type": "DAILY_DISCOVERY",
-      "stage": "LATE_DISCOVERY",
-      "classification": "PRE-FINAL",
-      "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
-      "availability_confidence": null,
-      "fixture": null,
-      "coverage": null,
-      "sporting_shortlist": null,
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": null,
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
-        "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
-        "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2646,7 +2641,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-15T20:17:14+00:00",
-        "age_minutes": 110.59,
+        "age_minutes": 124.5,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -2670,7 +2665,7 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-15T16:07:49.160160-06:00",
+        "captured_at_local": "2026-09-15T16:21:44.261138-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -4252,7 +4247,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -4344,7 +4339,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-15T20:17:13+00:00",
-        "age_minutes": 110.6,
+        "age_minutes": 124.52,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -4368,7 +4363,7 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-15T16:07:49.160160-06:00",
+        "captured_at_local": "2026-09-15T16:21:44.261138-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -5611,952 +5606,6 @@
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1563147,
-        "kickoff": "2026-09-15T12:45:00-06:00",
-        "timestamp": 1789497900,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 40,
-        "league": "Championship",
-        "country": "England",
-        "season": 2026,
-        "round": "Regular Season - 6",
-        "home_team_id": 70,
-        "home_team": "Middlesbrough",
-        "away_team_id": 58,
-        "away_team": "Millwall",
-        "venue": "Riverside Stadium",
-        "city": "Middlesbrough",
-        "goals": {
-          "home": 2,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 2
-          },
-          "fulltime": {
-            "home": 2,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "A"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 100.0,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 74.6,
-        "goal_environment_score": 97.9,
-        "two_way_scoring_score": 100.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 2,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 2
-          },
-          "fulltime": {
-            "home": 2,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 70,
-              "team": "Middlesbrough",
-              "shots_inside_box": 12.0,
-              "shots_outside_box": 10.0,
-              "blocked_shots": 10.0,
-              "shots_on_goal": 7.0,
-              "total_shots": 22.0,
-              "yellow_cards": 1.0,
-              "corners": 14.0,
-              "fouls": 3.0,
-              "red_cards": 0.0,
-              "possession": 80.0
-            },
-            {
-              "team_id": 58,
-              "team": "Millwall",
-              "shots_inside_box": 11.0,
-              "shots_outside_box": 0.0,
-              "blocked_shots": 1.0,
-              "shots_on_goal": 4.0,
-              "total_shots": 11.0,
-              "yellow_cards": 1.0,
-              "corners": 1.0,
-              "fouls": 12.0,
-              "red_cards": 0.0,
-              "possession": 20.0
-            }
-          ],
-          "totals": {
-            "shots_on_goal": 11.0,
-            "shots_inside_box": 23.0,
-            "fouls": 15.0,
-            "yellow_cards": 2.0,
-            "red_cards": 0.0,
-            "possession": 100.0,
-            "corners": 15.0,
-            "shots_outside_box": 10.0,
-            "blocked_shots": 11.0,
-            "total_shots": 33.0
-          }
-        },
-        "player_stats": {
-          "status": "UNAVAILABLE",
-          "fixture_id": 1563147,
-          "error": "Per-tick API budget reached (20); lower-priority work deferred.",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "capture_phase": "POSTGAME"
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1563145,
-        "kickoff": "2026-09-15T12:45:00-06:00",
-        "timestamp": 1789497900,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 40,
-        "league": "Championship",
-        "country": "England",
-        "season": 2026,
-        "round": "Regular Season - 6",
-        "home_team_id": 56,
-        "home_team": "Bristol City",
-        "away_team_id": 1379,
-        "away_team": "Lincoln",
-        "venue": "Ashton Gate Stadium",
-        "city": "Bristol",
-        "goals": {
-          "home": 0,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "A"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 71.3,
-        "tracks": [
-          "GOALS_UNDER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 53.9,
-        "goal_environment_score": 47.6,
-        "two_way_scoring_score": 71.3,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 0,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 56,
-              "team": "Bristol City",
-              "shots_inside_box": 12.0,
-              "shots_outside_box": 6.0,
-              "blocked_shots": 6.0,
-              "shots_on_goal": 4.0,
-              "total_shots": 18.0,
-              "yellow_cards": 2.0,
-              "corners": 13.0,
-              "fouls": 13.0,
-              "red_cards": 0.0,
-              "possession": 67.0
-            },
-            {
-              "team_id": 1379,
-              "team": "Lincoln",
-              "shots_inside_box": 5.0,
-              "shots_outside_box": 4.0,
-              "blocked_shots": 3.0,
-              "shots_on_goal": 3.0,
-              "total_shots": 9.0,
-              "yellow_cards": 5.0,
-              "corners": 4.0,
-              "fouls": 19.0,
-              "red_cards": 0.0,
-              "possession": 33.0
-            }
-          ],
-          "totals": {
-            "shots_on_goal": 7.0,
-            "shots_inside_box": 17.0,
-            "fouls": 32.0,
-            "yellow_cards": 7.0,
-            "red_cards": 0.0,
-            "possession": 100.0,
-            "corners": 17.0,
-            "shots_outside_box": 10.0,
-            "blocked_shots": 9.0,
-            "total_shots": 27.0
-          }
-        },
-        "player_stats": {
-          "status": "UNAVAILABLE",
-          "fixture_id": 1563145,
-          "error": "Per-tick API budget reached (20); lower-priority work deferred.",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "capture_phase": "POSTGAME"
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1556642,
-        "kickoff": "2026-09-15T12:45:00-06:00",
-        "timestamp": 1789497900,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 179,
-        "league": "Premiership",
-        "country": "Scotland",
-        "season": 2026,
-        "round": "Regular Season - 3",
-        "home_team_id": 249,
-        "home_team": "Hibernian",
-        "away_team_id": 250,
-        "away_team": "Kilmarnock",
-        "venue": "Easter Road",
-        "city": "Edinburgh",
-        "goals": {
-          "home": 0,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 1
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 100.0,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 52.8,
-        "goal_environment_score": 76.9,
-        "two_way_scoring_score": 100.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 0,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 1
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 249,
-              "team": "Hibernian",
-              "shots_inside_box": 18.0,
-              "shots_outside_box": 5.0,
-              "blocked_shots": 10.0,
-              "shots_on_goal": 7.0,
-              "total_shots": 23.0,
-              "corners": 15.0,
-              "red_cards": 0.0,
-              "yellow_cards": 0.0,
-              "fouls": 8.0,
-              "possession": 60.0
-            },
-            {
-              "team_id": 250,
-              "team": "Kilmarnock",
-              "shots_inside_box": 9.0,
-              "shots_outside_box": 3.0,
-              "blocked_shots": 2.0,
-              "shots_on_goal": 7.0,
-              "total_shots": 12.0,
-              "corners": 7.0,
-              "red_cards": 1.0,
-              "yellow_cards": 1.0,
-              "fouls": 10.0,
-              "possession": 40.0
-            }
-          ],
-          "totals": {
-            "shots_on_goal": 14.0,
-            "shots_inside_box": 27.0,
-            "fouls": 18.0,
-            "yellow_cards": 1.0,
-            "red_cards": 1.0,
-            "possession": 100.0,
-            "corners": 22.0,
-            "shots_outside_box": 8.0,
-            "blocked_shots": 12.0,
-            "total_shots": 35.0
-          }
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1635568,
-        "kickoff": "2026-09-15T13:00:00-06:00",
-        "timestamp": 1789498800,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 48,
-        "league": "League Cup",
-        "country": "England",
-        "season": 2026,
-        "round": "Round of 32",
-        "home_team_id": 53,
-        "home_team": "Reading",
-        "away_team_id": 55,
-        "away_team": "Brentford",
-        "venue": "Select Car Leasing Stadium",
-        "city": "Reading",
-        "goals": {
-          "home": 1,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 2
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 99.7,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 99.7,
-        "goal_environment_score": 84.1,
-        "two_way_scoring_score": 78.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 2
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 53,
-              "team": "Reading",
-              "shots_inside_box": 10.0,
-              "shots_outside_box": 7.0,
-              "blocked_shots": 6.0,
-              "shots_on_goal": 3.0,
-              "total_shots": 17.0,
-              "corners": 5.0,
-              "fouls": 8.0,
-              "red_cards": 0.0,
-              "yellow_cards": 0.0,
-              "possession": 45.0
-            },
-            {
-              "team_id": 55,
-              "team": "Brentford",
-              "shots_inside_box": 16.0,
-              "shots_outside_box": 8.0,
-              "blocked_shots": 6.0,
-              "shots_on_goal": 8.0,
-              "total_shots": 24.0,
-              "corners": 7.0,
-              "fouls": 11.0,
-              "red_cards": 0.0,
-              "yellow_cards": 0.0,
-              "possession": 55.0
-            }
-          ],
-          "totals": {
-            "shots_on_goal": 11.0,
-            "shots_inside_box": 26.0,
-            "fouls": 19.0,
-            "yellow_cards": 0.0,
-            "red_cards": 0.0,
-            "possession": 100.0,
-            "corners": 12.0,
-            "shots_outside_box": 15.0,
-            "blocked_shots": 12.0,
-            "total_shots": 41.0
-          }
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1635563,
-        "kickoff": "2026-09-15T13:00:00-06:00",
-        "timestamp": 1789498800,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 48,
-        "league": "League Cup",
-        "country": "England",
-        "season": 2026,
-        "round": "Round of 32",
-        "home_team_id": 40,
-        "home_team": "Liverpool",
-        "away_team_id": 47,
-        "away_team": "Tottenham",
-        "venue": "Anfield",
-        "city": "Liverpool",
-        "goals": {
-          "home": 3,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 3,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 96.6,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 50.4,
-        "goal_environment_score": 3.4,
-        "two_way_scoring_score": 47.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 3,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 3,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 40,
-              "team": "Liverpool",
-              "shots_inside_box": 6.0,
-              "shots_outside_box": 6.0,
-              "blocked_shots": 5.0,
-              "shots_on_goal": 5.0,
-              "total_shots": 12.0,
-              "yellow_cards": 3.0,
-              "corners": 5.0,
-              "fouls": 15.0,
-              "red_cards": 0.0,
-              "possession": 55.0
-            },
-            {
-              "team_id": 47,
-              "team": "Tottenham",
-              "shots_inside_box": 11.0,
-              "shots_outside_box": 6.0,
-              "blocked_shots": 6.0,
-              "shots_on_goal": 6.0,
-              "total_shots": 17.0,
-              "yellow_cards": 2.0,
-              "corners": 9.0,
-              "fouls": 11.0,
-              "red_cards": 0.0,
-              "possession": 45.0
-            }
-          ],
-          "totals": {
-            "shots_on_goal": 11.0,
-            "shots_inside_box": 17.0,
-            "fouls": 26.0,
-            "yellow_cards": 5.0,
-            "red_cards": 0.0,
-            "possession": 100.0,
-            "corners": 14.0,
-            "shots_outside_box": 12.0,
-            "blocked_shots": 11.0,
-            "total_shots": 29.0
-          }
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1635567,
-        "kickoff": "2026-09-15T12:30:00-06:00",
-        "timestamp": 1789497000,
-        "status": "PEN",
-        "status_long": "Match Finished",
-        "elapsed": 120,
-        "league_id": 48,
-        "league": "League Cup",
-        "country": "England",
-        "season": 2026,
-        "round": "Round of 32",
-        "home_team_id": 1350,
-        "home_team": "Peterborough",
-        "away_team_id": 747,
-        "away_team": "Barnsley",
-        "venue": "Weston Homes Stadium",
-        "city": "Peterborough",
-        "goals": {
-          "home": 3,
-          "away": 3
-        },
-        "score": {
-          "halftime": {
-            "home": 2,
-            "away": 2
-          },
-          "fulltime": {
-            "home": 3,
-            "away": 3
-          },
-          "extratime": {
-            "home": 0,
-            "away": 0
-          },
-          "penalty": {
-            "home": 7,
-            "away": 6
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 96.1,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 50.6,
-        "goal_environment_score": 3.9,
-        "two_way_scoring_score": 47.1,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 3,
-          "away": 3
-        },
-        "score": {
-          "halftime": {
-            "home": 2,
-            "away": 2
-          },
-          "fulltime": {
-            "home": 3,
-            "away": 3
-          },
-          "extratime": {
-            "home": 0,
-            "away": 0
-          },
-          "penalty": {
-            "home": 7,
-            "away": 6
-          }
-        },
-        "status": "PEN",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 1350,
-              "team": "Peterborough",
-              "shots_inside_box": 16.0,
-              "shots_outside_box": 1.0,
-              "blocked_shots": 3.0,
-              "shots_on_goal": 9.0,
-              "total_shots": 17.0,
-              "yellow_cards": 3.0,
-              "corners": 7.0,
-              "fouls": 14.0,
-              "red_cards": 0.0,
-              "possession": 48.0
-            },
-            {
-              "team_id": 747,
-              "team": "Barnsley",
-              "shots_inside_box": 17.0,
-              "shots_outside_box": 11.0,
-              "blocked_shots": 4.0,
-              "shots_on_goal": 15.0,
-              "total_shots": 28.0,
-              "yellow_cards": 3.0,
-              "corners": 1.0,
-              "fouls": 14.0,
-              "red_cards": 0.0,
-              "possession": 52.0
-            }
-          ],
-          "totals": {
-            "shots_on_goal": 24.0,
-            "shots_inside_box": 33.0,
-            "fouls": 28.0,
-            "yellow_cards": 6.0,
-            "red_cards": 0.0,
-            "possession": 100.0,
-            "corners": 8.0,
-            "shots_outside_box": 12.0,
-            "blocked_shots": 7.0,
-            "total_shots": 45.0
-          }
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "QUOTA_GUARD",
-      "stage": "POSTGAME",
-      "classification": "WATCH",
-      "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
-      "availability_confidence": null,
-      "fixture": {
         "fixture_id": 1619012,
         "kickoff": "2026-09-15T13:00:00-06:00",
         "timestamp": 1789498800,
@@ -6597,13 +5646,2647 @@
           }
         }
       },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 92.4,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 59.4,
+        "goal_environment_score": 71.8,
+        "two_way_scoring_score": 92.4,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 0,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 0,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 20252,
+              "team": "Real Oruro",
+              "shots_inside_box": 7.0,
+              "shots_outside_box": 10.0,
+              "blocked_shots": 4.0,
+              "shots_on_goal": 4.0,
+              "total_shots": 17.0,
+              "yellow_cards": 2.0,
+              "corners": 8.0,
+              "fouls": 14.0,
+              "red_cards": 0.0,
+              "possession": 59.0
+            },
+            {
+              "team_id": 3708,
+              "team": "Real Potosí",
+              "shots_inside_box": 10.0,
+              "shots_outside_box": 6.0,
+              "blocked_shots": 4.0,
+              "shots_on_goal": 5.0,
+              "total_shots": 16.0,
+              "yellow_cards": 1.0,
+              "corners": 9.0,
+              "fouls": 12.0,
+              "red_cards": 0.0,
+              "possession": 41.0
+            }
+          ],
+          "totals": {
+            "shots_inside_box": 17.0,
+            "possession": 100.0,
+            "yellow_cards": 3.0,
+            "corners": 17.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 16.0,
+            "fouls": 26.0,
+            "blocked_shots": 8.0,
+            "shots_on_goal": 9.0,
+            "total_shots": 33.0
+          }
+        },
+        "player_stats": {
+          "status": "UNAVAILABLE",
+          "fixture_id": 1619012,
+          "error": "Per-tick API budget reached (20); lower-priority work deferred.",
+          "actionable": false,
+          "decision_weight": 0.0,
+          "capture_phase": "POSTGAME"
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1556641,
+        "kickoff": "2026-09-15T12:45:00-06:00",
+        "timestamp": 1789497900,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 179,
+        "league": "Premiership",
+        "country": "Scotland",
+        "season": 2026,
+        "round": "Regular Season - 3",
+        "home_team_id": 1389,
+        "home_team": "Falkirk",
+        "away_team_id": 254,
+        "away_team": "Heart Of Midlothian",
+        "venue": "Falkirk Stadium",
+        "city": "Falkirk",
+        "goals": {
+          "home": 2,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 2,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 79.2,
+        "tracks": [
+          "SIDE",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 71.7,
+        "goal_environment_score": 66.9,
+        "two_way_scoring_score": 79.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 2,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 2,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 1389,
+              "team": "Falkirk",
+              "shots_inside_box": 10.0,
+              "shots_outside_box": 3.0,
+              "blocked_shots": 3.0,
+              "shots_on_goal": 4.0,
+              "total_shots": 13.0,
+              "yellow_cards": 4.0,
+              "corners": 3.0,
+              "fouls": 15.0,
+              "red_cards": 0.0,
+              "possession": 42.0
+            },
+            {
+              "team_id": 254,
+              "team": "Heart Of Midlothian",
+              "shots_inside_box": 6.0,
+              "shots_outside_box": 3.0,
+              "blocked_shots": 3.0,
+              "shots_on_goal": 4.0,
+              "total_shots": 9.0,
+              "yellow_cards": 3.0,
+              "corners": 4.0,
+              "fouls": 13.0,
+              "red_cards": 0.0,
+              "possession": 58.0
+            }
+          ],
+          "totals": {
+            "shots_inside_box": 16.0,
+            "possession": 100.0,
+            "yellow_cards": 7.0,
+            "corners": 7.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 6.0,
+            "fouls": 28.0,
+            "blocked_shots": 6.0,
+            "shots_on_goal": 8.0,
+            "total_shots": 22.0
+          }
+        },
+        "player_stats": {
+          "status": "UNAVAILABLE",
+          "fixture_id": 1556641,
+          "error": "Per-tick API budget reached (20); lower-priority work deferred.",
+          "actionable": false,
+          "decision_weight": 0.0,
+          "capture_phase": "POSTGAME"
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1629058,
+        "kickoff": "2026-09-15T13:00:00-06:00",
+        "timestamp": 1789498800,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 137,
+        "league": "Coppa Italia",
+        "country": "Italy",
+        "season": 2026,
+        "round": "Round of 32",
+        "home_team_id": 502,
+        "home_team": "Fiorentina",
+        "away_team_id": 801,
+        "away_team": "Pisa",
+        "venue": "Stadio Artemio Franchi",
+        "city": "Florence",
+        "goals": {
+          "home": 3,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 75.4,
+        "tracks": [
+          "SIDE",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 75.4,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 69.3,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 3,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 502,
+              "team": "Fiorentina",
+              "shots_inside_box": 8.0,
+              "shots_outside_box": 5.0,
+              "blocked_shots": 3.0,
+              "shots_on_goal": 7.0,
+              "total_shots": 13.0,
+              "yellow_cards": 2.0,
+              "corners": 3.0,
+              "fouls": 17.0,
+              "red_cards": 0.0,
+              "possession": 53.0
+            },
+            {
+              "team_id": 801,
+              "team": "Pisa",
+              "shots_inside_box": 4.0,
+              "shots_outside_box": 2.0,
+              "blocked_shots": 1.0,
+              "shots_on_goal": 0.0,
+              "total_shots": 6.0,
+              "yellow_cards": 2.0,
+              "corners": 0.0,
+              "fouls": 9.0,
+              "red_cards": 0.0,
+              "possession": 47.0
+            }
+          ],
+          "totals": {
+            "shots_inside_box": 12.0,
+            "possession": 100.0,
+            "yellow_cards": 4.0,
+            "corners": 3.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 7.0,
+            "fouls": 26.0,
+            "blocked_shots": 4.0,
+            "shots_on_goal": 7.0,
+            "total_shots": 19.0
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1553112,
+        "kickoff": "2026-09-15T12:30:00-06:00",
+        "timestamp": 1789497000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 106,
+        "league": "Ekstraklasa",
+        "country": "Poland",
+        "season": 2026,
+        "round": "Regular Season - 2",
+        "home_team_id": 346,
+        "home_team": "Korona Kielce",
+        "away_team_id": 340,
+        "away_team": "Gornik Zabrze",
+        "venue": "Exbud Arena",
+        "city": "Kielce",
+        "goals": {
+          "home": 0,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 0,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 73.5,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 55.4,
+        "goal_environment_score": 52.4,
+        "two_way_scoring_score": 73.5,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 0,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 0,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 346,
+              "team": "Korona Kielce",
+              "shots_outside_box": 2.0,
+              "total_shots": 2.0,
+              "yellow_cards": 2.0,
+              "corners": 6.0,
+              "shots_inside_box": 0.0,
+              "blocked_shots": 0.0,
+              "shots_on_goal": 0.0,
+              "fouls": 10.0,
+              "red_cards": 0.0,
+              "possession": 32.0
+            },
+            {
+              "team_id": 340,
+              "team": "Gornik Zabrze",
+              "shots_outside_box": 4.0,
+              "total_shots": 14.0,
+              "yellow_cards": 1.0,
+              "corners": 3.0,
+              "shots_inside_box": 10.0,
+              "blocked_shots": 5.0,
+              "shots_on_goal": 5.0,
+              "fouls": 7.0,
+              "red_cards": 0.0,
+              "possession": 68.0
+            }
+          ],
+          "totals": {
+            "shots_inside_box": 10.0,
+            "possession": 100.0,
+            "yellow_cards": 3.0,
+            "corners": 9.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 6.0,
+            "fouls": 17.0,
+            "blocked_shots": 5.0,
+            "shots_on_goal": 5.0,
+            "total_shots": 16.0
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1635561,
+        "kickoff": "2026-09-15T13:00:00-06:00",
+        "timestamp": 1789498800,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 48,
+        "league": "League Cup",
+        "country": "England",
+        "season": 2026,
+        "round": "Round of 32",
+        "home_team_id": 57,
+        "home_team": "Ipswich",
+        "away_team_id": 42,
+        "away_team": "Arsenal",
+        "venue": "Portman Road",
+        "city": "Ipswich",
+        "goals": {
+          "home": 2,
+          "away": 4
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 2
+          },
+          "fulltime": {
+            "home": 2,
+            "away": 4
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 65.1,
+        "tracks": [
+          "SIDE",
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 64.4,
+        "goal_environment_score": 48.5,
+        "two_way_scoring_score": 65.1,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 2,
+          "away": 4
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 2
+          },
+          "fulltime": {
+            "home": 2,
+            "away": 4
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 57,
+              "team": "Ipswich",
+              "shots_inside_box": 6.0,
+              "shots_outside_box": 2.0,
+              "shots_on_goal": 3.0,
+              "total_shots": 8.0,
+              "yellow_cards": 2.0,
+              "corners": 3.0,
+              "blocked_shots": 0.0,
+              "fouls": 11.0,
+              "red_cards": 0.0,
+              "possession": 42.0
+            },
+            {
+              "team_id": 42,
+              "team": "Arsenal",
+              "shots_inside_box": 9.0,
+              "shots_outside_box": 3.0,
+              "shots_on_goal": 6.0,
+              "total_shots": 12.0,
+              "yellow_cards": 0.0,
+              "corners": 2.0,
+              "blocked_shots": 6.0,
+              "fouls": 13.0,
+              "red_cards": 0.0,
+              "possession": 58.0
+            }
+          ],
+          "totals": {
+            "shots_inside_box": 15.0,
+            "possession": 100.0,
+            "yellow_cards": 2.0,
+            "corners": 5.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 5.0,
+            "fouls": 24.0,
+            "blocked_shots": 6.0,
+            "shots_on_goal": 9.0,
+            "total_shots": 20.0
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-10",
+      "classification": "WATCH",
+      "tier": "B",
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.6,
+      "fixture": {
+        "fixture_id": 1638671,
+        "kickoff": "2026-09-15T16:30:00-06:00",
+        "timestamp": 1789511400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 742,
+        "league": "Copa Paulista",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Quarter-finals",
+        "home_team_id": 20713,
+        "home_team": "Grêmio Prudente",
+        "away_team_id": 7846,
+        "away_team": "Linense",
+        "venue": "Estadio Paulo Constantino",
+        "city": "Presidente Prudente",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 80.3,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 54.6,
+        "goal_environment_score": 19.7,
+        "two_way_scoring_score": 51.9,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 90.6,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 59.7,
+        "goal_environment_score": 9.4,
+        "two_way_scoring_score": 40.5,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 80.3,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 54.6,
+        "goal_environment_score": 19.7,
+        "two_way_scoring_score": 51.9,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "galaxy_source": null,
+      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-15T18:00:30+00:00",
+        "age_minutes": 261.24,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "API_FALLBACK_CURRENT_RUN",
+        "fresh": true,
+        "market_count": 72,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": {
+        "schema_version": "1.0.0",
+        "captured_at_local": "2026-09-15T16:21:44.261138-06:00",
+        "research_only": true,
+        "actionable": false,
+        "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
+        "group_count": 12,
+        "quote_count": 87,
+        "groups": [
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.3
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.29
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.44
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.45
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.5
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.44
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 6.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.1
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.35
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.9
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.3
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.5
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.29
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.27
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.54
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.48
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.43
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.31
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.94
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.68
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 2.02
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betfair",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.25
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.29
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 8.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.44
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.63
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "BetVictor",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.6
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.53
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.3
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.74
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 1.94
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.23
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.56
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.48
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.31
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.71
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 1.94
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.21
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.53
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.72
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.33
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.2
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.53
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.37
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.46
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.3
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 9.4
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.5
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.29
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 1.91
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.27
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.54
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.79
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.34
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.48
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.43
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 4.7
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.14
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 6.2
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.08
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.31
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.94
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.42
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 2.5
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.68
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 2.02
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.08
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.61
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T18:00:30+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.25
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.57
+              }
+            ]
+          }
+        ]
+      },
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 0.8125,
+        "raw_away_goal_rate": 0.4562,
+        "raw_total_goals": 1.2688,
+        "raw_home_win_prob": 0.412398,
+        "raw_draw_prob": 0.395486,
+        "raw_away_win_prob": 0.192117,
+        "raw_btts_yes_prob": 0.20378,
+        "raw_over_2_5_prob": 0.135753,
+        "scoring_path": "MUTUAL SUPPRESSION UNDER",
+        "screen_scores": {
+          "side_edge_score": 54.6,
+          "goal_environment_score": 19.7,
+          "two_way_scoring_score": 51.9,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "NOT_AVAILABLE",
+          "actionable": false
+        }
+      },
+      "market_decision": {
+        "status": "WATCH",
+        "reason": null,
+        "first_half_markets_ignored": null,
+        "first_half_reason": null,
+        "period_markets_ignored": 36,
+        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+        "btts_market_mode": "RESEARCH_ONLY_PENDING_VALIDATION",
+        "galaxy_publication_gate_downgraded": 0,
+        "galaxy_sample_gate_substitutions": null
+      },
+      "best_market": {
+        "family": "TOTAL",
+        "market": "Goals Over/Under",
+        "selection": "under",
+        "line": 1.5,
+        "decimal_price": 2.6,
+        "bookmaker": "BetVictor",
+        "p_breakeven": 0.384615,
+        "p_market_fair": 0.358025,
+        "p_raw": 0.637934,
+        "p_shrunk": 0.40281,
+        "prob_edge_pp": 4.479,
+        "estimated_ev": 0.047306,
+        "shrink_weight": 0.16,
+        "tier": "B",
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-10",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.9,
+      "fixture": {
+        "fixture_id": 1638761,
+        "kickoff": "2026-09-15T16:30:00-06:00",
+        "timestamp": 1789511400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 299,
+        "league": "Primera División",
+        "country": "Venezuela",
+        "season": 2026,
+        "round": "Clausura - 10",
+        "home_team_id": 2807,
+        "home_team": "Deportivo Tachira FC",
+        "away_team_id": 2827,
+        "away_team": "Puerto Cabello",
+        "venue": "Estadio Polideportivo de Pueblo Nuevo",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 71.3,
+        "tracks": [
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 54.7,
+        "goal_environment_score": 49.2,
+        "two_way_scoring_score": 71.3,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 66.5,
+        "tracks": [
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 58.9,
+        "goal_environment_score": 45.8,
+        "two_way_scoring_score": 66.5,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 71.3,
+        "tracks": [
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 54.7,
+        "goal_environment_score": 49.2,
+        "two_way_scoring_score": 71.3,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "galaxy_source": null,
+      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-15T20:09:14+00:00",
+        "age_minutes": 132.5,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "API_FALLBACK_CURRENT_RUN",
+        "fresh": true,
+        "market_count": 90,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": {
+        "schema_version": "1.0.0",
+        "captured_at_local": "2026-09-15T16:21:44.261138-06:00",
+        "research_only": true,
+        "actionable": false,
+        "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
+        "group_count": 16,
+        "quote_count": 143,
+        "groups": [
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.1
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.3
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.06
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 29.0
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.44
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.62
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.45
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.5
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 5.8
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.11
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.33
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.1
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.38
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.53
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 6.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.3
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.4
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 1.78
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 2.02
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.12
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.28
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.44
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.45
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.08
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.64
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.39
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.46
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.28
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.08
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.62
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 2.11
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 6.35
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.06
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 4.6
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.13
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.01
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.67
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 7.2
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.04
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.47
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.44
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 4.75
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 3.28
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.26
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.75
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.9
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 6.85
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 5.1
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.11
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.11
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.6
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betfair",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.2
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.3
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 8.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.44
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.63
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "BetVictor",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.4
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.29
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 9.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.49
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.39
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.68
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 2.02
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.1
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.63
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.58
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.42
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 8",
+                "line": 8.0,
+                "decimal_price": 1.82
+              },
+              {
+                "selection": "Under 8",
+                "line": 8.0,
+                "decimal_price": 1.98
+              },
+              {
+                "selection": "Over 8.5",
+                "line": 8.5,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Under 8.5",
+                "line": 8.5,
+                "decimal_price": 1.73
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (3 way)",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Exactly 1",
+                "line": null,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Exactly 2",
+                "line": null,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Over 2",
+                "line": 2.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Exactly 3",
+                "line": null,
+                "decimal_price": 21.0
+              },
+              {
+                "selection": "Over 3",
+                "line": 3.0,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Under 3",
+                "line": 3.0,
+                "decimal_price": 29.0
+              },
+              {
+                "selection": "Exactly 4",
+                "line": null,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.07
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Exactly 5",
+                "line": null,
+                "decimal_price": 9.5
+              },
+              {
+                "selection": "Over 5",
+                "line": 5.0,
+                "decimal_price": 1.17
+              },
+              {
+                "selection": "Under 5",
+                "line": 5.0,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Exactly 8",
+                "line": null,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "Over 8",
+                "line": 8.0,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Under 8",
+                "line": 8.0,
+                "decimal_price": 2.2
+              },
+              {
+                "selection": "Exactly 9",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 9",
+                "line": 9.0,
+                "decimal_price": 2.75
+              },
+              {
+                "selection": "Under 9",
+                "line": 9.0,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Exactly 10",
+                "line": null,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Over 10",
+                "line": 10.0,
+                "decimal_price": 4.0
+              },
+              {
+                "selection": "Under 10",
+                "line": 10.0,
+                "decimal_price": 1.4
+              },
+              {
+                "selection": "Exactly 11",
+                "line": null,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Over 11",
+                "line": 11.0,
+                "decimal_price": 6.0
+              },
+              {
+                "selection": "Under 11",
+                "line": 11.0,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Exactly 7",
+                "line": null,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "Over 7",
+                "line": 7.0,
+                "decimal_price": 1.62
+              },
+              {
+                "selection": "Under 7",
+                "line": 7.0,
+                "decimal_price": 3.25
+              },
+              {
+                "selection": "Exactly 12",
+                "line": null,
+                "decimal_price": 15.0
+              },
+              {
+                "selection": "Over 12",
+                "line": 12.0,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Under 12",
+                "line": 12.0,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Exactly 6",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 6",
+                "line": 6.0,
+                "decimal_price": 1.33
+              },
+              {
+                "selection": "Under 6",
+                "line": 6.0,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Exactly 13",
+                "line": null,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Over 13",
+                "line": 13.0,
+                "decimal_price": 15.0
+              },
+              {
+                "selection": "Under 13",
+                "line": 13.0,
+                "decimal_price": 1.07
+              },
+              {
+                "selection": "Exactly 14",
+                "line": null,
+                "decimal_price": 23.0
+              },
+              {
+                "selection": "Over 14",
+                "line": 14.0,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Under 14",
+                "line": 14.0,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Exactly 19",
+                "line": null,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Over 19",
+                "line": 19.0,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Exactly 17",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 17",
+                "line": 17.0,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Exactly 18",
+                "line": null,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Over 18",
+                "line": 18.0,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Exactly 16",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 16",
+                "line": 16.0,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Under 16",
+                "line": 16.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Exactly 15",
+                "line": null,
+                "decimal_price": 29.0
+              },
+              {
+                "selection": "Over 15",
+                "line": 15.0,
+                "decimal_price": 26.0
+              },
+              {
+                "selection": "Under 15",
+                "line": 15.0,
+                "decimal_price": 1.02
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 1.78
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 2.02
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners. Total (Range)",
+            "provider_update": "2026-09-15T20:09:14+00:00",
+            "values": [
+              {
+                "selection": "Under 6",
+                "line": 6.0,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "6 - 8",
+                "line": null,
+                "decimal_price": 2.4
+              },
+              {
+                "selection": "9 - 11",
+                "line": null,
+                "decimal_price": 3.0
+              },
+              {
+                "selection": "12 - 14",
+                "line": null,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "Over 14",
+                "line": 14.0,
+                "decimal_price": 19.0
+              }
+            ]
+          }
+        ],
+        "contains_corner_markets": true
+      },
+      "lineups": {
+        "lineup_state": "CONFIRMED_API",
+        "both_xi_confirmed": true,
+        "both_goalkeepers_confirmed": true,
+        "teams": [
+          {
+            "team_id": 2807,
+            "team": "Deportivo Tachira FC",
+            "formation": "4-2-3-1",
+            "goalkeepers": [
+              {
+                "id": 52810,
+                "name": "A. Araque",
+                "number": 1,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          },
+          {
+            "team_id": 2827,
+            "team": "Puerto Cabello",
+            "formation": "4-3-3",
+            "goalkeepers": [
+              {
+                "id": 53093,
+                "name": "J. Graterol",
+                "number": 1,
+                "pos": "G",
+                "grid": "1:1"
+              }
+            ]
+          }
+        ]
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 1.3406,
+        "raw_away_goal_rate": 0.9813,
+        "raw_total_goals": 2.3219,
+        "raw_home_win_prob": 0.449744,
+        "raw_draw_prob": 0.276302,
+        "raw_away_win_prob": 0.273955,
+        "raw_btts_yes_prob": 0.461565,
+        "raw_over_2_5_prob": 0.409754,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 54.7,
+          "goal_environment_score": 49.2,
+          "two_way_scoring_score": 71.3,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "RESEARCH_ONLY_SHADOW",
+          "actionable": false,
+          "projection_model": "LEAGUE_RELATIVE_STRENGTH_POISSON_v0.2",
+          "baseline_source": "PAIR_COMPLEMENTARY_VENUE_BASELINE",
+          "sample": {
+            "home_home_played": 14,
+            "away_away_played": 15,
+            "minimum_split_sample": 14,
+            "shrinkage_prior_games": 5.0
+          },
+          "strengths": {
+            "home_attack": 1.191,
+            "home_defensive_weakness": 1.1463,
+            "away_attack": 1.0827,
+            "away_defensive_weakness": 0.7951,
+            "baseline_home_goals": 1.35,
+            "baseline_away_goals": 0.85
+          },
+          "challenger": {
+            "raw_home_goal_rate": 1.2785,
+            "raw_away_goal_rate": 1.0549,
+            "raw_total_goals": 2.3334,
+            "raw_home_win_prob": 0.415243,
+            "raw_draw_prob": 0.27903,
+            "raw_away_win_prob": 0.305727,
+            "raw_btts_yes_prob": 0.470294,
+            "raw_over_1_5_prob": 0.676784,
+            "raw_over_2_5_prob": 0.412809,
+            "raw_over_3_5_prob": 0.207485
+          },
+          "baseline": {
+            "raw_home_goal_rate": 1.3406,
+            "raw_away_goal_rate": 0.9813,
+            "raw_total_goals": 2.3219,
+            "raw_home_win_prob": 0.449744,
+            "raw_draw_prob": 0.276302,
+            "raw_away_win_prob": 0.273955,
+            "raw_btts_yes_prob": 0.461565,
+            "raw_over_1_5_prob": 0.674159,
+            "raw_over_2_5_prob": 0.409754,
+            "raw_over_3_5_prob": 0.205115
+          },
+          "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
+        }
+      },
+      "market_decision": {
+        "status": "WATCH",
+        "reason": null,
+        "first_half_markets_ignored": null,
+        "first_half_reason": null,
+        "period_markets_ignored": 33,
+        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+        "btts_market_mode": "RESEARCH_ONLY_PENDING_VALIDATION",
+        "galaxy_publication_gate_downgraded": 0,
+        "galaxy_sample_gate_substitutions": null
+      },
+      "best_market": {
+        "family": "1X2",
+        "market": "Match Winner",
+        "selection": "home",
+        "line": null,
+        "decimal_price": 2.2,
+        "bookmaker": "William Hill",
+        "p_breakeven": 0.454545,
+        "p_market_fair": 0.416667,
+        "p_raw": 0.449744,
+        "p_shrunk": 0.425267,
+        "prob_edge_pp": 0.86,
+        "estimated_ev": -0.064413,
+        "shrink_weight": 0.26,
+        "tier": null,
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
+      "notes": [
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "QUOTA_GUARD",
+      "stage": "T-40",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1493544,
+        "kickoff": "2026-09-15T17:00:00-06:00",
+        "timestamp": 1789513200,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 255,
+        "league": "USL Championship",
+        "country": "USA",
+        "season": 2026,
+        "round": "Group Stage",
+        "home_team_id": 3996,
+        "home_team": "Indy Eleven",
+        "away_team_id": 27252,
+        "away_team": "Brooklyn",
+        "venue": "Michael A. Carroll Stadium",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
       "coverage": null,
       "sporting_shortlist": null,
       "sporting_screen_initial": null,
       "sporting_screen_refined": null,
       "galaxy_source": null,
       "market_source": null,
-      "market_provenance": null,
+      "market_provenance": {
+        "source": "NOT_VERIFIED",
+        "source_raw": null,
+        "latest_market_timestamp": null,
+        "age_minutes": null,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "NOT_VERIFIED",
+        "fresh": false,
+        "market_count": 0,
+        "fallback_reason": "NO_VERIFIED_MARKET",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
       "trend_context": {
         "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
         "actionable": false,
