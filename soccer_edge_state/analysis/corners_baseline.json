@@ -1,0 +1,31 @@
+{
+  "baseline": {
+    "lines": {},
+    "mae_total_corners": null,
+    "n": 0
+  },
+  "baseline_method": "LEAGUE_HOME_AWAY_CORNERS_X_SHRUNK_TEAM_ATTACK_X_OPPONENT_DEFENSE_WEAKNESS",
+  "evaluations": [],
+  "formation_adjusted_evaluations": 0,
+  "formation_challenger": {
+    "lines": {},
+    "mae_total_corners": null,
+    "n": 0
+  },
+  "policy": "NO_ACTIONABLE_CORNERS_PICK; WALK_FORWARD_ONLY; FORMATION_MUST_ADD_OOS_LIFT_OVER_TEAM_LEAGUE_BASELINE",
+  "promotion_gate": {
+    "enabled": false,
+    "minimum_formation_adjusted_evaluations": 100,
+    "minimum_oos_evaluations": 150,
+    "requires": [
+      "lower total-corners MAE",
+      "lower Brier and log-loss across relevant market lines",
+      "stable lift across leagues",
+      "verified market-price CLV evidence"
+    ]
+  },
+  "rows_with_verified_postgame_corners": 0,
+  "schema_version": "1.0.0",
+  "status": "RESEARCH_ONLY_CORNERS_BASELINE",
+  "walk_forward_evaluations": 0
+}
