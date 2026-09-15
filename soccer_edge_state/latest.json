@@ -1,25 +1,25 @@
 {
   "service": "soccer-edge-automation",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T05:01:24.464887+00:00",
-  "generated_at_local": "2026-09-14T23:01:24.464887-06:00",
+  "generated_at_utc": "2026-09-15T05:08:12.453467+00:00",
+  "generated_at_local": "2026-09-14T23:08:12.453467-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 403,
-  "due_fixture_count": 1,
+  "due_fixture_count": 0,
   "event_count": 1,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 2,
+  "api_calls_this_tick": 3,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7411,
+  "last_daily_remaining": 7408,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
   "deep_dive_processed_count": 0,
   "shortlist_event_count": 0,
-  "screened_out_low_data_count": 1,
+  "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -84,7 +84,7 @@
   "tier_policy": "GALAXY_FT_TOTALS_TIER_B_OR_LEAN_ACTIONABLE_IF_ALL_OTHER_GATES_PASS; A_S_WATCH_PENDING_CROSS_MODEL_VALIDATION",
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-14T23:01:24.464887-06:00",
+    "generated_at_local": "2026-09-14T23:08:12.453467-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -3706,7 +3706,10 @@
         "galaxy_activation_required": false,
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       }
-    ]
+    ],
+    "competition_rows_attached": 164,
+    "competitions_truncated": false,
+    "max_competition_rows": 300
   },
   "presentation_contract": {
     "default_format": "MARKDOWN_TABLES",
@@ -3737,21 +3740,44 @@
       "Separate BET, LEAN, WATCH and PASS-summary sections.",
       "Within each section divide by country/competition when useful.",
       "Never hide NOT VERIFIED availability or market information."
-    ]
+    ],
+    "state_bounds": {
+      "registry": {
+        "competition_count": 164,
+        "rows_attached": 164,
+        "truncated": false,
+        "max_rows": 300
+      },
+      "match_tables": {
+        "row_count": 0,
+        "rows_attached": 0,
+        "truncated": false,
+        "max_rows": 200,
+        "classification_counts": {}
+      }
+    },
+    "validation": {
+      "valid": true,
+      "error_count": 0,
+      "warning_count": 0,
+      "errors": [],
+      "warnings": []
+    },
+    "display_timezone": "America/Mexico_City"
   },
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
   "match_table_rows": [],
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7411",
+    "daily_remaining": "7409",
     "per_minute_remaining": "298"
   },
   "database_persisted": false,
   "events": [
     {
-      "event_type": "LOW_DATA_SCREEN_SUMMARY",
-      "stage": "SLATE_SCREEN",
-      "classification": "PASS",
+      "event_type": "DAILY_DISCOVERY",
+      "stage": "LATE_DISCOVERY",
+      "classification": "PRE-FINAL",
       "tier": null,
       "stake_units": null,
       "bet_eligible": null,
@@ -3770,8 +3796,9 @@
       "market_decision": null,
       "best_market": null,
       "notes": [
-        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
-        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
+        "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
+        "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
+        "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
       ],
       "result": null,
       "error": null
