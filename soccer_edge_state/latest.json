@@ -2,25 +2,25 @@
   "service": "soccer-edge-automation",
   "version": "3.2.1",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T16:08:28.066602+00:00",
-  "generated_at_local": "2026-09-15T10:08:28.066602-06:00",
+  "generated_at_utc": "2026-09-15T16:25:33.630380+00:00",
+  "generated_at_local": "2026-09-15T10:25:33.630380-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 244,
-  "due_fixture_count": 10,
-  "event_count": 5,
-  "actionable_refresh_count": 1,
+  "due_fixture_count": 64,
+  "event_count": 6,
+  "actionable_refresh_count": 5,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 10,
+  "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6772,
+  "last_daily_remaining": 6738,
   "daily_budget_mode": "NORMAL",
-  "deferred_due_to_budget": 0,
+  "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 3,
+  "deep_dive_processed_count": 4,
   "shortlist_event_count": 3,
-  "screened_out_low_data_count": 7,
-  "market_requests_avoided_by_sport_screen": 0,
+  "screened_out_low_data_count": 0,
+  "market_requests_avoided_by_sport_screen": 1,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
   "urgent_late_shortlist_due": 1,
@@ -34,19 +34,19 @@
   "dedicated_close_snapshots_this_tick": 0,
   "dedicated_close_quotes_this_tick": 0,
   "clv_close_policy": "PERSIST_CANONICAL_FT_CLOSE_QUOTES; TRUE_CLV_ONLY_WHEN_CAPTURED_BEFORE_KICKOFF; LATE_CLOSE_SNAPSHOTS_RETAINED_BUT_NOT_LABELED_TRUE_PREKICKOFF_CLOSE",
-  "derivative_research_snapshots_this_tick": 1,
-  "derivative_research_quotes_this_tick": 86,
-  "one_h_market_groups_this_tick": 7,
-  "two_h_market_groups_this_tick": 5,
+  "derivative_research_snapshots_this_tick": 3,
+  "derivative_research_quotes_this_tick": 261,
+  "one_h_market_groups_this_tick": 21,
+  "two_h_market_groups_this_tick": 15,
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
-  "relative_strength_1x2_shadow_count_this_tick": 0,
+  "relative_strength_1x2_shadow_count_this_tick": 1,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
   "trend_context_count_this_tick": 0,
   "trend_signal_count_this_tick": 0,
   "trend_model_disagreement_count_this_tick": 0,
   "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
-  "player_trend_fixture_calls_attempted_this_tick": 1,
-  "player_trend_fixtures_captured_this_tick": 1,
+  "player_trend_fixture_calls_attempted_this_tick": 2,
+  "player_trend_fixtures_captured_this_tick": 0,
   "player_trend_players_captured_this_tick": 0,
   "player_trend_max_fixture_calls_per_tick": 2,
   "player_trend_policy": "SELECTIVE_T40_T20_T10_ONLY; MAX_2_FIXTURES_PER_TICK; RESEARCH_ONLY; ZERO_DECISION_WEIGHT; NO_BET_UPGRADE",
@@ -61,33 +61,33 @@
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 1,
-    "galaxy_fixture_hits": 0,
-    "galaxy_fixture_misses": 1,
-    "galaxy_raw_used": 0,
-    "galaxy_raw_fallbacks": 1,
-    "api_team_stats_calls_avoided": 0,
+    "galaxy_fixture_reads": 5,
+    "galaxy_fixture_hits": 1,
+    "galaxy_fixture_misses": 4,
+    "galaxy_raw_used": 1,
+    "galaxy_raw_fallbacks": 4,
+    "api_team_stats_calls_avoided": 2,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
-    "galaxy_odds_stale_or_missing": 1,
-    "galaxy_slate_reads": 0,
+    "galaxy_odds_stale_or_missing": 3,
+    "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
-    "galaxy_slate_fallbacks": 0,
-    "galaxy_slate_stale_rejections": 0,
+    "galaxy_slate_fallbacks": 1,
+    "galaxy_slate_stale_rejections": 1,
     "api_slate_calls_avoided": 0,
-    "api_slate_reconciliation_calls": 1,
+    "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 0,
-    "odds_market_events": 1,
+    "provider_requests_avoided": 2,
+    "odds_market_events": 5,
     "galaxy_odds_market_events": 0,
-    "api_odds_fallback_events": 1,
-    "not_verified_odds_market_events": 0,
+    "api_odds_fallback_events": 3,
+    "not_verified_odds_market_events": 2,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
     "odds_provenance_accounting_valid": true,
-    "odds_provenance_metadata_repairs": 1,
+    "odds_provenance_metadata_repairs": 3,
     "unverified_market_source_safety_blocks": 0
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T10:08:28.066602-06:00",
+    "generated_at_local": "2026-09-15T10:25:33.630380-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2241,13 +2241,13 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 3,
-        "rows_attached": 3,
+        "row_count": 5,
+        "rows_attached": 5,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "WATCH": 1,
-          "POSTGAME": 2
+          "WATCH": 4,
+          "PASS": 1
         }
       }
     },
@@ -2265,12 +2265,37 @@
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
   "match_table_rows": [
     {
+      "fixture_id": 1612244,
+      "country": "Egypt",
+      "competition": "Premier League",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T11:00:00-06:00",
+      "stage": "T-40",
+      "home": "Al Ahly",
+      "away": "Abu Qair Semad",
+      "tracks": [],
+      "side_score": null,
+      "goals_score": null,
+      "two_way_score": null,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "Per-tick API budget reached (20); lower-priority work deferred."
+    },
+    {
       "fixture_id": 1555504,
       "country": "Israel",
       "competition": "Ligat Ha'al",
       "data_tier": "B",
       "kickoff": "2026-09-15T10:30:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Ironi Tiberias",
       "away": "Hapoel Katamon",
       "tracks": [
@@ -2293,47 +2318,75 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1612243,
-      "country": "Egypt",
-      "competition": "Premier League",
+      "fixture_id": 1555500,
+      "country": "Israel",
+      "competition": "Ligat Ha'al",
       "data_tier": "B",
-      "kickoff": "2026-09-15T08:00:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Wadi Degla",
-      "away": "El Mokawloon",
+      "kickoff": "2026-09-15T11:00:00-06:00",
+      "stage": "T-40",
+      "home": "Beitar Jerusalem",
+      "away": "Maccabi Petah Tikva",
       "tracks": [
-        "GOALS_UNDER"
+        "SIDE",
+        "GOALS_OVER",
+        "TWO_WAY"
       ],
-      "side_score": 50.6,
-      "goals_score": 8.3,
-      "two_way_score": 50.0,
-      "availability_confidence": null,
+      "side_score": 89.5,
+      "goals_score": 88.8,
+      "two_way_score": 90.3,
+      "availability_confidence": 0.7,
       "market_source": null,
-      "market": null,
-      "selection": null,
+      "market": "Match Winner",
+      "selection": "away",
       "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
+      "price": 5.5,
+      "bookmaker": "William Hill",
+      "classification": "WATCH",
+      "tier": "S",
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1555368,
+      "country": "Switzerland",
+      "competition": "Super League",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T11:00:00-06:00",
+      "stage": "T-40",
+      "home": "Grasshoppers",
+      "away": "FC Sion",
+      "tracks": [
+        "GOALS_OVER",
+        "TWO_WAY"
+      ],
+      "side_score": 57.4,
+      "goals_score": 94.4,
+      "two_way_score": 100.0,
+      "availability_confidence": 0.7,
+      "market_source": null,
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 1.39,
+      "bookmaker": "Marathonbet",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1612242,
-      "country": "Egypt",
-      "competition": "Premier League",
-      "data_tier": "B",
-      "kickoff": "2026-09-15T08:00:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Asyut Petrol",
-      "away": "Future FC",
-      "tracks": [
-        "GOALS_UNDER"
-      ],
-      "side_score": 52.0,
-      "goals_score": 33.2,
-      "two_way_score": 64.5,
+      "fixture_id": 1570391,
+      "country": "Spain",
+      "competition": "La Liga",
+      "data_tier": "A",
+      "kickoff": "2026-09-15T11:00:00-06:00",
+      "stage": "T-40",
+      "home": "Rayo Vallecano",
+      "away": "Espanyol",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2341,15 +2394,15 @@
       "line": null,
       "price": null,
       "bookmaker": null,
-      "classification": "POSTGAME",
+      "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
     }
   ],
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6781",
+    "daily_remaining": "6757",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -2388,7 +2441,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": "B",
       "stake_units": 0.0,
@@ -2480,7 +2533,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-15T12:34:15+00:00",
-        "age_minutes": 214.22,
+        "age_minutes": 231.31,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -2495,17 +2548,16 @@
         "decision_weight": 0.0
       },
       "player_trends_research": {
-        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+        "status": "UNAVAILABLE",
+        "fixture_id": 1555504,
+        "error": "Per-tick API budget reached (20); lower-priority work deferred.",
         "actionable": false,
-        "decision_weight": 0.0,
-        "teams": [],
-        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-        "fixture_id": 1555504
+        "decision_weight": 0.0
       },
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-15T10:08:28.066602-06:00",
+        "captured_at_local": "2026-09-15T10:25:33.630380-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -3514,42 +3566,42 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
+      "stage": "T-40",
+      "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1612243,
-        "kickoff": "2026-09-15T08:00:00-06:00",
-        "timestamp": 1789480800,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 233,
-        "league": "Premier League",
-        "country": "Egypt",
+        "fixture_id": 1570391,
+        "kickoff": "2026-09-15T11:00:00-06:00",
+        "timestamp": 1789491600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 140,
+        "league": "La Liga",
+        "country": "Spain",
         "season": 2026,
-        "round": "Regular Season - 5",
-        "home_team_id": 1046,
-        "home_team": "Wadi Degla",
-        "away_team_id": 1575,
-        "away_team": "El Mokawloon",
-        "venue": "Petrosport Stadium",
-        "city": "Cairo",
+        "round": "Regular Season - 6",
+        "home_team_id": 728,
+        "home_team": "Rayo Vallecano",
+        "away_team_id": 540,
+        "away_team": "Espanyol",
+        "venue": "Municipal de Butarque",
+        "city": "Leganes",
         "goals": {
-          "home": 0,
-          "away": 2
+          "home": null,
+          "away": null
         },
         "score": {
           "halftime": {
-            "home": 0,
-            "away": 0
+            "home": null,
+            "away": null
           },
           "fulltime": {
-            "home": 0,
-            "away": 2
+            "home": null,
+            "away": null
           },
           "extratime": {
             "home": null,
@@ -3562,890 +3614,149 @@
         }
       },
       "coverage": {
-        "data_tier": "B"
+        "data_tier": "A"
       },
       "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 91.7,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 50.6,
-        "goal_environment_score": 8.3,
-        "two_way_scoring_score": 50.0,
-        "reason": "SPORTING_SCREEN_PASS"
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
       },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-15T10:37:09.413173+00:00",
+        "external_api_calls": 0
+      },
       "market_source": null,
-      "market_provenance": null,
+      "market_provenance": {
+        "source": "NOT_VERIFIED",
+        "source_raw": null,
+        "latest_market_timestamp": null,
+        "age_minutes": null,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "NOT_VERIFIED",
+        "fresh": false,
+        "market_count": 0,
+        "fallback_reason": "NO_VERIFIED_MARKET",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
       "trend_context": {
         "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
         "actionable": false,
         "decision_weight": 0.0
       },
-      "player_trends_research": null,
+      "player_trends_research": {
+        "status": "UNAVAILABLE",
+        "fixture_id": 1570391,
+        "error": "Per-tick API budget reached (20); lower-priority work deferred.",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
       "lineups": null,
-      "raw_projection": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-15T10:37:09.413173+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
       "market_decision": null,
       "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 0,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 1046,
-              "team": "Wadi Degla",
-              "shots_inside_box": 8.0,
-              "blocked_shots": 2.0,
-              "shots_on_goal": 3.0,
-              "total_shots": 8.0,
-              "yellow_cards": 3.0,
-              "corners": 7.0,
-              "red_cards": 0.0,
-              "shots_outside_box": 0.0,
-              "fouls": 10.0,
-              "possession": 60.0
-            },
-            {
-              "team_id": 1575,
-              "team": "El Mokawloon",
-              "shots_inside_box": 5.0,
-              "blocked_shots": 1.0,
-              "shots_on_goal": 4.0,
-              "total_shots": 7.0,
-              "yellow_cards": 1.0,
-              "corners": 4.0,
-              "red_cards": 0.0,
-              "shots_outside_box": 2.0,
-              "fouls": 9.0,
-              "possession": 40.0
-            }
-          ],
-          "totals": {
-            "fouls": 19.0,
-            "total_shots": 15.0,
-            "blocked_shots": 3.0,
-            "corners": 11.0,
-            "shots_inside_box": 13.0,
-            "yellow_cards": 4.0,
-            "red_cards": 0.0,
-            "possession": 100.0,
-            "shots_on_goal": 7.0,
-            "shots_outside_box": 2.0
-          }
-        },
-        "player_stats": {
-          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "teams": [
-            {
-              "team_id": 1046,
-              "team": "Wadi Degla",
-              "players": [
-                {
-                  "player_id": 17135,
-                  "name": "Mohamed Abdel Aati",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 6.18,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 60.0,
-                  "key_passes": 4.0,
-                  "tackles": 1.0,
-                  "duels": 10.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 298227,
-                  "name": "Kamal Abou Elfetouh",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 5.82,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 1.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 62.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 8.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 630180,
-                  "name": "A. Mahmoud",
-                  "minutes": 85.0,
-                  "position": "M",
-                  "rating": 6.27,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 26.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 10.0,
-                  "duels_won": 6.0
-                },
-                {
-                  "player_id": 628522,
-                  "name": "Z. Seyam",
-                  "minutes": 0.0,
-                  "position": "G",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 639231,
-                  "name": "S. Teka",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.07,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 45.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 4.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 578896,
-                  "name": "Zizo",
-                  "minutes": 74.0,
-                  "position": "M",
-                  "rating": 5.85,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 3.0,
-                  "shots_on_target": 1.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 13.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 7.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 525834,
-                  "name": "Mahmoud Diasty",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 6.64,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 3.0,
-                  "shots_on_target": 1.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 26.0,
-                  "key_passes": 2.0,
-                  "tackles": 0.0,
-                  "duels": 13.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 525833,
-                  "name": "Ibrahim El Bahnasi",
-                  "minutes": 45.0,
-                  "position": "M",
-                  "rating": 6.08,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 3.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 2.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 498565,
-                  "name": "Ahmed Farouk",
-                  "minutes": 85.0,
-                  "position": "F",
-                  "rating": 6.29,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 4.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 3.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 17224,
-                  "name": "Amr Hossam",
-                  "minutes": 90.0,
-                  "position": "G",
-                  "rating": 5.68,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 22.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 353347,
-                  "name": "Shady Maher",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.48,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 34.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 7.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 325882,
-                  "name": "Ahmed Reda",
-                  "minutes": 85.0,
-                  "position": "D",
-                  "rating": 5.86,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 48.0,
-                  "key_passes": 0.0,
-                  "tackles": 3.0,
-                  "duels": 11.0,
-                  "duels_won": 8.0
-                },
-                {
-                  "player_id": 498461,
-                  "name": "Mohamed Juhayna",
-                  "minutes": 5.0,
-                  "position": "M",
-                  "rating": 6.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 334711,
-                  "name": "Omar Adly",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 628524,
-                  "name": "H. Hassan",
-                  "minutes": 5.0,
-                  "position": "F",
-                  "rating": 6.4,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 38825,
-                  "name": "M. Kaandorp",
-                  "minutes": 0.0,
-                  "position": "M",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 525837,
-                  "name": "Ahmed Scholes",
-                  "minutes": 45.0,
-                  "position": "M",
-                  "rating": 5.89,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 1.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 23.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 5.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 525838,
-                  "name": "Youssef Oya",
-                  "minutes": 16.0,
-                  "position": "F",
-                  "rating": 6.66,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 10.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 5.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 294739,
-                  "name": "Ahmed Dahroug",
-                  "minutes": 5.0,
-                  "position": "D",
-                  "rating": 5.69,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 2.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 525917,
-                  "name": "Ahmed Refaat",
-                  "minutes": 0.0,
-                  "position": "F",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                }
-              ]
-            },
-            {
-              "team_id": 1575,
-              "team": "El Mokawloon",
-              "players": [
-                {
-                  "player_id": 295236,
-                  "name": "Shady Hussein",
-                  "minutes": 64.0,
-                  "position": "F",
-                  "rating": 6.16,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 10.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 8.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 16885,
-                  "name": "Omar Kamal",
-                  "minutes": 89.0,
-                  "position": "M",
-                  "rating": 6.59,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 4.0,
-                  "shots_on_target": 2.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 19.0,
-                  "key_passes": 1.0,
-                  "tackles": 1.0,
-                  "duels": 11.0,
-                  "duels_won": 6.0
-                },
-                {
-                  "player_id": 16956,
-                  "name": "Omar El Wahsh",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 6.16,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 29.0,
-                  "key_passes": 1.0,
-                  "tackles": 2.0,
-                  "duels": 3.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 394602,
-                  "name": "D. Dokou",
-                  "minutes": 64.0,
-                  "position": "M",
-                  "rating": 6.34,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 19.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 7.0,
-                  "duels_won": 5.0
-                },
-                {
-                  "player_id": 395078,
-                  "name": "Mohamed Fawzi",
-                  "minutes": 90.0,
-                  "position": "G",
-                  "rating": 7.31,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 31.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 2.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 2661,
-                  "name": "Islam Gaber",
-                  "minutes": 79.0,
-                  "position": "M",
-                  "rating": 6.42,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 18.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 13.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 550380,
-                  "name": "Mostafa Gamal",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 6.96,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 1.0,
-                  "goals": 1.0,
-                  "assists": 0.0,
-                  "passes": 9.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 7.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 342766,
-                  "name": "Mohamed Hamed",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.81,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 26.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 7.0,
-                  "duels_won": 5.0
-                },
-                {
-                  "player_id": 526177,
-                  "name": "Hassan Hussein",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.32,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 26.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 4.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 440669,
-                  "name": "Ahmed Magdy Kahraba",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 7.17,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 1.0,
-                  "passes": 29.0,
-                  "key_passes": 3.0,
-                  "tackles": 2.0,
-                  "duels": 7.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 73798,
-                  "name": "J. Ochaya",
-                  "minutes": 79.0,
-                  "position": "D",
-                  "rating": 6.37,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 29.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 6.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Ibrahim Adel",
-                  "minutes": 1.0,
-                  "position": null,
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Anas Baniowda",
-                  "minutes": 0.0,
-                  "position": null,
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 632108,
-                  "name": "M. Rifaat",
-                  "minutes": 26.0,
-                  "position": "F",
-                  "rating": 6.57,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 8.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 5.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 284757,
-                  "name": "Nader Hesham",
-                  "minutes": 11.0,
-                  "position": "D",
-                  "rating": 6.72,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 2.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 16910,
-                  "name": "Mahmoud Abou El Saoud",
-                  "minutes": 0.0,
-                  "position": "G",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 647025,
-                  "name": "M. Sandouqa",
-                  "minutes": 11.0,
-                  "position": "M",
-                  "rating": 6.5,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 4.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 3.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Idrissa Thiam",
-                  "minutes": 26.0,
-                  "position": null,
-                  "rating": 7.73,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 1.0,
-                  "goals": 1.0,
-                  "assists": 0.0,
-                  "passes": 4.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 1.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 433596,
-                  "name": "A. Aouled Behi",
-                  "minutes": 0.0,
-                  "position": "M",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Youssef Ahmed Ramadan",
-                  "minutes": 0.0,
-                  "position": null,
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                }
-              ]
-            }
-          ],
-          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-          "fixture_id": 1612243,
-          "capture_phase": "POSTGAME"
-        }
-      },
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
+      "stage": "T-40",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": null,
+      "availability_confidence": 0.7,
       "fixture": {
-        "fixture_id": 1612242,
-        "kickoff": "2026-09-15T08:00:00-06:00",
-        "timestamp": 1789480800,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 233,
-        "league": "Premier League",
-        "country": "Egypt",
+        "fixture_id": 1555368,
+        "kickoff": "2026-09-15T11:00:00-06:00",
+        "timestamp": 1789491600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 207,
+        "league": "Super League",
+        "country": "Switzerland",
         "season": 2026,
-        "round": "Regular Season - 5",
-        "home_team_id": 18021,
-        "home_team": "Asyut Petrol",
-        "away_team_id": 16431,
-        "away_team": "Future FC",
-        "venue": "Asyut University Stadium",
-        "city": "Asyut",
+        "round": "Regular Season - 4",
+        "home_team_id": 1013,
+        "home_team": "Grasshoppers",
+        "away_team_id": 630,
+        "away_team": "FC Sion",
+        "venue": "Letzigrund Stadion",
+        "city": null,
         "goals": {
-          "home": 0,
-          "away": 2
+          "home": null,
+          "away": null
         },
         "score": {
           "halftime": {
-            "home": 0,
-            "away": 1
+            "home": null,
+            "away": null
           },
           "fulltime": {
-            "home": 0,
-            "away": 2
+            "home": null,
+            "away": null
           },
           "extratime": {
             "home": null,
@@ -4462,20 +3773,55 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 66.8,
+        "rank": 100.0,
         "tracks": [
-          "GOALS_UNDER"
+          "GOALS_OVER",
+          "TWO_WAY"
         ],
-        "side_edge_score": 52.0,
-        "goal_environment_score": 33.2,
-        "two_way_scoring_score": 64.5,
+        "side_edge_score": 57.4,
+        "goal_environment_score": 94.4,
+        "two_way_scoring_score": 100.0,
         "reason": "SPORTING_SCREEN_PASS"
       },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 58.3,
+        "goal_environment_score": 92.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 57.4,
+        "goal_environment_score": 94.4,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
       "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
+      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-15T12:33:14+00:00",
+        "age_minutes": 232.33,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "API_FALLBACK_CURRENT_RUN",
+        "fresh": true,
+        "market_count": 128,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
       "trend_context": {
         "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
         "actionable": false,
@@ -4483,25 +3829,1447 @@
       },
       "player_trends_research": null,
       "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
+      "derivative_research_market_snapshot": {
+        "schema_version": "1.0.0",
+        "captured_at_local": "2026-09-15T10:25:33.630380-06:00",
+        "research_only": true,
+        "actionable": false,
+        "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
+        "group_count": 27,
+        "quote_count": 212,
+        "groups": [
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.05
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.7
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 4.33
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.2
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 4.0
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 1.62
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 2.15
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 3.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 6.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.11
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.14
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 5.5
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 4.33
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.2
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 4.0
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 26.0
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.01
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 1.62
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 2.2
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 3.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 6.5
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.11
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 6.0
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 15.0
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.03
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.95
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.85
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.05
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.7
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 3.24
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.28
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 4.15
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.16
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.54
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.43
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 2.57
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 1.6
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 2.16
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 2.16
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.63
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 2.82
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.1
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 5.25
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.17
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 4.1
+              },
+              {
+                "selection": "Over 3.0",
+                "line": 3.0,
+                "decimal_price": 4.8
+              },
+              {
+                "selection": "Under 3.0",
+                "line": 3.0,
+                "decimal_price": 1.12
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 6.25
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.08
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 4.5
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.16
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.01
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.7
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.74
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 2.49
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.46
+              },
+              {
+                "selection": "Over 2",
+                "line": 2.0,
+                "decimal_price": 8.7
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 1.03
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 4.5
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.16
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 3.04
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.32
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.7
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.01
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.72
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.39
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 1.81
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.87
+              },
+              {
+                "selection": "Over 2",
+                "line": 2.0,
+                "decimal_price": 5.5
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 1.1
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "William Hill",
+            "market": "Corners 1x2",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Home",
+                "line": null,
+                "decimal_price": 2.7
+              },
+              {
+                "selection": "Draw",
+                "line": null,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Away",
+                "line": null,
+                "decimal_price": 1.55
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "William Hill",
+            "market": "Corners 1x2 (1st Half)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Home",
+                "line": null,
+                "decimal_price": 2.9
+              },
+              {
+                "selection": "Draw",
+                "line": null,
+                "decimal_price": 4.75
+              },
+              {
+                "selection": "Away",
+                "line": null,
+                "decimal_price": 1.75
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "William Hill",
+            "market": "Corners 1x2 (2nd Half)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Home",
+                "line": null,
+                "decimal_price": 2.8
+              },
+              {
+                "selection": "Draw",
+                "line": null,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Away",
+                "line": null,
+                "decimal_price": 1.75
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 9.5",
+                "line": 9.5,
+                "decimal_price": 1.8
+              },
+              {
+                "selection": "Under 9.5",
+                "line": 9.5,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Over 10",
+                "line": 10.0,
+                "decimal_price": 1.95
+              },
+              {
+                "selection": "Under 10",
+                "line": 10.0,
+                "decimal_price": 1.85
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners Asian Handicap",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Home +1.5",
+                "line": null,
+                "decimal_price": 1.9
+              },
+              {
+                "selection": "Away +1.5",
+                "line": null,
+                "decimal_price": 1.9
+              }
+            ]
+          },
+          {
+            "family": "TEAM_CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Home Corners Over/Under",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 1.67
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 2.1
+              }
+            ]
+          },
+          {
+            "family": "TEAM_CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Away Corners Over/Under",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 5.5",
+                "line": 5.5,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Under 5.5",
+                "line": 5.5,
+                "decimal_price": 1.83
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (3 way)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Exactly 2",
+                "line": null,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Exactly 3",
+                "line": null,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Over 3",
+                "line": 3.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Under 3",
+                "line": 3.0,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Exactly 4",
+                "line": null,
+                "decimal_price": 21.0
+              },
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 29.0
+              },
+              {
+                "selection": "Exactly 5",
+                "line": null,
+                "decimal_price": 15.0
+              },
+              {
+                "selection": "Over 5",
+                "line": 5.0,
+                "decimal_price": 1.06
+              },
+              {
+                "selection": "Under 5",
+                "line": 5.0,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Exactly 8",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 8",
+                "line": 8.0,
+                "decimal_price": 1.44
+              },
+              {
+                "selection": "Under 8",
+                "line": 8.0,
+                "decimal_price": 3.75
+              },
+              {
+                "selection": "Exactly 9",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 9",
+                "line": 9.0,
+                "decimal_price": 1.8
+              },
+              {
+                "selection": "Under 9",
+                "line": 9.0,
+                "decimal_price": 2.62
+              },
+              {
+                "selection": "Exactly 10",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 10",
+                "line": 10.0,
+                "decimal_price": 2.25
+              },
+              {
+                "selection": "Under 10",
+                "line": 10.0,
+                "decimal_price": 1.91
+              },
+              {
+                "selection": "Exactly 11",
+                "line": null,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Over 11",
+                "line": 11.0,
+                "decimal_price": 3.0
+              },
+              {
+                "selection": "Under 11",
+                "line": 11.0,
+                "decimal_price": 1.57
+              },
+              {
+                "selection": "Exactly 7",
+                "line": null,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Over 7",
+                "line": 7.0,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Under 7",
+                "line": 7.0,
+                "decimal_price": 6.0
+              },
+              {
+                "selection": "Exactly 12",
+                "line": null,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "Over 12",
+                "line": 12.0,
+                "decimal_price": 4.0
+              },
+              {
+                "selection": "Under 12",
+                "line": 12.0,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Exactly 6",
+                "line": null,
+                "decimal_price": 12.0
+              },
+              {
+                "selection": "Over 6",
+                "line": 6.0,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Under 6",
+                "line": 6.0,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "Exactly 13",
+                "line": null,
+                "decimal_price": 12.0
+              },
+              {
+                "selection": "Over 13",
+                "line": 13.0,
+                "decimal_price": 6.0
+              },
+              {
+                "selection": "Under 13",
+                "line": 13.0,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Over 21",
+                "line": 21.0,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Exactly 21",
+                "line": null,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Over 22",
+                "line": 22.0,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Exactly 22",
+                "line": null,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Exactly 14",
+                "line": null,
+                "decimal_price": 15.0
+              },
+              {
+                "selection": "Over 14",
+                "line": 14.0,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Under 14",
+                "line": 14.0,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Exactly 19",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 19",
+                "line": 19.0,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Under 19",
+                "line": 19.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Exactly 20",
+                "line": null,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Over 20",
+                "line": 20.0,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Exactly 17",
+                "line": null,
+                "decimal_price": 29.0
+              },
+              {
+                "selection": "Over 17",
+                "line": 17.0,
+                "decimal_price": 23.0
+              },
+              {
+                "selection": "Under 17",
+                "line": 17.0,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Exactly 18",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 18",
+                "line": 18.0,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Under 18",
+                "line": 18.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Exactly 16",
+                "line": null,
+                "decimal_price": 23.0
+              },
+              {
+                "selection": "Over 16",
+                "line": 16.0,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Under 16",
+                "line": 16.0,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Exactly 15",
+                "line": null,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Over 15",
+                "line": 15.0,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Under 15",
+                "line": 15.0,
+                "decimal_price": 1.07
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.95
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.85
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners. European Handicap",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Home +1",
+                "line": null,
+                "decimal_price": 2.25
+              },
+              {
+                "selection": "Draw +1",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Away +1",
+                "line": null,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Home +2",
+                "line": null,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Draw +2",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Away +2",
+                "line": null,
+                "decimal_price": 2.25
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners. Total (Range)",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Under 6",
+                "line": 6.0,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "6 - 8",
+                "line": null,
+                "decimal_price": 3.25
+              },
+              {
+                "selection": "9 - 11",
+                "line": null,
+                "decimal_price": 2.6
+              },
+              {
+                "selection": "12 - 14",
+                "line": null,
+                "decimal_price": 4.0
+              },
+              {
+                "selection": "Over 14",
+                "line": 14.0,
+                "decimal_price": 9.0
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners Race To",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Home 3",
+                "line": null,
+                "decimal_price": 2.5
+              },
+              {
+                "selection": "Away 3",
+                "line": null,
+                "decimal_price": 1.5
+              },
+              {
+                "selection": "Draw 3",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Home 5",
+                "line": null,
+                "decimal_price": 3.2
+              },
+              {
+                "selection": "Away 5",
+                "line": null,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Draw 5",
+                "line": null,
+                "decimal_price": 4.5
+              },
+              {
+                "selection": "Home 9",
+                "line": null,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Away 9",
+                "line": null,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Draw 9",
+                "line": null,
+                "decimal_price": 1.18
+              },
+              {
+                "selection": "Home 7",
+                "line": null,
+                "decimal_price": 5.5
+              },
+              {
+                "selection": "Away 7",
+                "line": null,
+                "decimal_price": 2.62
+              },
+              {
+                "selection": "Draw 7",
+                "line": null,
+                "decimal_price": 1.8
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Multicorners",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 20.5",
+                "line": 20.5,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Under 20.5",
+                "line": 20.5,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Over 21.5",
+                "line": 21.5,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Under 21.5",
+                "line": 21.5,
+                "decimal_price": 1.83
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners. total between 0 and 10m",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over",
+                "line": null,
+                "decimal_price": 1.57
+              },
+              {
+                "selection": "Under",
+                "line": null,
+                "decimal_price": 2.25
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Corners 1x2",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Home",
+                "line": null,
+                "decimal_price": 2.3
+              },
+              {
+                "selection": "Draw",
+                "line": null,
+                "decimal_price": 8.9
+              },
+              {
+                "selection": "Away",
+                "line": null,
+                "decimal_price": 1.79
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-15T12:33:14+00:00",
+            "values": [
+              {
+                "selection": "Over 8.5",
+                "line": 8.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Under 8.5",
+                "line": 8.5,
+                "decimal_price": 2.75
+              },
+              {
+                "selection": "Over 9.5",
+                "line": 9.5,
+                "decimal_price": 1.66
+              },
+              {
+                "selection": "Under 9.5",
+                "line": 9.5,
+                "decimal_price": 2.06
+              },
+              {
+                "selection": "Over 10.5",
+                "line": 10.5,
+                "decimal_price": 2.06
+              },
+              {
+                "selection": "Under 10.5",
+                "line": 10.5,
+                "decimal_price": 1.63
+              },
+              {
+                "selection": "Over 7.5",
+                "line": 7.5,
+                "decimal_price": 1.17
+              },
+              {
+                "selection": "Under 7.5",
+                "line": 7.5,
+                "decimal_price": 3.95
+              },
+              {
+                "selection": "Over 11.5",
+                "line": 11.5,
+                "decimal_price": 2.7
+              },
+              {
+                "selection": "Under 11.5",
+                "line": 11.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 12.5",
+                "line": 12.5,
+                "decimal_price": 3.72
+              },
+              {
+                "selection": "Under 12.5",
+                "line": 12.5,
+                "decimal_price": 1.2
+              },
+              {
+                "selection": "Over 6.5",
+                "line": 6.5,
+                "decimal_price": 1.06
+              },
+              {
+                "selection": "Under 6.5",
+                "line": 6.5,
+                "decimal_price": 6.05
+              },
+              {
+                "selection": "Over 13.5",
+                "line": 13.5,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Under 13.5",
+                "line": 13.5,
+                "decimal_price": 1.1
+              }
+            ]
+          }
+        ],
+        "contains_corner_markets": true
+      },
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 1.7594,
+        "raw_away_goal_rate": 2.175,
+        "raw_total_goals": 3.9344,
+        "raw_home_win_prob": 0.317193,
+        "raw_draw_prob": 0.204966,
+        "raw_away_win_prob": 0.477841,
+        "raw_btts_yes_prob": 0.733795,
+        "raw_over_2_5_prob": 0.752117,
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 57.4,
+          "goal_environment_score": 79.0,
+          "two_way_scoring_score": 79.0,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "RESEARCH_ONLY_SHADOW",
+          "actionable": false,
+          "projection_model": "LEAGUE_RELATIVE_STRENGTH_POISSON_v0.2",
+          "baseline_source": "PAIR_COMPLEMENTARY_VENUE_BASELINE",
+          "sample": {
+            "home_home_played": 3,
+            "away_away_played": 3,
+            "minimum_split_sample": 3,
+            "shrinkage_prior_games": 5.0
+          },
+          "strengths": {
+            "home_attack": 1.0097,
+            "home_defensive_weakness": 0.9629,
+            "away_attack": 1.0458,
+            "away_defensive_weakness": 1.0165,
+            "baseline_home_goals": 1.7,
+            "baseline_away_goals": 2.15
+          },
+          "challenger": {
+            "raw_home_goal_rate": 1.7448,
+            "raw_away_goal_rate": 2.1651,
+            "raw_total_goals": 3.9099,
+            "raw_home_win_prob": 0.315771,
+            "raw_draw_prob": 0.205558,
+            "raw_away_win_prob": 0.478671,
+            "raw_btts_yes_prob": 0.730623,
+            "raw_over_1_5_prob": 0.901592,
+            "raw_over_2_5_prob": 0.748391,
+            "raw_over_3_5_prob": 0.548724
+          },
+          "baseline": {
+            "raw_home_goal_rate": 1.7594,
+            "raw_away_goal_rate": 2.175,
+            "raw_total_goals": 3.9344,
+            "raw_home_win_prob": 0.317193,
+            "raw_draw_prob": 0.204966,
+            "raw_away_win_prob": 0.477841,
+            "raw_btts_yes_prob": 0.733795,
+            "raw_over_1_5_prob": 0.903492,
+            "raw_over_2_5_prob": 0.752117,
+            "raw_over_3_5_prob": 0.553596
+          },
+          "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
+        }
+      },
+      "market_decision": {
+        "status": "WATCH",
+        "reason": null,
+        "first_half_markets_ignored": null,
+        "first_half_reason": null,
+        "period_markets_ignored": 31,
+        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+        "btts_market_mode": "RESEARCH_ONLY_PENDING_VALIDATION",
+        "galaxy_publication_gate_downgraded": 0,
+        "galaxy_sample_gate_substitutions": null
+      },
+      "best_market": {
+        "family": "TOTAL",
+        "market": "Goals Over/Under",
+        "selection": "over",
+        "line": 2.5,
+        "decimal_price": 1.39,
+        "bookmaker": "Marathonbet",
+        "p_breakeven": 0.719424,
+        "p_market_fair": 0.650754,
+        "p_raw": 0.752117,
+        "p_shrunk": 0.666972,
+        "prob_edge_pp": 1.622,
+        "estimated_ev": -0.072909,
+        "shrink_weight": 0.16,
+        "tier": null,
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-40",
+      "classification": "WATCH",
+      "tier": "S",
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.7,
+      "fixture": {
+        "fixture_id": 1555500,
+        "kickoff": "2026-09-15T11:00:00-06:00",
+        "timestamp": 1789491600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 383,
+        "league": "Ligat Ha'al",
+        "country": "Israel",
+        "season": 2026,
+        "round": "Regular Season - 4",
+        "home_team_id": 657,
+        "home_team": "Beitar Jerusalem",
+        "away_team_id": 4495,
+        "away_team": "Maccabi Petah Tikva",
+        "venue": "Teddy Stadium",
+        "city": "Jerusalem",
         "goals": {
-          "home": 0,
-          "away": 2
+          "home": null,
+          "away": null
         },
         "score": {
           "halftime": {
-            "home": 0,
-            "away": 1
+            "home": null,
+            "away": null
           },
           "fulltime": {
-            "home": 0,
-            "away": 2
+            "home": null,
+            "away": null
           },
           "extratime": {
             "home": null,
@@ -4511,816 +5279,1433 @@
             "home": null,
             "away": null
           }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 18021,
-              "team": "Asyut Petrol",
-              "shots_inside_box": 6.0,
-              "shots_outside_box": 2.0,
-              "blocked_shots": 3.0,
-              "shots_on_goal": 4.0,
-              "red_cards": 1.0,
-              "total_shots": 8.0,
-              "yellow_cards": 1.0,
-              "corners": 2.0,
-              "fouls": 13.0,
-              "possession": 41.0
-            },
-            {
-              "team_id": 16431,
-              "team": "Future FC",
-              "shots_inside_box": 10.0,
-              "shots_outside_box": 5.0,
-              "blocked_shots": 2.0,
-              "shots_on_goal": 8.0,
-              "red_cards": 0.0,
-              "total_shots": 15.0,
-              "yellow_cards": 0.0,
-              "corners": 8.0,
-              "fouls": 12.0,
-              "possession": 59.0
-            }
-          ],
-          "totals": {
-            "fouls": 25.0,
-            "total_shots": 23.0,
-            "blocked_shots": 5.0,
-            "corners": 10.0,
-            "shots_inside_box": 16.0,
-            "yellow_cards": 1.0,
-            "red_cards": 1.0,
-            "possession": 100.0,
-            "shots_on_goal": 12.0,
-            "shots_outside_box": 7.0
-          }
-        },
-        "player_stats": {
-          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "teams": [
-            {
-              "team_id": 16431,
-              "team": "Future FC",
-              "players": [
-                {
-                  "player_id": 17246,
-                  "name": "Ahmed Youssef",
-                  "minutes": 6.0,
-                  "position": "M",
-                  "rating": 6.78,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 1.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 2.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 17078,
-                  "name": "Ahmed Mostafa",
-                  "minutes": 33.0,
-                  "position": "M",
-                  "rating": 7.2,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 26.0,
-                  "key_passes": 3.0,
-                  "tackles": 1.0,
-                  "duels": 2.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Tarek Taha",
-                  "minutes": 0.0,
-                  "position": null,
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 653523,
-                  "name": "H. Metwali",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 310345,
-                  "name": "Ali Zaazaa",
-                  "minutes": 6.0,
-                  "position": "M",
-                  "rating": 6.83,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 5.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 1.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 382916,
-                  "name": "Mohamed Mossad",
-                  "minutes": 20.0,
-                  "position": "F",
-                  "rating": 6.9,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 2.0,
-                  "shots_on_target": 1.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 8.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 1.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 237158,
-                  "name": "A. Eba",
-                  "minutes": 33.0,
-                  "position": "F",
-                  "rating": 6.6,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 14.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 4.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 16995,
-                  "name": "Mahmoud El Zonfoly",
-                  "minutes": 0.0,
-                  "position": "G",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 482818,
-                  "name": "M. Ephson",
-                  "minutes": 0.0,
-                  "position": "F",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 354223,
-                  "name": "Mostafa Makhlouf",
-                  "minutes": 90.0,
-                  "position": "G",
-                  "rating": 7.68,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 31.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 2.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 17228,
-                  "name": "Ali Fawzi",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 7.14,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 39.0,
-                  "key_passes": 2.0,
-                  "tackles": 1.0,
-                  "duels": 3.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 379836,
-                  "name": "Mohamed Ahmed Sharkia",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 8.14,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 1.0,
-                  "goals": 1.0,
-                  "assists": 0.0,
-                  "passes": 45.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 4.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 17130,
-                  "name": "Khaled Reda",
-                  "minutes": 70.0,
-                  "position": "D",
-                  "rating": 7.21,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 32.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 9.0,
-                  "duels_won": 6.0
-                },
-                {
-                  "player_id": 652311,
-                  "name": "M. Halawani",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 7.58,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 1.0,
-                  "passes": 61.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 6.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 487797,
-                  "name": "Mohamed Sabry",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 8.2,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 2.0,
-                  "shots_on_target": 1.0,
-                  "goals": 1.0,
-                  "assists": 0.0,
-                  "passes": 51.0,
-                  "key_passes": 0.0,
-                  "tackles": 5.0,
-                  "duels": 10.0,
-                  "duels_won": 7.0
-                },
-                {
-                  "player_id": 17109,
-                  "name": "Ghanam Mohamed",
-                  "minutes": 84.0,
-                  "position": "M",
-                  "rating": 6.6,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 2.0,
-                  "shots_on_target": 2.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 39.0,
-                  "key_passes": 1.0,
-                  "tackles": 1.0,
-                  "duels": 7.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Mohamed Gharib",
-                  "minutes": 57.0,
-                  "position": null,
-                  "rating": 7.03,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 1.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 10.0,
-                  "key_passes": 1.0,
-                  "tackles": 1.0,
-                  "duels": 8.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 561478,
-                  "name": "K. A. Kaboria",
-                  "minutes": 57.0,
-                  "position": "M",
-                  "rating": 6.87,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 16.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 2.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 334715,
-                  "name": "Walid Mostafa",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 6.36,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 55.0,
-                  "key_passes": 1.0,
-                  "tackles": 2.0,
-                  "duels": 2.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 395073,
-                  "name": "Mahmoud Mamdouh",
-                  "minutes": 84.0,
-                  "position": "F",
-                  "rating": 6.65,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 5.0,
-                  "shots_on_target": 2.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 12.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 17.0,
-                  "duels_won": 9.0
-                }
-              ]
-            },
-            {
-              "team_id": 18021,
-              "team": "Asyut Petrol",
-              "players": [
-                {
-                  "player_id": 676540,
-                  "name": "Mohamed Hesha",
-                  "minutes": 45.0,
-                  "position": "M",
-                  "rating": 6.01,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 24.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 4.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 676572,
-                  "name": "A. Shokry",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 676539,
-                  "name": "Abdelrahman Morgan",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 353157,
-                  "name": "Ahmed Hamza",
-                  "minutes": 30.0,
-                  "position": "M",
-                  "rating": 6.06,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 14.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 2.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 399274,
-                  "name": "Karim Emad",
-                  "minutes": 0.0,
-                  "position": "G",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 561441,
-                  "name": "A. R. Al Khamisi",
-                  "minutes": 45.0,
-                  "position": "M",
-                  "rating": 6.19,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 1.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 22.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 3.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 676566,
-                  "name": "M. Eid",
-                  "minutes": 23.0,
-                  "position": "F",
-                  "rating": 6.36,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 5.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 1.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 676537,
-                  "name": "Amgad Youssef",
-                  "minutes": 90.0,
-                  "position": "G",
-                  "rating": 7.26,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 23.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Abdelrahman Medhat",
-                  "minutes": 90.0,
-                  "position": null,
-                  "rating": 5.7,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 28.0,
-                  "key_passes": 1.0,
-                  "tackles": 2.0,
-                  "duels": 8.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 675679,
-                  "name": "Mahmoud Alaa",
-                  "minutes": 77.0,
-                  "position": "D",
-                  "rating": 6.28,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 23.0,
-                  "key_passes": 0.0,
-                  "tackles": 3.0,
-                  "duels": 8.0,
-                  "duels_won": 5.0
-                },
-                {
-                  "player_id": 675679,
-                  "name": "Mahmoud Alaa",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.57,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 41.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 7.0,
-                  "duels_won": 5.0
-                },
-                {
-                  "player_id": 675431,
-                  "name": "Ahmed Younes",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 5.72,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 22.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 4.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 652291,
-                  "name": "I. Abbas",
-                  "minutes": 60.0,
-                  "position": "M",
-                  "rating": 5.48,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 24.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 7.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 676541,
-                  "name": "Alabi Salam",
-                  "minutes": 45.0,
-                  "position": "M",
-                  "rating": 6.01,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 7.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 3.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 676538,
-                  "name": "Mostafa Sadafa",
-                  "minutes": 45.0,
-                  "position": "M",
-                  "rating": 6.12,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 9.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 7.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 296658,
-                  "name": "Zeyad Tarek",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 5.81,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 36.0,
-                  "key_passes": 0.0,
-                  "tackles": 4.0,
-                  "duels": 11.0,
-                  "duels_won": 7.0
-                },
-                {
-                  "player_id": 561443,
-                  "name": "C. C. Bodne",
-                  "minutes": 67.0,
-                  "position": "F",
-                  "rating": 6.37,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 6.0,
-                  "key_passes": 1.0,
-                  "tackles": 1.0,
-                  "duels": 5.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 628386,
-                  "name": "H. Khaled",
-                  "minutes": 54.0,
-                  "position": "F",
-                  "rating": 5.94,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 4.0,
-                  "shots_on_target": 3.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 9.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 9.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Karim Kamel",
-                  "minutes": 13.0,
-                  "position": null,
-                  "rating": 5.64,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 8.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 3.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 0,
-                  "name": "Fares Ragab",
-                  "minutes": 0.0,
-                  "position": null,
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                }
-              ]
-            }
-          ],
-          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-          "fixture_id": 1612242,
-          "capture_phase": "POSTGAME"
         }
       },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 90.3,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 89.5,
+        "goal_environment_score": 88.8,
+        "two_way_scoring_score": 90.3,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 98.7,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 98.7,
+        "goal_environment_score": 96.2,
+        "two_way_scoring_score": 91.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 90.3,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 89.5,
+        "goal_environment_score": 88.8,
+        "two_way_scoring_score": 90.3,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "galaxy_source": null,
+      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-15T12:34:15+00:00",
+        "age_minutes": 231.31,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "API_FALLBACK_CURRENT_RUN",
+        "fresh": true,
+        "market_count": 137,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": {
+        "schema_version": "1.0.0",
+        "captured_at_local": "2026-09-15T10:25:33.630380-06:00",
+        "research_only": true,
+        "actionable": false,
+        "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
+        "group_count": 24,
+        "quote_count": 202,
+        "groups": [
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.3
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.57
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.14
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.3
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.4
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 1.91
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.8
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 3.75
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.06
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 4.0
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.62
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.44
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.1
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.0
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.1
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.67
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 4.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.18
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 4.0
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.78
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 2.02
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.3
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.53
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 4.15
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.16
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 5.05
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.1
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.46
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.56
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 2.29
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 1.85
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.87
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 2.74
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.38
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 3.64
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.21
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.13
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 4.65
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.27
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 3.32
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.92
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.21
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 2.52
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.46
+              },
+              {
+                "selection": "Over 2",
+                "line": 2.0,
+                "decimal_price": 10.75
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.61
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.15
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 11.75
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.61
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.42
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.8
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.38
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.87
+              },
+              {
+                "selection": "Over 2",
+                "line": 2.0,
+                "decimal_price": 6.1
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 1.09
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 8.1
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.04
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 5.85
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.1
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.18
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.59
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.99
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 2.51
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.99
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.71
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betfair",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.38
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.53
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 5.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.13
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.5
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 9",
+                "line": 9.0,
+                "decimal_price": 1.9
+              },
+              {
+                "selection": "Under 9",
+                "line": 9.0,
+                "decimal_price": 1.9
+              },
+              {
+                "selection": "Over 9.5",
+                "line": 9.5,
+                "decimal_price": 2.1
+              },
+              {
+                "selection": "Under 9.5",
+                "line": 9.5,
+                "decimal_price": 1.67
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (3 way)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Exactly 1",
+                "line": null,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Exactly 2",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Exactly 3",
+                "line": null,
+                "decimal_price": 26.0
+              },
+              {
+                "selection": "Over 3",
+                "line": 3.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Under 3",
+                "line": 3.0,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Exactly 4",
+                "line": null,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.04
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 21.0
+              },
+              {
+                "selection": "Exactly 5",
+                "line": null,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Over 5",
+                "line": 5.0,
+                "decimal_price": 1.1
+              },
+              {
+                "selection": "Under 5",
+                "line": 5.0,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Exactly 8",
+                "line": null,
+                "decimal_price": 7.5
+              },
+              {
+                "selection": "Over 8",
+                "line": 8.0,
+                "decimal_price": 1.67
+              },
+              {
+                "selection": "Under 8",
+                "line": 8.0,
+                "decimal_price": 3.0
+              },
+              {
+                "selection": "Exactly 9",
+                "line": null,
+                "decimal_price": 7.5
+              },
+              {
+                "selection": "Over 9",
+                "line": 9.0,
+                "decimal_price": 2.1
+              },
+              {
+                "selection": "Under 9",
+                "line": 9.0,
+                "decimal_price": 2.1
+              },
+              {
+                "selection": "Exactly 10",
+                "line": null,
+                "decimal_price": 8.5
+              },
+              {
+                "selection": "Over 10",
+                "line": 10.0,
+                "decimal_price": 2.75
+              },
+              {
+                "selection": "Under 10",
+                "line": 10.0,
+                "decimal_price": 1.67
+              },
+              {
+                "selection": "Exactly 11",
+                "line": null,
+                "decimal_price": 9.5
+              },
+              {
+                "selection": "Over 11",
+                "line": 11.0,
+                "decimal_price": 4.0
+              },
+              {
+                "selection": "Under 11",
+                "line": 11.0,
+                "decimal_price": 1.4
+              },
+              {
+                "selection": "Exactly 7",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 7",
+                "line": 7.0,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Under 7",
+                "line": 7.0,
+                "decimal_price": 4.33
+              },
+              {
+                "selection": "Exactly 12",
+                "line": null,
+                "decimal_price": 12.0
+              },
+              {
+                "selection": "Over 12",
+                "line": 12.0,
+                "decimal_price": 6.0
+              },
+              {
+                "selection": "Under 12",
+                "line": 12.0,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Exactly 6",
+                "line": null,
+                "decimal_price": 9.5
+              },
+              {
+                "selection": "Over 6",
+                "line": 6.0,
+                "decimal_price": 1.2
+              },
+              {
+                "selection": "Under 6",
+                "line": 6.0,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "Exactly 13",
+                "line": null,
+                "decimal_price": 15.0
+              },
+              {
+                "selection": "Over 13",
+                "line": 13.0,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Under 13",
+                "line": 13.0,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Over 21",
+                "line": 21.0,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Exactly 21",
+                "line": null,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Exactly 14",
+                "line": null,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Over 14",
+                "line": 14.0,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Under 14",
+                "line": 14.0,
+                "decimal_price": 1.07
+              },
+              {
+                "selection": "Exactly 19",
+                "line": null,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Over 19",
+                "line": 19.0,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Exactly 20",
+                "line": null,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Over 20",
+                "line": 20.0,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Exactly 17",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 17",
+                "line": 17.0,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Under 17",
+                "line": 17.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Exactly 18",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 18",
+                "line": 18.0,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Under 18",
+                "line": 18.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Exactly 16",
+                "line": null,
+                "decimal_price": 29.0
+              },
+              {
+                "selection": "Over 16",
+                "line": 16.0,
+                "decimal_price": 23.0
+              },
+              {
+                "selection": "Under 16",
+                "line": 16.0,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Exactly 15",
+                "line": null,
+                "decimal_price": 21.0
+              },
+              {
+                "selection": "Over 15",
+                "line": 15.0,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Under 15",
+                "line": 15.0,
+                "decimal_price": 1.04
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.78
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 2.02
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners. Total (Range)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Under 6",
+                "line": 6.0,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "6 - 8",
+                "line": null,
+                "decimal_price": 2.75
+              },
+              {
+                "selection": "9 - 11",
+                "line": null,
+                "decimal_price": 2.62
+              },
+              {
+                "selection": "12 - 14",
+                "line": null,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Over 14",
+                "line": 14.0,
+                "decimal_price": 13.0
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Corners 1x2",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Home",
+                "line": null,
+                "decimal_price": 1.48
+              },
+              {
+                "selection": "Draw",
+                "line": null,
+                "decimal_price": 8.6
+              },
+              {
+                "selection": "Away",
+                "line": null,
+                "decimal_price": 3.12
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 8.5",
+                "line": 8.5,
+                "decimal_price": 1.62
+              },
+              {
+                "selection": "Under 8.5",
+                "line": 8.5,
+                "decimal_price": 2.08
+              },
+              {
+                "selection": "Over 9.5",
+                "line": 9.5,
+                "decimal_price": 2.08
+              },
+              {
+                "selection": "Under 9.5",
+                "line": 9.5,
+                "decimal_price": 1.65
+              },
+              {
+                "selection": "Over 10.5",
+                "line": 10.5,
+                "decimal_price": 2.75
+              },
+              {
+                "selection": "Under 10.5",
+                "line": 10.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 7.5",
+                "line": 7.5,
+                "decimal_price": 1.33
+              },
+              {
+                "selection": "Under 7.5",
+                "line": 7.5,
+                "decimal_price": 2.83
+              },
+              {
+                "selection": "Over 11.5",
+                "line": 11.5,
+                "decimal_price": 3.82
+              },
+              {
+                "selection": "Under 11.5",
+                "line": 11.5,
+                "decimal_price": 1.18
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Corners Asian Handicap",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Home -1",
+                "line": null,
+                "decimal_price": 1.56
+              },
+              {
+                "selection": "Away -1",
+                "line": null,
+                "decimal_price": 2.15
+              },
+              {
+                "selection": "Home -3",
+                "line": null,
+                "decimal_price": 2.49
+              },
+              {
+                "selection": "Away -3",
+                "line": null,
+                "decimal_price": 1.42
+              },
+              {
+                "selection": "Home -2",
+                "line": null,
+                "decimal_price": 1.94
+              },
+              {
+                "selection": "Away -2",
+                "line": null,
+                "decimal_price": 1.75
+              },
+              {
+                "selection": "Home -1.5",
+                "line": null,
+                "decimal_price": 1.74
+              },
+              {
+                "selection": "Away -1.5",
+                "line": null,
+                "decimal_price": 1.93
+              },
+              {
+                "selection": "Home -2.5",
+                "line": null,
+                "decimal_price": 2.14
+              },
+              {
+                "selection": "Away -2.5",
+                "line": null,
+                "decimal_price": 1.6
+              }
+            ]
+          },
+          {
+            "family": "TEAM_CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Corners Over/Under",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 5.0",
+                "line": 5.0,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Under 5.0",
+                "line": 5.0,
+                "decimal_price": 1.97
+              },
+              {
+                "selection": "Over 5.5",
+                "line": 5.5,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Under 5.5",
+                "line": 5.5,
+                "decimal_price": 1.69
+              }
+            ]
+          },
+          {
+            "family": "TEAM_CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Corners Over/Under",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 1.82
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.86
+              },
+              {
+                "selection": "Over 4.0",
+                "line": 4.0,
+                "decimal_price": 2.23
+              },
+              {
+                "selection": "Under 4.0",
+                "line": 4.0,
+                "decimal_price": 1.55
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Total Corners (3 way)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Exactly 8",
+                "line": null,
+                "decimal_price": 7.3
+              },
+              {
+                "selection": "Over 8",
+                "line": 8.0,
+                "decimal_price": 1.62
+              },
+              {
+                "selection": "Under 8",
+                "line": 8.0,
+                "decimal_price": 2.83
+              },
+              {
+                "selection": "Exactly 9",
+                "line": null,
+                "decimal_price": 7.2
+              },
+              {
+                "selection": "Over 9",
+                "line": 9.0,
+                "decimal_price": 2.08
+              },
+              {
+                "selection": "Under 9",
+                "line": 9.0,
+                "decimal_price": 2.08
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-15T12:34:15+00:00",
+            "values": [
+              {
+                "selection": "Exactly 4",
+                "line": null,
+                "decimal_price": 4.9
+              },
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.99
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 2.51
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.99
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.71
+              }
+            ]
+          }
+        ],
+        "contains_corner_markets": true
+      },
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 1.0625,
+        "raw_away_goal_rate": 2.6719,
+        "raw_total_goals": 3.7344,
+        "raw_home_win_prob": 0.126857,
+        "raw_draw_prob": 0.158057,
+        "raw_away_win_prob": 0.715086,
+        "raw_btts_yes_prob": 0.60917,
+        "raw_over_2_5_prob": 0.720308,
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 79.0,
+          "goal_environment_score": 79.0,
+          "two_way_scoring_score": 79.0,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "INSUFFICIENT_VERIFIED_SPLIT_SAMPLE",
+          "actionable": false
+        }
+      },
+      "market_decision": {
+        "status": "WATCH",
+        "reason": null,
+        "first_half_markets_ignored": null,
+        "first_half_reason": null,
+        "period_markets_ignored": 31,
+        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+        "btts_market_mode": "RESEARCH_ONLY_PENDING_VALIDATION",
+        "galaxy_publication_gate_downgraded": 0,
+        "galaxy_sample_gate_substitutions": null
+      },
+      "best_market": {
+        "family": "1X2",
+        "market": "Match Winner",
+        "selection": "away",
+        "line": null,
+        "decimal_price": 5.5,
+        "bookmaker": "William Hill",
+        "p_breakeven": 0.181818,
+        "p_market_fair": 0.16316,
+        "p_raw": 0.715086,
+        "p_shrunk": 0.251468,
+        "prob_edge_pp": 8.831,
+        "estimated_ev": 0.383073,
+        "shrink_weight": 0.16,
+        "tier": "S",
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
       "error": null
     },
     {
-      "event_type": "LOW_DATA_SCREEN_SUMMARY",
-      "stage": "SLATE_SCREEN",
-      "classification": "PASS",
+      "event_type": "QUOTA_GUARD",
+      "stage": "T-40",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": null,
       "bet_eligible": null,
       "availability_confidence": null,
-      "fixture": null,
+      "fixture": {
+        "fixture_id": 1612244,
+        "kickoff": "2026-09-15T11:00:00-06:00",
+        "timestamp": 1789491600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 233,
+        "league": "Premier League",
+        "country": "Egypt",
+        "season": 2026,
+        "round": "Regular Season - 5",
+        "home_team_id": 1577,
+        "home_team": "Al Ahly",
+        "away_team_id": 15731,
+        "away_team": "Abu Qair Semad",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
       "coverage": null,
       "sporting_shortlist": null,
       "sporting_screen_initial": null,
       "sporting_screen_refined": null,
       "galaxy_source": null,
       "market_source": null,
-      "market_provenance": null,
-      "trend_context": null,
+      "market_provenance": {
+        "source": "NOT_VERIFIED",
+        "source_raw": null,
+        "latest_market_timestamp": null,
+        "age_minutes": null,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "NOT_VERIFIED",
+        "fresh": false,
+        "market_count": 0,
+        "fallback_reason": "NO_VERIFIED_MARKET",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
       "player_trends_research": null,
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
@@ -5328,12 +6713,9 @@
       "raw_projection": null,
       "market_decision": null,
       "best_market": null,
-      "notes": [
-        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
-        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
-      ],
+      "notes": null,
       "result": null,
-      "error": null
+      "error": "Per-tick API budget reached (20); lower-priority work deferred."
     }
   ]
 }
