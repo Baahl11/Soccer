@@ -1,9 +1,9 @@
 {
   "service": "soccer-edge-automation",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T06:33:57.005028+00:00",
-  "generated_at_local": "2026-09-15T00:33:57.005028-06:00",
+  "generated_at_utc": "2026-09-15T06:45:16.214743+00:00",
+  "generated_at_local": "2026-09-15T00:45:16.214743-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 14,
   "due_fixture_count": 0,
@@ -13,7 +13,7 @@
   "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7153,
+  "last_daily_remaining": 7151,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
@@ -57,7 +57,7 @@
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
   "shortlist_state_count": 32,
-  "shortlist_seed_imported": 35,
+  "shortlist_seed_imported": 32,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
@@ -78,7 +78,13 @@
     "api_slate_calls_avoided": 1,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 1
+    "provider_requests_avoided": 1,
+    "odds_market_events": 0,
+    "galaxy_odds_market_events": 0,
+    "api_odds_fallback_events": 0,
+    "not_verified_odds_market_events": 0,
+    "stale_galaxy_odds_safety_blocks": 0,
+    "odds_duplicate_requests_detected": 0
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
   "duplicate_request_policy": {
@@ -91,10 +97,22 @@
   },
   "galaxy_sample_policy": "DO_NOT_INVENT_SOURCE_SAMPLE; USE_GALAXY_PUBLICATION_CALIBRATION_GATE_ONLY_AS_SPLIT_SAMPLE_GATE_SUBSTITUTE_FOR_FT_TOTALS",
   "tier_policy": "GALAXY_FT_TOTALS_TIER_B_OR_LEAN_ACTIONABLE_IF_ALL_OTHER_GATES_PASS; A_S_WATCH_PENDING_CROSS_MODEL_VALIDATION",
-  "odds_source_policy": null,
+  "odds_source_policy": {
+    "priority": [
+      "GALAXY_ODDS",
+      "API_FALLBACK_ODDS",
+      "NOT_VERIFIED"
+    ],
+    "galaxy_freshness_limit_minutes": 20,
+    "duplicate_provider_request_rule": "NEVER_CALL_API_FOOTBALL_ODDS_WHEN_FRESH_GALAXY_ODDS_ALREADY_EXIST",
+    "stale_galaxy_rule": "STALE_OR_TIMESTAMP_MISSING_GALAXY_ODDS_CANNOT_SUPPORT_BET_OR_LEAN",
+    "market_order": "SPORT_FIRST_THEN_MARKET",
+    "model_weights_changed": false,
+    "market_thresholds_changed": false
+  },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T00:33:57.005028-06:00",
+    "generated_at_local": "2026-09-15T00:45:16.214743-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
