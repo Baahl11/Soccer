@@ -2,8 +2,8 @@
   "service": "soccer-edge-automation",
   "version": "3.2.1",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T19:25:49.041888+00:00",
-  "generated_at_local": "2026-09-15T13:25:49.041888-06:00",
+  "generated_at_utc": "2026-09-15T19:34:32.640752+00:00",
+  "generated_at_local": "2026-09-15T13:34:32.640752-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 244,
   "due_fixture_count": 15,
@@ -13,13 +13,13 @@
   "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6097,
+  "last_daily_remaining": 6095,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
   "deep_dive_processed_count": 1,
   "shortlist_event_count": 0,
-  "screened_out_low_data_count": 3,
+  "screened_out_low_data_count": 2,
   "market_requests_avoided_by_sport_screen": 1,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -45,8 +45,8 @@
   "trend_signal_count_this_tick": 0,
   "trend_model_disagreement_count_this_tick": 0,
   "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
-  "player_trend_fixture_calls_attempted_this_tick": 1,
-  "player_trend_fixtures_captured_this_tick": 1,
+  "player_trend_fixture_calls_attempted_this_tick": 0,
+  "player_trend_fixtures_captured_this_tick": 0,
   "player_trend_players_captured_this_tick": 0,
   "player_trend_max_fixture_calls_per_tick": 2,
   "player_trend_policy": "SELECTIVE_T40_T20_T10_ONLY; MAX_2_FIXTURES_PER_TICK; RESEARCH_ONLY; ZERO_DECISION_WEIGHT; NO_BET_UPGRADE",
@@ -64,9 +64,9 @@
     "galaxy_fixture_reads": 1,
     "galaxy_fixture_hits": 1,
     "galaxy_fixture_misses": 0,
-    "galaxy_raw_used": 1,
+    "galaxy_raw_used": 0,
     "galaxy_raw_fallbacks": 0,
-    "api_team_stats_calls_avoided": 2,
+    "api_team_stats_calls_avoided": 0,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
@@ -78,7 +78,7 @@
     "api_slate_calls_avoided": 0,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 2,
+    "provider_requests_avoided": 0,
     "odds_market_events": 1,
     "galaxy_odds_market_events": 0,
     "api_odds_fallback_events": 0,
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T13:25:49.041888-06:00",
+    "generated_at_local": "2026-09-15T13:34:32.640752-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -127,7 +127,7 @@
       "C": 47,
       "D": 28
     },
-    "pregame_data_eligible_fixture_count": 25,
+    "pregame_data_eligible_fixture_count": 24,
     "errors": [],
     "competitions": [
       {
@@ -180,7 +180,7 @@
         "country": "Spain",
         "competition": "La Liga",
         "fixtures_in_scanned_slate": 3,
-        "pregame_eligible_fixtures": 1,
+        "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
         "coverage": {
           "events": true,
@@ -1940,7 +1940,7 @@
         "country": "Paraguay",
         "competition": "Division Intermedia",
         "fixtures_in_scanned_slate": 2,
-        "pregame_eligible_fixtures": 2,
+        "pregame_eligible_fixtures": 1,
         "provider_coverage_known": true,
         "coverage": {
           "events": true,
@@ -1962,7 +1962,7 @@
         "country": "Portugal",
         "competition": "Liga Revelação U23",
         "fixtures_in_scanned_slate": 6,
-        "pregame_eligible_fixtures": 1,
+        "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
         "coverage": {
           "events": true,
@@ -2269,13 +2269,13 @@
       "competition": "La Liga",
       "data_tier": "A",
       "kickoff": "2026-09-15T13:30:00-06:00",
-      "stage": "T-10",
+      "stage": "CLOSE",
       "home": "Elche",
       "away": "Real Madrid",
       "tracks": [],
-      "side_score": 0.0,
-      "goals_score": 59.8,
-      "two_way_score": 51.7,
+      "side_score": null,
+      "goals_score": null,
+      "two_way_score": null,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2286,19 +2286,19 @@
       "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      "reason": "Closing market skipped: fixture never entered a sporting shortlist."
     }
   ],
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6097",
+    "daily_remaining": "6095",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-10",
+      "stage": "CLOSE",
       "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
@@ -2308,9 +2308,9 @@
         "fixture_id": 1570388,
         "kickoff": "2026-09-15T13:30:00-06:00",
         "timestamp": 1789500600,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
+        "status": "1H",
+        "status_long": "First Half",
+        "elapsed": 3,
         "league_id": 140,
         "league": "La Liga",
         "country": "Spain",
@@ -2323,13 +2323,13 @@
         "venue": "Estadio Manuel Martínez Valero",
         "city": "Elche",
         "goals": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "score": {
           "halftime": {
-            "home": null,
-            "away": null
+            "home": 0,
+            "away": 0
           },
           "fulltime": {
             "home": null,
@@ -2348,39 +2348,10 @@
       "coverage": {
         "data_tier": "A"
       },
-      "sporting_shortlist": {
-        "shortlisted": false,
-        "rank": 0.0,
-        "tracks": [],
-        "side_edge_score": 0.0,
-        "goal_environment_score": 59.8,
-        "two_way_scoring_score": 51.7,
-        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
-      },
-      "sporting_screen_initial": {
-        "shortlisted": false,
-        "rank": 0.0,
-        "tracks": [],
-        "side_edge_score": 0.0,
-        "goal_environment_score": 59.8,
-        "two_way_scoring_score": 51.7,
-        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": false,
-        "rank": 0.0,
-        "tracks": [],
-        "side_edge_score": 0.0,
-        "goal_environment_score": 59.8,
-        "two_way_scoring_score": 51.7,
-        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
-      },
-      "galaxy_source": {
-        "status": "AVAILABLE",
-        "contract_version": "1.0.1",
-        "data_cutoff": "2026-09-15T18:01:46.588356+00:00",
-        "external_api_calls": 0
-      },
+      "sporting_shortlist": null,
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
       "market_source": null,
       "market_provenance": {
         "source": "NOT_VERIFIED",
@@ -2400,54 +2371,15 @@
         "actionable": false,
         "decision_weight": 0.0
       },
-      "player_trends_research": {
-        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "teams": [],
-        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-        "fixture_id": 1570388
-      },
+      "player_trends_research": null,
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
       "lineups": null,
-      "raw_projection": {
-        "status": "MODELED_LIMITED",
-        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
-        "sport_source": "GALAXYPARLAY_PERSISTED",
-        "market_independent": true,
-        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
-        "galaxy_contract_version": "1.0.1",
-        "galaxy_model_versions": [
-          "v3.3.0"
-        ],
-        "galaxy_data_cutoff": "2026-09-15T18:01:46.588356+00:00",
-        "galaxy_actionable_total_model": true,
-        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
-        "raw_home_goal_rate": null,
-        "raw_away_goal_rate": null,
-        "raw_total_goals": 2.7001,
-        "raw_home_win_prob": null,
-        "raw_draw_prob": null,
-        "raw_away_win_prob": null,
-        "raw_btts_yes_prob": 0.517,
-        "raw_over_2_5_prob": 0.5064,
-        "scoring_path": "MIXED / NO STRONG SCORING PATH",
-        "screen_scores": {
-          "side_edge_score": 0.0,
-          "goal_environment_score": 59.8,
-          "two_way_scoring_score": 51.7,
-          "corners_opportunity_score": "NOT MODELED",
-          "score_status": "GALAXYPARLAY_SPORT_FIRST",
-          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
-        },
-        "relative_strength_shadow": null
-      },
+      "raw_projection": null,
       "market_decision": null,
       "best_market": null,
       "notes": [
-        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
-        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        "Closing market skipped: fixture never entered a sporting shortlist."
       ],
       "result": null,
       "error": null
