@@ -1,7 +1,7 @@
 {
   "anti_leakage": "Every target uses only finalized fixtures with kickoff strictly earlier than the target. FT and HT scores are used only to construct historical second-half targets.",
   "explicit_period_model": true,
-  "finalized_fixtures_with_second_half_target": 227,
+  "finalized_fixtures_with_second_half_target": 230,
   "formula": {
     "away_lambda_2h": "league_away_2h_rate * away_2h_attack_strength * home_2h_defensive_weakness",
     "hierarchy": "global 2H home/away rates -> league 2H rates shrunk to global -> venue-specific team 2H attack/defense shrunk to league",
@@ -11,12 +11,12 @@
   },
   "market_scope": "NO_ACTIONABLE_2H_MARKET_PRICING_YET",
   "metrics": {
-    "mean_abs_2h_total_goals_error": 0.9574,
-    "mean_predicted_over_1_5_probability": 0.5023,
-    "observed_over_1_5_rate": 0.5025,
-    "over_1_5_accuracy_at_0_5_threshold": 0.4569,
-    "over_1_5_brier": 0.2528,
-    "over_1_5_log_loss": 0.6989
+    "mean_abs_2h_total_goals_error": 0.9554,
+    "mean_predicted_over_1_5_probability": 0.5018,
+    "observed_over_1_5_rate": 0.505,
+    "over_1_5_accuracy_at_0_5_threshold": 0.455,
+    "over_1_5_brier": 0.253,
+    "over_1_5_log_loss": 0.6992
   },
   "minimum_training_fixtures": 30,
   "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
@@ -5143,6 +5143,84 @@
       "prior_home_home_matches": 0.0,
       "prior_league_matches": 0.0,
       "total_lambda_2h": 1.654867
+    },
+    {
+      "actual_second_half": {
+        "away": 2,
+        "home": 0,
+        "total": 2
+      },
+      "away_lambda_2h": 0.789312,
+      "away_team": "São Bernardo",
+      "fixture_id": 1520870,
+      "global_away_2h_rate": 0.757709,
+      "global_home_2h_rate": 0.894273,
+      "home_lambda_2h": 0.777629,
+      "home_team": "America Mineiro",
+      "kickoff_local": "2026-09-14T16:30:00-06:00",
+      "league": "Serie B",
+      "league_away_2h_rate": 0.789312,
+      "league_home_2h_rate": 0.777629,
+      "league_id": 72,
+      "p_over_0_5_2h": 0.791317,
+      "p_over_1_5_2h": 0.464323,
+      "p_over_2_5_2h": 0.208134,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 3.0,
+      "total_lambda_2h": 1.566941
+    },
+    {
+      "actual_second_half": {
+        "away": 2,
+        "home": 0,
+        "total": 2
+      },
+      "away_lambda_2h": 0.844298,
+      "away_team": "Goias",
+      "fixture_id": 1520873,
+      "global_away_2h_rate": 0.763158,
+      "global_home_2h_rate": 0.890351,
+      "home_lambda_2h": 0.741959,
+      "home_team": "Botafogo SP",
+      "kickoff_local": "2026-09-14T16:30:00-06:00",
+      "league": "Serie B",
+      "league_away_2h_rate": 0.844298,
+      "league_home_2h_rate": 0.741959,
+      "league_id": 72,
+      "p_over_0_5_2h": 0.795309,
+      "p_over_1_5_2h": 0.470617,
+      "p_over_2_5_2h": 0.213095,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 4.0,
+      "total_lambda_2h": 1.586257
+    },
+    {
+      "actual_second_half": {
+        "away": 0,
+        "home": 0,
+        "total": 0
+      },
+      "away_lambda_2h": 0.798747,
+      "away_team": "Deportes Limache",
+      "fixture_id": 1505530,
+      "global_away_2h_rate": 0.768559,
+      "global_home_2h_rate": 0.886463,
+      "home_lambda_2h": 0.814316,
+      "home_team": "Union La Calera",
+      "kickoff_local": "2026-09-14T17:30:00-06:00",
+      "league": "Primera División",
+      "league_away_2h_rate": 0.798747,
+      "league_home_2h_rate": 0.814316,
+      "league_id": 265,
+      "p_over_0_5_2h": 0.800722,
+      "p_over_1_5_2h": 0.479277,
+      "p_over_2_5_2h": 0.220022,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 3.0,
+      "total_lambda_2h": 1.613062
     }
   ],
   "promotion_gate": {
@@ -5158,5 +5236,5 @@
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "target": "SECOND_HALF_HOME_AND_AWAY_GOALS_FROM_FT_MINUS_HT",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 197
+  "walk_forward_evaluated": 200
 }

@@ -1,18 +1,18 @@
 {
   "baseline_same_sample": {
-    "accuracy_at_0_5": 0.6407,
+    "accuracy_at_0_5": 0.6412,
     "brier": 0.2281,
     "log_loss": 0.6488,
-    "mean_predicted_probability": 0.4256,
-    "n": 167,
+    "mean_predicted_probability": 0.4245,
+    "n": 170,
     "observed_rate": 0.3353
   },
   "challenger": {
-    "accuracy_at_0_5": 0.6168,
+    "accuracy_at_0_5": 0.6176,
     "brier": 0.2275,
-    "log_loss": 0.6471,
-    "mean_predicted_probability": 0.4191,
-    "n": 167,
+    "log_loss": 0.6472,
+    "mean_predicted_probability": 0.4176,
+    "n": 170,
     "observed_rate": 0.3353
   },
   "diagnostics": [
@@ -2019,15 +2019,51 @@
       "kickoff_local": "2026-09-14T12:45:00-06:00",
       "league": "Ligue 2",
       "prior_calibration_n": 196
+    },
+    {
+      "actual_over_1_5": 0,
+      "base_lambda_1h": 1.306455,
+      "baseline_p_over_1_5": 0.375462,
+      "calibration_scale": 0.934415,
+      "challenger_lambda_1h": 1.220772,
+      "challenger_p_over_1_5": 0.344867,
+      "fixture_id": 1520870,
+      "kickoff_local": "2026-09-14T16:30:00-06:00",
+      "league": "Serie B",
+      "prior_calibration_n": 197
+    },
+    {
+      "actual_over_1_5": 1,
+      "base_lambda_1h": 1.247076,
+      "baseline_p_over_1_5": 0.354317,
+      "calibration_scale": 0.93106,
+      "challenger_lambda_1h": 1.161103,
+      "challenger_p_over_1_5": 0.323271,
+      "fixture_id": 1520873,
+      "kickoff_local": "2026-09-14T16:30:00-06:00",
+      "league": "Serie B",
+      "prior_calibration_n": 198
+    },
+    {
+      "actual_over_1_5": 0,
+      "base_lambda_1h": 1.2603,
+      "baseline_p_over_1_5": 0.359049,
+      "calibration_scale": 0.933343,
+      "challenger_lambda_1h": 1.176292,
+      "challenger_p_over_1_5": 0.328787,
+      "fixture_id": 1505530,
+      "kickoff_local": "2026-09-14T17:30:00-06:00",
+      "league": "Primera División",
+      "prior_calibration_n": 199
     }
   ],
   "explicit_period_model": true,
-  "full_history_actual_to_predicted_goal_ratio": 0.91777,
+  "full_history_actual_to_predicted_goal_ratio": 0.916066,
   "improvement": {
-    "accuracy_delta_pp": -2.39,
+    "accuracy_delta_pp": -2.36,
     "brier_delta": -0.0006,
-    "log_loss_delta": -0.0017,
-    "mean_probability_delta_pp": -0.65
+    "log_loss_delta": -0.0016,
+    "mean_probability_delta_pp": -0.69
   },
   "method": "WALK_FORWARD_SHRUNK_MULTIPLICATIVE_1H_LAMBDA_CALIBRATION",
   "minimum_calibration_history": 30,
@@ -2049,5 +2085,5 @@
   "source_model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 167
+  "walk_forward_evaluated": 170
 }

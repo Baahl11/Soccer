@@ -2,8 +2,8 @@
   "models": {
     "1H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 12,
-      "market_quotes_persisted": 71,
+      "market_groups_persisted": 24,
+      "market_quotes_persisted": 142,
       "requirements_remaining": [
         "dedicated 1H market-vs-model calibration",
         "stable OOS Brier/log-loss improvement",
@@ -13,26 +13,26 @@
       "research_model": {
         "calibration": {
           "baseline_same_sample": {
-            "accuracy_at_0_5": 0.6407,
+            "accuracy_at_0_5": 0.6412,
             "brier": 0.2281,
             "log_loss": 0.6488,
-            "mean_predicted_probability": 0.4256,
-            "n": 167,
+            "mean_predicted_probability": 0.4245,
+            "n": 170,
             "observed_rate": 0.3353
           },
           "challenger": {
-            "accuracy_at_0_5": 0.6168,
+            "accuracy_at_0_5": 0.6176,
             "brier": 0.2275,
-            "log_loss": 0.6471,
-            "mean_predicted_probability": 0.4191,
-            "n": 167,
+            "log_loss": 0.6472,
+            "mean_predicted_probability": 0.4176,
+            "n": 170,
             "observed_rate": 0.3353
           },
           "improvement": {
-            "accuracy_delta_pp": -2.39,
+            "accuracy_delta_pp": -2.36,
             "brier_delta": -0.0006,
-            "log_loss_delta": -0.0017,
-            "mean_probability_delta_pp": -0.65
+            "log_loss_delta": -0.0016,
+            "mean_probability_delta_pp": -0.69
           },
           "method": "WALK_FORWARD_SHRUNK_MULTIPLICATIVE_1H_LAMBDA_CALIBRATION",
           "promotion_gate": {
@@ -47,16 +47,16 @@
             ],
             "sample_gate_met": true
           },
-          "walk_forward_evaluated": 167
+          "walk_forward_evaluated": 170
         },
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_1h_total_goals_error": 1.0349,
-          "mean_predicted_over_1_5_probability": 0.4318,
-          "observed_over_1_5_rate": 0.3553,
-          "over_1_5_accuracy_at_0_5_threshold": 0.6142,
-          "over_1_5_brier": 0.2329,
-          "over_1_5_log_loss": 0.6584
+          "mean_abs_1h_total_goals_error": 1.031,
+          "mean_predicted_over_1_5_probability": 0.4307,
+          "observed_over_1_5_rate": 0.355,
+          "over_1_5_accuracy_at_0_5_threshold": 0.615,
+          "over_1_5_brier": 0.2328,
+          "over_1_5_log_loss": 0.6582
         },
         "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -68,14 +68,14 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 197
+        "walk_forward_evaluated": 200
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
     "2H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 8,
-      "market_quotes_persisted": 62,
+      "market_groups_persisted": 16,
+      "market_quotes_persisted": 124,
       "requirements_remaining": [
         "dedicated pregame 2H market-vs-model calibration",
         "stable OOS validation",
@@ -85,12 +85,12 @@
       "research_model": {
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_2h_total_goals_error": 0.9574,
-          "mean_predicted_over_1_5_probability": 0.5023,
-          "observed_over_1_5_rate": 0.5025,
-          "over_1_5_accuracy_at_0_5_threshold": 0.4569,
-          "over_1_5_brier": 0.2528,
-          "over_1_5_log_loss": 0.6989
+          "mean_abs_2h_total_goals_error": 0.9554,
+          "mean_predicted_over_1_5_probability": 0.5018,
+          "observed_over_1_5_rate": 0.505,
+          "over_1_5_accuracy_at_0_5_threshold": 0.455,
+          "over_1_5_brier": 0.253,
+          "over_1_5_log_loss": 0.6992
         },
         "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -102,7 +102,7 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 197
+        "walk_forward_evaluated": 200
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
