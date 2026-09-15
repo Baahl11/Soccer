@@ -32,13 +32,17 @@ def _bounded_registry(payload: dict[str, Any]) -> None:
     registry["competitions"] = attached
 
 
-def _bounded_match_rows(payload: dict[str, Any]) -> None:
+def _bounded_match_rows(payload: dict[str, Any]) -> dict[str, Any]:
     rows = payload.get("match_table_rows")
     if not isinstance(rows, list):
         rows = []
 
     total = len(rows)
-    class_counts = Counter(str(row.get("classification") or "WATCH") for row in rows if isinstance(row, dict))
+    class_counts = Counter(
+        str(row.get("classification") or "WATCH")
+        for row in rows
+        if isinstance(row, dict)
+    )
     attached = rows[:MAX_MATCH_TABLE_ROWS]
     payload["match_table_row_count"] = total
     payload["match_table_rows_attached"] = len(attached)
@@ -46,13 +50,20 @@ def _bounded_match_rows(payload: dict[str, Any]) -> None:
     payload["match_table_max_rows"] = MAX_MATCH_TABLE_ROWS
     payload["match_table_classification_counts"] = dict(class_counts)
     payload["match_table_rows"] = attached
+    return {
+        "row_count": total,
+        "rows_attached": len(attached),
+        "truncated": total > len(attached),
+        "max_rows": MAX_MATCH_TABLE_ROWS,
+        "classification_counts": dict(class_counts),
+    }
 
 
 async def run_tick() -> dict[str, Any]:
     payload = await v19.run_tick()
 
     _bounded_registry(payload)
-    _bounded_match_rows(payload)
+    table_bounds = _bounded_match_rows(payload)
 
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
@@ -60,5 +71,30 @@ async def run_tick() -> dict[str, Any]:
         "BOUNDED_PERSISTED_PRESENTATION_ONLY; FULL SPORTING/MARKET DECISIONS UNCHANGED; "
         "TRUNCATION_IS_EXPLICIT_AND_NEVER_CHANGES_CLASSIFICATION"
     )
-    payload["presentation_validation"] = validate_presentation_payload(payload)
+
+    validation = validate_presentation_payload(payload)
+    payload["presentation_validation"] = validation
+
+    # Embed guard metadata in presentation_contract because the existing scheduler
+    # persists that object whole. This avoids widening the workflow again just for
+    # presentation-only diagnostics.
+    contract = payload.get("presentation_contract")
+    if not isinstance(contract, dict):
+        contract = {"default_format": "MARKDOWN_TABLES"}
+        payload["presentation_contract"] = contract
+    registry = payload.get("league_coverage_registry")
+    registry_bounds = {}
+    if isinstance(registry, dict):
+        registry_bounds = {
+            "competition_count": registry.get("competition_count"),
+            "rows_attached": registry.get("competition_rows_attached"),
+            "truncated": registry.get("competitions_truncated"),
+            "max_rows": registry.get("max_competition_rows"),
+        }
+    contract["state_bounds"] = {
+        "registry": registry_bounds,
+        "match_tables": table_bounds,
+    }
+    contract["validation"] = validation
+    contract["display_timezone"] = "America/Mexico_City"
     return payload
