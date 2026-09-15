@@ -2,23 +2,23 @@
   "service": "soccer-edge-automation",
   "version": "2.7.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T03:45:27.064298+00:00",
-  "generated_at_local": "2026-09-14T21:45:27.064298-06:00",
+  "generated_at_utc": "2026-09-15T04:09:27.504940+00:00",
+  "generated_at_local": "2026-09-14T22:09:27.504940-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 28,
-  "due_fixture_count": 0,
-  "event_count": 1,
+  "fixture_scan_count": 400,
+  "due_fixture_count": 1,
+  "event_count": 2,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 0,
+  "api_calls_this_tick": 4,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": null,
+  "last_daily_remaining": 7417,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 0,
-  "shortlist_event_count": 0,
+  "deep_dive_processed_count": 1,
+  "shortlist_event_count": 1,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
@@ -47,7 +47,7 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 45,
+  "shortlist_state_count": 44,
   "shortlist_seed_imported": 45,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
@@ -62,14 +62,14 @@
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
     "galaxy_odds_stale_or_missing": 0,
-    "galaxy_slate_reads": 1,
-    "galaxy_slate_hits": 1,
+    "galaxy_slate_reads": 0,
+    "galaxy_slate_hits": 0,
     "galaxy_slate_fallbacks": 0,
     "galaxy_slate_stale_rejections": 0,
-    "api_slate_calls_avoided": 1,
-    "api_slate_reconciliation_calls": 0,
+    "api_slate_calls_avoided": 0,
+    "api_slate_reconciliation_calls": 2,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 1
+    "provider_requests_avoided": 0
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
   "duplicate_request_policy": {
@@ -82,7 +82,11 @@
   },
   "galaxy_sample_policy": "DO_NOT_INVENT_SOURCE_SAMPLE; USE_GALAXY_PUBLICATION_CALIBRATION_GATE_ONLY_AS_SPLIT_SAMPLE_GATE_SUBSTITUTE_FOR_FT_TOTALS",
   "tier_policy": "GALAXY_FT_TOTALS_TIER_B_OR_LEAN_ACTIONABLE_IF_ALL_OTHER_GATES_PASS; A_S_WATCH_PENDING_CROSS_MODEL_VALIDATION",
-  "quota": {},
+  "quota": {
+    "daily_limit": "7500",
+    "daily_remaining": "7419",
+    "per_minute_remaining": "298"
+  },
   "database_persisted": false,
   "events": [
     {
@@ -112,6 +116,154 @@
         "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
       ],
       "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1520872,
+        "kickoff": "2026-09-14T18:30:00-06:00",
+        "timestamp": 1789432200,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 72,
+        "league": "Serie B",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Regular Season - 28",
+        "home_team_id": 145,
+        "home_team": "Avai",
+        "away_team_id": 142,
+        "away_team": "Vila Nova",
+        "venue": "Estádio da Ressacada",
+        "city": "Florianopolis",
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 72.1,
+        "tracks": [
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 52.2,
+        "goal_environment_score": 45.1,
+        "two_way_scoring_score": 72.1,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 145,
+              "team": "Avai",
+              "shots_inside_box": 7.0,
+              "shots_outside_box": 1.0,
+              "blocked_shots": 1.0,
+              "shots_on_goal": 2.0,
+              "total_shots": 8.0,
+              "yellow_cards": 1.0,
+              "corners": 4.0,
+              "fouls": 9.0,
+              "red_cards": 0.0,
+              "possession": 44.0
+            },
+            {
+              "team_id": 142,
+              "team": "Vila Nova",
+              "shots_inside_box": 5.0,
+              "shots_outside_box": 6.0,
+              "blocked_shots": 3.0,
+              "shots_on_goal": 2.0,
+              "total_shots": 11.0,
+              "yellow_cards": 1.0,
+              "corners": 4.0,
+              "fouls": 14.0,
+              "red_cards": 0.0,
+              "possession": 56.0
+            }
+          ],
+          "totals": {
+            "shots_outside_box": 7.0,
+            "blocked_shots": 4.0,
+            "corners": 8.0,
+            "red_cards": 0.0,
+            "possession": 100.0,
+            "fouls": 23.0,
+            "shots_on_goal": 4.0,
+            "shots_inside_box": 12.0,
+            "total_shots": 19.0,
+            "yellow_cards": 2.0
+          }
+        }
+      },
       "error": null
     }
   ]
