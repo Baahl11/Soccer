@@ -2,24 +2,24 @@
   "service": "soccer-edge-automation",
   "version": "2.7.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T02:12:14.518584+00:00",
-  "generated_at_local": "2026-09-14T20:12:14.518584-06:00",
+  "generated_at_utc": "2026-09-15T02:38:00.076816+00:00",
+  "generated_at_local": "2026-09-14T20:38:00.076816-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 161,
-  "due_fixture_count": 5,
-  "event_count": 6,
+  "due_fixture_count": 3,
+  "event_count": 4,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 6,
+  "api_calls_this_tick": 5,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7445,
+  "last_daily_remaining": 7440,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 4,
-  "shortlist_event_count": 4,
-  "screened_out_low_data_count": 1,
+  "deep_dive_processed_count": 3,
+  "shortlist_event_count": 3,
+  "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -84,7 +84,7 @@
   "tier_policy": "GALAXY_FT_TOTALS_TIER_B_OR_LEAN_ACTIONABLE_IF_ALL_OTHER_GATES_PASS; A_S_WATCH_PENDING_CROSS_MODEL_VALIDATION",
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7450",
+    "daily_remaining": "7444",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -251,16 +251,16 @@
             }
           ],
           "totals": {
-            "yellow_cards": 7.0,
-            "red_cards": 0.0,
             "fouls": 27.0,
-            "total_shots": 22.0,
+            "possession": 100.0,
             "blocked_shots": 5.0,
-            "shots_inside_box": 12.0,
-            "corners": 7.0,
+            "red_cards": 0.0,
             "shots_outside_box": 10.0,
+            "shots_inside_box": 12.0,
             "shots_on_goal": 5.0,
-            "possession": 100.0
+            "total_shots": 22.0,
+            "yellow_cards": 7.0,
+            "corners": 7.0
           }
         }
       },
@@ -399,163 +399,16 @@
             }
           ],
           "totals": {
-            "yellow_cards": 3.0,
-            "red_cards": 0.0,
             "fouls": 16.0,
-            "total_shots": 17.0,
+            "possession": 100.0,
             "blocked_shots": 2.0,
-            "shots_inside_box": 8.0,
-            "corners": 8.0,
-            "shots_outside_box": 9.0,
-            "shots_on_goal": 5.0,
-            "possession": 100.0
-          }
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1520870,
-        "kickoff": "2026-09-14T16:30:00-06:00",
-        "timestamp": 1789425000,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 72,
-        "league": "Serie B",
-        "country": "Brazil",
-        "season": 2026,
-        "round": "Regular Season - 28",
-        "home_team_id": 125,
-        "home_team": "America Mineiro",
-        "away_team_id": 7865,
-        "away_team": "São Bernardo",
-        "venue": "Arena Independência",
-        "city": "Belo Horizonte",
-        "goals": {
-          "home": 0,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 77.3,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 59.9,
-        "goal_environment_score": 58.3,
-        "two_way_scoring_score": 77.3,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 0,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 125,
-              "team": "America Mineiro",
-              "shots_inside_box": 8.0,
-              "shots_outside_box": 6.0,
-              "blocked_shots": 4.0,
-              "shots_on_goal": 4.0,
-              "total_shots": 14.0,
-              "yellow_cards": 2.0,
-              "corners": 5.0,
-              "fouls": 15.0,
-              "red_cards": 0.0,
-              "possession": 59.0
-            },
-            {
-              "team_id": 7865,
-              "team": "São Bernardo",
-              "shots_inside_box": 9.0,
-              "shots_outside_box": 6.0,
-              "blocked_shots": 2.0,
-              "shots_on_goal": 7.0,
-              "total_shots": 15.0,
-              "yellow_cards": 3.0,
-              "corners": 4.0,
-              "fouls": 17.0,
-              "red_cards": 0.0,
-              "possession": 41.0
-            }
-          ],
-          "totals": {
-            "yellow_cards": 5.0,
             "red_cards": 0.0,
-            "fouls": 32.0,
-            "total_shots": 29.0,
-            "blocked_shots": 6.0,
-            "shots_inside_box": 17.0,
-            "corners": 9.0,
-            "shots_outside_box": 12.0,
-            "shots_on_goal": 11.0,
-            "possession": 100.0
+            "shots_outside_box": 9.0,
+            "shots_inside_box": 8.0,
+            "shots_on_goal": 5.0,
+            "total_shots": 17.0,
+            "yellow_cards": 3.0,
+            "corners": 8.0
           }
         }
       },
@@ -570,9 +423,9 @@
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1520873,
-        "kickoff": "2026-09-14T16:30:00-06:00",
-        "timestamp": 1789425000,
+        "fixture_id": 1520872,
+        "kickoff": "2026-09-14T18:30:00-06:00",
+        "timestamp": 1789432200,
         "status": "FT",
         "status_long": "Match Finished",
         "elapsed": 90,
@@ -581,15 +434,15 @@
         "country": "Brazil",
         "season": 2026,
         "round": "Regular Season - 28",
-        "home_team_id": 2618,
-        "home_team": "Botafogo SP",
-        "away_team_id": 151,
-        "away_team": "Goias",
-        "venue": "Estadio Santa Cruz",
-        "city": "Ribeirao Preto",
+        "home_team_id": 145,
+        "home_team": "Avai",
+        "away_team_id": 142,
+        "away_team": "Vila Nova",
+        "venue": "Estádio da Ressacada",
+        "city": "Florianopolis",
         "goals": {
           "home": 1,
-          "away": 3
+          "away": 1
         },
         "score": {
           "halftime": {
@@ -598,7 +451,7 @@
           },
           "fulltime": {
             "home": 1,
-            "away": 3
+            "away": 1
           },
           "extratime": {
             "home": null,
@@ -615,13 +468,14 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 77.3,
+        "rank": 72.1,
         "tracks": [
+          "GOALS_UNDER",
           "TWO_WAY"
         ],
-        "side_edge_score": 53.5,
-        "goal_environment_score": 54.0,
-        "two_way_scoring_score": 77.3,
+        "side_edge_score": 52.2,
+        "goal_environment_score": 45.1,
+        "two_way_scoring_score": 72.1,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": null,
@@ -638,7 +492,7 @@
       "result": {
         "goals": {
           "home": 1,
-          "away": 3
+          "away": 1
         },
         "score": {
           "halftime": {
@@ -647,7 +501,7 @@
           },
           "fulltime": {
             "home": 1,
-            "away": 3
+            "away": 1
           },
           "extratime": {
             "home": null,
@@ -664,76 +518,48 @@
           "source": "API_FOOTBALL_FIXTURE_STATISTICS",
           "teams": [
             {
-              "team_id": 2618,
-              "team": "Botafogo SP",
-              "shots_inside_box": 10.0,
-              "shots_outside_box": 4.0,
-              "blocked_shots": 4.0,
-              "shots_on_goal": 3.0,
-              "total_shots": 14.0,
-              "yellow_cards": 4.0,
-              "corners": 6.0,
-              "fouls": 15.0,
+              "team_id": 145,
+              "team": "Avai",
+              "shots_inside_box": 7.0,
+              "shots_outside_box": 1.0,
+              "blocked_shots": 1.0,
+              "shots_on_goal": 2.0,
+              "total_shots": 8.0,
+              "yellow_cards": 1.0,
+              "corners": 4.0,
+              "fouls": 9.0,
               "red_cards": 0.0,
               "possession": 44.0
             },
             {
-              "team_id": 151,
-              "team": "Goias",
-              "shots_inside_box": 10.0,
+              "team_id": 142,
+              "team": "Vila Nova",
+              "shots_inside_box": 5.0,
               "shots_outside_box": 6.0,
-              "blocked_shots": 5.0,
-              "shots_on_goal": 6.0,
-              "total_shots": 16.0,
-              "yellow_cards": 3.0,
-              "corners": 7.0,
-              "fouls": 10.0,
+              "blocked_shots": 3.0,
+              "shots_on_goal": 2.0,
+              "total_shots": 11.0,
+              "yellow_cards": 1.0,
+              "corners": 4.0,
+              "fouls": 14.0,
               "red_cards": 0.0,
               "possession": 56.0
             }
           ],
           "totals": {
-            "yellow_cards": 7.0,
+            "fouls": 23.0,
+            "possession": 100.0,
+            "blocked_shots": 4.0,
             "red_cards": 0.0,
-            "fouls": 25.0,
-            "total_shots": 30.0,
-            "blocked_shots": 9.0,
-            "shots_inside_box": 20.0,
-            "corners": 13.0,
-            "shots_outside_box": 10.0,
-            "shots_on_goal": 9.0,
-            "possession": 100.0
+            "shots_outside_box": 7.0,
+            "shots_inside_box": 12.0,
+            "shots_on_goal": 4.0,
+            "total_shots": 19.0,
+            "yellow_cards": 2.0,
+            "corners": 8.0
           }
         }
       },
-      "error": null
-    },
-    {
-      "event_type": "LOW_DATA_SCREEN_SUMMARY",
-      "stage": "SLATE_SCREEN",
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
-      "availability_confidence": null,
-      "fixture": null,
-      "coverage": null,
-      "sporting_shortlist": null,
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
-        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
-      ],
-      "result": null,
       "error": null
     }
   ]
