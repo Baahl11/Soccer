@@ -1,9 +1,9 @@
 {
   "service": "soccer-edge-automation",
-  "version": "2.8.1",
+  "version": "2.9.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T05:24:33.378308+00:00",
-  "generated_at_local": "2026-09-14T23:24:33.378308-06:00",
+  "generated_at_utc": "2026-09-15T05:46:01.950950+00:00",
+  "generated_at_local": "2026-09-14T23:46:01.950950-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 42,
   "due_fixture_count": 0,
@@ -13,7 +13,7 @@
   "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7406,
+  "last_daily_remaining": 7404,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
@@ -41,6 +41,10 @@
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
   "relative_strength_1x2_shadow_count_this_tick": 0,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
+  "trend_context_count_this_tick": 0,
+  "trend_signal_count_this_tick": 0,
+  "trend_model_disagreement_count_this_tick": 0,
+  "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
   "request_pacing_seconds": 0.75,
   "rate_limit_max_retries": 2,
   "first_half_market_model": "BLOCKED_PENDING_EXPLICIT_1H_MODEL",
@@ -48,7 +52,7 @@
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
   "shortlist_state_count": 38,
-  "shortlist_seed_imported": 39,
+  "shortlist_seed_imported": 38,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
@@ -84,7 +88,7 @@
   "tier_policy": "GALAXY_FT_TOTALS_TIER_B_OR_LEAN_ACTIONABLE_IF_ALL_OTHER_GATES_PASS; A_S_WATCH_PENDING_CROSS_MODEL_VALIDATION",
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-14T23:24:33.378308-06:00",
+    "generated_at_local": "2026-09-14T23:46:01.950950-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -594,7 +598,8 @@
       "errors": [],
       "warnings": []
     },
-    "display_timezone": "America/Mexico_City"
+    "display_timezone": "America/Mexico_City",
+    "trend_context": "SHOW_CONVERGENCE_AND_MODEL_DISAGREEMENT_WHEN_PRESENT; RESEARCH_ONLY; NEVER PRESENT AS BET JUSTIFICATION"
   },
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
   "match_table_rows": [],
@@ -616,6 +621,7 @@
       "sporting_screen_refined": null,
       "galaxy_source": null,
       "market_source": null,
+      "trend_context": null,
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
       "lineups": null,
