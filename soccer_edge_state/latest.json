@@ -2,24 +2,24 @@
   "service": "soccer-edge-automation",
   "version": "3.2.1",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-15T14:46:15.842294+00:00",
-  "generated_at_local": "2026-09-15T08:46:15.842294-06:00",
+  "generated_at_utc": "2026-09-15T14:53:40.031663+00:00",
+  "generated_at_local": "2026-09-15T08:53:40.031663-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 244,
-  "due_fixture_count": 6,
-  "event_count": 1,
+  "due_fixture_count": 23,
+  "event_count": 4,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 1,
+  "api_calls_this_tick": 7,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6888,
+  "last_daily_remaining": 6872,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 0,
-  "shortlist_event_count": 0,
-  "screened_out_low_data_count": 6,
+  "deep_dive_processed_count": 3,
+  "shortlist_event_count": 3,
+  "screened_out_low_data_count": 15,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -39,7 +39,7 @@
   "one_h_market_groups_this_tick": 0,
   "two_h_market_groups_this_tick": 0,
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
-  "relative_strength_1x2_shadow_count_this_tick": 0,
+  "relative_strength_1x2_shadow_count_this_tick": 1,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
   "trend_context_count_this_tick": 0,
   "trend_signal_count_this_tick": 0,
@@ -56,16 +56,16 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 4,
+  "shortlist_state_count": 5,
   "shortlist_seed_imported": 4,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 0,
+    "galaxy_fixture_reads": 3,
     "galaxy_fixture_hits": 0,
-    "galaxy_fixture_misses": 0,
+    "galaxy_fixture_misses": 3,
     "galaxy_raw_used": 0,
-    "galaxy_raw_fallbacks": 0,
+    "galaxy_raw_fallbacks": 3,
     "api_team_stats_calls_avoided": 0,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T08:46:15.842294-06:00",
+    "generated_at_local": "2026-09-15T08:53:40.031663-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2241,11 +2241,13 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 0,
-        "rows_attached": 0,
+        "row_count": 3,
+        "rows_attached": 3,
         "truncated": false,
         "max_rows": 200,
-        "classification_counts": {}
+        "classification_counts": {
+          "WATCH": 3
+        }
       }
     },
     "validation": {
@@ -2260,14 +2262,569 @@
     "player_trends": "RESEARCH_ONLY; SHOW VERIFIED PLAYER FIXTURE STATS WHEN CAPTURED; NEVER USE AS BET JUSTIFICATION UNTIL OOS MODEL GATE PASSES"
   },
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
-  "match_table_rows": [],
+  "match_table_rows": [
+    {
+      "fixture_id": 1555504,
+      "country": "Israel",
+      "competition": "Ligat Ha'al",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T10:30:00-06:00",
+      "stage": "T-90",
+      "home": "Ironi Tiberias",
+      "away": "Hapoel Katamon",
+      "tracks": [
+        "SIDE",
+        "GOALS_UNDER"
+      ],
+      "side_score": 62.9,
+      "goals_score": 27.5,
+      "two_way_score": 51.8,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1628957,
+      "country": "Italy",
+      "competition": "Coppa Italia",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T10:00:00-06:00",
+      "stage": "T-60",
+      "home": "Genoa",
+      "away": "Sudtirol",
+      "tracks": [
+        "GOALS_OVER",
+        "TWO_WAY"
+      ],
+      "side_score": 59.7,
+      "goals_score": 100.0,
+      "two_way_score": 100.0,
+      "availability_confidence": 0.7,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1553125,
+      "country": "Poland",
+      "competition": "Ekstraklasa",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T10:00:00-06:00",
+      "stage": "T-60",
+      "home": "Raków Częstochowa",
+      "away": "Zaglebie Lubin",
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_score": 53.2,
+      "goals_score": 67.3,
+      "two_way_score": 92.2,
+      "availability_confidence": 0.7,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    }
+  ],
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6888",
+    "daily_remaining": "6878",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-60",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.7,
+      "fixture": {
+        "fixture_id": 1628957,
+        "kickoff": "2026-09-15T10:00:00-06:00",
+        "timestamp": 1789488000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 137,
+        "league": "Coppa Italia",
+        "country": "Italy",
+        "season": 2026,
+        "round": "Round of 32",
+        "home_team_id": 495,
+        "home_team": "Genoa",
+        "away_team_id": 1578,
+        "away_team": "Sudtirol",
+        "venue": "Stadio Luigi Ferraris",
+        "city": "Genoa",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 59.7,
+        "goal_environment_score": 100.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 72.5,
+        "goal_environment_score": 100.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 59.7,
+        "goal_environment_score": 100.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 2.4375,
+        "raw_away_goal_rate": 1.9375,
+        "raw_total_goals": 4.375,
+        "raw_home_win_prob": 0.495648,
+        "raw_draw_prob": 0.192292,
+        "raw_away_win_prob": 0.31206,
+        "raw_btts_yes_prob": 0.781141,
+        "raw_over_2_5_prob": 0.811856,
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 59.7,
+          "goal_environment_score": 79.0,
+          "two_way_scoring_score": 79.0,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "INSUFFICIENT_VERIFIED_SPLIT_SAMPLE",
+          "actionable": false
+        }
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-60",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.7,
+      "fixture": {
+        "fixture_id": 1553125,
+        "kickoff": "2026-09-15T10:00:00-06:00",
+        "timestamp": 1789488000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 106,
+        "league": "Ekstraklasa",
+        "country": "Poland",
+        "season": 2026,
+        "round": "Regular Season - 3",
+        "home_team_id": 3491,
+        "home_team": "Raków Częstochowa",
+        "away_team_id": 345,
+        "away_team": "Zaglebie Lubin",
+        "venue": "Miejski Stadion Pilkarski Rakow",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 92.2,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 53.2,
+        "goal_environment_score": 67.3,
+        "two_way_scoring_score": 92.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 94.0,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 52.6,
+        "goal_environment_score": 68.2,
+        "two_way_scoring_score": 94.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 92.2,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 53.2,
+        "goal_environment_score": 67.3,
+        "two_way_scoring_score": 92.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 1.3625,
+        "raw_away_goal_rate": 1.6062,
+        "raw_total_goals": 2.9688,
+        "raw_home_win_prob": 0.325027,
+        "raw_draw_prob": 0.242487,
+        "raw_away_win_prob": 0.432486,
+        "raw_btts_yes_prob": 0.594709,
+        "raw_over_2_5_prob": 0.569772,
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 53.2,
+          "goal_environment_score": 67.3,
+          "two_way_scoring_score": 79.0,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "RESEARCH_ONLY_SHADOW",
+          "actionable": false,
+          "projection_model": "LEAGUE_RELATIVE_STRENGTH_POISSON_v0.2",
+          "baseline_source": "PAIR_COMPLEMENTARY_VENUE_BASELINE",
+          "sample": {
+            "home_home_played": 4,
+            "away_away_played": 3,
+            "minimum_split_sample": 3,
+            "shrinkage_prior_games": 5.0
+          },
+          "strengths": {
+            "home_attack": 1.0218,
+            "home_defensive_weakness": 1.2153,
+            "away_attack": 0.8213,
+            "away_defensive_weakness": 0.9615,
+            "baseline_home_goals": 1.4,
+            "baseline_away_goals": 1.6
+          },
+          "challenger": {
+            "raw_home_goal_rate": 1.3755,
+            "raw_away_goal_rate": 1.597,
+            "raw_total_goals": 2.9724,
+            "raw_home_win_prob": 0.329857,
+            "raw_draw_prob": 0.242659,
+            "raw_away_win_prob": 0.427484,
+            "raw_btts_yes_prob": 0.595946,
+            "raw_over_1_5_prob": 0.796695,
+            "raw_over_2_5_prob": 0.570603,
+            "raw_over_3_5_prob": 0.346589
+          },
+          "baseline": {
+            "raw_home_goal_rate": 1.3625,
+            "raw_away_goal_rate": 1.6062,
+            "raw_total_goals": 2.9688,
+            "raw_home_win_prob": 0.325027,
+            "raw_draw_prob": 0.242487,
+            "raw_away_win_prob": 0.432486,
+            "raw_btts_yes_prob": 0.594709,
+            "raw_over_1_5_prob": 0.796135,
+            "raw_over_2_5_prob": 0.569772,
+            "raw_over_3_5_prob": 0.345766
+          },
+          "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
+        }
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-90",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1555504,
+        "kickoff": "2026-09-15T10:30:00-06:00",
+        "timestamp": 1789489800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 383,
+        "league": "Ligat Ha'al",
+        "country": "Israel",
+        "season": 2026,
+        "round": "Regular Season - 4",
+        "home_team_id": 6181,
+        "home_team": "Ironi Tiberias",
+        "away_team_id": 4486,
+        "away_team": "Hapoel Katamon",
+        "venue": "Green Stadium",
+        "city": "Nof HaGalil",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 72.5,
+        "tracks": [
+          "SIDE",
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 62.9,
+        "goal_environment_score": 27.5,
+        "two_way_scoring_score": 51.8,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 83.6,
+        "tracks": [
+          "SIDE",
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 70.1,
+        "goal_environment_score": 16.4,
+        "two_way_scoring_score": 40.5,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 72.5,
+        "tracks": [
+          "SIDE",
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 62.9,
+        "goal_environment_score": 27.5,
+        "two_way_scoring_score": 51.8,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 1.0938,
+        "raw_away_goal_rate": 0.4531,
+        "raw_total_goals": 1.5469,
+        "raw_home_win_prob": 0.515425,
+        "raw_draw_prob": 0.33225,
+        "raw_away_win_prob": 0.152325,
+        "raw_btts_yes_prob": 0.242316,
+        "raw_over_2_5_prob": 0.203008,
+        "scoring_path": "MUTUAL SUPPRESSION UNDER",
+        "screen_scores": {
+          "side_edge_score": 62.9,
+          "goal_environment_score": 27.5,
+          "two_way_scoring_score": 51.8,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "INSUFFICIENT_VERIFIED_SPLIT_SAMPLE",
+          "actionable": false
+        }
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
     {
       "event_type": "LOW_DATA_SCREEN_SUMMARY",
       "stage": "SLATE_SCREEN",
