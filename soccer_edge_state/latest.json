@@ -2,24 +2,24 @@
   "service": "soccer-edge-automation",
   "version": "3.4.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-16T03:16:49.408015+00:00",
-  "generated_at_local": "2026-09-15T21:16:49.408015-06:00",
+  "generated_at_utc": "2026-09-16T03:35:07.185200+00:00",
+  "generated_at_local": "2026-09-15T21:35:07.185200-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 244,
-  "due_fixture_count": 4,
-  "event_count": 5,
+  "due_fixture_count": 3,
+  "event_count": 4,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 3,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7421,
+  "last_daily_remaining": 7416,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 4,
-  "shortlist_event_count": 4,
-  "screened_out_low_data_count": 0,
+  "deep_dive_processed_count": 2,
+  "shortlist_event_count": 2,
+  "screened_out_low_data_count": 1,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T21:16:49.408015-06:00",
+    "generated_at_local": "2026-09-15T21:35:07.185200-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2240,12 +2240,12 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 4,
-        "rows_attached": 4,
+        "row_count": 2,
+        "rows_attached": 2,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "POSTGAME": 4
+          "POSTGAME": 2
         }
       }
     },
@@ -2290,33 +2290,6 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1511696,
-      "country": "Chile",
-      "competition": "Primera B",
-      "data_tier": "B",
-      "kickoff": "2026-09-15T17:30:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Union Espanola",
-      "away": "Deportes Temuco",
-      "tracks": [
-        "TWO_WAY"
-      ],
-      "side_score": 51.3,
-      "goals_score": 58.5,
-      "two_way_score": 85.2,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    },
-    {
       "fixture_id": 1581369,
       "country": "Mexico",
       "competition": "Liga de Expansión MX",
@@ -2343,40 +2316,12 @@
       "tier": null,
       "stake_units": 0.0,
       "reason": "SPORTING_SCREEN_PASS"
-    },
-    {
-      "fixture_id": 1638764,
-      "country": "Venezuela",
-      "competition": "Primera División",
-      "data_tier": "B",
-      "kickoff": "2026-09-15T17:30:00-06:00",
-      "stage": "POSTGAME",
-      "home": "UCV",
-      "away": "Anzoátegui FC",
-      "tracks": [
-        "SIDE",
-        "TWO_WAY"
-      ],
-      "side_score": 62.9,
-      "goals_score": 59.2,
-      "two_way_score": 76.4,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
     }
   ],
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7423",
-    "per_minute_remaining": "298"
+    "daily_remaining": "7418",
+    "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
@@ -2551,16 +2496,16 @@
             }
           ],
           "totals": {
-            "possession": 100.0,
-            "red_cards": 0.0,
             "total_shots": 33.0,
-            "shots_on_goal": 11.0,
-            "corners": 8.0,
-            "blocked_shots": 8.0,
-            "fouls": 15.0,
             "shots_outside_box": 21.0,
+            "fouls": 15.0,
+            "shots_inside_box": 12.0,
+            "red_cards": 0.0,
             "yellow_cards": 6.0,
-            "shots_inside_box": 12.0
+            "shots_on_goal": 11.0,
+            "blocked_shots": 8.0,
+            "possession": 100.0,
+            "corners": 8.0
           }
         },
         "player_stats": {
@@ -3535,78 +3480,22 @@
       "error": null
     },
     {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
+      "event_type": "LOW_DATA_SCREEN_SUMMARY",
+      "stage": "SLATE_SCREEN",
+      "classification": "PASS",
       "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
+      "stake_units": null,
+      "bet_eligible": null,
       "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1511696,
-        "kickoff": "2026-09-15T17:30:00-06:00",
-        "timestamp": 1789515000,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 266,
-        "league": "Primera B",
-        "country": "Chile",
-        "season": 2026,
-        "round": "Regular Season - 26",
-        "home_team_id": 2321,
-        "home_team": "Union Espanola",
-        "away_team_id": 2317,
-        "away_team": "Deportes Temuco",
-        "venue": "Estadio Santa Laura-Universidad SEK",
-        "city": "Santiago de Chile",
-        "goals": {
-          "home": 1,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 85.2,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 51.3,
-        "goal_environment_score": 58.5,
-        "two_way_scoring_score": 85.2,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
+      "fixture": null,
+      "coverage": null,
+      "sporting_shortlist": null,
       "sporting_screen_initial": null,
       "sporting_screen_refined": null,
       "galaxy_source": null,
       "market_source": null,
       "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
+      "trend_context": null,
       "player_trends_research": null,
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
@@ -3614,141 +3503,11 @@
       "raw_projection": null,
       "market_decision": null,
       "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1638764,
-        "kickoff": "2026-09-15T17:30:00-06:00",
-        "timestamp": 1789515000,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 299,
-        "league": "Primera División",
-        "country": "Venezuela",
-        "season": 2026,
-        "round": "Clausura - 10",
-        "home_team_id": 2840,
-        "home_team": "UCV",
-        "away_team_id": 18806,
-        "away_team": "Anzoátegui FC",
-        "venue": "Estadio Olimpico de la UCV",
-        "city": "Caracas",
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 76.4,
-        "tracks": [
-          "SIDE",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 62.9,
-        "goal_environment_score": 59.2,
-        "two_way_scoring_score": 76.4,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
+      "notes": [
+        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
+        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
+      ],
+      "result": null,
       "error": null
     }
   ]
