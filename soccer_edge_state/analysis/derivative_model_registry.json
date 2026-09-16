@@ -2,8 +2,8 @@
   "models": {
     "1H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 24,
-      "market_quotes_persisted": 142,
+      "market_groups_persisted": 660,
+      "market_quotes_persisted": 4295,
       "requirements_remaining": [
         "dedicated 1H market-vs-model calibration",
         "stable OOS Brier/log-loss improvement",
@@ -13,26 +13,26 @@
       "research_model": {
         "calibration": {
           "baseline_same_sample": {
-            "accuracy_at_0_5": 0.6337,
-            "brier": 0.2298,
-            "log_loss": 0.6522,
-            "mean_predicted_probability": 0.4241,
-            "n": 172,
-            "observed_rate": 0.343
+            "accuracy_at_0_5": 0.6313,
+            "brier": 0.2304,
+            "log_loss": 0.6534,
+            "mean_predicted_probability": 0.4182,
+            "n": 217,
+            "observed_rate": 0.3502
           },
           "challenger": {
-            "accuracy_at_0_5": 0.6105,
-            "brier": 0.2297,
-            "log_loss": 0.6516,
-            "mean_predicted_probability": 0.4169,
-            "n": 172,
-            "observed_rate": 0.343
+            "accuracy_at_0_5": 0.6129,
+            "brier": 0.2304,
+            "log_loss": 0.6531,
+            "mean_predicted_probability": 0.4065,
+            "n": 217,
+            "observed_rate": 0.3502
           },
           "improvement": {
-            "accuracy_delta_pp": -2.32,
-            "brier_delta": -0.0001,
-            "log_loss_delta": -0.0006,
-            "mean_probability_delta_pp": -0.72
+            "accuracy_delta_pp": -1.84,
+            "brier_delta": 0.0,
+            "log_loss_delta": -0.0003,
+            "mean_probability_delta_pp": -1.17
           },
           "method": "WALK_FORWARD_SHRUNK_MULTIPLICATIVE_1H_LAMBDA_CALIBRATION",
           "promotion_gate": {
@@ -47,16 +47,16 @@
             ],
             "sample_gate_met": true
           },
-          "walk_forward_evaluated": 172
+          "walk_forward_evaluated": 217
         },
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_1h_total_goals_error": 1.0322,
-          "mean_predicted_over_1_5_probability": 0.4303,
-          "observed_over_1_5_rate": 0.3614,
-          "over_1_5_accuracy_at_0_5_threshold": 0.6089,
-          "over_1_5_brier": 0.2342,
-          "over_1_5_log_loss": 0.6611
+          "mean_abs_1h_total_goals_error": 0.9963,
+          "mean_predicted_over_1_5_probability": 0.424,
+          "observed_over_1_5_rate": 0.3644,
+          "over_1_5_accuracy_at_0_5_threshold": 0.6113,
+          "over_1_5_brier": 0.2339,
+          "over_1_5_log_loss": 0.6605
         },
         "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -68,14 +68,14 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 202
+        "walk_forward_evaluated": 247
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
     "2H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 16,
-      "market_quotes_persisted": 124,
+      "market_groups_persisted": 418,
+      "market_quotes_persisted": 3335,
       "requirements_remaining": [
         "dedicated pregame 2H market-vs-model calibration",
         "stable OOS validation",
@@ -85,12 +85,12 @@
       "research_model": {
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_2h_total_goals_error": 0.9619,
-          "mean_predicted_over_1_5_probability": 0.5016,
-          "observed_over_1_5_rate": 0.5,
-          "over_1_5_accuracy_at_0_5_threshold": 0.4604,
-          "over_1_5_brier": 0.2528,
-          "over_1_5_log_loss": 0.6988
+          "mean_abs_2h_total_goals_error": 0.9523,
+          "mean_predicted_over_1_5_probability": 0.5007,
+          "observed_over_1_5_rate": 0.5061,
+          "over_1_5_accuracy_at_0_5_threshold": 0.4534,
+          "over_1_5_brier": 0.2536,
+          "over_1_5_log_loss": 0.7003
         },
         "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -102,7 +102,7 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 202
+        "walk_forward_evaluated": 247
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
