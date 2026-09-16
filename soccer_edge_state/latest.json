@@ -2,10 +2,10 @@
   "service": "soccer-edge-automation",
   "version": "3.4.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-16T05:24:35.583735+00:00",
-  "generated_at_local": "2026-09-15T23:24:35.583735-06:00",
+  "generated_at_utc": "2026-09-16T06:13:56.217721+00:00",
+  "generated_at_local": "2026-09-16T00:13:56.217721-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 41,
+  "fixture_scan_count": 27,
   "due_fixture_count": 0,
   "event_count": 1,
   "actionable_refresh_count": 0,
@@ -13,7 +13,7 @@
   "api_calls_this_tick": 2,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7306,
+  "last_daily_remaining": 7066,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
@@ -56,7 +56,7 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 58,
+  "shortlist_state_count": 56,
   "shortlist_seed_imported": 58,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
@@ -71,14 +71,14 @@
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
     "galaxy_odds_stale_or_missing": 0,
-    "galaxy_slate_reads": 2,
-    "galaxy_slate_hits": 2,
+    "galaxy_slate_reads": 1,
+    "galaxy_slate_hits": 1,
     "galaxy_slate_fallbacks": 0,
     "galaxy_slate_stale_rejections": 0,
-    "api_slate_calls_avoided": 2,
+    "api_slate_calls_avoided": 1,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 2,
+    "provider_requests_avoided": 1,
     "odds_market_events": 0,
     "galaxy_odds_market_events": 0,
     "api_odds_fallback_events": 0,
@@ -116,14 +116,14 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T23:24:35.583735-06:00",
+    "generated_at_local": "2026-09-16T00:13:56.217721-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
-    "competition_count": 15,
+    "competition_count": 11,
     "data_tier_counts": {
-      "A": 6,
-      "B": 9
+      "A": 5,
+      "B": 6
     },
     "pregame_data_eligible_fixture_count": 27,
     "errors": [],
@@ -155,7 +155,7 @@
         "season": 2026,
         "country": "NOT VERIFIED",
         "competition": "La Liga",
-        "fixtures_in_scanned_slate": 7,
+        "fixtures_in_scanned_slate": 4,
         "pregame_eligible_fixtures": 4,
         "provider_coverage_known": true,
         "coverage": {
@@ -239,56 +239,12 @@
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       },
       {
-        "league_id": 88,
-        "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "Eredivisie",
-        "fixtures_in_scanned_slate": 1,
-        "pregame_eligible_fixtures": 0,
-        "provider_coverage_known": true,
-        "coverage": {
-          "events": true,
-          "lineups": true,
-          "fixture_statistics": true,
-          "player_statistics": true,
-          "injuries": true,
-          "odds": true
-        },
-        "data_tier": "A",
-        "sporting_screen_scope": "ELIGIBLE",
-        "bet_default_scope": "A_B_ONLY",
-        "galaxy_activation_required": false,
-        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
-      },
-      {
         "league_id": 11,
         "season": 2026,
         "country": "NOT VERIFIED",
         "competition": "CONMEBOL Sudamericana",
-        "fixtures_in_scanned_slate": 3,
+        "fixtures_in_scanned_slate": 1,
         "pregame_eligible_fixtures": 1,
-        "provider_coverage_known": true,
-        "coverage": {
-          "events": true,
-          "lineups": true,
-          "fixture_statistics": true,
-          "player_statistics": true,
-          "injuries": false,
-          "odds": true
-        },
-        "data_tier": "B",
-        "sporting_screen_scope": "ELIGIBLE",
-        "bet_default_scope": "A_B_ONLY",
-        "galaxy_activation_required": false,
-        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
-      },
-      {
-        "league_id": 114,
-        "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "Superettan",
-        "fixtures_in_scanned_slate": 3,
-        "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
         "coverage": {
           "events": true,
@@ -309,7 +265,7 @@
         "season": 2026,
         "country": "NOT VERIFIED",
         "competition": "CONMEBOL Libertadores",
-        "fixtures_in_scanned_slate": 3,
+        "fixtures_in_scanned_slate": 2,
         "pregame_eligible_fixtures": 2,
         "provider_coverage_known": true,
         "coverage": {
@@ -317,28 +273,6 @@
           "lineups": true,
           "fixture_statistics": true,
           "player_statistics": true,
-          "injuries": false,
-          "odds": true
-        },
-        "data_tier": "B",
-        "sporting_screen_scope": "ELIGIBLE",
-        "bet_default_scope": "A_B_ONLY",
-        "galaxy_activation_required": false,
-        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
-      },
-      {
-        "league_id": 164,
-        "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "Úrvalsdeild",
-        "fixtures_in_scanned_slate": 1,
-        "pregame_eligible_fixtures": 0,
-        "provider_coverage_known": true,
-        "coverage": {
-          "events": true,
-          "lineups": true,
-          "fixture_statistics": false,
-          "player_statistics": false,
           "injuries": false,
           "odds": true
         },
@@ -353,30 +287,8 @@
         "season": 2026,
         "country": "NOT VERIFIED",
         "competition": "Primera A",
-        "fixtures_in_scanned_slate": 3,
+        "fixtures_in_scanned_slate": 2,
         "pregame_eligible_fixtures": 2,
-        "provider_coverage_known": true,
-        "coverage": {
-          "events": true,
-          "lineups": true,
-          "fixture_statistics": true,
-          "player_statistics": true,
-          "injuries": false,
-          "odds": true
-        },
-        "data_tier": "B",
-        "sporting_screen_scope": "ELIGIBLE",
-        "bet_default_scope": "A_B_ONLY",
-        "galaxy_activation_required": false,
-        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
-      },
-      {
-        "league_id": 262,
-        "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "Liga MX",
-        "fixtures_in_scanned_slate": 1,
-        "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
         "coverage": {
           "events": true,
@@ -441,7 +353,7 @@
         "season": 2026,
         "country": "NOT VERIFIED",
         "competition": "Virsliga",
-        "fixtures_in_scanned_slate": 2,
+        "fixtures_in_scanned_slate": 1,
         "pregame_eligible_fixtures": 1,
         "provider_coverage_known": true,
         "coverage": {
@@ -459,7 +371,7 @@
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       }
     ],
-    "competition_rows_attached": 15,
+    "competition_rows_attached": 11,
     "competitions_truncated": false,
     "max_competition_rows": 300
   },
@@ -495,8 +407,8 @@
     ],
     "state_bounds": {
       "registry": {
-        "competition_count": 15,
-        "rows_attached": 15,
+        "competition_count": 11,
+        "rows_attached": 11,
         "truncated": false,
         "max_rows": 300
       },
@@ -526,7 +438,7 @@
   "events": [
     {
       "event_type": "DAILY_DISCOVERY",
-      "stage": "LATE_DISCOVERY",
+      "stage": "MORNING",
       "classification": "PRE-FINAL",
       "tier": null,
       "stake_units": null,
