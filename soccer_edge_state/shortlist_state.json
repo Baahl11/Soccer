@@ -1,6 +1,6 @@
 {
   "1493690": {
-    "updated_at": 1789592833.576725,
+    "updated_at": 1789593710.479684,
     "value": {
       "shortlisted": true,
       "rank": 85.6,
@@ -15,8 +15,23 @@
       "reason": "SPORTING_SCREEN_PASS"
     }
   },
+  "1624021": {
+    "updated_at": 1789593710.479684,
+    "value": {
+      "shortlisted": true,
+      "rank": 67.4,
+      "tracks": [
+        "SIDE",
+        "GOALS_UNDER"
+      ],
+      "side_edge_score": 67.4,
+      "goal_environment_score": 42.4,
+      "two_way_scoring_score": 59.3,
+      "reason": "SPORTING_SCREEN_PASS"
+    }
+  },
   "1631509": {
-    "updated_at": 1789592833.576725,
+    "updated_at": 1789593710.479684,
     "value": {
       "shortlisted": false,
       "rank": 0.0,
@@ -28,7 +43,7 @@
     }
   },
   "1631513": {
-    "updated_at": 1789592833.576725,
+    "updated_at": 1789593710.479684,
     "value": {
       "shortlisted": false,
       "rank": 0.0,
@@ -39,8 +54,23 @@
       "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
     }
   },
+  "1635927": {
+    "updated_at": 1789593710.479684,
+    "value": {
+      "shortlisted": true,
+      "rank": 75.0,
+      "tracks": [
+        "SIDE",
+        "TWO_WAY"
+      ],
+      "side_edge_score": 67.6,
+      "goal_environment_score": 60.6,
+      "two_way_scoring_score": 75.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    }
+  },
   "1637267": {
-    "updated_at": 1789592833.576725,
+    "updated_at": 1789593710.479684,
     "value": {
       "shortlisted": true,
       "rank": 65.1,
@@ -55,8 +85,22 @@
       "reason": "SPORTING_SCREEN_PASS"
     }
   },
+  "1638763": {
+    "updated_at": 1789593710.479684,
+    "value": {
+      "shortlisted": true,
+      "rank": 73.9,
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_edge_score": 54.6,
+      "goal_environment_score": 52.4,
+      "two_way_scoring_score": 73.9,
+      "reason": "SPORTING_SCREEN_PASS"
+    }
+  },
   "1638765": {
-    "updated_at": 1789592833.576725,
+    "updated_at": 1789593710.479684,
     "value": {
       "shortlisted": true,
       "rank": 73.6,
@@ -70,12 +114,63 @@
     }
   },
   "_galaxy_candidate_registry_v1": {
-    "updated_at": 1789592833.576725,
+    "updated_at": 1789593710.479684,
     "value": {
       "schema_version": "1.0.0",
       "same_game": {
+        "SGP:1624021:[('DOUBLE_CHANCE', '1X', ''), ('FT_GOALS', 'UNDER', '5.5')]": {
+          "updated_at": 1789593710.479684,
+          "candidate": {
+            "type": "SAME_GAME_PARLAY",
+            "fixture_id": 1624021,
+            "kickoff": "2026-09-16T16:00:00-06:00",
+            "country": "Brazil",
+            "league": "Piauiense - 2",
+            "match": "Comercial PI vs 4 de Julho",
+            "data_tier": "B",
+            "availability_confidence": 0.7,
+            "legs": [
+              {
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 5.5,
+                "probability": 0.98045,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": []
+              },
+              {
+                "family": "DOUBLE_CHANCE",
+                "selection": "1X",
+                "line": null,
+                "probability": 0.827999,
+                "actionable_model": false,
+                "probability_source": "PROTECTIVE_TRANSFORM_OF_SCORE_MATRIX",
+                "research_only_reason": "SIDE_MODEL_RESEARCH_ONLY; USE_DOUBLE_CHANCE_AS_PROTECTIVE_SHADOW",
+                "quotes": []
+              }
+            ],
+            "joint_model_probability": 0.810345,
+            "fair_decimal": 1.234,
+            "fair_american": -427,
+            "edge_if_exact_quote_is_plus_110_pp": 33.42,
+            "component_price_reference": null,
+            "exact_parlay_quote": null,
+            "status": "GALAXY SGP WATCH — EXACT SGP QUOTE NEEDED",
+            "bet_eligible": false,
+            "all_leg_models_actionable": false,
+            "block_reasons": [
+              "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED",
+              "AVAILABILITY_BELOW_0.85",
+              "RESEARCH_ONLY_LEG_PRESENT"
+            ],
+            "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
+          }
+        },
         "SGP:1493690:[('DOUBLE_CHANCE', '12', ''), ('FT_GOALS', 'OVER', '0.5')]": {
-          "updated_at": 1789592833.576725,
+          "updated_at": 1789593710.479684,
           "candidate": {
             "type": "SAME_GAME_PARLAY",
             "fixture_id": 1493690,
@@ -93,7 +188,29 @@
                 "probability": 0.957417,
                 "actionable_model": true,
                 "probability_source": "DIRECT_SCORE_MATRIX",
-                "quotes": []
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.02,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.02,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "Betano",
+                    "price": 1.03,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  }
+                ]
               },
               {
                 "family": "DOUBLE_CHANCE",
@@ -121,12 +238,136 @@
               "RESEARCH_ONLY_LEG_PRESENT"
             ],
             "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
-            "rolling_registry_last_updated": "2026-09-16T15:07:13.576725-06:00",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
+          }
+        },
+        "SGP:1624021:[('DOUBLE_CHANCE', '1X', ''), ('FT_GOALS', 'UNDER', '4.5')]": {
+          "updated_at": 1789593710.479684,
+          "candidate": {
+            "type": "SAME_GAME_PARLAY",
+            "fixture_id": 1624021,
+            "kickoff": "2026-09-16T16:00:00-06:00",
+            "country": "Brazil",
+            "league": "Piauiense - 2",
+            "match": "Comercial PI vs 4 de Julho",
+            "data_tier": "B",
+            "availability_confidence": 0.7,
+            "legs": [
+              {
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 4.5,
+                "probability": 0.940026,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": []
+              },
+              {
+                "family": "DOUBLE_CHANCE",
+                "selection": "1X",
+                "line": null,
+                "probability": 0.827999,
+                "actionable_model": false,
+                "probability_source": "PROTECTIVE_TRANSFORM_OF_SCORE_MATRIX",
+                "research_only_reason": "SIDE_MODEL_RESEARCH_ONLY; USE_DOUBLE_CHANCE_AS_PROTECTIVE_SHADOW",
+                "quotes": []
+              }
+            ],
+            "joint_model_probability": 0.777381,
+            "fair_decimal": 1.2864,
+            "fair_american": -349,
+            "edge_if_exact_quote_is_plus_110_pp": 30.12,
+            "component_price_reference": null,
+            "exact_parlay_quote": null,
+            "status": "GALAXY SGP WATCH — EXACT SGP QUOTE NEEDED",
+            "bet_eligible": false,
+            "all_leg_models_actionable": false,
+            "block_reasons": [
+              "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED",
+              "AVAILABILITY_BELOW_0.85",
+              "RESEARCH_ONLY_LEG_PRESENT"
+            ],
+            "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
+          }
+        },
+        "SGP:1637267:[('DOUBLE_CHANCE', 'X2', ''), ('FT_GOALS', 'UNDER', '5.5')]": {
+          "updated_at": 1789593710.479684,
+          "candidate": {
+            "type": "SAME_GAME_PARLAY",
+            "fixture_id": 1637267,
+            "kickoff": "2026-09-16T16:00:00-06:00",
+            "country": "Argentina",
+            "league": "Copa Argentina",
+            "match": "Independ. Rivadavia vs Atletico Tucuman",
+            "data_tier": "B",
+            "availability_confidence": 0.7,
+            "legs": [
+              {
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 5.5,
+                "probability": 0.973418,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.01,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.01,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.33,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Yellow Over/Under",
+                    "selection_text": "Under 5.5"
+                  }
+                ]
+              },
+              {
+                "family": "DOUBLE_CHANCE",
+                "selection": "X2",
+                "line": null,
+                "probability": 0.785487,
+                "actionable_model": false,
+                "probability_source": "PROTECTIVE_TRANSFORM_OF_SCORE_MATRIX",
+                "research_only_reason": "SIDE_MODEL_RESEARCH_ONLY; USE_DOUBLE_CHANCE_AS_PROTECTIVE_SHADOW",
+                "quotes": []
+              }
+            ],
+            "joint_model_probability": 0.762974,
+            "fair_decimal": 1.3107,
+            "fair_american": -322,
+            "edge_if_exact_quote_is_plus_110_pp": 28.68,
+            "component_price_reference": null,
+            "exact_parlay_quote": null,
+            "status": "GALAXY SGP WATCH — EXACT SGP QUOTE NEEDED",
+            "bet_eligible": false,
+            "all_leg_models_actionable": false,
+            "block_reasons": [
+              "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED",
+              "AVAILABILITY_BELOW_0.85",
+              "RESEARCH_ONLY_LEG_PRESENT"
+            ],
+            "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
             "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
           }
         },
         "SGP:1493690:[('DOUBLE_CHANCE', '1X', ''), ('FT_GOALS', 'OVER', '0.5')]": {
-          "updated_at": 1789592833.576725,
+          "updated_at": 1789593710.479684,
           "candidate": {
             "type": "SAME_GAME_PARLAY",
             "fixture_id": 1493690,
@@ -144,7 +385,29 @@
                 "probability": 0.957417,
                 "actionable_model": true,
                 "probability_source": "DIRECT_SCORE_MATRIX",
-                "quotes": []
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.02,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.02,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "Betano",
+                    "price": 1.03,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  }
+                ]
               },
               {
                 "family": "DOUBLE_CHANCE",
@@ -172,19 +435,19 @@
               "RESEARCH_ONLY_LEG_PRESENT"
             ],
             "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
-            "rolling_registry_last_updated": "2026-09-16T15:07:13.576725-06:00",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
             "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
           }
         },
-        "SGP:1638765:[('DOUBLE_CHANCE', '12', ''), ('FT_GOALS', 'OVER', '0.5')]": {
-          "updated_at": 1789592833.576725,
+        "SGP:1637267:[('DOUBLE_CHANCE', '12', ''), ('FT_GOALS', 'OVER', '0.5')]": {
+          "updated_at": 1789593710.479684,
           "candidate": {
             "type": "SAME_GAME_PARLAY",
-            "fixture_id": 1638765,
+            "fixture_id": 1637267,
             "kickoff": "2026-09-16T16:00:00-06:00",
-            "country": "Venezuela",
-            "league": "Primera División",
-            "match": "Monagas SC vs Zamora FC",
+            "country": "Argentina",
+            "league": "Copa Argentina",
+            "match": "Independ. Rivadavia vs Atletico Tucuman",
             "data_tier": "B",
             "availability_confidence": 0.7,
             "legs": [
@@ -192,26 +455,62 @@
                 "family": "FT_GOALS",
                 "selection": "OVER",
                 "line": 0.5,
-                "probability": 0.909843,
+                "probability": 0.892944,
                 "actionable_model": true,
                 "probability_source": "DIRECT_SCORE_MATRIX",
-                "quotes": []
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.1,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.06,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.07,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.06,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.06,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  }
+                ]
               },
               {
                 "family": "DOUBLE_CHANCE",
                 "selection": "12",
                 "line": null,
-                "probability": 0.728348,
+                "probability": 0.728608,
                 "actionable_model": false,
                 "probability_source": "PROTECTIVE_TRANSFORM_OF_SCORE_MATRIX",
                 "research_only_reason": "SIDE_MODEL_RESEARCH_ONLY; USE_DOUBLE_CHANCE_AS_PROTECTIVE_SHADOW",
                 "quotes": []
               }
             ],
-            "joint_model_probability": 0.728348,
-            "fair_decimal": 1.373,
+            "joint_model_probability": 0.728608,
+            "fair_decimal": 1.3725,
             "fair_american": -268,
-            "edge_if_exact_quote_is_plus_110_pp": 25.22,
+            "edge_if_exact_quote_is_plus_110_pp": 25.24,
             "component_price_reference": null,
             "exact_parlay_quote": null,
             "status": "GALAXY SGP WATCH — EXACT SGP QUOTE NEEDED",
@@ -223,166 +522,785 @@
               "RESEARCH_ONLY_LEG_PRESENT"
             ],
             "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
-            "rolling_registry_last_updated": "2026-09-16T15:07:13.576725-06:00",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
             "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
           }
-        },
-        "SGP:1493690:[('DOUBLE_CHANCE', '1X', ''), ('FT_GOALS', 'UNDER', '5.5')]": {
-          "updated_at": 1789592833.576725,
+        }
+      },
+      "multi_match": {
+        "MULTI:1xBet:[('1637267', 'FT_GOALS', 'UNDER', '3.5'), ('1638765', 'FT_GOALS', 'UNDER', '5.5')]": {
+          "updated_at": 1789593710.479684,
           "candidate": {
-            "type": "SAME_GAME_PARLAY",
-            "fixture_id": 1493690,
-            "kickoff": "2026-09-16T16:00:00-06:00",
-            "country": "USA",
-            "league": "USL Championship",
-            "match": "Hartford Athletic vs Sporting JAX",
-            "data_tier": "B",
-            "availability_confidence": 0.7,
+            "type": "MULTI_MATCH_PARLAY",
+            "bookmaker": "1xBet",
             "legs": [
               {
-                "family": "FT_GOALS",
-                "selection": "UNDER",
-                "line": 5.5,
-                "probability": 0.89952,
-                "actionable_model": true,
-                "probability_source": "DIRECT_SCORE_MATRIX",
-                "quotes": []
-              },
-              {
-                "family": "DOUBLE_CHANCE",
-                "selection": "1X",
-                "line": null,
-                "probability": 0.795859,
-                "actionable_model": false,
-                "probability_source": "PROTECTIVE_TRANSFORM_OF_SCORE_MATRIX",
-                "research_only_reason": "SIDE_MODEL_RESEARCH_ONLY; USE_DOUBLE_CHANCE_AS_PROTECTIVE_SHADOW",
-                "quotes": []
-              }
-            ],
-            "joint_model_probability": 0.710117,
-            "fair_decimal": 1.4082,
-            "fair_american": -245,
-            "edge_if_exact_quote_is_plus_110_pp": 23.39,
-            "component_price_reference": null,
-            "exact_parlay_quote": null,
-            "status": "GALAXY SGP WATCH — EXACT SGP QUOTE NEEDED",
-            "bet_eligible": false,
-            "all_leg_models_actionable": false,
-            "block_reasons": [
-              "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED",
-              "AVAILABILITY_BELOW_0.85",
-              "RESEARCH_ONLY_LEG_PRESENT"
-            ],
-            "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
-            "rolling_registry_last_updated": "2026-09-16T15:07:13.576725-06:00",
-            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
-          }
-        },
-        "SGP:1638765:[('DOUBLE_CHANCE', '12', ''), ('FT_GOALS', 'UNDER', '5.5')]": {
-          "updated_at": 1789592833.576725,
-          "candidate": {
-            "type": "SAME_GAME_PARLAY",
-            "fixture_id": 1638765,
-            "kickoff": "2026-09-16T16:00:00-06:00",
-            "country": "Venezuela",
-            "league": "Primera División",
-            "match": "Monagas SC vs Zamora FC",
-            "data_tier": "B",
-            "availability_confidence": 0.7,
-            "legs": [
-              {
+                "fixture_id": 1638765,
+                "match": "Monagas SC vs Zamora FC",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Primera División",
+                "availability_confidence": 0.7,
                 "family": "FT_GOALS",
                 "selection": "UNDER",
                 "line": 5.5,
                 "probability": 0.963953,
                 "actionable_model": true,
                 "probability_source": "DIRECT_SCORE_MATRIX",
-                "quotes": []
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.02,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.01,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.02,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  }
+                ],
+                "decimal_price": 1.02
               },
               {
-                "family": "DOUBLE_CHANCE",
-                "selection": "12",
-                "line": null,
-                "probability": 0.728348,
-                "actionable_model": false,
-                "probability_source": "PROTECTIVE_TRANSFORM_OF_SCORE_MATRIX",
-                "research_only_reason": "SIDE_MODEL_RESEARCH_ONLY; USE_DOUBLE_CHANCE_AS_PROTECTIVE_SHADOW",
-                "quotes": []
+                "fixture_id": 1637267,
+                "match": "Independ. Rivadavia vs Atletico Tucuman",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Copa Argentina",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 3.5,
+                "probability": 0.812547,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.17,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.2,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 2.75,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Yellow Over/Under",
+                    "selection_text": "Under 3.5"
+                  }
+                ],
+                "decimal_price": 2.75
               }
             ],
-            "joint_model_probability": 0.700164,
-            "fair_decimal": 1.4282,
-            "fair_american": -234,
-            "edge_if_exact_quote_is_plus_110_pp": 22.4,
-            "component_price_reference": null,
+            "component_product_decimal_reference": 2.805,
+            "component_product_american_reference": 181,
+            "conservative_joint_probability": 0.767592,
+            "probability_edge_vs_component_product_pp": 41.11,
             "exact_parlay_quote": null,
-            "status": "GALAXY SGP WATCH — EXACT SGP QUOTE NEEDED",
+            "status": "GALAXY MULTI WATCH — FINAL PARLAY QUOTE NEEDED",
             "bet_eligible": false,
-            "all_leg_models_actionable": false,
+            "all_leg_models_actionable": true,
             "block_reasons": [
-              "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED",
-              "AVAILABILITY_BELOW_0.85",
-              "RESEARCH_ONLY_LEG_PRESENT"
+              "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
             ],
-            "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
-            "rolling_registry_last_updated": "2026-09-16T15:07:13.576725-06:00",
-            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
+            "joint_probability_method": "DISTINCT_FIXTURES_INDEPENDENCE_WITH_2_PERCENT_UNCERTAINTY_HAIRCUT",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_FIRST_KICKOFF"
           }
         },
-        "SGP:1638765:[('DOUBLE_CHANCE', '12', ''), ('FT_GOALS', 'UNDER', '4.5')]": {
-          "updated_at": 1789592833.576725,
+        "MULTI:1xBet:[('1493690', 'FT_GOALS', 'OVER', '0.5'), ('1637267', 'FT_GOALS', 'UNDER', '3.5')]": {
+          "updated_at": 1789593710.479684,
           "candidate": {
-            "type": "SAME_GAME_PARLAY",
-            "fixture_id": 1638765,
-            "kickoff": "2026-09-16T16:00:00-06:00",
-            "country": "Venezuela",
-            "league": "Primera División",
-            "match": "Monagas SC vs Zamora FC",
-            "data_tier": "B",
-            "availability_confidence": 0.7,
+            "type": "MULTI_MATCH_PARLAY",
+            "bookmaker": "1xBet",
             "legs": [
               {
+                "fixture_id": 1493690,
+                "match": "Hartford Athletic vs Sporting JAX",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "USL Championship",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "OVER",
+                "line": 0.5,
+                "probability": 0.957417,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.02,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.02,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "Betano",
+                    "price": 1.03,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  }
+                ],
+                "decimal_price": 1.02
+              },
+              {
+                "fixture_id": 1637267,
+                "match": "Independ. Rivadavia vs Atletico Tucuman",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Copa Argentina",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 3.5,
+                "probability": 0.812547,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.17,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.2,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 2.75,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Yellow Over/Under",
+                    "selection_text": "Under 3.5"
+                  }
+                ],
+                "decimal_price": 2.75
+              }
+            ],
+            "component_product_decimal_reference": 2.805,
+            "component_product_american_reference": 181,
+            "conservative_joint_probability": 0.762387,
+            "probability_edge_vs_component_product_pp": 40.59,
+            "exact_parlay_quote": null,
+            "status": "GALAXY MULTI WATCH — FINAL PARLAY QUOTE NEEDED",
+            "bet_eligible": false,
+            "all_leg_models_actionable": true,
+            "block_reasons": [
+              "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
+            ],
+            "joint_probability_method": "DISTINCT_FIXTURES_INDEPENDENCE_WITH_2_PERCENT_UNCERTAINTY_HAIRCUT",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_FIRST_KICKOFF"
+          }
+        },
+        "MULTI:1xBet:[('1637267', 'FT_GOALS', 'UNDER', '3.5'), ('1638765', 'FT_GOALS', 'UNDER', '4.5')]": {
+          "updated_at": 1789593710.479684,
+          "candidate": {
+            "type": "MULTI_MATCH_PARLAY",
+            "bookmaker": "1xBet",
+            "legs": [
+              {
+                "fixture_id": 1638765,
+                "match": "Monagas SC vs Zamora FC",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Primera División",
+                "availability_confidence": 0.7,
                 "family": "FT_GOALS",
                 "selection": "UNDER",
                 "line": 4.5,
                 "probability": 0.903352,
                 "actionable_model": true,
                 "probability_source": "DIRECT_SCORE_MATRIX",
-                "quotes": []
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.08,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 4.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.06,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 4.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.08,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 4.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.06,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 4.5"
+                  },
+                  {
+                    "bookmaker": "Betano",
+                    "price": 1.1,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 4.5"
+                  }
+                ],
+                "decimal_price": 1.06
               },
               {
-                "family": "DOUBLE_CHANCE",
-                "selection": "12",
-                "line": null,
-                "probability": 0.728348,
-                "actionable_model": false,
-                "probability_source": "PROTECTIVE_TRANSFORM_OF_SCORE_MATRIX",
-                "research_only_reason": "SIDE_MODEL_RESEARCH_ONLY; USE_DOUBLE_CHANCE_AS_PROTECTIVE_SHADOW",
-                "quotes": []
+                "fixture_id": 1637267,
+                "match": "Independ. Rivadavia vs Atletico Tucuman",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Copa Argentina",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 3.5,
+                "probability": 0.812547,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.17,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.2,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 2.75,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Yellow Over/Under",
+                    "selection_text": "Under 3.5"
+                  }
+                ],
+                "decimal_price": 2.75
               }
             ],
-            "joint_model_probability": 0.639563,
-            "fair_decimal": 1.5636,
-            "fair_american": -177,
-            "edge_if_exact_quote_is_plus_110_pp": 16.34,
-            "component_price_reference": null,
+            "component_product_decimal_reference": 2.915,
+            "component_product_american_reference": 192,
+            "conservative_joint_probability": 0.719336,
+            "probability_edge_vs_component_product_pp": 37.63,
             "exact_parlay_quote": null,
-            "status": "GALAXY SGP WATCH — EXACT SGP QUOTE NEEDED",
+            "status": "GALAXY MULTI WATCH — FINAL PARLAY QUOTE NEEDED",
             "bet_eligible": false,
-            "all_leg_models_actionable": false,
+            "all_leg_models_actionable": true,
             "block_reasons": [
-              "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED",
-              "AVAILABILITY_BELOW_0.85",
-              "RESEARCH_ONLY_LEG_PRESENT"
+              "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
             ],
-            "joint_probability_method": "DIRECT_SCORE_MATRIX_CORRELATION_AWARE",
-            "rolling_registry_last_updated": "2026-09-16T15:07:13.576725-06:00",
-            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
+            "joint_probability_method": "DISTINCT_FIXTURES_INDEPENDENCE_WITH_2_PERCENT_UNCERTAINTY_HAIRCUT",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_FIRST_KICKOFF"
+          }
+        },
+        "MULTI:1xBet:[('1637267', 'FT_GOALS', 'UNDER', '3.5'), ('1638765', 'FT_GOALS', 'OVER', '0.5')]": {
+          "updated_at": 1789593710.479684,
+          "candidate": {
+            "type": "MULTI_MATCH_PARLAY",
+            "bookmaker": "1xBet",
+            "legs": [
+              {
+                "fixture_id": 1638765,
+                "match": "Monagas SC vs Zamora FC",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Primera División",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "OVER",
+                "line": 0.5,
+                "probability": 0.909843,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.06,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.03,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.05,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.03,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  },
+                  {
+                    "bookmaker": "Betano",
+                    "price": 1.06,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Over 0.5"
+                  }
+                ],
+                "decimal_price": 1.03
+              },
+              {
+                "fixture_id": 1637267,
+                "match": "Independ. Rivadavia vs Atletico Tucuman",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Copa Argentina",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 3.5,
+                "probability": 0.812547,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.17,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.2,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 2.75,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Yellow Over/Under",
+                    "selection_text": "Under 3.5"
+                  }
+                ],
+                "decimal_price": 2.75
+              }
+            ],
+            "component_product_decimal_reference": 2.8325,
+            "component_product_american_reference": 183,
+            "conservative_joint_probability": 0.724504,
+            "probability_edge_vs_component_product_pp": 37.15,
+            "exact_parlay_quote": null,
+            "status": "GALAXY MULTI WATCH — FINAL PARLAY QUOTE NEEDED",
+            "bet_eligible": false,
+            "all_leg_models_actionable": true,
+            "block_reasons": [
+              "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
+            ],
+            "joint_probability_method": "DISTINCT_FIXTURES_INDEPENDENCE_WITH_2_PERCENT_UNCERTAINTY_HAIRCUT",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_FIRST_KICKOFF"
+          }
+        },
+        "MULTI:1xBet:[('1493690', 'FT_GOALS', 'UNDER', '5.5'), ('1637267', 'FT_GOALS', 'UNDER', '3.5')]": {
+          "updated_at": 1789593710.479684,
+          "candidate": {
+            "type": "MULTI_MATCH_PARLAY",
+            "bookmaker": "1xBet",
+            "legs": [
+              {
+                "fixture_id": 1493690,
+                "match": "Hartford Athletic vs Sporting JAX",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "USL Championship",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 5.5,
+                "probability": 0.89952,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.1,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.04,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.05,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.04,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  },
+                  {
+                    "bookmaker": "Betano",
+                    "price": 1.1,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 5.5"
+                  }
+                ],
+                "decimal_price": 1.04
+              },
+              {
+                "fixture_id": 1637267,
+                "match": "Independ. Rivadavia vs Atletico Tucuman",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Copa Argentina",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 3.5,
+                "probability": 0.812547,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.17,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.2,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 2.75,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Yellow Over/Under",
+                    "selection_text": "Under 3.5"
+                  }
+                ],
+                "decimal_price": 2.75
+              }
+            ],
+            "component_product_decimal_reference": 2.86,
+            "component_product_american_reference": 186,
+            "conservative_joint_probability": 0.716284,
+            "probability_edge_vs_component_product_pp": 36.66,
+            "exact_parlay_quote": null,
+            "status": "GALAXY MULTI WATCH — FINAL PARLAY QUOTE NEEDED",
+            "bet_eligible": false,
+            "all_leg_models_actionable": true,
+            "block_reasons": [
+              "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
+            ],
+            "joint_probability_method": "DISTINCT_FIXTURES_INDEPENDENCE_WITH_2_PERCENT_UNCERTAINTY_HAIRCUT",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_FIRST_KICKOFF"
+          }
+        },
+        "MULTI:1xBet:[('1637267', 'FT_GOALS', 'UNDER', '3.5'), ('1638765', 'FT_GOALS', 'UNDER', '3.5')]": {
+          "updated_at": 1789593710.479684,
+          "candidate": {
+            "type": "MULTI_MATCH_PARLAY",
+            "bookmaker": "1xBet",
+            "legs": [
+              {
+                "fixture_id": 1638765,
+                "match": "Monagas SC vs Zamora FC",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Primera División",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 3.5,
+                "probability": 0.777426,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.28,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.25,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.29,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.25,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.25,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Betano",
+                    "price": 1.27,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  }
+                ],
+                "decimal_price": 1.25
+              },
+              {
+                "fixture_id": 1637267,
+                "match": "Independ. Rivadavia vs Atletico Tucuman",
+                "kickoff": "2026-09-16T16:00:00-06:00",
+                "league": "Copa Argentina",
+                "availability_confidence": 0.7,
+                "family": "FT_GOALS",
+                "selection": "UNDER",
+                "line": 3.5,
+                "probability": 0.812547,
+                "actionable_model": true,
+                "probability_source": "DIRECT_SCORE_MATRIX",
+                "quotes": [
+                  {
+                    "bookmaker": "Bet365",
+                    "price": 1.17,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Marathonbet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "Betfair",
+                    "price": 1.2,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "BetVictor",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 1.14,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Goals Over/Under",
+                    "selection_text": "Under 3.5"
+                  },
+                  {
+                    "bookmaker": "1xBet",
+                    "price": 2.75,
+                    "provider_update": "2026-09-16T18:00:16+00:00",
+                    "market": "Yellow Over/Under",
+                    "selection_text": "Under 3.5"
+                  }
+                ],
+                "decimal_price": 2.75
+              }
+            ],
+            "component_product_decimal_reference": 3.4375,
+            "component_product_american_reference": 244,
+            "conservative_joint_probability": 0.619061,
+            "probability_edge_vs_component_product_pp": 32.82,
+            "exact_parlay_quote": null,
+            "status": "GALAXY MULTI WATCH — FINAL PARLAY QUOTE NEEDED",
+            "bet_eligible": false,
+            "all_leg_models_actionable": true,
+            "block_reasons": [
+              "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
+            ],
+            "joint_probability_method": "DISTINCT_FIXTURES_INDEPENDENCE_WITH_2_PERCENT_UNCERTAINTY_HAIRCUT",
+            "rolling_registry_last_updated": "2026-09-16T15:21:50.479684-06:00",
+            "rolling_registry_status": "ACTIVE_UNTIL_REEVALUATED_OR_FIRST_KICKOFF"
           }
         }
       },
-      "multi_match": {},
-      "updated_at_utc": "2026-09-16T21:07:13.576725+00:00",
+      "updated_at_utc": "2026-09-16T21:21:50.479684+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     }
   },
@@ -622,35 +1540,6 @@
       "side_edge_score": 83.4,
       "goal_environment_score": 73.2,
       "two_way_scoring_score": 78.2,
-      "reason": "SPORTING_SCREEN_PASS"
-    }
-  },
-  "1635927": {
-    "updated_at": 1789588715.650756,
-    "value": {
-      "shortlisted": true,
-      "rank": 75.0,
-      "tracks": [
-        "SIDE",
-        "TWO_WAY"
-      ],
-      "side_edge_score": 67.6,
-      "goal_environment_score": 60.6,
-      "two_way_scoring_score": 75.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    }
-  },
-  "1638763": {
-    "updated_at": 1789588715.650756,
-    "value": {
-      "shortlisted": true,
-      "rank": 73.9,
-      "tracks": [
-        "TWO_WAY"
-      ],
-      "side_edge_score": 54.6,
-      "goal_environment_score": 52.4,
-      "two_way_scoring_score": 73.9,
       "reason": "SPORTING_SCREEN_PASS"
     }
   },
