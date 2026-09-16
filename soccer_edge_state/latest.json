@@ -2,23 +2,23 @@
   "service": "soccer-edge-automation",
   "version": "3.4.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-16T01:53:37.269800+00:00",
-  "generated_at_local": "2026-09-15T19:53:37.269800-06:00",
+  "generated_at_utc": "2026-09-16T02:11:21.753159+00:00",
+  "generated_at_local": "2026-09-15T20:11:21.753159-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 14,
-  "due_fixture_count": 0,
-  "event_count": 1,
+  "fixture_scan_count": 244,
+  "due_fixture_count": 11,
+  "event_count": 12,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 2,
+  "api_calls_this_tick": 5,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7443,
+  "last_daily_remaining": 7437,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 0,
-  "shortlist_event_count": 0,
+  "deep_dive_processed_count": 11,
+  "shortlist_event_count": 11,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
@@ -72,13 +72,13 @@
     "galaxy_odds_used": 0,
     "galaxy_odds_stale_or_missing": 0,
     "galaxy_slate_reads": 1,
-    "galaxy_slate_hits": 1,
-    "galaxy_slate_fallbacks": 0,
-    "galaxy_slate_stale_rejections": 0,
-    "api_slate_calls_avoided": 1,
+    "galaxy_slate_hits": 0,
+    "galaxy_slate_fallbacks": 1,
+    "galaxy_slate_stale_rejections": 1,
+    "api_slate_calls_avoided": 0,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 1,
+    "provider_requests_avoided": 0,
     "odds_market_events": 0,
     "galaxy_odds_market_events": 0,
     "api_odds_fallback_events": 0,
@@ -116,24 +116,25 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T19:53:37.269800-06:00",
+    "generated_at_local": "2026-09-15T20:11:21.753159-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
-    "competition_count": 9,
+    "competition_count": 94,
     "data_tier_counts": {
-      "A": 2,
-      "B": 7
+      "A": 3,
+      "B": 63,
+      "D": 28
     },
     "pregame_data_eligible_fixture_count": 0,
     "errors": [],
     "competitions": [
       {
-        "league_id": 140,
+        "league_id": 40,
         "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "La Liga",
-        "fixtures_in_scanned_slate": 3,
+        "country": "England",
+        "competition": "Championship",
+        "fixtures_in_scanned_slate": 2,
         "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
         "coverage": {
@@ -153,7 +154,7 @@
       {
         "league_id": 88,
         "season": 2026,
-        "country": "NOT VERIFIED",
+        "country": "Netherlands",
         "competition": "Eredivisie",
         "fixtures_in_scanned_slate": 1,
         "pregame_eligible_fixtures": 0,
@@ -173,10 +174,76 @@
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       },
       {
-        "league_id": 11,
+        "league_id": 140,
         "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "CONMEBOL Sudamericana",
+        "country": "Spain",
+        "competition": "La Liga",
+        "fixtures_in_scanned_slate": 3,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": true,
+          "odds": true
+        },
+        "data_tier": "A",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 132,
+        "season": 2026,
+        "country": "Argentina",
+        "competition": "Primera C",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 874,
+        "season": 2026,
+        "country": "Australia",
+        "competition": "Australia Cup",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 344,
+        "season": 2026,
+        "country": "Bolivia",
+        "competition": "Primera División",
         "fixtures_in_scanned_slate": 2,
         "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
@@ -195,10 +262,76 @@
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       },
       {
-        "league_id": 114,
+        "league_id": 74,
         "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "Superettan",
+        "country": "Brazil",
+        "competition": "Brasileiro Women",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 742,
+        "season": 2026,
+        "country": "Brazil",
+        "competition": "Copa Paulista",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1203,
+        "season": 2026,
+        "country": "Brazil",
+        "competition": "Piauiense - 2",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 72,
+        "season": 2026,
+        "country": "Brazil",
+        "competition": "Serie B",
         "fixtures_in_scanned_slate": 3,
         "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
@@ -217,18 +350,18 @@
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       },
       {
-        "league_id": 13,
+        "league_id": 173,
         "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "CONMEBOL Libertadores",
-        "fixtures_in_scanned_slate": 1,
+        "country": "Bulgaria",
+        "competition": "Second League",
+        "fixtures_in_scanned_slate": 2,
         "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
         "coverage": {
           "events": true,
           "lineups": true,
-          "fixture_statistics": true,
-          "player_statistics": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
           "injuries": false,
           "odds": true
         },
@@ -239,10 +372,54 @@
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       },
       {
-        "league_id": 164,
+        "league_id": 259,
         "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "Úrvalsdeild",
+        "country": "Canada",
+        "competition": "Canadian Championship",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 266,
+        "season": 2026,
+        "country": "Chile",
+        "competition": "Primera B",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 241,
+        "season": 2026,
+        "country": "Colombia",
+        "competition": "Copa Colombia",
         "fixtures_in_scanned_slate": 1,
         "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
@@ -263,7 +440,7 @@
       {
         "league_id": 239,
         "season": 2026,
-        "country": "NOT VERIFIED",
+        "country": "Colombia",
         "competition": "Primera A",
         "fixtures_in_scanned_slate": 1,
         "pregame_eligible_fixtures": 0,
@@ -283,9 +460,493 @@
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       },
       {
+        "league_id": 240,
+        "season": 2026,
+        "country": "Colombia",
+        "competition": "Primera B",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 212,
+        "season": 2026,
+        "country": "Croatia",
+        "competition": "Cup",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 347,
+        "season": 2026,
+        "country": "Czech-Republic",
+        "competition": "Cup",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 121,
+        "season": 2026,
+        "country": "Denmark",
+        "competition": "DBU Pokalen",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 638,
+        "season": 2026,
+        "country": "Denmark",
+        "competition": "Kvindeliga",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 233,
+        "season": 2026,
+        "country": "Egypt",
+        "competition": "Premier League",
+        "fixtures_in_scanned_slate": 4,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 46,
+        "season": 2026,
+        "country": "England",
+        "competition": "EFL Trophy",
+        "fixtures_in_scanned_slate": 5,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 45,
+        "season": 2026,
+        "country": "England",
+        "competition": "FA Cup",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 48,
+        "season": 2026,
+        "country": "England",
+        "competition": "League Cup",
+        "fixtures_in_scanned_slate": 5,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 43,
+        "season": 2026,
+        "country": "England",
+        "competition": "National League",
+        "fixtures_in_scanned_slate": 9,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 60,
+        "season": 2026,
+        "country": "England",
+        "competition": "Non League Premier - Southern South",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 871,
+        "season": 2026,
+        "country": "England",
+        "competition": "Premier League Cup",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 703,
+        "season": 2026,
+        "country": "England",
+        "competition": "Professional Development League",
+        "fixtures_in_scanned_slate": 4,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1126,
+        "season": 2026,
+        "country": "Estonia",
+        "competition": "Esiliiga B",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 80,
+        "season": 2026,
+        "country": "Germany",
+        "competition": "3. Liga",
+        "fixtures_in_scanned_slate": 5,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 85,
+        "season": 2026,
+        "country": "Germany",
+        "competition": "Regionalliga - Nordost",
+        "fixtures_in_scanned_slate": 4,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 164,
+        "season": 2026,
+        "country": "Iceland",
+        "competition": "Úrvalsdeild",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1020,
+        "season": 2026,
+        "country": "India",
+        "competition": "Calcutta Premier Division",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 383,
+        "season": 2026,
+        "country": "Israel",
+        "competition": "Ligat Ha'al",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 137,
+        "season": 2026,
+        "country": "Italy",
+        "competition": "Coppa Italia",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 943,
+        "season": 2026,
+        "country": "Italy",
+        "competition": "Serie C - Girone C",
+        "fixtures_in_scanned_slate": 10,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 365,
+        "season": 2026,
+        "country": "Latvia",
+        "competition": "Virsliga",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
         "league_id": 262,
         "season": 2026,
-        "country": "NOT VERIFIED",
+        "country": "Mexico",
         "competition": "Liga MX",
         "fixtures_in_scanned_slate": 1,
         "pregame_eligible_fixtures": 0,
@@ -305,10 +966,10 @@
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       },
       {
-        "league_id": 365,
+        "league_id": 263,
         "season": 2026,
-        "country": "NOT VERIFIED",
-        "competition": "Virsliga",
+        "country": "Mexico",
+        "competition": "Liga de Expansión MX",
         "fixtures_in_scanned_slate": 1,
         "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
@@ -325,9 +986,1219 @@
         "bet_default_scope": "A_B_ONLY",
         "galaxy_activation_required": false,
         "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 355,
+        "season": 2026,
+        "country": "Montenegro",
+        "competition": "First League",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 408,
+        "season": 2026,
+        "country": "Northern-Ireland",
+        "competition": "Premiership",
+        "fixtures_in_scanned_slate": 6,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 108,
+        "season": 2026,
+        "country": "Poland",
+        "competition": "Cup",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 106,
+        "season": 2026,
+        "country": "Poland",
+        "competition": "Ekstraklasa",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 728,
+        "season": 2026,
+        "country": "Romania",
+        "competition": "Liga 1 Feminin",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 284,
+        "season": 2026,
+        "country": "Romania",
+        "competition": "Liga II",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 308,
+        "season": 2026,
+        "country": "Saudi-Arabia",
+        "competition": "Division 1",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 180,
+        "season": 2026,
+        "country": "Scotland",
+        "competition": "Championship",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 731,
+        "season": 2026,
+        "country": "Scotland",
+        "competition": "Football League - Lowland League",
+        "fixtures_in_scanned_slate": 8,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 183,
+        "season": 2026,
+        "country": "Scotland",
+        "competition": "League One",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 179,
+        "season": 2026,
+        "country": "Scotland",
+        "competition": "Premiership",
+        "fixtures_in_scanned_slate": 3,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 680,
+        "season": 2026,
+        "country": "Slovakia",
+        "competition": "Cup",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 114,
+        "season": 2026,
+        "country": "Sweden",
+        "competition": "Superettan",
+        "fixtures_in_scanned_slate": 3,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 207,
+        "season": 2026,
+        "country": "Switzerland",
+        "competition": "Super League",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 567,
+        "season": 2026,
+        "country": "Tanzania",
+        "competition": "Ligi kuu Bara",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 255,
+        "season": 2026,
+        "country": "USA",
+        "competition": "USL Championship",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 802,
+        "season": 2026,
+        "country": "Uzbekistan",
+        "competition": "Cup",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 299,
+        "season": 2026,
+        "country": "Venezuela",
+        "competition": "Primera División",
+        "fixtures_in_scanned_slate": 3,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 111,
+        "season": 2026,
+        "country": "Wales",
+        "competition": "FAW Championship",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 110,
+        "season": 2026,
+        "country": "Wales",
+        "competition": "Premier League",
+        "fixtures_in_scanned_slate": 7,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 17,
+        "season": 2026,
+        "country": "World",
+        "competition": "AFC Champions League Elite",
+        "fixtures_in_scanned_slate": 8,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 18,
+        "season": 2026,
+        "country": "World",
+        "competition": "AFC Champions League Two",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 856,
+        "season": 2026,
+        "country": "World",
+        "competition": "CONCACAF Caribbean Club Championship",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 13,
+        "season": 2026,
+        "country": "World",
+        "competition": "CONMEBOL Libertadores",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 11,
+        "season": 2026,
+        "country": "World",
+        "competition": "CONMEBOL Sudamericana",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": true,
+          "player_statistics": true,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 666,
+        "season": 2026,
+        "country": "World",
+        "competition": "Friendlies Women",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 14,
+        "season": 2026,
+        "country": "World",
+        "competition": "UEFA Youth League",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": true,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "B",
+        "sporting_screen_scope": "ELIGIBLE",
+        "bet_default_scope": "A_B_ONLY",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 906,
+        "season": 2026,
+        "country": "Argentina",
+        "competition": "Reserve League",
+        "fixtures_in_scanned_slate": 5,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1067,
+        "season": 2026,
+        "country": "Argentina",
+        "competition": "Torneo Promocional Amateur",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 343,
+        "season": 2026,
+        "country": "Armenia",
+        "competition": "First League",
+        "fixtures_in_scanned_slate": 4,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1239,
+        "season": 2026,
+        "country": "Austria",
+        "competition": "Regionalliga - North",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1031,
+        "season": 2026,
+        "country": "Bhutan",
+        "competition": "Premier League",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1128,
+        "season": 2026,
+        "country": "Brazil",
+        "competition": "Brasileiro U17",
+        "fixtures_in_scanned_slate": 8,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1036,
+        "season": 2026,
+        "country": "Brazil",
+        "competition": "Copa Santa Catarina",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 566,
+        "season": 2026,
+        "country": "Burundi",
+        "competition": "Ligue A",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 51,
+        "season": 2026,
+        "country": "England",
+        "competition": "National League - South",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 58,
+        "season": 2026,
+        "country": "England",
+        "competition": "Non League Premier - Isthmian",
+        "fixtures_in_scanned_slate": 10,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 938,
+        "season": 2026,
+        "country": "Germany",
+        "competition": "Oberliga - Bayern Nord",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 751,
+        "season": 2026,
+        "country": "Germany",
+        "competition": "Oberliga - Niederrhein",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 83,
+        "season": 2026,
+        "country": "Germany",
+        "competition": "Regionalliga - Bayern",
+        "fixtures_in_scanned_slate": 8,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 84,
+        "season": 2026,
+        "country": "Germany",
+        "competition": "Regionalliga - Nord",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 291,
+        "season": 2026,
+        "country": "Iran",
+        "competition": "Azadegan League",
+        "fixtures_in_scanned_slate": 4,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 962,
+        "season": 2026,
+        "country": "Lesotho",
+        "competition": "Premier League",
+        "fixtures_in_scanned_slate": 7,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 251,
+        "season": 2026,
+        "country": "Paraguay",
+        "competition": "Division Intermedia",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 701,
+        "season": 2026,
+        "country": "Portugal",
+        "competition": "Liga Revelação U23",
+        "fixtures_in_scanned_slate": 6,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 405,
+        "season": 2026,
+        "country": "Rwanda",
+        "competition": "National Soccer League",
+        "fixtures_in_scanned_slate": 3,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 182,
+        "season": 2026,
+        "country": "Scotland",
+        "competition": "Challenge Cup",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 571,
+        "season": 2026,
+        "country": "Tajikistan",
+        "competition": "Vysshaya Liga",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 297,
+        "season": 2026,
+        "country": "Thailand",
+        "competition": "Thai League 2",
+        "fixtures_in_scanned_slate": 3,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 206,
+        "season": 2026,
+        "country": "Turkey",
+        "competition": "Türkiye Kupası",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 585,
+        "season": 2026,
+        "country": "Uganda",
+        "competition": "Premier League",
+        "fixtures_in_scanned_slate": 3,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1132,
+        "season": 2026,
+        "country": "World",
+        "competition": "AFC Challenge League",
+        "fixtures_in_scanned_slate": 1,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": true
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 803,
+        "season": 2026,
+        "country": "World",
+        "competition": "Asian Games",
+        "fixtures_in_scanned_slate": 4,
+        "pregame_eligible_fixtures": 1,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1159,
+        "season": 2026,
+        "country": "World",
+        "competition": "CECAFA U20 Championship",
+        "fixtures_in_scanned_slate": 3,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": false,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
+      },
+      {
+        "league_id": 1039,
+        "season": 2026,
+        "country": "World",
+        "competition": "Premier League International Cup",
+        "fixtures_in_scanned_slate": 2,
+        "pregame_eligible_fixtures": 0,
+        "provider_coverage_known": true,
+        "coverage": {
+          "events": true,
+          "lineups": false,
+          "fixture_statistics": false,
+          "player_statistics": false,
+          "injuries": false,
+          "odds": false
+        },
+        "data_tier": "D",
+        "sporting_screen_scope": "RESEARCH_OR_PASS",
+        "bet_default_scope": "NOT_DEFAULT_BET_ELIGIBLE",
+        "galaxy_activation_required": false,
+        "galaxy_role": "OPTIONAL_BACKBONE_OR_SHADOW; NOT_A_SLATE_ELIGIBILITY_GATE"
       }
     ],
-    "competition_rows_attached": 9,
+    "competition_rows_attached": 94,
     "competitions_truncated": false,
     "max_competition_rows": 300
   },
@@ -363,17 +2234,19 @@
     ],
     "state_bounds": {
       "registry": {
-        "competition_count": 9,
-        "rows_attached": 9,
+        "competition_count": 94,
+        "rows_attached": 94,
         "truncated": false,
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 0,
-        "rows_attached": 0,
+        "row_count": 11,
+        "rows_attached": 11,
         "truncated": false,
         "max_rows": 200,
-        "classification_counts": {}
+        "classification_counts": {
+          "POSTGAME": 11
+        }
       }
     },
     "validation": {
@@ -388,8 +2261,318 @@
     "player_trends": "RESEARCH_ONLY; SHOW VERIFIED PLAYER FIXTURE STATS WHEN CAPTURED; NEVER USE AS BET JUSTIFICATION UNTIL OOS MODEL GATE PASSES"
   },
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
-  "match_table_rows": [],
-  "quota": {},
+  "match_table_rows": [
+    {
+      "fixture_id": 1638671,
+      "country": "Brazil",
+      "competition": "Copa Paulista",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T16:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Grêmio Prudente",
+      "away": "Linense",
+      "tracks": [
+        "GOALS_UNDER"
+      ],
+      "side_score": 54.6,
+      "goals_score": 19.7,
+      "two_way_score": 51.9,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1520877,
+      "country": "Brazil",
+      "competition": "Serie B",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T16:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Londrina",
+      "away": "Ponte Preta",
+      "tracks": [
+        "SIDE",
+        "TWO_WAY"
+      ],
+      "side_score": 71.5,
+      "goals_score": 57.5,
+      "two_way_score": 69.3,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1520878,
+      "country": "Brazil",
+      "competition": "Serie B",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T16:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Nautico Recife",
+      "away": "Operario-PR",
+      "tracks": [
+        "GOALS_UNDER",
+        "TWO_WAY"
+      ],
+      "side_score": 52.8,
+      "goals_score": 43.2,
+      "two_way_score": 70.0,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1520874,
+      "country": "Brazil",
+      "competition": "Serie B",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T18:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "CRB",
+      "away": "Sport Recife",
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_score": 52.9,
+      "goals_score": 51.2,
+      "two_way_score": 75.1,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1622762,
+      "country": "Canada",
+      "competition": "Canadian Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Forge",
+      "away": "Supra du Quebec",
+      "tracks": [
+        "SIDE",
+        "GOALS_OVER",
+        "TWO_WAY"
+      ],
+      "side_score": 74.1,
+      "goals_score": 100.0,
+      "two_way_score": 100.0,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1511696,
+      "country": "Chile",
+      "competition": "Primera B",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Union Espanola",
+      "away": "Deportes Temuco",
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_score": 51.3,
+      "goals_score": 58.5,
+      "two_way_score": 85.2,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1493544,
+      "country": "USA",
+      "competition": "USL Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Indy Eleven",
+      "away": "Brooklyn",
+      "tracks": [
+        "SIDE",
+        "TWO_WAY"
+      ],
+      "side_score": 71.1,
+      "goals_score": 69.0,
+      "two_way_score": 81.9,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1638761,
+      "country": "Venezuela",
+      "competition": "Primera División",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T16:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Deportivo Tachira FC",
+      "away": "Puerto Cabello",
+      "tracks": [
+        "GOALS_UNDER",
+        "TWO_WAY"
+      ],
+      "side_score": 54.7,
+      "goals_score": 49.2,
+      "two_way_score": 71.3,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1638764,
+      "country": "Venezuela",
+      "competition": "Primera División",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "UCV",
+      "away": "Anzoátegui FC",
+      "tracks": [
+        "SIDE",
+        "TWO_WAY"
+      ],
+      "side_score": 62.9,
+      "goals_score": 59.2,
+      "two_way_score": 76.4,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1549116,
+      "country": "World",
+      "competition": "CONCACAF Caribbean Club Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Violette AC",
+      "away": "Club Sando",
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_score": 54.5,
+      "goals_score": 52.4,
+      "two_way_score": 74.2,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1610970,
+      "country": "World",
+      "competition": "CONCACAF Caribbean Club Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Delfines Del Este",
+      "away": "Defence Force",
+      "tracks": [
+        "SIDE",
+        "GOALS_UNDER"
+      ],
+      "side_score": 65.3,
+      "goals_score": 38.9,
+      "two_way_score": 58.1,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    }
+  ],
+  "quota": {
+    "daily_limit": "7500",
+    "daily_remaining": "7441",
+    "per_minute_remaining": "299"
+  },
   "database_persisted": false,
   "events": [
     {
@@ -422,6 +2605,3040 @@
         "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
       ],
       "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1520874,
+        "kickoff": "2026-09-15T18:00:00-06:00",
+        "timestamp": 1789516800,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 72,
+        "league": "Serie B",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Regular Season - 28",
+        "home_team_id": 146,
+        "home_team": "CRB",
+        "away_team_id": 123,
+        "away_team": "Sport Recife",
+        "venue": "Estádio Rei Pelé",
+        "city": "Maceio",
+        "goals": {
+          "home": 2,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 2,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 75.1,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 52.9,
+        "goal_environment_score": 51.2,
+        "two_way_scoring_score": 75.1,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 2,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 2,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 146,
+              "team": "CRB",
+              "shots_inside_box": 9.0,
+              "shots_outside_box": 13.0,
+              "blocked_shots": 5.0,
+              "shots_on_goal": 8.0,
+              "total_shots": 22.0,
+              "yellow_cards": 4.0,
+              "corners": 5.0,
+              "fouls": 8.0,
+              "red_cards": 0.0,
+              "possession": 43.0
+            },
+            {
+              "team_id": 123,
+              "team": "Sport Recife",
+              "shots_inside_box": 3.0,
+              "shots_outside_box": 8.0,
+              "blocked_shots": 3.0,
+              "shots_on_goal": 3.0,
+              "total_shots": 11.0,
+              "yellow_cards": 2.0,
+              "corners": 3.0,
+              "fouls": 7.0,
+              "red_cards": 0.0,
+              "possession": 57.0
+            }
+          ],
+          "totals": {
+            "total_shots": 33.0,
+            "fouls": 15.0,
+            "shots_outside_box": 21.0,
+            "shots_on_goal": 11.0,
+            "yellow_cards": 6.0,
+            "blocked_shots": 8.0,
+            "possession": 100.0,
+            "corners": 8.0,
+            "red_cards": 0.0,
+            "shots_inside_box": 12.0
+          }
+        },
+        "player_stats": {
+          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+          "actionable": false,
+          "decision_weight": 0.0,
+          "teams": [
+            {
+              "team_id": 146,
+              "team": "CRB",
+              "players": [
+                {
+                  "player_id": 160440,
+                  "name": "Geovane",
+                  "minutes": 14.0,
+                  "position": "M",
+                  "rating": 6.1,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 13.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 5.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 305818,
+                  "name": "João Neto",
+                  "minutes": 28.0,
+                  "position": "F",
+                  "rating": 6.77,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 11.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 4.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 54012,
+                  "name": "Fábio Alemão",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 624616,
+                  "name": "Maycon",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 41729,
+                  "name": "Luizão",
+                  "minutes": 9.0,
+                  "position": "M",
+                  "rating": 6.3,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 6.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 1.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 54695,
+                  "name": "Hereda",
+                  "minutes": 45.0,
+                  "position": "D",
+                  "rating": 7.58,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 23.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 9.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 9264,
+                  "name": "Matheus",
+                  "minutes": 0.0,
+                  "position": "G",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 311447,
+                  "name": "Estevão",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 54716,
+                  "name": "Thiaguinho",
+                  "minutes": 28.0,
+                  "position": "F",
+                  "rating": 6.59,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 19.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 80625,
+                  "name": "Vitor Caetano",
+                  "minutes": 90.0,
+                  "position": "G",
+                  "rating": 6.46,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 34.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 10338,
+                  "name": "Kevin",
+                  "minutes": 45.0,
+                  "position": "D",
+                  "rating": 6.8,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 24.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 3.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 51127,
+                  "name": "Bressan",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.47,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 44.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 7.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 404143,
+                  "name": "Lyncon",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.7,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 38.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 6.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 159905,
+                  "name": "Reverson",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 7.12,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 2.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 22.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 8.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 10526,
+                  "name": "Pedro Castro",
+                  "minutes": 81.0,
+                  "position": "M",
+                  "rating": 6.59,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 35.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 6.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 77952,
+                  "name": "Vinicius Barata",
+                  "minutes": 62.0,
+                  "position": "M",
+                  "rating": 6.32,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 17.0,
+                  "key_passes": 2.0,
+                  "tackles": 1.0,
+                  "duels": 2.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 54760,
+                  "name": "Crystopher",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 9.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 1.0,
+                  "passes": 47.0,
+                  "key_passes": 4.0,
+                  "tackles": 1.0,
+                  "duels": 8.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 10320,
+                  "name": "Daniel",
+                  "minutes": 76.0,
+                  "position": "M",
+                  "rating": 7.2,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 36.0,
+                  "key_passes": 4.0,
+                  "tackles": 0.0,
+                  "duels": 6.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 64364,
+                  "name": "Dadá Belmonte",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 7.07,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 30.0,
+                  "key_passes": 5.0,
+                  "tackles": 2.0,
+                  "duels": 12.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 137607,
+                  "name": "Mikael",
+                  "minutes": 62.0,
+                  "position": "F",
+                  "rating": 6.39,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 5.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 11.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 157038,
+                  "name": "Ygor Catatau",
+                  "minutes": 0.0,
+                  "position": "F",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 237104,
+                  "name": "Henri",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 9821,
+                  "name": "Douglas Baggio",
+                  "minutes": 0.0,
+                  "position": "F",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                }
+              ]
+            },
+            {
+              "team_id": 123,
+              "team": "Sport Recife",
+              "players": [
+                {
+                  "player_id": 10479,
+                  "name": "Brenno",
+                  "minutes": 0.0,
+                  "position": "G",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 10258,
+                  "name": "Clayson",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 129976,
+                  "name": "Dudu",
+                  "minutes": 45.0,
+                  "position": "F",
+                  "rating": 6.34,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 18.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 7.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 80187,
+                  "name": "Fernando Sobral",
+                  "minutes": 45.0,
+                  "position": "M",
+                  "rating": 6.51,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 21.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 9.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 349325,
+                  "name": "Habraão",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 80541,
+                  "name": "Marlon",
+                  "minutes": 0.0,
+                  "position": "F",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 54102,
+                  "name": "Neto Pessoa",
+                  "minutes": 7.0,
+                  "position": "F",
+                  "rating": 6.3,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 1.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 195109,
+                  "name": "Patrick de Paula",
+                  "minutes": 24.0,
+                  "position": "M",
+                  "rating": 7.5,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 31.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 4.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 9208,
+                  "name": "Willian Oliveira",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 632551,
+                  "name": "Augusto",
+                  "minutes": 45.0,
+                  "position": "D",
+                  "rating": 6.15,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 23.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 3.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 125677,
+                  "name": "Zé Gabriel",
+                  "minutes": 83.0,
+                  "position": "M",
+                  "rating": 6.09,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 39.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 10220,
+                  "name": "Perotti",
+                  "minutes": 90.0,
+                  "position": "F",
+                  "rating": 6.46,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 19.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 9.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 323251,
+                  "name": "Marcelo Ajul",
+                  "minutes": 45.0,
+                  "position": "D",
+                  "rating": 6.18,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 23.0,
+                  "key_passes": 0.0,
+                  "tackles": 4.0,
+                  "duels": 9.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 404539,
+                  "name": "Kayky Almeida",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.84,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 75.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 10.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 312087,
+                  "name": "Edson",
+                  "minutes": 66.0,
+                  "position": "D",
+                  "rating": 6.38,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 42.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 269374,
+                  "name": "D. Hernández",
+                  "minutes": 45.0,
+                  "position": "M",
+                  "rating": 5.98,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 16.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 5.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 2173,
+                  "name": "C. de Pena",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 5.75,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 55.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 237706,
+                  "name": "Chrystian Barletta",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 5.86,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 3.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 34.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 8.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 10052,
+                  "name": "Marcelo Benevenuto",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.67,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 76.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 8.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 180917,
+                  "name": "Thiago Couto",
+                  "minutes": 90.0,
+                  "position": "G",
+                  "rating": 8.42,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 32.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 238343,
+                  "name": "Raí",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Matheus miranda",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 304767,
+                  "name": "Biel",
+                  "minutes": 45.0,
+                  "position": "M",
+                  "rating": 6.59,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 27.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 5.0,
+                  "duels_won": 1.0
+                }
+              ]
+            }
+          ],
+          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+          "fixture_id": 1520874,
+          "capture_phase": "POSTGAME"
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1520877,
+        "kickoff": "2026-09-15T16:30:00-06:00",
+        "timestamp": 1789511400,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 72,
+        "league": "Serie B",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Regular Season - 28",
+        "home_team_id": 148,
+        "home_team": "Londrina",
+        "away_team_id": 139,
+        "away_team": "Ponte Preta",
+        "venue": "Estadio do Cafe",
+        "city": "Londrina",
+        "goals": {
+          "home": 6,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 3,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 6,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 71.5,
+        "tracks": [
+          "SIDE",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 71.5,
+        "goal_environment_score": 57.5,
+        "two_way_scoring_score": 69.3,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 6,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 3,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 6,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 148,
+              "team": "Londrina",
+              "shots_inside_box": 15.0,
+              "shots_outside_box": 8.0,
+              "blocked_shots": 4.0,
+              "shots_on_goal": 10.0,
+              "total_shots": 23.0,
+              "yellow_cards": 2.0,
+              "corners": 10.0,
+              "fouls": 18.0,
+              "red_cards": 0.0,
+              "possession": 61.0
+            },
+            {
+              "team_id": 139,
+              "team": "Ponte Preta",
+              "shots_inside_box": 8.0,
+              "shots_outside_box": 6.0,
+              "blocked_shots": 1.0,
+              "shots_on_goal": 4.0,
+              "total_shots": 14.0,
+              "yellow_cards": 1.0,
+              "corners": 0.0,
+              "fouls": 9.0,
+              "red_cards": 0.0,
+              "possession": 39.0
+            }
+          ],
+          "totals": {
+            "total_shots": 37.0,
+            "fouls": 27.0,
+            "shots_outside_box": 14.0,
+            "shots_on_goal": 14.0,
+            "yellow_cards": 3.0,
+            "blocked_shots": 5.0,
+            "possession": 100.0,
+            "corners": 10.0,
+            "red_cards": 0.0,
+            "shots_inside_box": 23.0
+          }
+        },
+        "player_stats": {
+          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+          "actionable": false,
+          "decision_weight": 0.0,
+          "teams": [
+            {
+              "team_id": 148,
+              "team": "Londrina",
+              "players": [
+                {
+                  "player_id": 1503,
+                  "name": "Artur",
+                  "minutes": 24.0,
+                  "position": "D",
+                  "rating": 6.52,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 16.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 1.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 10400,
+                  "name": "William Pottker",
+                  "minutes": 0.0,
+                  "position": "F",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 358501,
+                  "name": "Victor Hugo",
+                  "minutes": 15.0,
+                  "position": "F",
+                  "rating": 7.71,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 4.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 4.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 383789,
+                  "name": "João Vitor",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 198140,
+                  "name": "Gabriel Lacerda",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 107965,
+                  "name": "Kevyn",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 10041,
+                  "name": "Gilberto",
+                  "minutes": 0.0,
+                  "position": "F",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 41213,
+                  "name": "Lucas Marques",
+                  "minutes": 25.0,
+                  "position": "M",
+                  "rating": 6.85,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 29.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 3.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Luan",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 10015,
+                  "name": "Nino Paraíba",
+                  "minutes": 45.0,
+                  "position": "D",
+                  "rating": 6.72,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 14.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 3.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 80363,
+                  "name": "Thalis",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 288285,
+                  "name": "Guilherme Cachoeira",
+                  "minutes": 25.0,
+                  "position": "F",
+                  "rating": 6.83,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 3.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 9304,
+                  "name": "Mauricio Kozlinski",
+                  "minutes": 90.0,
+                  "position": "G",
+                  "rating": 7.88,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 31.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 505405,
+                  "name": "Kauê Leonardo",
+                  "minutes": 45.0,
+                  "position": "D",
+                  "rating": 6.29,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 17.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 5.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 576685,
+                  "name": "Caio Rodrigues",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.88,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 57.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 50172,
+                  "name": "Wallace",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 7.11,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 80.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 7.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 133178,
+                  "name": "Heron",
+                  "minutes": 66.0,
+                  "position": "D",
+                  "rating": 7.14,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 23.0,
+                  "key_passes": 2.0,
+                  "tackles": 1.0,
+                  "duels": 10.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 27038,
+                  "name": "Tárik",
+                  "minutes": 65.0,
+                  "position": "M",
+                  "rating": 6.71,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 44.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 8.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 409288,
+                  "name": "João Coni",
+                  "minutes": 65.0,
+                  "position": "M",
+                  "rating": 6.51,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 13.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 5.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 202103,
+                  "name": "Guilherme Dantas",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 8.2,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 2.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 55.0,
+                  "key_passes": 2.0,
+                  "tackles": 0.0,
+                  "duels": 6.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 237669,
+                  "name": "João Vitor",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 8.2,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 6.0,
+                  "shots_on_target": 3.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 46.0,
+                  "key_passes": 3.0,
+                  "tackles": 0.0,
+                  "duels": 6.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 77961,
+                  "name": "Herbert",
+                  "minutes": 75.0,
+                  "position": "M",
+                  "rating": 9.85,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 5.0,
+                  "shots_on_target": 3.0,
+                  "goals": 2.0,
+                  "assists": 1.0,
+                  "passes": 24.0,
+                  "key_passes": 3.0,
+                  "tackles": 0.0,
+                  "duels": 7.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 237668,
+                  "name": "Igor Bahia",
+                  "minutes": 90.0,
+                  "position": "F",
+                  "rating": 8.6,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 16.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 12.0,
+                  "duels_won": 7.0
+                }
+              ]
+            },
+            {
+              "team_id": 139,
+              "team": "Ponte Preta",
+              "players": [
+                {
+                  "player_id": 0,
+                  "name": "Diego Monteiro Leao",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 195398,
+                  "name": "Diego Porfírio",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 633523,
+                  "name": "Julio",
+                  "minutes": 35.0,
+                  "position": "D",
+                  "rating": 5.55,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 8.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 6.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 435569,
+                  "name": "S. Palacios",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 5.64,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 37.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 4.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 237914,
+                  "name": "Murilo",
+                  "minutes": 55.0,
+                  "position": "M",
+                  "rating": 6.36,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 26.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 6.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 554568,
+                  "name": "Miguel",
+                  "minutes": 55.0,
+                  "position": "M",
+                  "rating": 6.02,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 8.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 5.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 41092,
+                  "name": "Lucas Cunha",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 5.87,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 39.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 2.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 633698,
+                  "name": "Gustavo Almeida",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 5.2,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 33.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 13.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 237666,
+                  "name": "David da Hora",
+                  "minutes": 66.0,
+                  "position": "M",
+                  "rating": 5.81,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 15.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 10552,
+                  "name": "Danilo Barcelos",
+                  "minutes": 66.0,
+                  "position": "M",
+                  "rating": 6.18,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 2.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 18.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 7.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 204016,
+                  "name": "André Lima",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 6.4,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 43.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 5.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 425681,
+                  "name": "Vinicius",
+                  "minutes": 90.0,
+                  "position": "G",
+                  "rating": 6.67,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 23.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Denis",
+                  "minutes": 24.0,
+                  "position": null,
+                  "rating": 5.93,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 10.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Gabriel Caran de Oliveira",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Felipe Di Mauro Reis Coutinho",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 554574,
+                  "name": "Gustavo Lopes",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Emanuell Silva Ferreira",
+                  "minutes": 35.0,
+                  "position": null,
+                  "rating": 6.29,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 11.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 4.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 674027,
+                  "name": "M. Souza",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 409981,
+                  "name": "Guilherme Viana",
+                  "minutes": 0.0,
+                  "position": "G",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 9390,
+                  "name": "Rodrigo Souza",
+                  "minutes": 24.0,
+                  "position": "M",
+                  "rating": 5.79,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 12.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 2.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Thevyn Dos Anjos Souza",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Jonathan da Cruz Silva",
+                  "minutes": 90.0,
+                  "position": null,
+                  "rating": 5.44,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 26.0,
+                  "key_passes": 2.0,
+                  "tackles": 0.0,
+                  "duels": 7.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 401475,
+                  "name": "Brandão",
+                  "minutes": 90.0,
+                  "position": "F",
+                  "rating": 6.73,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 10.0,
+                  "key_passes": 4.0,
+                  "tackles": 0.0,
+                  "duels": 12.0,
+                  "duels_won": 5.0
+                }
+              ]
+            }
+          ],
+          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+          "fixture_id": 1520877,
+          "capture_phase": "POSTGAME"
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1520878,
+        "kickoff": "2026-09-15T16:30:00-06:00",
+        "timestamp": 1789511400,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 72,
+        "league": "Serie B",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Regular Season - 28",
+        "home_team_id": 755,
+        "home_team": "Nautico Recife",
+        "away_team_id": 1223,
+        "away_team": "Operario-PR",
+        "venue": null,
+        "city": "Recife",
+        "goals": {
+          "home": 3,
+          "away": 3
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 3
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 70.0,
+        "tracks": [
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 52.8,
+        "goal_environment_score": 43.2,
+        "two_way_scoring_score": 70.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 3,
+          "away": 3
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 3
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 755,
+              "team": "Nautico Recife",
+              "shots_inside_box": 10.0,
+              "shots_outside_box": 11.0,
+              "blocked_shots": 4.0,
+              "shots_on_goal": 6.0,
+              "total_shots": 21.0,
+              "yellow_cards": 2.0,
+              "corners": 4.0,
+              "fouls": 23.0,
+              "red_cards": 0.0,
+              "possession": 51.0
+            },
+            {
+              "team_id": 1223,
+              "team": "Operario-PR",
+              "shots_inside_box": 9.0,
+              "shots_outside_box": 7.0,
+              "blocked_shots": 4.0,
+              "shots_on_goal": 6.0,
+              "total_shots": 16.0,
+              "yellow_cards": 3.0,
+              "corners": 2.0,
+              "fouls": 10.0,
+              "red_cards": 0.0,
+              "possession": 49.0
+            }
+          ],
+          "totals": {
+            "total_shots": 37.0,
+            "fouls": 33.0,
+            "shots_outside_box": 18.0,
+            "shots_on_goal": 12.0,
+            "yellow_cards": 5.0,
+            "blocked_shots": 8.0,
+            "possession": 100.0,
+            "corners": 6.0,
+            "red_cards": 0.0,
+            "shots_inside_box": 19.0
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1622762,
+        "kickoff": "2026-09-15T17:00:00-06:00",
+        "timestamp": 1789513200,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 259,
+        "league": "Canadian Championship",
+        "country": "Canada",
+        "season": 2026,
+        "round": "Semi-finals",
+        "home_team_id": 3830,
+        "home_team": "Forge",
+        "away_team_id": 27461,
+        "away_team": "Supra du Quebec",
+        "venue": "Tim Hortons Field",
+        "city": null,
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 74.1,
+        "goal_environment_score": 100.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1511696,
+        "kickoff": "2026-09-15T17:30:00-06:00",
+        "timestamp": 1789515000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 266,
+        "league": "Primera B",
+        "country": "Chile",
+        "season": 2026,
+        "round": "Regular Season - 26",
+        "home_team_id": 2321,
+        "home_team": "Union Espanola",
+        "away_team_id": 2317,
+        "away_team": "Deportes Temuco",
+        "venue": "Estadio Santa Laura-Universidad SEK",
+        "city": "Santiago de Chile",
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 85.2,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 51.3,
+        "goal_environment_score": 58.5,
+        "two_way_scoring_score": 85.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1493544,
+        "kickoff": "2026-09-15T17:00:00-06:00",
+        "timestamp": 1789513200,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 255,
+        "league": "USL Championship",
+        "country": "USA",
+        "season": 2026,
+        "round": "Group Stage",
+        "home_team_id": 3996,
+        "home_team": "Indy Eleven",
+        "away_team_id": 27252,
+        "away_team": "Brooklyn",
+        "venue": "Michael A. Carroll Stadium",
+        "city": null,
+        "goals": {
+          "home": 4,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 3,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 4,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 81.9,
+        "tracks": [
+          "SIDE",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 71.1,
+        "goal_environment_score": 69.0,
+        "two_way_scoring_score": 81.9,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 4,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 3,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 4,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1638671,
+        "kickoff": "2026-09-15T16:30:00-06:00",
+        "timestamp": 1789511400,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 742,
+        "league": "Copa Paulista",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Quarter-finals",
+        "home_team_id": 20713,
+        "home_team": "Grêmio Prudente",
+        "away_team_id": 7846,
+        "away_team": "Linense",
+        "venue": "Estadio Paulo Constantino",
+        "city": "Presidente Prudente",
+        "goals": {
+          "home": 2,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 2
+          },
+          "fulltime": {
+            "home": 2,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 80.3,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 54.6,
+        "goal_environment_score": 19.7,
+        "two_way_scoring_score": 51.9,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 2,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 2
+          },
+          "fulltime": {
+            "home": 2,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1638764,
+        "kickoff": "2026-09-15T17:30:00-06:00",
+        "timestamp": 1789515000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 299,
+        "league": "Primera División",
+        "country": "Venezuela",
+        "season": 2026,
+        "round": "Clausura - 10",
+        "home_team_id": 2840,
+        "home_team": "UCV",
+        "away_team_id": 18806,
+        "away_team": "Anzoátegui FC",
+        "venue": "Estadio Olimpico de la UCV",
+        "city": "Caracas",
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 76.4,
+        "tracks": [
+          "SIDE",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 62.9,
+        "goal_environment_score": 59.2,
+        "two_way_scoring_score": 76.4,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1549116,
+        "kickoff": "2026-09-15T17:00:00-06:00",
+        "timestamp": 1789513200,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 856,
+        "league": "CONCACAF Caribbean Club Championship",
+        "country": "World",
+        "season": 2026,
+        "round": "Group Stage - 5",
+        "home_team_id": 4441,
+        "home_team": "Violette AC",
+        "away_team_id": 12561,
+        "away_team": "Club Sando",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 74.2,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 54.5,
+        "goal_environment_score": 52.4,
+        "two_way_scoring_score": 74.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1638761,
+        "kickoff": "2026-09-15T16:30:00-06:00",
+        "timestamp": 1789511400,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 299,
+        "league": "Primera División",
+        "country": "Venezuela",
+        "season": 2026,
+        "round": "Clausura - 10",
+        "home_team_id": 2807,
+        "home_team": "Deportivo Tachira FC",
+        "away_team_id": 2827,
+        "away_team": "Puerto Cabello",
+        "venue": "Estadio Polideportivo de Pueblo Nuevo",
+        "city": null,
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 71.3,
+        "tracks": [
+          "GOALS_UNDER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 54.7,
+        "goal_environment_score": 49.2,
+        "two_way_scoring_score": 71.3,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1610970,
+        "kickoff": "2026-09-15T17:00:00-06:00",
+        "timestamp": 1789513200,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 856,
+        "league": "CONCACAF Caribbean Club Championship",
+        "country": "World",
+        "season": 2026,
+        "round": "Group Stage - 5",
+        "home_team_id": 16139,
+        "home_team": "Delfines Del Este",
+        "away_team_id": 12563,
+        "away_team": "Defence Force",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": 3,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 3,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 65.3,
+        "tracks": [
+          "SIDE",
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 65.3,
+        "goal_environment_score": 38.9,
+        "two_way_scoring_score": 58.1,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 3,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 3,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
       "error": null
     }
   ]
