@@ -226,6 +226,7 @@ def build_event_intelligence(event: dict[str, Any], payload: dict[str, Any]) -> 
     lineup = _lineup_context(event)
     derivative_counts = _family_counts(event)
     market_prov = event.get("market_provenance") if isinstance(event.get("market_provenance"), dict) else {}
+    coverage = event.get("coverage") if isinstance(event.get("coverage"), dict) else {}
 
     raw_home = _num(raw.get("raw_home_goal_rate"))
     raw_away = _num(raw.get("raw_away_goal_rate"))
@@ -266,7 +267,8 @@ def build_event_intelligence(event: dict[str, Any], payload: dict[str, Any]) -> 
         "kickoff": fx.get("kickoff"),
         "match": f"{fx.get('home_team')} vs {fx.get('away_team')}",
         "stage": event.get("stage"),
-        "data_tier": event.get("tier") or ((event.get("coverage") or {}).get("data_tier") if isinstance(event.get("coverage"), dict) else None),
+        "data_tier": coverage.get("data_tier"),
+        "bet_tier": event.get("tier"),
         "classification": event.get("classification"),
         "availability_confidence": event.get("availability_confidence"),
         "sport_first": True,
