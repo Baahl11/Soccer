@@ -248,7 +248,7 @@ def build_event_intelligence(event: dict[str, Any], payload: dict[str, Any]) -> 
     gaps.extend(
         [
             "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
-            "CARDS_TEAM_REFEREE_PROBABILITY_MODEL_PENDING",
+            "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
             "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
             "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
             "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
@@ -312,7 +312,7 @@ def build_event_intelligence(event: dict[str, Any], payload: dict[str, Any]) -> 
                 "actionable": False,
             },
             "cards": {
-                "status": "OBSERVED_MARKETS_AND_HISTORICAL_OUTCOMES; PREGAME_PROBABILITY_MODEL_PENDING",
+                "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
                 "observed_quote_count": int(derivative_counts.get("CARDS", 0)),
                 "team_card_quote_count": int(derivative_counts.get("TEAM_CARDS", 0)),
                 "red_card_quote_count": int(derivative_counts.get("RED_CARDS", 0)),
@@ -341,7 +341,7 @@ def build_event_intelligence(event: dict[str, Any], payload: dict[str, Any]) -> 
             "referee": {
                 "status": "VERIFIED_FIXTURE_ASSIGNMENT" if referee else "NOT_VERIFIED",
                 "name": referee,
-                "discipline_model": "PENDING",
+                "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
                 "decision_weight": 0.0,
             },
             "injuries_suspensions": _injury_context(event),
