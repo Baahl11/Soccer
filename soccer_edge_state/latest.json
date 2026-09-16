@@ -2,37 +2,37 @@
   "service": "soccer-edge-automation",
   "version": "3.4.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-16T01:04:14.153608+00:00",
-  "generated_at_local": "2026-09-15T19:04:14.153608-06:00",
+  "generated_at_utc": "2026-09-16T01:32:39.139583+00:00",
+  "generated_at_local": "2026-09-15T19:32:39.139583-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 244,
-  "due_fixture_count": 13,
+  "due_fixture_count": 12,
   "event_count": 13,
-  "actionable_refresh_count": 3,
+  "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 7,
+  "api_calls_this_tick": 4,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7462,
+  "last_daily_remaining": 7455,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
-  "deferred_due_to_priority": 1,
+  "deferred_due_to_priority": 0,
   "deep_dive_processed_count": 12,
-  "shortlist_event_count": 11,
+  "shortlist_event_count": 12,
   "screened_out_low_data_count": 0,
-  "market_requests_avoided_by_sport_screen": 1,
+  "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
-  "urgent_late_shortlist_due": 2,
-  "urgent_late_shortlist_processed": 2,
+  "urgent_late_shortlist_due": 0,
+  "urgent_late_shortlist_processed": 0,
   "urgent_window_completion_rate_this_tick": 1.0,
   "urgent_window_policy": "EXISTING_T10_T20_CLOSE_SHORTLIST_FIRST; T40_DISCOVERY_AFTER; ELASTIC_DEEP_DIVE_CAP_MAY_USE_GALAXY_OR_CACHE_BUT_CANNOT_BYPASS_PROVIDER_CALL_BUDGET",
   "deep_dive_capacity_policy": "ELASTIC_WORK_CAP_WITH_UNCHANGED_PROVIDER_API_HARD_CAP",
   "base_deep_dive_cap": 8,
   "elastic_deep_dive_cap": 12,
   "provider_api_cap_unchanged": true,
-  "dedicated_close_snapshots_this_tick": 1,
-  "dedicated_close_quotes_this_tick": 110,
+  "dedicated_close_snapshots_this_tick": 0,
+  "dedicated_close_quotes_this_tick": 0,
   "clv_close_policy": "PERSIST_CANONICAL_FT_CLOSE_QUOTES; TRUE_CLV_ONLY_WHEN_CAPTURED_BEFORE_KICKOFF; LATE_CLOSE_SNAPSHOTS_RETAINED_BUT_NOT_LABELED_TRUE_PREKICKOFF_CLOSE",
   "derivative_research_snapshots_this_tick": 0,
   "derivative_research_quotes_this_tick": 0,
@@ -61,33 +61,33 @@
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 3,
-    "galaxy_fixture_hits": 1,
-    "galaxy_fixture_misses": 2,
+    "galaxy_fixture_reads": 0,
+    "galaxy_fixture_hits": 0,
+    "galaxy_fixture_misses": 0,
     "galaxy_raw_used": 0,
     "galaxy_raw_fallbacks": 0,
     "api_team_stats_calls_avoided": 0,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
-    "galaxy_odds_stale_or_missing": 2,
-    "galaxy_slate_reads": 0,
+    "galaxy_odds_stale_or_missing": 0,
+    "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
-    "galaxy_slate_fallbacks": 0,
-    "galaxy_slate_stale_rejections": 0,
+    "galaxy_slate_fallbacks": 1,
+    "galaxy_slate_stale_rejections": 1,
     "api_slate_calls_avoided": 0,
-    "api_slate_reconciliation_calls": 1,
+    "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
     "provider_requests_avoided": 0,
-    "odds_market_events": 3,
+    "odds_market_events": 0,
     "galaxy_odds_market_events": 0,
-    "api_odds_fallback_events": 2,
-    "not_verified_odds_market_events": 1,
+    "api_odds_fallback_events": 0,
+    "not_verified_odds_market_events": 0,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
     "odds_provenance_accounting_valid": true,
-    "odds_provenance_metadata_repairs": 2,
+    "odds_provenance_metadata_repairs": 0,
     "unverified_market_source_safety_blocks": 0
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-15T19:04:14.153608-06:00",
+    "generated_at_local": "2026-09-15T19:32:39.139583-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2245,9 +2245,7 @@
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "PASS": 1,
-          "CLOSE": 2,
-          "POSTGAME": 9
+          "POSTGAME": 12
         }
       }
     },
@@ -2264,116 +2262,6 @@
   },
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
   "match_table_rows": [
-    {
-      "fixture_id": 1550948,
-      "country": "Mexico",
-      "competition": "Liga MX",
-      "data_tier": "B",
-      "kickoff": "2026-09-15T19:00:00-06:00",
-      "stage": "CLOSE",
-      "home": "Puebla",
-      "away": "Toluca",
-      "tracks": [],
-      "side_score": null,
-      "goals_score": null,
-      "two_way_score": null,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "PASS",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "Closing market skipped: fixture never entered a sporting shortlist."
-    },
-    {
-      "fixture_id": 1607642,
-      "country": "Colombia",
-      "competition": "Copa Colombia",
-      "data_tier": "B",
-      "kickoff": "2026-09-15T19:00:00-06:00",
-      "stage": "CLOSE",
-      "home": "America de Cali",
-      "away": "Deportivo Pereira",
-      "tracks": [
-        "SIDE",
-        "GOALS_OVER",
-        "TWO_WAY"
-      ],
-      "side_score": 84.5,
-      "goals_score": 74.8,
-      "two_way_score": 79.1,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "CLOSE",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    },
-    {
-      "fixture_id": 1581369,
-      "country": "Mexico",
-      "competition": "Liga de Expansión MX",
-      "data_tier": "B",
-      "kickoff": "2026-09-15T19:00:00-06:00",
-      "stage": "CLOSE",
-      "home": "Dorados",
-      "away": "Cancún",
-      "tracks": [
-        "GOALS_OVER",
-        "TWO_WAY"
-      ],
-      "side_score": 58.6,
-      "goals_score": 78.0,
-      "two_way_score": 99.7,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "CLOSE",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    },
-    {
-      "fixture_id": 1619013,
-      "country": "Bolivia",
-      "competition": "Primera División",
-      "data_tier": "B",
-      "kickoff": "2026-09-15T15:15:00-06:00",
-      "stage": "POSTGAME",
-      "home": "ABB",
-      "away": "The Strongest",
-      "tracks": [
-        "GOALS_OVER",
-        "TWO_WAY"
-      ],
-      "side_score": 54.6,
-      "goals_score": 74.8,
-      "two_way_score": 98.8,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    },
     {
       "fixture_id": 1638671,
       "country": "Brazil",
@@ -2445,6 +2333,62 @@
       "side_score": 52.8,
       "goals_score": 43.2,
       "two_way_score": 70.0,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1622762,
+      "country": "Canada",
+      "competition": "Canadian Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Forge",
+      "away": "Supra du Quebec",
+      "tracks": [
+        "SIDE",
+        "GOALS_OVER",
+        "TWO_WAY"
+      ],
+      "side_score": 74.1,
+      "goals_score": 100.0,
+      "two_way_score": 100.0,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1511696,
+      "country": "Chile",
+      "competition": "Primera B",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Union Espanola",
+      "away": "Deportes Temuco",
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_score": 51.3,
+      "goals_score": 58.5,
+      "two_way_score": 85.2,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2569,6 +2513,34 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
+      "fixture_id": 1638764,
+      "country": "Venezuela",
+      "competition": "Primera División",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "UCV",
+      "away": "Anzoátegui FC",
+      "tracks": [
+        "SIDE",
+        "TWO_WAY"
+      ],
+      "side_score": 62.9,
+      "goals_score": 59.2,
+      "two_way_score": 76.4,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
       "fixture_id": 1549116,
       "country": "World",
       "competition": "CONCACAF Caribbean Club Championship",
@@ -2594,11 +2566,39 @@
       "tier": null,
       "stake_units": 0.0,
       "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1610970,
+      "country": "World",
+      "competition": "CONCACAF Caribbean Club Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-15T17:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Delfines Del Este",
+      "away": "Defence Force",
+      "tracks": [
+        "SIDE",
+        "GOALS_UNDER"
+      ],
+      "side_score": 65.3,
+      "goals_score": 38.9,
+      "two_way_score": 58.1,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
     }
   ],
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7468",
+    "daily_remaining": "7458",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -2633,1011 +2633,6 @@
         "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
       ],
       "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1619013,
-        "kickoff": "2026-09-15T15:15:00-06:00",
-        "timestamp": 1789506900,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 344,
-        "league": "Primera División",
-        "country": "Bolivia",
-        "season": 2026,
-        "round": "Apertura - 20",
-        "home_team_id": 17743,
-        "home_team": "ABB",
-        "away_team_id": 3711,
-        "away_team": "The Strongest",
-        "venue": null,
-        "city": "El Alto",
-        "goals": {
-          "home": 1,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 98.8,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 54.6,
-        "goal_environment_score": 74.8,
-        "two_way_scoring_score": 98.8,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 17743,
-              "team": "ABB",
-              "shots_inside_box": 4.0,
-              "shots_outside_box": 8.0,
-              "blocked_shots": 6.0,
-              "shots_on_goal": 3.0,
-              "total_shots": 12.0,
-              "yellow_cards": 6.0,
-              "corners": 2.0,
-              "fouls": 13.0,
-              "red_cards": 0.0,
-              "possession": 51.0
-            },
-            {
-              "team_id": 3711,
-              "team": "The Strongest",
-              "shots_inside_box": 5.0,
-              "shots_outside_box": 9.0,
-              "blocked_shots": 1.0,
-              "shots_on_goal": 6.0,
-              "total_shots": 14.0,
-              "yellow_cards": 3.0,
-              "corners": 4.0,
-              "fouls": 7.0,
-              "red_cards": 0.0,
-              "possession": 49.0
-            }
-          ],
-          "totals": {
-            "corners": 6.0,
-            "total_shots": 26.0,
-            "yellow_cards": 9.0,
-            "fouls": 20.0,
-            "red_cards": 0.0,
-            "blocked_shots": 7.0,
-            "shots_outside_box": 17.0,
-            "possession": 100.0,
-            "shots_inside_box": 9.0,
-            "shots_on_goal": 9.0
-          }
-        },
-        "player_stats": {
-          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "teams": [
-            {
-              "team_id": 17743,
-              "team": "ABB",
-              "players": [
-                {
-                  "player_id": 329004,
-                  "name": "J. Briceño",
-                  "minutes": 23.0,
-                  "position": "F",
-                  "rating": 6.24,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 6.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 1.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 425100,
-                  "name": "F. Zamora",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 311444,
-                  "name": "P. Vaca",
-                  "minutes": 0.0,
-                  "position": "M",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 568991,
-                  "name": "J. Riascos",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 406305,
-                  "name": "G. Rea",
-                  "minutes": 3.0,
-                  "position": "F",
-                  "rating": 6.15,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 1.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 2.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 59850,
-                  "name": "O. Preciado",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 568719,
-                  "name": "S. Paz",
-                  "minutes": 0.0,
-                  "position": "G",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 417287,
-                  "name": "E. Paniagua",
-                  "minutes": 23.0,
-                  "position": "M",
-                  "rating": 5.98,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 14.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 4.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 475699,
-                  "name": "Andrés Guillermo",
-                  "minutes": 23.0,
-                  "position": "M",
-                  "rating": 6.03,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 14.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 1.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 354228,
-                  "name": "B. Espinoza",
-                  "minutes": 0.0,
-                  "position": "F",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 579028,
-                  "name": "E. Condori",
-                  "minutes": 0.0,
-                  "position": "F",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 65947,
-                  "name": "F. Abastoflor",
-                  "minutes": 0.0,
-                  "position": "F",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 65739,
-                  "name": "J. Cuellar",
-                  "minutes": 90.0,
-                  "position": "G",
-                  "rating": 6.73,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 29.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 307040,
-                  "name": "D. Valda",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.32,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 30.0,
-                  "key_passes": 1.0,
-                  "tackles": 2.0,
-                  "duels": 3.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 293269,
-                  "name": "Augusto Héctor Seimandi",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 5.49,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 47.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 3.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 65776,
-                  "name": "S. Reyes",
-                  "minutes": 87.0,
-                  "position": "D",
-                  "rating": 6.48,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 39.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 418849,
-                  "name": "Z. La Fuente",
-                  "minutes": 67.0,
-                  "position": "D",
-                  "rating": 6.43,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 27.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 5.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 2398,
-                  "name": "A. Chumacero",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 5.85,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 44.0,
-                  "key_passes": 2.0,
-                  "tackles": 3.0,
-                  "duels": 5.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 65602,
-                  "name": "A. Bejarano",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 6.06,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 39.0,
-                  "key_passes": 1.0,
-                  "tackles": 3.0,
-                  "duels": 6.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 475699,
-                  "name": "Andrés Guillermo",
-                  "minutes": 67.0,
-                  "position": "M",
-                  "rating": 5.88,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 22.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 7.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 636729,
-                  "name": "Rodderyk Perozo",
-                  "minutes": 90.0,
-                  "position": "F",
-                  "rating": 5.6,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 20.0,
-                  "key_passes": 0.0,
-                  "tackles": 2.0,
-                  "duels": 9.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 645113,
-                  "name": "Felipe Fajardo Juan",
-                  "minutes": 90.0,
-                  "position": "F",
-                  "rating": 8.02,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 5.0,
-                  "shots_on_target": 3.0,
-                  "goals": 1.0,
-                  "assists": 0.0,
-                  "passes": 19.0,
-                  "key_passes": 2.0,
-                  "tackles": 1.0,
-                  "duels": 8.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 76699,
-                  "name": "L. Figueroa",
-                  "minutes": 67.0,
-                  "position": "F",
-                  "rating": 7.24,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 4.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 1.0,
-                  "passes": 15.0,
-                  "key_passes": 3.0,
-                  "tackles": 0.0,
-                  "duels": 3.0,
-                  "duels_won": 1.0
-                }
-              ]
-            },
-            {
-              "team_id": 3711,
-              "team": "The Strongest",
-              "players": [
-                {
-                  "player_id": 65634,
-                  "name": "S. Arce",
-                  "minutes": 0.0,
-                  "position": "M",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 2397,
-                  "name": "R. Castro",
-                  "minutes": 0.0,
-                  "position": "M",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 457877,
-                  "name": "J. Cuellar",
-                  "minutes": 9.0,
-                  "position": "M",
-                  "rating": 6.28,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 2.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 2.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 197997,
-                  "name": "V. Cuellar",
-                  "minutes": 22.0,
-                  "position": "M",
-                  "rating": 6.24,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 11.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 1.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 10075,
-                  "name": "Pachu",
-                  "minutes": 2.0,
-                  "position": "F",
-                  "rating": 6.38,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 3.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 3.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 549663,
-                  "name": "Y. Portuncho",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 65830,
-                  "name": "C. Roca",
-                  "minutes": 9.0,
-                  "position": "D",
-                  "rating": 6.28,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 6.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 65842,
-                  "name": "K. Salvatierra",
-                  "minutes": 22.0,
-                  "position": "M",
-                  "rating": 6.67,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 7.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 1.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 65718,
-                  "name": "W. Saucedo",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 181914,
-                  "name": "D. Valdivia",
-                  "minutes": 0.0,
-                  "position": "G",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 309487,
-                  "name": "C. Ventura",
-                  "minutes": 0.0,
-                  "position": "F",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 65923,
-                  "name": "L. Banegas",
-                  "minutes": 90.0,
-                  "position": "G",
-                  "rating": 6.57,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 26.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 1.0,
-                  "duels_won": 1.0
-                },
-                {
-                  "player_id": 475620,
-                  "name": "Dilan Saavedra",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 7.13,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 1.0,
-                  "passes": 30.0,
-                  "key_passes": 2.0,
-                  "tackles": 1.0,
-                  "duels": 3.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 307038,
-                  "name": "M. Chiatti",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.52,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 2.0,
-                  "shots_on_target": 1.0,
-                  "goals": 1.0,
-                  "assists": 0.0,
-                  "passes": 45.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 65688,
-                  "name": "P. Pedraza",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.48,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 45.0,
-                  "key_passes": 1.0,
-                  "tackles": 3.0,
-                  "duels": 7.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 2401,
-                  "name": "A. Jusino",
-                  "minutes": 90.0,
-                  "position": "D",
-                  "rating": 6.42,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 30.0,
-                  "key_passes": 0.0,
-                  "tackles": 1.0,
-                  "duels": 4.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 57904,
-                  "name": "J. Welch",
-                  "minutes": 68.0,
-                  "position": "M",
-                  "rating": 6.83,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 28.0,
-                  "key_passes": 0.0,
-                  "tackles": 4.0,
-                  "duels": 6.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 66007,
-                  "name": "G. Sotomayor",
-                  "minutes": 88.0,
-                  "position": "M",
-                  "rating": 6.1,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 1.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 19.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 10.0,
-                  "duels_won": 5.0
-                },
-                {
-                  "player_id": 13434,
-                  "name": "A. Estacio",
-                  "minutes": 81.0,
-                  "position": "M",
-                  "rating": 6.87,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 5.0,
-                  "shots_on_target": 3.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 34.0,
-                  "key_passes": 2.0,
-                  "tackles": 0.0,
-                  "duels": 6.0,
-                  "duels_won": 4.0
-                },
-                {
-                  "player_id": 65867,
-                  "name": "J. Arrascaita",
-                  "minutes": 90.0,
-                  "position": "M",
-                  "rating": 7.8,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 3.0,
-                  "shots_on_target": 2.0,
-                  "goals": 1.0,
-                  "assists": 0.0,
-                  "passes": 36.0,
-                  "key_passes": 2.0,
-                  "tackles": 0.0,
-                  "duels": 5.0,
-                  "duels_won": 2.0
-                },
-                {
-                  "player_id": 337605,
-                  "name": "F. Quaglio",
-                  "minutes": 81.0,
-                  "position": "M",
-                  "rating": 6.2,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 19.0,
-                  "key_passes": 1.0,
-                  "tackles": 1.0,
-                  "duels": 6.0,
-                  "duels_won": 3.0
-                },
-                {
-                  "player_id": 181885,
-                  "name": "D. Lom",
-                  "minutes": 68.0,
-                  "position": "F",
-                  "rating": 6.05,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 2.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 8.0,
-                  "key_passes": 1.0,
-                  "tackles": 0.0,
-                  "duels": 2.0,
-                  "duels_won": 0.0
-                },
-                {
-                  "player_id": 667474,
-                  "name": "K. Adin Chacon Arrascayta",
-                  "minutes": 0.0,
-                  "position": "D",
-                  "rating": 0.0,
-                  "captain": false,
-                  "substitute": false,
-                  "shots": 0.0,
-                  "shots_on_target": 0.0,
-                  "goals": 0.0,
-                  "assists": 0.0,
-                  "passes": 0.0,
-                  "key_passes": 0.0,
-                  "tackles": 0.0,
-                  "duels": 0.0,
-                  "duels_won": 0.0
-                }
-              ]
-            }
-          ],
-          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-          "fixture_id": 1619013,
-          "capture_phase": "POSTGAME"
-        }
-      },
       "error": null
     },
     {
@@ -3780,16 +2775,16 @@
             }
           ],
           "totals": {
-            "corners": 10.0,
+            "shots_inside_box": 23.0,
+            "shots_outside_box": 14.0,
+            "fouls": 27.0,
             "total_shots": 37.0,
             "yellow_cards": 3.0,
-            "fouls": 27.0,
             "red_cards": 0.0,
             "blocked_shots": 5.0,
-            "shots_outside_box": 14.0,
-            "possession": 100.0,
-            "shots_inside_box": 23.0,
-            "shots_on_goal": 14.0
+            "corners": 10.0,
+            "shots_on_goal": 14.0,
+            "possession": 100.0
           }
         },
         "player_stats": {
@@ -4785,147 +3780,909 @@
             }
           ],
           "totals": {
-            "corners": 6.0,
+            "shots_inside_box": 19.0,
+            "shots_outside_box": 18.0,
+            "fouls": 33.0,
             "total_shots": 37.0,
             "yellow_cards": 5.0,
-            "fouls": 33.0,
             "red_cards": 0.0,
             "blocked_shots": 8.0,
-            "shots_outside_box": 18.0,
-            "possession": 100.0,
-            "shots_inside_box": 19.0,
-            "shots_on_goal": 12.0
+            "corners": 6.0,
+            "shots_on_goal": 12.0,
+            "possession": 100.0
           }
+        },
+        "player_stats": {
+          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+          "actionable": false,
+          "decision_weight": 0.0,
+          "teams": [
+            {
+              "team_id": 1223,
+              "team": "Operario-PR",
+              "players": [
+                {
+                  "player_id": 0,
+                  "name": "Brenno",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 21093,
+                  "name": "Boschilia",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 8.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 3.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 40.0,
+                  "key_passes": 4.0,
+                  "tackles": 1.0,
+                  "duels": 16.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 9258,
+                  "name": "Caio Dantas",
+                  "minutes": 75.0,
+                  "position": "F",
+                  "rating": 6.34,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 9.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 15.0,
+                  "duels_won": 7.0
+                },
+                {
+                  "player_id": 59692,
+                  "name": "J. Cuenú",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.23,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 33.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 8.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 9499,
+                  "name": "Índio",
+                  "minutes": 74.0,
+                  "position": "M",
+                  "rating": 6.69,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 43.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 7.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 9611,
+                  "name": "Joseph",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.16,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 38.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 48235,
+                  "name": "Maxwell",
+                  "minutes": 74.0,
+                  "position": "M",
+                  "rating": 6.38,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 27.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 10.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 279814,
+                  "name": "Mikael Doka",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.34,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 43.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 8.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 9310,
+                  "name": "Moraes",
+                  "minutes": 44.0,
+                  "position": "D",
+                  "rating": 5.59,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 20.0,
+                  "key_passes": 0.0,
+                  "tackles": 3.0,
+                  "duels": 8.0,
+                  "duels_won": 7.0
+                },
+                {
+                  "player_id": 128382,
+                  "name": "Á. Quiñones",
+                  "minutes": 84.0,
+                  "position": "M",
+                  "rating": 6.09,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 36.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 11.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 197813,
+                  "name": "Vinícius Diniz",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 7.45,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 47.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 14.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 10223,
+                  "name": "Aylon",
+                  "minutes": 15.0,
+                  "position": "F",
+                  "rating": 6.48,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 6.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 4.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 1530,
+                  "name": "Vagner",
+                  "minutes": 90.0,
+                  "position": "G",
+                  "rating": 5.93,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 25.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 1.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 115492,
+                  "name": "Charles",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 10184,
+                  "name": "Elias Martello Curzel",
+                  "minutes": 0.0,
+                  "position": "G",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 403432,
+                  "name": "Gabriel Feliciano",
+                  "minutes": 46.0,
+                  "position": "D",
+                  "rating": 6.02,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 18.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 4.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 10380,
+                  "name": "Klaus",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 10557,
+                  "name": "Miranda",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 96318,
+                  "name": "Neto Paraíba",
+                  "minutes": 16.0,
+                  "position": "M",
+                  "rating": 5.62,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 2.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 180924,
+                  "name": "Pedro Vilhena",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 41395,
+                  "name": "Hildeberto Pereira",
+                  "minutes": 6.0,
+                  "position": "F",
+                  "rating": 6.59,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 2.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 13545,
+                  "name": "J. Zuluaga",
+                  "minutes": 16.0,
+                  "position": "M",
+                  "rating": 5.82,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 5.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 1.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Dudu",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                }
+              ]
+            },
+            {
+              "team_id": 755,
+              "team": "Nautico Recife",
+              "players": [
+                {
+                  "player_id": 78045,
+                  "name": "Auremir",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 195388,
+                  "name": "Alberto",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.14,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 52.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 4.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 5183,
+                  "name": "B. Borasi",
+                  "minutes": 67.0,
+                  "position": "M",
+                  "rating": 6.67,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 5.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 21.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 10.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 77799,
+                  "name": "Jean Carlos",
+                  "minutes": 87.0,
+                  "position": "M",
+                  "rating": 6.19,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 28.0,
+                  "key_passes": 3.0,
+                  "tackles": 2.0,
+                  "duels": 11.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 9313,
+                  "name": "Reginaldo Lopes",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.49,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 41.0,
+                  "key_passes": 1.0,
+                  "tackles": 4.0,
+                  "duels": 9.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 9660,
+                  "name": "Vinícius",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 7.2,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 36.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 13.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 53971,
+                  "name": "Wanderson",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.26,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 50.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 15.0,
+                  "duels_won": 8.0
+                },
+                {
+                  "player_id": 10063,
+                  "name": "Wenderson",
+                  "minutes": 87.0,
+                  "position": "M",
+                  "rating": 6.34,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 45.0,
+                  "key_passes": 4.0,
+                  "tackles": 5.0,
+                  "duels": 10.0,
+                  "duels_won": 7.0
+                },
+                {
+                  "player_id": 157361,
+                  "name": "Derek",
+                  "minutes": 23.0,
+                  "position": "F",
+                  "rating": 6.61,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 5.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 5.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 6133,
+                  "name": "G. Guruceaga",
+                  "minutes": 0.0,
+                  "position": "G",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 302928,
+                  "name": "P. Núñez",
+                  "minutes": 3.0,
+                  "position": "M",
+                  "rating": 5.81,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 2.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 3.0,
+                  "duels_won": 2.0
+                },
+                {
+                  "player_id": 288287,
+                  "name": "Ryan",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 673330,
+                  "name": "H. Silva",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Daniel Ferreira dos Santos Filho",
+                  "minutes": 3.0,
+                  "position": null,
+                  "rating": 7.42,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 2.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 3.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 419856,
+                  "name": "Gustavo Henrique",
+                  "minutes": 1.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 1.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Everson",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 356833,
+                  "name": "Gabriel Severino de Sousa",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 633549,
+                  "name": "Caio",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 41227,
+                  "name": "Muriel",
+                  "minutes": 90.0,
+                  "position": "G",
+                  "rating": 5.97,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 33.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 10519,
+                  "name": "Igor Fernandes",
+                  "minutes": 89.0,
+                  "position": "D",
+                  "rating": 6.55,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 32.0,
+                  "key_passes": 1.0,
+                  "tackles": 3.0,
+                  "duels": 6.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 457556,
+                  "name": "Samuel",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 6.11,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 34.0,
+                  "key_passes": 1.0,
+                  "tackles": 4.0,
+                  "duels": 13.0,
+                  "duels_won": 7.0
+                },
+                {
+                  "player_id": 352956,
+                  "name": "Kaua Almeida da Costa",
+                  "minutes": 67.0,
+                  "position": "F",
+                  "rating": 7.7,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 5.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 15.0,
+                  "key_passes": 4.0,
+                  "tackles": 0.0,
+                  "duels": 11.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 454314,
+                  "name": "Luiz Cláudio",
+                  "minutes": 23.0,
+                  "position": null,
+                  "rating": 6.94,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 9.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 2.0,
+                  "duels_won": 1.0
+                }
+              ]
+            }
+          ],
+          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+          "fixture_id": 1520878,
+          "capture_phase": "POSTGAME"
         }
       },
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "CLOSE",
-      "classification": "PASS",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1550948,
-        "kickoff": "2026-09-15T19:00:00-06:00",
-        "timestamp": 1789520400,
-        "status": "1H",
-        "status_long": "First Half",
-        "elapsed": 3,
-        "league_id": 262,
-        "league": "Liga MX",
-        "country": "Mexico",
+        "fixture_id": 1622762,
+        "kickoff": "2026-09-15T17:00:00-06:00",
+        "timestamp": 1789513200,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 259,
+        "league": "Canadian Championship",
+        "country": "Canada",
         "season": 2026,
-        "round": "Apertura - 7",
-        "home_team_id": 2291,
-        "home_team": "Puebla",
-        "away_team_id": 2281,
-        "away_team": "Toluca",
-        "venue": "Estadio Cuauhtémoc",
-        "city": "Puebla",
+        "round": "Semi-finals",
+        "home_team_id": 3830,
+        "home_team": "Forge",
+        "away_team_id": 27461,
+        "away_team": "Supra du Quebec",
+        "venue": "Tim Hortons Field",
+        "city": null,
         "goals": {
-          "home": 0,
+          "home": 1,
           "away": 0
         },
         "score": {
           "halftime": {
-            "home": 0,
+            "home": 1,
             "away": 0
           },
           "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": null,
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": {
-        "source": "NOT_VERIFIED",
-        "source_raw": null,
-        "latest_market_timestamp": null,
-        "age_minutes": null,
-        "galaxy_freshness_limit_minutes": 20,
-        "freshness": "NOT_VERIFIED",
-        "fresh": false,
-        "market_count": 0,
-        "fallback_reason": "NO_VERIFIED_MARKET",
-        "sport_first_order_preserved": true,
-        "provenance_contract_version": "1.1.0"
-      },
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Closing market skipped: fixture never entered a sporting shortlist."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "CLOSE",
-      "classification": "CLOSE",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1581369,
-        "kickoff": "2026-09-15T19:00:00-06:00",
-        "timestamp": 1789520400,
-        "status": "1H",
-        "status_long": "First Half",
-        "elapsed": 3,
-        "league_id": 263,
-        "league": "Liga de Expansión MX",
-        "country": "Mexico",
-        "season": 2026,
-        "round": "Apertura - 1",
-        "home_team_id": 2297,
-        "home_team": "Dorados",
-        "away_team_id": 14276,
-        "away_team": "Cancún",
-        "venue": "Estadio El Encanto",
-        "city": "Mazatlan",
-        "goals": {
-          "home": 0,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
+            "home": 1,
             "away": 0
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
           },
           "extratime": {
             "home": null,
@@ -4942,795 +4699,22 @@
       },
       "sporting_shortlist": {
         "shortlisted": true,
-        "rank": 99.7,
-        "tracks": [
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 58.6,
-        "goal_environment_score": 78.0,
-        "two_way_scoring_score": 99.7,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-      "market_provenance": {
-        "source": "API_FALLBACK_ODDS",
-        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-        "latest_market_timestamp": "2026-09-15T20:53:14+00:00",
-        "age_minutes": 251.0,
-        "galaxy_freshness_limit_minutes": 20,
-        "freshness": "API_FALLBACK_CURRENT_RUN",
-        "fresh": true,
-        "market_count": 114,
-        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
-        "sport_first_order_preserved": true,
-        "provenance_contract_version": "1.1.0"
-      },
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": {
-        "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-15T19:04:14.153608-06:00",
-        "source": "API_FOOTBALL_OR_GALAXY",
-        "canonical_ft_only": true,
-        "group_count": 15,
-        "quote_count": 110,
-        "groups": [
-          {
-            "bookmaker": "William Hill",
-            "market": "Match Winner",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Home",
-                "line": null,
-                "decimal_price": 2.4
-              },
-              {
-                "selection": "Draw",
-                "line": null,
-                "decimal_price": 3.3
-              },
-              {
-                "selection": "Away",
-                "line": null,
-                "decimal_price": 2.5
-              }
-            ]
-          },
-          {
-            "bookmaker": "William Hill",
-            "market": "Both Teams Score",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Yes",
-                "line": null,
-                "decimal_price": 1.62
-              },
-              {
-                "selection": "No",
-                "line": null,
-                "decimal_price": 2.15
-              }
-            ]
-          },
-          {
-            "bookmaker": "Bet365",
-            "market": "Match Winner",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Home",
-                "line": null,
-                "decimal_price": 2.5
-              },
-              {
-                "selection": "Draw",
-                "line": null,
-                "decimal_price": 3.6
-              },
-              {
-                "selection": "Away",
-                "line": null,
-                "decimal_price": 2.6
-              }
-            ]
-          },
-          {
-            "bookmaker": "Bet365",
-            "market": "Goals Over/Under",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Over 2.5",
-                "line": 2.5,
-                "decimal_price": 1.75
-              },
-              {
-                "selection": "Under 2.5",
-                "line": 2.5,
-                "decimal_price": 2.05
-              }
-            ]
-          },
-          {
-            "bookmaker": "Marathonbet",
-            "market": "Match Winner",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Home",
-                "line": null,
-                "decimal_price": 2.38
-              },
-              {
-                "selection": "Draw",
-                "line": null,
-                "decimal_price": 3.38
-              },
-              {
-                "selection": "Away",
-                "line": null,
-                "decimal_price": 2.49
-              }
-            ]
-          },
-          {
-            "bookmaker": "Marathonbet",
-            "market": "Goals Over/Under",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Over 1.5",
-                "line": 1.5,
-                "decimal_price": 1.17
-              },
-              {
-                "selection": "Under 1.5",
-                "line": 1.5,
-                "decimal_price": 3.94
-              },
-              {
-                "selection": "Over 1.75",
-                "line": 1.75,
-                "decimal_price": 1.22
-              },
-              {
-                "selection": "Under 1.75",
-                "line": 1.75,
-                "decimal_price": 3.5
-              },
-              {
-                "selection": "Over 2.0",
-                "line": 2.0,
-                "decimal_price": 1.28
-              },
-              {
-                "selection": "Under 2.0",
-                "line": 2.0,
-                "decimal_price": 3.05
-              },
-              {
-                "selection": "Over 2.25",
-                "line": 2.25,
-                "decimal_price": 1.47
-              },
-              {
-                "selection": "Under 2.25",
-                "line": 2.25,
-                "decimal_price": 2.35
-              },
-              {
-                "selection": "Over 2.5",
-                "line": 2.5,
-                "decimal_price": 1.68
-              },
-              {
-                "selection": "Under 2.5",
-                "line": 2.5,
-                "decimal_price": 2.02
-              },
-              {
-                "selection": "Over 2.75",
-                "line": 2.75,
-                "decimal_price": 1.84
-              },
-              {
-                "selection": "Under 2.75",
-                "line": 2.75,
-                "decimal_price": 1.78
-              },
-              {
-                "selection": "Over 3.5",
-                "line": 3.5,
-                "decimal_price": 2.7
-              },
-              {
-                "selection": "Under 3.5",
-                "line": 3.5,
-                "decimal_price": 1.36
-              },
-              {
-                "selection": "Over 1.25",
-                "line": 1.25,
-                "decimal_price": 1.08
-              },
-              {
-                "selection": "Under 1.25",
-                "line": 1.25,
-                "decimal_price": 5.55
-              },
-              {
-                "selection": "Over 3.0",
-                "line": 3.0,
-                "decimal_price": 2.14
-              },
-              {
-                "selection": "Under 3.0",
-                "line": 3.0,
-                "decimal_price": 1.57
-              },
-              {
-                "selection": "Over 4.5",
-                "line": 4.5,
-                "decimal_price": 5.1
-              },
-              {
-                "selection": "Under 4.5",
-                "line": 4.5,
-                "decimal_price": 1.1
-              },
-              {
-                "selection": "Over 3.25",
-                "line": 3.25,
-                "decimal_price": 2.43
-              },
-              {
-                "selection": "Under 3.25",
-                "line": 3.25,
-                "decimal_price": 1.44
-              },
-              {
-                "selection": "Over 3.75",
-                "line": 3.75,
-                "decimal_price": 3.28
-              },
-              {
-                "selection": "Under 3.75",
-                "line": 3.75,
-                "decimal_price": 1.25
-              },
-              {
-                "selection": "Over 4.0",
-                "line": 4.0,
-                "decimal_price": 4.4
-              },
-              {
-                "selection": "Under 4.0",
-                "line": 4.0,
-                "decimal_price": 1.14
-              },
-              {
-                "selection": "Over 4.25",
-                "line": 4.25,
-                "decimal_price": 4.75
-              },
-              {
-                "selection": "Under 4.25",
-                "line": 4.25,
-                "decimal_price": 1.12
-              },
-              {
-                "selection": "Over 4.75",
-                "line": 4.75,
-                "decimal_price": 6.55
-              },
-              {
-                "selection": "Under 4.75",
-                "line": 4.75,
-                "decimal_price": 1.05
-              }
-            ]
-          },
-          {
-            "bookmaker": "Marathonbet",
-            "market": "Both Teams Score",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Yes",
-                "line": null,
-                "decimal_price": 1.56
-              },
-              {
-                "selection": "No",
-                "line": null,
-                "decimal_price": 2.21
-              }
-            ]
-          },
-          {
-            "bookmaker": "Betfair",
-            "market": "Match Winner",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Home",
-                "line": null,
-                "decimal_price": 2.4
-              },
-              {
-                "selection": "Draw",
-                "line": null,
-                "decimal_price": 3.4
-              },
-              {
-                "selection": "Away",
-                "line": null,
-                "decimal_price": 2.55
-              }
-            ]
-          },
-          {
-            "bookmaker": "Betfair",
-            "market": "Goals Over/Under",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Over 1.5",
-                "line": 1.5,
-                "decimal_price": 1.2
-              },
-              {
-                "selection": "Under 1.5",
-                "line": 1.5,
-                "decimal_price": 4.0
-              },
-              {
-                "selection": "Over 2.5",
-                "line": 2.5,
-                "decimal_price": 1.73
-              },
-              {
-                "selection": "Under 2.5",
-                "line": 2.5,
-                "decimal_price": 2.0
-              },
-              {
-                "selection": "Over 3.5",
-                "line": 3.5,
-                "decimal_price": 2.88
-              },
-              {
-                "selection": "Under 3.5",
-                "line": 3.5,
-                "decimal_price": 1.36
-              },
-              {
-                "selection": "Over 0.5",
-                "line": 0.5,
-                "decimal_price": 1.01
-              },
-              {
-                "selection": "Under 0.5",
-                "line": 0.5,
-                "decimal_price": 11.0
-              },
-              {
-                "selection": "Over 4.5",
-                "line": 4.5,
-                "decimal_price": 5.5
-              },
-              {
-                "selection": "Under 4.5",
-                "line": 4.5,
-                "decimal_price": 1.11
-              },
-              {
-                "selection": "Over 5.5",
-                "line": 5.5,
-                "decimal_price": 11.0
-              },
-              {
-                "selection": "Under 5.5",
-                "line": 5.5,
-                "decimal_price": 1.01
-              }
-            ]
-          },
-          {
-            "bookmaker": "Betfair",
-            "market": "Both Teams Score",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Yes",
-                "line": null,
-                "decimal_price": 1.6
-              },
-              {
-                "selection": "No",
-                "line": null,
-                "decimal_price": 2.2
-              }
-            ]
-          },
-          {
-            "bookmaker": "BetVictor",
-            "market": "Match Winner",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Home",
-                "line": null,
-                "decimal_price": 2.45
-              },
-              {
-                "selection": "Draw",
-                "line": null,
-                "decimal_price": 3.4
-              },
-              {
-                "selection": "Away",
-                "line": null,
-                "decimal_price": 2.6
-              }
-            ]
-          },
-          {
-            "bookmaker": "BetVictor",
-            "market": "Goals Over/Under",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Over 1.5",
-                "line": 1.5,
-                "decimal_price": 1.2
-              },
-              {
-                "selection": "Under 1.5",
-                "line": 1.5,
-                "decimal_price": 4.1
-              },
-              {
-                "selection": "Over 2.0",
-                "line": 2.0,
-                "decimal_price": 1.38
-              },
-              {
-                "selection": "Under 2.0",
-                "line": 2.0,
-                "decimal_price": 2.73
-              },
-              {
-                "selection": "Over 2.25",
-                "line": 2.25,
-                "decimal_price": 1.52
-              },
-              {
-                "selection": "Under 2.25",
-                "line": 2.25,
-                "decimal_price": 2.31
-              },
-              {
-                "selection": "Over 2.5",
-                "line": 2.5,
-                "decimal_price": 1.7
-              },
-              {
-                "selection": "Under 2.5",
-                "line": 2.5,
-                "decimal_price": 2.0
-              },
-              {
-                "selection": "Over 2.75",
-                "line": 2.75,
-                "decimal_price": 1.87
-              },
-              {
-                "selection": "Under 2.75",
-                "line": 2.75,
-                "decimal_price": 1.8
-              },
-              {
-                "selection": "Over 3.5",
-                "line": 3.5,
-                "decimal_price": 2.8
-              },
-              {
-                "selection": "Under 3.5",
-                "line": 3.5,
-                "decimal_price": 1.4
-              },
-              {
-                "selection": "Over 0.5",
-                "line": 0.5,
-                "decimal_price": 1.02
-              },
-              {
-                "selection": "Under 0.5",
-                "line": 0.5,
-                "decimal_price": 10.5
-              },
-              {
-                "selection": "Over 3.0",
-                "line": 3.0,
-                "decimal_price": 2.15
-              },
-              {
-                "selection": "Under 3.0",
-                "line": 3.0,
-                "decimal_price": 1.6
-              },
-              {
-                "selection": "Over 4.5",
-                "line": 4.5,
-                "decimal_price": 5.4
-              },
-              {
-                "selection": "Under 4.5",
-                "line": 4.5,
-                "decimal_price": 1.13
-              },
-              {
-                "selection": "Over 3.25",
-                "line": 3.25,
-                "decimal_price": 2.4
-              },
-              {
-                "selection": "Under 3.25",
-                "line": 3.25,
-                "decimal_price": 1.49
-              },
-              {
-                "selection": "Over 5.5",
-                "line": 5.5,
-                "decimal_price": 10.5
-              },
-              {
-                "selection": "Under 5.5",
-                "line": 5.5,
-                "decimal_price": 1.02
-              }
-            ]
-          },
-          {
-            "bookmaker": "BetVictor",
-            "market": "Both Teams Score",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Yes",
-                "line": null,
-                "decimal_price": 1.57
-              },
-              {
-                "selection": "No",
-                "line": null,
-                "decimal_price": 2.25
-              }
-            ]
-          },
-          {
-            "bookmaker": "Pinnacle",
-            "market": "Match Winner",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Home",
-                "line": null,
-                "decimal_price": 2.53
-              },
-              {
-                "selection": "Draw",
-                "line": null,
-                "decimal_price": 3.6
-              },
-              {
-                "selection": "Away",
-                "line": null,
-                "decimal_price": 2.66
-              }
-            ]
-          },
-          {
-            "bookmaker": "Pinnacle",
-            "market": "Goals Over/Under",
-            "provider_update": "2026-09-15T20:53:14+00:00",
-            "values": [
-              {
-                "selection": "Over 1.5",
-                "line": 1.5,
-                "decimal_price": 1.22
-              },
-              {
-                "selection": "Under 1.5",
-                "line": 1.5,
-                "decimal_price": 4.23
-              },
-              {
-                "selection": "Over 2.0",
-                "line": 2.0,
-                "decimal_price": 1.37
-              },
-              {
-                "selection": "Under 2.0",
-                "line": 2.0,
-                "decimal_price": 3.07
-              },
-              {
-                "selection": "Over 2.25",
-                "line": 2.25,
-                "decimal_price": 1.53
-              },
-              {
-                "selection": "Under 2.25",
-                "line": 2.25,
-                "decimal_price": 2.52
-              },
-              {
-                "selection": "Over 2.5",
-                "line": 2.5,
-                "decimal_price": 1.74
-              },
-              {
-                "selection": "Under 2.5",
-                "line": 2.5,
-                "decimal_price": 2.12
-              },
-              {
-                "selection": "Over 2.75",
-                "line": 2.75,
-                "decimal_price": 1.93
-              },
-              {
-                "selection": "Under 2.75",
-                "line": 2.75,
-                "decimal_price": 1.9
-              },
-              {
-                "selection": "Over 3.5",
-                "line": 3.5,
-                "decimal_price": 2.8
-              },
-              {
-                "selection": "Under 3.5",
-                "line": 3.5,
-                "decimal_price": 1.43
-              },
-              {
-                "selection": "Over 3.0",
-                "line": 3.0,
-                "decimal_price": 2.23
-              },
-              {
-                "selection": "Under 3.0",
-                "line": 3.0,
-                "decimal_price": 1.67
-              },
-              {
-                "selection": "Over 4.5",
-                "line": 4.5,
-                "decimal_price": 5.07
-              },
-              {
-                "selection": "Under 4.5",
-                "line": 4.5,
-                "decimal_price": 1.17
-              },
-              {
-                "selection": "Over 3.25",
-                "line": 3.25,
-                "decimal_price": 2.52
-              },
-              {
-                "selection": "Under 3.25",
-                "line": 3.25,
-                "decimal_price": 1.53
-              }
-            ]
-          }
-        ]
-      },
-      "derivative_research_market_snapshot": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "CLOSE",
-      "classification": "CLOSE",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1607642,
-        "kickoff": "2026-09-15T19:00:00-06:00",
-        "timestamp": 1789520400,
-        "status": "NS",
-        "status_long": "Not Started",
-        "elapsed": null,
-        "league_id": 241,
-        "league": "Copa Colombia",
-        "country": "Colombia",
-        "season": 2026,
-        "round": "Round of 16",
-        "home_team_id": 1138,
-        "home_team": "America de Cali",
-        "away_team_id": 1462,
-        "away_team": "Deportivo Pereira",
-        "venue": "Santiago de las Atalayas",
-        "city": "Cali",
-        "goals": {
-          "home": null,
-          "away": null
-        },
-        "score": {
-          "halftime": {
-            "home": null,
-            "away": null
-          },
-          "fulltime": {
-            "home": null,
-            "away": null
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        }
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 84.5,
+        "rank": 100.0,
         "tracks": [
           "SIDE",
           "GOALS_OVER",
           "TWO_WAY"
         ],
-        "side_edge_score": 84.5,
-        "goal_environment_score": 74.8,
-        "two_way_scoring_score": 79.1,
+        "side_edge_score": 74.1,
+        "goal_environment_score": 100.0,
+        "two_way_scoring_score": 100.0,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": null,
       "sporting_screen_refined": null,
       "galaxy_source": null,
-      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-      "market_provenance": {
-        "source": "API_FALLBACK_ODDS",
-        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-        "latest_market_timestamp": null,
-        "age_minutes": null,
-        "galaxy_freshness_limit_minutes": 20,
-        "freshness": "API_FALLBACK_CURRENT_RUN",
-        "fresh": true,
-        "market_count": 0,
-        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
-        "sport_first_order_preserved": true,
-        "provenance_contract_version": "1.1.0"
-      },
+      "market_source": null,
+      "market_provenance": null,
       "trend_context": {
         "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
         "actionable": false,
@@ -5744,7 +4728,139 @@
       "market_decision": null,
       "best_market": null,
       "notes": [],
-      "result": null,
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1511696,
+        "kickoff": "2026-09-15T17:30:00-06:00",
+        "timestamp": 1789515000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 266,
+        "league": "Primera B",
+        "country": "Chile",
+        "season": 2026,
+        "round": "Regular Season - 26",
+        "home_team_id": 2321,
+        "home_team": "Union Espanola",
+        "away_team_id": 2317,
+        "away_team": "Deportes Temuco",
+        "venue": "Estadio Santa Laura-Universidad SEK",
+        "city": "Santiago de Chile",
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 85.2,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 51.3,
+        "goal_environment_score": 58.5,
+        "two_way_scoring_score": 85.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
       "error": null
     },
     {
@@ -6025,6 +5141,115 @@
         "side_edge_score": 51.3,
         "goal_environment_score": 51.3,
         "two_way_scoring_score": 77.4,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1638764,
+        "kickoff": "2026-09-15T17:30:00-06:00",
+        "timestamp": 1789515000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 299,
+        "league": "Primera División",
+        "country": "Venezuela",
+        "season": 2026,
+        "round": "Clausura - 10",
+        "home_team_id": 2840,
+        "home_team": "UCV",
+        "away_team_id": 18806,
+        "away_team": "Anzoátegui FC",
+        "venue": "Estadio Olimpico de la UCV",
+        "city": "Caracas",
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 76.4,
+        "tracks": [
+          "SIDE",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 62.9,
+        "goal_environment_score": 59.2,
+        "two_way_scoring_score": 76.4,
         "reason": "SPORTING_SCREEN_PASS"
       },
       "sporting_screen_initial": null,
@@ -6383,6 +5608,115 @@
           },
           "fulltime": {
             "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1610970,
+        "kickoff": "2026-09-15T17:00:00-06:00",
+        "timestamp": 1789513200,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 856,
+        "league": "CONCACAF Caribbean Club Championship",
+        "country": "World",
+        "season": 2026,
+        "round": "Group Stage - 5",
+        "home_team_id": 16139,
+        "home_team": "Delfines Del Este",
+        "away_team_id": 12563,
+        "away_team": "Defence Force",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": 3,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 3,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        }
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 65.3,
+        "tracks": [
+          "SIDE",
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 65.3,
+        "goal_environment_score": 38.9,
+        "two_way_scoring_score": 58.1,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 3,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 3,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 3,
             "away": 1
           },
           "extratime": {
