@@ -2,30 +2,30 @@
   "service": "soccer-edge-automation",
   "version": "3.11.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-16T22:42:20.663056+00:00",
-  "generated_at_local": "2026-09-16T16:42:20.663056-06:00",
+  "generated_at_utc": "2026-09-16T22:52:18.076568+00:00",
+  "generated_at_local": "2026-09-16T16:52:18.076568-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 427,
   "due_fixture_count": 31,
-  "event_count": 8,
-  "actionable_refresh_count": 7,
+  "event_count": 9,
+  "actionable_refresh_count": 8,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 4731,
+  "last_daily_remaining": 4711,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 7,
+  "deep_dive_processed_count": 8,
   "shortlist_event_count": 7,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
   "urgent_late_shortlist_due": 8,
-  "urgent_late_shortlist_processed": 6,
-  "urgent_window_completion_rate_this_tick": 0.75,
+  "urgent_late_shortlist_processed": 7,
+  "urgent_window_completion_rate_this_tick": 0.875,
   "urgent_window_policy": "EXISTING_T10_T20_CLOSE_SHORTLIST_FIRST; T40_DISCOVERY_AFTER; ELASTIC_DEEP_DIVE_CAP_MAY_USE_GALAXY_OR_CACHE_BUT_CANNOT_BYPASS_PROVIDER_CALL_BUDGET",
   "deep_dive_capacity_policy": "ELASTIC_WORK_CAP_WITH_UNCHANGED_PROVIDER_API_HARD_CAP",
   "base_deep_dive_cap": 8,
@@ -34,14 +34,14 @@
   "dedicated_close_snapshots_this_tick": 0,
   "dedicated_close_quotes_this_tick": 0,
   "clv_close_policy": "PERSIST_CANONICAL_FT_CLOSE_QUOTES; TRUE_CLV_ONLY_WHEN_CAPTURED_BEFORE_KICKOFF; LATE_CLOSE_SNAPSHOTS_RETAINED_BUT_NOT_LABELED_TRUE_PREKICKOFF_CLOSE",
-  "derivative_research_snapshots_this_tick": 6,
-  "derivative_research_quotes_this_tick": 1064,
-  "one_h_market_groups_this_tick": 94,
-  "two_h_market_groups_this_tick": 44,
+  "derivative_research_snapshots_this_tick": 7,
+  "derivative_research_quotes_this_tick": 1151,
+  "one_h_market_groups_this_tick": 105,
+  "two_h_market_groups_this_tick": 48,
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
-  "relative_strength_1x2_shadow_count_this_tick": 4,
+  "relative_strength_1x2_shadow_count_this_tick": 5,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
-  "trend_context_count_this_tick": 0,
+  "trend_context_count_this_tick": 1,
   "trend_signal_count_this_tick": 0,
   "trend_model_disagreement_count_this_tick": 0,
   "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
@@ -61,16 +61,16 @@
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 7,
-    "galaxy_fixture_hits": 0,
-    "galaxy_fixture_misses": 7,
-    "galaxy_raw_used": 0,
-    "galaxy_raw_fallbacks": 7,
-    "api_team_stats_calls_avoided": 0,
+    "galaxy_fixture_reads": 9,
+    "galaxy_fixture_hits": 1,
+    "galaxy_fixture_misses": 8,
+    "galaxy_raw_used": 1,
+    "galaxy_raw_fallbacks": 8,
+    "api_team_stats_calls_avoided": 2,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
-    "galaxy_odds_stale_or_missing": 6,
+    "galaxy_odds_stale_or_missing": 8,
     "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
     "galaxy_slate_fallbacks": 1,
@@ -78,16 +78,16 @@
     "api_slate_calls_avoided": 0,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 0,
-    "odds_market_events": 7,
+    "provider_requests_avoided": 2,
+    "odds_market_events": 8,
     "galaxy_odds_market_events": 0,
-    "api_odds_fallback_events": 6,
+    "api_odds_fallback_events": 7,
     "not_verified_odds_market_events": 1,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
     "odds_provenance_accounting_valid": true,
-    "odds_provenance_metadata_repairs": 6,
+    "odds_provenance_metadata_repairs": 7,
     "unverified_market_source_safety_blocks": 0
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-16T16:42:20.663056-06:00",
+    "generated_at_local": "2026-09-16T16:52:18.076568-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2746,13 +2746,13 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 8,
-        "rows_attached": 8,
+        "row_count": 9,
+        "rows_attached": 9,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "WATCH": 7,
-          "POSTGAME": 1
+          "WATCH": 8,
+          "PASS": 1
         }
       }
     },
@@ -2775,7 +2775,7 @@
       "competition": "Canadian Championship",
       "data_tier": "B",
       "kickoff": "2026-09-16T17:00:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "CF Montreal",
       "away": "Vancouver Whitecaps",
       "tracks": [
@@ -2803,24 +2803,26 @@
       "competition": "Liga Femenina",
       "data_tier": "B",
       "kickoff": "2026-09-16T17:00:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Atlético Nacional W",
       "away": "Deportivo Cali W",
-      "tracks": [],
-      "side_score": null,
-      "goals_score": null,
-      "two_way_score": null,
-      "availability_confidence": null,
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_score": 50.4,
+      "goals_score": 53.0,
+      "two_way_score": 80.5,
+      "availability_confidence": 0.6,
       "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 2.93,
+      "bookmaker": "Pinnacle",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
-      "reason": "Per-tick API budget reached (20); lower-priority work deferred."
+      "reason": "SPORTING_SCREEN_PASS"
     },
     {
       "fixture_id": 1513280,
@@ -2828,7 +2830,7 @@
       "competition": "MLS Next Pro",
       "data_tier": "B",
       "kickoff": "2026-09-16T17:00:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Real Monarchs",
       "away": "Minnesota United II",
       "tracks": [
@@ -2856,7 +2858,7 @@
       "competition": "US Open Cup",
       "data_tier": "B",
       "kickoff": "2026-09-16T17:00:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Columbus Crew",
       "away": "Orlando City SC",
       "tracks": [
@@ -2884,7 +2886,7 @@
       "competition": "USL League One",
       "data_tier": "B",
       "kickoff": "2026-09-16T17:00:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Chattanooga Red Wolves",
       "away": "Forward Madison",
       "tracks": [
@@ -2911,7 +2913,7 @@
       "competition": "USL League One",
       "data_tier": "B",
       "kickoff": "2026-09-16T17:00:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Westchester SC",
       "away": "Richmond Kickers",
       "tracks": [
@@ -2940,7 +2942,7 @@
       "competition": "Primera División",
       "data_tier": "B",
       "kickoff": "2026-09-16T17:00:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Trujillanos FC",
       "away": "Rayo Zuliano",
       "tracks": [
@@ -2962,21 +2964,18 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1505509,
-      "country": "Chile",
-      "competition": "Primera División",
+      "fixture_id": 1635927,
+      "country": "Venezuela",
+      "competition": "Segunda División",
       "data_tier": "B",
-      "kickoff": "2026-09-16T15:00:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Coquimbo Unido",
-      "away": "Huachipato",
-      "tracks": [
-        "SIDE",
-        "TWO_WAY"
-      ],
-      "side_score": 62.6,
-      "goals_score": 54.6,
-      "two_way_score": 71.5,
+      "kickoff": "2026-09-16T17:00:00-06:00",
+      "stage": "T-10",
+      "home": "Deportivo Lara",
+      "away": "Atletico el Vigia FC",
+      "tracks": [],
+      "side_score": null,
+      "goals_score": null,
+      "two_way_score": null,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -2984,10 +2983,42 @@
       "line": null,
       "price": null,
       "bookmaker": null,
-      "classification": "POSTGAME",
+      "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
+      "reason": "Per-tick API budget reached (20); lower-priority work deferred."
+    },
+    {
+      "fixture_id": 1549750,
+      "country": "Colombia",
+      "competition": "Primera A",
+      "data_tier": "B",
+      "kickoff": "2026-09-16T17:15:00-06:00",
+      "stage": "T-30",
+      "home": "Once Caldas",
+      "away": "Deportes Tolima",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 45.0,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST",
+      "trend_context": {
+        "reliability": 0.1,
+        "signals": [],
+        "model_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null
+      }
     }
   ],
   "research_report": {
@@ -2995,13 +3026,55 @@
     "decision_policy": "RESEARCH_IS_NOT_A_BET; NO_BET_IS_VALID; NO_RESEARCH_IS_NOT",
     "rows": [
       {
+        "fixture_id": 1549750,
+        "kickoff": "2026-09-16T17:15:00-06:00",
+        "league_id": 239,
+        "league": "Primera A",
+        "home": "Once Caldas",
+        "away": "Deportes Tolima",
+        "stage": "T-30",
+        "tier": "B",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": null,
+          "over_2_5_prob": null
+        },
+        "btts_yes_prob": null,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": 0.1,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 45.0,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      },
+      {
         "fixture_id": 1513280,
         "kickoff": "2026-09-16T17:00:00-06:00",
         "league_id": 909,
         "league": "MLS Next Pro",
         "home": "Real Monarchs",
         "away": "Minnesota United II",
-        "stage": "T-20",
+        "stage": "T-10",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -3063,7 +3136,7 @@
         "league": "US Open Cup",
         "home": "Columbus Crew",
         "away": "Orlando City SC",
-        "stage": "T-20",
+        "stage": "T-10",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -3125,7 +3198,7 @@
         "league": "USL League One",
         "home": "Chattanooga Red Wolves",
         "away": "Forward Madison",
-        "stage": "T-20",
+        "stage": "T-10",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -3186,7 +3259,7 @@
         "league": "USL League One",
         "home": "Westchester SC",
         "away": "Richmond Kickers",
-        "stage": "T-20",
+        "stage": "T-10",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -3249,7 +3322,7 @@
         "league": "Primera División",
         "home": "Trujillanos FC",
         "away": "Rayo Zuliano",
-        "stage": "T-20",
+        "stage": "T-10",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -3310,7 +3383,7 @@
         "league": "Canadian Championship",
         "home": "CF Montreal",
         "away": "Vancouver Whitecaps",
-        "stage": "T-20",
+        "stage": "T-10",
         "tier": "A",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -3372,7 +3445,68 @@
         "league": "Liga Femenina",
         "home": "Atlético Nacional W",
         "away": "Deportivo Cali W",
-        "stage": "T-20",
+        "stage": "T-10",
+        "tier": "B",
+        "research_status": "RESEARCHED_WATCH",
+        "classification": "WATCH",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.4562,
+          "over_2_5_prob": 0.4449
+        },
+        "btts_yes_prob": 0.5,
+        "one_x_two_research": {
+          "home": 0.3711,
+          "draw": 0.2728,
+          "away": 0.3561,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": true,
+          "rank": 80.5,
+          "tracks": [
+            "TWO_WAY"
+          ],
+          "side_edge_score": 50.4,
+          "goal_environment_score": 53.0,
+          "two_way_scoring_score": 80.5,
+          "reason": "SPORTING_SCREEN_PASS"
+        },
+        "market_status": "WATCH",
+        "market_reason": null,
+        "best_market": {
+          "family": "TOTAL",
+          "market": "Goals Over/Under",
+          "selection": "over",
+          "line": 2.5,
+          "decimal_price": 2.93,
+          "bookmaker": "Pinnacle",
+          "p_breakeven": 0.341297,
+          "p_market_fair": 0.310588,
+          "p_raw": 0.444916,
+          "p_shrunk": 0.332081,
+          "prob_edge_pp": 2.149,
+          "estimated_ev": -0.027004,
+          "shrink_weight": 0.16,
+          "tier": null,
+          "classification": "WATCH",
+          "stake_units": 0.0
+        },
+        "reason": null
+      },
+      {
+        "fixture_id": 1635927,
+        "kickoff": "2026-09-16T17:00:00-06:00",
+        "league_id": 300,
+        "league": "Segunda División",
+        "home": "Deportivo Lara",
+        "away": "Atletico el Vigia FC",
+        "stage": "T-10",
         "tier": null,
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -3401,13 +3535,14 @@
       }
     ],
     "counts": {
-      "RESEARCHED_WATCH": 7
+      "RESEARCHED_NO_ACTIONABLE_EDGE": 1,
+      "RESEARCHED_WATCH": 8
     },
-    "researched_count": 7,
+    "researched_count": 9,
     "insufficient_data_count": 0,
     "actionable_signal_count": 0,
-    "watch_count": 7,
-    "no_actionable_edge_count": 0,
+    "watch_count": 8,
+    "no_actionable_edge_count": 1,
     "scope": [
       "FT_GOALS",
       "BTTS_RESEARCH",
@@ -3417,8 +3552,8 @@
       "MARKET_AFTER_SPORT"
     ]
   },
-  "research_report_count_this_tick": 7,
-  "research_completed_count_this_tick": 7,
+  "research_report_count_this_tick": 9,
+  "research_completed_count_this_tick": 9,
   "research_insufficient_data_count_this_tick": 0,
   "research_policy": "EVERY_DUE_EVENT_MUST_END_AS_RESEARCHED_OR_EXPLICIT_INSUFFICIENT_DATA; ZERO_FORCED_PICKS; MARKET_REMAINS_AFTER_SPORT",
   "daily_research": {
@@ -3434,7 +3569,7 @@
   "galaxy_builder": {
     "schema_version": "0.4.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-16T16:42:20.663056-06:00",
+    "generated_at_local": "2026-09-16T16:52:18.076568-06:00",
     "candidate_count": 0,
     "candidates": [
       {
@@ -3444,7 +3579,7 @@
         "league": "Primera División",
         "match": "Trujillanos FC vs Rayo Zuliano",
         "data_tier": "B",
-        "stage": "T-20",
+        "stage": "T-10",
         "availability_confidence": 0.9,
         "projection_source": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "raw_total_goals": 2.85,
@@ -3529,10 +3664,10 @@
     "same_game_candidates": [],
     "multi_match_candidates": [],
     "derivative_inventory": {
-      "observed_quote_count": 1654,
+      "observed_quote_count": 1741,
       "observed_family_counts": {
-        "1H_GOALS": 693,
-        "2H_GOALS": 371,
+        "1H_GOALS": 756,
+        "2H_GOALS": 395,
         "CORNERS": 522,
         "TEAM_CORNERS": 40,
         "CARDS": 28
@@ -3593,8 +3728,8 @@
       "multi_match_active": 0,
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
-      "invalidated_fixture_count_this_tick": 7,
-      "updated_at_utc": "2026-09-16T22:42:20.663056+00:00",
+      "invalidated_fixture_count_this_tick": 8,
+      "updated_at_utc": "2026-09-16T22:52:18.076568+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     }
   },
@@ -3602,7 +3737,7 @@
   "galaxy_builder_policy": "SPORT FIRST; MARKET SECOND; COMBINATION THIRD; MARKET-BACKED LEGS ONLY; TARGET +110 OR BETTER; NO SYNTHETIC UNQUOTED LINES; NO LOGICALLY REDUNDANT LEGS; ONE PRIMARY SGP PER FIXTURE; EXACT SPORTSBOOK SGP QUOTE REQUIRED FOR FINAL BET",
   "galaxy_builder_actionable_scope": "V0.4 MARKET-BACKED RESEARCH; SGP LEGS MUST EXIST IN VERIFIED CURRENT MARKET; SAME-BOOK COMPONENT REFERENCE MUST REACH +110 TARGET FLOOR; LOGICALLY REDUNDANT LEGS BLOCKED; ONE PRIMARY SGP PER FIXTURE; EXACT CORRELATION-ADJUSTED SPORTSBOOK SGP QUOTE STILL REQUIRED FOR BET",
   "match_intelligence_schema_version": "0.1.0",
-  "match_intelligence_event_count_this_tick": 6,
+  "match_intelligence_event_count_this_tick": 8,
   "referee_assignment_verified_count_this_tick": 0,
   "coach_pair_verified_count_this_tick": 1,
   "card_market_groups_this_tick": 2,
@@ -3614,49 +3749,49 @@
   "v39_canonical_bet_logic_changed": false,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "4750",
+    "daily_remaining": "4730",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
+      "stage": "T-30",
+      "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1505509,
-        "kickoff": "2026-09-16T15:00:00-06:00",
-        "timestamp": 1789592400,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 265,
-        "league": "Primera División",
-        "country": "Chile",
+        "fixture_id": 1549750,
+        "kickoff": "2026-09-16T17:15:00-06:00",
+        "timestamp": 1789600500,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 239,
+        "league": "Primera A",
+        "country": "Colombia",
         "season": 2026,
-        "round": "Regular Season - 21",
-        "home_team_id": 2330,
-        "home_team": "Coquimbo Unido",
-        "away_team_id": 2328,
-        "away_team": "Huachipato",
-        "venue": "Francisco Sánchez Rumoroso",
-        "city": "Coquimbo",
+        "round": "Clausura - 7",
+        "home_team_id": 1136,
+        "home_team": "Once Caldas",
+        "away_team_id": 1142,
+        "away_team": "Deportes Tolima",
+        "venue": "Estadio Palogrande",
+        "city": "Manizales",
         "goals": {
-          "home": 0,
-          "away": 1
+          "home": null,
+          "away": null
         },
         "score": {
           "halftime": {
-            "home": 0,
-            "away": 0
+            "home": null,
+            "away": null
           },
           "fulltime": {
-            "home": 0,
-            "away": 1
+            "home": null,
+            "away": null
           },
           "extratime": {
             "home": null,
@@ -3667,81 +3802,238 @@
             "away": null
           }
         },
-        "referee": "N. Gamboa",
+        "referee": null,
         "fixture_timezone": "America/Mexico_City"
       },
       "coverage": {
         "data_tier": "B"
       },
       "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 71.5,
-        "tracks": [
-          "SIDE",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 62.6,
-        "goal_environment_score": 54.6,
-        "two_way_scoring_score": 71.5,
-        "reason": "SPORTING_SCREEN_PASS"
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 45.0,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
       },
       "sporting_screen_initial": null,
       "sporting_screen_refined": null,
-      "galaxy_source": null,
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-16T22:37:17.200682+00:00",
+        "external_api_calls": 0
+      },
       "market_source": null,
       "market_provenance": null,
       "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "status": "RESEARCH_ONLY_TREND_CONTEXT",
         "actionable": false,
-        "decision_weight": 0.0
+        "decision_weight": 0.0,
+        "source_generated_at_utc": "2026-09-16T08:01:46.233663+00:00",
+        "window": "last_10",
+        "reliability": 0.1,
+        "signals": [],
+        "model_disagreements": [],
+        "deep_dive_flag": false,
+        "home": {
+          "team": "Once Caldas",
+          "over25_rate": 1.0,
+          "btts_rate": 1.0,
+          "scored_rate": 1.0,
+          "avg_goals_for": 1.0,
+          "avg_goals_against": 2.0,
+          "avg_corners_for": null,
+          "venue_over25_rate": 1.0
+        },
+        "away": {
+          "team": "Deportes Tolima",
+          "over25_rate": 0.0,
+          "btts_rate": 0.0,
+          "scored_rate": 0.0,
+          "avg_goals_for": 0.0,
+          "avg_goals_against": 1.0,
+          "avg_corners_for": null,
+          "venue_over25_rate": 0.0
+        },
+        "expected_corner_environment": null,
+        "policy": "CONTEXT_ONLY; MAY FLAG DEEP_DIVE; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY"
       },
       "player_trends_research": null,
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
-      "match_intelligence": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1549750,
+        "kickoff": "2026-09-16T17:15:00-06:00",
+        "match": "Once Caldas vs Deportes Tolima",
+        "stage": "T-30",
+        "data_tier": "B",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": null,
+            "over_2_5_prob": null,
+            "goal_environment_score": 59.8,
+            "scoring_path": null
+          },
+          "btts": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "yes_probability": null,
+            "two_way_scoring_score": 45.0
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "NOT_VERIFIED",
+            "name": null,
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "NOT_VERIFIED",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "Primera A",
+            "round": "Clausura - 7",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Estadio Palogrande",
+            "city": "Manizales"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING",
+          "REFEREE_NOT_VERIFIED_FOR_THIS_FIXTURE"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
       "lineups": null,
       "raw_projection": null,
       "market_decision": null,
       "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 0,
-          "away": 1
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 1
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "player_stats": {
-          "status": "UNAVAILABLE",
-          "fixture_id": 1505509,
-          "error": "Per-tick API budget reached (20); lower-priority work deferred.",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "capture_phase": "POSTGAME"
-        }
-      },
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "No active sporting shortlist for this refresh."
+      ],
+      "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -3835,7 +4127,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-16T08:16:12+00:00",
-        "age_minutes": 866.14,
+        "age_minutes": 876.1,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -3859,7 +4151,7 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-16T16:42:20.663056-06:00",
+        "captured_at_local": "2026-09-16T16:52:18.076568-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -4532,7 +4824,7 @@
         "fixture_id": 1513280,
         "kickoff": "2026-09-16T17:00:00-06:00",
         "match": "Real Monarchs vs Minnesota United II",
-        "stage": "T-20",
+        "stage": "T-10",
         "data_tier": "B",
         "bet_tier": null,
         "classification": "WATCH",
@@ -4799,15 +5091,14 @@
       },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
-        "T-20 lineup/GK gate failed: BET eligibility blocked."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -4901,7 +5192,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-16T20:18:16+00:00",
-        "age_minutes": 144.08,
+        "age_minutes": 154.03,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -4925,7 +5216,7 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-16T16:42:20.663056-06:00",
+        "captured_at_local": "2026-09-16T16:52:18.076568-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -8329,7 +8620,7 @@
         "fixture_id": 1545812,
         "kickoff": "2026-09-16T17:00:00-06:00",
         "match": "Columbus Crew vs Orlando City SC",
-        "stage": "T-20",
+        "stage": "T-10",
         "data_tier": "B",
         "bet_tier": null,
         "classification": "WATCH",
@@ -8555,15 +8846,14 @@
       },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
-        "T-20 lineup/GK gate failed: BET eligibility blocked."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -8654,7 +8944,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-16T18:00:16+00:00",
-        "age_minutes": 282.08,
+        "age_minutes": 292.03,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -8672,7 +8962,7 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-16T16:42:20.663056-06:00",
+        "captured_at_local": "2026-09-16T16:52:18.076568-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -10053,7 +10343,7 @@
         "fixture_id": 1493995,
         "kickoff": "2026-09-16T17:00:00-06:00",
         "match": "Chattanooga Red Wolves vs Forward Madison",
-        "stage": "T-20",
+        "stage": "T-10",
         "data_tier": "B",
         "bet_tier": null,
         "classification": "WATCH",
@@ -10317,15 +10607,14 @@
       },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
-        "T-20 lineup/GK gate failed: BET eligibility blocked."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -10422,7 +10711,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-16T18:00:16+00:00",
-        "age_minutes": 282.08,
+        "age_minutes": 292.03,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -10440,7 +10729,7 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-16T16:42:20.663056-06:00",
+        "captured_at_local": "2026-09-16T16:52:18.076568-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -11806,7 +12095,7 @@
         "fixture_id": 1493999,
         "kickoff": "2026-09-16T17:00:00-06:00",
         "match": "Westchester SC vs Richmond Kickers",
-        "stage": "T-20",
+        "stage": "T-10",
         "data_tier": "B",
         "bet_tier": null,
         "classification": "WATCH",
@@ -12072,15 +12361,14 @@
       },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
-        "T-20 lineup/GK gate failed: BET eligibility blocked."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
       "error": null
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -12171,7 +12459,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-16T20:10:16+00:00",
-        "age_minutes": 152.08,
+        "age_minutes": 162.03,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -12189,7 +12477,7 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-16T16:42:20.663056-06:00",
+        "captured_at_local": "2026-09-16T16:52:18.076568-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -13934,7 +14222,7 @@
         "fixture_id": 1638871,
         "kickoff": "2026-09-16T17:00:00-06:00",
         "match": "Trujillanos FC vs Rayo Zuliano",
-        "stage": "T-20",
+        "stage": "T-10",
         "data_tier": "B",
         "bet_tier": null,
         "classification": "WATCH",
@@ -14297,7 +14585,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": "A",
       "stake_units": 0.0,
@@ -14391,7 +14679,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-16T20:33:13+00:00",
-        "age_minutes": 129.13,
+        "age_minutes": 139.08,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -14409,7 +14697,7 @@
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-16T16:42:20.663056-06:00",
+        "captured_at_local": "2026-09-16T16:52:18.076568-06:00",
         "research_only": true,
         "actionable": false,
         "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
@@ -15738,7 +16026,7 @@
         "fixture_id": 1589402,
         "kickoff": "2026-09-16T17:00:00-06:00",
         "match": "CF Montreal vs Vancouver Whitecaps",
-        "stage": "T-20",
+        "stage": "T-10",
         "data_tier": "B",
         "bet_tier": "A",
         "classification": "WATCH",
@@ -15962,20 +16250,19 @@
       },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
-        "T-20 lineup/GK gate failed: BET eligibility blocked."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
       "error": null
     },
     {
-      "event_type": "QUOTA_GUARD",
-      "stage": "T-20",
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
-      "availability_confidence": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": 0.6,
       "fixture": {
         "fixture_id": 1639697,
         "kickoff": "2026-09-16T17:00:00-06:00",
@@ -15994,6 +16281,955 @@
         "away_team": "Deportivo Cali W",
         "venue": "Estadio Atanasio Girardot",
         "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 80.5,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 50.4,
+        "goal_environment_score": 53.0,
+        "two_way_scoring_score": 80.5,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": true,
+        "rank": 79.4,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 50.0,
+        "goal_environment_score": 51.4,
+        "two_way_scoring_score": 79.4,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": true,
+        "rank": 80.5,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 50.4,
+        "goal_environment_score": 53.0,
+        "two_way_scoring_score": 80.5,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "galaxy_source": null,
+      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-16T20:20:15+00:00",
+        "age_minutes": 152.05,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "API_FALLBACK_CURRENT_RUN",
+        "fresh": true,
+        "market_count": 63,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": {
+        "schema_version": "1.0.0",
+        "captured_at_local": "2026-09-16T16:52:18.076568-06:00",
+        "research_only": true,
+        "actionable": false,
+        "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
+        "group_count": 15,
+        "quote_count": 87,
+        "groups": [
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.5
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.04
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.5
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.3
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.58
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.21
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.55
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.24
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.39
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.46
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.72
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.72
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.84
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.83
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betfair",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 4.0
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.2
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.5
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.4
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "BetVictor",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.58
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.19
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 1.84
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.41
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.48
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.95
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.33
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.63
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.09
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.95
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 1.75
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.73
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.38
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 3.32
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.25
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.49
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.45
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.5
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.45
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.58
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.21
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.04
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.55
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.24
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.81
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 1.86
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.39
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.46
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.97
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.3
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.72
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.72
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.51
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 2.27
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.84
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.29
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.5
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 8.45
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.04
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.01
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 7.85
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.01
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Home Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 6.5
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.08
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.01
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Away Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 6.15
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.09
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.01
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betano",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T20:20:15+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.6
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 1.7
+              }
+            ]
+          }
+        ]
+      },
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1639697,
+        "kickoff": "2026-09-16T17:00:00-06:00",
+        "match": "Atlético Nacional W vs Deportivo Cali W",
+        "stage": "T-10",
+        "data_tier": "B",
+        "bet_tier": null,
+        "classification": "WATCH",
+        "availability_confidence": 0.6,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "side_edge_score": 50.4,
+            "home_win_prob": 0.371092,
+            "draw_prob": 0.272825,
+            "away_win_prob": 0.356083
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": 1.2437,
+            "away_lambda": 1.2125,
+            "total_lambda": 2.4562,
+            "over_2_5_prob": 0.444916,
+            "goal_environment_score": 53.0,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.500002,
+            "two_way_scoring_score": 80.5
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 63,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 24,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "PENDING",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "NOT_VERIFIED",
+            "name": null,
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [
+              "TWO_WAY"
+            ],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "NOT VERIFIED",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "Liga Femenina",
+            "round": "Semi-finals",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Estadio Atanasio Girardot",
+            "city": null
+          },
+          "market": {
+            "status": "API_FALLBACK_ODDS",
+            "fresh": true,
+            "latest_timestamp": "2026-09-16T20:20:15+00:00",
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING",
+          "REFEREE_NOT_VERIFIED_FOR_THIS_FIXTURE"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "sport_source": null,
+        "market_independent": null,
+        "advanced_metrics": "NOT VERIFIED",
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
+        "raw_home_goal_rate": 1.2437,
+        "raw_away_goal_rate": 1.2125,
+        "raw_total_goals": 2.4562,
+        "raw_home_win_prob": 0.371092,
+        "raw_draw_prob": 0.272825,
+        "raw_away_win_prob": 0.356083,
+        "raw_btts_yes_prob": 0.500002,
+        "raw_over_2_5_prob": 0.444916,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 50.4,
+          "goal_environment_score": 53.0,
+          "two_way_scoring_score": 79.0,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "RESEARCH_ONLY_SHADOW",
+          "actionable": false,
+          "projection_model": "LEAGUE_RELATIVE_STRENGTH_POISSON_v0.2",
+          "baseline_source": "PAIR_COMPLEMENTARY_VENUE_BASELINE",
+          "sample": {
+            "home_home_played": 11,
+            "away_away_played": 11,
+            "minimum_split_sample": 11,
+            "shrinkage_prior_games": 5.0
+          },
+          "strengths": {
+            "home_attack": 1.4154,
+            "home_defensive_weakness": 0.7243,
+            "away_attack": 1.29,
+            "away_defensive_weakness": 0.6348,
+            "baseline_home_goals": 1.2,
+            "baseline_away_goals": 1.2
+          },
+          "challenger": {
+            "raw_home_goal_rate": 1.0781,
+            "raw_away_goal_rate": 1.1212,
+            "raw_total_goals": 2.1993,
+            "raw_home_win_prob": 0.343507,
+            "raw_draw_prob": 0.29128,
+            "raw_away_win_prob": 0.365213,
+            "raw_btts_yes_prob": 0.444759,
+            "raw_over_1_5_prob": 0.645268,
+            "raw_over_2_5_prob": 0.377108,
+            "raw_over_3_5_prob": 0.180517
+          },
+          "baseline": {
+            "raw_home_goal_rate": 1.2437,
+            "raw_away_goal_rate": 1.2125,
+            "raw_total_goals": 2.4562,
+            "raw_home_win_prob": 0.371092,
+            "raw_draw_prob": 0.272825,
+            "raw_away_win_prob": 0.356083,
+            "raw_btts_yes_prob": 0.500002,
+            "raw_over_1_5_prob": 0.703606,
+            "raw_over_2_5_prob": 0.444916,
+            "raw_over_3_5_prob": 0.233114
+          },
+          "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
+        }
+      },
+      "market_decision": {
+        "status": "WATCH",
+        "reason": null,
+        "first_half_markets_ignored": null,
+        "first_half_reason": null,
+        "period_markets_ignored": 37,
+        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+        "btts_market_mode": "RESEARCH_ONLY_PENDING_VALIDATION",
+        "galaxy_publication_gate_downgraded": 0,
+        "galaxy_sample_gate_substitutions": null
+      },
+      "best_market": {
+        "family": "TOTAL",
+        "market": "Goals Over/Under",
+        "selection": "over",
+        "line": 2.5,
+        "decimal_price": 2.93,
+        "bookmaker": "Pinnacle",
+        "p_breakeven": 0.341297,
+        "p_market_fair": 0.310588,
+        "p_raw": 0.444916,
+        "p_shrunk": 0.332081,
+        "prob_edge_pp": 2.149,
+        "estimated_ev": -0.027004,
+        "shrink_weight": 0.16,
+        "tier": null,
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "QUOTA_GUARD",
+      "stage": "T-10",
+      "classification": "WATCH",
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1635927,
+        "kickoff": "2026-09-16T17:00:00-06:00",
+        "timestamp": 1789599600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 300,
+        "league": "Segunda División",
+        "country": "Venezuela",
+        "season": 2026,
+        "round": "Regular Season - 29",
+        "home_team_id": 2812,
+        "home_team": "Deportivo Lara",
+        "away_team_id": 2832,
+        "away_team": "Atletico el Vigia FC",
+        "venue": "Estadio Metropolitano de Cabudare",
+        "city": "Barquisimeto",
         "goals": {
           "home": null,
           "away": null
