@@ -2,18 +2,18 @@
   "service": "soccer-edge-automation",
   "version": "3.7.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-16T15:07:21.811758+00:00",
-  "generated_at_local": "2026-09-16T09:07:21.811758-06:00",
+  "generated_at_utc": "2026-09-16T15:22:48.609234+00:00",
+  "generated_at_local": "2026-09-16T09:22:48.609234-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 428,
-  "due_fixture_count": 269,
+  "due_fixture_count": 250,
   "event_count": 6,
-  "actionable_refresh_count": 0,
+  "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6408,
+  "last_daily_remaining": 6356,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
@@ -23,9 +23,9 @@
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
-  "urgent_late_shortlist_due": 3,
+  "urgent_late_shortlist_due": 0,
   "urgent_late_shortlist_processed": 0,
-  "urgent_window_completion_rate_this_tick": 0.0,
+  "urgent_window_completion_rate_this_tick": 1.0,
   "urgent_window_policy": "EXISTING_T10_T20_CLOSE_SHORTLIST_FIRST; T40_DISCOVERY_AFTER; ELASTIC_DEEP_DIVE_CAP_MAY_USE_GALAXY_OR_CACHE_BUT_CANNOT_BYPASS_PROVIDER_CALL_BUDGET",
   "deep_dive_capacity_policy": "ELASTIC_WORK_CAP_WITH_UNCHANGED_PROVIDER_API_HARD_CAP",
   "base_deep_dive_cap": 8,
@@ -34,10 +34,10 @@
   "dedicated_close_snapshots_this_tick": 0,
   "dedicated_close_quotes_this_tick": 0,
   "clv_close_policy": "PERSIST_CANONICAL_FT_CLOSE_QUOTES; TRUE_CLV_ONLY_WHEN_CAPTURED_BEFORE_KICKOFF; LATE_CLOSE_SNAPSHOTS_RETAINED_BUT_NOT_LABELED_TRUE_PREKICKOFF_CLOSE",
-  "derivative_research_snapshots_this_tick": 0,
-  "derivative_research_quotes_this_tick": 0,
-  "one_h_market_groups_this_tick": 0,
-  "two_h_market_groups_this_tick": 0,
+  "derivative_research_snapshots_this_tick": 1,
+  "derivative_research_quotes_this_tick": 94,
+  "one_h_market_groups_this_tick": 8,
+  "two_h_market_groups_this_tick": 5,
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
   "relative_strength_1x2_shadow_count_this_tick": 2,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
@@ -45,7 +45,7 @@
   "trend_signal_count_this_tick": 0,
   "trend_model_disagreement_count_this_tick": 0,
   "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
-  "player_trend_fixture_calls_attempted_this_tick": 0,
+  "player_trend_fixture_calls_attempted_this_tick": 1,
   "player_trend_fixtures_captured_this_tick": 0,
   "player_trend_players_captured_this_tick": 0,
   "player_trend_max_fixture_calls_per_tick": 2,
@@ -70,24 +70,24 @@
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
-    "galaxy_odds_stale_or_missing": 0,
-    "galaxy_slate_reads": 0,
+    "galaxy_odds_stale_or_missing": 1,
+    "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
-    "galaxy_slate_fallbacks": 0,
-    "galaxy_slate_stale_rejections": 0,
+    "galaxy_slate_fallbacks": 1,
+    "galaxy_slate_stale_rejections": 1,
     "api_slate_calls_avoided": 0,
-    "api_slate_reconciliation_calls": 1,
+    "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
     "provider_requests_avoided": 0,
-    "odds_market_events": 0,
+    "odds_market_events": 1,
     "galaxy_odds_market_events": 0,
-    "api_odds_fallback_events": 0,
+    "api_odds_fallback_events": 1,
     "not_verified_odds_market_events": 0,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
     "odds_provenance_accounting_valid": true,
-    "odds_provenance_metadata_repairs": 0,
+    "odds_provenance_metadata_repairs": 1,
     "unverified_market_source_safety_blocks": 0
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-16T09:07:21.811758-06:00",
+    "generated_at_local": "2026-09-16T09:22:48.609234-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2801,7 +2801,7 @@
       "competition": "First League",
       "data_tier": "B",
       "kickoff": "2026-09-16T10:00:00-06:00",
-      "stage": "T-60",
+      "stage": "T-40",
       "home": "Lokomotiv Sofia",
       "away": "CSKA Sofia",
       "tracks": [
@@ -2813,11 +2813,11 @@
       "two_way_score": 70.3,
       "availability_confidence": 0.7,
       "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 3.5,
+      "price": 1.57,
+      "bookmaker": "Marathonbet",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2915,7 +2915,7 @@
         "league": "First League",
         "home": "Lokomotiv Sofia",
         "away": "CSKA Sofia",
-        "stage": "T-60",
+        "stage": "T-40",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -2948,9 +2948,26 @@
           "two_way_scoring_score": 70.3,
           "reason": "SPORTING_SCREEN_PASS"
         },
-        "market_status": null,
+        "market_status": "WATCH",
         "market_reason": null,
-        "best_market": {},
+        "best_market": {
+          "family": "TOTAL",
+          "market": "Goals Over/Under",
+          "selection": "under",
+          "line": 3.5,
+          "decimal_price": 1.57,
+          "bookmaker": "Marathonbet",
+          "p_breakeven": 0.636943,
+          "p_market_fair": 0.593264,
+          "p_raw": 0.707885,
+          "p_shrunk": 0.611604,
+          "prob_edge_pp": 1.834,
+          "estimated_ev": -0.039782,
+          "shrink_weight": 0.16,
+          "tier": null,
+          "classification": "WATCH",
+          "stake_units": 0.0
+        },
         "reason": null
       },
       {
@@ -3591,7 +3608,7 @@
   "galaxy_builder": {
     "schema_version": "0.2.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-16T09:07:21.811758-06:00",
+    "generated_at_local": "2026-09-16T09:22:48.609234-06:00",
     "candidate_count": 3,
     "candidates": [
       {
@@ -3601,7 +3618,7 @@
         "league": "First League",
         "match": "Lokomotiv Sofia vs CSKA Sofia",
         "data_tier": "B",
-        "stage": "T-60",
+        "stage": "T-40",
         "availability_confidence": 0.7,
         "projection_source": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "raw_total_goals": 2.7281,
@@ -3615,19 +3632,19 @@
             "family": "FT_GOALS",
             "selection": "OVER",
             "line": 0.5,
-            "observed": false,
-            "best_price": null,
-            "bookmaker": null,
-            "provider_update": null
+            "observed": true,
+            "best_price": 1.02,
+            "bookmaker": "Bet365",
+            "provider_update": "2026-09-16T12:40:15+00:00"
           },
           {
             "family": "FT_GOALS",
             "selection": "UNDER",
             "line": 3.5,
-            "observed": false,
-            "best_price": null,
-            "bookmaker": null,
-            "provider_update": null
+            "observed": true,
+            "best_price": 1.57,
+            "bookmaker": "Marathonbet",
+            "provider_update": "2026-09-16T12:40:15+00:00"
           }
         ],
         "joint_model_probability": 0.642544,
@@ -3641,11 +3658,10 @@
           "maximum": 160
         },
         "exact_sgp_quote": null,
-        "all_exact_legs_observed": false,
+        "all_exact_legs_observed": true,
         "status": "GALAXY WATCH — QUOTE/VERIFICATION NEEDED",
         "bet_eligible": false,
         "block_reasons": [
-          "ONE_OR_MORE_EXACT_LEGS_NOT_OBSERVED",
           "AVAILABILITY_BELOW_0.85",
           "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED"
         ],
@@ -3703,7 +3719,29 @@
             "probability": 0.940988,
             "actionable_model": true,
             "probability_source": "DIRECT_SCORE_MATRIX",
-            "quotes": []
+            "quotes": [
+              {
+                "bookmaker": "Bet365",
+                "price": 1.08,
+                "provider_update": "2026-09-16T12:40:15+00:00",
+                "market": "Goals Over/Under",
+                "selection_text": "Under 5.5"
+              },
+              {
+                "bookmaker": "Marathonbet",
+                "price": 1.05,
+                "provider_update": "2026-09-16T12:40:15+00:00",
+                "market": "Goals Over/Under",
+                "selection_text": "Under 5.5"
+              },
+              {
+                "bookmaker": "Betfair",
+                "price": 1.07,
+                "provider_update": "2026-09-16T12:40:15+00:00",
+                "market": "Goals Over/Under",
+                "selection_text": "Under 5.5"
+              }
+            ]
           },
           {
             "family": "DOUBLE_CHANCE",
@@ -3749,7 +3787,22 @@
             "probability": 0.934656,
             "actionable_model": true,
             "probability_source": "DIRECT_SCORE_MATRIX",
-            "quotes": []
+            "quotes": [
+              {
+                "bookmaker": "Bet365",
+                "price": 1.02,
+                "provider_update": "2026-09-16T12:40:15+00:00",
+                "market": "Goals Over/Under",
+                "selection_text": "Over 0.5"
+              },
+              {
+                "bookmaker": "Betfair",
+                "price": 1.01,
+                "provider_update": "2026-09-16T12:40:15+00:00",
+                "market": "Goals Over/Under",
+                "selection_text": "Over 0.5"
+              }
+            ]
           },
           {
             "family": "DOUBLE_CHANCE",
@@ -3795,7 +3848,22 @@
             "probability": 0.934656,
             "actionable_model": true,
             "probability_source": "DIRECT_SCORE_MATRIX",
-            "quotes": []
+            "quotes": [
+              {
+                "bookmaker": "Bet365",
+                "price": 1.02,
+                "provider_update": "2026-09-16T12:40:15+00:00",
+                "market": "Goals Over/Under",
+                "selection_text": "Over 0.5"
+              },
+              {
+                "bookmaker": "Betfair",
+                "price": 1.01,
+                "provider_update": "2026-09-16T12:40:15+00:00",
+                "market": "Goals Over/Under",
+                "selection_text": "Over 0.5"
+              }
+            ]
           },
           {
             "family": "DOUBLE_CHANCE",
@@ -3827,8 +3895,13 @@
     ],
     "multi_match_candidates": [],
     "derivative_inventory": {
-      "observed_quote_count": 0,
-      "observed_family_counts": {},
+      "observed_quote_count": 205,
+      "observed_family_counts": {
+        "1H_GOALS": 54,
+        "2H_GOALS": 40,
+        "CORNERS": 103,
+        "TEAM_CORNERS": 8
+      },
       "policy": "CORNERS_CARDS_PERIOD_PLAYER_AND_OTHER_MARKETS_ARE_INVENTORIED_NOW; THEY_ENTER_SCORED_COMBOS ONLY AFTER AN EXPLICIT SPORT_MODEL PROBABILITY EXISTS"
     },
     "family_policy": {
@@ -3843,7 +3916,7 @@
   "galaxy_builder_actionable_scope": "V0.2 SHADOW/RESEARCH; SGP AND MULTI-MATCH PARLAYS; TARGET +110 OR BETTER; NO BET PROMOTION WITHOUT FINAL VERIFIED SPORTSBOOK PARLAY QUOTE AND ALL MODEL GATES",
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6427",
+    "daily_remaining": "6364",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -3882,7 +3955,7 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-60",
+      "stage": "T-40",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -3968,16 +4041,1262 @@
         "reason": "SPORTING_SCREEN_PASS"
       },
       "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
+      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-16T12:40:15+00:00",
+        "age_minutes": 162.56,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "API_FALLBACK_CURRENT_RUN",
+        "fresh": true,
+        "market_count": 151,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
       "trend_context": {
         "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
         "actionable": false,
         "decision_weight": 0.0
       },
-      "player_trends_research": null,
+      "player_trends_research": {
+        "status": "UNAVAILABLE",
+        "fixture_id": 1551086,
+        "error": "Per-tick API budget reached (20); lower-priority work deferred.",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
       "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
+      "derivative_research_market_snapshot": {
+        "schema_version": "1.0.0",
+        "captured_at_local": "2026-09-16T09:22:48.609234-06:00",
+        "research_only": true,
+        "actionable": false,
+        "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
+        "group_count": 24,
+        "quote_count": 205,
+        "groups": [
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.2
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.6
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.15
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.6
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 1.85
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.85
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 3.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.07
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.18
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 4.5
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.25
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.57
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 5.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.14
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 15.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.75
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 1.8
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.91
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 3.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.28
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.08
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.17
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.02
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.98
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.82
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.14
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.64
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 3.46
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 4.3
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.15
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.56
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.46
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 2.48
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 1.75
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.98
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 2.45
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.47
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 3.18
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.27
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 4.75
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.24
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 3.54
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 10.25
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 8.3
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.04
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.64
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.41
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 3.3
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.28
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 2.17
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.61
+              },
+              {
+                "selection": "Over 2",
+                "line": 2.0,
+                "decimal_price": 7.4
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 1.06
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 7.7
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 5.75
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.1
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.22
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.57
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.49
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.47
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 1.66
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 2.09
+              },
+              {
+                "selection": "Over 2",
+                "line": 2.0,
+                "decimal_price": 4.75
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 1.15
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 3.04
+              },
+              {
+                "selection": "Over 5",
+                "line": 5.0,
+                "decimal_price": 2.05
+              },
+              {
+                "selection": "Under 5",
+                "line": 5.0,
+                "decimal_price": 1.65
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.97
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betfair",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.25
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.57
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.14
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.22
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.75
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 9.5",
+                "line": 9.5,
+                "decimal_price": 1.9
+              },
+              {
+                "selection": "Under 9.5",
+                "line": 9.5,
+                "decimal_price": 1.9
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (3 way)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Exactly 2",
+                "line": null,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Exactly 3",
+                "line": null,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Over 3",
+                "line": 3.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Under 3",
+                "line": 3.0,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Exactly 4",
+                "line": null,
+                "decimal_price": 21.0
+              },
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.02
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 26.0
+              },
+              {
+                "selection": "Exactly 5",
+                "line": null,
+                "decimal_price": 15.0
+              },
+              {
+                "selection": "Over 5",
+                "line": 5.0,
+                "decimal_price": 1.06
+              },
+              {
+                "selection": "Under 5",
+                "line": 5.0,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Exactly 8",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 8",
+                "line": 8.0,
+                "decimal_price": 1.5
+              },
+              {
+                "selection": "Under 8",
+                "line": 8.0,
+                "decimal_price": 3.5
+              },
+              {
+                "selection": "Exactly 9",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 9",
+                "line": 9.0,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Under 9",
+                "line": 9.0,
+                "decimal_price": 2.5
+              },
+              {
+                "selection": "Exactly 10",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 10",
+                "line": 10.0,
+                "decimal_price": 2.38
+              },
+              {
+                "selection": "Under 10",
+                "line": 10.0,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Exactly 11",
+                "line": null,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Over 11",
+                "line": 11.0,
+                "decimal_price": 3.4
+              },
+              {
+                "selection": "Under 11",
+                "line": 11.0,
+                "decimal_price": 1.53
+              },
+              {
+                "selection": "Exactly 7",
+                "line": null,
+                "decimal_price": 9.0
+              },
+              {
+                "selection": "Over 7",
+                "line": 7.0,
+                "decimal_price": 1.28
+              },
+              {
+                "selection": "Under 7",
+                "line": 7.0,
+                "decimal_price": 5.5
+              },
+              {
+                "selection": "Exactly 12",
+                "line": null,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Over 12",
+                "line": 12.0,
+                "decimal_price": 4.5
+              },
+              {
+                "selection": "Under 12",
+                "line": 12.0,
+                "decimal_price": 1.3
+              },
+              {
+                "selection": "Exactly 6",
+                "line": null,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Over 6",
+                "line": 6.0,
+                "decimal_price": 1.14
+              },
+              {
+                "selection": "Under 6",
+                "line": 6.0,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "Exactly 13",
+                "line": null,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Over 13",
+                "line": 13.0,
+                "decimal_price": 6.5
+              },
+              {
+                "selection": "Under 13",
+                "line": 13.0,
+                "decimal_price": 1.18
+              },
+              {
+                "selection": "Over 21",
+                "line": 21.0,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Exactly 21",
+                "line": null,
+                "decimal_price": 67.0
+              },
+              {
+                "selection": "Over 22",
+                "line": 22.0,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Exactly 22",
+                "line": null,
+                "decimal_price": 101.0
+              },
+              {
+                "selection": "Exactly 14",
+                "line": null,
+                "decimal_price": 17.0
+              },
+              {
+                "selection": "Over 14",
+                "line": 14.0,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "Under 14",
+                "line": 14.0,
+                "decimal_price": 1.11
+              },
+              {
+                "selection": "Exactly 19",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 19",
+                "line": 19.0,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Exactly 20",
+                "line": null,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Over 20",
+                "line": 20.0,
+                "decimal_price": 51.0
+              },
+              {
+                "selection": "Exactly 17",
+                "line": null,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Over 17",
+                "line": 17.0,
+                "decimal_price": 26.0
+              },
+              {
+                "selection": "Under 17",
+                "line": 17.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Exactly 18",
+                "line": null,
+                "decimal_price": 41.0
+              },
+              {
+                "selection": "Over 18",
+                "line": 18.0,
+                "decimal_price": 34.0
+              },
+              {
+                "selection": "Under 18",
+                "line": 18.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Exactly 16",
+                "line": null,
+                "decimal_price": 23.0
+              },
+              {
+                "selection": "Over 16",
+                "line": 16.0,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Under 16",
+                "line": 16.0,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Exactly 15",
+                "line": null,
+                "decimal_price": 19.0
+              },
+              {
+                "selection": "Over 15",
+                "line": 15.0,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Under 15",
+                "line": 15.0,
+                "decimal_price": 1.06
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.98
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.82
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners. Total (Range)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Under 6",
+                "line": 6.0,
+                "decimal_price": 10.0
+              },
+              {
+                "selection": "6 - 8",
+                "line": null,
+                "decimal_price": 3.1
+              },
+              {
+                "selection": "9 - 11",
+                "line": null,
+                "decimal_price": 2.62
+              },
+              {
+                "selection": "12 - 14",
+                "line": null,
+                "decimal_price": 4.33
+              },
+              {
+                "selection": "Over 14",
+                "line": 14.0,
+                "decimal_price": 10.0
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Corners 1x2",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Home",
+                "line": null,
+                "decimal_price": 3.45
+              },
+              {
+                "selection": "Draw",
+                "line": null,
+                "decimal_price": 9.8
+              },
+              {
+                "selection": "Away",
+                "line": null,
+                "decimal_price": 1.39
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 8.5",
+                "line": 8.5,
+                "decimal_price": 1.4
+              },
+              {
+                "selection": "Under 8.5",
+                "line": 8.5,
+                "decimal_price": 2.6
+              },
+              {
+                "selection": "Over 9.5",
+                "line": 9.5,
+                "decimal_price": 1.72
+              },
+              {
+                "selection": "Under 9.5",
+                "line": 9.5,
+                "decimal_price": 1.98
+              },
+              {
+                "selection": "Over 10.5",
+                "line": 10.5,
+                "decimal_price": 2.16
+              },
+              {
+                "selection": "Under 10.5",
+                "line": 10.5,
+                "decimal_price": 1.57
+              },
+              {
+                "selection": "Over 7.5",
+                "line": 7.5,
+                "decimal_price": 1.2
+              },
+              {
+                "selection": "Under 7.5",
+                "line": 7.5,
+                "decimal_price": 3.7
+              },
+              {
+                "selection": "Over 11.5",
+                "line": 11.5,
+                "decimal_price": 2.83
+              },
+              {
+                "selection": "Under 11.5",
+                "line": 11.5,
+                "decimal_price": 1.33
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Corners Asian Handicap",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Home +1",
+                "line": null,
+                "decimal_price": 2.38
+              },
+              {
+                "selection": "Away +1",
+                "line": null,
+                "decimal_price": 1.46
+              },
+              {
+                "selection": "Home +2",
+                "line": null,
+                "decimal_price": 1.93
+              },
+              {
+                "selection": "Away +2",
+                "line": null,
+                "decimal_price": 1.76
+              },
+              {
+                "selection": "Home +3",
+                "line": null,
+                "decimal_price": 1.55
+              },
+              {
+                "selection": "Away +3",
+                "line": null,
+                "decimal_price": 2.17
+              },
+              {
+                "selection": "Home +1.5",
+                "line": null,
+                "decimal_price": 2.12
+              },
+              {
+                "selection": "Away +1.5",
+                "line": null,
+                "decimal_price": 1.61
+              },
+              {
+                "selection": "Home +2.5",
+                "line": null,
+                "decimal_price": 1.74
+              },
+              {
+                "selection": "Away +2.5",
+                "line": null,
+                "decimal_price": 1.93
+              }
+            ]
+          },
+          {
+            "family": "TEAM_CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Home Corners Over/Under",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 1.72
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.98
+              },
+              {
+                "selection": "Over 4.0",
+                "line": 4.0,
+                "decimal_price": 2.05
+              },
+              {
+                "selection": "Under 4.0",
+                "line": 4.0,
+                "decimal_price": 1.65
+              }
+            ]
+          },
+          {
+            "family": "TEAM_CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Away Corners Over/Under",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Over 5.5",
+                "line": 5.5,
+                "decimal_price": 1.69
+              },
+              {
+                "selection": "Under 5.5",
+                "line": 5.5,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Over 6.0",
+                "line": 6.0,
+                "decimal_price": 1.93
+              },
+              {
+                "selection": "Under 6.0",
+                "line": 6.0,
+                "decimal_price": 1.76
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Total Corners (3 way)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Exactly 9",
+                "line": null,
+                "decimal_price": 7.5
+              },
+              {
+                "selection": "Over 9",
+                "line": 9.0,
+                "decimal_price": 1.72
+              },
+              {
+                "selection": "Under 9",
+                "line": 9.0,
+                "decimal_price": 2.6
+              },
+              {
+                "selection": "Exactly 10",
+                "line": null,
+                "decimal_price": 7.6
+              },
+              {
+                "selection": "Over 10",
+                "line": 10.0,
+                "decimal_price": 2.16
+              },
+              {
+                "selection": "Under 10",
+                "line": 10.0,
+                "decimal_price": 1.98
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Marathonbet",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-16T12:40:15+00:00",
+            "values": [
+              {
+                "selection": "Exactly 4",
+                "line": null,
+                "decimal_price": 5.2
+              },
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 3.04
+              },
+              {
+                "selection": "Over 5",
+                "line": 5.0,
+                "decimal_price": 2.05
+              },
+              {
+                "selection": "Under 5",
+                "line": 5.0,
+                "decimal_price": 1.65
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.73
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.97
+              }
+            ]
+          }
+        ],
+        "contains_corner_markets": true
+      },
       "lineups": {
         "lineup_state": "PENDING",
         "both_xi_confirmed": false,
@@ -4057,8 +5376,35 @@
           "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
         }
       },
-      "market_decision": null,
-      "best_market": null,
+      "market_decision": {
+        "status": "WATCH",
+        "reason": null,
+        "first_half_markets_ignored": null,
+        "first_half_reason": null,
+        "period_markets_ignored": 32,
+        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+        "btts_market_mode": "RESEARCH_ONLY_PENDING_VALIDATION",
+        "galaxy_publication_gate_downgraded": 0,
+        "galaxy_sample_gate_substitutions": null
+      },
+      "best_market": {
+        "family": "TOTAL",
+        "market": "Goals Over/Under",
+        "selection": "under",
+        "line": 3.5,
+        "decimal_price": 1.57,
+        "bookmaker": "Marathonbet",
+        "p_breakeven": 0.636943,
+        "p_market_fair": 0.593264,
+        "p_raw": 0.707885,
+        "p_shrunk": 0.611604,
+        "prob_edge_pp": 1.834,
+        "estimated_ev": -0.039782,
+        "shrink_weight": 0.16,
+        "tier": null,
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
