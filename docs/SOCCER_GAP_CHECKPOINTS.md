@@ -36,8 +36,8 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 | 3 | Correct Score | ✅ canonical home/away lambdas + retained correct-score markets | ✅ independent-Poisson exact-score distribution + OOS validator | 🟡 v3.16 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.16 | Need natural persistence confirmation, ≥300 OOS for meaningful market comparison, ≥500 for actionable review, verified correct-score price/CLV history, validated shrinkage for sparse outcomes and cross-league stability. No Galaxy/production promotion yet. |
 | 4 | BTTS | ✅ canonical score-matrix probability + observed YES/NO markets | ✅ explicit BTTS probability + OOS validator | 🟡 v3.17 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.17 | Need natural persistence confirmation, ≥150 OOS for market comparison, ≥300 for actionable review, verified BTTS price history/true CLV, validated shrinkage and stable calibration by probability bucket/league/data tier. No Galaxy/production promotion yet. |
 | 5 | 1X2 | ✅ canonical H/D/A + observed three-way markets | ✅ canonical + live relative-strength shadow + offline Dixon-Coles/prior challengers + selection report | 🟡 v3.18 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.18 | Need natural persistence confirmation; ≥200 matched-method OOS before challenger review, ≥300 same-fixture head-to-head for shortlisted models, ≥400 before actionable review; verified historical 1X2 prices/true CLV; final model selection and market-shrinkage calibration. No Galaxy/production promotion yet. |
-| 6 | Double Chance | ✅ | 🟠 mathematically derivable from validated 1X2 | 🟡 research | 🔴 | partial | 🟠 NEXT | Derive 1X/X2/12 strictly from the accepted 1X2 probability surface; exact observed-market mapping/no-vig/validation; stay research-only while 1X2 is not production-approved. |
-| 7 | DNB | ✅ | 🔴 | 🔴 | 🔴 | — | 🔴 | Build conditional no-draw probability from accepted 1X2/score matrix and map exact prices. |
+| 6 | Double Chance | ✅ parent 1X2 + retained DC markets | ✅ exact derivation 1X/X2/12 + OOS validator | 🟡 v3.19 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.19 | Need natural persistence confirmation; parent 1X2 production approval; ≥200 OOS market review / ≥400 actionable review; historical DC prices/true CLV; shrinkage and calibration by selection/league. DC prices are never normalized directly because selections overlap. |
+| 7 | DNB | ✅ | 🔴 | 🔴 | 🔴 | — | 🔴 NEXT | Build no-draw conditional probability from canonical 1X2, retain exact DNB markets, model push-aware EV/settlement, and validate while parent 1X2 remains research-only. |
 | 8 | Asian Handicap | ✅ score matrix foundation | 🔴 | 🔴 | 🔴 | — | 🔴 | Build margin distribution pricing including quarter lines/push/half-win mechanics; OOS calibration. |
 | 9 | 1H Goals | ✅ historical HT scores | ✅ walk-forward Poisson v0.1 | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach upcoming-match predictions live; map exact observed 1H lines; then 100 OOS market comparison / 200 actionable review. |
 | 10 | 2H Goals pregame | ✅ historical 2H targets | ✅ walk-forward model | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach live pregame; exact-line mapping/calibration. Never confuse with halftime-conditioned live model. |
@@ -166,10 +166,29 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 - Need a versioned final model-selection decision plus validated market shrinkage and stable H/D/A calibration by probability bucket/competition.
 - Until those gates pass, Double Chance/DNB/Asian Handicap derived from 1X2 must also remain research-only.
 
+## #6 Double Chance checkpoint — v3.19
+
+### Already passes
+- Derives P(1X)=P(H)+P(D), P(X2)=P(D)+P(A) and P(12)=P(H)+P(A) strictly from canonical SPORT-FIRST 1X2 probabilities.
+- Retains actual Double Chance markets from the existing odds payload without adding provider requests.
+- Maps only observed 1X/X2/12 prices and exposes model probability, fair price, breakeven, raw EV and research edge diagnostics.
+- Does not normalize the three Double Chance prices as a no-vig market because the selections overlap and are not mutually exclusive.
+- When a complete same-book 1X2 market is available, derives fair Double Chance market probabilities from the no-vig H/D/A parent probabilities.
+- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy promotion.
+- Dedicated OOS validator measures binary Brier/log-loss for 1X, X2 and 12, plus league stability.
+- Adds zero provider requests and changes no canonical weights, thresholds, stakes or BET logic.
+
+### Still missing / not allowed to claim resolved
+- Natural v3.19 persistence confirmation is pending and non-blocking.
+- Parent 1X2 must first pass its own production/model-selection gates.
+- Need at least 200 OOS fixtures before meaningful market-comparison review and 400 before actionable review.
+- Need verified historical Double Chance prices and true CLV evidence.
+- Need validated shrinkage and stable calibration separately for 1X, X2 and 12 across competitions.
+
 ### Engineering rule going forward
 
 Do not block the next module on the natural-validation check. Record the check as pending and continue. When later natural state supplies evidence, update this file asynchronously.
 
 ## Next engineering target
 
-#6 Double Chance — derive 1X/X2/12 strictly from the canonical 1X2 surface, map only exact observed Double Chance prices, validate calibration, and preserve research-only status until the parent 1X2 model is production-approved.
+#7 DNB — derive conditional win probability given no draw, retain exact Draw No Bet prices, implement push-aware fair-price/EV math, validate OOS, and keep research-only until parent 1X2 is production-approved.
