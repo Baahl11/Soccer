@@ -40,6 +40,8 @@ jobs:
         run: python engine/mcp_gateway/analyze_ft_totals.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/ft_totals_validation.json
       - name: Validate FT goals relative-strength shadow
         run: python engine/mcp_gateway/analyze_ft_goals_shadow.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/ft_goals_shadow_validation.json
+      - name: Validate Team Totals research model
+        run: python engine/mcp_gateway/analyze_team_totals.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/team_totals_validation.json
       - name: Evaluate explicit 1H goals research model
         run: python engine/mcp_gateway/analyze_1h_goals_model.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/one_h_goals_model.json
       - name: Evaluate 1H calibration challenger
