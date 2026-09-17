@@ -62,6 +62,9 @@ jobs:
         run: python engine/mcp_gateway/analyze_1h_calibration.py --model-report state/soccer_edge_state/analysis/one_h_goals_model.json --output state/soccer_edge_state/analysis/one_h_goals_calibration.json
       - name: Evaluate explicit pregame 2H goals research model
         run: python engine/mcp_gateway/analyze_2h_goals_model.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/two_h_goals_model.json
+      - name: Evaluate halftime-conditioned 2H challenger
+        env: {PYTHONPATH: engine}
+        run: python engine/mcp_gateway/analyze_2h_halftime_conditioned.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/two_h_halftime_conditioned.json
       - name: Build learning pipeline reports
         run: python engine/mcp_gateway/analyze_learning_pipeline.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --history-dir state/soccer_edge_state/history --analysis-dir state/soccer_edge_state/analysis
       - name: Analyze formation intelligence
@@ -76,6 +79,16 @@ jobs:
       - name: Evaluate explicit corners research model
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/analyze_corners_baseline.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/corners_baseline.json
+      - name: Build live corners rate registry
+        env: {PYTHONPATH: engine}
+        run: python engine/mcp_gateway/build_corners_rate_registry.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/corners_rate_registry.json
+      - name: Validate Team Corners research model
+        run: python engine/mcp_gateway/analyze_team_corners.py --baseline-report state/soccer_edge_state/analysis/corners_baseline.json --output state/soccer_edge_state/analysis/team_corners_validation.json
+      - name: Evaluate yellow-card baseline
+        run: python engine/mcp_gateway/analyze_cards_baseline.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/cards_baseline.json
+      - name: Build live yellow-card rate registry
+        env: {PYTHONPATH: engine}
+        run: python engine/mcp_gateway/build_cards_rate_registry.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/cards_rate_registry.json
       - name: Refresh derivative model registry
         run: python engine/mcp_gateway/refresh_derivative_registry.py --history-dir state/soccer_edge_state/history --analysis-dir state/soccer_edge_state/analysis --output state/soccer_edge_state/analysis/derivative_model_registry.json
       - name: Analyze urgent-window efficiency by version
