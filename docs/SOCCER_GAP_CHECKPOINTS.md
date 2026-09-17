@@ -35,8 +35,8 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 | 2 | Team Totals | ✅ canonical home/away lambdas + retained team-total markets | ✅ Poisson O/U 0.5/1.5/2.5 research model | 🟡 v3.15 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.15 | Need natural persistence confirmation, ≥100 OOS for market comparison, ≥200 for actionable review, historical team-total prices/CLV and cross-league calibration. Integer/quarter lines remain unsupported until explicit settlement math exists. No Galaxy/production promotion yet. |
 | 3 | Correct Score | ✅ canonical home/away lambdas + retained correct-score markets | ✅ independent-Poisson exact-score distribution + OOS validator | 🟡 v3.16 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.16 | Need natural persistence confirmation, ≥300 OOS for meaningful market comparison, ≥500 for actionable review, verified correct-score price/CLV history, validated shrinkage for sparse outcomes and cross-league stability. No Galaxy/production promotion yet. |
 | 4 | BTTS | ✅ canonical score-matrix probability + observed YES/NO markets | ✅ explicit BTTS probability + OOS validator | 🟡 v3.17 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.17 | Need natural persistence confirmation, ≥150 OOS for market comparison, ≥300 for actionable review, verified BTTS price history/true CLV, validated shrinkage and stable calibration by probability bucket/league/data tier. No Galaxy/production promotion yet. |
-| 5 | 1X2 | ✅ | ✅ canonical + relative-strength shadow | ✅ research | 🔴 | partial | 🟡 LIVE RESEARCH — NEXT | Select/validate production candidate, calibration and promotion gate; preserve discrepancy checks. |
-| 6 | Double Chance | ✅ | 🟠 mathematically derivable from validated 1X2 | 🟡 research | 🔴 | partial | 🟠 | Tie DC probabilities strictly to accepted 1X2 model; validate market mapping; keep research until 1X2 promoted. |
+| 5 | 1X2 | ✅ canonical H/D/A + observed three-way markets | ✅ canonical + live relative-strength shadow + offline Dixon-Coles/prior challengers + selection report | 🟡 v3.18 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.18 | Need natural persistence confirmation; ≥200 matched-method OOS before challenger review, ≥300 same-fixture head-to-head for shortlisted models, ≥400 before actionable review; verified historical 1X2 prices/true CLV; final model selection and market-shrinkage calibration. No Galaxy/production promotion yet. |
+| 6 | Double Chance | ✅ | 🟠 mathematically derivable from validated 1X2 | 🟡 research | 🔴 | partial | 🟠 NEXT | Derive 1X/X2/12 strictly from the accepted 1X2 probability surface; exact observed-market mapping/no-vig/validation; stay research-only while 1X2 is not production-approved. |
 | 7 | DNB | ✅ | 🔴 | 🔴 | 🔴 | — | 🔴 | Build conditional no-draw probability from accepted 1X2/score matrix and map exact prices. |
 | 8 | Asian Handicap | ✅ score matrix foundation | 🔴 | 🔴 | 🔴 | — | 🔴 | Build margin distribution pricing including quarter lines/push/half-win mechanics; OOS calibration. |
 | 9 | 1H Goals | ✅ historical HT scores | ✅ walk-forward Poisson v0.1 | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach upcoming-match predictions live; map exact observed 1H lines; then 100 OOS market comparison / 200 actionable review. |
@@ -145,10 +145,31 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 - Need validated market shrinkage and stable calibration across probability buckets, leagues and data tiers.
 - BTTS remains downstream of the parent FT-goals model, so xG/GK/set-piece/rest/weather limitations remain inherited.
 
+## #5 1X2 checkpoint — v3.18
+
+### Already passes
+- Uses canonical SPORT-FIRST H/D/A probabilities already created before market inspection; sportsbook odds never create the sporting projection.
+- Exposes canonical H/D/A probabilities and fair prices live as a dedicated research surface.
+- Maps only observed three-way 1X2 markets and computes no-vig probabilities only when HOME/DRAW/AWAY are all available for the same bookmaker market.
+- Relative-strength challenger is exposed live only when its existing shadow projection is present; `decision_weight=0` and it cannot replace canonical output.
+- Dixon-Coles and class-prior calibration challengers remain offline OOS validators and are explicitly not applied live.
+- Consolidated model-selection report evaluates each challenger first against its own matched baseline and refuses to rank models across different fixture cohorts from summary metrics alone.
+- Model-selection report requires same-fixture head-to-head before any challenger can be selected for promotion review.
+- `actionable=false`, `decision_weight=0`; no canonical BET/LEAN/Galaxy promotion.
+- Adds zero provider requests and changes no canonical weights, thresholds, stakes or BET logic.
+
+### Still missing / not allowed to claim resolved
+- Natural v3.18 persistence confirmation is pending and non-blocking.
+- Need at least 200 OOS inside each matched challenger report before it can enter formal review.
+- Need at least 300 same-fixture head-to-head observations for shortlisted challengers and 400 OOS before actionable review.
+- Need verified historical 1X2 prices and true CLV evidence.
+- Need a versioned final model-selection decision plus validated market shrinkage and stable H/D/A calibration by probability bucket/competition.
+- Until those gates pass, Double Chance/DNB/Asian Handicap derived from 1X2 must also remain research-only.
+
 ### Engineering rule going forward
 
 Do not block the next module on the natural-validation check. Record the check as pending and continue. When later natural state supplies evidence, update this file asynchronously.
 
 ## Next engineering target
 
-#5 1X2 — audit canonical + relative-strength/Dixon-Coles challengers, consolidate OOS calibration and define an explicit promotion-review path without allowing research models to affect canonical BET logic prematurely.
+#6 Double Chance — derive 1X/X2/12 strictly from the canonical 1X2 surface, map only exact observed Double Chance prices, validate calibration, and preserve research-only status until the parent 1X2 model is production-approved.
