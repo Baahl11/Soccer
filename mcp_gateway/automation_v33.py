@@ -37,6 +37,8 @@ def _wanted_market_complete(name: str) -> bool:
             "exact score",
             "score exact",
             "double chance",
+            "draw no bet",
+            "dnb",
         )
     )
 
