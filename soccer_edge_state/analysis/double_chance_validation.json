@@ -315,6 +315,13 @@
       "n": 27,
       "observed_hit_rate": 0.666667
     },
+    "Premier Soccer League": {
+      "brier": 0.102207,
+      "log_loss": 0.366205,
+      "mean_probability": 0.666667,
+      "n": 3,
+      "observed_hit_rate": 0.666667
+    },
     "Premiership": {
       "brier": 0.255795,
       "log_loss": 0.715066,
@@ -465,29 +472,29 @@
   },
   "by_selection": {
     "12": {
-      "brier": 0.171445,
-      "log_loss": 0.524495,
-      "mean_probability": 0.730108,
-      "n": 183,
-      "observed_hit_rate": 0.808743
+      "brier": 0.170986,
+      "log_loss": 0.523543,
+      "mean_probability": 0.729973,
+      "n": 184,
+      "observed_hit_rate": 0.809783
     },
     "1X": {
-      "brier": 0.207112,
-      "log_loss": 0.603805,
-      "mean_probability": 0.677522,
-      "n": 183,
-      "observed_hit_rate": 0.661202
+      "brier": 0.206108,
+      "log_loss": 0.601403,
+      "mean_probability": 0.678463,
+      "n": 184,
+      "observed_hit_rate": 0.663043
     },
     "X2": {
-      "brier": 0.243403,
-      "log_loss": 0.690609,
-      "mean_probability": 0.592369,
-      "n": 183,
-      "observed_hit_rate": 0.530055
+      "brier": 0.243152,
+      "log_loss": 0.690049,
+      "mean_probability": 0.591564,
+      "n": 184,
+      "observed_hit_rate": 0.527174
     }
   },
-  "evaluated_binary_rows": 549,
-  "evaluated_fixtures": 183,
+  "evaluated_binary_rows": 552,
+  "evaluated_fixtures": 184,
   "model": "CANONICAL_1X2_DERIVED_DOUBLE_CHANCE_v0.1",
   "notes": [
     "Double Chance probabilities are derived only from canonical pregame 1X2 probabilities.",
@@ -495,10 +502,10 @@
     "This report cannot promote Double Chance to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
   "overall": {
-    "brier": 0.20732,
-    "log_loss": 0.606303,
+    "brier": 0.206749,
+    "log_loss": 0.604998,
     "mean_probability": 0.666667,
-    "n": 549,
+    "n": 552,
     "observed_hit_rate": 0.666667
   },
   "promotion_gate": {
@@ -5825,6 +5832,36 @@
       "probability": 0.727187,
       "selection": "12",
       "stage": "T-10"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.02232603756099999,
+      "fixture_id": 1600344,
+      "league": "Premier Soccer League",
+      "log_loss": 0.16183563358584194,
+      "probability": 0.850581,
+      "selection": "1X",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 0,
+      "brier": 0.19736517056400005,
+      "fixture_id": 1600344,
+      "league": "Premier Soccer League",
+      "log_loss": 0.587451121203203,
+      "probability": 0.444258,
+      "selection": "X2",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.08693003592100004,
+      "fixture_id": 1600344,
+      "league": "Premier Soccer League",
+      "log_loss": 0.3493291334477261,
+      "probability": 0.705161,
+      "selection": "12",
+      "stage": "CLOSE"
     },
     {
       "actual_hit": 1,

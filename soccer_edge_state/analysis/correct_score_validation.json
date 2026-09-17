@@ -360,6 +360,14 @@
       "top3_hit_rate": 0.333333,
       "top5_hit_rate": 0.666667
     },
+    "Premier Soccer League": {
+      "mean_multiclass_brier": 0.849669,
+      "mean_negative_log_likelihood": 1.994353,
+      "n": 1,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 1.0,
+      "top5_hit_rate": 1.0
+    },
     "Premiership": {
       "mean_multiclass_brier": 0.942402,
       "mean_negative_log_likelihood": 2.848949,
@@ -529,7 +537,7 @@
       "top5_hit_rate": 1.0
     }
   },
-  "evaluated_fixtures": 183,
+  "evaluated_fixtures": 184,
   "model": "CANONICAL_HOME_AWAY_LAMBDA_INDEPENDENT_POISSON_EXACT_SCORE_v0.1",
   "notes": [
     "Latest persisted pregame canonical home/away lambdas are evaluated against final exact score.",
@@ -538,12 +546,12 @@
     "This report cannot promote Correct Score to BET/LEAN/Galaxy by itself."
   ],
   "overall": {
-    "mean_multiclass_brier": 0.958184,
-    "mean_negative_log_likelihood": 3.198492,
-    "n": 183,
-    "top1_hit_rate": 0.092896,
-    "top3_hit_rate": 0.300546,
-    "top5_hit_rate": 0.486339
+    "mean_multiclass_brier": 0.957594,
+    "mean_negative_log_likelihood": 3.191948,
+    "n": 184,
+    "top1_hit_rate": 0.092391,
+    "top3_hit_rate": 0.304348,
+    "top5_hit_rate": 0.48913
   },
   "promotion_gate": {
     "actionable_review_sample_gate_met": false,
@@ -3568,6 +3576,23 @@
       "top1_hit": 0,
       "top3_hit": 0,
       "top5_hit": 0
+    },
+    {
+      "actual_score": "2-0",
+      "actual_score_probability": 0.1361017,
+      "actual_score_rank_within_0_5_grid": 3,
+      "away_lambda": 0.5156,
+      "away_team": "Durban City",
+      "fixture_id": 1600344,
+      "home_lambda": 1.2812,
+      "home_team": "Orlando Pirates",
+      "league": "Premier Soccer League",
+      "multiclass_brier_grid_0_5_plus_other": 0.8496691450813562,
+      "negative_log_likelihood": 1.994352903054213,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 1,
+      "top5_hit": 1
     },
     {
       "actual_score": "6-0",

@@ -280,6 +280,13 @@
       "n": 18,
       "observed_win_rate": 0.5
     },
+    "Premier Soccer League": {
+      "brier": 0.044899,
+      "log_loss": 0.238122,
+      "mean_probability": 0.5,
+      "n": 2,
+      "observed_win_rate": 0.5
+    },
     "Premiership": {
       "brier": 0.380134,
       "log_loss": 0.988495,
@@ -430,36 +437,36 @@
   },
   "by_selection": {
     "AWAY": {
-      "brier": 0.222436,
-      "log_loss": 0.641622,
-      "mean_probability": 0.449746,
-      "n": 148,
-      "observed_win_rate": 0.418919
+      "brier": 0.221245,
+      "log_loss": 0.638914,
+      "mean_probability": 0.448149,
+      "n": 149,
+      "observed_win_rate": 0.416107
     },
     "HOME": {
-      "brier": 0.222436,
-      "log_loss": 0.641622,
-      "mean_probability": 0.550254,
-      "n": 148,
-      "observed_win_rate": 0.581081
+      "brier": 0.221245,
+      "log_loss": 0.638914,
+      "mean_probability": 0.551851,
+      "n": 149,
+      "observed_win_rate": 0.583893
     }
   },
   "draw_push_fixtures": 35,
-  "evaluated_binary_rows": 296,
-  "fixtures_with_result": 183,
+  "evaluated_binary_rows": 298,
+  "fixtures_with_result": 184,
   "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
-  "non_draw_oos_fixtures": 148,
+  "non_draw_oos_fixtures": 149,
   "notes": [
     "Draw fixtures are pushes and are excluded from conditional HOME/AWAY calibration scoring.",
     "DNB fair probability is P(win | no draw), while push probability is tracked separately.",
     "This report cannot promote DNB to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
-  "observed_draw_push_rate": 0.191257,
+  "observed_draw_push_rate": 0.190217,
   "overall_non_draw": {
-    "brier": 0.222436,
-    "log_loss": 0.641622,
+    "brier": 0.221245,
+    "log_loss": 0.638914,
     "mean_probability": 0.5,
-    "n": 296,
+    "n": 298,
     "observed_win_rate": 0.5
   },
   "promotion_gate": {
@@ -3356,6 +3363,26 @@
       "probability_win_given_no_draw": 0.525807,
       "selection": "AWAY",
       "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.04489883589847585,
+      "fixture_id": 1600344,
+      "league": "Premier Soccer League",
+      "log_loss": 0.23812198775547694,
+      "probability_win_given_no_draw": 0.788107,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.04489883589847586,
+      "fixture_id": 1600344,
+      "league": "Premier Soccer League",
+      "log_loss": 0.23812198775547694,
+      "probability_win_given_no_draw": 0.211893,
+      "selection": "AWAY",
+      "stage": "CLOSE"
     },
     {
       "actual_win_given_no_draw": 1,

@@ -35,15 +35,15 @@
         "win": 8
       },
       "WATCH": {
-        "hit_rate_ex_push": 0.5797,
+        "hit_rate_ex_push": 0.5857,
         "loss": 29,
-        "mean_brier": 0.1791,
-        "mean_log_loss": 0.5392,
-        "n": 69,
+        "mean_brier": 0.1789,
+        "mean_log_loss": 0.539,
+        "n": 70,
         "push": 0,
-        "roi_per_decision": 0.1306,
-        "roi_units_flat_1u": 9.01,
-        "win": 40
+        "roi_per_decision": 0.138,
+        "roi_units_flat_1u": 9.66,
+        "win": 41
       }
     },
     "by_line": {
@@ -70,15 +70,15 @@
         "win": 2
       },
       "2.5": {
-        "hit_rate_ex_push": 0.6333,
+        "hit_rate_ex_push": 0.6452,
         "loss": 11,
-        "mean_brier": 0.2354,
-        "mean_log_loss": 0.6669,
-        "n": 30,
+        "mean_brier": 0.2333,
+        "mean_log_loss": 0.6624,
+        "n": 31,
         "push": 0,
-        "roi_per_decision": 0.548,
-        "roi_units_flat_1u": 16.44,
-        "win": 19
+        "roi_per_decision": 0.5513,
+        "roi_units_flat_1u": 17.09,
+        "win": 20
       },
       "3.5": {
         "hit_rate_ex_push": 0.7692,
@@ -127,28 +127,28 @@
         "win": 16
       },
       "UNDER": {
-        "hit_rate_ex_push": 0.6034,
+        "hit_rate_ex_push": 0.6102,
         "loss": 23,
-        "mean_brier": 0.1786,
-        "mean_log_loss": 0.5449,
-        "n": 58,
+        "mean_brier": 0.1784,
+        "mean_log_loss": 0.5447,
+        "n": 59,
         "push": 0,
-        "roi_per_decision": 0.199,
-        "roi_units_flat_1u": 11.54,
-        "win": 35
+        "roi_per_decision": 0.2066,
+        "roi_units_flat_1u": 12.19,
+        "win": 36
       }
     },
     "by_stage": {
       "T-10": {
-        "hit_rate_ex_push": 0.5769,
+        "hit_rate_ex_push": 0.5849,
         "loss": 22,
-        "mean_brier": 0.1595,
-        "mean_log_loss": 0.4968,
-        "n": 52,
+        "mean_brier": 0.1597,
+        "mean_log_loss": 0.4974,
+        "n": 53,
         "push": 0,
-        "roi_per_decision": -0.0619,
-        "roi_units_flat_1u": -3.22,
-        "win": 30
+        "roi_per_decision": -0.0485,
+        "roi_units_flat_1u": -2.57,
+        "win": 31
       },
       "T-20": {
         "hit_rate_ex_push": 0.625,
@@ -173,7 +173,7 @@
         "win": 16
       }
     },
-    "evaluated_decisions": 82,
+    "evaluated_decisions": 83,
     "notes": [
       "Only canonical full-match Goals Over/Under observations are included.",
       "Period, team-total, alternate and other derivative markets are excluded.",
@@ -184,15 +184,15 @@
     "status": "VALIDATION_ONLY_DO_NOT_UPGRADE_BACKEND",
     "timezone_basis": "America/Mexico_City",
     "watch_research": {
-      "hit_rate_ex_push": 0.5797,
+      "hit_rate_ex_push": 0.5857,
       "loss": 29,
-      "mean_brier": 0.1791,
-      "mean_log_loss": 0.5392,
-      "n": 69,
+      "mean_brier": 0.1789,
+      "mean_log_loss": 0.539,
+      "n": 70,
       "push": 0,
-      "roi_per_decision": 0.1306,
-      "roi_units_flat_1u": 9.01,
-      "win": 40
+      "roi_per_decision": 0.138,
+      "roi_units_flat_1u": 9.66,
+      "win": 41
     }
   },
   "minimum_sample_policy": {
@@ -202,6 +202,10 @@
   },
   "one_x_two": {
     "accuracy_by_latest_stage": {
+      "CLOSE": {
+        "accuracy": 1.0,
+        "n": 1
+      },
       "T-10": {
         "accuracy": 0.5643,
         "n": 140
@@ -229,8 +233,8 @@
         "n": 69
       },
       "50-59%": {
-        "accuracy": 0.52,
-        "n": 50
+        "accuracy": 0.5294,
+        "n": 51
       },
       "<40%": {
         "accuracy": 0.5517,
@@ -248,7 +252,7 @@
     "actual_outcome_counts": {
       "A": 62,
       "D": 35,
-      "H": 86
+      "H": 87
     },
     "calibration_by_outcome": {
       "A": {
@@ -259,8 +263,8 @@
         },
         "10-20%": {
           "mean_forecast_midpoint": 0.15,
-          "n": 32,
-          "observed_rate": 0.1875
+          "n": 33,
+          "observed_rate": 0.1818
         },
         "20-30%": {
           "mean_forecast_midpoint": 0.25,
@@ -306,8 +310,8 @@
         },
         "20-30%": {
           "mean_forecast_midpoint": 0.25,
-          "n": 130,
-          "observed_rate": 0.2
+          "n": 131,
+          "observed_rate": 0.1985
         },
         "30-40%": {
           "mean_forecast_midpoint": 0.35,
@@ -358,8 +362,8 @@
         },
         "50-60%": {
           "mean_forecast_midpoint": 0.55,
-          "n": 29,
-          "observed_rate": 0.6552
+          "n": 30,
+          "observed_rate": 0.6667
         },
         "60-70%": {
           "mean_forecast_midpoint": 0.65,
@@ -373,9 +377,9 @@
         }
       }
     },
-    "finalized_fixtures_available": 333,
-    "multiclass_brier": 0.622,
-    "multiclass_log_loss": 1.0434,
+    "finalized_fixtures_available": 334,
+    "multiclass_brier": 0.6202,
+    "multiclass_log_loss": 1.0409,
     "notes": [
       "Joins the latest pre-kickoff raw 1X2 projection to a final result by fixture_id.",
       "Uses one projection per finalized fixture to avoid repeated-stage weighting.",
@@ -385,13 +389,13 @@
     "predicted_outcome_counts": {
       "A": 55,
       "D": 13,
-      "H": 115
+      "H": 116
     },
-    "sample_fixtures": 183,
+    "sample_fixtures": 184,
     "schema_version": "1.1.0",
     "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
     "timezone_basis": "America/Mexico_City",
-    "top1_accuracy": 0.541
+    "top1_accuracy": 0.5435
   },
   "schema_version": "1.0.0",
   "signal_performance": {
@@ -401,8 +405,8 @@
       "sample_gate_met": false
     },
     "GOALS_UNDER": {
-      "hit_rate": 0.5667,
-      "n": 60,
+      "hit_rate": 0.5738,
+      "n": 61,
       "sample_gate_met": true
     },
     "TWO_WAY": {
@@ -423,8 +427,8 @@
       "sample_gate_met": false
     },
     "GOALS_UNDER:<70": {
-      "hit_rate": 0.7143,
-      "n": 21,
+      "hit_rate": 0.7273,
+      "n": 22,
       "sample_gate_met": false
     },
     "GOALS_UNDER:>=80": {
