@@ -53,6 +53,23 @@ def _save_result_proxy(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _role_block(played: list[dict[str, Any]]) -> dict[str, Any]:
+    observed = [r for r in played if isinstance(r.get("substitute"), bool)]
+    starters = [r for r in observed if r.get("substitute") is False]
+    subs = [r for r in observed if r.get("substitute") is True]
+    return {
+        "substitute_flag_observed_n": len(observed),
+        "starts": len(starters),
+        "substitute_appearances": len(subs),
+        "start_rate_conditional_on_observed_appearance": round(len(starters) / len(observed), 4) if observed else None,
+        "starter_avg_minutes": _avg(starters, "minutes"),
+        "substitute_avg_minutes": _avg(subs, "minutes"),
+        "minutes_45plus": _hit(played, "minutes", 45),
+        "minutes_60plus": _hit(played, "minutes", 60),
+        "minutes_75plus": _hit(played, "minutes", 75),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--history-dir", default="soccer_edge_state/history")
@@ -78,17 +95,13 @@ def main() -> None:
                         event.get("player_trends_research"),
                     ]
                     capture = next(
-                        (
-                            x for x in candidates
-                            if isinstance(x, dict) and x.get("status") == "RESEARCH_ONLY_PLAYER_FIXTURE_STATS"
-                        ),
+                        (x for x in candidates if isinstance(x, dict) and x.get("status") == "RESEARCH_ONLY_PLAYER_FIXTURE_STATS"),
                         None,
                     )
                     if not capture or not fid:
                         continue
                     phase = capture.get("capture_phase") or "PREGAME"
                     current = seen.get(int(fid))
-                    # Prefer finalized postgame player stats over any pregame capture.
                     if current is not None and current.get("capture_phase") == "POSTGAME" and phase != "POSTGAME":
                         continue
                     seen[int(fid)] = {
@@ -156,6 +169,7 @@ def main() -> None:
                 "sot_1plus": _hit(played, "shots_on_target", 1),
                 "sot_2plus": _hit(played, "shots_on_target", 2),
                 "shots_2plus": _hit(played, "shots", 2),
+                "role": _role_block(played),
                 "goalkeeper": {
                     "gk_matches": len(gk_rows),
                     "avg_saves": _avg(gk_rows, "saves"),
@@ -166,7 +180,7 @@ def main() -> None:
         output_players.append(item)
 
     report = {
-        "schema_version": "1.2.0",
+        "schema_version": "1.3.0",
         "status": "RESEARCH_ONLY_PLAYER_TRENDS",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "decision_weight": 0.0,
@@ -182,7 +196,7 @@ def main() -> None:
             "Only persisted verified fixture/player captures are used.",
             "Postgame capture is preferred over pregame capture for a duplicate fixture.",
             "Fixture IDs are deduplicated to avoid repeated scheduler snapshots.",
-            "Last-5/10/20 are descriptive until sufficient OOS validation exists.",
+            "Last-5/10/20 and role/minutes rates are descriptive inputs until an explicit probability registry applies shrinkage and OOS validation.",
             "Goalkeeper save_result_proxy is saves/(saves+goals_conceded); it is not PSxG and not shot-quality adjusted.",
             "No player or goalkeeper trend can change classification, tier, stake, or bet eligibility.",
         ],
