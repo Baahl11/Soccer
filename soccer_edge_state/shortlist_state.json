@@ -1,4 +1,23 @@
 {
+  "_galaxy_candidate_registry_v2_market_backed": {
+    "updated_at": 1789688184.330829,
+    "value": {
+      "schema_version": "1.0.0",
+      "same_game": {},
+      "multi_match": {},
+      "updated_at_utc": "2026-09-17T23:36:24.330829+00:00",
+      "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
+    }
+  },
+  "_galaxy_rolling_leg_pool_v1": {
+    "updated_at": 1789688184.330829,
+    "value": {
+      "schema_version": "1.0.0",
+      "entries": {},
+      "updated_at_utc": "2026-09-17T23:36:24.330829+00:00",
+      "policy": "MARKET_BACKED_CANONICAL_LEGS_ONLY; SAME_FIXTURE_REFRESH_REPLACES_PRIOR_LEGS; PRICE_FRESHNESS_REQUIRED; KICKOFF_EXPIRES; ZERO_EXTRA_PROVIDER_REQUESTS"
+    }
+  },
   "1606656": {
     "updated_at": 1789687606.629378,
     "value": {
@@ -81,73 +100,6 @@
       "goal_environment_score": 56.6,
       "two_way_scoring_score": 67.9,
       "reason": "SPORTING_SCREEN_PASS"
-    }
-  },
-  "_galaxy_candidate_registry_v2_market_backed": {
-    "updated_at": 1789687606.629378,
-    "value": {
-      "schema_version": "1.0.0",
-      "same_game": {},
-      "multi_match": {},
-      "updated_at_utc": "2026-09-17T23:26:46.629378+00:00",
-      "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
-    }
-  },
-  "_galaxy_rolling_leg_pool_v1": {
-    "updated_at": 1789687606.629378,
-    "value": {
-      "schema_version": "1.0.0",
-      "entries": {
-        "1639698:FT_GOALS:OVER:1.5": {
-          "fixture_id": 1639698,
-          "kickoff": "2026-09-17T18:00:00-06:00",
-          "country": "Colombia",
-          "league": "Liga Femenina",
-          "home_team_id": 15730,
-          "away_team_id": 15729,
-          "match": "Santa Fe W vs Millonarios W",
-          "data_tier": "B",
-          "availability_confidence": 0.7,
-          "stage": "T-40",
-          "family": "FT_GOALS",
-          "selection": "OVER",
-          "line": 1.5,
-          "probability": 0.712702,
-          "probability_source": "DIRECT_SCORE_MATRIX",
-          "actionable_model": true,
-          "research_only_reason": null,
-          "quotes": [
-            {
-              "bookmaker": "Marathonbet",
-              "market": "Goals Over/Under",
-              "selection_text": "Over 1.5",
-              "price": 1.44,
-              "provider_update": "2026-09-17T20:20:15+00:00"
-            },
-            {
-              "bookmaker": "Pinnacle",
-              "market": "Goals Over/Under",
-              "selection_text": "Over 1.5",
-              "price": 1.44,
-              "provider_update": "2026-09-17T20:20:15+00:00"
-            },
-            {
-              "bookmaker": "1xBet",
-              "market": "Goals Over/Under",
-              "selection_text": "Over 1.5",
-              "price": 1.44,
-              "provider_update": "2026-09-17T20:20:15+00:00"
-            }
-          ],
-          "market_source": "API_FALLBACK_ODDS",
-          "market_fresh_at_capture": true,
-          "captured_at_utc": "2026-09-17T23:18:43.634333+00:00",
-          "freshness_limit_minutes": 20.0,
-          "best_component_edge_pp": 1.83
-        }
-      },
-      "updated_at_utc": "2026-09-17T23:26:46.629378+00:00",
-      "policy": "MARKET_BACKED_CANONICAL_LEGS_ONLY; SAME_FIXTURE_REFRESH_REPLACES_PRIOR_LEGS; PRICE_FRESHNESS_REQUIRED; KICKOFF_EXPIRES; ZERO_EXTRA_PROVIDER_REQUESTS"
     }
   },
   "_sport_projection_v1:1606656": {
