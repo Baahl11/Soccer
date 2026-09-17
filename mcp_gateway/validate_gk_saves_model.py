@@ -101,9 +101,16 @@ def main() -> None:
                     "probabilities": [round(x, 8) for x in probs],
                 })
 
+    if checked == 0:
+        status = "BLOCKED_INSUFFICIENT_FINALIZED_GK_DATA"
+    elif checked == valid:
+        status = "PASS"
+    else:
+        status = "FAIL"
+
     report = {
-        "schema_version": "1.0.0",
-        "status": "PASS" if checked > 0 and checked == valid else "FAIL",
+        "schema_version": "1.1.0",
+        "status": status,
         "profiles_checked": checked,
         "profiles_valid": valid,
         "failures": failures[:50],
@@ -112,6 +119,8 @@ def main() -> None:
         "global_save_result_proxy": round(global_p, 6) if global_p is not None else None,
         "global_avg_team_sot": global_sot,
         "validation_scope": "STRUCTURAL_ONLY_NOT_OOS_PERFORMANCE",
+        "data_blocked": checked == 0,
+        "data_block_reason": "NO_FINALIZED_GK_SAVES_PLUS_CONCEDED_COUNTS_PERSISTED_YET" if checked == 0 else None,
         "checks": [
             "save-line probabilities are bounded [0,1]",
             "P(over) is monotone non-increasing as save line rises",
@@ -128,7 +137,7 @@ def main() -> None:
         json.dump(report, fh, ensure_ascii=False, indent=2, sort_keys=True)
         fh.write("\n")
     print(json.dumps({k: v for k, v in report.items() if k != "failures"}, indent=2))
-    if report["status"] != "PASS":
+    if report["status"] == "FAIL":
         raise SystemExit(1)
 
 
