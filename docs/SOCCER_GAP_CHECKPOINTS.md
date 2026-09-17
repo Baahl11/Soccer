@@ -46,7 +46,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 26 | Goalscorer | ✅ confirmed starter + persisted goals/minutes + opponent goals-allowed trend | ✅ v3.39 Gamma-Poisson/Negative-Binomial anytime + 2+ goal probabilities | 🟡 v3.39 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.39 | Natural persistence; ≥1000 OOS anytime review, ≥2000 market review, ≥4000 actionable review; verified penalty role + sportsbook scorer price/CLV required. GK/formation modifiers remain 1.0 until defensible OOS evidence. |
 | 27 | Assists | ✅ confirmed starter + persisted assists/minutes + team/rival goal environment | ✅ v3.40 Gamma-Poisson/Negative-Binomial 1+/2+ assist probabilities | 🟡 v3.40 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.40 | Natural persistence; ≥1000 OOS assist review, ≥2000 market review, ≥4000 actionable review; xA/chance-quality and observed assist price/CLV remain required before promotion. |
 | 28 | GK Saves | 🟠 capture/persistence path fixed; confirmed GK + team/opponent SOT available, but 0 finalized GK saves+conceded samples currently persisted | ✅ v3.41 model built: projected opponent SOT × shrunk save-result proxy; Poisson O/U 1.5–5.5 | 🟠 dormant/data-blocked | 🔴 | ⏳ data accumulation | 🟠 BUILT / DATA-BLOCKED v3.41 | Accumulate natural finalized GK samples first; then ≥300 OOS save-line review, ≥750 market review, ≥1500 actionable review; observed save price/CLV required. PSxG/shot-quality remains external. |
-| 29 | Player Cards | 🟠 partial context | 🔴 | 🔴 | 🔴 | — | 🔴 | Position/role/fouls/opponent/referee/minutes model. |
+| 29 | Player Cards | 🟠 capture path fixed; yellow/red fields retained forward, but 0 finalized yellow-card player samples currently persisted | ✅ v3.42 Gamma-Poisson/Negative-Binomial player-booked + 2+ yellow probabilities with shrunk team-discipline environment | 🟠 dormant/data-blocked | 🔴 | ⏳ data accumulation | 🟠 BUILT / DATA-BLOCKED v3.42 | Accumulate natural finalized player-yellow samples; ≥1000 OOS booked review, ≥2000 market review, ≥4000 actionable review; verified sportsbook player-card price + explicit card-scoring rule + CLV required. Referee numeric effect remains disabled until player-card-specific OOS lift. |
 | 30 | xG/xGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Stable legal advanced-data source. Never infer xG from goals. |
 | 31 | npxG/npxGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Same source + penalty exclusion. |
 | 32 | PPDA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source + normalized definition. |
@@ -67,7 +67,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 
 ## Engineering checkpoints materially completed/improved
 
-#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props · #25 v3.38 SOT props · #26 v3.39 Goalscorer · #27 v3.40 Assists · #28 v3.41 GK Saves (built/data-blocked).
+#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props · #25 v3.38 SOT props · #26 v3.39 Goalscorer · #27 v3.40 Assists · #28 v3.41 GK Saves (built/data-blocked) · #29 v3.42 Player Cards (built/data-blocked).
 
 ### #21 Goalkeeper — v3.34
 - `fixtures/players` compact now retains provider fields `goals.saves` and `goals.conceded` when supplied.
@@ -87,7 +87,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 - v3.35 adds zero provider requests and preserves the normal scheduler/budget path.
 
 ### #23 Player trends — v3.36
-- Player trend history schema is raised to 1.4.0 and now retains exact observed exposure totals: minutes, shots, SOT, goals and assists, plus per-90 rates for L5/L10/L20.
+- Player trend history schema is now 1.5.0 and retains exact observed exposure totals: minutes, shots, SOT, goals, assists and player yellow/red cards, plus per-90 rates for L5/L10/L20.
 - A dedicated research registry combines the existing shrunk role/minutes model with exposure-normalized Gamma-Poisson count-rate shrinkage.
 - Position priors are used only with sufficient exposure; otherwise the model falls back to global priors.
 - Confirmed starting XI sets live start probability to 1.0; historical start/minutes outputs remain diagnostic context.
@@ -148,8 +148,20 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 - No sportsbook save price is attached, so EV/CLV and BET/LEAN/Galaxy eligibility remain blocked.
 - actionable=false, decision_weight=0; canonical model weights, thresholds, tier, stake and bet eligibility remain unchanged.
 
+### #29 Player Cards — v3.42
+- `fixtures/players` compact now retains provider player `cards.yellow` and `cards.red` separately in both research and low-priority finalized POSTGAME captures.
+- Player-trend L5/L10/L20 history now carries exact yellow/red counts and yellow-card hit/rate fields; the probabilistic registry adds a shrunk `yellow_cards` Gamma-Poisson rate only.
+- Red cards are deliberately excluded from the player-card probability target. No sportsbook card-points equivalence is assumed.
+- Confirmed starters use expected starter minutes × shrunk player yellow-card rate; a venue-role team discipline factor is shrunk toward neutral and clipped to 0.75–1.25.
+- Predictive Negative-Binomial output is prepared for player-booked (1+ yellow) and 2+ yellow outcomes with no-vig fair research prices.
+- Referee identity may be carried as context, but its numeric multiplier remains exactly 1.0 until player-card-specific OOS evidence supports a residual effect.
+- Current natural state is DATA-BLOCKED: the history validator found 0 profiles with finalized player-yellow-card exposure. This is expected because the fields were not persisted before v3.42.
+- Structural validation therefore reports `BLOCKED_INSUFFICIENT_FINALIZED_PLAYER_CARD_DATA`, not PASS; future natural POSTGAME samples unlock probability validation automatically.
+- No sportsbook player-card price or explicit bookmaker card-scoring rule is attached, so EV/CLV and BET/LEAN/Galaxy eligibility remain blocked.
+- actionable=false, decision_weight=0; canonical model weights, thresholds, tier, stake and bet eligibility remain unchanged; v3.42 adds zero live provider requests.
+
 ## Engineering rule
 Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until persisted natural state and calibration/promotion gates are satisfied.
 
 ## Next engineering target
-#29 Player Cards — build a research-only player-card probability model from confirmed role/minutes plus player discipline data, opponent pressure and referee context; first ensure player yellow/foul fields are persisted without inventing missing discipline data.
+#30 xG/xGA — integrate a stable legal advanced-data source with explicit xG/xGA definitions, provenance and freshness; never infer xG from goals or silently substitute a different metric.
