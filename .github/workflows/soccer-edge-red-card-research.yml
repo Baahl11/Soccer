@@ -39,12 +39,16 @@ jobs:
         env:
           PYTHONPATH: engine
         run: python engine/mcp_gateway/build_coach_regime_registry.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/coach_regime_registry.json
+      - name: Build goalkeeper profile registry
+        env:
+          PYTHONPATH: engine
+        run: python engine/mcp_gateway/build_goalkeeper_profiles.py --player-trends state/soccer_edge_state/analysis/player_trends.json --output state/soccer_edge_state/analysis/goalkeeper_profiles.json
       - name: Persist context research
         working-directory: state
         run: |
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
-          git add -f soccer_edge_state/analysis/red_cards_rate_registry.json soccer_edge_state/analysis/red_cards_validation.json soccer_edge_state/analysis/coach_regime_registry.json
+          git add -f soccer_edge_state/analysis/red_cards_rate_registry.json soccer_edge_state/analysis/red_cards_validation.json soccer_edge_state/analysis/coach_regime_registry.json soccer_edge_state/analysis/goalkeeper_profiles.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Soccer Edge context research"
           git push origin HEAD:soccer-edge-state
