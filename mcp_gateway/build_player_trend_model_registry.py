@@ -13,6 +13,7 @@ METRICS = {
     "shots_on_target": "sot_total",
     "goals": "goals_total",
     "assists": "assists_total",
+    "yellow_cards": "yellow_cards_total",
 }
 
 
@@ -218,7 +219,7 @@ def main() -> None:
         }
 
     report = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "status": "RESEARCH_PLAYER_TREND_MODEL_REGISTRY",
         "source_player_trends_schema": trends.get("schema_version"),
         "source_player_role_registry_schema": roles.get("schema_version"),
@@ -241,13 +242,15 @@ def main() -> None:
                 "minutes MAE review",
                 "count-rate Poisson dispersion review",
                 "no sportsbook threshold conversion before dedicated prop modules",
+                "bookmaker card-scoring rules mapped explicitly before any player-card promotion",
             ],
         },
         "policy": [
             "Only persisted player trend history and role/minutes registry inputs are used.",
             "Count rates are exposure-normalized by observed minutes and shrunk toward sufficiently sampled position priors, otherwise global priors.",
             "Expected counts for a confirmed starter use shrunk rate times role-model expected minutes; they are research expectations, not betting probabilities.",
-            "No exact shots/SOT/goals/assists line probability is created here; dedicated prop modules remain separate checkpoints.",
+            "No exact shots/SOT/goals/assists/yellow-card line probability is created here; dedicated prop modules remain separate checkpoints.",
+            "Player-card rate modeling uses yellow cards only; red cards remain separate until sportsbook-specific card rules are explicitly mapped.",
             "No player trend output can change classification, tier, stake, canonical probabilities, or bet eligibility.",
         ],
     }
