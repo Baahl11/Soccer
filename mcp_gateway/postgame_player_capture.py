@@ -51,6 +51,7 @@ async def attach(payload: dict[str, Any]) -> dict[str, Any]:
             compact["capture_phase"] = "POSTGAME"
             compact["finalized_fixture_required"] = True
             compact["goalkeeper_fields_retained"] = ["saves", "goals_conceded"]
+            compact["player_card_fields_retained"] = ["yellow_cards", "red_cards"]
             event["postgame_player_stats"] = compact
             if any((team.get("players") or []) for team in compact.get("teams") or [] if isinstance(team, dict)):
                 captured += 1
