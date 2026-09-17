@@ -82,6 +82,9 @@ jobs:
       - name: Build probabilistic player trend registry
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/build_player_trend_model_registry.py --player-trends state/soccer_edge_state/analysis/player_trends.json --player-roles state/soccer_edge_state/analysis/player_role_registry.json --output state/soccer_edge_state/analysis/player_trend_model_registry.json
+      - name: Validate player shots research distribution
+        env: {PYTHONPATH: engine}
+        run: python engine/mcp_gateway/validate_player_shots_model.py --player-registry state/soccer_edge_state/analysis/player_trend_model_registry.json --team-trends state/soccer_edge_state/analysis/trend_intelligence.json --output state/soccer_edge_state/analysis/player_shots_model_sanity.json
       - name: Evaluate explicit corners research model
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/analyze_corners_baseline.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/corners_baseline.json
