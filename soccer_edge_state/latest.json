@@ -1,9 +1,9 @@
 {
   "service": "soccer-edge-automation",
-  "version": "3.12.0",
+  "version": "3.13.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-17T05:25:09.571726+00:00",
-  "generated_at_local": "2026-09-16T23:25:09.571726-06:00",
+  "generated_at_utc": "2026-09-17T05:36:56.286453+00:00",
+  "generated_at_local": "2026-09-16T23:36:56.286453-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 46,
   "due_fixture_count": 7,
@@ -13,7 +13,7 @@
   "api_calls_this_tick": 2,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7133,
+  "last_daily_remaining": 7131,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
@@ -56,7 +56,7 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 94,
+  "shortlist_state_count": 95,
   "shortlist_seed_imported": 94,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-16T23:25:09.571726-06:00",
+    "generated_at_local": "2026-09-16T23:36:56.286453-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -1720,9 +1720,9 @@
   "daily_research_count_this_tick": 7,
   "daily_research_horizon_hours": 12,
   "galaxy_builder": {
-    "schema_version": "0.4.0",
+    "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-16T23:25:09.571726-06:00",
+    "generated_at_local": "2026-09-16T23:36:56.286453-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -1820,9 +1820,33 @@
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
       "invalidated_fixture_count_this_tick": 7,
-      "updated_at_utc": "2026-09-17T05:25:09.571726+00:00",
+      "updated_at_utc": "2026-09-17T05:36:56.286453+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
-    }
+    },
+    "rolling_leg_pool": {
+      "schema_version": "1.0.0",
+      "active": true,
+      "active_leg_count": 0,
+      "fixtures_with_active_legs": 0,
+      "added_this_tick": 0,
+      "invalidated_due_this_tick": 0,
+      "expired_or_stale_this_tick": 0,
+      "market_freshness_minutes": 20.0,
+      "rolling_multi_candidate_count": 0,
+      "merged_multi_candidate_count": 0,
+      "minimum_leg_probability": 0.55,
+      "minimum_component_edge_pp": 1.0,
+      "minimum_research_availability": 0.7,
+      "final_actionability_availability": 0.85,
+      "max_legs_per_fixture_in_pool": 3,
+      "multi_leg_counts_supported": [
+        2,
+        3
+      ],
+      "provider_requests_added": 0,
+      "policy": "PERSIST MARKET-BACKED INDIVIDUAL LEGS ACROSS NATURAL TICKS; ONE LEG PER FIXTURE IN A MULTI; SAME-BOOK COMPONENT QUOTES; EACH COMPONENT REQUIRES >=1PP EDGE VS ITS VERIFIED PRICE; DISTINCT-FIXTURE JOINT P USES EXISTING 2_PERCENT_UNCERTAINTY_HAIRCUT; FINAL PARLAY QUOTE REQUIRED FOR BET"
+    },
+    "rolling_multi_policy": "GALAXY V0.5 ROLLING LEG POOL; CANDIDATES MAY COMBINE LEGS DISCOVERED ON DIFFERENT NATURAL TICKS; NO EXTRA PROVIDER REQUESTS; NO CANONICAL MODEL OR BET LOGIC CHANGES"
   },
   "galaxy_builder_candidate_count_this_tick": 0,
   "galaxy_builder_policy": "SPORT FIRST; MARKET SECOND; COMBINATION THIRD; MARKET-BACKED LEGS ONLY; TARGET +110 OR BETTER; NO SYNTHETIC UNQUOTED LINES; NO LOGICALLY REDUNDANT LEGS; ONE PRIMARY SGP PER FIXTURE; EXACT SPORTSBOOK SGP QUOTE REQUIRED FOR FINAL BET",
