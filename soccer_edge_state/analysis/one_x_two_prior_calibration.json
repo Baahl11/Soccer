@@ -1,42 +1,42 @@
 {
   "baseline": {
-    "accuracy": 0.5464,
-    "brier": 0.6263,
-    "log_loss": 1.0491,
-    "mean_draw_probability": 0.264,
-    "n": 97,
-    "observed_draw_rate": 0.2165,
+    "accuracy": 0.5385,
+    "brier": 0.6255,
+    "log_loss": 1.0487,
+    "mean_draw_probability": 0.2744,
+    "n": 143,
+    "observed_draw_rate": 0.1888,
     "predicted_counts": {
-      "A": 30,
-      "D": 6,
-      "H": 61
+      "A": 43,
+      "D": 13,
+      "H": 87
     }
   },
   "challenger": {
-    "accuracy": 0.5361,
-    "brier": 0.6292,
-    "log_loss": 1.0526,
-    "mean_draw_probability": 0.231,
-    "n": 97,
-    "observed_draw_rate": 0.2165,
+    "accuracy": 0.5245,
+    "brier": 0.6186,
+    "log_loss": 1.0389,
+    "mean_draw_probability": 0.2312,
+    "n": 143,
+    "observed_draw_rate": 0.1888,
     "predicted_counts": {
-      "A": 33,
-      "D": 6,
-      "H": 58
+      "A": 47,
+      "D": 13,
+      "H": 83
     }
   },
   "diagnostic_interpretation": "If calibration improves materially but ranking/accuracy does not, output calibration is part of the issue. If it does not, upstream lambda/team-strength construction is the primary target.",
-  "eligible_fixtures": 127,
+  "eligible_fixtures": 173,
   "improvement": {
-    "accuracy_delta_pp": -1.03,
-    "brier_delta": 0.0029,
-    "draw_probability_delta_pp": -3.3,
-    "log_loss_delta": 0.0035
+    "accuracy_delta_pp": -1.4,
+    "brier_delta": -0.0069,
+    "draw_probability_delta_pp": -4.32,
+    "log_loss_delta": -0.0098
   },
   "latest_class_factors": [
-    1.0499,
-    0.8239,
-    1.0805
+    1.1068,
+    0.7483,
+    1.0781
   ],
   "method": "WALK_FORWARD_SHRUNK_CLASS_PRIOR_CALIBRATION",
   "minimum_training_fixtures": 30,
@@ -45,10 +45,10 @@
     "decision": "KEEP_RESEARCH_ONLY",
     "enabled": false,
     "minimum_evaluation_n": 100,
-    "sample_gate_met": false
+    "sample_gate_met": true
   },
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 97
+  "walk_forward_evaluated": 143
 }

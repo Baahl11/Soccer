@@ -1,16 +1,16 @@
 {
   "anti_leakage": "Each challenger prediction fits rho only on fixtures earlier than that prediction.",
   "baseline": {
-    "accuracy": 0.5464,
-    "brier": 0.6263,
-    "log_loss": 1.0491,
-    "mean_draw_probability": 0.264,
-    "n": 97,
-    "observed_draw_rate": 0.2165,
+    "accuracy": 0.5385,
+    "brier": 0.6255,
+    "log_loss": 1.0487,
+    "mean_draw_probability": 0.2744,
+    "n": 143,
+    "observed_draw_rate": 0.1888,
     "predicted_counts": {
-      "A": 30,
-      "D": 6,
-      "H": 61
+      "A": 43,
+      "D": 13,
+      "H": 87
     }
   },
   "candidate_rho_grid": [
@@ -26,24 +26,24 @@
     0.04
   ],
   "challenger": {
-    "accuracy": 0.5464,
-    "brier": 0.6255,
-    "log_loss": 1.0471,
-    "mean_draw_probability": 0.2557,
-    "n": 97,
-    "observed_draw_rate": 0.2165,
+    "accuracy": 0.5385,
+    "brier": 0.624,
+    "log_loss": 1.0458,
+    "mean_draw_probability": 0.2662,
+    "n": 143,
+    "observed_draw_rate": 0.1888,
     "predicted_counts": {
-      "A": 30,
-      "D": 6,
-      "H": 61
+      "A": 43,
+      "D": 13,
+      "H": 87
     }
   },
-  "eligible_fixtures": 127,
+  "eligible_fixtures": 173,
   "improvement": {
     "accuracy_delta_pp": 0.0,
-    "brier_delta": -0.0008,
-    "draw_probability_delta_pp": -0.83,
-    "log_loss_delta": -0.002
+    "brier_delta": -0.0015,
+    "draw_probability_delta_pp": -0.82,
+    "log_loss_delta": -0.0029
   },
   "method": "DIXON_COLES_LOW_SCORE_CORRECTION_WALK_FORWARD",
   "minimum_training_fixtures": 30,
@@ -59,17 +59,17 @@
     "minimum_evaluation_n": 100,
     "quality_metrics_better": true,
     "reason": "Never promotes 1X2 automatically. Requires larger out-of-sample sample plus stable Brier/log-loss and draw calibration.",
-    "sample_gate_met": false
+    "sample_gate_met": true
   },
   "rho_history_summary": {
     "latest": 0.04,
     "max": 0.04,
-    "mean": 0.0398,
+    "mean": 0.0399,
     "min": 0.02,
-    "n": 97
+    "n": 143
   },
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 97
+  "walk_forward_evaluated": 143
 }
