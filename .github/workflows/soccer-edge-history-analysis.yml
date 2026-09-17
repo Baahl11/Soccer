@@ -120,4 +120,14 @@ jobs:
           git add -f soccer_edge_state/analysis/
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Soccer Edge learning pipeline analysis"
-          git push origin HEAD:soccer-edge-state
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            echo "Concurrent soccer-edge-state update detected; retrying push (attempt $attempt/3)"
+            sleep $((attempt * 2))
+          done
+          echo "Failed to persist analysis after 3 concurrent-write retries"
+          exit 1
