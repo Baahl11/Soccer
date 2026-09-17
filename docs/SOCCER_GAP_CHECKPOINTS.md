@@ -2,193 +2,105 @@
 
 Last updated: 2026-09-17 CDMX
 
-Purpose: keep one authoritative point-by-point roadmap so implementation can continue without waiting for one natural tick after every module.
+Purpose: one authoritative point-by-point roadmap. Engineering may continue without waiting for a natural tick after every module. Natural validation remains mandatory before a module is called fully resolved.
 
-## Checkpoint rules
+## Checkpoint dimensions
 
-Each module is tracked across five dimensions:
-
-- DATA: required source/input exists and is verified enough for the stated use.
-- MODEL: explicit SPORT-FIRST probability/projection model exists.
-- LIVE: model/data is attached to upcoming fixtures during normal scheduler execution.
-- PRODUCTION: allowed to affect canonical BET/LEAN classification.
+- DATA: required verified inputs exist for the stated use.
+- MODEL: explicit SPORT-FIRST probability/projection exists.
+- LIVE: attached to upcoming fixtures during normal scheduler execution.
+- PRODUCTION: permitted to affect canonical BET/LEAN classification.
 - NATURAL VALIDATION: confirmed in persisted natural state after deployment.
 
-Statuses:
-
-- ✅ PASS = implemented and meets current criterion.
-- 🟢 IMPROVED = materially better; still has stated remaining work.
-- 🟡 LIVE RESEARCH = live probability/model output, decision weight 0 / not production-approved.
-- 🟠 OFFLINE / BUILT = code/model exists but is not attached live.
-- 🔵 CALIBRATING = live/built and accumulating OOS / Brier / log-loss / CLV before promotion.
-- 🔴 GAP = model or integration does not yet exist.
-- ⚫ EXTERNAL BLOCK = requires a source/provider/market capability not yet integrated.
-- ⏳ NATURAL CHECK = implementation/deploy done but persisted natural-state evidence is still pending or incomplete.
-
-A module may advance to the next engineering task before NATURAL VALIDATION is complete. Natural validation must still be recorded before calling the module fully RESOLVED.
+Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT · 🔵 CALIBRATING · 🔴 GAP · ⚫ EXTERNAL BLOCK · ⏳ NATURAL CHECK.
 
 ## Current master map
 
-| # | Module | DATA | MODEL | LIVE | PRODUCTION | NATURAL VALIDATION | Current checkpoint | Exactly what remains |
+| # | Module | DATA | MODEL | LIVE | PRODUCTION | NATURAL | Checkpoint | Exactly what remains |
 |---|---|---|---|---|---|---|---|---|
-| 1 | FT Goals | ✅ | ✅ | ✅ | ✅ Tier-B constrained | ⏳ partial | 🟢 IMPROVED v3.14 | Natural state is v3.14.0, provider-call safety passed. Need persisted `ft_goals_intelligence` evidence / ladder visibility; continue accumulating OOS and challenger comparison. Advanced inputs remain separate gaps. |
-| 2 | Team Totals | ✅ canonical home/away lambdas + retained team-total markets | ✅ Poisson O/U 0.5/1.5/2.5 research model | 🟡 v3.15 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.15 | Need natural persistence confirmation, ≥100 OOS for market comparison, ≥200 for actionable review, historical team-total prices/CLV and cross-league calibration. Integer/quarter lines remain unsupported until explicit settlement math exists. No Galaxy/production promotion yet. |
-| 3 | Correct Score | ✅ canonical home/away lambdas + retained correct-score markets | ✅ independent-Poisson exact-score distribution + OOS validator | 🟡 v3.16 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.16 | Need natural persistence confirmation, ≥300 OOS for meaningful market comparison, ≥500 for actionable review, verified correct-score price/CLV history, validated shrinkage for sparse outcomes and cross-league stability. No Galaxy/production promotion yet. |
-| 4 | BTTS | ✅ canonical score-matrix probability + observed YES/NO markets | ✅ explicit BTTS probability + OOS validator | 🟡 v3.17 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.17 | Need natural persistence confirmation, ≥150 OOS for market comparison, ≥300 for actionable review, verified BTTS price history/true CLV, validated shrinkage and stable calibration by probability bucket/league/data tier. No Galaxy/production promotion yet. |
-| 5 | 1X2 | ✅ canonical H/D/A + observed three-way markets | ✅ canonical + live relative-strength shadow + offline Dixon-Coles/prior challengers + selection report | 🟡 v3.18 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.18 | Need natural persistence confirmation; ≥200 matched-method OOS before challenger review, ≥300 same-fixture head-to-head for shortlisted models, ≥400 before actionable review; verified historical 1X2 prices/true CLV; final model selection and market-shrinkage calibration. No Galaxy/production promotion yet. |
-| 6 | Double Chance | ✅ parent 1X2 + retained DC markets | ✅ exact derivation 1X/X2/12 + OOS validator | 🟡 v3.19 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.19 | Need natural persistence confirmation; parent 1X2 production approval; ≥200 OOS market review / ≥400 actionable review; historical DC prices/true CLV; shrinkage and calibration by selection/league. DC prices are never normalized directly because selections overlap. |
-| 7 | DNB | ✅ | 🔴 | 🔴 | 🔴 | — | 🔴 NEXT | Build no-draw conditional probability from canonical 1X2, retain exact DNB markets, model push-aware EV/settlement, and validate while parent 1X2 remains research-only. |
-| 8 | Asian Handicap | ✅ score matrix foundation | 🔴 | 🔴 | 🔴 | — | 🔴 | Build margin distribution pricing including quarter lines/push/half-win mechanics; OOS calibration. |
-| 9 | 1H Goals | ✅ historical HT scores | ✅ walk-forward Poisson v0.1 | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach upcoming-match predictions live; map exact observed 1H lines; then 100 OOS market comparison / 200 actionable review. |
-| 10 | 2H Goals pregame | ✅ historical 2H targets | ✅ walk-forward model | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach live pregame; exact-line mapping/calibration. Never confuse with halftime-conditioned live model. |
-| 11 | 2H live / halftime | 🟠 some halftime stats | 🔴 | 🔴 | 🔴 | — | 🔴 | Build separate HT-conditioned model using score/game-state/red cards/shots etc.; no reuse of pregame 2H model. |
-| 12 | Corners FT | ✅ postgame corners | ✅ walk-forward baseline + formation challenger | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach live; map exact 8.5/9.5/10.5 etc.; add stronger territorial features when available; 150 OOS + 100 formation-adjusted + CLV gate. |
-| 13 | Team Corners | ✅ team corner history | 🟠 lambdas can be extended | 🔴 | 🔴 | — | 🔴 | Explicit home/away team-corner probability distribution + exact-line market mapping/calibration. |
-| 14 | Cards total | ✅ postgame yellows/fouls | ✅ baseline + optional referee scale | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach live; referee-history enrichment; exact sportsbook scoring-rule mapping; 200 OOS/100 referee-adjusted + CLV. |
-| 15 | Team Cards | ✅ team yellow history | 🟠 baseline components exist | 🔴 | 🔴 | — | 🔴 | Produce per-team card lambdas and exact team-card line probabilities; calibrate. |
-| 16 | Red Cards | ✅ recorded separately | 🔴 | 🔴 | 🔴 | — | 🔴 | Separate low-frequency model; do not mix with yellow-card count without book-specific scoring rule. |
-| 17 | Referee | 🟢 fixture assignment captured forward | 🟠 cards baseline can use referee | 🟠 partial | 🔴 | partial | 🟠 | Historical referee enrichment is sparse pre-v3.9; build forward or integrate trustworthy history; assignment verification at match time. |
-| 18 | Formations | ✅ lineups/formation capture | ✅ formation intelligence research | 🟠 partial | 🔴 | partial | 🟠 | Automatically attach current confirmed formation pair to live research models; quantify only after OOS lift. |
-| 19 | Coaches | ✅ coach from lineup | 🔴 regime model | 🟠 identity only | 🔴 | partial | 🟠 | Persist coach tenure/regime changes; before/after tactical/goal effects; substitution/rotation behavior model. |
-| 20 | XI | ✅ | ✅ verification logic | ✅ | ✅ as availability gate | ✅ historical | 🟢 IMPROVED | Improve persistence/re-run on changes and source quality; no new probability model required for identity itself. |
-| 21 | Goalkeeper | ✅ starter capture | 🔴 impact model | 🟠 confirmed/not-confirmed | 🔴 | partial | 🟠 | Build shot-stopping / saves / concession-impact model with verified starter and historical performance. |
-| 22 | Injuries / suspensions | 🟢 provider support | 🔴 player-impact model | 🟠 verification partial | ✅ as availability block only | partial | 🟠 | Quantify impact by player/role/minutes; stronger official verification for material absences. |
-| 23 | Player trends | ✅ selective capture | 🟠 descriptive L5/L10/L20 | 🟡 research | 🔴 | partial | 🟡 DESCRIPTIVE | Convert to probabilistic role/minutes-adjusted models; current decision weight stays 0. |
-| 24 | Shots props | 🟢 player shots capture | 🔴 | 🔴 | 🔴 | — | 🔴 | Minutes/role + shots/90 + opponent/formation distribution; exact threshold probability. |
-| 25 | SOT props | 🟢 player SOT capture | 🔴 | 🔴 | 🔴 | — | 🔴 | P(1+/2+/3+ SOT) with minutes, role, opponent shot suppression and starting status. |
-| 26 | Goalscorer | 🟠 goals/minutes available | 🔴 | 🔴 | 🔴 | — | 🔴 | Player xG/share or defensible proxy, minutes, penalty role, opponent/GK; calibration. |
-| 27 | Assists | 🟠 assists/key passes | 🔴 | 🔴 | 🔴 | — | 🔴 | Chance creation/xA-quality input + minutes + teammate finishing model. |
-| 28 | GK Saves | 🟠 GK identity + some player stats | 🔴 | 🔴 | 🔴 | — | 🔴 | Opponent SOT projection × starter save expectation; exact saves-line probabilities. |
-| 29 | Player Cards | 🟠 cards/fouls context partial | 🔴 | 🔴 | 🔴 | — | 🔴 | Position/role/fouls/opponent/referee/minutes model; exact card prop mapping. |
-| 30 | xG/xGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Integrate stable legal advanced-data source; never infer xG from goals. |
-| 31 | npxG/npxGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Same source requirement as xG plus penalty exclusion. |
-| 32 | PPDA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Integrate provider and normalize definitions across competitions. |
-| 33 | Field Tilt | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source integration and consistent territorial definition. |
+| 1 | FT Goals | ✅ | ✅ | ✅ | ✅ Tier-B constrained | ⏳ partial | 🟢 v3.14 | Persisted intelligence/ladder confirmation; challenger OOS; advanced xG/GK/set-piece/rest/weather inputs remain separate gaps. |
+| 2 | Team Totals | ✅ | ✅ Poisson 0.5/1.5/2.5 | 🟡 v3.15 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | ≥100 OOS market review, ≥200 actionable review, price history/CLV, cross-league calibration, integer/quarter settlement support. |
+| 3 | Correct Score | ✅ | ✅ exact-score distribution | 🟡 v3.16 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | ≥300 OOS market review, ≥500 actionable review, correct-score price/CLV history, sparse-outcome shrinkage, cross-league calibration. |
+| 4 | BTTS | ✅ | ✅ | 🟡 v3.17 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | ≥150 OOS market review, ≥300 actionable review, price/true-CLV history, shrinkage, bucket/league/data-tier calibration. |
+| 5 | 1X2 | ✅ | ✅ canonical + challengers | 🟡 v3.18 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | ≥200 matched challenger OOS, ≥300 same-fixture head-to-head, ≥400 actionable review, true CLV, final versioned model selection and shrinkage. |
+| 6 | Double Chance | ✅ | ✅ 1X/X2/12 derivation | 🟡 v3.19 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Parent 1X2 approval; ≥200/400 OOS gates; historical DC prices/CLV; selection/league calibration and shrinkage. |
+| 7 | DNB | ✅ parent 1X2 + DNB prices | ✅ conditional no-draw + push-aware EV | 🟡 v3.20 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Parent 1X2 approval; ≥200 non-draw OOS market review / ≥400 actionable; DNB price history/true CLV; settlement compatibility and shrinkage. |
+| 8 | Asian Handicap | ✅ lambdas + retained AH market | ✅ margin distribution + integer/half/quarter settlement | 🟡 v3.21 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Natural persistence; ≥250 observed-line OOS market review / ≥500 actionable; price/true-CLV history; line-bucket/league calibration; settlement-aware shrinkage; stronger parent margin model. |
+| 9 | 1H Goals | ✅ HT results + observed 1H lines | ✅ hierarchical period Poisson | 🟡 v3.22 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Initial period registry persistence; natural attachment; ≥100 OOS market review / ≥200 actionable; exact-line price/CLV history; line/league calibration; XI/availability gates if promoted. |
+| 10 | 2H Goals pregame | ✅ FT+HT results + observed 2H lines | ✅ independent pregame 2H hierarchical Poisson | 🟡 v3.23 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Initial registry persistence; natural attachment; ≥100/200 OOS gates; exact-line price/CLV history; calibration. Must never be represented as halftime-conditioned. |
+| 11 | 2H live / halftime | 🟠 halftime state partially available | 🔴 | 🔴 | 🔴 | — | 🔴 NEXT | Separate HT-conditioned model using score, cards, shots/SOT and game state; independent calibration; do not reuse pregame 2H probabilities. |
+| 12 | Corners FT | ✅ postgame corners | ✅ offline walk-forward baseline + formation challenger | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach live; exact observed lines; stronger territorial features; 150 OOS + 100 formation-adjusted + CLV gate. |
+| 13 | Team Corners | ✅ team corner history | 🟠 | 🔴 | 🔴 | — | 🔴 | Explicit home/away team-corner distribution, observed-line pricing, OOS/CLV. |
+| 14 | Cards total | ✅ yellows/fouls | ✅ offline baseline + optional referee scale | 🟠 | 🔴 | — | 🟠 OFFLINE | Attach live, referee enrichment, sportsbook scoring rules, 200 OOS/100 referee-adjusted + CLV. |
+| 15 | Team Cards | ✅ team yellow history | 🟠 components | 🔴 | 🔴 | — | 🔴 | Per-team card lambdas + exact team-card pricing/calibration. |
+| 16 | Red Cards | ✅ recorded separately | 🔴 | 🔴 | 🔴 | — | 🔴 | Separate low-frequency model and book-specific settlement; never merge blindly with yellow count. |
+| 17 | Referee | 🟢 assignment captured | 🟠 optional cards effect | 🟠 partial | 🔴 | partial | 🟠 | Historical referee enrichment and current assignment verification; OOS lift. |
+| 18 | Formations | ✅ | ✅ research intelligence | 🟠 partial | 🔴 | partial | 🟠 | Attach confirmed formation pair automatically to live research models; quantify only after OOS lift. |
+| 19 | Coaches | ✅ identity from lineup | 🔴 regime model | 🟠 identity only | 🔴 | partial | 🟠 | Coach tenure/regime persistence, before/after effects, rotation/substitution behavior. |
+| 20 | XI | ✅ | ✅ verification logic | ✅ | ✅ availability gate | ✅ historical | 🟢 IMPROVED | Better persistence/re-run/source quality; no identity probability model required. |
+| 21 | Goalkeeper | ✅ starter capture | 🔴 impact model | 🟠 | 🔴 | partial | 🟠 | Shot-stopping/saves/concession impact with verified starter. |
+| 22 | Injuries / suspensions | 🟢 provider support | 🔴 player-impact model | 🟠 partial | ✅ availability block only | partial | 🟠 | Quantify impact by player/role/minutes + stronger official material-absence verification. |
+| 23 | Player trends | ✅ selective capture | 🟠 descriptive L5/L10/L20 | 🟡 | 🔴 | partial | 🟡 DESCRIPTIVE | Convert to probabilistic role/minutes-adjusted models. |
+| 24 | Shots props | 🟢 capture | 🔴 | 🔴 | 🔴 | — | 🔴 | Minutes/role + shots/90 + opponent/formation distribution + exact threshold probability. |
+| 25 | SOT props | 🟢 capture | 🔴 | 🔴 | 🔴 | — | 🔴 | P(1+/2+/3+) with minutes, role, opponent suppression and starting status. |
+| 26 | Goalscorer | 🟠 goals/minutes | 🔴 | 🔴 | 🔴 | — | 🔴 | Player xG/share or defensible proxy, minutes, penalties, opponent/GK, calibration. |
+| 27 | Assists | 🟠 assists/key passes | 🔴 | 🔴 | 🔴 | — | 🔴 | Chance creation/xA-quality, minutes and teammate finishing model. |
+| 28 | GK Saves | 🟠 identity + some stats | 🔴 | 🔴 | 🔴 | — | 🔴 | Opponent SOT projection × save expectation; exact save-line probabilities. |
+| 29 | Player Cards | 🟠 partial context | 🔴 | 🔴 | 🔴 | — | 🔴 | Position/role/fouls/opponent/referee/minutes model. |
+| 30 | xG/xGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Stable legal advanced-data source. Never infer xG from goals. |
+| 31 | npxG/npxGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Same source + penalty exclusion. |
+| 32 | PPDA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source + normalized definition. |
+| 33 | Field Tilt | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source + consistent territorial definition. |
 | 34 | Box Entries | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source integration. |
-| 35 | Big Chances | 🟠 provider-dependent | 🔴 feature model | 🔴 | 🔴 | — | ⚫/🟠 | Find consistent live/historical source before weighting. |
-| 36 | Set Pieces | 🟠 corners/fouls exist | 🔴 | 🔴 | 🔴 | — | 🔴 | Set-piece attack/defense rates, aerial mismatch, ideally set-piece xG; then effect on goals/corners. |
-| 37 | Tactical Style | 🟢 formation/trend signals | 🟠 descriptive | 🟡 partial | 🔴 | partial | Formal classifier for press/block/transition/width/possession; OOS feature lift before decision weight. |
-| 38 | Rest | ✅ fixtures | 🔴 feature only | 🔴 | 🔴 | — | 🟠 EASY | Calculate days since last match and expose live; validate material thresholds. |
-| 39 | Congestion | ✅ fixtures | 🔴 feature only | 🔴 | 🔴 | — | 🟠 EASY | Matches/minutes in 7/14/21-day windows + rotation pressure. |
-| 40 | Travel | 🟠 venue/country | 🔴 | 🔴 | 🔴 | — | 🔴 | Distance/timezone/altitude/logistics when material; avoid noise for local fixtures. |
-| 41 | Weather | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Live forecast by venue/kickoff: wind/rain/temp/humidity/severe; materiality logic. |
-| 42 | Competition Context | ✅ league/round/fixtures | 🟠 structured only | 🟡 partial | 🔴 | partial | Table/aggregate/qualification math; verified objective incentives only; never invent motivation. |
-| 43 | Galaxy Multi | ✅ market-backed FT/accepted legs | ✅ rolling leg pool v0.5 | ✅ | 🔴 final without quote | partial | 🟢 IMPROVED | Feed more production-valid families; preserve same-book, one-leg-per-fixture, freshness, edge and final-quote gates. |
-| 44 | Galaxy SGP correlation | 🟠 component models | 🔴 joint correlation model | 🔴 | 🔴 | — | 🔴 | Explicit same-game joint model; never multiply same-game marginals. |
-| 45 | Exact SGP quote | ⚫ provider/book dependent | — | 🔴 | required | — | ⚫ EXTERNAL | Integrate sportsbook/provider that exposes actual combined quote; component product remains reference only. |
-| 46 | Calibration lifecycle | ✅ ledger/results | ✅ validators partly built | 🟡 | ✅ for existing FT only | partial | 🟢 IMPROVED | Standardize Brier/log-loss/ROI/CLV/OOS gates per family/version/archetype and automatic promotion-review reports, without auto-changing weights. |
+| 35 | Big Chances | 🟠 provider-dependent | 🔴 | 🔴 | 🔴 | — | ⚫/🟠 | Consistent live/historical source before weighting. |
+| 36 | Set Pieces | 🟠 corners/fouls | 🔴 | 🔴 | 🔴 | — | 🔴 | Attack/defense set-piece rates, aerial mismatch, ideally set-piece xG. |
+| 37 | Tactical Style | 🟢 formation/trends | 🟠 descriptive | 🟡 partial | 🔴 | partial | Formal press/block/transition/width/possession classifier + OOS feature lift. |
+| 38 | Rest | ✅ fixtures | 🟠 feature derivable | 🔴 | 🔴 | — | 🟠 EASY | Days since last match live + material thresholds. |
+| 39 | Congestion | ✅ fixtures | 🟠 feature derivable | 🔴 | 🔴 | — | 🟠 EASY | 7/14/21-day windows + rotation pressure. |
+| 40 | Travel | 🟠 venue/country | 🔴 | 🔴 | 🔴 | — | 🔴 | Distance/timezone/altitude/logistics only when material. |
+| 41 | Weather | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Venue/kickoff forecast + materiality logic. |
+| 42 | Competition Context | ✅ | 🟠 structured | 🟡 partial | 🔴 | partial | Table/aggregate/qualification math; verified objective context only. |
+| 43 | Galaxy Multi | ✅ | ✅ rolling pool v0.5 | ✅ | 🔴 final without quote | partial | 🟢 IMPROVED | Feed only production-valid new families; preserve same-book/freshness/edge/final-quote gates. |
+| 44 | Galaxy SGP correlation | 🟠 components | 🔴 joint model | 🔴 | 🔴 | — | 🔴 | Explicit same-game joint/correlation model; never multiply same-game marginals. |
+| 45 | Exact SGP quote | ⚫ | — | 🔴 | required | — | ⚫ EXTERNAL | Sportsbook/provider actual combined quote. |
+| 46 | Calibration lifecycle | ✅ ledger/results | ✅ validators growing | 🟡 | ✅ existing FT only | partial | 🟢 IMPROVED | Standardize Brier/log-loss/ROI/CLV/OOS gates and promotion-review reports per family/version/archetype; never auto-change weights. |
 
-## #1 FT Goals checkpoint — v3.14
+## Completed engineering checkpoints #1–#10
 
-### Already passes
-- SPORT FIRST raw projection exists before market inspection.
-- Home/away/total goal lambdas exist.
-- Score matrix and O1.5/O2.5/O3.5 probabilities exist.
-- Canonical market evaluation uses exact observed lines and prices, no-vig fair probability when both sides are present, market shrinkage, probability edge and EV.
-- Availability/data-tier/lineup gates remain intact.
-- Relative-strength challenger remains research-only with decision weight 0.
-- v3.14 adds FT Goals Intelligence / observed-line ladder without changing canonical weights, thresholds, stake or provider-request policy.
+### #1 FT Goals — v3.14
+Passes SPORT-FIRST lambdas/score matrix/exact observed total ladder; no-vig/shrinkage/edge/EV; relative-strength shadow zero weight. Remaining: natural persistence detail, challenger OOS and advanced-input gaps.
 
-### Still missing / not allowed to claim resolved
-- Persisted natural-state evidence for the new `ft_goals_intelligence` object still needs explicit confirmation.
-- Relative-strength challenger still needs enough OOS observations before promotion.
-- Advanced xG/GK/set-piece/rest/weather inputs remain separate gaps.
+### #2 Team Totals — v3.15
+Passes team-specific Poisson O/U 0.5/1.5/2.5, observed markets only, fair/no-vig/EV diagnostics, research-only validator. Remaining: OOS/CLV/cross-league and integer/quarter settlement.
 
-## #2 Team Totals checkpoint — v3.15
+### #3 Correct Score — v3.16
+Passes exact-score probabilities and observed exact-score pricing with NLL/multiclass-Brier/top-k validation. Remaining: larger OOS, price/CLV history, sparse-outcome shrinkage.
 
-### Already passes
-- Uses canonical home/away lambdas and explicit Home/Away O/U 0.5/1.5/2.5 probabilities.
-- Exact observed team-total markets only; fair price/no-vig/edge/EV research diagnostics.
-- Integer/quarter lines rejected until settlement math exists.
-- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy.
-- Dedicated OOS validator integrated.
+### #4 BTTS — v3.17
+Passes independent YES/NO probability, exact market mapping and Brier/log-loss validator. Remaining: OOS/CLV/shrinkage and parent FT improvements.
 
-### Still missing / not allowed to claim resolved
-- Natural persistence confirmation.
-- ≥100 OOS market review / ≥200 actionable review.
-- Historical prices/CLV and cross-league calibration.
-- Integer/quarter-line settlement support.
+### #5 1X2 — v3.18
+Passes canonical H/D/A live research, relative-strength shadow, offline Dixon-Coles/prior challengers and model-selection report. No candidate may be selected across mismatched cohorts; same-fixture head-to-head is required. Remaining: OOS/CLV/final versioned selection/shrinkage.
 
-## #3 Correct Score checkpoint — v3.16
+### #6 Double Chance — v3.19
+Passes 1X/X2/12 derivation and real DC mapping. DC selections overlap, so their three prices are never normalized directly; when possible fair DC is derived from same-book complete 1X2 no-vig. Remaining: parent approval + OOS/CLV/shrinkage.
 
-### Already passes
-- Exact-score probabilities derived only from canonical home/away lambdas.
-- Correct Score/Exact Score odds retained without extra provider requests.
-- Exact observed score selections only; grouped buckets separated.
-- Research probability/fair price/price/edge/EV diagnostics.
-- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy.
-- Dedicated NLL/multiclass-Brier/top-k validator integrated.
+### #7 DNB — v3.20
+Passes `P(win|no draw)`, explicit draw push, real DNB mapping, paired conditional no-vig and push-aware EV `P(win)*price + P(draw) - 1`. Remaining: parent 1X2 approval, non-draw OOS/CLV/shrinkage/settlement verification.
 
-### Still missing / not allowed to claim resolved
-- Natural persistence confirmation.
-- ≥300 OOS market review / ≥500 actionable review.
-- Historical correct-score prices/CLV and sparse-outcome shrinkage.
-- Cross-league calibration.
+### #8 Asian Handicap — v3.21
+Passes score-margin model and exact settlement for integer/half/quarter lines. Quarter lines split into adjacent half-lines; model exposes win/push/loss fractions, fair price and settlement-aware EV. It deliberately does not invent a binary probability/no-vig transform for push/quarter markets. Remaining: observed-line OOS/CLV/calibration and stronger parent margin model.
 
-## #4 BTTS checkpoint — v3.17
+### #9 1H Goals — v3.22
+Passes a period-specific live hierarchical Poisson model sourced from a finalized-history registry, not FT probabilities. Prices exact observed 1H totals with integer/half/quarter settlement math. The registry is cached from `soccer-edge-state` and adds zero API-Football requests. Remaining: initial registry/natural persistence, OOS exact-line market calibration and true CLV.
 
-### Already passes
-- Uses the existing canonical score-matrix `raw_btts_yes_prob`; market prices never create the sporting probability.
-- Exposes P(YES), P(NO) and independent model fair prices.
-- Compares only to observed BTTS YES/NO markets.
-- Computes no-vig fair market probability only when both YES and NO are present for the same bookmaker market.
-- Research rows expose model probability, fair price, breakeven, no-vig market probability, raw edge and raw EV.
-- `actionable=false`, `decision_weight=0`, classification `RESEARCH_ONLY`; cannot produce canonical BET/LEAN or enter Galaxy.
-- Adds zero provider requests and changes no canonical weights, thresholds, stakes or BET logic.
-- Dedicated historical validator measures Brier, log-loss, observed-vs-predicted rate, probability buckets, competition and data tier.
-- History pipeline runs the BTTS validator automatically.
+### #10 2H Goals pregame — v3.23
+Passes an independent period-specific pregame 2H model using finalized 2H rates and exact observed 2H totals. Explicitly tagged `PREGAME_ONLY_NOT_HALFTIME_CONDITIONED`. Remaining: registry/natural persistence, OOS/CLV/calibration. A live halftime model remains a separate #11 gap.
 
-### Still missing / not allowed to claim resolved
-- Natural v3.17 persistence confirmation is pending and non-blocking.
-- Need at least 150 OOS fixtures before meaningful market-comparison review and 300 before actionable promotion review.
-- Need verified historical BTTS prices and true CLV evidence.
-- Need validated market shrinkage and stable calibration across probability buckets, leagues and data tiers.
-- BTTS remains downstream of the parent FT-goals model, so xG/GK/set-piece/rest/weather limitations remain inherited.
+## Engineering rule
 
-## #5 1X2 checkpoint — v3.18
-
-### Already passes
-- Uses canonical SPORT-FIRST H/D/A probabilities already created before market inspection; sportsbook odds never create the sporting projection.
-- Exposes canonical H/D/A probabilities and fair prices live as a dedicated research surface.
-- Maps only observed three-way 1X2 markets and computes no-vig probabilities only when HOME/DRAW/AWAY are all available for the same bookmaker market.
-- Relative-strength challenger is exposed live only when its existing shadow projection is present; `decision_weight=0` and it cannot replace canonical output.
-- Dixon-Coles and class-prior calibration challengers remain offline OOS validators and are explicitly not applied live.
-- Consolidated model-selection report evaluates each challenger first against its own matched baseline and refuses to rank models across different fixture cohorts from summary metrics alone.
-- Model-selection report requires same-fixture head-to-head before any challenger can be selected for promotion review.
-- `actionable=false`, `decision_weight=0`; no canonical BET/LEAN/Galaxy promotion.
-- Adds zero provider requests and changes no canonical weights, thresholds, stakes or BET logic.
-
-### Still missing / not allowed to claim resolved
-- Natural v3.18 persistence confirmation is pending and non-blocking.
-- Need at least 200 OOS inside each matched challenger report before it can enter formal review.
-- Need at least 300 same-fixture head-to-head observations for shortlisted challengers and 400 OOS before actionable review.
-- Need verified historical 1X2 prices and true CLV evidence.
-- Need a versioned final model-selection decision plus validated market shrinkage and stable H/D/A calibration by probability bucket/competition.
-- Until those gates pass, Double Chance/DNB/Asian Handicap derived from 1X2 must also remain research-only.
-
-## #6 Double Chance checkpoint — v3.19
-
-### Already passes
-- Derives P(1X)=P(H)+P(D), P(X2)=P(D)+P(A) and P(12)=P(H)+P(A) strictly from canonical SPORT-FIRST 1X2 probabilities.
-- Retains actual Double Chance markets from the existing odds payload without adding provider requests.
-- Maps only observed 1X/X2/12 prices and exposes model probability, fair price, breakeven, raw EV and research edge diagnostics.
-- Does not normalize the three Double Chance prices as a no-vig market because the selections overlap and are not mutually exclusive.
-- When a complete same-book 1X2 market is available, derives fair Double Chance market probabilities from the no-vig H/D/A parent probabilities.
-- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy promotion.
-- Dedicated OOS validator measures binary Brier/log-loss for 1X, X2 and 12, plus league stability.
-- Adds zero provider requests and changes no canonical weights, thresholds, stakes or BET logic.
-
-### Still missing / not allowed to claim resolved
-- Natural v3.19 persistence confirmation is pending and non-blocking.
-- Parent 1X2 must first pass its own production/model-selection gates.
-- Need at least 200 OOS fixtures before meaningful market-comparison review and 400 before actionable review.
-- Need verified historical Double Chance prices and true CLV evidence.
-- Need validated shrinkage and stable calibration separately for 1X, X2 and 12 across competitions.
-
-### Engineering rule going forward
-
-Do not block the next module on the natural-validation check. Record the check as pending and continue. When later natural state supplies evidence, update this file asynchronously.
+Natural validation is asynchronous and non-blocking for the next engineering point. A module is not called fully RESOLVED until its persisted natural state and stated calibration/promotion gates are satisfied.
 
 ## Next engineering target
 
-#7 DNB — derive conditional win probability given no draw, retain exact Draw No Bet prices, implement push-aware fair-price/EV math, validate OOS, and keep research-only until parent 1X2 is production-approved.
+#11 2H live / halftime — build a genuinely halftime-conditioned research model from verified HT score/game-state/red-card/shots/SOT context. It must never reuse or relabel the pregame 2H model.
