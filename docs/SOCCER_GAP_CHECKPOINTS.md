@@ -28,14 +28,14 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 8 | Asian Handicap | ✅ | ✅ margin + integer/half/quarter settlement | 🟡 v3.21 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | ≥250/500 observed-line OOS, true CLV, line/league calibration, stronger parent margin model. |
 | 9 | 1H Goals | ✅ HT history + observed lines | ✅ period Poisson | 🟡 v3.22 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Registry/natural persistence, ≥100/200 OOS, exact-line CLV, line/league calibration. |
 | 10 | 2H Goals pregame | ✅ FT+HT history + observed lines | ✅ independent 2H period Poisson | 🟡 v3.23 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Registry/natural persistence, ≥100/200 OOS, exact-line CLV/calibration; never relabel as halftime-conditioned. |
-| 11 | 2H live / halftime | 🟢 verified HT score/state; red cards/shots/SOT pending | ✅ pregame 2H baseline × walk-forward HT-state multiplier | 🟡 v3.28 dedicated HT path | 🔴 | ⏳ | 🟡 LIVE RESEARCH | ≥200 OOS review/≥400 actionable review, verify red-card state + HT shots/SOT, attach real live 2H price/CLV, state-bucket/league calibration. |
+| 11 | 2H live / halftime | 🟢 HT score/state verified; red/shots/SOT pending | ✅ pregame 2H baseline × HT-state multiplier | 🟡 v3.28 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | ≥200/400 OOS, red-card + HT shots/SOT verification, live 2H price/CLV, state/league calibration. |
 | 12 | Corners FT | ✅ finalized corner history | ✅ league/team Poisson + formation shadow | 🟡 v3.24 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Natural persistence, exact-line OOS/CLV, ≥150 OOS + ≥100 formation-adjusted, stronger territory inputs. |
-| 13 | Team Corners | ✅ team corner history/lambdas | ✅ team-specific corner Poisson | 🟡 v3.25 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | OOS/CLV, exact-line calibration by team role/league, stronger territory/game-state features. |
-| 14 | Cards total | ✅ yellows/fouls + optional referee | ✅ discipline + referee yellow-card model | 🟡 v3.26 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Referee-history enrichment, explicit sportsbook scoring rules, ≥200 OOS/≥100 referee-adjusted, true CLV. |
-| 15 | Team Cards | ✅ team yellow history | ✅ team yellow-card Poisson | 🟡 v3.27 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Team-line OOS/CLV/calibration, sportsbook settlement mapping; reds remain separate. |
-| 16 | Red Cards | ✅ recorded separately | 🔴 | 🔴 | 🔴 | — | 🔴 NEXT | Separate low-frequency model, team/referee/game-state features, book-specific settlement; never merge blindly with yellow count. |
-| 17 | Referee | 🟢 assignment captured | 🟠 optional cards effect | 🟠 partial | 🔴 | partial | 🟠 | Historical referee enrichment + current assignment verification + OOS lift. |
-| 18 | Formations | ✅ | ✅ research intelligence | 🟠 partial | 🔴 | partial | 🟠 | Attach confirmed formation pair automatically to live research models; quantify only after OOS lift. |
+| 13 | Team Corners | ✅ team corner history/lambdas | ✅ team-specific corner Poisson | 🟡 v3.25 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | OOS/CLV, team-role/league calibration, stronger territory/game-state features. |
+| 14 | Cards total | ✅ yellows/fouls + optional referee | ✅ discipline + referee yellow-card model | 🟡 v3.26 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Referee-history enrichment, sportsbook scoring rules, ≥200 OOS/≥100 referee-adjusted, true CLV. |
+| 15 | Team Cards | ✅ team yellow history | ✅ team yellow-card Poisson | 🟡 v3.27 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Team-line OOS/CLV/calibration, settlement mapping; reds separate. |
+| 16 | Red Cards | ✅ separate postgame reds | ✅ Empirical-Bayes any-red YES/NO + optional referee | 🟡 v3.29 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Registry natural persistence; ≥500 OOS market review/≥1000 actionable; ≥200 referee-adjusted; explicit red-card YES/NO price/CLV and settlement. |
+| 17 | Referee | 🟢 current API assignment + yellow/red registries | ✅ feature profile/gates | 🟡 v3.30 feature-only | 🔴 standalone | ⏳ | 🟡 LIVE RESEARCH FEATURE | Add historical fouls/penalty rate, independent official assignment verification, demonstrate OOS lift in cards/red models. |
+| 18 | Formations | ✅ | ✅ research intelligence | 🟠 partial | 🔴 | partial | 🟠 NEXT | Attach confirmed formation pair automatically to live research models; quantify only after OOS lift. |
 | 19 | Coaches | ✅ identity from lineup | 🔴 regime model | 🟠 identity only | 🔴 | partial | 🟠 | Coach tenure/regime persistence, before/after effects, rotation/substitution behavior. |
 | 20 | XI | ✅ | ✅ verification logic | ✅ | ✅ availability gate | ✅ historical | 🟢 IMPROVED | Better persistence/re-run/source quality; no identity probability model required. |
 | 21 | Goalkeeper | ✅ starter capture | 🔴 impact model | 🟠 | 🔴 | partial | 🟠 | Shot-stopping/saves/concession impact with verified starter. |
@@ -65,24 +65,31 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 45 | Exact SGP quote | ⚫ | — | 🔴 | required | — | ⚫ EXTERNAL | Sportsbook/provider actual combined quote. |
 | 46 | Calibration lifecycle | ✅ ledger/results | ✅ validators growing | 🟡 | ✅ existing FT only | partial | 🟢 IMPROVED | Standardize Brier/log-loss/ROI/CLV/OOS gates and promotion-review reports per family/version/archetype; never auto-change weights. |
 
-## Engineering checkpoints completed or materially improved
+## Engineering checkpoints materially completed/improved
 
-#1 FT Goals v3.14 · #2 Team Totals v3.15 · #3 Correct Score v3.16 · #4 BTTS v3.17 · #5 1X2 v3.18 · #6 Double Chance v3.19 · #7 DNB v3.20 · #8 Asian Handicap v3.21 · #9 1H Goals v3.22 · #10 2H pregame v3.23 · #12 Corners FT v3.24 · #13 Team Corners v3.25 · #14 Cards total v3.26 · #15 Team Cards v3.27 · #11 2H halftime v3.28.
+#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee.
 
-### #11 2H live / halftime — v3.28
+### #16 Red Cards — v3.29
 
-- Dedicated `HT` scheduler stage is added by wrapper only; base scheduler code is not rewritten.
-- HT event uses the current fixture row already fetched for the daily slate, so v3.28 adds zero API-Football requests.
-- Verified halftime score/lead state/HT-goal bucket feed a separate state multiplier learned walk-forward from finalized fixtures.
-- The pregame 2H period model remains the baseline but is never relabeled as halftime-conditioned.
-- Missing red-card state, halftime shots/SOT and live 2H price are explicit blockers.
-- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy promotion.
-- Existing offline validator remains the calibration basis and requires the conditioned challenger to beat the pregame 2H baseline.
+- Separate low-frequency model; yellow counts never enter the red-card target.
+- V1 target is only `ANY_RED_CARD_IN_MATCH` YES/NO.
+- Strong Empirical-Bayes shrinkage: global → league → team role; optional referee adjustment only after minimum referee sample.
+- Exact explicit red-card YES/NO markets only; no generic card-point mapping.
+- Dedicated walk-forward Brier/log-loss validator and post-history registry workflow.
+- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy before rare-event calibration/CLV gates.
+
+### #17 Referee — v3.30
+
+- Current fixture referee assignment is surfaced as an API assignment, not falsely labeled official-independent verification.
+- Historical yellow and red profiles are combined from separate registries.
+- Yellow adjustment gate requires its own sample; red adjustment uses a stricter sample.
+- Referee is feature-only and can never create a standalone pick.
+- Fouls/penalty history and independent official assignment verification remain explicit gaps.
 
 ## Engineering rule
 
-Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until its persisted natural state and calibration/promotion gates are satisfied.
+Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until persisted natural state and calibration/promotion gates are satisfied.
 
 ## Next engineering target
 
-#16 Red Cards — build a separate low-frequency research model. Red cards remain separate from yellow-card totals and require explicit bookmaker settlement rules before any market comparison can become actionable.
+#18 Formations — attach the confirmed formation pair automatically to live research models and expose matchup-level formation intelligence without changing canonical probabilities until OOS lift is demonstrated.
