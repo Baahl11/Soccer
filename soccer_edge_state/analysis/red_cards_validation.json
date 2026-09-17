@@ -1,0 +1,39 @@
+{
+  "by_league": {},
+  "by_probability_bucket": {},
+  "model": "EMPIRICAL_BAYES_ANY_RED_CARD_MATCH_v0.1",
+  "overall": {
+    "brier": null,
+    "log_loss": null,
+    "mean_probability": null,
+    "n": 0,
+    "observed_rate": null
+  },
+  "policy": "RED CARDS ONLY; WALK-FORWARD ANTI-LEAKAGE; YELLOW CARD COUNTS EXCLUDED; NO AUTOMATIC PROMOTION",
+  "promotion_gate": {
+    "actionable_review_sample_gate_met": false,
+    "enabled": false,
+    "market_review_sample_gate_met": false,
+    "minimum_oos_for_actionable_review": 1000,
+    "minimum_oos_for_market_review": 500,
+    "minimum_referee_adjusted_oos": 200,
+    "referee_sample_gate_met": false,
+    "requires": [
+      "stable rare-event Brier/log-loss overall and by league/bucket",
+      "verified match-red-card YES/NO price history and true CLV",
+      "stable referee adjustment with verified assignments",
+      "explicit sportsbook settlement compatibility"
+    ]
+  },
+  "referee_adjusted": {
+    "brier": null,
+    "log_loss": null,
+    "mean_probability": null,
+    "n": 0,
+    "observed_rate": null
+  },
+  "rows": [],
+  "schema_version": "1.0.0",
+  "status": "RESEARCH_ONLY_RED_CARD_VALIDATION",
+  "walk_forward_evaluated": 0
+}
