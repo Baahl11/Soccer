@@ -45,7 +45,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 25 | SOT props | ✅ confirmed starter + persisted SOT/minutes + opponent SOT-allowed trend | ✅ v3.38 Gamma-Poisson/Negative-Binomial predictive distribution; O/U 0.5–3.5 exact half-line probabilities | 🟡 v3.38 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.38 | Natural persistence; ≥500 OOS count/line review, ≥1000 market review, ≥2000 actionable review; attach observed sportsbook SOT line/price + CLV. Formation numeric factor stays 1.0 until SOT-specific residual OOS lift. |
 | 26 | Goalscorer | ✅ confirmed starter + persisted goals/minutes + opponent goals-allowed trend | ✅ v3.39 Gamma-Poisson/Negative-Binomial anytime + 2+ goal probabilities | 🟡 v3.39 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.39 | Natural persistence; ≥1000 OOS anytime review, ≥2000 market review, ≥4000 actionable review; verified penalty role + sportsbook scorer price/CLV required. GK/formation modifiers remain 1.0 until defensible OOS evidence. |
 | 27 | Assists | ✅ confirmed starter + persisted assists/minutes + team/rival goal environment | ✅ v3.40 Gamma-Poisson/Negative-Binomial 1+/2+ assist probabilities | 🟡 v3.40 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.40 | Natural persistence; ≥1000 OOS assist review, ≥2000 market review, ≥4000 actionable review; xA/chance-quality and observed assist price/CLV remain required before promotion. |
-| 28 | GK Saves | 🟢 saves now retained forward | 🔴 probability model | 🔴 | 🔴 | — | 🟠 DATA IMPROVED | Opponent SOT projection × GK save expectation; exact save-line probability; need finalized sample and opponent SOT model. |
+| 28 | GK Saves | ✅ confirmed GK + persisted saves/conceded counts + team/opponent SOT trends | ✅ v3.41 projected opponent SOT × shrunk save-result proxy; Poisson O/U 1.5–5.5 | 🟡 v3.41 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.41 | Natural persistence; ≥300 OOS save-line review, ≥750 market review, ≥1500 actionable review; observed save price/CLV required. PSxG/shot-quality remains external and is not claimed. |
 | 29 | Player Cards | 🟠 partial context | 🔴 | 🔴 | 🔴 | — | 🔴 | Position/role/fouls/opponent/referee/minutes model. |
 | 30 | xG/xGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Stable legal advanced-data source. Never infer xG from goals. |
 | 31 | npxG/npxGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Same source + penalty exclusion. |
@@ -67,7 +67,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 
 ## Engineering checkpoints materially completed/improved
 
-#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props · #25 v3.38 SOT props · #26 v3.39 Goalscorer · #27 v3.40 Assists.
+#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props · #25 v3.38 SOT props · #26 v3.39 Goalscorer · #27 v3.40 Assists · #28 v3.41 GK Saves.
 
 ### #21 Goalkeeper — v3.34
 - `fixtures/players` compact now retains provider fields `goals.saves` and `goals.conceded` when supplied.
@@ -137,8 +137,19 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 - actionable=false, decision_weight=0; canonical model weights, thresholds, tier, stake and bet eligibility remain unchanged.
 - v3.40 adds zero provider requests during the live tick.
 
+### #28 GK Saves — v3.41
+- Goalkeeper profile schema now retains exact saves and goals-conceded counts behind the existing save-result proxy.
+- Opponent SOT projection combines the opponent's recent SOT attack with the goalkeeper team's recent SOT allowed, both shrunk toward the global SOT baseline and clipped.
+- GK save probability is saves/(saves+goals_conceded) shrunk toward the global goalkeeper proxy using explicit SOT-proxy pseudo-counts.
+- Expected saves = projected SOT faced × shrunk save-result proxy; Poisson probabilities are emitted for save half-lines 1.5–5.5 with no-vig fair prices.
+- This is explicitly NOT PSxG and not shot-quality adjusted; no goalkeeper quality claim is made from the proxy.
+- Starting GK is required; substitution risk is not yet modeled and remains documented.
+- No sportsbook save price is attached, so EV/CLV and BET/LEAN/Galaxy eligibility remain blocked.
+- actionable=false, decision_weight=0; canonical model weights, thresholds, tier, stake and bet eligibility remain unchanged.
+- v3.41 adds zero provider requests during the live tick.
+
 ## Engineering rule
 Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until persisted natural state and calibration/promotion gates are satisfied.
 
 ## Next engineering target
-#28 GK Saves — build an exact save-line probability model from opponent SOT projection × confirmed goalkeeper save expectation, using only finalized persisted GK data and keeping PSxG/shot-quality gaps explicit.
+#29 Player Cards — build a research-only player-card probability model from confirmed role/minutes plus player discipline data, opponent pressure and referee context; first ensure player yellow/foul fields are persisted without inventing missing discipline data.
