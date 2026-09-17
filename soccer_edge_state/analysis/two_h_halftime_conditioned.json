@@ -1,14 +1,14 @@
 {
   "anti_leakage": "Every target multiplier uses only earlier finalized fixtures; target second-half outcome never enters its own state multiplier.",
   "baseline": {
-    "brier_o1_5": 0.252759,
-    "log_loss_o1_5": 0.698627,
-    "mae_2h_lambda": 0.971195
+    "brier_o1_5": 0.252774,
+    "log_loss_o1_5": 0.698657,
+    "mae_2h_lambda": 0.971493
   },
   "challenger": {
-    "brier_o1_5": 0.25447,
-    "log_loss_o1_5": 0.702117,
-    "mae_2h_lambda": 0.974403
+    "brier_o1_5": 0.254459,
+    "log_loss_o1_5": 0.702095,
+    "mae_2h_lambda": 0.974631
   },
   "conditioning_features": [
     "halftime home/away score",
@@ -18,42 +18,42 @@
   "full_history_state_registry": {
     "buckets": {
       "AWAY_LEAD|HT1": {
-        "multiplier_vs_global": 0.950228,
+        "multiplier_vs_global": 0.949529,
         "n": 52,
-        "shrunk_2h_total_rate": 1.609345
+        "shrunk_2h_total_rate": 1.609834
       },
       "AWAY_LEAD|HT2_PLUS": {
-        "multiplier_vs_global": 0.989211,
-        "n": 42,
-        "shrunk_2h_total_rate": 1.675368
+        "multiplier_vs_global": 1.000915,
+        "n": 43,
+        "shrunk_2h_total_rate": 1.696953
       },
       "DRAW|HT0": {
-        "multiplier_vs_global": 0.981667,
-        "n": 93,
-        "shrunk_2h_total_rate": 1.662591
+        "multiplier_vs_global": 0.977401,
+        "n": 94,
+        "shrunk_2h_total_rate": 1.657088
       },
       "DRAW|HT2_PLUS": {
-        "multiplier_vs_global": 1.073183,
+        "multiplier_vs_global": 1.072409,
         "n": 41,
-        "shrunk_2h_total_rate": 1.817587
+        "shrunk_2h_total_rate": 1.818165
       },
       "HOME_LEAD|HT1": {
-        "multiplier_vs_global": 1.055404,
+        "multiplier_vs_global": 1.054539,
         "n": 70,
-        "shrunk_2h_total_rate": 1.787476
+        "shrunk_2h_total_rate": 1.787867
       },
       "HOME_LEAD|HT2_PLUS": {
-        "multiplier_vs_global": 0.954025,
+        "multiplier_vs_global": 0.95334,
         "n": 48,
-        "shrunk_2h_total_rate": 1.615777
+        "shrunk_2h_total_rate": 1.616295
       }
     },
-    "global_2h_total_rate": 1.693642
+    "global_2h_total_rate": 1.695402
   },
   "improvement": {
-    "brier_delta_baseline_minus_conditioned": -0.001711,
-    "log_loss_delta_baseline_minus_conditioned": -0.00349,
-    "mae_delta_baseline_minus_conditioned": -0.003208
+    "brier_delta_baseline_minus_conditioned": -0.001685,
+    "log_loss_delta_baseline_minus_conditioned": -0.003438,
+    "mae_delta_baseline_minus_conditioned": -0.003138
   },
   "live_status": "OFFLINE_MODEL_BUILT; SCHEDULER_HAS_NO_DEDICATED_HT_RESEARCH_STAGE_YET",
   "model": "PREGAME_2H_BASELINE_X_HALFTIME_STATE_MULTIPLIER_v0.1",
@@ -6588,9 +6588,53 @@
       "prior_state_n": 47,
       "state_bucket": "HOME_LEAD|HT2_PLUS",
       "state_multiplier": 0.950981
+    },
+    {
+      "actual_2h_total": 1,
+      "actual_over_1_5": 0,
+      "baseline_2h_lambda": 1.676038,
+      "baseline_abs_lambda_error": 0.6760378349973726,
+      "baseline_brier": 0.24927509533845024,
+      "baseline_log_loss": 0.6916973702199309,
+      "baseline_p_over_1_5": 0.499275,
+      "conditioned_2h_lambda": 1.64531,
+      "conditioned_abs_lambda_error": 0.6453103903193877,
+      "conditioned_brier": 0.23968757638409197,
+      "conditioned_log_loss": 0.6725193618653853,
+      "conditioned_p_over_1_5": 0.489579,
+      "fixture_id": 1632431,
+      "ht_score": "0-0",
+      "league": "Liga Pro Serie B",
+      "prior_global_2h_rate": 1.693642,
+      "prior_state_2h_rate_shrunk": 1.662591,
+      "prior_state_n": 93,
+      "state_bucket": "DRAW|HT0",
+      "state_multiplier": 0.981667
+    },
+    {
+      "actual_2h_total": 3,
+      "actual_over_1_5": 1,
+      "baseline_2h_lambda": 1.644907,
+      "baseline_abs_lambda_error": 1.3550933466984092,
+      "baseline_brier": 0.2606604871716718,
+      "baseline_log_loss": 0.7144713358917882,
+      "baseline_p_over_1_5": 0.489451,
+      "conditioned_2h_lambda": 1.628455,
+      "conditioned_abs_lambda_error": 1.3715451250630237,
+      "conditioned_brier": 0.2660389104264422,
+      "conditioned_log_loss": 0.7252357538955295,
+      "conditioned_p_over_1_5": 0.48421,
+      "fixture_id": 1636695,
+      "ht_score": "0-5",
+      "league": "Liga Pro Serie B",
+      "prior_global_2h_rate": 1.691643,
+      "prior_state_2h_rate_shrunk": 1.674723,
+      "prior_state_n": 42,
+      "state_bucket": "AWAY_LEAD|HT2_PLUS",
+      "state_multiplier": 0.989998
     }
   ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_HALFTIME_CONDITIONED_2H_CHALLENGER",
-  "walk_forward_evaluated": 296
+  "walk_forward_evaluated": 298
 }

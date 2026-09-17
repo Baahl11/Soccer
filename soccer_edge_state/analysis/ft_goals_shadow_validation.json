@@ -1,60 +1,60 @@
 {
   "anti_leakage": "Uses the latest persisted shadow snapshot strictly before kickoff and joins the final result later by fixture_id; no final result or market odds enter either stored sport projection.",
   "canonical": {
-    "lambda_mae": 1.341955,
+    "lambda_mae": 1.418579,
     "lines": {
       "1.5": {
-        "brier": 0.11987,
-        "log_loss": 0.403867,
-        "mean_probability": 0.768118,
-        "n": 56,
-        "observed_rate": 0.875
+        "brier": 0.125061,
+        "log_loss": 0.415255,
+        "mean_probability": 0.759773,
+        "n": 58,
+        "observed_rate": 0.862069
       },
       "2.5": {
-        "brier": 0.238483,
-        "log_loss": 0.66772,
-        "mean_probability": 0.539533,
-        "n": 56,
+        "brier": 0.241468,
+        "log_loss": 0.674693,
+        "mean_probability": 0.529889,
+        "n": 58,
         "observed_rate": 0.5
       },
       "3.5": {
-        "brier": 0.207514,
-        "log_loss": 0.6021,
-        "mean_probability": 0.325938,
-        "n": 56,
-        "observed_rate": 0.339286
+        "brier": 0.214758,
+        "log_loss": 0.624327,
+        "mean_probability": 0.318259,
+        "n": 58,
+        "observed_rate": 0.344828
       }
     },
-    "n": 56
+    "n": 58
   },
   "challenger": {
-    "lambda_mae": 1.34098,
+    "lambda_mae": 1.417434,
     "lines": {
       "1.5": {
-        "brier": 0.120706,
-        "log_loss": 0.406556,
-        "mean_probability": 0.760502,
-        "n": 56,
-        "observed_rate": 0.875
+        "brier": 0.125803,
+        "log_loss": 0.417717,
+        "mean_probability": 0.751539,
+        "n": 58,
+        "observed_rate": 0.862069
       },
       "2.5": {
-        "brier": 0.237029,
-        "log_loss": 0.664249,
-        "mean_probability": 0.529384,
-        "n": 56,
+        "brier": 0.240382,
+        "log_loss": 0.672284,
+        "mean_probability": 0.51933,
+        "n": 58,
         "observed_rate": 0.5
       },
       "3.5": {
-        "brier": 0.207377,
-        "log_loss": 0.602277,
-        "mean_probability": 0.316656,
-        "n": 56,
-        "observed_rate": 0.339286
+        "brier": 0.214926,
+        "log_loss": 0.626435,
+        "mean_probability": 0.308859,
+        "n": 58,
+        "observed_rate": 0.344828
       }
     },
-    "n": 56
+    "n": 58
   },
-  "evaluated_fixtures": 56,
+  "evaluated_fixtures": 58,
   "evaluations": [
     {
       "away_team": "Zaglebie Lubin",
@@ -1287,27 +1287,71 @@
       "league": "Segunda División",
       "league_id": 300,
       "stage": "CLOSE"
+    },
+    {
+      "away_team": "9 de Octubre",
+      "canonical_lambda": 1.8281,
+      "canonical_probs": {
+        "1.5": 0.545479,
+        "2.5": 0.276921,
+        "3.5": 0.113269
+      },
+      "challenger_lambda": 1.739,
+      "challenger_probs": {
+        "1.5": 0.518771,
+        "2.5": 0.253108,
+        "3.5": 0.099111
+      },
+      "final_total": 1,
+      "fixture_id": 1632431,
+      "generated_at_local": "2026-09-17T14:08:06.909464-06:00",
+      "home_team": "Cuniburo",
+      "league": "Liga Pro Serie B",
+      "league_id": 243,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Cumbayá",
+      "canonical_lambda": 1.7,
+      "canonical_probs": {
+        "1.5": 0.506754,
+        "2.5": 0.242777,
+        "3.5": 0.093189
+      },
+      "challenger_lambda": 1.6227,
+      "challenger_probs": {
+        "1.5": 0.482378,
+        "2.5": 0.22253,
+        "3.5": 0.081976
+      },
+      "final_total": 8,
+      "fixture_id": 1636695,
+      "generated_at_local": "2026-09-17T14:24:49.886882-06:00",
+      "home_team": "22 de Julio",
+      "league": "Liga Pro Serie B",
+      "league_id": 243,
+      "stage": "T-10"
     }
   ],
   "improvement": {
-    "lambda_mae_delta_challenger_minus_canonical": -0.000975,
+    "lambda_mae_delta_challenger_minus_canonical": -0.001145,
     "leagues_where_challenger_improves_o2_5_brier": 0,
     "leagues_with_10plus_evaluations": 0,
     "lines": {
       "1.5": {
-        "brier_delta_challenger_minus_canonical": 0.000836,
-        "log_loss_delta_challenger_minus_canonical": 0.002689,
-        "n": 56
+        "brier_delta_challenger_minus_canonical": 0.000742,
+        "log_loss_delta_challenger_minus_canonical": 0.002462,
+        "n": 58
       },
       "2.5": {
-        "brier_delta_challenger_minus_canonical": -0.001454,
-        "log_loss_delta_challenger_minus_canonical": -0.003471,
-        "n": 56
+        "brier_delta_challenger_minus_canonical": -0.001086,
+        "log_loss_delta_challenger_minus_canonical": -0.002409,
+        "n": 58
       },
       "3.5": {
-        "brier_delta_challenger_minus_canonical": -0.000137,
-        "log_loss_delta_challenger_minus_canonical": 0.000177,
-        "n": 56
+        "brier_delta_challenger_minus_canonical": 0.000168,
+        "log_loss_delta_challenger_minus_canonical": 0.002108,
+        "n": 58
       }
     }
   },

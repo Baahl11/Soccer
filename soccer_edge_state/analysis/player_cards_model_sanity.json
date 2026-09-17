@@ -1,0 +1,25 @@
+{
+  "actionable": false,
+  "bookmaker_card_scoring_rule_assumed": false,
+  "cards_registry_loaded": true,
+  "cards_registry_schema": "1.0.0",
+  "checks": [
+    "player booked and 2+ yellow probabilities are bounded [0,1]",
+    "P(1+ yellow) >= P(2+ yellow)",
+    "P(0 yellow)+P(1+ yellow)=1",
+    "at least one player has finalized yellow-card exposure"
+  ],
+  "data_block_reason": "NO_FINALIZED_PLAYER_YELLOW_CARD_COUNTS_PERSISTED_YET",
+  "data_blocked": true,
+  "decision_weight": 0.0,
+  "failures": [],
+  "oos_validation_complete": false,
+  "player_registry_schema": "1.1.0",
+  "profiles_checked": 0,
+  "profiles_valid": 0,
+  "red_cards_modeled": false,
+  "schema_version": "1.0.0",
+  "status": "BLOCKED_INSUFFICIENT_FINALIZED_PLAYER_CARD_DATA",
+  "target": "PLAYER_YELLOW_CARD_COUNT",
+  "validation_scope": "STRUCTURAL_ONLY_NOT_OOS_PERFORMANCE"
+}

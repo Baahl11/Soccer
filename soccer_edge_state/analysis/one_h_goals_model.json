@@ -1,7 +1,7 @@
 {
   "anti_leakage": "Every target uses only finalized fixtures with kickoff strictly earlier than the target; no target fixture halftime/fulltime result enters its own predictors.",
   "explicit_period_model": true,
-  "finalized_fixtures_with_halftime_target": 346,
+  "finalized_fixtures_with_halftime_target": 348,
   "formula": {
     "away_lambda_1h": "league_away_1h_rate * away_1h_attack_strength * home_1h_defensive_weakness",
     "hierarchy": "global 1H home/away rates -> league 1H rates shrunk to global -> venue-specific team 1H attack/defense shrunk to league",
@@ -11,68 +11,16 @@
   },
   "market_scope": "NO_ACTIONABLE_1H_MARKET_PRICING_YET",
   "metrics": {
-    "mean_abs_1h_total_goals_error": 0.9901,
-    "mean_predicted_over_1_5_probability": 0.4162,
-    "observed_over_1_5_rate": 0.3703,
-    "over_1_5_accuracy_at_0_5_threshold": 0.6108,
-    "over_1_5_brier": 0.2346,
-    "over_1_5_log_loss": 0.6619
+    "mean_abs_1h_total_goals_error": 0.9998,
+    "mean_predicted_over_1_5_probability": 0.4157,
+    "observed_over_1_5_rate": 0.3711,
+    "over_1_5_accuracy_at_0_5_threshold": 0.6101,
+    "over_1_5_brier": 0.235,
+    "over_1_5_log_loss": 0.6626
   },
   "minimum_training_fixtures": 30,
   "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
   "predictions": [
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 0,
-        "total": 0
-      },
-      "away_lambda_1h": 0.916667,
-      "away_team": "Peninsula Power",
-      "fixture_id": 1638556,
-      "global_away_1h_rate": 0.916667,
-      "global_home_1h_rate": 0.708333,
-      "home_lambda_1h": 0.708333,
-      "home_team": "Lions",
-      "kickoff_local": "2026-09-12T03:00:00-06:00",
-      "league": "Queensland NPL",
-      "league_away_1h_rate": 0.916667,
-      "league_home_1h_rate": 0.708333,
-      "league_id": 482,
-      "p_over_0_5_1h": 0.803087,
-      "p_over_1_5_1h": 0.483106,
-      "p_over_2_5_1h": 0.223121,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 0.0,
-      "total_lambda_1h": 1.625
-    },
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 0,
-        "total": 0
-      },
-      "away_lambda_1h": 0.864016,
-      "away_team": "Avispa Fukuoka",
-      "fixture_id": 1556066,
-      "global_away_1h_rate": 0.907216,
-      "global_home_1h_rate": 0.701031,
-      "home_lambda_1h": 0.667649,
-      "home_team": "Shimizu S-pulse",
-      "kickoff_local": "2026-09-12T03:30:00-06:00",
-      "league": "J1 League",
-      "league_away_1h_rate": 0.864016,
-      "league_home_1h_rate": 0.667649,
-      "league_id": 98,
-      "p_over_0_5_1h": 0.783824,
-      "p_over_1_5_1h": 0.452715,
-      "p_over_2_5_1h": 0.199142,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 1.0,
-      "total_lambda_1h": 1.531664
-    },
     {
       "actual_halftime": {
         "away": 0,
@@ -6520,6 +6468,58 @@
       "prior_home_home_matches": 0.0,
       "prior_league_matches": 3.0,
       "total_lambda_1h": 1.294896
+    },
+    {
+      "actual_halftime": {
+        "away": 0,
+        "home": 0,
+        "total": 0
+      },
+      "away_lambda_1h": 0.557015,
+      "away_team": "9 de Octubre",
+      "fixture_id": 1632431,
+      "global_away_1h_rate": 0.612717,
+      "global_home_1h_rate": 0.731214,
+      "home_lambda_1h": 0.66474,
+      "home_team": "Cuniburo",
+      "kickoff_local": "2026-09-17T14:15:00-06:00",
+      "league": "Liga Pro Serie B",
+      "league_away_1h_rate": 0.557015,
+      "league_home_1h_rate": 0.66474,
+      "league_id": 243,
+      "p_over_0_5_1h": 0.705287,
+      "p_over_1_5_1h": 0.345221,
+      "p_over_2_5_1h": 0.125264,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 2.0,
+      "total_lambda_1h": 1.221755
+    },
+    {
+      "actual_halftime": {
+        "away": 5,
+        "home": 0,
+        "total": 5
+      },
+      "away_lambda_1h": 0.531262,
+      "away_team": "Cumbayá",
+      "fixture_id": 1636695,
+      "global_away_1h_rate": 0.610951,
+      "global_home_1h_rate": 0.729107,
+      "home_lambda_1h": 0.634006,
+      "home_team": "22 de Julio",
+      "kickoff_local": "2026-09-17T14:30:00-06:00",
+      "league": "Liga Pro Serie B",
+      "league_away_1h_rate": 0.531262,
+      "league_home_1h_rate": 0.634006,
+      "league_id": 243,
+      "p_over_0_5_1h": 0.688161,
+      "p_over_1_5_1h": 0.324785,
+      "p_over_2_5_1h": 0.113069,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 3.0,
+      "total_lambda_1h": 1.165268
     }
   ],
   "promotion_gate": {
@@ -6535,5 +6535,5 @@
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "target": "HALFTIME_HOME_AND_AWAY_GOALS",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 316
+  "walk_forward_evaluated": 318
 }

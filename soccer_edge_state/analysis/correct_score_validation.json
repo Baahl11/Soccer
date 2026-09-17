@@ -297,12 +297,12 @@
       "top5_hit_rate": 0.666667
     },
     "Liga Pro Serie B": {
-      "mean_multiclass_brier": 0.826859,
-      "mean_negative_log_likelihood": 1.974457,
-      "n": 2,
-      "top1_hit_rate": 0.0,
-      "top3_hit_rate": 1.0,
-      "top5_hit_rate": 1.0
+      "mean_multiclass_brier": 0.88092,
+      "mean_negative_log_likelihood": 4.091067,
+      "n": 4,
+      "top1_hit_rate": 0.25,
+      "top3_hit_rate": 0.75,
+      "top5_hit_rate": 0.75
     },
     "Liga Profesional Argentina": {
       "mean_multiclass_brier": 0.859304,
@@ -569,7 +569,7 @@
       "top5_hit_rate": 1.0
     }
   },
-  "evaluated_fixtures": 196,
+  "evaluated_fixtures": 198,
   "model": "CANONICAL_HOME_AWAY_LAMBDA_INDEPENDENT_POISSON_EXACT_SCORE_v0.1",
   "notes": [
     "Latest persisted pregame canonical home/away lambdas are evaluated against final exact score.",
@@ -578,12 +578,12 @@
     "This report cannot promote Correct Score to BET/LEAN/Galaxy by itself."
   ],
   "overall": {
-    "mean_multiclass_brier": 0.958671,
-    "mean_negative_log_likelihood": 3.225957,
-    "n": 196,
-    "top1_hit_rate": 0.091837,
-    "top3_hit_rate": 0.30102,
-    "top5_hit_rate": 0.479592
+    "mean_multiclass_brier": 0.958431,
+    "mean_negative_log_likelihood": 3.256075,
+    "n": 198,
+    "top1_hit_rate": 0.09596,
+    "top3_hit_rate": 0.30303,
+    "top5_hit_rate": 0.479798
   },
   "promotion_gate": {
     "actionable_review_sample_gate_met": false,
@@ -3927,6 +3927,40 @@
       "league": "Segunda División",
       "multiclass_brier_grid_0_5_plus_other": 0.9894217606338992,
       "negative_log_likelihood": 3.368567981929298,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "1-0",
+      "actual_score_probability": 0.17778696,
+      "actual_score_rank_within_0_5_grid": 1,
+      "away_lambda": 0.7219,
+      "away_team": "9 de Octubre",
+      "fixture_id": 1632431,
+      "home_lambda": 1.1062,
+      "home_team": "Cuniburo",
+      "league": "Liga Pro Serie B",
+      "multiclass_brier_grid_0_5_plus_other": 0.7535998459259778,
+      "negative_log_likelihood": 1.7271692814215596,
+      "stage": "T-10",
+      "top1_hit": 1,
+      "top3_hit": 1,
+      "top5_hit": 1
+    },
+    {
+      "actual_score": "1-7",
+      "actual_score_probability": 2.281e-05,
+      "actual_score_rank_within_0_5_grid": 37,
+      "away_lambda": 0.9812,
+      "away_team": "Cumbayá",
+      "fixture_id": 1636695,
+      "home_lambda": 0.7188,
+      "home_team": "22 de Julio",
+      "league": "Liga Pro Serie B",
+      "multiclass_brier_grid_0_5_plus_other": 1.1163645639047302,
+      "negative_log_likelihood": 10.688186251322767,
       "stage": "CLOSE",
       "top1_hit": 0,
       "top3_hit": 0,

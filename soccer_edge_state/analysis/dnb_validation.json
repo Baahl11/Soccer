@@ -232,10 +232,10 @@
       "observed_win_rate": 0.5
     },
     "Liga Pro Serie B": {
-      "brier": 0.222529,
-      "log_loss": 0.638147,
+      "brier": 0.165277,
+      "log_loss": 0.520127,
       "mean_probability": 0.5,
-      "n": 2,
+      "n": 6,
       "observed_win_rate": 0.5
     },
     "Liga Profesional Argentina": {
@@ -444,36 +444,36 @@
   },
   "by_selection": {
     "AWAY": {
-      "brier": 0.22433,
-      "log_loss": 0.645334,
-      "mean_probability": 0.452492,
-      "n": 154,
-      "observed_win_rate": 0.422078
+      "brier": 0.223206,
+      "log_loss": 0.642972,
+      "mean_probability": 0.452834,
+      "n": 156,
+      "observed_win_rate": 0.423077
     },
     "HOME": {
-      "brier": 0.22433,
-      "log_loss": 0.645334,
-      "mean_probability": 0.547508,
-      "n": 154,
-      "observed_win_rate": 0.577922
+      "brier": 0.223206,
+      "log_loss": 0.642972,
+      "mean_probability": 0.547166,
+      "n": 156,
+      "observed_win_rate": 0.576923
     }
   },
   "draw_push_fixtures": 42,
-  "evaluated_binary_rows": 308,
-  "fixtures_with_result": 196,
+  "evaluated_binary_rows": 312,
+  "fixtures_with_result": 198,
   "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
-  "non_draw_oos_fixtures": 154,
+  "non_draw_oos_fixtures": 156,
   "notes": [
     "Draw fixtures are pushes and are excluded from conditional HOME/AWAY calibration scoring.",
     "DNB fair probability is P(win | no draw), while push probability is tracked separately.",
     "This report cannot promote DNB to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
-  "observed_draw_push_rate": 0.214286,
+  "observed_draw_push_rate": 0.212121,
   "overall_non_draw": {
-    "brier": 0.22433,
-    "log_loss": 0.645334,
+    "brier": 0.223206,
+    "log_loss": 0.642972,
     "mean_probability": 0.5,
-    "n": 308,
+    "n": 312,
     "observed_win_rate": 0.5
   },
   "promotion_gate": {
@@ -3568,6 +3568,46 @@
       "league": "Segunda División",
       "log_loss": 0.5766109715408979,
       "probability_win_given_no_draw": 0.561799,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.12129910078619555,
+      "fixture_id": 1632431,
+      "league": "Liga Pro Serie B",
+      "log_loss": 0.4281405707995167,
+      "probability_win_given_no_draw": 0.65172,
+      "selection": "HOME",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.12129910078619559,
+      "fixture_id": 1632431,
+      "league": "Liga Pro Serie B",
+      "log_loss": 0.4281405707995167,
+      "probability_win_given_no_draw": 0.34828,
+      "selection": "AWAY",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.15200387467653295,
+      "fixture_id": 1636695,
+      "league": "Liga Pro Serie B",
+      "log_loss": 0.494094281453352,
+      "probability_win_given_no_draw": 0.389877,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.15200387467653287,
+      "fixture_id": 1636695,
+      "league": "Liga Pro Serie B",
+      "log_loss": 0.4940942814533518,
+      "probability_win_given_no_draw": 0.610123,
       "selection": "AWAY",
       "stage": "CLOSE"
     }
