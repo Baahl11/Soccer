@@ -34,8 +34,8 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 | 1 | FT Goals | ✅ | ✅ | ✅ | ✅ Tier-B constrained | ⏳ partial | 🟢 IMPROVED v3.14 | Natural state is v3.14.0, provider-call safety passed. Need persisted `ft_goals_intelligence` evidence / ladder visibility; continue accumulating OOS and challenger comparison. Advanced inputs remain separate gaps. |
 | 2 | Team Totals | ✅ canonical home/away lambdas + retained team-total markets | ✅ Poisson O/U 0.5/1.5/2.5 research model | 🟡 v3.15 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.15 | Need natural persistence confirmation, ≥100 OOS for market comparison, ≥200 for actionable review, historical team-total prices/CLV and cross-league calibration. Integer/quarter lines remain unsupported until explicit settlement math exists. No Galaxy/production promotion yet. |
 | 3 | Correct Score | ✅ canonical home/away lambdas + retained correct-score markets | ✅ independent-Poisson exact-score distribution + OOS validator | 🟡 v3.16 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.16 | Need natural persistence confirmation, ≥300 OOS for meaningful market comparison, ≥500 for actionable review, verified correct-score price/CLV history, validated shrinkage for sparse outcomes and cross-league stability. No Galaxy/production promotion yet. |
-| 4 | BTTS | ✅ | ✅ | ✅ | 🔴 | partial | 🟡 LIVE RESEARCH — NEXT | OOS calibration, Brier/log-loss, CLV and explicit promotion gate. |
-| 5 | 1X2 | ✅ | ✅ canonical + relative-strength shadow | ✅ research | 🔴 | partial | 🟡 LIVE RESEARCH | Select/validate production candidate, calibration and promotion gate; preserve discrepancy checks. |
+| 4 | BTTS | ✅ canonical score-matrix probability + observed YES/NO markets | ✅ explicit BTTS probability + OOS validator | 🟡 v3.17 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.17 | Need natural persistence confirmation, ≥150 OOS for market comparison, ≥300 for actionable review, verified BTTS price history/true CLV, validated shrinkage and stable calibration by probability bucket/league/data tier. No Galaxy/production promotion yet. |
+| 5 | 1X2 | ✅ | ✅ canonical + relative-strength shadow | ✅ research | 🔴 | partial | 🟡 LIVE RESEARCH — NEXT | Select/validate production candidate, calibration and promotion gate; preserve discrepancy checks. |
 | 6 | Double Chance | ✅ | 🟠 mathematically derivable from validated 1X2 | 🟡 research | 🔴 | partial | 🟠 | Tie DC probabilities strictly to accepted 1X2 model; validate market mapping; keep research until 1X2 promoted. |
 | 7 | DNB | ✅ | 🔴 | 🔴 | 🔴 | — | 🔴 | Build conditional no-draw probability from accepted 1X2/score matrix and map exact prices. |
 | 8 | Asian Handicap | ✅ score matrix foundation | 🔴 | 🔴 | 🔴 | — | 🔴 | Build margin distribution pricing including quarter lines/push/half-win mechanics; OOS calibration. |
@@ -81,7 +81,6 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 ## #1 FT Goals checkpoint — v3.14
 
 ### Already passes
-
 - SPORT FIRST raw projection exists before market inspection.
 - Home/away/total goal lambdas exist.
 - Score matrix and O1.5/O2.5/O3.5 probabilities exist.
@@ -89,71 +88,67 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 - Availability/data-tier/lineup gates remain intact.
 - Relative-strength challenger remains research-only with decision weight 0.
 - v3.14 adds FT Goals Intelligence / observed-line ladder without changing canonical weights, thresholds, stake or provider-request policy.
-- Natural scheduler state has reached version 3.14.0.
-- Latest v3.14 natural tick used 3/20 provider calls, duplicate request count 0, budget NORMAL.
 
 ### Still missing / not allowed to claim resolved
-
-- Persisted natural-state evidence for the new `ft_goals_intelligence` object still needs explicit confirmation; version 3.14 alone is not proof the new presentation object survived persistence.
-- Relative-strength challenger still needs enough OOS observations to compare Brier/log-loss/goal-lambda error against canonical before any promotion.
-- xG/xGA/npxG/npxGA, PPDA/field tilt, goalkeeper quantitative impact, set-piece effect, weather and rest/congestion are not yet part of the canonical FT-goals probability.
-- No model-weight change is allowed solely because the current FT totals sample is promising.
+- Persisted natural-state evidence for the new `ft_goals_intelligence` object still needs explicit confirmation.
+- Relative-strength challenger still needs enough OOS observations before promotion.
+- Advanced xG/GK/set-piece/rest/weather inputs remain separate gaps.
 
 ## #2 Team Totals checkpoint — v3.15
 
 ### Already passes
-
-- Uses the existing canonical raw home and away goal lambdas; sportsbook odds never create the sporting probability.
-- Produces explicit Home/Away O/U probabilities for 0.5, 1.5 and 2.5 using the team-specific Poisson distribution.
-- Creates fair model prices independently of market inspection.
-- Team-total prices are compared only when the exact market/line/bookmaker was actually observed in the existing market payload.
-- When both Over and Under for the same line/book are available, research output includes no-vig fair market probability.
-- Research rows include model probability, fair price, breakeven, observed price, raw probability edge and raw EV.
-- Ambiguous team-total markets are skipped instead of guessed.
-- Integer and quarter lines are explicitly rejected in v1 instead of silently applying incorrect push/half-win settlement.
-- `actionable=false`, `decision_weight=0`, classification `RESEARCH_ONLY`; cannot produce canonical BET/LEAN.
-- Team Totals cannot enter Galaxy yet.
-- Adds zero provider requests and changes no canonical model weights, thresholds, stakes or BET logic.
-- Dedicated OOS validator records Brier/log-loss and calibration by HOME/AWAY, line and selection.
-- History pipeline now runs the Team Totals validator automatically.
+- Uses canonical home/away lambdas and explicit Home/Away O/U 0.5/1.5/2.5 probabilities.
+- Exact observed team-total markets only; fair price/no-vig/edge/EV research diagnostics.
+- Integer/quarter lines rejected until settlement math exists.
+- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy.
+- Dedicated OOS validator integrated.
 
 ### Still missing / not allowed to claim resolved
-
-- Natural v3.15 state/persistence confirmation is pending and is non-blocking for subsequent engineering work.
-- Need at least 100 OOS fixtures before meaningful market-comparison review and 200 before actionable promotion review.
-- Need persisted historical team-total prices and CLV evidence, not only sporting-outcome calibration.
-- Need stable calibration across competitions and no material degradation versus the parent FT-goals model.
-- Integer lines (e.g. 1.0/2.0) need explicit push math; quarter lines (0.75/1.25/etc.) need Asian split/half-win/half-loss settlement before support.
-- Richer future inputs such as xG, GK impact, set pieces, rest and weather belong to their dedicated gaps and must not be fabricated here.
+- Natural persistence confirmation.
+- ≥100 OOS market review / ≥200 actionable review.
+- Historical prices/CLV and cross-league calibration.
+- Integer/quarter-line settlement support.
 
 ## #3 Correct Score checkpoint — v3.16
 
 ### Already passes
-
-- Uses only the existing canonical home/away goal lambdas; sportsbook prices do not create the sporting probability.
-- Explicit independent-Poisson exact-score probabilities exist, including ranked top scorelines and fair model prices.
-- Correct Score / Exact Score markets are now retained in the existing odds payload without adding provider requests.
-- Only exact observed score selections such as `1-0` / `1:0` are price-compared; grouped/non-exact buckets are recorded separately instead of treated as a precise score.
-- Research output carries model probability, fair price, observed price, breakeven, edge/EV diagnostics and market provenance.
-- `actionable=false`, `decision_weight=0`, classification `RESEARCH_ONLY`; cannot produce canonical BET/LEAN.
-- Correct Score cannot enter Galaxy yet.
-- Adds zero provider requests and changes no canonical model weights, thresholds, stakes or BET logic.
-- Dedicated historical validator measures exact-score negative log likelihood, multiclass Brier on a 0-5 grid + OTHER, and top-1/top-3/top-5 hit rates.
-- History pipeline now runs the Correct Score validator automatically.
+- Exact-score probabilities derived only from canonical home/away lambdas.
+- Correct Score/Exact Score odds retained without extra provider requests.
+- Exact observed score selections only; grouped buckets separated.
+- Research probability/fair price/price/edge/EV diagnostics.
+- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy.
+- Dedicated NLL/multiclass-Brier/top-k validator integrated.
 
 ### Still missing / not allowed to claim resolved
+- Natural persistence confirmation.
+- ≥300 OOS market review / ≥500 actionable review.
+- Historical correct-score prices/CLV and sparse-outcome shrinkage.
+- Cross-league calibration.
 
-- Natural v3.16 state/persistence confirmation is pending and non-blocking.
-- Need at least 300 OOS fixtures before meaningful market-comparison review and 500 before actionable promotion review.
-- Need verified historical correct-score prices and CLV evidence.
-- Need validated shrinkage for sparse exact-score outcomes and calibration stability across competitions.
-- Grouped sportsbook outcomes such as `Any Other Score` must remain separate from exact-score probabilities.
-- The model still inherits all parent FT-goals limitations: xG/npxG, GK quantitative impact, set pieces, rest/congestion and weather remain separate gaps.
+## #4 BTTS checkpoint — v3.17
+
+### Already passes
+- Uses the existing canonical score-matrix `raw_btts_yes_prob`; market prices never create the sporting probability.
+- Exposes P(YES), P(NO) and independent model fair prices.
+- Compares only to observed BTTS YES/NO markets.
+- Computes no-vig fair market probability only when both YES and NO are present for the same bookmaker market.
+- Research rows expose model probability, fair price, breakeven, no-vig market probability, raw edge and raw EV.
+- `actionable=false`, `decision_weight=0`, classification `RESEARCH_ONLY`; cannot produce canonical BET/LEAN or enter Galaxy.
+- Adds zero provider requests and changes no canonical weights, thresholds, stakes or BET logic.
+- Dedicated historical validator measures Brier, log-loss, observed-vs-predicted rate, probability buckets, competition and data tier.
+- History pipeline runs the BTTS validator automatically.
+
+### Still missing / not allowed to claim resolved
+- Natural v3.17 persistence confirmation is pending and non-blocking.
+- Need at least 150 OOS fixtures before meaningful market-comparison review and 300 before actionable promotion review.
+- Need verified historical BTTS prices and true CLV evidence.
+- Need validated market shrinkage and stable calibration across probability buckets, leagues and data tiers.
+- BTTS remains downstream of the parent FT-goals model, so xG/GK/set-piece/rest/weather limitations remain inherited.
 
 ### Engineering rule going forward
 
-Do not block the next module on the natural-validation check. Record the check as pending and continue. When a later natural state supplies evidence, update this file asynchronously.
+Do not block the next module on the natural-validation check. Record the check as pending and continue. When later natural state supplies evidence, update this file asynchronously.
 
 ## Next engineering target
 
-#4 BTTS — audit the existing live research probability, add/verify explicit OOS calibration + market comparison/CLV gates, and prepare a promotion-review path without changing canonical BET logic prematurely.
+#5 1X2 — audit canonical + relative-strength/Dixon-Coles challengers, consolidate OOS calibration and define an explicit promotion-review path without allowing research models to affect canonical BET logic prematurely.
