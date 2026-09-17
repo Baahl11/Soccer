@@ -1,0 +1,78 @@
+{
+  "canonical": {
+    "multiclass_brier": 0.622,
+    "multiclass_log_loss": 1.0434,
+    "sample_fixtures": 183,
+    "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
+    "top1_accuracy": 0.541
+  },
+  "challengers": [
+    {
+      "accuracy_delta_pp": null,
+      "baseline_brier": null,
+      "baseline_log_loss": null,
+      "brier_delta": null,
+      "candidate": "RELATIVE_STRENGTH",
+      "challenger_brier": null,
+      "challenger_log_loss": null,
+      "log_loss_delta": null,
+      "minimum_same_method_sample_gate_met": false,
+      "quality_better_on_matched_report": false,
+      "status": "INSUFFICIENT_SAME_METHOD_OOS_SAMPLE",
+      "walk_forward_evaluated": 0
+    },
+    {
+      "accuracy_delta_pp": 0.0,
+      "baseline_brier": 0.6196,
+      "baseline_log_loss": 1.042,
+      "brier_delta": -0.0014,
+      "candidate": "DIXON_COLES",
+      "challenger_brier": 0.6182,
+      "challenger_log_loss": 1.0392,
+      "log_loss_delta": -0.0028,
+      "minimum_same_method_sample_gate_met": false,
+      "quality_better_on_matched_report": true,
+      "status": "INSUFFICIENT_SAME_METHOD_OOS_SAMPLE",
+      "walk_forward_evaluated": 153
+    },
+    {
+      "accuracy_delta_pp": -1.31,
+      "baseline_brier": 0.6196,
+      "baseline_log_loss": 1.042,
+      "brier_delta": -0.0065,
+      "candidate": "CLASS_PRIOR_CALIBRATION",
+      "challenger_brier": 0.6131,
+      "challenger_log_loss": 1.0324,
+      "log_loss_delta": -0.0096,
+      "minimum_same_method_sample_gate_met": false,
+      "quality_better_on_matched_report": true,
+      "status": "INSUFFICIENT_SAME_METHOD_OOS_SAMPLE",
+      "walk_forward_evaluated": 153
+    }
+  ],
+  "methodology_notes": [
+    "Each challenger is first judged only against its own matched baseline cohort.",
+    "Summary metrics from different fixture cohorts are not used to declare a winner.",
+    "Accuracy alone is insufficient; probabilistic calibration metrics are primary.",
+    "This report cannot promote 1X2 to BET/LEAN/Galaxy."
+  ],
+  "production_winner_selected": false,
+  "promotion_gate": {
+    "enabled": false,
+    "minimum_actionable_review_oos": 400,
+    "minimum_same_fixture_head_to_head_oos": 300,
+    "minimum_same_method_oos": 200,
+    "requires": [
+      "same-fixture head-to-head comparison for shortlisted challengers",
+      "Brier and log-loss both improve versus canonical on the same cohort",
+      "H/D/A calibration stable by probability bucket and competition",
+      "verified historical 1X2 prices and true CLV evidence",
+      "validated market shrinkage after final model selection",
+      "manual/versioned promotion; never automatic weight changes"
+    ]
+  },
+  "recommendation": "KEEP_CANONICAL_RESEARCH_BASELINE; NO_CHALLENGER_READY_FOR_FORMAL_REVIEW",
+  "review_eligible_challengers": [],
+  "schema_version": "1.0.0",
+  "status": "RESEARCH_ONLY_MODEL_SELECTION"
+}

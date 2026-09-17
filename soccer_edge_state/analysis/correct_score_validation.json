@@ -169,12 +169,12 @@
       "top5_hit_rate": 0.0
     },
     "Erovnuli Liga": {
-      "mean_multiclass_brier": 0.873568,
-      "mean_negative_log_likelihood": 2.515329,
-      "n": 2,
-      "top1_hit_rate": 0.5,
-      "top3_hit_rate": 0.5,
-      "top5_hit_rate": 0.5
+      "mean_multiclass_brier": 0.889411,
+      "mean_negative_log_likelihood": 2.532552,
+      "n": 3,
+      "top1_hit_rate": 0.333333,
+      "top3_hit_rate": 0.333333,
+      "top5_hit_rate": 0.333333
     },
     "Erovnuli Liga 2": {
       "mean_multiclass_brier": 0.831635,
@@ -185,12 +185,12 @@
       "top5_hit_rate": 1.0
     },
     "First League": {
-      "mean_multiclass_brier": 0.872686,
-      "mean_negative_log_likelihood": 2.329776,
-      "n": 8,
-      "top1_hit_rate": 0.375,
-      "top3_hit_rate": 0.625,
-      "top5_hit_rate": 0.875
+      "mean_multiclass_brier": 0.875775,
+      "mean_negative_log_likelihood": 2.504856,
+      "n": 10,
+      "top1_hit_rate": 0.4,
+      "top3_hit_rate": 0.6,
+      "top5_hit_rate": 0.8
     },
     "Frauen Bundesliga": {
       "mean_multiclass_brier": 0.964261,
@@ -353,12 +353,12 @@
       "top5_hit_rate": 0.25
     },
     "Premier League": {
-      "mean_multiclass_brier": 0.960088,
-      "mean_negative_log_likelihood": 2.595841,
-      "n": 8,
+      "mean_multiclass_brier": 0.952225,
+      "mean_negative_log_likelihood": 2.5692,
+      "n": 9,
       "top1_hit_rate": 0.0,
-      "top3_hit_rate": 0.375,
-      "top5_hit_rate": 0.625
+      "top3_hit_rate": 0.333333,
+      "top5_hit_rate": 0.666667
     },
     "Premiership": {
       "mean_multiclass_brier": 0.942402,
@@ -529,7 +529,7 @@
       "top5_hit_rate": 1.0
     }
   },
-  "evaluated_fixtures": 179,
+  "evaluated_fixtures": 183,
   "model": "CANONICAL_HOME_AWAY_LAMBDA_INDEPENDENT_POISSON_EXACT_SCORE_v0.1",
   "notes": [
     "Latest persisted pregame canonical home/away lambdas are evaluated against final exact score.",
@@ -538,12 +538,12 @@
     "This report cannot promote Correct Score to BET/LEAN/Galaxy by itself."
   ],
   "overall": {
-    "mean_multiclass_brier": 0.959558,
-    "mean_negative_log_likelihood": 3.206651,
-    "n": 179,
-    "top1_hit_rate": 0.089385,
-    "top3_hit_rate": 0.301676,
-    "top5_hit_rate": 0.486034
+    "mean_multiclass_brier": 0.958184,
+    "mean_negative_log_likelihood": 3.198492,
+    "n": 183,
+    "top1_hit_rate": 0.092896,
+    "top3_hit_rate": 0.300546,
+    "top5_hit_rate": 0.486339
   },
   "promotion_gate": {
     "actionable_review_sample_gate_met": false,
@@ -3519,6 +3519,23 @@
       "top5_hit": 0
     },
     {
+      "actual_score": "1-2",
+      "actual_score_probability": 0.09479194,
+      "actual_score_rank_within_0_5_grid": 4,
+      "away_lambda": 1.9688,
+      "away_team": "Pyramids FC",
+      "fixture_id": 1612247,
+      "home_lambda": 0.7188,
+      "home_team": "Enppi",
+      "league": "Premier League",
+      "multiclass_brier_grid_0_5_plus_other": 0.8893184625926114,
+      "negative_log_likelihood": 2.3560708644432604,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 1
+    },
+    {
       "actual_score": "0-2",
       "actual_score_probability": 0.07614806,
       "actual_score_rank_within_0_5_grid": 4,
@@ -3533,6 +3550,57 @@
       "stage": "T-10",
       "top1_hit": 0,
       "top3_hit": 0,
+      "top5_hit": 1
+    },
+    {
+      "actual_score": "2-1",
+      "actual_score_probability": 0.07676547,
+      "actual_score_rank_within_0_5_grid": 6,
+      "away_lambda": 1.2656,
+      "away_team": "Dila",
+      "fixture_id": 1509154,
+      "home_lambda": 1.1875,
+      "home_team": "FC Iberia 1999",
+      "league": "Erovnuli Liga",
+      "multiclass_brier_grid_0_5_plus_other": 0.9210992485076457,
+      "negative_log_likelihood": 2.5670003486753745,
+      "stage": "T-10",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "6-0",
+      "actual_score_probability": 0.01371681,
+      "actual_score_rank_within_0_5_grid": 37,
+      "away_lambda": 0.9656,
+      "away_team": "Leningradets",
+      "fixture_id": 1577533,
+      "home_lambda": 2.6969,
+      "home_team": "Nizhny Novgorod",
+      "league": "First League",
+      "multiclass_brier_grid_0_5_plus_other": 0.9444176308607378,
+      "negative_log_likelihood": 4.289133420599488,
+      "stage": "T-10",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "1-1",
+      "actual_score_probability": 0.11988509,
+      "actual_score_rank_within_0_5_grid": 1,
+      "away_lambda": 1.0312,
+      "away_team": "Veles",
+      "fixture_id": 1577537,
+      "home_lambda": 1.575,
+      "home_team": "Torpedo Moskva",
+      "league": "First League",
+      "multiclass_brier_grid_0_5_plus_other": 0.8318430345329487,
+      "negative_log_likelihood": 2.121221555079563,
+      "stage": "T-10",
+      "top1_hit": 1,
+      "top3_hit": 1,
       "top5_hit": 1
     },
     {

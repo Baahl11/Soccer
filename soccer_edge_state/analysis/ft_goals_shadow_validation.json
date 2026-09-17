@@ -1,60 +1,60 @@
 {
   "anti_leakage": "Uses the latest persisted shadow snapshot strictly before kickoff and joins the final result later by fixture_id; no final result or market odds enter either stored sport projection.",
   "canonical": {
-    "lambda_mae": 1.328447,
+    "lambda_mae": 1.318554,
     "lines": {
       "1.5": {
-        "brier": 0.131164,
-        "log_loss": 0.431066,
-        "mean_probability": 0.766264,
-        "n": 47,
-        "observed_rate": 0.851064
+        "brier": 0.126763,
+        "log_loss": 0.420991,
+        "mean_probability": 0.76663,
+        "n": 50,
+        "observed_rate": 0.86
       },
       "2.5": {
-        "brier": 0.245642,
-        "log_loss": 0.682577,
-        "mean_probability": 0.535624,
-        "n": 47,
-        "observed_rate": 0.489362
+        "brier": 0.243456,
+        "log_loss": 0.677958,
+        "mean_probability": 0.536194,
+        "n": 50,
+        "observed_rate": 0.5
       },
       "3.5": {
-        "brier": 0.21154,
-        "log_loss": 0.612699,
-        "mean_probability": 0.321017,
-        "n": 47,
-        "observed_rate": 0.319149
+        "brier": 0.206378,
+        "log_loss": 0.601341,
+        "mean_probability": 0.32167,
+        "n": 50,
+        "observed_rate": 0.32
       }
     },
-    "n": 47
+    "n": 50
   },
   "challenger": {
-    "lambda_mae": 1.327313,
+    "lambda_mae": 1.313304,
     "lines": {
       "1.5": {
-        "brier": 0.131533,
-        "log_loss": 0.432312,
-        "mean_probability": 0.758688,
-        "n": 47,
-        "observed_rate": 0.851064
+        "brier": 0.126852,
+        "log_loss": 0.421439,
+        "mean_probability": 0.760055,
+        "n": 50,
+        "observed_rate": 0.86
       },
       "2.5": {
-        "brier": 0.245011,
-        "log_loss": 0.680962,
-        "mean_probability": 0.525845,
-        "n": 47,
-        "observed_rate": 0.489362
+        "brier": 0.242045,
+        "log_loss": 0.674715,
+        "mean_probability": 0.527785,
+        "n": 50,
+        "observed_rate": 0.5
       },
       "3.5": {
-        "brier": 0.21043,
-        "log_loss": 0.610744,
-        "mean_probability": 0.312441,
-        "n": 47,
-        "observed_rate": 0.319149
+        "brier": 0.205146,
+        "log_loss": 0.599266,
+        "mean_probability": 0.314386,
+        "n": 50,
+        "observed_rate": 0.32
       }
     },
-    "n": 47
+    "n": 50
   },
-  "evaluated_fixtures": 47,
+  "evaluated_fixtures": 50,
   "evaluations": [
     {
       "away_team": "Zaglebie Lubin",
@@ -1089,27 +1089,93 @@
       "league": "Liga 3",
       "league_id": 1104,
       "stage": "T-10"
+    },
+    {
+      "away_team": "Dila",
+      "canonical_lambda": 2.4531,
+      "canonical_probs": {
+        "1.5": 0.702947,
+        "2.5": 0.444108,
+        "3.5": 0.232452
+      },
+      "challenger_lambda": 2.5577,
+      "challenger_probs": {
+        "1.5": 0.724331,
+        "2.5": 0.470889,
+        "3.5": 0.254816
+      },
+      "final_total": 3,
+      "fixture_id": 1509154,
+      "generated_at_local": "2026-09-17T09:52:23.453449-06:00",
+      "home_team": "FC Iberia 1999",
+      "league": "Erovnuli Liga",
+      "league_id": 327,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Leningradets",
+      "canonical_lambda": 3.6625,
+      "canonical_probs": {
+        "1.5": 0.880308,
+        "2.5": 0.708131,
+        "3.5": 0.497933
+      },
+      "challenger_lambda": 3.7546,
+      "challenger_probs": {
+        "1.5": 0.888676,
+        "2.5": 0.723645,
+        "3.5": 0.517103
+      },
+      "final_total": 6,
+      "fixture_id": 1577533,
+      "generated_at_local": "2026-09-17T09:52:23.453449-06:00",
+      "home_team": "Nizhny Novgorod",
+      "league": "First League",
+      "league_id": 236,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Veles",
+      "canonical_lambda": 2.6063,
+      "canonical_probs": {
+        "1.5": 0.73382,
+        "2.5": 0.483138,
+        "3.5": 0.265358
+      },
+      "challenger_lambda": 2.5938,
+      "challenger_probs": {
+        "1.5": 0.731412,
+        "2.5": 0.480008,
+        "3.5": 0.262646
+      },
+      "final_total": 2,
+      "fixture_id": 1577537,
+      "generated_at_local": "2026-09-17T09:52:23.453449-06:00",
+      "home_team": "Torpedo Moskva",
+      "league": "First League",
+      "league_id": 236,
+      "stage": "T-10"
     }
   ],
   "improvement": {
-    "lambda_mae_delta_challenger_minus_canonical": -0.001134,
+    "lambda_mae_delta_challenger_minus_canonical": -0.00525,
     "leagues_where_challenger_improves_o2_5_brier": 0,
     "leagues_with_10plus_evaluations": 0,
     "lines": {
       "1.5": {
-        "brier_delta_challenger_minus_canonical": 0.000369,
-        "log_loss_delta_challenger_minus_canonical": 0.001246,
-        "n": 47
+        "brier_delta_challenger_minus_canonical": 8.9e-05,
+        "log_loss_delta_challenger_minus_canonical": 0.000448,
+        "n": 50
       },
       "2.5": {
-        "brier_delta_challenger_minus_canonical": -0.000631,
-        "log_loss_delta_challenger_minus_canonical": -0.001615,
-        "n": 47
+        "brier_delta_challenger_minus_canonical": -0.001411,
+        "log_loss_delta_challenger_minus_canonical": -0.003243,
+        "n": 50
       },
       "3.5": {
-        "brier_delta_challenger_minus_canonical": -0.00111,
-        "log_loss_delta_challenger_minus_canonical": -0.001955,
-        "n": 47
+        "brier_delta_challenger_minus_canonical": -0.001232,
+        "log_loss_delta_challenger_minus_canonical": -0.002075,
+        "n": 50
       }
     }
   },
