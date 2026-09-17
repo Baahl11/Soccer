@@ -174,6 +174,8 @@ def main() -> None:
             sot_total = _sum(played, "shots_on_target")
             goals_total = _sum(played, "goals")
             assists_total = _sum(played, "assists")
+            yellow_cards_total = _sum(played, "yellow_cards")
+            red_cards_total = _sum(played, "red_cards")
             item["windows"][f"last_{n}"] = {
                 "n": len(sample),
                 "played_n": len(played),
@@ -186,6 +188,8 @@ def main() -> None:
                 "sot_total": sot_total,
                 "goals_total": goals_total,
                 "assists_total": assists_total,
+                "yellow_cards_total": yellow_cards_total,
+                "red_cards_total": red_cards_total,
                 "goals": goals_total if goals_total is not None else 0.0,
                 "assists": assists_total if assists_total is not None else 0.0,
                 "rates_per90": {
@@ -193,10 +197,13 @@ def main() -> None:
                     "shots_on_target": _per90(sot_total, total_minutes),
                     "goals": _per90(goals_total, total_minutes),
                     "assists": _per90(assists_total, total_minutes),
+                    "yellow_cards": _per90(yellow_cards_total, total_minutes),
+                    "red_cards": _per90(red_cards_total, total_minutes),
                 },
                 "sot_1plus": _hit(played, "shots_on_target", 1),
                 "sot_2plus": _hit(played, "shots_on_target", 2),
                 "shots_2plus": _hit(played, "shots", 2),
+                "yellow_card_1plus": _hit(played, "yellow_cards", 1),
                 "role": _role_block(played),
                 "goalkeeper": {
                     "gk_matches": len(gk_rows),
@@ -208,7 +215,7 @@ def main() -> None:
         output_players.append(item)
 
     report = {
-        "schema_version": "1.4.0",
+        "schema_version": "1.5.0",
         "status": "RESEARCH_ONLY_PLAYER_TRENDS",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "decision_weight": 0.0,
@@ -225,6 +232,7 @@ def main() -> None:
             "Postgame capture is preferred over pregame capture for a duplicate fixture.",
             "Fixture IDs are deduplicated to avoid repeated scheduler snapshots.",
             "Last-5/10/20 and role/minutes rates are descriptive inputs until an explicit probability registry applies shrinkage and OOS validation.",
+            "Player discipline retains yellow-card and red-card counts separately; player-card modeling targets yellow cards only.",
             "Goalkeeper save_result_proxy is saves/(saves+goals_conceded); it is not PSxG and not shot-quality adjusted.",
             "No player or goalkeeper trend can change classification, tier, stake, or bet eligibility.",
         ],
