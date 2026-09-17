@@ -20,14 +20,14 @@ async def run_tick() -> dict[str, Any]:
         "canonical_thresholds_changed": False,
         "canonical_bet_logic_changed": False,
         "player_prop_bet_eligibility_changed": False,
-        "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE",
+        "production_status": "DORMANT_DATA_BLOCKED_UNTIL_FINALIZED_GK_SAMPLES",
         "decision_weight": 0.0,
-        "policy": "PROJECTED OPPONENT SOT X SHRUNK SAVE RESULT PROXY; NO PSxG CLAIM; NO MARKET PRICE/EV/PROMOTION",
+        "policy": "MODEL BUILT BUT DATA-BLOCKED UNTIL FINALIZED GK SAVES+CONCEDED SAMPLES PERSIST; PROJECTED OPPONENT SOT X SHRUNK SAVE RESULT PROXY; NO PSxG CLAIM; NO MARKET PRICE/EV/PROMOTION",
     }
     payload["v341_provider_requests_added"] = 0
     payload["v341_model_weights_changed"] = False
     payload["v341_canonical_bet_logic_changed"] = False
-    payload["v341_gk_saves_checkpoint"] = "GK_SAVE_LINE_PROBABILITIES_ADDED_RESEARCH_ONLY; PSXG_AND_VERIFIED_PRICE_REMAIN_GAPS"
+    payload["v341_gk_saves_checkpoint"] = "GK_SAVES_MODEL_BUILT_BUT_DATA_BLOCKED; NATURAL_FINALIZED_GK_SAMPLES_REQUIRED_BEFORE_PROBABILITIES"
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
     return payload
