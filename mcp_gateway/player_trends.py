@@ -14,13 +14,18 @@ def _compact(payload:dict[str,Any])->dict[str,Any]:
     for team in payload.get('response') or []:
         if not isinstance(team,dict):continue
         t=team.get('team') or {}; players=[]
-        for row in team.get('players') or []:
+        grouped=team.get('players')
+        # Defensive fallback for a flat player row. Grouped-by-team is the
+        # normal shape used by the current compact path, but valid player data
+        # must never be discarded solely because provider shape differs.
+        source_rows=grouped if isinstance(grouped,list) else [team]
+        for row in source_rows or []:
             if not isinstance(row,dict):continue
             p=row.get('player') or {}; stats=(row.get('statistics') or [{}]);s=stats[0] if stats and isinstance(stats[0],dict) else {}
             games=s.get('games') or {};shots=s.get('shots') or {};goals=s.get('goals') or {};passes=s.get('passes') or {};tackles=s.get('tackles') or {};duels=s.get('duels') or {}
-            players.append({'player_id':p.get('id'),'name':p.get('name'),'minutes':_num(games.get('minutes')),'position':games.get('position'),'rating':_num(games.get('rating')),'captain':games.get('captain'),'substitute':games.get('substitute'),'shots':_num(shots.get('total')),'shots_on_target':_num(shots.get('on')),'goals':_num(goals.get('total')),'assists':_num(goals.get('assists')),'passes':_num(passes.get('total')),'key_passes':_num(passes.get('key')),'tackles':_num(tackles.get('total')),'duels':_num(duels.get('total')),'duels_won':_num(duels.get('won'))})
+            players.append({'player_id':p.get('id'),'name':p.get('name'),'minutes':_num(games.get('minutes')),'position':games.get('position'),'rating':_num(games.get('rating')),'captain':games.get('captain'),'substitute':games.get('substitute'),'shots':_num(shots.get('total')),'shots_on_target':_num(shots.get('on')),'goals':_num(goals.get('total')),'assists':_num(goals.get('assists')),'goals_conceded':_num(goals.get('conceded')),'saves':_num(goals.get('saves')),'passes':_num(passes.get('total')),'key_passes':_num(passes.get('key')),'tackles':_num(tackles.get('total')),'duels':_num(duels.get('total')),'duels_won':_num(duels.get('won'))})
         teams.append({'team_id':t.get('id'),'team':t.get('name'),'players':players})
-    return {'status':'RESEARCH_ONLY_PLAYER_FIXTURE_STATS','actionable':False,'decision_weight':0.0,'teams':teams,'policy':'OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY'}
+    return {'status':'RESEARCH_ONLY_PLAYER_FIXTURE_STATS','actionable':False,'decision_weight':0.0,'teams':teams,'goalkeeper_fields_retained':['saves','goals_conceded'],'policy':'OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY'}
 
 def eligible(event:dict[str,Any])->bool:
     if event.get('stage') not in _ALLOWED_STAGES:return False
