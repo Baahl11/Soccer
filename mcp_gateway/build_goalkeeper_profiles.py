@@ -50,6 +50,13 @@ def main() -> None:
                 "avg_saves": _num(gk.get("avg_saves")),
                 "avg_goals_conceded": _num(gk.get("avg_goals_conceded")),
                 "save_result_proxy_n": int(proxy.get("n") or 0),
+                "save_result_proxy_saves": _num(proxy.get("saves")),
+                "save_result_proxy_goals_conceded": _num(proxy.get("goals_conceded")),
+                "save_result_proxy_sot_proxy": (
+                    round((_num(proxy.get("saves")) or 0.0) + (_num(proxy.get("goals_conceded")) or 0.0), 3)
+                    if _num(proxy.get("saves")) is not None and _num(proxy.get("goals_conceded")) is not None
+                    else None
+                ),
                 "save_result_proxy": _num(proxy.get("save_result_proxy")),
             }
 
@@ -68,7 +75,7 @@ def main() -> None:
         }
 
     report = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "status": "RESEARCH_GOALKEEPER_PROFILE_REGISTRY",
         "source_player_trends_schema": source.get("schema_version"),
         "goalkeepers": profiles,
