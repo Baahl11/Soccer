@@ -35,14 +35,14 @@
         "win": 8
       },
       "WATCH": {
-        "hit_rate_ex_push": 0.5758,
-        "loss": 28,
-        "mean_brier": 0.1764,
-        "mean_log_loss": 0.5334,
-        "n": 66,
+        "hit_rate_ex_push": 0.5672,
+        "loss": 29,
+        "mean_brier": 0.1767,
+        "mean_log_loss": 0.5342,
+        "n": 67,
         "push": 0,
-        "roi_per_decision": 0.1212,
-        "roi_units_flat_1u": 8.0,
+        "roi_per_decision": 0.1045,
+        "roi_units_flat_1u": 7.0,
         "win": 38
       }
     },
@@ -70,14 +70,14 @@
         "win": 2
       },
       "2.5": {
-        "hit_rate_ex_push": 0.6296,
-        "loss": 10,
-        "mean_brier": 0.2353,
-        "mean_log_loss": 0.6669,
-        "n": 27,
+        "hit_rate_ex_push": 0.6071,
+        "loss": 11,
+        "mean_brier": 0.2339,
+        "mean_log_loss": 0.664,
+        "n": 28,
         "push": 0,
-        "roi_per_decision": 0.5715,
-        "roi_units_flat_1u": 15.43,
+        "roi_per_decision": 0.5154,
+        "roi_units_flat_1u": 14.43,
         "win": 17
       },
       "3.5": {
@@ -116,14 +116,14 @@
     },
     "by_side": {
       "OVER": {
-        "hit_rate_ex_push": 0.6667,
-        "loss": 7,
-        "mean_brier": 0.1584,
-        "mean_log_loss": 0.4789,
-        "n": 21,
+        "hit_rate_ex_push": 0.6364,
+        "loss": 8,
+        "mean_brier": 0.1601,
+        "mean_log_loss": 0.4837,
+        "n": 22,
         "push": 0,
-        "roi_per_decision": 0.0381,
-        "roi_units_flat_1u": 0.8,
+        "roi_per_decision": -0.0091,
+        "roi_units_flat_1u": -0.2,
         "win": 14
       },
       "UNDER": {
@@ -162,18 +162,18 @@
         "win": 5
       },
       "T-40": {
-        "hit_rate_ex_push": 0.7619,
-        "loss": 5,
-        "mean_brier": 0.2012,
-        "mean_log_loss": 0.589,
-        "n": 21,
+        "hit_rate_ex_push": 0.7273,
+        "loss": 6,
+        "mean_brier": 0.201,
+        "mean_log_loss": 0.5889,
+        "n": 22,
         "push": 0,
-        "roi_per_decision": 0.2705,
-        "roi_units_flat_1u": 5.68,
+        "roi_per_decision": 0.2127,
+        "roi_units_flat_1u": 4.68,
         "win": 16
       }
     },
-    "evaluated_decisions": 79,
+    "evaluated_decisions": 80,
     "notes": [
       "Only canonical full-match Goals Over/Under observations are included.",
       "Period, team-total, alternate and other derivative markets are excluded.",
@@ -184,14 +184,14 @@
     "status": "VALIDATION_ONLY_DO_NOT_UPGRADE_BACKEND",
     "timezone_basis": "America/Mexico_City",
     "watch_research": {
-      "hit_rate_ex_push": 0.5758,
-      "loss": 28,
-      "mean_brier": 0.1764,
-      "mean_log_loss": 0.5334,
-      "n": 66,
+      "hit_rate_ex_push": 0.5672,
+      "loss": 29,
+      "mean_brier": 0.1767,
+      "mean_log_loss": 0.5342,
+      "n": 67,
       "push": 0,
-      "roi_per_decision": 0.1212,
-      "roi_units_flat_1u": 8.0,
+      "roi_per_decision": 0.1045,
+      "roi_units_flat_1u": 7.0,
       "win": 38
     }
   },
@@ -203,8 +203,8 @@
   "one_x_two": {
     "accuracy_by_latest_stage": {
       "T-10": {
-        "accuracy": 0.5639,
-        "n": 133
+        "accuracy": 0.5662,
+        "n": 136
       },
       "T-20": {
         "accuracy": 0.4118,
@@ -225,20 +225,20 @@
     },
     "accuracy_by_max_probability": {
       "40-49%": {
-        "accuracy": 0.5224,
-        "n": 67
+        "accuracy": 0.5294,
+        "n": 68
       },
       "50-59%": {
         "accuracy": 0.52,
         "n": 50
       },
       "<40%": {
-        "accuracy": 0.5556,
-        "n": 27
+        "accuracy": 0.5714,
+        "n": 28
       },
       ">=60%": {
-        "accuracy": 0.5938,
-        "n": 32
+        "accuracy": 0.5758,
+        "n": 33
       }
     },
     "activation_gate": {
@@ -246,9 +246,9 @@
       "reason": "1X2 remains research-only until sample size and calibration quality are sufficient; no backend classification may be upgraded from this report."
     },
     "actual_outcome_counts": {
-      "A": 60,
+      "A": 61,
       "D": 34,
-      "H": 82
+      "H": 84
     },
     "calibration_by_outcome": {
       "A": {
@@ -269,13 +269,13 @@
         },
         "30-40%": {
           "mean_forecast_midpoint": 0.35,
-          "n": 43,
-          "observed_rate": 0.3721
+          "n": 44,
+          "observed_rate": 0.3636
         },
         "40-50%": {
           "mean_forecast_midpoint": 0.45,
-          "n": 24,
-          "observed_rate": 0.625
+          "n": 25,
+          "observed_rate": 0.64
         },
         "50-60%": {
           "mean_forecast_midpoint": 0.55,
@@ -284,8 +284,8 @@
         },
         "60-70%": {
           "mean_forecast_midpoint": 0.65,
-          "n": 3,
-          "observed_rate": 0.3333
+          "n": 4,
+          "observed_rate": 0.25
         },
         "70-80%": {
           "mean_forecast_midpoint": 0.75,
@@ -306,8 +306,8 @@
         },
         "20-30%": {
           "mean_forecast_midpoint": 0.25,
-          "n": 124,
-          "observed_rate": 0.2016
+          "n": 127,
+          "observed_rate": 0.1969
         },
         "30-40%": {
           "mean_forecast_midpoint": 0.35,
@@ -338,18 +338,18 @@
         },
         "10-20%": {
           "mean_forecast_midpoint": 0.15,
-          "n": 17,
-          "observed_rate": 0.4706
+          "n": 18,
+          "observed_rate": 0.5
         },
         "20-30%": {
           "mean_forecast_midpoint": 0.25,
-          "n": 20,
-          "observed_rate": 0.3
+          "n": 21,
+          "observed_rate": 0.2857
         },
         "30-40%": {
           "mean_forecast_midpoint": 0.35,
-          "n": 42,
-          "observed_rate": 0.3095
+          "n": 43,
+          "observed_rate": 0.3256
         },
         "40-50%": {
           "mean_forecast_midpoint": 0.45,
@@ -373,9 +373,9 @@
         }
       }
     },
-    "finalized_fixtures_available": 326,
-    "multiclass_brier": 0.6237,
-    "multiclass_log_loss": 1.0446,
+    "finalized_fixtures_available": 329,
+    "multiclass_brier": 0.6259,
+    "multiclass_log_loss": 1.0491,
     "notes": [
       "Joins the latest pre-kickoff raw 1X2 projection to a final result by fixture_id.",
       "Uses one projection per finalized fixture to avoid repeated-stage weighting.",
@@ -383,15 +383,15 @@
       "Calibration bins are descriptive and require larger samples before model changes are justified."
     ],
     "predicted_outcome_counts": {
-      "A": 51,
+      "A": 53,
       "D": 13,
-      "H": 112
+      "H": 113
     },
-    "sample_fixtures": 176,
+    "sample_fixtures": 179,
     "schema_version": "1.1.0",
     "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
     "timezone_basis": "America/Mexico_City",
-    "top1_accuracy": 0.5398
+    "top1_accuracy": 0.5419
   },
   "schema_version": "1.0.0",
   "signal_performance": {
@@ -401,13 +401,13 @@
       "sample_gate_met": false
     },
     "GOALS_UNDER": {
-      "hit_rate": 0.5763,
-      "n": 59,
+      "hit_rate": 0.5667,
+      "n": 60,
       "sample_gate_met": true
     },
     "TWO_WAY": {
-      "hit_rate": 0.5662,
-      "n": 136,
+      "hit_rate": 0.558,
+      "n": 138,
       "sample_gate_met": true
     }
   },
@@ -418,8 +418,8 @@
       "sample_gate_met": false
     },
     "GOALS_UNDER:70-79": {
-      "hit_rate": 0.619,
-      "n": 21,
+      "hit_rate": 0.5909,
+      "n": 22,
       "sample_gate_met": false
     },
     "GOALS_UNDER:<70": {
@@ -443,8 +443,8 @@
       "sample_gate_met": false
     },
     "TWO_WAY:>=80": {
-      "hit_rate": 0.6203,
-      "n": 79,
+      "hit_rate": 0.6049,
+      "n": 81,
       "sample_gate_met": true
     }
   },
