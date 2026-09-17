@@ -2,24 +2,24 @@
   "service": "soccer-edge-automation",
   "version": "3.13.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-17T10:08:12.102396+00:00",
-  "generated_at_local": "2026-09-17T04:08:12.102396-06:00",
+  "generated_at_utc": "2026-09-17T10:24:56.282231+00:00",
+  "generated_at_local": "2026-09-17T04:24:56.282231-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 172,
-  "due_fixture_count": 142,
-  "event_count": 5,
+  "due_fixture_count": 149,
+  "event_count": 14,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 20,
+  "api_calls_this_tick": 18,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 6796,
+  "last_daily_remaining": 6774,
   "daily_budget_mode": "NORMAL",
-  "deferred_due_to_budget": 1,
-  "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 4,
+  "deferred_due_to_budget": 0,
+  "deferred_due_to_priority": 93,
+  "deep_dive_processed_count": 12,
   "shortlist_event_count": 4,
-  "screened_out_low_data_count": 0,
+  "screened_out_low_data_count": 44,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -61,24 +61,24 @@
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 5,
-    "galaxy_fixture_hits": 0,
-    "galaxy_fixture_misses": 5,
-    "galaxy_raw_used": 0,
-    "galaxy_raw_fallbacks": 5,
-    "api_team_stats_calls_avoided": 0,
+    "galaxy_fixture_reads": 12,
+    "galaxy_fixture_hits": 8,
+    "galaxy_fixture_misses": 4,
+    "galaxy_raw_used": 8,
+    "galaxy_raw_fallbacks": 4,
+    "api_team_stats_calls_avoided": 16,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
     "galaxy_odds_stale_or_missing": 0,
-    "galaxy_slate_reads": 0,
+    "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
-    "galaxy_slate_fallbacks": 0,
-    "galaxy_slate_stale_rejections": 0,
+    "galaxy_slate_fallbacks": 1,
+    "galaxy_slate_stale_rejections": 1,
     "api_slate_calls_avoided": 0,
-    "api_slate_reconciliation_calls": 1,
+    "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 0,
+    "provider_requests_avoided": 16,
     "odds_market_events": 0,
     "galaxy_odds_market_events": 0,
     "api_odds_fallback_events": 0,
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-17T04:08:12.102396-06:00",
+    "generated_at_local": "2026-09-17T04:24:56.282231-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -1756,12 +1756,13 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 5,
-        "rows_attached": 5,
+        "row_count": 12,
+        "rows_attached": 12,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "WATCH": 5
+          "WATCH": 4,
+          "PASS": 8
         }
       }
     },
@@ -1889,18 +1890,18 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1600344,
-      "country": "South-Africa",
-      "competition": "Premier Soccer League",
-      "data_tier": "B",
-      "kickoff": "2026-09-17T11:30:00-06:00",
+      "fixture_id": 1570386,
+      "country": "Spain",
+      "competition": "La Liga",
+      "data_tier": "A",
+      "kickoff": "2026-09-17T11:00:00-06:00",
       "stage": "T-90",
-      "home": "Orlando Pirates",
-      "away": "Durban City",
+      "home": "Real Betis",
+      "away": "Getafe",
       "tracks": [],
-      "side_score": null,
-      "goals_score": null,
-      "two_way_score": null,
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -1908,10 +1909,185 @@
       "line": null,
       "price": null,
       "bookmaker": null,
-      "classification": "WATCH",
+      "classification": "PASS",
       "tier": null,
       "stake_units": 0.0,
-      "reason": "Per-tick API budget reached (20); lower-priority work deferred."
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+    },
+    {
+      "fixture_id": 1570390,
+      "country": "Spain",
+      "competition": "La Liga",
+      "data_tier": "A",
+      "kickoff": "2026-09-17T13:30:00-06:00",
+      "stage": "T-90",
+      "home": "Malaga",
+      "away": "Villarreal",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+    },
+    {
+      "fixture_id": 1636285,
+      "country": "World",
+      "competition": "UEFA Europa League",
+      "data_tier": "A",
+      "kickoff": "2026-09-17T10:45:00-06:00",
+      "stage": "T-90",
+      "home": "Levski Sofia",
+      "away": "Red Bull Salzburg",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+    },
+    {
+      "fixture_id": 1636304,
+      "country": "World",
+      "competition": "UEFA Europa League",
+      "data_tier": "A",
+      "kickoff": "2026-09-17T10:45:00-06:00",
+      "stage": "T-90",
+      "home": "OFI",
+      "away": "1899 Hoffenheim",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+    },
+    {
+      "fixture_id": 1636232,
+      "country": "World",
+      "competition": "UEFA Europa League",
+      "data_tier": "A",
+      "kickoff": "2026-09-17T13:00:00-06:00",
+      "stage": "T-90",
+      "home": "Beşiktaş",
+      "away": "Marseille",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+    },
+    {
+      "fixture_id": 1636247,
+      "country": "World",
+      "competition": "UEFA Europa League",
+      "data_tier": "A",
+      "kickoff": "2026-09-17T13:00:00-06:00",
+      "stage": "T-90",
+      "home": "Celtic",
+      "away": "Ferencvarosi TC",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+    },
+    {
+      "fixture_id": 1636251,
+      "country": "World",
+      "competition": "UEFA Europa League",
+      "data_tier": "A",
+      "kickoff": "2026-09-17T13:00:00-06:00",
+      "stage": "T-90",
+      "home": "Crystal Palace",
+      "away": "Lech Poznan",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+    },
+    {
+      "fixture_id": 1636278,
+      "country": "World",
+      "competition": "UEFA Europa League",
+      "data_tier": "A",
+      "kickoff": "2026-09-17T13:00:00-06:00",
+      "stage": "T-90",
+      "home": "Juventus",
+      "away": "NEC Nijmegen",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
     }
   ],
   "research_report": {
@@ -2097,22 +2273,22 @@
         "reason": null
       },
       {
-        "fixture_id": 1600344,
-        "kickoff": "2026-09-17T11:30:00-06:00",
-        "league_id": 288,
-        "league": "Premier Soccer League",
-        "home": "Orlando Pirates",
-        "away": "Durban City",
+        "fixture_id": 1570386,
+        "kickoff": "2026-09-17T11:00:00-06:00",
+        "league_id": 140,
+        "league": "La Liga",
+        "home": "Real Betis",
+        "away": "Getafe",
         "stage": "T-90",
-        "tier": null,
-        "research_status": "RESEARCHED_WATCH",
-        "classification": "WATCH",
+        "tier": "A",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
         "bet_eligible": false,
         "goals": {
-          "lambda_total": null,
-          "over_2_5_prob": null
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
         },
-        "btts_yes_prob": null,
+        "btts_yes_prob": 0.497,
         "one_x_two_research": {
           "home": null,
           "draw": null,
@@ -2124,7 +2300,309 @@
         "model_trend_disagreements": [],
         "deep_dive_flag": false,
         "expected_corner_environment": null,
-        "sporting_screen": {},
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      },
+      {
+        "fixture_id": 1570390,
+        "kickoff": "2026-09-17T13:30:00-06:00",
+        "league_id": 140,
+        "league": "La Liga",
+        "home": "Malaga",
+        "away": "Villarreal",
+        "stage": "T-90",
+        "tier": "A",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
+        },
+        "btts_yes_prob": 0.497,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      },
+      {
+        "fixture_id": 1636285,
+        "kickoff": "2026-09-17T10:45:00-06:00",
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "home": "Levski Sofia",
+        "away": "Red Bull Salzburg",
+        "stage": "T-90",
+        "tier": "A",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
+        },
+        "btts_yes_prob": 0.497,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      },
+      {
+        "fixture_id": 1636304,
+        "kickoff": "2026-09-17T10:45:00-06:00",
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "home": "OFI",
+        "away": "1899 Hoffenheim",
+        "stage": "T-90",
+        "tier": "A",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
+        },
+        "btts_yes_prob": 0.497,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      },
+      {
+        "fixture_id": 1636232,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "home": "Beşiktaş",
+        "away": "Marseille",
+        "stage": "T-90",
+        "tier": "A",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
+        },
+        "btts_yes_prob": 0.497,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      },
+      {
+        "fixture_id": 1636247,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "home": "Celtic",
+        "away": "Ferencvarosi TC",
+        "stage": "T-90",
+        "tier": "A",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
+        },
+        "btts_yes_prob": 0.497,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      },
+      {
+        "fixture_id": 1636251,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "home": "Crystal Palace",
+        "away": "Lech Poznan",
+        "stage": "T-90",
+        "tier": "A",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
+        },
+        "btts_yes_prob": 0.497,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      },
+      {
+        "fixture_id": 1636278,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "home": "Juventus",
+        "away": "NEC Nijmegen",
+        "stage": "T-90",
+        "tier": "A",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
+        },
+        "btts_yes_prob": 0.497,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
         "market_status": null,
         "market_reason": null,
         "best_market": {},
@@ -2132,13 +2610,14 @@
       }
     ],
     "counts": {
-      "RESEARCHED_WATCH": 5
+      "RESEARCHED_WATCH": 4,
+      "RESEARCHED_NO_ACTIONABLE_EDGE": 8
     },
-    "researched_count": 5,
+    "researched_count": 12,
     "insufficient_data_count": 0,
     "actionable_signal_count": 0,
-    "watch_count": 5,
-    "no_actionable_edge_count": 0,
+    "watch_count": 4,
+    "no_actionable_edge_count": 8,
     "scope": [
       "FT_GOALS",
       "BTTS_RESEARCH",
@@ -2148,15 +2627,15 @@
       "MARKET_AFTER_SPORT"
     ]
   },
-  "research_report_count_this_tick": 5,
-  "research_completed_count_this_tick": 5,
+  "research_report_count_this_tick": 12,
+  "research_completed_count_this_tick": 12,
   "research_insufficient_data_count_this_tick": 0,
   "research_policy": "EVERY_DUE_EVENT_MUST_END_AS_RESEARCHED_OR_EXPLICIT_INSUFFICIENT_DATA; ZERO_FORCED_PICKS; MARKET_REMAINS_AFTER_SPORT",
   "daily_research": {
     "status": "ACTIVE",
     "horizon_hours": 12,
     "stage": "T-90_RESEARCH_ONLY",
-    "fixtures_researched_this_tick": 4,
+    "fixtures_researched_this_tick": 12,
     "rows": [
       {
         "fixture": {
@@ -2773,16 +3252,904 @@
         "notes": [
           "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
         ]
+      },
+      {
+        "fixture": {
+          "fixture_id": 1570386,
+          "kickoff": "2026-09-17T11:00:00-06:00",
+          "timestamp": 1789664400,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 140,
+          "league": "La Liga",
+          "country": "Spain",
+          "season": 2026,
+          "round": "Regular Season - 6",
+          "home_team_id": 543,
+          "home_team": "Real Betis",
+          "away_team_id": 546,
+          "away_team": "Getafe",
+          "venue": "Estadio de La Cartuja",
+          "city": "Sevilla",
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": "J. Sanchez",
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "A",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-17T06:01:43.767138+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
+      },
+      {
+        "fixture": {
+          "fixture_id": 1570390,
+          "kickoff": "2026-09-17T13:30:00-06:00",
+          "timestamp": 1789673400,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 140,
+          "league": "La Liga",
+          "country": "Spain",
+          "season": 2026,
+          "round": "Regular Season - 6",
+          "home_team_id": 535,
+          "home_team": "Malaga",
+          "away_team_id": 533,
+          "away_team": "Villarreal",
+          "venue": "Estadio La Rosaleda",
+          "city": "Malaga",
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": "M. Ortiz",
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "A",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-17T06:01:55.809013+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
+      },
+      {
+        "fixture": {
+          "fixture_id": 1636285,
+          "kickoff": "2026-09-17T10:45:00-06:00",
+          "timestamp": 1789663500,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 3,
+          "league": "UEFA Europa League",
+          "country": "World",
+          "season": 2026,
+          "round": "League Stage - 1",
+          "home_team_id": 646,
+          "home_team": "Levski Sofia",
+          "away_team_id": 571,
+          "away_team": "Red Bull Salzburg",
+          "venue": "National Stadium Vasil Levski",
+          "city": "Sofia",
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": "M. Al-Emara",
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "A",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-17T06:01:42.219414+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
+      },
+      {
+        "fixture": {
+          "fixture_id": 1636304,
+          "kickoff": "2026-09-17T10:45:00-06:00",
+          "timestamp": 1789663500,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 3,
+          "league": "UEFA Europa League",
+          "country": "World",
+          "season": 2026,
+          "round": "League Stage - 1",
+          "home_team_id": 1124,
+          "home_team": "OFI",
+          "away_team_id": 167,
+          "away_team": "1899 Hoffenheim",
+          "venue": "Pankritio Stadium",
+          "city": "Heraklion",
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": "J. Alberola",
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "A",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-17T06:01:40.985115+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
+      },
+      {
+        "fixture": {
+          "fixture_id": 1636232,
+          "kickoff": "2026-09-17T13:00:00-06:00",
+          "timestamp": 1789671600,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 3,
+          "league": "UEFA Europa League",
+          "country": "World",
+          "season": 2026,
+          "round": "League Stage - 1",
+          "home_team_id": 549,
+          "home_team": "Beşiktaş",
+          "away_team_id": 81,
+          "away_team": "Marseille",
+          "venue": "Besiktas Park",
+          "city": "Istanbul",
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": "A. Colombo",
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "A",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-17T06:01:50.363945+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
+      },
+      {
+        "fixture": {
+          "fixture_id": 1636247,
+          "kickoff": "2026-09-17T13:00:00-06:00",
+          "timestamp": 1789671600,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 3,
+          "league": "UEFA Europa League",
+          "country": "World",
+          "season": 2026,
+          "round": "League Stage - 1",
+          "home_team_id": 247,
+          "home_team": "Celtic",
+          "away_team_id": 651,
+          "away_team": "Ferencvarosi TC",
+          "venue": "Celtic Park",
+          "city": "Glasgow",
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": "P. Kolaric",
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "A",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-17T06:01:51.437637+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
+      },
+      {
+        "fixture": {
+          "fixture_id": 1636251,
+          "kickoff": "2026-09-17T13:00:00-06:00",
+          "timestamp": 1789671600,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 3,
+          "league": "UEFA Europa League",
+          "country": "World",
+          "season": 2026,
+          "round": "League Stage - 1",
+          "home_team_id": 52,
+          "home_team": "Crystal Palace",
+          "away_team_id": 347,
+          "away_team": "Lech Poznan",
+          "venue": "Selhurst Park",
+          "city": "London",
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": "M. Ocenas",
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "A",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-17T06:01:53.184067+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
+      },
+      {
+        "fixture": {
+          "fixture_id": 1636278,
+          "kickoff": "2026-09-17T13:00:00-06:00",
+          "timestamp": 1789671600,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 3,
+          "league": "UEFA Europa League",
+          "country": "World",
+          "season": 2026,
+          "round": "League Stage - 1",
+          "home_team_id": 496,
+          "home_team": "Juventus",
+          "away_team_id": 413,
+          "away_team": "NEC Nijmegen",
+          "venue": "Allianz Stadium",
+          "city": "Turin",
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": "O. Derevinskyi",
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "A",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-17T06:01:48.526205+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
       }
     ],
     "policy": "SPORTING_RESEARCH_UP_TO_12H_PREKICKOFF; MARKET_VALIDATION_REMAINS_T40_T20_T10_CLOSE; NO_FORCED_PICKS"
   },
-  "daily_research_count_this_tick": 4,
+  "daily_research_count_this_tick": 12,
   "daily_research_horizon_hours": 12,
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-17T04:08:12.102396-06:00",
+    "generated_at_local": "2026-09-17T04:24:56.282231-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -2879,8 +4246,8 @@
       "multi_match_active": 0,
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
-      "invalidated_fixture_count_this_tick": 4,
-      "updated_at_utc": "2026-09-17T10:08:12.102396+00:00",
+      "invalidated_fixture_count_this_tick": 12,
+      "updated_at_utc": "2026-09-17T10:24:56.282231+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -2912,8 +4279,8 @@
   "galaxy_builder_policy": "SPORT FIRST; MARKET SECOND; COMBINATION THIRD; MARKET-BACKED LEGS ONLY; TARGET +110 OR BETTER; NO SYNTHETIC UNQUOTED LINES; NO LOGICALLY REDUNDANT LEGS; ONE PRIMARY SGP PER FIXTURE; EXACT SPORTSBOOK SGP QUOTE REQUIRED FOR FINAL BET",
   "galaxy_builder_actionable_scope": "V0.4 MARKET-BACKED RESEARCH; SGP LEGS MUST EXIST IN VERIFIED CURRENT MARKET; SAME-BOOK COMPONENT REFERENCE MUST REACH +110 TARGET FLOOR; LOGICALLY REDUNDANT LEGS BLOCKED; ONE PRIMARY SGP PER FIXTURE; EXACT CORRELATION-ADJUSTED SPORTSBOOK SGP QUOTE STILL REQUIRED FOR BET",
   "match_intelligence_schema_version": "0.1.0",
-  "match_intelligence_event_count_this_tick": 4,
-  "referee_assignment_verified_count_this_tick": 0,
+  "match_intelligence_event_count_this_tick": 12,
+  "referee_assignment_verified_count_this_tick": 8,
   "coach_pair_verified_count_this_tick": 0,
   "card_market_groups_this_tick": 0,
   "card_market_quotes_this_tick": 0,
@@ -2924,11 +4291,44 @@
   "v39_canonical_bet_logic_changed": false,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "6815",
+    "daily_remaining": "6790",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
+    {
+      "event_type": "DAILY_DISCOVERY",
+      "stage": "MORNING",
+      "classification": "PRE-FINAL",
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
+      "fixture": null,
+      "coverage": null,
+      "sporting_shortlist": null,
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": null,
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
+        "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
+        "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
+      ],
+      "result": null,
+      "error": null
+    },
     {
       "event_type": "SOCCER_REFRESH",
       "stage": "T-90",
@@ -4213,31 +5613,31 @@
       "error": null
     },
     {
-      "event_type": "QUOTA_GUARD",
+      "event_type": "SOCCER_REFRESH",
       "stage": "T-90",
-      "classification": "WATCH",
+      "classification": "PASS",
       "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
-        "fixture_id": 1600344,
-        "kickoff": "2026-09-17T11:30:00-06:00",
-        "timestamp": 1789666200,
+        "fixture_id": 1570386,
+        "kickoff": "2026-09-17T11:00:00-06:00",
+        "timestamp": 1789664400,
         "status": "NS",
         "status_long": "Not Started",
         "elapsed": null,
-        "league_id": 288,
-        "league": "Premier Soccer League",
-        "country": "South-Africa",
+        "league_id": 140,
+        "league": "La Liga",
+        "country": "Spain",
         "season": 2026,
         "round": "Regular Season - 6",
-        "home_team_id": 2700,
-        "home_team": "Orlando Pirates",
-        "away_team_id": 24757,
-        "away_team": "Durban City",
-        "venue": "Orlando Stadium",
-        "city": "Johannesburg",
+        "home_team_id": 543,
+        "home_team": "Real Betis",
+        "away_team_id": 546,
+        "away_team": "Getafe",
+        "venue": "Estadio de La Cartuja",
+        "city": "Sevilla",
         "goals": {
           "home": null,
           "away": null
@@ -4260,14 +5660,45 @@
             "away": null
           }
         },
-        "referee": null,
+        "referee": "J. Sanchez",
         "fixture_timezone": "America/Mexico_City"
       },
-      "coverage": null,
-      "sporting_shortlist": null,
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-17T06:01:43.767138+00:00",
+        "external_api_calls": 0
+      },
       "market_source": null,
       "market_provenance": null,
       "trend_context": {
@@ -4278,14 +5709,2300 @@
       "player_trends_research": null,
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1570386,
+        "kickoff": "2026-09-17T11:00:00-06:00",
+        "match": "Real Betis vs Getafe",
+        "stage": "T-90",
+        "data_tier": "A",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.497,
+            "two_way_scoring_score": 49.7
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
+            "name": "J. Sanchez",
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "La Liga",
+            "round": "Regular Season - 6",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Estadio de La Cartuja",
+            "city": "Sevilla"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-17T06:01:43.767138+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-90",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1570390,
+        "kickoff": "2026-09-17T13:30:00-06:00",
+        "timestamp": 1789673400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 140,
+        "league": "La Liga",
+        "country": "Spain",
+        "season": 2026,
+        "round": "Regular Season - 6",
+        "home_team_id": 535,
+        "home_team": "Malaga",
+        "away_team_id": 533,
+        "away_team": "Villarreal",
+        "venue": "Estadio La Rosaleda",
+        "city": "Malaga",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "M. Ortiz",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-17T06:01:55.809013+00:00",
+        "external_api_calls": 0
+      },
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1570390,
+        "kickoff": "2026-09-17T13:30:00-06:00",
+        "match": "Malaga vs Villarreal",
+        "stage": "T-90",
+        "data_tier": "A",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.497,
+            "two_way_scoring_score": 49.7
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
+            "name": "M. Ortiz",
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "La Liga",
+            "round": "Regular Season - 6",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Estadio La Rosaleda",
+            "city": "Malaga"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-17T06:01:55.809013+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-90",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1636285,
+        "kickoff": "2026-09-17T10:45:00-06:00",
+        "timestamp": 1789663500,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "country": "World",
+        "season": 2026,
+        "round": "League Stage - 1",
+        "home_team_id": 646,
+        "home_team": "Levski Sofia",
+        "away_team_id": 571,
+        "away_team": "Red Bull Salzburg",
+        "venue": "National Stadium Vasil Levski",
+        "city": "Sofia",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "M. Al-Emara",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-17T06:01:42.219414+00:00",
+        "external_api_calls": 0
+      },
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1636285,
+        "kickoff": "2026-09-17T10:45:00-06:00",
+        "match": "Levski Sofia vs Red Bull Salzburg",
+        "stage": "T-90",
+        "data_tier": "A",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.497,
+            "two_way_scoring_score": 49.7
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
+            "name": "M. Al-Emara",
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "UEFA Europa League",
+            "round": "League Stage - 1",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "National Stadium Vasil Levski",
+            "city": "Sofia"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-17T06:01:42.219414+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-90",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1636304,
+        "kickoff": "2026-09-17T10:45:00-06:00",
+        "timestamp": 1789663500,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "country": "World",
+        "season": 2026,
+        "round": "League Stage - 1",
+        "home_team_id": 1124,
+        "home_team": "OFI",
+        "away_team_id": 167,
+        "away_team": "1899 Hoffenheim",
+        "venue": "Pankritio Stadium",
+        "city": "Heraklion",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "J. Alberola",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-17T06:01:40.985115+00:00",
+        "external_api_calls": 0
+      },
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1636304,
+        "kickoff": "2026-09-17T10:45:00-06:00",
+        "match": "OFI vs 1899 Hoffenheim",
+        "stage": "T-90",
+        "data_tier": "A",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.497,
+            "two_way_scoring_score": 49.7
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
+            "name": "J. Alberola",
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "UEFA Europa League",
+            "round": "League Stage - 1",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Pankritio Stadium",
+            "city": "Heraklion"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-17T06:01:40.985115+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-90",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1636232,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "timestamp": 1789671600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "country": "World",
+        "season": 2026,
+        "round": "League Stage - 1",
+        "home_team_id": 549,
+        "home_team": "Beşiktaş",
+        "away_team_id": 81,
+        "away_team": "Marseille",
+        "venue": "Besiktas Park",
+        "city": "Istanbul",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "A. Colombo",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-17T06:01:50.363945+00:00",
+        "external_api_calls": 0
+      },
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1636232,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "match": "Beşiktaş vs Marseille",
+        "stage": "T-90",
+        "data_tier": "A",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.497,
+            "two_way_scoring_score": 49.7
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
+            "name": "A. Colombo",
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "UEFA Europa League",
+            "round": "League Stage - 1",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Besiktas Park",
+            "city": "Istanbul"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-17T06:01:50.363945+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-90",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1636247,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "timestamp": 1789671600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "country": "World",
+        "season": 2026,
+        "round": "League Stage - 1",
+        "home_team_id": 247,
+        "home_team": "Celtic",
+        "away_team_id": 651,
+        "away_team": "Ferencvarosi TC",
+        "venue": "Celtic Park",
+        "city": "Glasgow",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "P. Kolaric",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-17T06:01:51.437637+00:00",
+        "external_api_calls": 0
+      },
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1636247,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "match": "Celtic vs Ferencvarosi TC",
+        "stage": "T-90",
+        "data_tier": "A",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.497,
+            "two_way_scoring_score": 49.7
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
+            "name": "P. Kolaric",
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "UEFA Europa League",
+            "round": "League Stage - 1",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Celtic Park",
+            "city": "Glasgow"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-17T06:01:51.437637+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-90",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1636251,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "timestamp": 1789671600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "country": "World",
+        "season": 2026,
+        "round": "League Stage - 1",
+        "home_team_id": 52,
+        "home_team": "Crystal Palace",
+        "away_team_id": 347,
+        "away_team": "Lech Poznan",
+        "venue": "Selhurst Park",
+        "city": "London",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "M. Ocenas",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-17T06:01:53.184067+00:00",
+        "external_api_calls": 0
+      },
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1636251,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "match": "Crystal Palace vs Lech Poznan",
+        "stage": "T-90",
+        "data_tier": "A",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.497,
+            "two_way_scoring_score": 49.7
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
+            "name": "M. Ocenas",
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "UEFA Europa League",
+            "round": "League Stage - 1",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Selhurst Park",
+            "city": "London"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-17T06:01:53.184067+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-90",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1636278,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "timestamp": 1789671600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 3,
+        "league": "UEFA Europa League",
+        "country": "World",
+        "season": 2026,
+        "round": "League Stage - 1",
+        "home_team_id": 496,
+        "home_team": "Juventus",
+        "away_team_id": 413,
+        "away_team": "NEC Nijmegen",
+        "venue": "Allianz Stadium",
+        "city": "Turin",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "O. Derevinskyi",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "A"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-17T06:01:48.526205+00:00",
+        "external_api_calls": 0
+      },
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1636278,
+        "kickoff": "2026-09-17T13:00:00-06:00",
+        "match": "Juventus vs NEC Nijmegen",
+        "stage": "T-90",
+        "data_tier": "A",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH"
+          },
+          "btts": {
+            "status": "MODELED_RESEARCH_ONLY",
+            "yes_probability": 0.497,
+            "two_way_scoring_score": 49.7
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "actionable": false,
+            "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
+          },
+          "corners": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "observed_quote_count": 0,
+            "team_corner_quote_count": 0,
+            "expected_corner_environment": null,
+            "actionable": false
+          },
+          "cards": {
+            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "observed_quote_count": 0,
+            "team_card_quote_count": 0,
+            "red_card_quote_count": 0,
+            "player_card_quote_count": 0,
+            "actionable": false
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "probability_model": "MISSING_PLAYER_PROP_MODEL",
+            "actionable": false
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "status": "PARTIAL_OR_NOT_VERIFIED",
+            "coaches": [],
+            "regime_change_model": "PENDING"
+          },
+          "referee": {
+            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
+            "name": "O. Derevinskyi",
+            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "LIMITED_VERIFIED_INPUTS",
+            "tracks": [],
+            "trend_signals": [],
+            "model_disagreements": [],
+            "formation_pair": []
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "required": [
+              "xG",
+              "xGA",
+              "npxG",
+              "npxGA",
+              "PPDA",
+              "field_tilt",
+              "big_chances",
+              "box_entries",
+              "shot_quality"
+            ]
+          },
+          "set_pieces": {
+            "status": "MISSING_EXPLICIT_LIVE_MODEL"
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES"
+          },
+          "weather": {
+            "status": "NOT_VERIFIED_NO_LIVE_WEATHER_SOURCE_INTEGRATED"
+          },
+          "competition_context": {
+            "status": "STRUCTURED_CONTEXT_ONLY",
+            "competition": "UEFA Europa League",
+            "round": "League Stage - 1",
+            "motivation_policy": "NEVER_INFER_MOTIVATION_WITHOUT_VERIFIED_OBJECTIVE_CONTEXT"
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "venue": "Allianz Stadium",
+            "city": "Turin"
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "fresh": null,
+            "latest_timestamp": null,
+            "market_after_sport": true
+          }
+        },
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-17T06:01:48.526205+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "LOW_DATA_SCREEN_SUMMARY",
+      "stage": "SLATE_SCREEN",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
+      "fixture": null,
+      "coverage": null,
+      "sporting_shortlist": null,
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": null,
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
       "match_intelligence": null,
       "lineups": null,
       "raw_projection": null,
       "market_decision": null,
       "best_market": null,
-      "notes": null,
+      "notes": [
+        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
+        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
+      ],
       "result": null,
-      "error": "Per-tick API budget reached (20); lower-priority work deferred."
+      "error": null
     }
   ]
 }
