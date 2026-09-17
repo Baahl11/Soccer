@@ -2,10 +2,45 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 from typing import Any
 
-from mcp_gateway.player_shots_intelligence import _line_table, _num
+LINES = (0.5, 1.5, 2.5, 3.5, 4.5, 5.5)
+
+
+def _num(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _nb_pmf(k: int, alpha: float, beta_minutes: float, future_exposure_minutes: float) -> float:
+    if k < 0 or alpha <= 0 or beta_minutes <= 0 or future_exposure_minutes < 0:
+        return 0.0
+    if future_exposure_minutes == 0:
+        return 1.0 if k == 0 else 0.0
+    log_coeff = math.lgamma(k + alpha) - math.lgamma(alpha) - math.lgamma(k + 1)
+    p_prior = beta_minutes / (beta_minutes + future_exposure_minutes)
+    p_future = future_exposure_minutes / (beta_minutes + future_exposure_minutes)
+    return math.exp(log_coeff + alpha * math.log(p_prior) + k * math.log(p_future))
+
+
+def _prob_at_least(threshold_count: int, alpha: float, beta: float, exposure: float) -> float:
+    if threshold_count <= 0:
+        return 1.0
+    cdf = sum(_nb_pmf(k, alpha, beta, exposure) for k in range(threshold_count))
+    return max(0.0, min(1.0, 1.0 - cdf))
+
+
+def _line_table(alpha: float, beta: float, exposure: float) -> list[dict[str, Any]]:
+    rows = []
+    for line in LINES:
+        need = int(math.floor(line)) + 1
+        over = _prob_at_least(need, alpha, beta, exposure)
+        rows.append({"line": line, "p_over": round(over, 6), "p_under": round(1.0 - over, 6)})
+    return rows
 
 
 def _load(path: str) -> dict[str, Any]:
