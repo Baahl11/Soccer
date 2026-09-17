@@ -1,24 +1,24 @@
 {
   "service": "soccer-edge-automation",
-  "version": "3.40.0",
+  "version": "3.41.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-17T22:28:51.112614+00:00",
-  "generated_at_local": "2026-09-17T16:28:51.112614-06:00",
+  "generated_at_utc": "2026-09-17T22:32:48.390479+00:00",
+  "generated_at_local": "2026-09-17T16:32:48.390479-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 175,
-  "due_fixture_count": 24,
-  "event_count": 13,
+  "due_fixture_count": 23,
+  "event_count": 12,
   "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 4856,
+  "last_daily_remaining": 4839,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 11,
-  "shortlist_event_count": 8,
+  "deep_dive_processed_count": 10,
+  "shortlist_event_count": 7,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
@@ -41,8 +41,8 @@
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
   "relative_strength_1x2_shadow_count_this_tick": 3,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
-  "trend_context_count_this_tick": 3,
-  "trend_signal_count_this_tick": 6,
+  "trend_context_count_this_tick": 2,
+  "trend_signal_count_this_tick": 4,
   "trend_model_disagreement_count_this_tick": 0,
   "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
   "player_trend_fixture_calls_attempted_this_tick": 0,
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-17T16:28:51.112614-06:00",
+    "generated_at_local": "2026-09-17T16:32:48.390479-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -126,7 +126,7 @@
       "B": 48,
       "D": 22
     },
-    "pregame_data_eligible_fixture_count": 13,
+    "pregame_data_eligible_fixture_count": 12,
     "errors": [],
     "competitions": [
       {
@@ -245,7 +245,7 @@
         "country": "Bolivia",
         "competition": "Primera División",
         "fixtures_in_scanned_slate": 2,
-        "pregame_eligible_fixtures": 2,
+        "pregame_eligible_fixtures": 1,
         "provider_coverage_known": true,
         "coverage": {
           "events": true,
@@ -1301,7 +1301,7 @@
         "country": "Brazil",
         "competition": "Paraibano 2",
         "fixtures_in_scanned_slate": 2,
-        "pregame_eligible_fixtures": 1,
+        "pregame_eligible_fixtures": 0,
         "provider_coverage_known": true,
         "coverage": {
           "events": false,
@@ -1778,15 +1778,15 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 12,
-        "rows_attached": 12,
+        "row_count": 11,
+        "rows_attached": 11,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
           "WATCH": 6,
           "PASS": 3,
           "CLOSE": 1,
-          "POSTGAME": 2
+          "POSTGAME": 1
         }
       }
     },
@@ -2077,44 +2077,6 @@
       "tier": null,
       "stake_units": 0.0,
       "reason": "SPORTING_SCREEN_PASS"
-    },
-    {
-      "fixture_id": 1635564,
-      "country": "England",
-      "competition": "League Cup",
-      "data_tier": "B",
-      "kickoff": "2026-09-17T12:30:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Manchester City",
-      "away": "Norwich",
-      "tracks": [
-        "GOALS_UNDER",
-        "TWO_WAY"
-      ],
-      "side_score": 53.2,
-      "goals_score": 38.4,
-      "two_way_score": 66.2,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS",
-      "trend_context": {
-        "reliability": 0.1,
-        "signals": [
-          "GOALS_OVER_CONVERGENCE",
-          "CORNERS_LOW_CONVERGENCE"
-        ],
-        "model_disagreements": [],
-        "deep_dive_flag": false,
-        "expected_corner_environment": 5.0
-      }
     },
     {
       "fixture_id": 1564307,
@@ -3482,7 +3444,7 @@
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-17T16:28:51.112614-06:00",
+    "generated_at_local": "2026-09-17T16:32:48.390479-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -3579,8 +3541,8 @@
       "multi_match_active": 0,
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
-      "invalidated_fixture_count_this_tick": 11,
-      "updated_at_utc": "2026-09-17T22:28:51.112614+00:00",
+      "invalidated_fixture_count_this_tick": 10,
+      "updated_at_utc": "2026-09-17T22:32:48.390479+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -3624,7 +3586,7 @@
   "v39_canonical_bet_logic_changed": false,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "4867",
+    "daily_remaining": "4847",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -3677,7 +3639,7 @@
         "timestamp": 1789684200,
         "status": "1H",
         "status_long": "First Half",
-        "elapsed": 29,
+        "elapsed": 33,
         "league_id": 344,
         "league": "Primera División",
         "country": "Bolivia",
@@ -3736,7 +3698,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-17T18:00:18+00:00",
-        "age_minutes": 268.55,
+        "age_minutes": 272.51,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "API_FALLBACK_CURRENT_RUN",
         "fresh": true,
@@ -3754,7 +3716,7 @@
       "postgame_player_stats": null,
       "closing_market_snapshot": {
         "schema_version": "1.0.0",
-        "captured_at_local": "2026-09-17T16:28:51.112614-06:00",
+        "captured_at_local": "2026-09-17T16:32:48.390479-06:00",
         "source": "API_FOOTBALL_OR_GALAXY",
         "canonical_ft_only": true,
         "group_count": 21,
@@ -11403,6 +11365,14 @@
             "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
             "actionable": false,
             "decision_weight": 0.0
+          },
+          "gk_saves": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1619018,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
           }
         },
         "coverage_gaps": [
@@ -11682,226 +11652,21 @@
             }
           ],
           "totals": {
-            "possession": 100.0,
-            "fouls": 24.0,
-            "yellow_cards": 3.0,
-            "red_cards": 0.0,
             "shots_inside_box": 20.0,
             "shots_outside_box": 2.0,
-            "corners": 11.0,
-            "shots_on_goal": 4.0,
             "total_shots": 22.0,
-            "blocked_shots": 5.0
+            "possession": 100.0,
+            "red_cards": 0.0,
+            "shots_on_goal": 4.0,
+            "corners": 11.0,
+            "blocked_shots": 5.0,
+            "yellow_cards": 3.0,
+            "fouls": 24.0
           }
         },
         "player_stats": {
           "status": "UNAVAILABLE",
           "fixture_id": 1564307,
-          "error": "Per-tick API budget reached (20); lower-priority work deferred.",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "capture_phase": "POSTGAME"
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1635564,
-        "kickoff": "2026-09-17T12:30:00-06:00",
-        "timestamp": 1789669800,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 48,
-        "league": "League Cup",
-        "country": "England",
-        "season": 2026,
-        "round": "Round of 32",
-        "home_team_id": 50,
-        "home_team": "Manchester City",
-        "away_team_id": 71,
-        "away_team": "Norwich",
-        "venue": "Etihad Stadium",
-        "city": "Manchester",
-        "goals": {
-          "home": 5,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 2,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 5,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "referee": "R. Ricardo",
-        "fixture_timezone": "America/Mexico_City"
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 66.2,
-        "tracks": [
-          "GOALS_UNDER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 53.2,
-        "goal_environment_score": 38.4,
-        "two_way_scoring_score": 66.2,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "RESEARCH_ONLY_TREND_CONTEXT",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "source_generated_at_utc": "2026-09-17T22:23:42.385203+00:00",
-        "window": "last_10",
-        "reliability": 0.1,
-        "signals": [
-          "GOALS_OVER_CONVERGENCE",
-          "CORNERS_LOW_CONVERGENCE"
-        ],
-        "model_disagreements": [],
-        "deep_dive_flag": false,
-        "home": {
-          "team": "Manchester City",
-          "over25_rate": 1.0,
-          "btts_rate": 0.0,
-          "scored_rate": 1.0,
-          "avg_goals_for": 5.0,
-          "avg_goals_against": 0.0,
-          "avg_corners_for": 2.0,
-          "venue_over25_rate": 1.0
-        },
-        "away": {
-          "team": "Norwich",
-          "over25_rate": 1.0,
-          "btts_rate": 0.0,
-          "scored_rate": 0.0,
-          "avg_goals_for": 0.0,
-          "avg_goals_against": 5.0,
-          "avg_corners_for": 3.0,
-          "venue_over25_rate": 1.0
-        },
-        "expected_corner_environment": 5.0,
-        "policy": "CONTEXT_ONLY; MAY FLAG DEEP_DIVE; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY"
-      },
-      "player_trends_research": null,
-      "postgame_player_stats": {
-        "status": "UNAVAILABLE",
-        "fixture_id": 1635564,
-        "error": "Per-tick API budget reached (20); lower-priority work deferred.",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "capture_phase": "POSTGAME"
-      },
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "match_intelligence": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 5,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 2,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 5,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "tactical_stats": {
-          "schema_version": "1.0.0",
-          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
-          "teams": [
-            {
-              "team_id": 50,
-              "team": "Manchester City",
-              "shots_inside_box": 12.0,
-              "shots_outside_box": 2.0,
-              "blocked_shots": 3.0,
-              "shots_on_goal": 6.0,
-              "total_shots": 14.0,
-              "corners": 2.0,
-              "yellow_cards": 0.0,
-              "fouls": 8.0,
-              "red_cards": 0.0,
-              "possession": 63.0
-            },
-            {
-              "team_id": 71,
-              "team": "Norwich",
-              "shots_inside_box": 1.0,
-              "shots_outside_box": 3.0,
-              "blocked_shots": 2.0,
-              "shots_on_goal": 0.0,
-              "total_shots": 4.0,
-              "corners": 3.0,
-              "yellow_cards": 1.0,
-              "fouls": 6.0,
-              "red_cards": 0.0,
-              "possession": 37.0
-            }
-          ],
-          "totals": {
-            "possession": 100.0,
-            "fouls": 14.0,
-            "yellow_cards": 1.0,
-            "red_cards": 0.0,
-            "shots_inside_box": 13.0,
-            "shots_outside_box": 5.0,
-            "corners": 5.0,
-            "shots_on_goal": 6.0,
-            "total_shots": 18.0,
-            "blocked_shots": 5.0
-          }
-        },
-        "player_stats": {
-          "status": "UNAVAILABLE",
-          "fixture_id": 1635564,
           "error": "Per-tick API budget reached (20); lower-priority work deferred.",
           "actionable": false,
           "decision_weight": 0.0,
@@ -12514,6 +12279,14 @@
             "fixture_id": 1549765,
             "status": "NOT_VERIFIED",
             "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "gk_saves": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549765,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
             "actionable": false,
             "decision_weight": 0.0
           }
@@ -13199,6 +12972,14 @@
             "fixture_id": 1631512,
             "status": "NOT_VERIFIED",
             "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "gk_saves": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1631512,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
             "actionable": false,
             "decision_weight": 0.0
           }
@@ -13917,6 +13698,14 @@
             "fixture_id": 1635387,
             "status": "NOT_VERIFIED",
             "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "gk_saves": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1635387,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
             "actionable": false,
             "decision_weight": 0.0
           }
@@ -14770,6 +14559,14 @@
             "fixture_id": 1549117,
             "status": "NOT_VERIFIED",
             "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "gk_saves": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549117,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
             "actionable": false,
             "decision_weight": 0.0
           }
@@ -15627,6 +15424,14 @@
             "fixture_id": 1610971,
             "status": "NOT_VERIFIED",
             "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "gk_saves": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1610971,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
             "actionable": false,
             "decision_weight": 0.0
           }
@@ -16553,6 +16358,14 @@
             "fixture_id": 1581422,
             "status": "NOT_VERIFIED",
             "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "gk_saves": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1581422,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
             "actionable": false,
             "decision_weight": 0.0
           }
@@ -17514,6 +17327,14 @@
             "fixture_id": 1639698,
             "status": "NOT_VERIFIED",
             "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "gk_saves": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1639698,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
             "actionable": false,
             "decision_weight": 0.0
           }
