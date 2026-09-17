@@ -97,7 +97,7 @@ jobs:
       - name: Validate assists research distribution (stdlib sanity)
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/validate_player_assists_model.py --player-registry state/soccer_edge_state/analysis/player_trend_model_registry.json --team-trends state/soccer_edge_state/analysis/trend_intelligence.json --output state/soccer_edge_state/analysis/player_assists_model_sanity.json
-      - name: Validate GK saves research distribution (stdlib sanity)
+      - name: Validate GK saves research distribution (data-aware sanity)
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/validate_gk_saves_model.py --goalkeeper-profiles state/soccer_edge_state/analysis/goalkeeper_profiles.json --team-trends state/soccer_edge_state/analysis/trend_intelligence.json --output state/soccer_edge_state/analysis/gk_saves_model_sanity.json
       - name: Evaluate explicit corners research model
