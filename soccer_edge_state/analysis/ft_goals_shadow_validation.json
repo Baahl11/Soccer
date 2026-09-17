@@ -1,60 +1,60 @@
 {
   "anti_leakage": "Uses the latest persisted shadow snapshot strictly before kickoff and joins the final result later by fixture_id; no final result or market odds enter either stored sport projection.",
   "canonical": {
-    "lambda_mae": 1.350642,
+    "lambda_mae": 1.348809,
     "lines": {
       "1.5": {
-        "brier": 0.139498,
-        "log_loss": 0.450222,
-        "mean_probability": 0.763204,
-        "n": 43,
-        "observed_rate": 0.837209
+        "brier": 0.134852,
+        "log_loss": 0.439213,
+        "mean_probability": 0.765628,
+        "n": 45,
+        "observed_rate": 0.844444
       },
       "2.5": {
-        "brier": 0.239163,
-        "log_loss": 0.669009,
-        "mean_probability": 0.531823,
-        "n": 43,
-        "observed_rate": 0.511628
+        "brier": 0.243254,
+        "log_loss": 0.677704,
+        "mean_probability": 0.535114,
+        "n": 45,
+        "observed_rate": 0.511111
       },
       "3.5": {
-        "brier": 0.210691,
-        "log_loss": 0.61069,
-        "mean_probability": 0.317875,
-        "n": 43,
-        "observed_rate": 0.325581
+        "brier": 0.216281,
+        "log_loss": 0.622541,
+        "mean_probability": 0.320895,
+        "n": 45,
+        "observed_rate": 0.333333
       }
     },
-    "n": 43
+    "n": 45
   },
   "challenger": {
-    "lambda_mae": 1.359902,
+    "lambda_mae": 1.348349,
     "lines": {
       "1.5": {
-        "brier": 0.139684,
-        "log_loss": 0.450724,
-        "mean_probability": 0.755657,
-        "n": 43,
-        "observed_rate": 0.837209
+        "brier": 0.135179,
+        "log_loss": 0.44035,
+        "mean_probability": 0.757842,
+        "n": 45,
+        "observed_rate": 0.844444
       },
       "2.5": {
-        "brier": 0.241066,
-        "log_loss": 0.67278,
-        "mean_probability": 0.522374,
-        "n": 43,
-        "observed_rate": 0.511628
+        "brier": 0.242777,
+        "log_loss": 0.676383,
+        "mean_probability": 0.525075,
+        "n": 45,
+        "observed_rate": 0.511111
       },
       "3.5": {
-        "brier": 0.21162,
-        "log_loss": 0.613128,
-        "mean_probability": 0.309895,
-        "n": 43,
-        "observed_rate": 0.325581
+        "brier": 0.215219,
+        "log_loss": 0.62073,
+        "mean_probability": 0.312099,
+        "n": 45,
+        "observed_rate": 0.333333
       }
     },
-    "n": 43
+    "n": 45
   },
-  "evaluated_fixtures": 43,
+  "evaluated_fixtures": 45,
   "evaluations": [
     {
       "away_team": "Zaglebie Lubin",
@@ -981,6 +981,50 @@
       "stage": "T-60"
     },
     {
+      "away_team": "Dinamo Tbilisi II",
+      "canonical_lambda": 3.4594,
+      "canonical_probs": {
+        "1.5": 0.859751,
+        "2.5": 0.671562,
+        "3.5": 0.454558
+      },
+      "challenger_lambda": 3.1301,
+      "challenger_probs": {
+        "1.5": 0.819451,
+        "2.5": 0.605302,
+        "3.5": 0.381868
+      },
+      "final_total": 2,
+      "fixture_id": 1507443,
+      "generated_at_local": "2026-09-17T05:52:48.771645-06:00",
+      "home_team": "Guria",
+      "league": "Liga 3",
+      "league_id": 1104,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Merani Tbilisi",
+      "canonical_lambda": 2.8406,
+      "canonical_probs": {
+        "1.5": 0.775749,
+        "2.5": 0.540173,
+        "3.5": 0.317112
+      },
+      "challenger_lambda": 2.9302,
+      "challenger_probs": {
+        "1.5": 0.79018,
+        "2.5": 0.56099,
+        "3.5": 0.337132
+      },
+      "final_total": 4,
+      "fixture_id": 1507445,
+      "generated_at_local": "2026-09-17T05:52:48.771645-06:00",
+      "home_team": "Iberia 2010",
+      "league": "Liga 3",
+      "league_id": 1104,
+      "stage": "T-10"
+    },
+    {
       "away_team": "Gardabani",
       "canonical_lambda": 2.9094,
       "canonical_probs": {
@@ -1004,24 +1048,24 @@
     }
   ],
   "improvement": {
-    "lambda_mae_delta_challenger_minus_canonical": 0.00926,
+    "lambda_mae_delta_challenger_minus_canonical": -0.00046,
     "leagues_where_challenger_improves_o2_5_brier": 0,
     "leagues_with_10plus_evaluations": 0,
     "lines": {
       "1.5": {
-        "brier_delta_challenger_minus_canonical": 0.000186,
-        "log_loss_delta_challenger_minus_canonical": 0.000502,
-        "n": 43
+        "brier_delta_challenger_minus_canonical": 0.000327,
+        "log_loss_delta_challenger_minus_canonical": 0.001137,
+        "n": 45
       },
       "2.5": {
-        "brier_delta_challenger_minus_canonical": 0.001903,
-        "log_loss_delta_challenger_minus_canonical": 0.003771,
-        "n": 43
+        "brier_delta_challenger_minus_canonical": -0.000477,
+        "log_loss_delta_challenger_minus_canonical": -0.001321,
+        "n": 45
       },
       "3.5": {
-        "brier_delta_challenger_minus_canonical": 0.000929,
-        "log_loss_delta_challenger_minus_canonical": 0.002438,
-        "n": 43
+        "brier_delta_challenger_minus_canonical": -0.001062,
+        "log_loss_delta_challenger_minus_canonical": -0.001811,
+        "n": 45
       }
     }
   },

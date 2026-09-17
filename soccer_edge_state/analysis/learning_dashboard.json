@@ -203,8 +203,8 @@
   "one_x_two": {
     "accuracy_by_latest_stage": {
       "T-10": {
-        "accuracy": 0.5649,
-        "n": 131
+        "accuracy": 0.5639,
+        "n": 133
       },
       "T-20": {
         "accuracy": 0.4118,
@@ -225,8 +225,8 @@
     },
     "accuracy_by_max_probability": {
       "40-49%": {
-        "accuracy": 0.5303,
-        "n": 66
+        "accuracy": 0.5224,
+        "n": 67
       },
       "50-59%": {
         "accuracy": 0.52,
@@ -237,8 +237,8 @@
         "n": 27
       },
       ">=60%": {
-        "accuracy": 0.5806,
-        "n": 31
+        "accuracy": 0.5938,
+        "n": 32
       }
     },
     "activation_gate": {
@@ -247,8 +247,8 @@
     },
     "actual_outcome_counts": {
       "A": 60,
-      "D": 33,
-      "H": 81
+      "D": 34,
+      "H": 82
     },
     "calibration_by_outcome": {
       "A": {
@@ -259,8 +259,8 @@
         },
         "10-20%": {
           "mean_forecast_midpoint": 0.15,
-          "n": 30,
-          "observed_rate": 0.2
+          "n": 31,
+          "observed_rate": 0.1935
         },
         "20-30%": {
           "mean_forecast_midpoint": 0.25,
@@ -274,8 +274,8 @@
         },
         "40-50%": {
           "mean_forecast_midpoint": 0.45,
-          "n": 23,
-          "observed_rate": 0.6522
+          "n": 24,
+          "observed_rate": 0.625
         },
         "50-60%": {
           "mean_forecast_midpoint": 0.55,
@@ -301,13 +301,13 @@
       "D": {
         "10-20%": {
           "mean_forecast_midpoint": 0.15,
-          "n": 19,
-          "observed_rate": 0.2105
+          "n": 20,
+          "observed_rate": 0.2
         },
         "20-30%": {
           "mean_forecast_midpoint": 0.25,
-          "n": 123,
-          "observed_rate": 0.1951
+          "n": 124,
+          "observed_rate": 0.2016
         },
         "30-40%": {
           "mean_forecast_midpoint": 0.35,
@@ -343,8 +343,8 @@
         },
         "20-30%": {
           "mean_forecast_midpoint": 0.25,
-          "n": 19,
-          "observed_rate": 0.3158
+          "n": 20,
+          "observed_rate": 0.3
         },
         "30-40%": {
           "mean_forecast_midpoint": 0.35,
@@ -363,8 +363,8 @@
         },
         "60-70%": {
           "mean_forecast_midpoint": 0.65,
-          "n": 18,
-          "observed_rate": 0.7222
+          "n": 19,
+          "observed_rate": 0.7368
         },
         "70-80%": {
           "mean_forecast_midpoint": 0.75,
@@ -373,9 +373,9 @@
         }
       }
     },
-    "finalized_fixtures_available": 324,
-    "multiclass_brier": 0.6247,
-    "multiclass_log_loss": 1.0459,
+    "finalized_fixtures_available": 326,
+    "multiclass_brier": 0.6237,
+    "multiclass_log_loss": 1.0446,
     "notes": [
       "Joins the latest pre-kickoff raw 1X2 projection to a final result by fixture_id.",
       "Uses one projection per finalized fixture to avoid repeated-stage weighting.",
@@ -383,21 +383,21 @@
       "Calibration bins are descriptive and require larger samples before model changes are justified."
     ],
     "predicted_outcome_counts": {
-      "A": 50,
+      "A": 51,
       "D": 13,
-      "H": 111
+      "H": 112
     },
-    "sample_fixtures": 174,
+    "sample_fixtures": 176,
     "schema_version": "1.1.0",
     "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
     "timezone_basis": "America/Mexico_City",
-    "top1_accuracy": 0.5402
+    "top1_accuracy": 0.5398
   },
   "schema_version": "1.0.0",
   "signal_performance": {
     "GOALS_OVER": {
-      "hit_rate": 0.6,
-      "n": 45,
+      "hit_rate": 0.587,
+      "n": 46,
       "sample_gate_met": false
     },
     "GOALS_UNDER": {
@@ -406,15 +406,15 @@
       "sample_gate_met": true
     },
     "TWO_WAY": {
-      "hit_rate": 0.5672,
-      "n": 134,
+      "hit_rate": 0.5662,
+      "n": 136,
       "sample_gate_met": true
     }
   },
   "signal_rank_buckets": {
     "GOALS_OVER:>=80": {
-      "hit_rate": 0.6,
-      "n": 45,
+      "hit_rate": 0.587,
+      "n": 46,
       "sample_gate_met": false
     },
     "GOALS_UNDER:70-79": {
@@ -443,8 +443,8 @@
       "sample_gate_met": false
     },
     "TWO_WAY:>=80": {
-      "hit_rate": 0.6234,
-      "n": 77,
+      "hit_rate": 0.6203,
+      "n": 79,
       "sample_gate_met": true
     }
   },
