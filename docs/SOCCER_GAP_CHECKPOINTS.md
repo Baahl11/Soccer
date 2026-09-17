@@ -35,10 +35,10 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 15 | Team Cards | ✅ team yellow history | ✅ team yellow-card Poisson | 🟡 v3.27 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Team-line OOS/CLV/calibration, settlement mapping; reds separate. |
 | 16 | Red Cards | ✅ separate postgame reds | ✅ Empirical-Bayes any-red YES/NO + optional referee | 🟡 v3.29 | 🔴 | ⏳ | 🟡 LIVE RESEARCH | Registry natural persistence; ≥500 OOS market review/≥1000 actionable; ≥200 referee-adjusted; explicit red-card YES/NO price/CLV and settlement. |
 | 17 | Referee | 🟢 current API assignment + yellow/red registries | ✅ feature profile/gates | 🟡 v3.30 feature-only | 🔴 standalone | ⏳ | 🟡 LIVE RESEARCH FEATURE | Add historical fouls/penalty rate, independent official assignment verification, demonstrate OOS lift in cards/red models. |
-| 18 | Formations | ✅ | ✅ research intelligence | 🟠 partial | 🔴 | partial | 🟠 NEXT | Attach confirmed formation pair automatically to live research models; quantify only after OOS lift. |
-| 19 | Coaches | ✅ identity from lineup | 🔴 regime model | 🟠 identity only | 🔴 | partial | 🟠 | Coach tenure/regime persistence, before/after effects, rotation/substitution behavior. |
-| 20 | XI | ✅ | ✅ verification logic | ✅ | ✅ availability gate | ✅ historical | 🟢 IMPROVED | Better persistence/re-run/source quality; no identity probability model required. |
-| 21 | Goalkeeper | ✅ starter capture | 🔴 impact model | 🟠 | 🔴 | partial | 🟠 | Shot-stopping/saves/concession impact with verified starter. |
+| 18 | Formations | ✅ confirmed XI formation pair + historical formation report | ✅ matchup profile + OOS residual feature gate | 🟡 v3.31 feature-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH FEATURE | Natural persistence; ≥100 aggregate OOS with Brier+log-loss lift; matchup n≥8 before feature candidacy; still zero decision weight until versioned promotion. |
+| 19 | Coaches | ✅ current coach from confirmed XI + historical regime registry | ✅ descriptive regime/tenure/change context | 🟡 v3.32 context-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH CONTEXT | Natural registry persistence; substitution/rotation behavior; OOS coach-feature lift; before/after differences remain non-causal. |
+| 20 | XI | ✅ confirmed starters/GK/formation | ✅ verification + persistent XI fingerprint/change detector | ✅ v3.33 | ✅ existing availability gate only | ⏳ new detector | 🟢 IMPROVED v3.33 | Natural persistence of fingerprints; recheck behavior after material change; player-specific impact model still separate #22/#23. Existing availability gate unchanged. |
+| 21 | Goalkeeper | ✅ starter capture | 🔴 impact model | 🟠 identity only | 🔴 | partial | 🟠 NEXT | Audit verified GK saves/SOT faced/goals conceded data; build shot-stopping/concession-impact research model only from supported fields. No xG/PSxG fabrication. |
 | 22 | Injuries / suspensions | 🟢 provider support | 🔴 player-impact model | 🟠 partial | ✅ availability block only | partial | 🟠 | Quantify impact by player/role/minutes + stronger official verification. |
 | 23 | Player trends | ✅ selective capture | 🟠 descriptive L5/L10/L20 | 🟡 | 🔴 | partial | 🟡 DESCRIPTIVE | Convert to probabilistic role/minutes-adjusted models. |
 | 24 | Shots props | 🟢 capture | 🔴 | 🔴 | 🔴 | — | 🔴 | Minutes/role + shots/90 + opponent/formation distribution + exact threshold probability. |
@@ -67,29 +67,28 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 
 ## Engineering checkpoints materially completed/improved
 
-#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee.
+#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI.
 
-### #16 Red Cards — v3.29
+### #18 Formations — v3.31
+- Requires confirmed both-XI formations.
+- Crosses the exact current formation pair with historical matchup summaries.
+- A feature candidate is only flagged if aggregate OOS residual challenger has ≥100 evaluations and improves both Brier and log-loss, plus the exact matchup has n≥8.
+- Descriptive formation history never upgrades a BET; `decision_weight=0`.
 
-- Separate low-frequency model; yellow counts never enter the red-card target.
-- V1 target is only `ANY_RED_CARD_IN_MATCH` YES/NO.
-- Strong Empirical-Bayes shrinkage: global → league → team role; optional referee adjustment only after minimum referee sample.
-- Exact explicit red-card YES/NO markets only; no generic card-point mapping.
-- Dedicated walk-forward Brier/log-loss validator and post-history registry workflow.
-- `actionable=false`, `decision_weight=0`; no BET/LEAN/Galaxy before rare-event calibration/CLV gates.
+### #19 Coaches — v3.32
+- Historical coach regimes are built from verified lineup coach identities plus finalized scores.
+- Regime profile includes tenure/matches, GF/GA, O2.5 and BTTS; current-vs-previous differences are explicitly descriptive, not causal.
+- New/unseen live coach is marked as a new regime instead of extrapolating old stats.
+- Coach context has zero decision weight until a separate OOS feature-lift study exists.
 
-### #17 Referee — v3.30
-
-- Current fixture referee assignment is surfaced as an API assignment, not falsely labeled official-independent verification.
-- Historical yellow and red profiles are combined from separate registries.
-- Yellow adjustment gate requires its own sample; red adjustment uses a stricter sample.
-- Referee is feature-only and can never create a standalone pick.
-- Fouls/penalty history and independent official assignment verification remain explicit gaps.
+### #20 XI — v3.33
+- Persists per-fixture XI fingerprints across pregame captures.
+- Detects starter, formation, GK and coach changes.
+- Material changes are flagged for recheck, but no player impact is invented.
+- Existing availability-confidence logic is unchanged.
 
 ## Engineering rule
-
 Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until persisted natural state and calibration/promotion gates are satisfied.
 
 ## Next engineering target
-
-#18 Formations — attach the confirmed formation pair automatically to live research models and expose matchup-level formation intelligence without changing canonical probabilities until OOS lift is demonstrated.
+#21 Goalkeeper — audit what verified GK match/player statistics are actually persisted, then build only the impact model supported by those fields.
