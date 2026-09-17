@@ -42,6 +42,13 @@
       "n": 12,
       "observed_rate": 0.416667
     },
+    "286": {
+      "brier": 0.334714,
+      "log_loss": 0.876545,
+      "mean_probability": 0.53538,
+      "n": 6,
+      "observed_rate": 0.666667
+    },
     "288": {
       "brier": 0.143847,
       "log_loss": 0.459993,
@@ -63,12 +70,19 @@
       "n": 18,
       "observed_rate": 0.555556
     },
+    "41": {
+      "brier": 0.266307,
+      "log_loss": 0.732595,
+      "mean_probability": 0.530883,
+      "n": 6,
+      "observed_rate": 0.833333
+    },
     "48": {
-      "brier": 0.285095,
-      "log_loss": 0.777815,
-      "mean_probability": 0.552531,
-      "n": 42,
-      "observed_rate": 0.47619
+      "brier": 0.290466,
+      "log_loss": 0.790787,
+      "mean_probability": 0.550502,
+      "n": 48,
+      "observed_rate": 0.416667
     },
     "72": {
       "brier": 0.177834,
@@ -87,66 +101,66 @@
   },
   "by_role_line": {
     "AWAY|3.5": {
-      "brier": 0.257723,
-      "log_loss": 0.708883,
-      "mean_probability": 0.570107,
-      "n": 33,
-      "observed_rate": 0.515152
+      "brier": 0.255771,
+      "log_loss": 0.704947,
+      "mean_probability": 0.569807,
+      "n": 36,
+      "observed_rate": 0.527778
     },
     "AWAY|4.5": {
-      "brier": 0.230644,
-      "log_loss": 0.654547,
-      "mean_probability": 0.374926,
-      "n": 33,
-      "observed_rate": 0.333333
+      "brier": 0.237391,
+      "log_loss": 0.668317,
+      "mean_probability": 0.374611,
+      "n": 36,
+      "observed_rate": 0.361111
     },
     "AWAY|5.5": {
-      "brier": 0.205248,
-      "log_loss": 0.605859,
-      "mean_probability": 0.218031,
-      "n": 33,
-      "observed_rate": 0.272727
+      "brier": 0.22381,
+      "log_loss": 0.647928,
+      "mean_probability": 0.217767,
+      "n": 36,
+      "observed_rate": 0.305556
     },
     "HOME|3.5": {
-      "brier": 0.24018,
-      "log_loss": 0.712158,
-      "mean_probability": 0.850605,
-      "n": 33,
-      "observed_rate": 0.69697
+      "brier": 0.241053,
+      "log_loss": 0.712909,
+      "mean_probability": 0.849163,
+      "n": 36,
+      "observed_rate": 0.694444
     },
     "HOME|4.5": {
-      "brier": 0.283425,
-      "log_loss": 0.771423,
-      "mean_probability": 0.71842,
-      "n": 33,
-      "observed_rate": 0.545455
+      "brier": 0.289437,
+      "log_loss": 0.783712,
+      "mean_probability": 0.716223,
+      "n": 36,
+      "observed_rate": 0.527778
     },
     "HOME|5.5": {
-      "brier": 0.281367,
-      "log_loss": 0.757135,
-      "mean_probability": 0.559431,
-      "n": 33,
-      "observed_rate": 0.363636
+      "brier": 0.281089,
+      "log_loss": 0.75648,
+      "mean_probability": 0.55675,
+      "n": 36,
+      "observed_rate": 0.333333
     }
   },
-  "evaluated_fixtures": 33,
-  "evaluated_rows": 198,
+  "evaluated_fixtures": 36,
+  "evaluated_rows": 216,
   "notes": [
     "Validation uses walk-forward home/away lambdas already produced by the FT corners baseline.",
     "Diagnostic lines do not claim sportsbook availability; live market comparison requires exact observed lines.",
     "No BET/LEAN/Galaxy promotion is permitted by this report."
   ],
   "overall": {
-    "brier": 0.249764,
-    "log_loss": 0.701667,
-    "mean_probability": 0.548587,
-    "n": 198,
-    "observed_rate": 0.454545
+    "brier": 0.254759,
+    "log_loss": 0.712382,
+    "mean_probability": 0.547387,
+    "n": 216,
+    "observed_rate": 0.458333
   },
   "promotion_gate": {
     "actionable_review_sample_gate_met": false,
     "enabled": false,
-    "market_comparison_sample_gate_met": false,
+    "market_comparison_sample_gate_met": true,
     "minimum_oos_team_rows": 200,
     "minimum_oos_team_rows_for_actionable_review": 400,
     "requires": [
@@ -1935,6 +1949,168 @@
       "fixture_id": 1600344,
       "lambda": 4.0,
       "league_id": 288,
+      "line": 5.5,
+      "p_over": 0.21487,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1553841,
+      "lambda": 5.87302,
+      "league_id": 286,
+      "line": 3.5,
+      "p_over": 0.8371,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1553841,
+      "lambda": 5.87302,
+      "league_id": 286,
+      "line": 4.5,
+      "p_over": 0.697587,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1553841,
+      "lambda": 5.87302,
+      "league_id": 286,
+      "line": 5.5,
+      "p_over": 0.533715,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1553841,
+      "lambda": 3.98413,
+      "league_id": 286,
+      "line": 3.5,
+      "p_over": 0.563423,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1553841,
+      "lambda": 3.98413,
+      "league_id": 286,
+      "line": 4.5,
+      "p_over": 0.368063,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1553841,
+      "lambda": 3.98413,
+      "league_id": 286,
+      "line": 5.5,
+      "p_over": 0.212394,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1635564,
+      "lambda": 5.84375,
+      "league_id": 48,
+      "line": 3.5,
+      "p_over": 0.834299,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1635564,
+      "lambda": 5.84375,
+      "league_id": 48,
+      "line": 4.5,
+      "p_over": 0.693485,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1635564,
+      "lambda": 5.84375,
+      "league_id": 48,
+      "line": 5.5,
+      "p_over": 0.528908,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1635564,
+      "lambda": 4.01562,
+      "league_id": 48,
+      "line": 3.5,
+      "p_over": 0.569576,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1635564,
+      "lambda": 4.01562,
+      "league_id": 48,
+      "line": 4.5,
+      "p_over": 0.374215,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1635564,
+      "lambda": 4.01562,
+      "league_id": 48,
+      "line": 5.5,
+      "p_over": 0.217316,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1564307,
+      "lambda": 5.78462,
+      "league_id": 41,
+      "line": 3.5,
+      "p_over": 0.828517,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1564307,
+      "lambda": 5.78462,
+      "league_id": 41,
+      "line": 4.5,
+      "p_over": 0.685081,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1564307,
+      "lambda": 5.78462,
+      "league_id": 41,
+      "line": 5.5,
+      "p_over": 0.519136,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1564307,
+      "lambda": 4.0,
+      "league_id": 41,
+      "line": 3.5,
+      "p_over": 0.56653,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1564307,
+      "lambda": 4.0,
+      "league_id": 41,
+      "line": 4.5,
+      "p_over": 0.371163,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1564307,
+      "lambda": 4.0,
+      "league_id": 41,
       "line": 5.5,
       "p_over": 0.21487,
       "team_role": "AWAY"

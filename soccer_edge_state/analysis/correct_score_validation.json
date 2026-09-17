@@ -184,6 +184,14 @@
       "top3_hit_rate": 1.0,
       "top5_hit_rate": 1.0
     },
+    "Ettan - Norra": {
+      "mean_multiclass_brier": 1.038931,
+      "mean_negative_log_likelihood": 5.855033,
+      "n": 2,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 0.0,
+      "top5_hit_rate": 0.0
+    },
     "First League": {
       "mean_multiclass_brier": 0.875775,
       "mean_negative_log_likelihood": 2.504856,
@@ -225,12 +233,20 @@
       "top5_hit_rate": 0.0
     },
     "League Cup": {
-      "mean_multiclass_brier": 1.162736,
-      "mean_negative_log_likelihood": 6.128218,
-      "n": 7,
+      "mean_multiclass_brier": 1.154763,
+      "mean_negative_log_likelihood": 6.308977,
+      "n": 8,
       "top1_hit_rate": 0.0,
-      "top3_hit_rate": 0.142857,
-      "top5_hit_rate": 0.285714
+      "top3_hit_rate": 0.125,
+      "top5_hit_rate": 0.25
+    },
+    "League One": {
+      "mean_multiclass_brier": 0.931873,
+      "mean_negative_log_likelihood": 2.6813,
+      "n": 1,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 0.0,
+      "top5_hit_rate": 0.0
     },
     "Liga 1": {
       "mean_multiclass_brier": 1.144102,
@@ -281,9 +297,9 @@
       "top5_hit_rate": 0.666667
     },
     "Liga Pro Serie B": {
-      "mean_multiclass_brier": 0.805693,
-      "mean_negative_log_likelihood": 1.909577,
-      "n": 1,
+      "mean_multiclass_brier": 0.826859,
+      "mean_negative_log_likelihood": 1.974457,
+      "n": 2,
       "top1_hit_rate": 0.0,
       "top3_hit_rate": 1.0,
       "top5_hit_rate": 1.0
@@ -326,6 +342,14 @@
       "n": 1,
       "top1_hit_rate": 0.0,
       "top3_hit_rate": 0.0,
+      "top5_hit_rate": 1.0
+    },
+    "Ligue 3": {
+      "mean_multiclass_brier": 0.89678,
+      "mean_negative_log_likelihood": 2.362052,
+      "n": 1,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 1.0,
       "top5_hit_rate": 1.0
     },
     "MLS Next Pro": {
@@ -425,12 +449,12 @@
       "top5_hit_rate": 0.0
     },
     "Segunda División": {
-      "mean_multiclass_brier": 0.985441,
-      "mean_negative_log_likelihood": 3.399214,
-      "n": 3,
-      "top1_hit_rate": 0.0,
-      "top3_hit_rate": 0.0,
-      "top5_hit_rate": 0.0
+      "mean_multiclass_brier": 0.964007,
+      "mean_negative_log_likelihood": 3.201514,
+      "n": 5,
+      "top1_hit_rate": 0.2,
+      "top3_hit_rate": 0.2,
+      "top5_hit_rate": 0.2
     },
     "Serie A": {
       "mean_multiclass_brier": 0.973318,
@@ -447,6 +471,14 @@
       "top1_hit_rate": 0.111111,
       "top3_hit_rate": 0.333333,
       "top5_hit_rate": 0.555556
+    },
+    "Serie C - Girone A": {
+      "mean_multiclass_brier": 1.006857,
+      "mean_negative_log_likelihood": 3.343355,
+      "n": 3,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 0.0,
+      "top5_hit_rate": 0.333333
     },
     "Super League": {
       "mean_multiclass_brier": 1.027336,
@@ -465,12 +497,12 @@
       "top5_hit_rate": 0.0
     },
     "Super Liga": {
-      "mean_multiclass_brier": 0.868473,
-      "mean_negative_log_likelihood": 2.099852,
-      "n": 1,
+      "mean_multiclass_brier": 0.916436,
+      "mean_negative_log_likelihood": 2.431019,
+      "n": 2,
       "top1_hit_rate": 0.0,
       "top3_hit_rate": 0.0,
-      "top5_hit_rate": 1.0
+      "top5_hit_rate": 0.5
     },
     "Superettan": {
       "mean_multiclass_brier": 0.876432,
@@ -537,7 +569,7 @@
       "top5_hit_rate": 1.0
     }
   },
-  "evaluated_fixtures": 184,
+  "evaluated_fixtures": 196,
   "model": "CANONICAL_HOME_AWAY_LAMBDA_INDEPENDENT_POISSON_EXACT_SCORE_v0.1",
   "notes": [
     "Latest persisted pregame canonical home/away lambdas are evaluated against final exact score.",
@@ -546,12 +578,12 @@
     "This report cannot promote Correct Score to BET/LEAN/Galaxy by itself."
   ],
   "overall": {
-    "mean_multiclass_brier": 0.957594,
-    "mean_negative_log_likelihood": 3.191948,
-    "n": 184,
-    "top1_hit_rate": 0.092391,
-    "top3_hit_rate": 0.304348,
-    "top5_hit_rate": 0.48913
+    "mean_multiclass_brier": 0.958671,
+    "mean_negative_log_likelihood": 3.225957,
+    "n": 196,
+    "top1_hit_rate": 0.091837,
+    "top3_hit_rate": 0.30102,
+    "top5_hit_rate": 0.479592
   },
   "promotion_gate": {
     "actionable_review_sample_gate_met": false,
@@ -3238,6 +3270,23 @@
       "top5_hit": 0
     },
     {
+      "actual_score": "1-1",
+      "actual_score_probability": 0.08704261,
+      "actual_score_rank_within_0_5_grid": 1,
+      "away_lambda": 1.95,
+      "away_team": "Club Atletico Barinas",
+      "fixture_id": 1635925,
+      "home_lambda": 1.675,
+      "home_team": "Real Frontera",
+      "league": "Segunda División",
+      "multiclass_brier_grid_0_5_plus_other": 0.8742910620947372,
+      "negative_log_likelihood": 2.4413574621473146,
+      "stage": "CLOSE",
+      "top1_hit": 1,
+      "top3_hit": 1,
+      "top5_hit": 1
+    },
+    {
       "actual_score": "2-0",
       "actual_score_probability": 0.08812092,
       "actual_score_rank_within_0_5_grid": 3,
@@ -3595,6 +3644,57 @@
       "top5_hit": 1
     },
     {
+      "actual_score": "1-2",
+      "actual_score_probability": 0.06315355,
+      "actual_score_rank_within_0_5_grid": 7,
+      "away_lambda": 0.9442,
+      "away_team": "FK Crvena Zvezda",
+      "fixture_id": 1553841,
+      "home_lambda": 1.1482,
+      "home_team": "Železničar Pančevo",
+      "league": "Super Liga",
+      "multiclass_brier_grid_0_5_plus_other": 0.964399226370197,
+      "negative_log_likelihood": 2.762186223548447,
+      "stage": "T-10",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "5-0",
+      "actual_score_probability": 0.00051348,
+      "actual_score_rank_within_0_5_grid": 29,
+      "away_lambda": 1.0938,
+      "away_team": "Norwich",
+      "fixture_id": 1635564,
+      "home_lambda": 0.8438,
+      "home_team": "Manchester City",
+      "league": "League Cup",
+      "multiclass_brier_grid_0_5_plus_other": 1.0989531621305526,
+      "negative_log_likelihood": 7.57429063924154,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "0-0",
+      "actual_score_probability": 0.06847408,
+      "actual_score_rank_within_0_5_grid": 6,
+      "away_lambda": 1.0938,
+      "away_team": "Milton Keynes Dons",
+      "fixture_id": 1564307,
+      "home_lambda": 1.5875,
+      "home_team": "AFC Wimbledon",
+      "league": "League One",
+      "multiclass_brier_grid_0_5_plus_other": 0.9318726263828069,
+      "negative_log_likelihood": 2.6813000000000002,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
       "actual_score": "6-0",
       "actual_score_probability": 0.01371681,
       "actual_score_rank_within_0_5_grid": 37,
@@ -3692,6 +3792,142 @@
       "multiclass_brier_grid_0_5_plus_other": 0.9390051296999551,
       "negative_log_likelihood": 2.7937007626782866,
       "stage": "T-10",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "2-5",
+      "actual_score_probability": 0.01259934,
+      "actual_score_rank_within_0_5_grid": 25,
+      "away_lambda": 2.1906,
+      "away_team": "AFC Eskilstuna",
+      "fixture_id": 1505259,
+      "home_lambda": 1.8062,
+      "home_team": "Assyriska FF",
+      "league": "Ettan - Norra",
+      "multiclass_brier_grid_0_5_plus_other": 1.0190576840984713,
+      "negative_log_likelihood": 4.374111147135323,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "5-0",
+      "actual_score_probability": 0.00065168,
+      "actual_score_rank_within_0_5_grid": 34,
+      "away_lambda": 1.9906,
+      "away_team": "Karlberg",
+      "fixture_id": 1505261,
+      "home_lambda": 1.1187,
+      "home_team": "Järfälla",
+      "league": "Ettan - Norra",
+      "multiclass_brier_grid_0_5_plus_other": 1.0588033539327362,
+      "negative_log_likelihood": 7.335955258428307,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "1-1",
+      "actual_score_probability": 0.130115,
+      "actual_score_rank_within_0_5_grid": 3,
+      "away_lambda": 0.7531,
+      "away_team": "Atletico FC",
+      "fixture_id": 1632430,
+      "home_lambda": 1.075,
+      "home_team": "Ind. Juniors",
+      "league": "Liga Pro Serie B",
+      "multiclass_brier_grid_0_5_plus_other": 0.8480243192402321,
+      "negative_log_likelihood": 2.039336596295205,
+      "stage": "T-10",
+      "top1_hit": 0,
+      "top3_hit": 1,
+      "top5_hit": 1
+    },
+    {
+      "actual_score": "1-1",
+      "actual_score_probability": 0.09422671,
+      "actual_score_rank_within_0_5_grid": 3,
+      "away_lambda": 1.9375,
+      "away_team": "Cannes",
+      "fixture_id": 1574733,
+      "home_lambda": 0.6406,
+      "home_team": "Bastia",
+      "league": "Ligue 3",
+      "multiclass_brier_grid_0_5_plus_other": 0.8967804294981571,
+      "negative_log_likelihood": 2.3620515595617144,
+      "stage": "T-60",
+      "top1_hit": 0,
+      "top3_hit": 1,
+      "top5_hit": 1
+    },
+    {
+      "actual_score": "2-2",
+      "actual_score_probability": 0.03921149,
+      "actual_score_rank_within_0_5_grid": 10,
+      "away_lambda": 0.8281,
+      "away_team": "Treviso",
+      "fixture_id": 1608272,
+      "home_lambda": 1.6562,
+      "home_team": "Union Brescia",
+      "league": "Serie C - Girone A",
+      "multiclass_brier_grid_0_5_plus_other": 1.0011110737158753,
+      "negative_log_likelihood": 3.238785435769931,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "2-2",
+      "actual_score_probability": 0.06515017,
+      "actual_score_rank_within_0_5_grid": 5,
+      "away_lambda": 1.7344,
+      "away_team": "Ospitaletto",
+      "fixture_id": 1608273,
+      "home_lambda": 1.4375,
+      "home_team": "Athletic Carpi",
+      "league": "Serie C - Girone A",
+      "multiclass_brier_grid_0_5_plus_other": 0.925591535042416,
+      "negative_log_likelihood": 2.7310603092147736,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 1
+    },
+    {
+      "actual_score": "2-2",
+      "actual_score_probability": 0.01724524,
+      "actual_score_rank_within_0_5_grid": 11,
+      "away_lambda": 1.1406,
+      "away_team": "Trento",
+      "fixture_id": 1608276,
+      "home_lambda": 0.5312,
+      "home_team": "Giana Erminio",
+      "league": "Serie C - Girone A",
+      "multiclass_brier_grid_0_5_plus_other": 1.0938689984972834,
+      "negative_log_likelihood": 4.060218843279114,
+      "stage": "T-90",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "2-3",
+      "actual_score_probability": 0.03443892,
+      "actual_score_rank_within_0_5_grid": 12,
+      "away_lambda": 1.6313,
+      "away_team": "Urena SC",
+      "fixture_id": 1635926,
+      "home_lambda": 1.4156,
+      "home_team": "Puerto Cabello II",
+      "league": "Segunda División",
+      "multiclass_brier_grid_0_5_plus_other": 0.9894217606338992,
+      "negative_log_likelihood": 3.368567981929298,
+      "stage": "CLOSE",
       "top1_hit": 0,
       "top3_hit": 0,
       "top5_hit": 0

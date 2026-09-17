@@ -147,6 +147,13 @@
       "n": 6,
       "observed_win_rate": 0.5
     },
+    "Ettan - Norra": {
+      "brier": 0.352007,
+      "log_loss": 0.92285,
+      "mean_probability": 0.5,
+      "n": 4,
+      "observed_win_rate": 0.5
+    },
     "First League": {
       "brier": 0.074688,
       "log_loss": 0.309581,
@@ -176,10 +183,10 @@
       "observed_win_rate": 0.5
     },
     "League Cup": {
-      "brier": 0.344529,
-      "log_loss": 0.919967,
+      "brier": 0.346051,
+      "log_loss": 0.91801,
       "mean_probability": 0.5,
-      "n": 12,
+      "n": 14,
       "observed_win_rate": 0.5
     },
     "Liga 1": {
@@ -337,10 +344,10 @@
       "observed_win_rate": 0.5
     },
     "Segunda División": {
-      "brier": 0.192025,
-      "log_loss": 0.569328,
+      "brier": 0.192024,
+      "log_loss": 0.571149,
       "mean_probability": 0.5,
-      "n": 6,
+      "n": 8,
       "observed_win_rate": 0.5
     },
     "Serie A": {
@@ -372,10 +379,10 @@
       "observed_win_rate": 0.5
     },
     "Super Liga": {
-      "brier": 0.404631,
-      "log_loss": 1.010893,
+      "brier": 0.367378,
+      "log_loss": 0.932767,
       "mean_probability": 0.5,
-      "n": 2,
+      "n": 4,
       "observed_win_rate": 0.5
     },
     "Superettan": {
@@ -437,36 +444,36 @@
   },
   "by_selection": {
     "AWAY": {
-      "brier": 0.221245,
-      "log_loss": 0.638914,
-      "mean_probability": 0.448149,
-      "n": 149,
-      "observed_win_rate": 0.416107
+      "brier": 0.22433,
+      "log_loss": 0.645334,
+      "mean_probability": 0.452492,
+      "n": 154,
+      "observed_win_rate": 0.422078
     },
     "HOME": {
-      "brier": 0.221245,
-      "log_loss": 0.638914,
-      "mean_probability": 0.551851,
-      "n": 149,
-      "observed_win_rate": 0.583893
+      "brier": 0.22433,
+      "log_loss": 0.645334,
+      "mean_probability": 0.547508,
+      "n": 154,
+      "observed_win_rate": 0.577922
     }
   },
-  "draw_push_fixtures": 35,
-  "evaluated_binary_rows": 298,
-  "fixtures_with_result": 184,
+  "draw_push_fixtures": 42,
+  "evaluated_binary_rows": 308,
+  "fixtures_with_result": 196,
   "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
-  "non_draw_oos_fixtures": 149,
+  "non_draw_oos_fixtures": 154,
   "notes": [
     "Draw fixtures are pushes and are excluded from conditional HOME/AWAY calibration scoring.",
     "DNB fair probability is P(win | no draw), while push probability is tracked separately.",
     "This report cannot promote DNB to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
-  "observed_draw_push_rate": 0.190217,
+  "observed_draw_push_rate": 0.214286,
   "overall_non_draw": {
-    "brier": 0.221245,
-    "log_loss": 0.638914,
+    "brier": 0.22433,
+    "log_loss": 0.645334,
     "mean_probability": 0.5,
-    "n": 298,
+    "n": 308,
     "observed_win_rate": 0.5
   },
   "promotion_gate": {
@@ -3385,6 +3392,46 @@
       "stage": "CLOSE"
     },
     {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.3301239227316569,
+      "fixture_id": 1553841,
+      "league": "Super Liga",
+      "log_loss": 0.8546410248673821,
+      "probability_win_given_no_draw": 0.574564,
+      "selection": "HOME",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.3301239227316569,
+      "fixture_id": 1553841,
+      "league": "Super Liga",
+      "log_loss": 0.854641024867382,
+      "probability_win_given_no_draw": 0.425436,
+      "selection": "AWAY",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.3551812605666669,
+      "fixture_id": 1635564,
+      "league": "League Cup",
+      "log_loss": 0.9062682636910225,
+      "probability_win_given_no_draw": 0.404029,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.35518126056666705,
+      "fixture_id": 1635564,
+      "league": "League Cup",
+      "log_loss": 0.9062682636910228,
+      "probability_win_given_no_draw": 0.595971,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
       "actual_win_given_no_draw": 1,
       "brier": 0.01675813294091369,
       "fixture_id": 1577533,
@@ -3463,6 +3510,66 @@
       "probability_win_given_no_draw": 0.47499,
       "selection": "AWAY",
       "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.16589207555567095,
+      "fixture_id": 1505259,
+      "league": "Ettan - Norra",
+      "log_loss": 0.5230643948377474,
+      "probability_win_given_no_draw": 0.407299,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.1658920755556709,
+      "fixture_id": 1505259,
+      "league": "Ettan - Norra",
+      "log_loss": 0.5230643948377474,
+      "probability_win_given_no_draw": 0.592701,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.5381214209486443,
+      "fixture_id": 1505261,
+      "league": "Ettan - Norra",
+      "log_loss": 1.322634718872475,
+      "probability_win_given_no_draw": 0.266432,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.5381214209486446,
+      "fixture_id": 1505261,
+      "league": "Ettan - Norra",
+      "log_loss": 1.3226347188724752,
+      "probability_win_given_no_draw": 0.733568,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.19202003133784556,
+      "fixture_id": 1635926,
+      "league": "Segunda División",
+      "log_loss": 0.5766109715408979,
+      "probability_win_given_no_draw": 0.438201,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.19202003133784562,
+      "fixture_id": 1635926,
+      "league": "Segunda División",
+      "log_loss": 0.5766109715408979,
+      "probability_win_given_no_draw": 0.561799,
+      "selection": "AWAY",
+      "stage": "CLOSE"
     }
   ],
   "schema_version": "1.0.0",
