@@ -32,8 +32,8 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 | # | Module | DATA | MODEL | LIVE | PRODUCTION | NATURAL VALIDATION | Current checkpoint | Exactly what remains |
 |---|---|---|---|---|---|---|---|---|
 | 1 | FT Goals | ✅ | ✅ | ✅ | ✅ Tier-B constrained | ⏳ partial | 🟢 IMPROVED v3.14 | Natural state is v3.14.0, provider-call safety passed. Need persisted `ft_goals_intelligence` evidence / ladder visibility; continue accumulating OOS and challenger comparison. Advanced inputs remain separate gaps. |
-| 2 | Team Totals | ✅ lambdas available | 🟠 derivable | 🔴 | 🔴 | — | 🟠 READY NEXT | Convert home/away lambda distributions into exact observed team-total line probabilities; market mapping; research-only bridge first. |
-| 3 | Correct Score | ✅ score matrix | ✅ research distribution | 🟠 | 🔴 | — | 🟠 | Expose calibrated exact-score probabilities against real observed correct-score markets; no synthetic market claims. |
+| 2 | Team Totals | ✅ canonical home/away lambdas + retained team-total markets | ✅ Poisson O/U 0.5/1.5/2.5 research model | 🟡 v3.15 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.15 | Need natural persistence confirmation, ≥100 OOS for market comparison, ≥200 for actionable review, historical team-total prices/CLV and cross-league calibration. Integer/quarter lines remain unsupported until explicit settlement math exists. No Galaxy/production promotion yet. |
+| 3 | Correct Score | ✅ score matrix | ✅ research distribution | 🟠 | 🔴 | — | 🟠 NEXT | Expose calibrated exact-score probabilities against real observed correct-score markets; no synthetic market claims. |
 | 4 | BTTS | ✅ | ✅ | ✅ | 🔴 | partial | 🟡 LIVE RESEARCH | OOS calibration, Brier/log-loss, CLV and explicit promotion gate. |
 | 5 | 1X2 | ✅ | ✅ canonical + relative-strength shadow | ✅ research | 🔴 | partial | 🟡 LIVE RESEARCH | Select/validate production candidate, calibration and promotion gate; preserve discrepancy checks. |
 | 6 | Double Chance | ✅ | 🟠 mathematically derivable from validated 1X2 | 🟡 research | 🔴 | partial | 🟠 | Tie DC probabilities strictly to accepted 1X2 model; validate market mapping; keep research until 1X2 promoted. |
@@ -99,10 +99,37 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 - xG/xGA/npxG/npxGA, PPDA/field tilt, goalkeeper quantitative impact, set-piece effect, weather and rest/congestion are not yet part of the canonical FT-goals probability.
 - No model-weight change is allowed solely because the current FT totals sample is promising.
 
+## #2 Team Totals checkpoint — v3.15
+
+### Already passes
+
+- Uses the existing canonical raw home and away goal lambdas; sportsbook odds never create the sporting probability.
+- Produces explicit Home/Away O/U probabilities for 0.5, 1.5 and 2.5 using the team-specific Poisson distribution.
+- Creates fair model prices independently of market inspection.
+- Team-total prices are compared only when the exact market/line/bookmaker was actually observed in the existing market payload.
+- When both Over and Under for the same line/book are available, research output includes no-vig fair market probability.
+- Research rows include model probability, fair price, breakeven, observed price, raw probability edge and raw EV.
+- Ambiguous team-total markets are skipped instead of guessed.
+- Integer and quarter lines are explicitly rejected in v1 instead of silently applying incorrect push/half-win settlement.
+- `actionable=false`, `decision_weight=0`, classification `RESEARCH_ONLY`; cannot produce canonical BET/LEAN.
+- Team Totals cannot enter Galaxy yet.
+- Adds zero provider requests and changes no canonical model weights, thresholds, stakes or BET logic.
+- Dedicated OOS validator records Brier/log-loss and calibration by HOME/AWAY, line and selection.
+- History pipeline now runs the Team Totals validator automatically.
+
+### Still missing / not allowed to claim resolved
+
+- Natural v3.15 state/persistence confirmation is pending and is non-blocking for subsequent engineering work.
+- Need at least 100 OOS fixtures before meaningful market-comparison review and 200 before actionable promotion review.
+- Need persisted historical team-total prices and CLV evidence, not only sporting-outcome calibration.
+- Need stable calibration across competitions and no material degradation versus the parent FT-goals model.
+- Integer lines (e.g. 1.0/2.0) need explicit push math; quarter lines (0.75/1.25/etc.) need Asian split/half-win/half-loss settlement before support.
+- Richer future inputs such as xG, GK impact, set pieces, rest and weather belong to their dedicated gaps and must not be fabricated here.
+
 ### Engineering rule going forward
 
 Do not block the next module on the natural-validation check. Record the check as pending and continue. When a later natural state supplies evidence, update this file asynchronously.
 
 ## Next engineering target
 
-#2 Team Totals — create a research-only live bridge from existing home/away goal-rate distributions to exact REAL team-total lines, with no canonical BET/LEAN promotion until calibrated.
+#3 Correct Score — expose the existing score-matrix probabilities against exact REAL correct-score markets as research-only, then add OOS/calibration before any production eligibility.
