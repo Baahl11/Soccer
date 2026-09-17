@@ -1,25 +1,25 @@
 {
   "service": "soccer-edge-automation",
-  "version": "3.23.0",
+  "version": "3.30.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-17T21:07:38.017396+00:00",
-  "generated_at_local": "2026-09-17T15:07:38.017396-06:00",
+  "generated_at_utc": "2026-09-17T21:21:39.905568+00:00",
+  "generated_at_local": "2026-09-17T15:21:39.905568-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 175,
-  "due_fixture_count": 23,
-  "event_count": 12,
+  "due_fixture_count": 24,
+  "event_count": 13,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 4982,
+  "last_daily_remaining": 4980,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
   "deep_dive_processed_count": 10,
   "shortlist_event_count": 7,
-  "screened_out_low_data_count": 0,
+  "screened_out_low_data_count": 1,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
@@ -71,12 +71,12 @@
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
     "galaxy_odds_stale_or_missing": 0,
-    "galaxy_slate_reads": 0,
+    "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
-    "galaxy_slate_fallbacks": 0,
-    "galaxy_slate_stale_rejections": 0,
+    "galaxy_slate_fallbacks": 1,
+    "galaxy_slate_stale_rejections": 1,
     "api_slate_calls_avoided": 0,
-    "api_slate_reconciliation_calls": 1,
+    "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
     "provider_requests_avoided": 6,
     "odds_market_events": 0,
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-17T15:07:38.017396-06:00",
+    "generated_at_local": "2026-09-17T15:21:39.905568-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -3312,7 +3312,7 @@
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-17T15:07:38.017396-06:00",
+    "generated_at_local": "2026-09-17T15:21:39.905568-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -3410,7 +3410,7 @@
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
       "invalidated_fixture_count_this_tick": 10,
-      "updated_at_utc": "2026-09-17T21:07:38.017396+00:00",
+      "updated_at_utc": "2026-09-17T21:21:39.905568+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -3454,8 +3454,8 @@
   "v39_canonical_bet_logic_changed": false,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "5004",
-    "per_minute_remaining": "299"
+    "daily_remaining": "4977",
+    "per_minute_remaining": "296"
   },
   "database_persisted": false,
   "events": [
@@ -3731,19 +3731,68 @@
             "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
           },
           "corners": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "observed_quote_count": 0,
-            "team_corner_quote_count": 0,
-            "expected_corner_environment": null,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "LEAGUE_TEAM_CORNERS_POISSON_LIVE_v0.1",
+              "home_lambda": 5.873015873015873,
+              "away_lambda": 3.984126984126984,
+              "total_lambda": 9.857142857142858,
+              "prior_pool_n": 63,
+              "prior_home_home_matches": 0,
+              "prior_away_away_matches": 0,
+              "formation_adjustment_applied": false,
+              "formation_adjustment_status": "OFFLINE_CHALLENGER_NOT_LIVE_WEIGHTED",
+              "registry_verified_postgame_fixtures": 63
+            },
+            "observed_market_rows": [],
+            "formation_challenger_status": "OFFLINE_VALIDATED_SEPARATELY_NOT_APPLIED_LIVE",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 150,
+              "minimum_formation_adjusted_evaluations": 100,
+              "requires": [
+                "lower corners MAE",
+                "lower Brier/log-loss relevant lines",
+                "stable league lift",
+                "verified price/true-CLV evidence",
+                "territorial features when available"
+              ]
+            }
           },
           "cards": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
-            "observed_quote_count": 0,
-            "team_card_quote_count": 0,
-            "red_card_quote_count": 0,
-            "player_card_quote_count": 0,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "TEAM_DISCIPLINE_PLUS_OPTIONAL_REFEREE_YELLOW_CARDS_LIVE_v0.1",
+              "home_yellow_lambda": 2.307692307692308,
+              "away_yellow_lambda": 2.310344827586207,
+              "base_total_yellow_lambda": 4.618037135278515,
+              "total_yellow_lambda": 4.618037135278515,
+              "referee": "J. C. Huanca",
+              "referee_prior_n": 0,
+              "referee_scale": 1.0,
+              "prior_league_n": 4,
+              "prior_home_home_n": 0,
+              "prior_away_away_n": 0,
+              "registry_verified_postgame_fixtures": 65,
+              "red_cards_included": false
+            },
+            "observed_explicit_yellow_market_rows": [],
+            "blocked_ambiguous_card_markets": [],
+            "referee_adjustment_applied": false,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 200,
+              "minimum_referee_adjusted_evaluations": 100,
+              "requires": [
+                "stable Brier/log-loss",
+                "stable league performance",
+                "verified current referee",
+                "explicit sportsbook yellow-card scoring rules",
+                "verified price/true-CLV evidence"
+              ]
+            }
           },
           "players": {
             "status": "NOT_CAPTURED_THIS_TICK",
@@ -3769,10 +3818,33 @@
             "regime_change_model": "PENDING"
           },
           "referee": {
-            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
-            "name": "J. C. Huanca",
-            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "decision_weight": 0.0
+            "schema_version": "1.0.0",
+            "fixture_id": 1619018,
+            "status": "LIVE_RESEARCH_PROFILE",
+            "referee": "J. C. Huanca",
+            "assignment_source": "API_FIXTURE_ASSIGNMENT",
+            "official_independent_verification": false,
+            "historical_profile": {
+              "yellow_sample_n": 0,
+              "yellow_cards_per_match": null,
+              "red_sample_n": 0,
+              "matches_with_any_red_rate": null,
+              "red_cards_per_match": null,
+              "sample_band": "LOW"
+            },
+            "feature_gates": {
+              "yellow_cards_adjustment_eligible": false,
+              "red_cards_adjustment_eligible": false,
+              "standalone_bet_signal_allowed": false
+            },
+            "missing": [
+              "FOULS_PER_MATCH_REFEREE_HISTORY_NOT_IN_REGISTRY",
+              "PENALTY_RATE_REFEREE_HISTORY_NOT_IN_REGISTRY",
+              "INDEPENDENT_OFFICIAL_ASSIGNMENT_VERIFICATION_NOT_AUTOMATED"
+            ],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "policy": "REFEREE IS A CONDITIONING FEATURE ONLY; NEVER A STANDALONE BET SIGNAL; USE ONLY WHEN SAMPLE GATE IS MET"
           },
           "injuries_suspensions": {
             "status": "NOT_VERIFIED",
@@ -4177,6 +4249,53 @@
                 "separate halftime-conditioned model for any live-2H use"
               ]
             }
+          },
+          "team_corners": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_corner_lambda": 5.873016,
+            "away_corner_lambda": 3.984127,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 200,
+              "minimum_oos_team_rows_for_actionable_review": 400,
+              "requires": [
+                "team-line Brier/log-loss calibration",
+                "verified team-corners price/true-CLV history",
+                "league/venue stability",
+                "parent corners model remains adequate"
+              ]
+            }
+          },
+          "team_cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_yellow_lambda": 2.307692,
+            "away_yellow_lambda": 2.310345,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 250,
+              "minimum_oos_team_rows_for_actionable_review": 500,
+              "requires": [
+                "team-line Brier/log-loss",
+                "verified explicit team-yellow price/true-CLV history",
+                "league/venue stability",
+                "sportsbook yellow-card rule verified"
+              ]
+            }
+          },
+          "red_cards": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "p_any_red": null,
+            "p_no_red": null,
+            "observed_explicit_red_market_rows": [],
+            "blocked_red_card_markets": [],
+            "referee_adjustment_applied": null,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": null
           }
         },
         "coverage_gaps": [
@@ -4417,16 +4536,16 @@
             }
           ],
           "totals": {
-            "shots_inside_box": 20.0,
-            "red_cards": 0.0,
-            "total_shots": 22.0,
-            "shots_outside_box": 2.0,
-            "corners": 11.0,
-            "shots_on_goal": 4.0,
-            "fouls": 24.0,
             "blocked_shots": 5.0,
             "yellow_cards": 3.0,
-            "possession": 100.0
+            "fouls": 24.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 2.0,
+            "possession": 100.0,
+            "shots_inside_box": 20.0,
+            "corners": 11.0,
+            "total_shots": 22.0,
+            "shots_on_goal": 4.0
           }
         },
         "player_stats": {
@@ -4583,16 +4702,16 @@
             }
           ],
           "totals": {
-            "shots_inside_box": 13.0,
-            "red_cards": 0.0,
-            "total_shots": 20.0,
-            "shots_outside_box": 7.0,
-            "corners": 10.0,
-            "shots_on_goal": 6.0,
-            "fouls": 38.0,
             "blocked_shots": 6.0,
             "yellow_cards": 7.0,
-            "possession": 100.0
+            "fouls": 38.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 7.0,
+            "possession": 100.0,
+            "shots_inside_box": 13.0,
+            "corners": 10.0,
+            "total_shots": 20.0,
+            "shots_on_goal": 6.0
           }
         },
         "player_stats": {
@@ -4780,16 +4899,16 @@
             }
           ],
           "totals": {
-            "shots_inside_box": 14.0,
-            "red_cards": 0.0,
-            "total_shots": 24.0,
-            "shots_outside_box": 10.0,
-            "corners": 14.0,
-            "shots_on_goal": 12.0,
-            "fouls": 24.0,
             "blocked_shots": 5.0,
             "yellow_cards": 5.0,
-            "possession": 100.0
+            "fouls": 24.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 10.0,
+            "possession": 100.0,
+            "shots_inside_box": 14.0,
+            "corners": 14.0,
+            "total_shots": 24.0,
+            "shots_on_goal": 12.0
           }
         }
       },
@@ -4938,16 +5057,16 @@
             }
           ],
           "totals": {
-            "shots_inside_box": 13.0,
-            "red_cards": 0.0,
-            "total_shots": 18.0,
-            "shots_outside_box": 5.0,
-            "corners": 5.0,
-            "shots_on_goal": 6.0,
-            "fouls": 14.0,
             "blocked_shots": 5.0,
             "yellow_cards": 1.0,
-            "possession": 100.0
+            "fouls": 14.0,
+            "red_cards": 0.0,
+            "shots_outside_box": 5.0,
+            "possession": 100.0,
+            "shots_inside_box": 13.0,
+            "corners": 5.0,
+            "total_shots": 18.0,
+            "shots_on_goal": 6.0
           }
         }
       },
@@ -5135,19 +5254,68 @@
             "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
           },
           "corners": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "observed_quote_count": 0,
-            "team_corner_quote_count": 0,
-            "expected_corner_environment": null,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "LEAGUE_TEAM_CORNERS_POISSON_LIVE_v0.1",
+              "home_lambda": 5.873015873015873,
+              "away_lambda": 3.984126984126984,
+              "total_lambda": 9.857142857142858,
+              "prior_pool_n": 63,
+              "prior_home_home_matches": 0,
+              "prior_away_away_matches": 0,
+              "formation_adjustment_applied": false,
+              "formation_adjustment_status": "OFFLINE_CHALLENGER_NOT_LIVE_WEIGHTED",
+              "registry_verified_postgame_fixtures": 63
+            },
+            "observed_market_rows": [],
+            "formation_challenger_status": "OFFLINE_VALIDATED_SEPARATELY_NOT_APPLIED_LIVE",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 150,
+              "minimum_formation_adjusted_evaluations": 100,
+              "requires": [
+                "lower corners MAE",
+                "lower Brier/log-loss relevant lines",
+                "stable league lift",
+                "verified price/true-CLV evidence",
+                "territorial features when available"
+              ]
+            }
           },
           "cards": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
-            "observed_quote_count": 0,
-            "team_card_quote_count": 0,
-            "red_card_quote_count": 0,
-            "player_card_quote_count": 0,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "TEAM_DISCIPLINE_PLUS_OPTIONAL_REFEREE_YELLOW_CARDS_LIVE_v0.1",
+              "home_yellow_lambda": 2.076923076923077,
+              "away_yellow_lambda": 2.2,
+              "base_total_yellow_lambda": 4.276923076923078,
+              "total_yellow_lambda": 4.276923076923078,
+              "referee": null,
+              "referee_prior_n": 0,
+              "referee_scale": 1.0,
+              "prior_league_n": 0,
+              "prior_home_home_n": 0,
+              "prior_away_away_n": 0,
+              "registry_verified_postgame_fixtures": 65,
+              "red_cards_included": false
+            },
+            "observed_explicit_yellow_market_rows": [],
+            "blocked_ambiguous_card_markets": [],
+            "referee_adjustment_applied": false,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 200,
+              "minimum_referee_adjusted_evaluations": 100,
+              "requires": [
+                "stable Brier/log-loss",
+                "stable league performance",
+                "verified current referee",
+                "explicit sportsbook yellow-card scoring rules",
+                "verified price/true-CLV evidence"
+              ]
+            }
           },
           "players": {
             "status": "NOT_CAPTURED_THIS_TICK",
@@ -5173,9 +5341,12 @@
             "regime_change_model": "PENDING"
           },
           "referee": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549765,
             "status": "NOT_VERIFIED",
-            "name": null,
-            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "referee": null,
+            "reason": "CURRENT_FIXTURE_REFEREE_NOT_AVAILABLE",
+            "actionable": false,
             "decision_weight": 0.0
           },
           "injuries_suspensions": {
@@ -5374,6 +5545,53 @@
                 "separate halftime-conditioned model for any live-2H use"
               ]
             }
+          },
+          "team_corners": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_corner_lambda": 5.873016,
+            "away_corner_lambda": 3.984127,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 200,
+              "minimum_oos_team_rows_for_actionable_review": 400,
+              "requires": [
+                "team-line Brier/log-loss calibration",
+                "verified team-corners price/true-CLV history",
+                "league/venue stability",
+                "parent corners model remains adequate"
+              ]
+            }
+          },
+          "team_cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_yellow_lambda": 2.076923,
+            "away_yellow_lambda": 2.2,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 250,
+              "minimum_oos_team_rows_for_actionable_review": 500,
+              "requires": [
+                "team-line Brier/log-loss",
+                "verified explicit team-yellow price/true-CLV history",
+                "league/venue stability",
+                "sportsbook yellow-card rule verified"
+              ]
+            }
+          },
+          "red_cards": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "p_any_red": null,
+            "p_no_red": null,
+            "observed_explicit_red_market_rows": [],
+            "blocked_red_card_markets": [],
+            "referee_adjustment_applied": null,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": null
           }
         },
         "coverage_gaps": [
@@ -5615,19 +5833,68 @@
             "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
           },
           "corners": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "observed_quote_count": 0,
-            "team_corner_quote_count": 0,
-            "expected_corner_environment": null,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "LEAGUE_TEAM_CORNERS_POISSON_LIVE_v0.1",
+              "home_lambda": 5.873015873015873,
+              "away_lambda": 3.984126984126984,
+              "total_lambda": 9.857142857142858,
+              "prior_pool_n": 63,
+              "prior_home_home_matches": 0,
+              "prior_away_away_matches": 0,
+              "formation_adjustment_applied": false,
+              "formation_adjustment_status": "OFFLINE_CHALLENGER_NOT_LIVE_WEIGHTED",
+              "registry_verified_postgame_fixtures": 63
+            },
+            "observed_market_rows": [],
+            "formation_challenger_status": "OFFLINE_VALIDATED_SEPARATELY_NOT_APPLIED_LIVE",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 150,
+              "minimum_formation_adjusted_evaluations": 100,
+              "requires": [
+                "lower corners MAE",
+                "lower Brier/log-loss relevant lines",
+                "stable league lift",
+                "verified price/true-CLV evidence",
+                "territorial features when available"
+              ]
+            }
           },
           "cards": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
-            "observed_quote_count": 0,
-            "team_card_quote_count": 0,
-            "red_card_quote_count": 0,
-            "player_card_quote_count": 0,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "TEAM_DISCIPLINE_PLUS_OPTIONAL_REFEREE_YELLOW_CARDS_LIVE_v0.1",
+              "home_yellow_lambda": 2.076923076923077,
+              "away_yellow_lambda": 2.2,
+              "base_total_yellow_lambda": 4.276923076923078,
+              "total_yellow_lambda": 4.276923076923078,
+              "referee": "Maximiliano Ramirez",
+              "referee_prior_n": 0,
+              "referee_scale": 1.0,
+              "prior_league_n": 0,
+              "prior_home_home_n": 0,
+              "prior_away_away_n": 0,
+              "registry_verified_postgame_fixtures": 65,
+              "red_cards_included": false
+            },
+            "observed_explicit_yellow_market_rows": [],
+            "blocked_ambiguous_card_markets": [],
+            "referee_adjustment_applied": false,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 200,
+              "minimum_referee_adjusted_evaluations": 100,
+              "requires": [
+                "stable Brier/log-loss",
+                "stable league performance",
+                "verified current referee",
+                "explicit sportsbook yellow-card scoring rules",
+                "verified price/true-CLV evidence"
+              ]
+            }
           },
           "players": {
             "status": "NOT_CAPTURED_THIS_TICK",
@@ -5653,10 +5920,33 @@
             "regime_change_model": "PENDING"
           },
           "referee": {
-            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
-            "name": "Maximiliano Ramirez",
-            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "decision_weight": 0.0
+            "schema_version": "1.0.0",
+            "fixture_id": 1631512,
+            "status": "LIVE_RESEARCH_PROFILE",
+            "referee": "Maximiliano Ramirez",
+            "assignment_source": "API_FIXTURE_ASSIGNMENT",
+            "official_independent_verification": false,
+            "historical_profile": {
+              "yellow_sample_n": 0,
+              "yellow_cards_per_match": null,
+              "red_sample_n": 0,
+              "matches_with_any_red_rate": null,
+              "red_cards_per_match": null,
+              "sample_band": "LOW"
+            },
+            "feature_gates": {
+              "yellow_cards_adjustment_eligible": false,
+              "red_cards_adjustment_eligible": false,
+              "standalone_bet_signal_allowed": false
+            },
+            "missing": [
+              "FOULS_PER_MATCH_REFEREE_HISTORY_NOT_IN_REGISTRY",
+              "PENALTY_RATE_REFEREE_HISTORY_NOT_IN_REGISTRY",
+              "INDEPENDENT_OFFICIAL_ASSIGNMENT_VERIFICATION_NOT_AUTOMATED"
+            ],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "policy": "REFEREE IS A CONDITIONING FEATURE ONLY; NEVER A STANDALONE BET SIGNAL; USE ONLY WHEN SAMPLE GATE IS MET"
           },
           "injuries_suspensions": {
             "status": "NOT_VERIFIED",
@@ -5854,6 +6144,53 @@
                 "separate halftime-conditioned model for any live-2H use"
               ]
             }
+          },
+          "team_corners": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_corner_lambda": 5.873016,
+            "away_corner_lambda": 3.984127,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 200,
+              "minimum_oos_team_rows_for_actionable_review": 400,
+              "requires": [
+                "team-line Brier/log-loss calibration",
+                "verified team-corners price/true-CLV history",
+                "league/venue stability",
+                "parent corners model remains adequate"
+              ]
+            }
+          },
+          "team_cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_yellow_lambda": 2.076923,
+            "away_yellow_lambda": 2.2,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 250,
+              "minimum_oos_team_rows_for_actionable_review": 500,
+              "requires": [
+                "team-line Brier/log-loss",
+                "verified explicit team-yellow price/true-CLV history",
+                "league/venue stability",
+                "sportsbook yellow-card rule verified"
+              ]
+            }
+          },
+          "red_cards": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "p_any_red": null,
+            "p_no_red": null,
+            "observed_explicit_red_market_rows": [],
+            "blocked_red_card_markets": [],
+            "referee_adjustment_applied": null,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": null
           }
         },
         "coverage_gaps": [
@@ -6125,19 +6462,68 @@
             "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
           },
           "corners": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "observed_quote_count": 0,
-            "team_corner_quote_count": 0,
-            "expected_corner_environment": null,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "LEAGUE_TEAM_CORNERS_POISSON_LIVE_v0.1",
+              "home_lambda": 5.873015873015873,
+              "away_lambda": 3.984126984126984,
+              "total_lambda": 9.857142857142858,
+              "prior_pool_n": 63,
+              "prior_home_home_matches": 0,
+              "prior_away_away_matches": 0,
+              "formation_adjustment_applied": false,
+              "formation_adjustment_status": "OFFLINE_CHALLENGER_NOT_LIVE_WEIGHTED",
+              "registry_verified_postgame_fixtures": 63
+            },
+            "observed_market_rows": [],
+            "formation_challenger_status": "OFFLINE_VALIDATED_SEPARATELY_NOT_APPLIED_LIVE",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 150,
+              "minimum_formation_adjusted_evaluations": 100,
+              "requires": [
+                "lower corners MAE",
+                "lower Brier/log-loss relevant lines",
+                "stable league lift",
+                "verified price/true-CLV evidence",
+                "territorial features when available"
+              ]
+            }
           },
           "cards": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
-            "observed_quote_count": 0,
-            "team_card_quote_count": 0,
-            "red_card_quote_count": 0,
-            "player_card_quote_count": 0,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "TEAM_DISCIPLINE_PLUS_OPTIONAL_REFEREE_YELLOW_CARDS_LIVE_v0.1",
+              "home_yellow_lambda": 2.076923076923077,
+              "away_yellow_lambda": 2.2,
+              "base_total_yellow_lambda": 4.276923076923078,
+              "total_yellow_lambda": 4.276923076923078,
+              "referee": "Andrés Matías Matonte Cabrera",
+              "referee_prior_n": 0,
+              "referee_scale": 1.0,
+              "prior_league_n": 0,
+              "prior_home_home_n": 0,
+              "prior_away_away_n": 0,
+              "registry_verified_postgame_fixtures": 65,
+              "red_cards_included": false
+            },
+            "observed_explicit_yellow_market_rows": [],
+            "blocked_ambiguous_card_markets": [],
+            "referee_adjustment_applied": false,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 200,
+              "minimum_referee_adjusted_evaluations": 100,
+              "requires": [
+                "stable Brier/log-loss",
+                "stable league performance",
+                "verified current referee",
+                "explicit sportsbook yellow-card scoring rules",
+                "verified price/true-CLV evidence"
+              ]
+            }
           },
           "players": {
             "status": "NOT_CAPTURED_THIS_TICK",
@@ -6163,10 +6549,33 @@
             "regime_change_model": "PENDING"
           },
           "referee": {
-            "status": "VERIFIED_FIXTURE_ASSIGNMENT",
-            "name": "Andrés Matías Matonte Cabrera",
-            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "decision_weight": 0.0
+            "schema_version": "1.0.0",
+            "fixture_id": 1635387,
+            "status": "LIVE_RESEARCH_PROFILE",
+            "referee": "Andrés Matías Matonte Cabrera",
+            "assignment_source": "API_FIXTURE_ASSIGNMENT",
+            "official_independent_verification": false,
+            "historical_profile": {
+              "yellow_sample_n": 0,
+              "yellow_cards_per_match": null,
+              "red_sample_n": 0,
+              "matches_with_any_red_rate": null,
+              "red_cards_per_match": null,
+              "sample_band": "LOW"
+            },
+            "feature_gates": {
+              "yellow_cards_adjustment_eligible": false,
+              "red_cards_adjustment_eligible": false,
+              "standalone_bet_signal_allowed": false
+            },
+            "missing": [
+              "FOULS_PER_MATCH_REFEREE_HISTORY_NOT_IN_REGISTRY",
+              "PENALTY_RATE_REFEREE_HISTORY_NOT_IN_REGISTRY",
+              "INDEPENDENT_OFFICIAL_ASSIGNMENT_VERIFICATION_NOT_AUTOMATED"
+            ],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "policy": "REFEREE IS A CONDITIONING FEATURE ONLY; NEVER A STANDALONE BET SIGNAL; USE ONLY WHEN SAMPLE GATE IS MET"
           },
           "injuries_suspensions": {
             "status": "NOT_VERIFIED",
@@ -6367,6 +6776,53 @@
                 "separate halftime-conditioned model for any live-2H use"
               ]
             }
+          },
+          "team_corners": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_corner_lambda": 5.873016,
+            "away_corner_lambda": 3.984127,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 200,
+              "minimum_oos_team_rows_for_actionable_review": 400,
+              "requires": [
+                "team-line Brier/log-loss calibration",
+                "verified team-corners price/true-CLV history",
+                "league/venue stability",
+                "parent corners model remains adequate"
+              ]
+            }
+          },
+          "team_cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_yellow_lambda": 2.076923,
+            "away_yellow_lambda": 2.2,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 250,
+              "minimum_oos_team_rows_for_actionable_review": 500,
+              "requires": [
+                "team-line Brier/log-loss",
+                "verified explicit team-yellow price/true-CLV history",
+                "league/venue stability",
+                "sportsbook yellow-card rule verified"
+              ]
+            }
+          },
+          "red_cards": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "p_any_red": null,
+            "p_no_red": null,
+            "observed_explicit_red_market_rows": [],
+            "blocked_red_card_markets": [],
+            "referee_adjustment_applied": null,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": null
           }
         },
         "coverage_gaps": [
@@ -6658,19 +7114,68 @@
             "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
           },
           "corners": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "observed_quote_count": 0,
-            "team_corner_quote_count": 0,
-            "expected_corner_environment": null,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "LEAGUE_TEAM_CORNERS_POISSON_LIVE_v0.1",
+              "home_lambda": 5.873015873015873,
+              "away_lambda": 3.984126984126984,
+              "total_lambda": 9.857142857142858,
+              "prior_pool_n": 63,
+              "prior_home_home_matches": 0,
+              "prior_away_away_matches": 0,
+              "formation_adjustment_applied": false,
+              "formation_adjustment_status": "OFFLINE_CHALLENGER_NOT_LIVE_WEIGHTED",
+              "registry_verified_postgame_fixtures": 63
+            },
+            "observed_market_rows": [],
+            "formation_challenger_status": "OFFLINE_VALIDATED_SEPARATELY_NOT_APPLIED_LIVE",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 150,
+              "minimum_formation_adjusted_evaluations": 100,
+              "requires": [
+                "lower corners MAE",
+                "lower Brier/log-loss relevant lines",
+                "stable league lift",
+                "verified price/true-CLV evidence",
+                "territorial features when available"
+              ]
+            }
           },
           "cards": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
-            "observed_quote_count": 0,
-            "team_card_quote_count": 0,
-            "red_card_quote_count": 0,
-            "player_card_quote_count": 0,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "TEAM_DISCIPLINE_PLUS_OPTIONAL_REFEREE_YELLOW_CARDS_LIVE_v0.1",
+              "home_yellow_lambda": 2.076923076923077,
+              "away_yellow_lambda": 2.2,
+              "base_total_yellow_lambda": 4.276923076923078,
+              "total_yellow_lambda": 4.276923076923078,
+              "referee": null,
+              "referee_prior_n": 0,
+              "referee_scale": 1.0,
+              "prior_league_n": 0,
+              "prior_home_home_n": 0,
+              "prior_away_away_n": 0,
+              "registry_verified_postgame_fixtures": 65,
+              "red_cards_included": false
+            },
+            "observed_explicit_yellow_market_rows": [],
+            "blocked_ambiguous_card_markets": [],
+            "referee_adjustment_applied": false,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 200,
+              "minimum_referee_adjusted_evaluations": 100,
+              "requires": [
+                "stable Brier/log-loss",
+                "stable league performance",
+                "verified current referee",
+                "explicit sportsbook yellow-card scoring rules",
+                "verified price/true-CLV evidence"
+              ]
+            }
           },
           "players": {
             "status": "NOT_CAPTURED_THIS_TICK",
@@ -6696,9 +7201,12 @@
             "regime_change_model": "PENDING"
           },
           "referee": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1581422,
             "status": "NOT_VERIFIED",
-            "name": null,
-            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "referee": null,
+            "reason": "CURRENT_FIXTURE_REFEREE_NOT_AVAILABLE",
+            "actionable": false,
             "decision_weight": 0.0
           },
           "injuries_suspensions": {
@@ -7102,6 +7610,53 @@
                 "separate halftime-conditioned model for any live-2H use"
               ]
             }
+          },
+          "team_corners": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_corner_lambda": 5.873016,
+            "away_corner_lambda": 3.984127,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 200,
+              "minimum_oos_team_rows_for_actionable_review": 400,
+              "requires": [
+                "team-line Brier/log-loss calibration",
+                "verified team-corners price/true-CLV history",
+                "league/venue stability",
+                "parent corners model remains adequate"
+              ]
+            }
+          },
+          "team_cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_yellow_lambda": 2.076923,
+            "away_yellow_lambda": 2.2,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 250,
+              "minimum_oos_team_rows_for_actionable_review": 500,
+              "requires": [
+                "team-line Brier/log-loss",
+                "verified explicit team-yellow price/true-CLV history",
+                "league/venue stability",
+                "sportsbook yellow-card rule verified"
+              ]
+            }
+          },
+          "red_cards": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "p_any_red": null,
+            "p_no_red": null,
+            "observed_explicit_red_market_rows": [],
+            "blocked_red_card_markets": [],
+            "referee_adjustment_applied": null,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": null
           }
         },
         "coverage_gaps": [
@@ -7434,19 +7989,68 @@
             "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
           },
           "corners": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "observed_quote_count": 0,
-            "team_corner_quote_count": 0,
-            "expected_corner_environment": null,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "LEAGUE_TEAM_CORNERS_POISSON_LIVE_v0.1",
+              "home_lambda": 5.873015873015873,
+              "away_lambda": 3.984126984126984,
+              "total_lambda": 9.857142857142858,
+              "prior_pool_n": 63,
+              "prior_home_home_matches": 0,
+              "prior_away_away_matches": 0,
+              "formation_adjustment_applied": false,
+              "formation_adjustment_status": "OFFLINE_CHALLENGER_NOT_LIVE_WEIGHTED",
+              "registry_verified_postgame_fixtures": 63
+            },
+            "observed_market_rows": [],
+            "formation_challenger_status": "OFFLINE_VALIDATED_SEPARATELY_NOT_APPLIED_LIVE",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 150,
+              "minimum_formation_adjusted_evaluations": 100,
+              "requires": [
+                "lower corners MAE",
+                "lower Brier/log-loss relevant lines",
+                "stable league lift",
+                "verified price/true-CLV evidence",
+                "territorial features when available"
+              ]
+            }
           },
           "cards": {
-            "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
-            "observed_quote_count": 0,
-            "team_card_quote_count": 0,
-            "red_card_quote_count": 0,
-            "player_card_quote_count": 0,
-            "actionable": false
+            "status": "LIVE_RESEARCH_MODELED",
+            "model_inputs": {
+              "model": "TEAM_DISCIPLINE_PLUS_OPTIONAL_REFEREE_YELLOW_CARDS_LIVE_v0.1",
+              "home_yellow_lambda": 2.076923076923077,
+              "away_yellow_lambda": 2.2,
+              "base_total_yellow_lambda": 4.276923076923078,
+              "total_yellow_lambda": 4.276923076923078,
+              "referee": null,
+              "referee_prior_n": 0,
+              "referee_scale": 1.0,
+              "prior_league_n": 0,
+              "prior_home_home_n": 0,
+              "prior_away_away_n": 0,
+              "registry_verified_postgame_fixtures": 65,
+              "red_cards_included": false
+            },
+            "observed_explicit_yellow_market_rows": [],
+            "blocked_ambiguous_card_markets": [],
+            "referee_adjustment_applied": false,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_evaluations": 200,
+              "minimum_referee_adjusted_evaluations": 100,
+              "requires": [
+                "stable Brier/log-loss",
+                "stable league performance",
+                "verified current referee",
+                "explicit sportsbook yellow-card scoring rules",
+                "verified price/true-CLV evidence"
+              ]
+            }
           },
           "players": {
             "status": "NOT_CAPTURED_THIS_TICK",
@@ -7472,9 +8076,12 @@
             "regime_change_model": "PENDING"
           },
           "referee": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1639698,
             "status": "NOT_VERIFIED",
-            "name": null,
-            "discipline_model": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
+            "referee": null,
+            "reason": "CURRENT_FIXTURE_REFEREE_NOT_AVAILABLE",
+            "actionable": false,
             "decision_weight": 0.0
           },
           "injuries_suspensions": {
@@ -7878,6 +8485,53 @@
                 "separate halftime-conditioned model for any live-2H use"
               ]
             }
+          },
+          "team_corners": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_corner_lambda": 5.873016,
+            "away_corner_lambda": 3.984127,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 200,
+              "minimum_oos_team_rows_for_actionable_review": 400,
+              "requires": [
+                "team-line Brier/log-loss calibration",
+                "verified team-corners price/true-CLV history",
+                "league/venue stability",
+                "parent corners model remains adequate"
+              ]
+            }
+          },
+          "team_cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "home_yellow_lambda": 2.076923,
+            "away_yellow_lambda": 2.2,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": {
+              "minimum_oos_team_rows": 250,
+              "minimum_oos_team_rows_for_actionable_review": 500,
+              "requires": [
+                "team-line Brier/log-loss",
+                "verified explicit team-yellow price/true-CLV history",
+                "league/venue stability",
+                "sportsbook yellow-card rule verified"
+              ]
+            }
+          },
+          "red_cards": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "p_any_red": null,
+            "p_no_red": null,
+            "observed_explicit_red_market_rows": [],
+            "blocked_red_card_markets": [],
+            "referee_adjustment_applied": null,
+            "actionable": false,
+            "decision_weight": 0.0,
+            "calibration_gate": null
           }
         },
         "coverage_gaps": [
@@ -8051,6 +8705,38 @@
       "notes": null,
       "result": null,
       "error": "Per-tick API budget reached (20); lower-priority work deferred."
+    },
+    {
+      "event_type": "LOW_DATA_SCREEN_SUMMARY",
+      "stage": "SLATE_SCREEN",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": null,
+      "availability_confidence": null,
+      "fixture": null,
+      "coverage": null,
+      "sporting_shortlist": null,
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": null,
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
+        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates."
+      ],
+      "result": null,
+      "error": null
     }
   ]
 }
