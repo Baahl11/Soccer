@@ -76,6 +76,12 @@ jobs:
         run: python engine/mcp_gateway/analyze_trend_convergence.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/trend_convergence.json
       - name: Build player trend history
         run: python engine/mcp_gateway/analyze_player_trends.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/player_trends.json
+      - name: Build player role registry
+        env: {PYTHONPATH: engine}
+        run: python engine/mcp_gateway/build_player_role_registry.py --player-trends state/soccer_edge_state/analysis/player_trends.json --output state/soccer_edge_state/analysis/player_role_registry.json
+      - name: Build probabilistic player trend registry
+        env: {PYTHONPATH: engine}
+        run: python engine/mcp_gateway/build_player_trend_model_registry.py --player-trends state/soccer_edge_state/analysis/player_trends.json --player-roles state/soccer_edge_state/analysis/player_role_registry.json --output state/soccer_edge_state/analysis/player_trend_model_registry.json
       - name: Evaluate explicit corners research model
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/analyze_corners_baseline.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/corners_baseline.json
