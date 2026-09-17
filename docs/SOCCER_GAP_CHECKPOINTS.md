@@ -33,8 +33,8 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 |---|---|---|---|---|---|---|---|---|
 | 1 | FT Goals | ✅ | ✅ | ✅ | ✅ Tier-B constrained | ⏳ partial | 🟢 IMPROVED v3.14 | Natural state is v3.14.0, provider-call safety passed. Need persisted `ft_goals_intelligence` evidence / ladder visibility; continue accumulating OOS and challenger comparison. Advanced inputs remain separate gaps. |
 | 2 | Team Totals | ✅ canonical home/away lambdas + retained team-total markets | ✅ Poisson O/U 0.5/1.5/2.5 research model | 🟡 v3.15 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.15 | Need natural persistence confirmation, ≥100 OOS for market comparison, ≥200 for actionable review, historical team-total prices/CLV and cross-league calibration. Integer/quarter lines remain unsupported until explicit settlement math exists. No Galaxy/production promotion yet. |
-| 3 | Correct Score | ✅ score matrix | ✅ research distribution | 🟠 | 🔴 | — | 🟠 NEXT | Expose calibrated exact-score probabilities against real observed correct-score markets; no synthetic market claims. |
-| 4 | BTTS | ✅ | ✅ | ✅ | 🔴 | partial | 🟡 LIVE RESEARCH | OOS calibration, Brier/log-loss, CLV and explicit promotion gate. |
+| 3 | Correct Score | ✅ canonical home/away lambdas + retained correct-score markets | ✅ independent-Poisson exact-score distribution + OOS validator | 🟡 v3.16 bridge | 🔴 | ⏳ | 🟡 LIVE RESEARCH v3.16 | Need natural persistence confirmation, ≥300 OOS for meaningful market comparison, ≥500 for actionable review, verified correct-score price/CLV history, validated shrinkage for sparse outcomes and cross-league stability. No Galaxy/production promotion yet. |
+| 4 | BTTS | ✅ | ✅ | ✅ | 🔴 | partial | 🟡 LIVE RESEARCH — NEXT | OOS calibration, Brier/log-loss, CLV and explicit promotion gate. |
 | 5 | 1X2 | ✅ | ✅ canonical + relative-strength shadow | ✅ research | 🔴 | partial | 🟡 LIVE RESEARCH | Select/validate production candidate, calibration and promotion gate; preserve discrepancy checks. |
 | 6 | Double Chance | ✅ | 🟠 mathematically derivable from validated 1X2 | 🟡 research | 🔴 | partial | 🟠 | Tie DC probabilities strictly to accepted 1X2 model; validate market mapping; keep research until 1X2 promoted. |
 | 7 | DNB | ✅ | 🔴 | 🔴 | 🔴 | — | 🔴 | Build conditional no-draw probability from accepted 1X2/score matrix and map exact prices. |
@@ -126,10 +126,34 @@ A module may advance to the next engineering task before NATURAL VALIDATION is c
 - Integer lines (e.g. 1.0/2.0) need explicit push math; quarter lines (0.75/1.25/etc.) need Asian split/half-win/half-loss settlement before support.
 - Richer future inputs such as xG, GK impact, set pieces, rest and weather belong to their dedicated gaps and must not be fabricated here.
 
+## #3 Correct Score checkpoint — v3.16
+
+### Already passes
+
+- Uses only the existing canonical home/away goal lambdas; sportsbook prices do not create the sporting probability.
+- Explicit independent-Poisson exact-score probabilities exist, including ranked top scorelines and fair model prices.
+- Correct Score / Exact Score markets are now retained in the existing odds payload without adding provider requests.
+- Only exact observed score selections such as `1-0` / `1:0` are price-compared; grouped/non-exact buckets are recorded separately instead of treated as a precise score.
+- Research output carries model probability, fair price, observed price, breakeven, edge/EV diagnostics and market provenance.
+- `actionable=false`, `decision_weight=0`, classification `RESEARCH_ONLY`; cannot produce canonical BET/LEAN.
+- Correct Score cannot enter Galaxy yet.
+- Adds zero provider requests and changes no canonical model weights, thresholds, stakes or BET logic.
+- Dedicated historical validator measures exact-score negative log likelihood, multiclass Brier on a 0-5 grid + OTHER, and top-1/top-3/top-5 hit rates.
+- History pipeline now runs the Correct Score validator automatically.
+
+### Still missing / not allowed to claim resolved
+
+- Natural v3.16 state/persistence confirmation is pending and non-blocking.
+- Need at least 300 OOS fixtures before meaningful market-comparison review and 500 before actionable promotion review.
+- Need verified historical correct-score prices and CLV evidence.
+- Need validated shrinkage for sparse exact-score outcomes and calibration stability across competitions.
+- Grouped sportsbook outcomes such as `Any Other Score` must remain separate from exact-score probabilities.
+- The model still inherits all parent FT-goals limitations: xG/npxG, GK quantitative impact, set pieces, rest/congestion and weather remain separate gaps.
+
 ### Engineering rule going forward
 
 Do not block the next module on the natural-validation check. Record the check as pending and continue. When a later natural state supplies evidence, update this file asynchronously.
 
 ## Next engineering target
 
-#3 Correct Score — expose the existing score-matrix probabilities against exact REAL correct-score markets as research-only, then add OOS/calibration before any production eligibility.
+#4 BTTS — audit the existing live research probability, add/verify explicit OOS calibration + market comparison/CLV gates, and prepare a promotion-review path without changing canonical BET logic prematurely.
