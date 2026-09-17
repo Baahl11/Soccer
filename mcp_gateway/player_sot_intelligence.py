@@ -14,7 +14,7 @@ TEAM_TRENDS_URL = "https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-
 CACHE_TTL = timedelta(hours=6)
 LINES = (0.5, 1.5, 2.5, 3.5)
 OPPONENT_PRIOR_MATCHES = 12.0
-OPPONENT_FACTOR_CLIP = (0.70, 1.30)
+OPPONENT_FACTOR_CLIP = (0.75, 1.25)
 
 
 def _num(value: Any) -> float | None:
