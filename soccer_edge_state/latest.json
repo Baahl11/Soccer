@@ -2,23 +2,23 @@
   "service": "soccer-edge-automation",
   "version": "3.12.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-17T02:11:47.213272+00:00",
-  "generated_at_local": "2026-09-16T20:11:47.213272-06:00",
+  "generated_at_utc": "2026-09-17T02:37:21.483992+00:00",
+  "generated_at_local": "2026-09-16T20:37:21.483992-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 428,
-  "due_fixture_count": 11,
-  "event_count": 12,
-  "actionable_refresh_count": 0,
+  "due_fixture_count": 14,
+  "event_count": 13,
+  "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 11,
+  "api_calls_this_tick": 13,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7410,
+  "last_daily_remaining": 7394,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
-  "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 11,
-  "shortlist_event_count": 11,
+  "deferred_due_to_priority": 2,
+  "deep_dive_processed_count": 12,
+  "shortlist_event_count": 12,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
@@ -34,10 +34,10 @@
   "dedicated_close_snapshots_this_tick": 0,
   "dedicated_close_quotes_this_tick": 0,
   "clv_close_policy": "PERSIST_CANONICAL_FT_CLOSE_QUOTES; TRUE_CLV_ONLY_WHEN_CAPTURED_BEFORE_KICKOFF; LATE_CLOSE_SNAPSHOTS_RETAINED_BUT_NOT_LABELED_TRUE_PREKICKOFF_CLOSE",
-  "derivative_research_snapshots_this_tick": 0,
-  "derivative_research_quotes_this_tick": 0,
-  "one_h_market_groups_this_tick": 0,
-  "two_h_market_groups_this_tick": 0,
+  "derivative_research_snapshots_this_tick": 1,
+  "derivative_research_quotes_this_tick": 131,
+  "one_h_market_groups_this_tick": 14,
+  "two_h_market_groups_this_tick": 5,
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
   "relative_strength_1x2_shadow_count_this_tick": 0,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
@@ -45,8 +45,8 @@
   "trend_signal_count_this_tick": 0,
   "trend_model_disagreement_count_this_tick": 0,
   "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
-  "player_trend_fixture_calls_attempted_this_tick": 0,
-  "player_trend_fixtures_captured_this_tick": 0,
+  "player_trend_fixture_calls_attempted_this_tick": 1,
+  "player_trend_fixtures_captured_this_tick": 1,
   "player_trend_players_captured_this_tick": 0,
   "player_trend_max_fixture_calls_per_tick": 2,
   "player_trend_policy": "SELECTIVE_T40_T20_T10_ONLY; MAX_2_FIXTURES_PER_TICK; RESEARCH_ONLY; ZERO_DECISION_WEIGHT; NO_BET_UPGRADE",
@@ -57,7 +57,7 @@
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
   "shortlist_state_count": 89,
-  "shortlist_seed_imported": 87,
+  "shortlist_seed_imported": 89,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
@@ -70,7 +70,7 @@
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
-    "galaxy_odds_stale_or_missing": 0,
+    "galaxy_odds_stale_or_missing": 1,
     "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
     "galaxy_slate_fallbacks": 1,
@@ -79,15 +79,15 @@
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
     "provider_requests_avoided": 0,
-    "odds_market_events": 0,
+    "odds_market_events": 1,
     "galaxy_odds_market_events": 0,
-    "api_odds_fallback_events": 0,
+    "api_odds_fallback_events": 1,
     "not_verified_odds_market_events": 0,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
     "odds_provenance_accounting_valid": true,
-    "odds_provenance_metadata_repairs": 0,
+    "odds_provenance_metadata_repairs": 1,
     "unverified_market_source_safety_blocks": 0
   },
   "actionable_model_scope": "FT_TOTALS_ONLY; 1X2_AND_BTTS_RESEARCH_ONLY",
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-16T20:11:47.213272-06:00",
+    "generated_at_local": "2026-09-16T20:37:21.483992-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -2746,13 +2746,13 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 11,
-        "rows_attached": 11,
+        "row_count": 12,
+        "rows_attached": 12,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
           "WATCH": 2,
-          "POSTGAME": 9
+          "POSTGAME": 10
         }
       }
     },
@@ -2802,7 +2802,7 @@
       "competition": "CONCACAF Central American Cup",
       "data_tier": "B",
       "kickoff": "2026-09-16T21:15:00-06:00",
-      "stage": "T-60",
+      "stage": "T-40",
       "home": "Alianza",
       "away": "CD Motagua",
       "tracks": [
@@ -2814,12 +2814,41 @@
       "two_way_score": 75.9,
       "availability_confidence": 0.7,
       "market_source": null,
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 2.76,
+      "bookmaker": "SBO",
+      "classification": "WATCH",
+      "tier": "B",
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1619016,
+      "country": "Bolivia",
+      "competition": "Primera División",
+      "data_tier": "B",
+      "kickoff": "2026-09-16T18:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Blooming",
+      "away": "Universitario de Vinto",
+      "tracks": [
+        "SIDE",
+        "GOALS_OVER",
+        "TWO_WAY"
+      ],
+      "side_score": 83.4,
+      "goals_score": 73.2,
+      "two_way_score": 78.2,
+      "availability_confidence": null,
+      "market_source": null,
       "market": null,
       "selection": null,
       "line": null,
       "price": null,
       "bookmaker": null,
-      "classification": "WATCH",
+      "classification": "POSTGAME",
       "tier": null,
       "stake_units": 0.0,
       "reason": "SPORTING_SCREEN_PASS"
@@ -2880,33 +2909,6 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1634300,
-      "country": "Ecuador",
-      "competition": "Copa Ecuador",
-      "data_tier": "B",
-      "kickoff": "2026-09-16T18:00:00-06:00",
-      "stage": "POSTGAME",
-      "home": "LDU Portoviejo",
-      "away": "Delfin SC",
-      "tracks": [
-        "GOALS_UNDER"
-      ],
-      "side_score": 57.5,
-      "goals_score": 30.0,
-      "two_way_score": 56.4,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    },
-    {
       "fixture_id": 1545812,
       "country": "USA",
       "competition": "US Open Cup",
@@ -2922,6 +2924,33 @@
       "side_score": 52.4,
       "goals_score": 80.4,
       "two_way_score": 100.0,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1493587,
+      "country": "USA",
+      "competition": "USL Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-16T18:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Birmingham Legion",
+      "away": "New Mexico United",
+      "tracks": [
+        "TWO_WAY"
+      ],
+      "side_score": 54.3,
+      "goals_score": 55.7,
+      "two_way_score": 77.9,
       "availability_confidence": null,
       "market_source": null,
       "market": null,
@@ -3018,33 +3047,6 @@
       "reason": "SPORTING_SCREEN_PASS"
     },
     {
-      "fixture_id": 1638763,
-      "country": "Venezuela",
-      "competition": "Primera División",
-      "data_tier": "B",
-      "kickoff": "2026-09-16T17:30:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Metropolitanos FC",
-      "away": "Caracas FC",
-      "tracks": [
-        "TWO_WAY"
-      ],
-      "side_score": 54.6,
-      "goals_score": 52.4,
-      "two_way_score": 73.9,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    },
-    {
       "fixture_id": 1635927,
       "country": "Venezuela",
       "competition": "Segunda División",
@@ -3071,6 +3073,35 @@
       "tier": null,
       "stake_units": 0.0,
       "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1636688,
+      "country": "World",
+      "competition": "CONCACAF Central American Cup",
+      "data_tier": "B",
+      "kickoff": "2026-09-16T18:30:00-06:00",
+      "stage": "POSTGAME",
+      "home": "CS Cartagines",
+      "away": "Deportivo Saprissa",
+      "tracks": [
+        "SIDE",
+        "GOALS_OVER",
+        "TWO_WAY"
+      ],
+      "side_score": 81.7,
+      "goals_score": 71.7,
+      "two_way_score": 77.8,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
     }
   ],
   "research_report": {
@@ -3084,7 +3115,7 @@
         "league": "CONCACAF Central American Cup",
         "home": "Alianza",
         "away": "CD Motagua",
-        "stage": "T-60",
+        "stage": "T-40",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -3117,9 +3148,26 @@
           "two_way_scoring_score": 75.9,
           "reason": "SPORTING_SCREEN_PASS"
         },
-        "market_status": null,
+        "market_status": "WATCH",
         "market_reason": null,
-        "best_market": {},
+        "best_market": {
+          "family": "1X2",
+          "market": "Match Winner",
+          "selection": "away",
+          "line": null,
+          "decimal_price": 2.76,
+          "bookmaker": "SBO",
+          "p_breakeven": 0.362319,
+          "p_market_fair": 0.315006,
+          "p_raw": 0.535827,
+          "p_shrunk": 0.350337,
+          "prob_edge_pp": 3.533,
+          "estimated_ev": -0.03307,
+          "shrink_weight": 0.16,
+          "tier": "B",
+          "classification": "WATCH",
+          "stake_units": 0.0
+        },
         "reason": null
       },
       {
@@ -3335,7 +3383,7 @@
   "galaxy_builder": {
     "schema_version": "0.4.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-16T20:11:47.213272-06:00",
+    "generated_at_local": "2026-09-16T20:37:21.483992-06:00",
     "candidate_count": 0,
     "candidates": [
       {
@@ -3345,7 +3393,7 @@
         "league": "CONCACAF Central American Cup",
         "match": "Alianza vs CD Motagua",
         "data_tier": "B",
-        "stage": "T-60",
+        "stage": "T-40",
         "availability_confidence": 0.7,
         "projection_source": "GOAL_RATE_POISSON_LIMITED_v0.1",
         "raw_total_goals": 2.705,
@@ -3359,19 +3407,19 @@
             "family": "FT_GOALS",
             "selection": "OVER",
             "line": 0.5,
-            "observed": false,
-            "best_price": null,
-            "bookmaker": null,
-            "provider_update": null
+            "observed": true,
+            "best_price": 1.03,
+            "bookmaker": "Betfair",
+            "provider_update": "2026-09-17T00:27:13+00:00"
           },
           {
             "family": "FT_GOALS",
             "selection": "UNDER",
             "line": 3.5,
-            "observed": false,
-            "best_price": null,
-            "bookmaker": null,
-            "provider_update": null
+            "observed": true,
+            "best_price": 1.25,
+            "bookmaker": "Betfair",
+            "provider_update": "2026-09-17T00:27:13+00:00"
           }
         ],
         "joint_model_probability": 0.646119,
@@ -3385,11 +3433,10 @@
           "maximum": 160
         },
         "exact_sgp_quote": null,
-        "all_exact_legs_observed": false,
+        "all_exact_legs_observed": true,
         "status": "GALAXY WATCH — QUOTE/VERIFICATION NEEDED",
         "bet_eligible": false,
         "block_reasons": [
-          "ONE_OR_MORE_EXACT_LEGS_NOT_OBSERVED",
           "AVAILABILITY_BELOW_0.85",
           "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED"
         ],
@@ -3432,8 +3479,12 @@
     "same_game_candidates": [],
     "multi_match_candidates": [],
     "derivative_inventory": {
-      "observed_quote_count": 0,
-      "observed_family_counts": {},
+      "observed_quote_count": 148,
+      "observed_family_counts": {
+        "1H_GOALS": 85,
+        "2H_GOALS": 46,
+        "CORNERS": 17
+      },
       "policy": "CORNERS_CARDS_PERIOD_PLAYER_AND_OTHER_MARKETS_ARE_INVENTORIED_NOW; THEY_ENTER_SCORED_COMBOS ONLY AFTER AN EXPLICIT SPORT_MODEL PROBABILITY EXISTS"
     },
     "family_policy": {
@@ -3490,8 +3541,8 @@
       "multi_match_active": 0,
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
-      "invalidated_fixture_count_this_tick": 11,
-      "updated_at_utc": "2026-09-17T02:11:47.213272+00:00",
+      "invalidated_fixture_count_this_tick": 12,
+      "updated_at_utc": "2026-09-17T02:37:21.483992+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     }
   },
@@ -3511,7 +3562,7 @@
   "v39_canonical_bet_logic_changed": false,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7420",
+    "daily_remaining": "7406",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -3551,9 +3602,1018 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-60",
-      "classification": "WATCH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
       "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1619016,
+        "kickoff": "2026-09-16T18:30:00-06:00",
+        "timestamp": 1789605000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 344,
+        "league": "Primera División",
+        "country": "Bolivia",
+        "season": 2026,
+        "round": "Apertura - 20",
+        "home_team_id": 3701,
+        "home_team": "Blooming",
+        "away_team_id": 17762,
+        "away_team": "Universitario de Vinto",
+        "venue": "Estadio Ramon Tahuichi Aguilera Costas",
+        "city": "Santa Cruz",
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 83.4,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 83.4,
+        "goal_environment_score": 73.2,
+        "two_way_scoring_score": 78.2,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 1
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 1
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "tactical_stats": {
+          "schema_version": "1.0.0",
+          "source": "API_FOOTBALL_FIXTURE_STATISTICS",
+          "teams": [
+            {
+              "team_id": 3701,
+              "team": "Blooming",
+              "shots_inside_box": 11.0,
+              "shots_outside_box": 12.0,
+              "blocked_shots": 5.0,
+              "shots_on_goal": 3.0,
+              "total_shots": 23.0,
+              "yellow_cards": 4.0,
+              "corners": 7.0,
+              "red_cards": 0.0,
+              "fouls": 5.0,
+              "possession": 70.0
+            },
+            {
+              "team_id": 17762,
+              "team": "Universitario de Vinto",
+              "shots_inside_box": 8.0,
+              "shots_outside_box": 3.0,
+              "blocked_shots": 3.0,
+              "shots_on_goal": 3.0,
+              "total_shots": 11.0,
+              "yellow_cards": 6.0,
+              "corners": 6.0,
+              "red_cards": 1.0,
+              "fouls": 24.0,
+              "possession": 30.0
+            }
+          ],
+          "totals": {
+            "blocked_shots": 8.0,
+            "possession": 100.0,
+            "yellow_cards": 10.0,
+            "fouls": 29.0,
+            "shots_outside_box": 15.0,
+            "shots_inside_box": 19.0,
+            "red_cards": 1.0,
+            "corners": 13.0,
+            "shots_on_goal": 6.0,
+            "total_shots": 34.0
+          }
+        },
+        "player_stats": {
+          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+          "actionable": false,
+          "decision_weight": 0.0,
+          "teams": [
+            {
+              "team_id": 17762,
+              "team": "Universitario de Vinto",
+              "players": [
+                {
+                  "player_id": 452338,
+                  "name": "F. Pasadore",
+                  "minutes": 17.0,
+                  "position": "F",
+                  "rating": 6.4,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 2.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 657442,
+                  "name": "L. Cabrera Suarez",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 559784,
+                  "name": "B. Calderon",
+                  "minutes": 7.0,
+                  "position": "M",
+                  "rating": 6.26,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 352660,
+                  "name": "A. Cuestas",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 674930,
+                  "name": "P. Postigo",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 349164,
+                  "name": "B. Poveda",
+                  "minutes": 95.0,
+                  "position": "G",
+                  "rating": 6.2,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 659462,
+                  "name": "J. Saucedo",
+                  "minutes": 0.0,
+                  "position": null,
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 549651,
+                  "name": "D. Vargas",
+                  "minutes": 23.0,
+                  "position": "D",
+                  "rating": 5.92,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 5.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 4.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 513553,
+                  "name": "F. Vasquez",
+                  "minutes": 0.0,
+                  "position": "F",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 76848,
+                  "name": "J. Veizaga",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 354351,
+                  "name": "Gustavo Alexis Visalla Condori",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 65924,
+                  "name": "J. Careaga",
+                  "minutes": 90.0,
+                  "position": "G",
+                  "rating": 6.18,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 22.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 354215,
+                  "name": "E. Mendoza",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.33,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 11.0,
+                  "key_passes": 0.0,
+                  "tackles": 2.0,
+                  "duels": 9.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 65691,
+                  "name": "P. Alcocer",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.02,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 12.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 4.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 187543,
+                  "name": "J. Pinto",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.06,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 13.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 1.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 497448,
+                  "name": "Julio Lazarte",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.69,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 16.0,
+                  "key_passes": 0.0,
+                  "tackles": 3.0,
+                  "duels": 7.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 65944,
+                  "name": "Didí Torrico",
+                  "minutes": 67.0,
+                  "position": "M",
+                  "rating": 5.81,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 25.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 6.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 352664,
+                  "name": "J. Calicho",
+                  "minutes": 73.0,
+                  "position": "M",
+                  "rating": 7.31,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 3.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 14.0,
+                  "key_passes": 0.0,
+                  "tackles": 1.0,
+                  "duels": 8.0,
+                  "duels_won": 3.0
+                },
+                {
+                  "player_id": 645124,
+                  "name": "Marco Gomez",
+                  "minutes": 83.0,
+                  "position": "M",
+                  "rating": 6.6,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 27.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 6.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 425952,
+                  "name": "G. Cuellar",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 7.54,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 17.0,
+                  "key_passes": 3.0,
+                  "tackles": 2.0,
+                  "duels": 12.0,
+                  "duels_won": 7.0
+                },
+                {
+                  "player_id": 59170,
+                  "name": "O. Blanco",
+                  "minutes": 90.0,
+                  "position": "F",
+                  "rating": 6.58,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 15.0,
+                  "key_passes": 4.0,
+                  "tackles": 1.0,
+                  "duels": 14.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 67882,
+                  "name": "H. Dorrego",
+                  "minutes": 83.0,
+                  "position": "M",
+                  "rating": 6.49,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 2.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 14.0,
+                  "key_passes": 2.0,
+                  "tackles": 0.0,
+                  "duels": 4.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 640693,
+                  "name": "D. Saavedra",
+                  "minutes": 7.0,
+                  "position": null,
+                  "rating": 6.46,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 2.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 1.0,
+                  "duels_won": 0.0
+                }
+              ]
+            },
+            {
+              "team_id": 3701,
+              "team": "Blooming",
+              "players": [
+                {
+                  "player_id": 675697,
+                  "name": "J. Miranda",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 655902,
+                  "name": "M. Ocampo",
+                  "minutes": 10.0,
+                  "position": "F",
+                  "rating": 6.48,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 3.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 674074,
+                  "name": "D. Pacheco",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 65791,
+                  "name": "Moisés Villarroel",
+                  "minutes": 27.0,
+                  "position": "M",
+                  "rating": 6.33,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 17.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 3.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 311439,
+                  "name": "Miguel Villarroel",
+                  "minutes": 27.0,
+                  "position": "F",
+                  "rating": 8.17,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 1.0,
+                  "goals": 1.0,
+                  "assists": 0.0,
+                  "passes": 6.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 311438,
+                  "name": "E. Álvarez",
+                  "minutes": 0.0,
+                  "position": "D",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 354134,
+                  "name": "Eduardo Justiniano Vaca",
+                  "minutes": 0.0,
+                  "position": "F",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 125635,
+                  "name": "R. Hinojosa",
+                  "minutes": 27.0,
+                  "position": "M",
+                  "rating": 6.41,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 16.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 7.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 549670,
+                  "name": "L. Chavez",
+                  "minutes": 0.0,
+                  "position": "M",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 65817,
+                  "name": "M. Cabral",
+                  "minutes": 0.0,
+                  "position": "F",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 65674,
+                  "name": "C. Menacho",
+                  "minutes": 10.0,
+                  "position": "F",
+                  "rating": 6.28,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 1.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 380127,
+                  "name": "G. Almada",
+                  "minutes": 0.0,
+                  "position": "G",
+                  "rating": 0.0,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 0.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 0.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "Juan castro camacho",
+                  "minutes": 90.0,
+                  "position": null,
+                  "rating": 6.48,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 18.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 1.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 0,
+                  "name": "juan gonzales",
+                  "minutes": 80.0,
+                  "position": null,
+                  "rating": 6.44,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 2.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 41.0,
+                  "key_passes": 0.0,
+                  "tackles": 0.0,
+                  "duels": 1.0,
+                  "duels_won": 1.0
+                },
+                {
+                  "player_id": 65613,
+                  "name": "M. Enoumba",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.21,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 47.0,
+                  "key_passes": 0.0,
+                  "tackles": 3.0,
+                  "duels": 10.0,
+                  "duels_won": 6.0
+                },
+                {
+                  "player_id": 352663,
+                  "name": "J. Vila",
+                  "minutes": 90.0,
+                  "position": "D",
+                  "rating": 6.71,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 3.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 62.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 5.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 354038,
+                  "name": "D. Durán",
+                  "minutes": 80.0,
+                  "position": "D",
+                  "rating": 6.57,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 41.0,
+                  "key_passes": 0.0,
+                  "tackles": 3.0,
+                  "duels": 8.0,
+                  "duels_won": 5.0
+                },
+                {
+                  "player_id": 51819,
+                  "name": "F. Ramos",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 6.79,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 47.0,
+                  "key_passes": 3.0,
+                  "tackles": 2.0,
+                  "duels": 10.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 195123,
+                  "name": "R. Spenhay",
+                  "minutes": 63.0,
+                  "position": "M",
+                  "rating": 6.78,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 63.0,
+                  "key_passes": 1.0,
+                  "tackles": 2.0,
+                  "duels": 5.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 454758,
+                  "name": "Rerian Percy Loza",
+                  "minutes": 63.0,
+                  "position": "M",
+                  "rating": 6.66,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 3.0,
+                  "shots_on_target": 1.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 38.0,
+                  "key_passes": 3.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 0.0
+                },
+                {
+                  "player_id": 674075,
+                  "name": "G. Cuasace",
+                  "minutes": 63.0,
+                  "position": "M",
+                  "rating": 6.17,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 0.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 16.0,
+                  "key_passes": 1.0,
+                  "tackles": 1.0,
+                  "duels": 9.0,
+                  "duels_won": 4.0
+                },
+                {
+                  "player_id": 354036,
+                  "name": "G. Bazan",
+                  "minutes": 90.0,
+                  "position": "M",
+                  "rating": 6.11,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 1.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 0.0,
+                  "passes": 34.0,
+                  "key_passes": 1.0,
+                  "tackles": 0.0,
+                  "duels": 9.0,
+                  "duels_won": 8.0
+                },
+                {
+                  "player_id": 13271,
+                  "name": "B. Garcés",
+                  "minutes": 90.0,
+                  "position": "F",
+                  "rating": 6.88,
+                  "captain": false,
+                  "substitute": false,
+                  "shots": 4.0,
+                  "shots_on_target": 0.0,
+                  "goals": 0.0,
+                  "assists": 1.0,
+                  "passes": 12.0,
+                  "key_passes": 2.0,
+                  "tackles": 0.0,
+                  "duels": 2.0,
+                  "duels_won": 1.0
+                }
+              ]
+            }
+          ],
+          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+          "fixture_id": 1619016,
+          "capture_phase": "POSTGAME"
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "T-40",
+      "classification": "WATCH",
+      "tier": "B",
       "stake_units": 0.0,
       "bet_eligible": false,
       "availability_confidence": 0.7,
@@ -3640,24 +4700,986 @@
         "reason": "SPORTING_SCREEN_PASS"
       },
       "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
+      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-17T00:27:13+00:00",
+        "age_minutes": 130.14,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "API_FALLBACK_CURRENT_RUN",
+        "fresh": true,
+        "market_count": 80,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
       "trend_context": {
         "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
         "actionable": false,
         "decision_weight": 0.0
       },
-      "player_trends_research": null,
+      "player_trends_research": {
+        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+        "actionable": false,
+        "decision_weight": 0.0,
+        "teams": [],
+        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+        "fixture_id": 1636689
+      },
       "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
+      "derivative_research_market_snapshot": {
+        "schema_version": "1.0.0",
+        "captured_at_local": "2026-09-16T20:37:21.483992-06:00",
+        "research_only": true,
+        "actionable": false,
+        "policy": "EXPLICIT_PERIOD_MODEL_REQUIRED; NEVER_REUSE_FT_PROBABILITIES",
+        "group_count": 24,
+        "quote_count": 148,
+        "groups": [
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.75
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.08
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 23.0
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.88
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "William Hill",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.1
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.62
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 4.6
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.15
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 12.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.5
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 2.62
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 2.02
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.78
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.83
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.33
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.34
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.8
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.84
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.83
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "Marathonbet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.15
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.6
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 3.74
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.2
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.43
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 2.48
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betfair",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.88
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.07
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 13.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.36
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.88
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "BetVictor",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.73
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.38
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.42
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.6
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.57
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 2.21
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.88
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.79
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.31
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.52
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.78
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.37
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.37
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.78
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.53
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 2.34
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.87
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.87
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.35
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.53
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.97
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.75
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Pinnacle",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.26
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.57
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "SBO",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.78
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.83
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.33
+              },
+              {
+                "selection": "Over 1.75",
+                "line": 1.75,
+                "decimal_price": 3.49
+              },
+              {
+                "selection": "Under 1.75",
+                "line": 1.75,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 5.1
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 6.9
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.07
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 23.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.34
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.8
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.49
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 2.31
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.84
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 2.34
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.48
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Goals Over/Under - Second Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 2.15
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.6
+              },
+              {
+                "selection": "Over 1.75",
+                "line": 1.75,
+                "decimal_price": 2.6
+              },
+              {
+                "selection": "Under 1.75",
+                "line": 1.75,
+                "decimal_price": 1.39
+              },
+              {
+                "selection": "Over 2.0",
+                "line": 2.0,
+                "decimal_price": 3.72
+              },
+              {
+                "selection": "Under 2.0",
+                "line": 2.0,
+                "decimal_price": 1.2
+              },
+              {
+                "selection": "Over 2.5",
+                "line": 2.5,
+                "decimal_price": 4.5
+              },
+              {
+                "selection": "Under 2.5",
+                "line": 2.5,
+                "decimal_price": 1.16
+              },
+              {
+                "selection": "Over 3.5",
+                "line": 3.5,
+                "decimal_price": 12.0
+              },
+              {
+                "selection": "Under 3.5",
+                "line": 3.5,
+                "decimal_price": 1.03
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.23
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 3.7
+              },
+              {
+                "selection": "Over 0.75",
+                "line": 0.75,
+                "decimal_price": 1.29
+              },
+              {
+                "selection": "Under 0.75",
+                "line": 0.75,
+                "decimal_price": 3.05
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.43
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 2.48
+              },
+              {
+                "selection": "Over 1.25",
+                "line": 1.25,
+                "decimal_price": 1.81
+              },
+              {
+                "selection": "Under 1.25",
+                "line": 1.25,
+                "decimal_price": 1.86
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Home Team Total Goals(1st Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 7.0
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.07
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.1
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.65
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Away Team Total Goals(1st Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 7.5
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.05
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 2.2
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.57
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Home Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 4.5
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.16
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 3.0
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.33
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.71
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.0
+              }
+            ]
+          },
+          {
+            "family": "2H_GOALS",
+            "bookmaker": "1xBet",
+            "market": "Away Team Total Goals(2nd Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 1.5",
+                "line": 1.5,
+                "decimal_price": 5.3
+              },
+              {
+                "selection": "Under 1.5",
+                "line": 1.5,
+                "decimal_price": 1.12
+              },
+              {
+                "selection": "Over 1",
+                "line": 1.0,
+                "decimal_price": 3.6
+              },
+              {
+                "selection": "Under 1",
+                "line": 1.0,
+                "decimal_price": 1.25
+              },
+              {
+                "selection": "Over 2",
+                "line": 2.0,
+                "decimal_price": 11.0
+              },
+              {
+                "selection": "Under 2",
+                "line": 2.0,
+                "decimal_price": 1.01
+              },
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.85
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 1.85
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betano",
+            "market": "Goals Over/Under First Half",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 0.5",
+                "line": 0.5,
+                "decimal_price": 1.4
+              },
+              {
+                "selection": "Under 0.5",
+                "line": 0.5,
+                "decimal_price": 2.42
+              },
+              {
+                "selection": "Over 1.0",
+                "line": 1.0,
+                "decimal_price": 1.85
+              },
+              {
+                "selection": "Under 1.0",
+                "line": 1.0,
+                "decimal_price": 1.7
+              }
+            ]
+          },
+          {
+            "family": "1H_GOALS",
+            "bookmaker": "Betano",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.82
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.93
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 9.5",
+                "line": 9.5,
+                "decimal_price": 1.8
+              },
+              {
+                "selection": "Under 9.5",
+                "line": 9.5,
+                "decimal_price": 1.91
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (3 way)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Exactly 9",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 9",
+                "line": 9.0,
+                "decimal_price": 1.83
+              },
+              {
+                "selection": "Under 9",
+                "line": 9.0,
+                "decimal_price": 2.5
+              },
+              {
+                "selection": "Exactly 10",
+                "line": null,
+                "decimal_price": 8.0
+              },
+              {
+                "selection": "Over 10",
+                "line": 10.0,
+                "decimal_price": 2.38
+              },
+              {
+                "selection": "Under 10",
+                "line": 10.0,
+                "decimal_price": 1.83
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Bet365",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Exactly 4",
+                "line": null,
+                "decimal_price": 5.0
+              },
+              {
+                "selection": "Over 4",
+                "line": 4.0,
+                "decimal_price": 2.0
+              },
+              {
+                "selection": "Under 4",
+                "line": 4.0,
+                "decimal_price": 2.62
+              },
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 2.02
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.78
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Betano",
+            "market": "Corners Over Under",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 9.5",
+                "line": 9.5,
+                "decimal_price": 1.87
+              },
+              {
+                "selection": "Under 9.5",
+                "line": 9.5,
+                "decimal_price": 1.87
+              }
+            ]
+          },
+          {
+            "family": "CORNERS",
+            "bookmaker": "Betano",
+            "market": "Total Corners (1st Half)",
+            "provider_update": "2026-09-17T00:27:13+00:00",
+            "values": [
+              {
+                "selection": "Over 4.5",
+                "line": 4.5,
+                "decimal_price": 1.82
+              },
+              {
+                "selection": "Under 4.5",
+                "line": 4.5,
+                "decimal_price": 1.93
+              }
+            ]
+          }
+        ],
+        "contains_corner_markets": true
+      },
       "match_intelligence": {
         "schema_version": "0.1.0",
         "fixture_id": 1636689,
         "kickoff": "2026-09-16T21:15:00-06:00",
         "match": "Alianza vs CD Motagua",
-        "stage": "T-60",
+        "stage": "T-40",
         "data_tier": "B",
-        "bet_tier": null,
+        "bet_tier": "B",
         "classification": "WATCH",
         "availability_confidence": 0.7,
         "sport_first": true,
@@ -3685,19 +5707,19 @@
           },
           "first_half_goals": {
             "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
-            "observed_quote_count": 0,
+            "observed_quote_count": 85,
             "actionable": false,
             "policy": "BLOCKED_PENDING_EXPLICIT_1H_MODEL"
           },
           "second_half_goals": {
             "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
-            "observed_quote_count": 0,
+            "observed_quote_count": 46,
             "actionable": false,
             "policy": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS"
           },
           "corners": {
             "status": "RESEARCH_BASELINE_EXISTS_OFFLINE_NOT_PRODUCTION_APPROVED",
-            "observed_quote_count": 0,
+            "observed_quote_count": 17,
             "team_corner_quote_count": 0,
             "expected_corner_environment": null,
             "actionable": false
@@ -3711,9 +5733,11 @@
             "actionable": false
           },
           "players": {
-            "status": "NOT_CAPTURED_THIS_TICK",
+            "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+            "teams": [],
             "probability_model": "MISSING_PLAYER_PROP_MODEL",
-            "actionable": false
+            "actionable": false,
+            "decision_weight": 0.0
           },
           "lineups_formations": {
             "status": "PENDING",
@@ -3789,9 +5813,9 @@
             "city": "San Salvador"
           },
           "market": {
-            "status": "NOT_VERIFIED",
-            "fresh": null,
-            "latest_timestamp": null,
+            "status": "API_FALLBACK_ODDS",
+            "fresh": true,
+            "latest_timestamp": "2026-09-17T00:27:13+00:00",
             "market_after_sport": true
           }
         },
@@ -3848,8 +5872,35 @@
           "actionable": false
         }
       },
-      "market_decision": null,
-      "best_market": null,
+      "market_decision": {
+        "status": "WATCH",
+        "reason": null,
+        "first_half_markets_ignored": null,
+        "first_half_reason": null,
+        "period_markets_ignored": 46,
+        "period_market_reason": "Dedicated period model required; full-match probabilities cannot be reused.",
+        "btts_market_mode": "RESEARCH_ONLY_PENDING_VALIDATION",
+        "galaxy_publication_gate_downgraded": 0,
+        "galaxy_sample_gate_substitutions": null
+      },
+      "best_market": {
+        "family": "1X2",
+        "market": "Match Winner",
+        "selection": "away",
+        "line": null,
+        "decimal_price": 2.76,
+        "bookmaker": "SBO",
+        "p_breakeven": 0.362319,
+        "p_market_fair": 0.315006,
+        "p_raw": 0.535827,
+        "p_shrunk": 0.350337,
+        "prob_edge_pp": 3.533,
+        "estimated_ev": -0.03307,
+        "shrink_weight": 0.16,
+        "tier": "B",
+        "classification": "WATCH",
+        "stake_units": 0.0
+      },
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
@@ -4383,16 +6434,7 @@
             "away": null
           }
         },
-        "status": "FT",
-        "player_stats": {
-          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "teams": [],
-          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-          "fixture_id": 1493995,
-          "capture_phase": "POSTGAME"
-        }
+        "status": "FT"
       },
       "error": null
     },
@@ -4741,6 +6783,119 @@
       "bet_eligible": false,
       "availability_confidence": null,
       "fixture": {
+        "fixture_id": 1636688,
+        "kickoff": "2026-09-16T18:30:00-06:00",
+        "timestamp": 1789605000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 1028,
+        "league": "CONCACAF Central American Cup",
+        "country": "World",
+        "season": 2026,
+        "round": "Quarter-finals",
+        "home_team_id": 820,
+        "home_team": "CS Cartagines",
+        "away_team_id": 816,
+        "away_team": "Deportivo Saprissa",
+        "venue": null,
+        "city": "Cartago",
+        "goals": {
+          "home": 3,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 81.7,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 81.7,
+        "goal_environment_score": 71.7,
+        "two_way_scoring_score": 77.8,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 3,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 3,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
         "fixture_id": 1639697,
         "kickoff": "2026-09-16T17:00:00-06:00",
         "timestamp": 1789599600,
@@ -4829,6 +6984,117 @@
           "fulltime": {
             "home": 1,
             "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT"
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1493587,
+        "kickoff": "2026-09-16T18:30:00-06:00",
+        "timestamp": 1789605000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 255,
+        "league": "USL Championship",
+        "country": "USA",
+        "season": 2026,
+        "round": "Group Stage",
+        "home_team_id": 3989,
+        "home_team": "Birmingham Legion",
+        "away_team_id": 4003,
+        "away_team": "New Mexico United",
+        "venue": "Protective Stadium",
+        "city": null,
+        "goals": {
+          "home": 4,
+          "away": 4
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 2
+          },
+          "fulltime": {
+            "home": 4,
+            "away": 4
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "R. Albuquerque",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 77.9,
+        "tracks": [
+          "TWO_WAY"
+        ],
+        "side_edge_score": 54.3,
+        "goal_environment_score": 55.7,
+        "two_way_scoring_score": 77.9,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 4,
+          "away": 4
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 2
+          },
+          "fulltime": {
+            "home": 4,
+            "away": 4
           },
           "extratime": {
             "home": null,
@@ -4941,228 +7207,6 @@
           "fulltime": {
             "home": 3,
             "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1638763,
-        "kickoff": "2026-09-16T17:30:00-06:00",
-        "timestamp": 1789601400,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 299,
-        "league": "Primera División",
-        "country": "Venezuela",
-        "season": 2026,
-        "round": "Clausura - 10",
-        "home_team_id": 2825,
-        "home_team": "Metropolitanos FC",
-        "away_team_id": 2808,
-        "away_team": "Caracas FC",
-        "venue": "Estadio Olimpico de la UCV",
-        "city": "Caracas",
-        "goals": {
-          "home": 3,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 3,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "referee": null,
-        "fixture_timezone": "America/Mexico_City"
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 73.9,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 54.6,
-        "goal_environment_score": 52.4,
-        "two_way_scoring_score": 73.9,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "match_intelligence": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 3,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 3,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT"
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1634300,
-        "kickoff": "2026-09-16T18:00:00-06:00",
-        "timestamp": 1789603200,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 917,
-        "league": "Copa Ecuador",
-        "country": "Ecuador",
-        "season": 2025,
-        "round": "Quarter-finals",
-        "home_team_id": 1988,
-        "home_team": "LDU Portoviejo",
-        "away_team_id": 1149,
-        "away_team": "Delfin SC",
-        "venue": "Estadio Reales Tamarindos",
-        "city": "Portoviejo",
-        "goals": {
-          "home": 0,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 2
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "referee": null,
-        "fixture_timezone": "America/Mexico_City"
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 70.0,
-        "tracks": [
-          "GOALS_UNDER"
-        ],
-        "side_edge_score": 57.5,
-        "goal_environment_score": 30.0,
-        "two_way_scoring_score": 56.4,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "match_intelligence": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 0,
-          "away": 2
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 0,
-            "away": 2
           },
           "extratime": {
             "home": null,
