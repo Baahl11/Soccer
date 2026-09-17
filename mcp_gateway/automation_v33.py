@@ -36,6 +36,7 @@ def _wanted_market_complete(name: str) -> bool:
             "correct score",
             "exact score",
             "score exact",
+            "double chance",
         )
     )
 
