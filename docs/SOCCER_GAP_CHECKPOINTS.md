@@ -41,7 +41,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 21 | Goalkeeper | 🟢 confirmed starter + saves/conceded fields retained + low-priority finalized player capture | ✅ descriptive GK profile; true impact model intentionally NOT claimed | 🟡 v3.34 context-only | 🔴 | ⏳ | 🟡 DATA/PROFILE IMPROVED v3.34 | Accumulate finalized GK samples; verify minutes/substitutions; OOS feature-lift test; shot-quality/PSxG remains external. No λ adjustment until validated. |
 | 22 | Injuries / suspensions | 🟢 provider report + historical role/minutes exposure + confirmed-XI conflict check | ✅ research-only role/materiality framework; true player→team impact intentionally NOT claimed | 🟡 v3.35 context/recheck-only | ✅ existing availability gate only; research recheck flag adds no probability weight | ⏳ | 🟡 LIVE RESEARCH CONTEXT v3.35 | Natural persistence; independent official/team verification; OOS player→team impact evidence. Replacement quality remains NOT_MODELED. |
 | 23 | Player trends | ✅ persisted L5/L10/L20 + exact observed-minute exposure + role registry | ✅ v3.36 shrunk role/minutes + Gamma-Poisson per-90 count-rate profiles | 🟡 v3.36 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.36 | Accumulate natural player samples; ≥500 OOS player-games for rate review and ≥1500 before any prop dependency; validate minutes MAE/dispersion by position/competition. No market-line probabilities here. |
-| 24 | Shots props | 🟢 capture | 🔴 | 🔴 | 🔴 | — | 🔴 | Minutes/role + shots/90 + opponent/formation distribution + exact threshold probability. |
+| 24 | Shots props | ✅ confirmed starter + persisted shots/minutes + opponent shots-allowed trend | ✅ v3.37 Gamma-Poisson/Negative-Binomial predictive distribution; O/U 0.5–5.5 exact half-line probabilities | 🟡 v3.37 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.37 | Natural persistence; ≥500 OOS count/line review, ≥1000 market review, ≥2000 actionable review; attach observed sportsbook line/price + CLV. Formation numeric factor stays 1.0 until shots-specific residual OOS lift. |
 | 25 | SOT props | 🟢 capture | 🔴 | 🔴 | 🔴 | — | 🔴 | P(1+/2+/3+) with minutes, role, opponent suppression and starting status. |
 | 26 | Goalscorer | 🟠 goals/minutes | 🔴 | 🔴 | 🔴 | — | 🔴 | Player xG/share or defensible proxy, minutes, penalties, opponent/GK, calibration. |
 | 27 | Assists | 🟠 assists/key passes | 🔴 | 🔴 | 🔴 | — | 🔴 | Chance creation/xA-quality, minutes and teammate finishing model. |
@@ -67,7 +67,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 
 ## Engineering checkpoints materially completed/improved
 
-#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends.
+#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props.
 
 ### #21 Goalkeeper — v3.34
 - `fixtures/players` compact now retains provider fields `goals.saves` and `goals.conceded` when supplied.
@@ -96,8 +96,19 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 - `actionable=false`, `decision_weight=0`; canonical model weights, thresholds, bet logic, tier and stake remain unchanged.
 - v3.36 adds zero provider requests during the live tick; registry generation is asynchronous from persisted history.
 
+### #24 Shots props — v3.37
+- Confirmed starters use the v3.36 shrunk shots-rate posterior plus expected starter minutes; no unconfirmed player is treated as a starter.
+- The posterior Gamma rate is integrated over future minutes to produce a Negative-Binomial predictive shot-count distribution.
+- Exact fair research probabilities are emitted for O/U 0.5, 1.5, 2.5, 3.5, 4.5 and 5.5 shots.
+- Opponent adjustment uses only persisted L10 shots allowed relative to the global shots baseline, shrunk toward neutral with 12 pseudo-matches and clipped to 0.75–1.25.
+- Team trend history now retains opponent shots/SOT explicitly; missing or thin opponent data forces a neutral 1.0 modifier.
+- Confirmed formation context is attached, but its numerical modifier remains exactly 1.0 until a shots-specific residual walk-forward test shows OOS lift. Raw formation averages cannot alter a player probability.
+- No sportsbook player-prop line/price is currently attached, so edge/EV are null and the module cannot create BET/LEAN/Galaxy legs.
+- `actionable=false`, `decision_weight=0`; canonical model weights, thresholds, tier, stake and bet eligibility remain unchanged.
+- v3.37 adds zero provider requests during the live tick.
+
 ## Engineering rule
 Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until persisted natural state and calibration/promotion gates are satisfied.
 
 ## Next engineering target
-#24 Shots props — build a dedicated minutes/role/opponent-adjusted shot-count distribution and exact sportsbook threshold probabilities, using v3.36 player-rate profiles only after sample and calibration gates; remain research-only until OOS validation.
+#25 SOT props — build a dedicated role/minutes/opponent-adjusted shots-on-target distribution with P(1+/2+/3+) and exact half-line probabilities, keeping it research-only until OOS calibration and observed market prices exist.
