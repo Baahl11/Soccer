@@ -1,0 +1,30 @@
+{
+  "actionable": false,
+  "block_reason": "NO_VERIFIED_EXTERNAL_XG_OBSERVATIONS_IMPORTED",
+  "decision_weight": 0.0,
+  "external_data_blocked": true,
+  "fixture_count": 0,
+  "generated_at_utc": "2026-09-17T23:05:23.069671+00:00",
+  "global": {
+    "avg_team_xg": null,
+    "team_observations": 0
+  },
+  "policy": [
+    "Only externally supplied xG type 5304 observations mapped to explicit API-Football fixture/team IDs are accepted.",
+    "Internal goal lambdas, final goals, shots or scorelines are never relabeled as xG.",
+    "xGA is the opponent xG conceded in the same verified fixture, not a separately invented metric.",
+    "Registry windows are descriptive research inputs only until walk-forward lift and calibration are demonstrated."
+  ],
+  "profiles": {},
+  "rejected_observations": 0,
+  "schema_version": "1.0.0",
+  "source": {
+    "definition": "pre-shot chance-quality expected goals supplied by external provider",
+    "metric": "Expected Goals (xG)",
+    "metric_type_id": 5304,
+    "provider": "Sportmonks",
+    "source_fixture_mapping": "explicit API-Football fixture/team IDs in normalized observation rows"
+  },
+  "status": "EXTERNAL_XG_DATA_BLOCKED",
+  "team_profile_count": 0
+}
