@@ -22,6 +22,18 @@ def _avg(rows: list[dict[str, Any]], key: str) -> float | None:
     return round(sum(vals) / len(vals), 3) if vals else None
 
 
+def _sum(rows: list[dict[str, Any]], key: str) -> float | None:
+    vals = [_num(r.get(key)) for r in rows]
+    vals = [v for v in vals if v is not None]
+    return round(sum(vals), 3) if vals else None
+
+
+def _per90(total: float | None, minutes: float | None) -> float | None:
+    if total is None or minutes is None or minutes <= 0:
+        return None
+    return round(total * 90.0 / minutes, 6)
+
+
 def _hit(rows: list[dict[str, Any]], key: str, threshold: float) -> dict[str, Any]:
     vals = [_num(r.get(key)) for r in rows]
     vals = [v for v in vals if v is not None]
@@ -157,15 +169,31 @@ def main() -> None:
                 or r.get("saves") is not None
                 or r.get("goals_conceded") is not None
             ]
+            total_minutes = _sum(played, "minutes")
+            shots_total = _sum(played, "shots")
+            sot_total = _sum(played, "shots_on_target")
+            goals_total = _sum(played, "goals")
+            assists_total = _sum(played, "assists")
             item["windows"][f"last_{n}"] = {
                 "n": len(sample),
                 "played_n": len(played),
                 "avg_minutes": _avg(played, "minutes"),
+                "total_minutes": total_minutes,
                 "avg_rating": _avg(played, "rating"),
                 "avg_shots": _avg(played, "shots"),
                 "avg_sot": _avg(played, "shots_on_target"),
-                "goals": sum(_num(r.get("goals")) or 0 for r in played),
-                "assists": sum(_num(r.get("assists")) or 0 for r in played),
+                "shots_total": shots_total,
+                "sot_total": sot_total,
+                "goals_total": goals_total,
+                "assists_total": assists_total,
+                "goals": goals_total if goals_total is not None else 0.0,
+                "assists": assists_total if assists_total is not None else 0.0,
+                "rates_per90": {
+                    "shots": _per90(shots_total, total_minutes),
+                    "shots_on_target": _per90(sot_total, total_minutes),
+                    "goals": _per90(goals_total, total_minutes),
+                    "assists": _per90(assists_total, total_minutes),
+                },
                 "sot_1plus": _hit(played, "shots_on_target", 1),
                 "sot_2plus": _hit(played, "shots_on_target", 2),
                 "shots_2plus": _hit(played, "shots", 2),
@@ -180,7 +208,7 @@ def main() -> None:
         output_players.append(item)
 
     report = {
-        "schema_version": "1.3.0",
+        "schema_version": "1.4.0",
         "status": "RESEARCH_ONLY_PLAYER_TRENDS",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "decision_weight": 0.0,
