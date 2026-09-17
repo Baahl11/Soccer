@@ -1,7 +1,7 @@
 {
   "anti_leakage": "Every target uses only finalized fixtures with kickoff strictly earlier than the target. FT and HT scores are used only to construct historical second-half targets.",
   "explicit_period_model": true,
-  "finalized_fixtures_with_second_half_target": 323,
+  "finalized_fixtures_with_second_half_target": 324,
   "formula": {
     "away_lambda_2h": "league_away_2h_rate * away_2h_attack_strength * home_2h_defensive_weakness",
     "hierarchy": "global 2H home/away rates -> league 2H rates shrunk to global -> venue-specific team 2H attack/defense shrunk to league",
@@ -11,43 +11,17 @@
   },
   "market_scope": "NO_ACTIONABLE_2H_MARKET_PRICING_YET",
   "metrics": {
-    "mean_abs_2h_total_goals_error": 0.9362,
+    "mean_abs_2h_total_goals_error": 0.9352,
     "mean_predicted_over_1_5_probability": 0.5,
-    "observed_over_1_5_rate": 0.4983,
-    "over_1_5_accuracy_at_0_5_threshold": 0.4676,
+    "observed_over_1_5_rate": 0.4966,
+    "over_1_5_accuracy_at_0_5_threshold": 0.4694,
     "over_1_5_brier": 0.2529,
-    "over_1_5_log_loss": 0.699
+    "over_1_5_log_loss": 0.6989
   },
   "minimum_training_fixtures": 30,
   "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
   "model_timing": "PREGAME_SECOND_HALF_MARKET_MODEL_NOT_LIVE_HALFTIME_MODEL",
   "predictions": [
-    {
-      "actual_second_half": {
-        "away": 1,
-        "home": 0,
-        "total": 1
-      },
-      "away_lambda_2h": 0.90411,
-      "away_team": "Spartak Myjava W",
-      "fixture_id": 1566603,
-      "global_away_2h_rate": 0.90411,
-      "global_home_2h_rate": 0.931507,
-      "home_lambda_2h": 0.931507,
-      "home_team": "Ružomberok W",
-      "kickoff_local": "2026-09-12T03:00:00-06:00",
-      "league": "I Liga - Women",
-      "league_away_2h_rate": 0.90411,
-      "league_home_2h_rate": 0.931507,
-      "league_id": 733,
-      "p_over_0_5_2h": 0.840481,
-      "p_over_1_5_2h": 0.547672,
-      "p_over_2_5_2h": 0.27893,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 0.0,
-      "total_lambda_2h": 1.835616
-    },
     {
       "actual_second_half": {
         "away": 0,
@@ -6521,6 +6495,32 @@
       "prior_home_home_matches": 1.0,
       "prior_league_matches": 4.0,
       "total_lambda_2h": 2.401656
+    },
+    {
+      "actual_second_half": {
+        "away": 0,
+        "home": 1,
+        "total": 1
+      },
+      "away_lambda_2h": 0.798762,
+      "away_team": "Gardabani",
+      "fixture_id": 1507449,
+      "global_away_2h_rate": 0.798762,
+      "global_home_2h_rate": 0.860681,
+      "home_lambda_2h": 0.860681,
+      "home_team": "Margveti 2006",
+      "kickoff_local": "2026-09-17T06:00:00-06:00",
+      "league": "Liga 3",
+      "league_away_2h_rate": 0.798762,
+      "league_home_2h_rate": 0.860681,
+      "league_id": 1104,
+      "p_over_0_5_2h": 0.809754,
+      "p_over_1_5_2h": 0.494053,
+      "p_over_2_5_2h": 0.232109,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 0.0,
+      "total_lambda_2h": 1.659443
     }
   ],
   "promotion_gate": {
@@ -6536,5 +6536,5 @@
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "target": "SECOND_HALF_HOME_AND_AWAY_GOALS_FROM_FT_MINUS_HT",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 293
+  "walk_forward_evaluated": 294
 }
