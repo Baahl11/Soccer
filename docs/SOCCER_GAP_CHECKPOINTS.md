@@ -40,7 +40,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 20 | XI | ✅ confirmed starters/GK/formation | ✅ verification + persistent XI fingerprint/change detector | ✅ v3.33 | ✅ existing availability gate only | ⏳ new detector | 🟢 IMPROVED v3.33 | Natural persistence of fingerprints; recheck behavior after material change; player-specific impact remains separate. |
 | 21 | Goalkeeper | 🟢 confirmed starter + saves/conceded fields retained + low-priority finalized player capture | ✅ descriptive GK profile; true impact model intentionally NOT claimed | 🟡 v3.34 context-only | 🔴 | ⏳ | 🟡 DATA/PROFILE IMPROVED v3.34 | Accumulate finalized GK samples; verify minutes/substitutions; OOS feature-lift test; shot-quality/PSxG remains external. No λ adjustment until validated. |
 | 22 | Injuries / suspensions | 🟢 provider report + historical role/minutes exposure + confirmed-XI conflict check | ✅ research-only role/materiality framework; true player→team impact intentionally NOT claimed | 🟡 v3.35 context/recheck-only | ✅ existing availability gate only; research recheck flag adds no probability weight | ⏳ | 🟡 LIVE RESEARCH CONTEXT v3.35 | Natural persistence; independent official/team verification; OOS player→team impact evidence. Replacement quality remains NOT_MODELED. |
-| 23 | Player trends | ✅ selective capture | 🟠 descriptive L5/L10/L20 | 🟡 | 🔴 | partial | 🟡 DESCRIPTIVE | Convert to probabilistic role/minutes-adjusted models. |
+| 23 | Player trends | ✅ persisted L5/L10/L20 + exact observed-minute exposure + role registry | ✅ v3.36 shrunk role/minutes + Gamma-Poisson per-90 count-rate profiles | 🟡 v3.36 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.36 | Accumulate natural player samples; ≥500 OOS player-games for rate review and ≥1500 before any prop dependency; validate minutes MAE/dispersion by position/competition. No market-line probabilities here. |
 | 24 | Shots props | 🟢 capture | 🔴 | 🔴 | 🔴 | — | 🔴 | Minutes/role + shots/90 + opponent/formation distribution + exact threshold probability. |
 | 25 | SOT props | 🟢 capture | 🔴 | 🔴 | 🔴 | — | 🔴 | P(1+/2+/3+) with minutes, role, opponent suppression and starting status. |
 | 26 | Goalscorer | 🟠 goals/minutes | 🔴 | 🔴 | 🔴 | — | 🔴 | Player xG/share or defensible proxy, minutes, penalties, opponent/GK, calibration. |
@@ -67,7 +67,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 
 ## Engineering checkpoints materially completed/improved
 
-#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions.
+#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends.
 
 ### #21 Goalkeeper — v3.34
 - `fixtures/players` compact now retains provider fields `goals.saves` and `goals.conceded` when supplied.
@@ -86,8 +86,18 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 - `actionable=false`, `decision_weight=0`; canonical model weights, thresholds, bet logic and availability confidence are unchanged.
 - v3.35 adds zero provider requests and preserves the normal scheduler/budget path.
 
+### #23 Player trends — v3.36
+- Player trend history schema is raised to 1.4.0 and now retains exact observed exposure totals: minutes, shots, SOT, goals and assists, plus per-90 rates for L5/L10/L20.
+- A dedicated research registry combines the existing shrunk role/minutes model with exposure-normalized Gamma-Poisson count-rate shrinkage.
+- Position priors are used only with sufficient exposure; otherwise the model falls back to global priors.
+- Confirmed starting XI sets live start probability to 1.0; historical start/minutes outputs remain diagnostic context.
+- Expected counts for a confirmed starter are rate × expected minutes research expectations only. They are NOT sportsbook threshold probabilities.
+- Shots/SOT/goals/assists line probabilities remain separate future modules (#24–#27); v3.36 cannot create a prop bet or Galaxy leg.
+- `actionable=false`, `decision_weight=0`; canonical model weights, thresholds, bet logic, tier and stake remain unchanged.
+- v3.36 adds zero provider requests during the live tick; registry generation is asynchronous from persisted history.
+
 ## Engineering rule
 Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until persisted natural state and calibration/promotion gates are satisfied.
 
 ## Next engineering target
-#23 Player trends — convert the existing descriptive L5/L10/L20 capture into research-only probabilistic role/minutes-adjusted trend models, with explicit sample/shrinkage/calibration gates and zero production weight until OOS validation.
+#24 Shots props — build a dedicated minutes/role/opponent-adjusted shot-count distribution and exact sportsbook threshold probabilities, using v3.36 player-rate profiles only after sample and calibration gates; remain research-only until OOS validation.
