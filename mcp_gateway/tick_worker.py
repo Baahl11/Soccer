@@ -5,7 +5,7 @@ import sys
 
 import httpx
 
-from mcp_gateway import automation_v6, automation_v41
+from mcp_gateway import automation_v6, automation_v42
 from mcp_gateway.persistence_v2 import persist_tick
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -42,7 +42,7 @@ def _read_seed() -> dict:
 async def _main() -> int:
     try:
         imported = automation_v6.import_shortlist_state(_read_seed())
-        payload = await automation_v41.run_tick()
+        payload = await automation_v42.run_tick()
         payload["shortlist_seed_imported"] = imported
         try:
             db_payload = dict(payload)
