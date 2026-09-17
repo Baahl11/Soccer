@@ -27,7 +27,17 @@ def _wanted_market_complete(name: str) -> bool:
     if _ORIGINAL_WANTED_MARKET(name):
         return True
     n = str(name or "").lower()
-    return any(token in n for token in ("card", "booking", "bookings"))
+    return any(
+        token in n
+        for token in (
+            "card",
+            "booking",
+            "bookings",
+            "correct score",
+            "exact score",
+            "score exact",
+        )
+    )
 
 
 def _compact_odds_complete(payload: dict[str, Any]) -> dict[str, Any]:
@@ -53,8 +63,8 @@ def _compact_odds_complete(payload: dict[str, Any]) -> dict[str, Any]:
                         "provider_update": update,
                     }
                 )
-    # v3.9 widens the retained research market surface only. It adds no request.
-    # Exact prices remain observations, never sport probabilities.
+    # Research-market retention only. This adds no provider request and does not
+    # make any retained price a sport probability or production recommendation.
     max_rows = 120
     return {"markets": rows[:max_rows], "market_count": len(rows), "truncated": len(rows) > max_rows}
 
