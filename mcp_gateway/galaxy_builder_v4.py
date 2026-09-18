@@ -6,7 +6,7 @@ from typing import Any
 from mcp_gateway import galaxy_builder_v2 as v2
 from mcp_gateway import galaxy_builder_v3 as v3
 
-SCHEMA_VERSION = "0.4.0"
+SCHEMA_VERSION = "0.4.1"
 TARGET_DECIMAL = v2.TARGET_DECIMAL
 TARGET_EDGE_PP = v2.TARGET_EDGE_PP
 MIN_AVAILABILITY = v2.MIN_AVAILABILITY
@@ -47,10 +47,103 @@ def _verified_quotes(leg: dict[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
+def _canonical_ft_goals_legs(event: dict[str, Any]) -> list[dict[str, Any]]:
+    decision = event.get("market_decision") if isinstance(event.get("market_decision"), dict) else {}
+    rows = decision.get("decisions") if isinstance(decision.get("decisions"), list) else []
+    rank = {"BET": 4, "LEAN": 3, "WATCH": 2, "PASS": 1}
+    best: dict[tuple[str, float, str], dict[str, Any]] = {}
+
+    for item in rows:
+        if not isinstance(item, dict) or str(item.get("family") or "").upper() != "TOTAL":
+            continue
+
+        selection = str(item.get("selection") or "").strip().upper()
+        line = _num(item.get("line"))
+        price = _num(item.get("decimal_price"))
+        probability = _num(item.get("p_shrunk"))
+        raw_probability = _num(item.get("p_raw"))
+        bookmaker = str(item.get("bookmaker") or "").strip()
+        market = str(item.get("market") or "").strip()
+        classification = str(item.get("classification") or "WATCH").upper()
+
+        if selection not in {"OVER", "UNDER"}:
+            continue
+        if line is None or price is None or price <= 1 or probability is None or not (0 < probability < 1):
+            continue
+        if not bookmaker or not market or classification == "PASS":
+            continue
+
+        discrepancy = bool(item.get("discrepancy_recheck"))
+        actionable = classification in {"BET", "LEAN"} and not discrepancy
+        row = {
+            "family": "FT_GOALS",
+            "selection": selection,
+            "line": line,
+            "probability": round(probability, 6),
+            "probability_source": "FT_GOALS_CANONICAL_MARKET_LADDER_P_SHRUNK",
+            "score_matrix_marginal_probability": round(raw_probability, 6) if raw_probability is not None else None,
+            "actionable_model": actionable,
+            "research_only_reason": (
+                None
+                if actionable
+                else f"FT_GOALS_CANONICAL_LADDER_{classification}"
+            ),
+            "canonical_market_ladder": True,
+            "canonical_classification": classification,
+            "canonical_tier": item.get("tier"),
+            "canonical_prob_edge_pp": item.get("prob_edge_pp"),
+            "canonical_estimated_ev": item.get("estimated_ev"),
+            "canonical_discrepancy_recheck": discrepancy,
+            "canonical_reasons": list(item.get("reasons") or []),
+            "market_line_verified": True,
+            "market_backed": True,
+            "quotes": [
+                {
+                    "bookmaker": bookmaker,
+                    "market": market,
+                    "selection_text": f"{selection.title()} {line:g}",
+                    "price": round(price, 4),
+                    "provider_update": item.get("provider_update"),
+                    "canonical_p_shrunk": round(probability, 6),
+                    "canonical_p_raw": round(raw_probability, 6) if raw_probability is not None else None,
+                    "canonical_classification": classification,
+                    "canonical_prob_edge_pp": item.get("prob_edge_pp"),
+                }
+            ],
+        }
+
+        key = (selection, round(float(line), 4), bookmaker)
+        score = (
+            rank.get(classification, 0),
+            float(item.get("prob_edge_pp") or -999.0),
+            float(item.get("estimated_ev") or -999.0),
+        )
+        current = best.get(key)
+        if current is None or score > tuple(current.get("_canonical_rank") or (0, -999.0, -999.0)):
+            row["_canonical_rank"] = score
+            best[key] = row
+
+    out = list(best.values())
+    out.sort(key=lambda row: tuple(row.get("_canonical_rank") or (0, -999.0, -999.0)), reverse=True)
+    for row in out:
+        row.pop("_canonical_rank", None)
+    return out
+
+
 def _market_backed_legs(event: dict[str, Any]) -> tuple[list[dict[str, Any]], list[tuple[int, int, float]]]:
-    legs, matrix = v2._legs(event)
+    base_legs, matrix = v2._legs(event)
     backed: list[dict[str, Any]] = []
-    for leg in legs:
+
+    # FT Goals must come from the canonical evaluated market ladder, not from a
+    # second synthetic fixed-line ladder. This keeps Galaxy on the exact observed
+    # bookmaker/line and the same p_shrunk used by the canonical FT Goals layer.
+    backed.extend(_canonical_ft_goals_legs(event))
+
+    # BTTS / Double Chance still use the existing score-matrix marginal model;
+    # their production status remains research-only as before.
+    for leg in base_legs:
+        if str(leg.get("family") or "").upper() == "FT_GOALS":
+            continue
         quotes = _verified_quotes(leg)
         if not quotes:
             continue
@@ -60,7 +153,6 @@ def _market_backed_legs(event: dict[str, Any]) -> tuple[list[dict[str, Any]], li
         row["market_backed"] = True
         backed.append(row)
     return backed, matrix
-
 
 def _common_book_reference(legs: list[dict[str, Any]]) -> dict[str, Any] | None:
     by_leg: list[dict[str, dict[str, Any]]] = []
@@ -308,7 +400,8 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
 
     policy = dict(base.get("family_policy") or {})
     policy["SGP_CONSTRUCTION"] = (
-        "MARKET_BACKED_ONLY; EVERY LEG MUST EXIST IN VERIFIED CURRENT MARKET; SAME BOOK COMPONENT REFERENCE REQUIRED; "
+        "MARKET_BACKED_ONLY; FT_GOALS LEGS COME FROM THE CANONICAL MARKET_DECISION LADDER; "
+        "EVERY LEG MUST EXIST IN VERIFIED CURRENT MARKET; SAME BOOK COMPONENT REFERENCE REQUIRED; "
         "COMPONENT PRODUCT MUST BE >= TARGET +110; LOGICALLY REDUNDANT LEGS BLOCKED; ONE PRIMARY SGP PER FIXTURE"
     )
 
@@ -332,10 +425,14 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
             "minimum_incremental_probability_drop_per_leg": MIN_INCREMENTAL_PROBABILITY_DROP,
             "maximum_primary_sgp_candidates_per_fixture": 1,
             "synthetic_unquoted_lines_allowed": False,
+            "ft_goals_leg_source": "CANONICAL_MARKET_DECISION_LADDER",
+            "ft_goals_probability_source": "P_SHRUNK_MATCHED_TO_THE_SAME_OBSERVED_BOOKMAKER_QUOTE",
+            "ft_goals_score_matrix_role": "JOINT_SGP_CORRELATION_ONLY",
         },
         "policy": (
-            "SPORT FIRST; MARKET SECOND; COMBINATION THIRD; MARKET-BACKED LEGS ONLY; TARGET +110 OR BETTER; "
-            "NO SYNTHETIC UNQUOTED LINES; NO LOGICALLY REDUNDANT LEGS; ONE PRIMARY SGP PER FIXTURE; "
+            "SPORT FIRST; MARKET SECOND; COMBINATION THIRD; MARKET-BACKED LEGS ONLY; FT_GOALS USE THE CANONICAL "
+            "OBSERVED MARKET LADDER; TARGET +110 OR BETTER; NO SYNTHETIC UNQUOTED LINES; "
+            "NO LOGICALLY REDUNDANT LEGS; ONE PRIMARY SGP PER FIXTURE; "
             "EXACT SPORTSBOOK SGP QUOTE REQUIRED FOR FINAL BET"
         ),
         "provider_requests_added": 0,
