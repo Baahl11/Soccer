@@ -5,7 +5,7 @@ import sys
 
 import httpx
 
-from mcp_gateway import automation_v6, automation_v73
+from mcp_gateway import automation_v6, automation_v74
 from mcp_gateway.persistence_v2 import persist_tick
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
