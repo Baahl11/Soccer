@@ -1,0 +1,2409 @@
+{
+  "counts": {
+    "data_accumulating": 14,
+    "families": 21,
+    "incomplete_evidence": 0,
+    "ready_for_manual_review": 7,
+    "report_missing": 0
+  },
+  "families": [
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "FT_GOALS",
+      "max_detected_sample": 82.0,
+      "reports": [
+        {
+          "file": "ft_totals_validation.json",
+          "gate_evidence": [],
+          "gate_false_count": 0,
+          "gate_true_count": 0,
+          "max_detected_sample": 82.0,
+          "metric_evidence": [
+            {
+              "path": "actionable.mean_brier",
+              "value": 0.1557
+            },
+            {
+              "path": "actionable.mean_log_loss",
+              "value": 0.4946
+            },
+            {
+              "path": "actionable.roi_per_decision",
+              "value": 0.2386
+            },
+            {
+              "path": "actionable.roi_units_flat_1u",
+              "value": 3.34
+            },
+            {
+              "path": "by_classification.BET.mean_brier",
+              "value": 0.1883
+            },
+            {
+              "path": "by_classification.BET.mean_log_loss",
+              "value": 0.5685
+            },
+            {
+              "path": "by_classification.BET.roi_per_decision",
+              "value": -0.095
+            },
+            {
+              "path": "by_classification.BET.roi_units_flat_1u",
+              "value": -0.57
+            },
+            {
+              "path": "by_classification.LEAN.mean_brier",
+              "value": 0.1313
+            },
+            {
+              "path": "by_classification.LEAN.mean_log_loss",
+              "value": 0.4391
+            },
+            {
+              "path": "by_classification.LEAN.roi_per_decision",
+              "value": 0.4887
+            },
+            {
+              "path": "by_classification.LEAN.roi_units_flat_1u",
+              "value": 3.91
+            },
+            {
+              "path": "by_classification.WATCH.mean_brier",
+              "value": 0.1871
+            },
+            {
+              "path": "by_classification.WATCH.mean_log_loss",
+              "value": 0.5565
+            },
+            {
+              "path": "by_classification.WATCH.roi_per_decision",
+              "value": 0.1268
+            },
+            {
+              "path": "by_classification.WATCH.roi_units_flat_1u",
+              "value": 10.4
+            },
+            {
+              "path": "by_line.0.5.mean_brier",
+              "value": 0.0168
+            },
+            {
+              "path": "by_line.0.5.mean_log_loss",
+              "value": 0.1349
+            },
+            {
+              "path": "by_line.0.5.roi_per_decision",
+              "value": 0.0243
+            },
+            {
+              "path": "by_line.0.5.roi_units_flat_1u",
+              "value": 0.17
+            }
+          ],
+          "model": null,
+          "sample_evidence": [
+            {
+              "path": "actionable.n",
+              "value": 14.0
+            },
+            {
+              "path": "by_classification.BET.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_classification.LEAN.n",
+              "value": 8.0
+            },
+            {
+              "path": "by_classification.WATCH.n",
+              "value": 82.0
+            },
+            {
+              "path": "by_line.0.5.n",
+              "value": 7.0
+            },
+            {
+              "path": "by_line.1.5.n",
+              "value": 15.0
+            },
+            {
+              "path": "by_line.2.5.n",
+              "value": 39.0
+            },
+            {
+              "path": "by_line.3.5.n",
+              "value": 29.0
+            },
+            {
+              "path": "by_line.4.5.n",
+              "value": 5.0
+            },
+            {
+              "path": "by_line.6.5.n",
+              "value": 1.0
+            },
+            {
+              "path": "by_side.OVER.n",
+              "value": 28.0
+            },
+            {
+              "path": "by_side.UNDER.n",
+              "value": 68.0
+            }
+          ],
+          "status": "VALIDATION_ONLY_DO_NOT_UPGRADE_BACKEND"
+        },
+        {
+          "file": "ft_goals_shadow_validation.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": 62.0,
+          "metric_evidence": [
+            {
+              "path": "canonical.lambda_mae",
+              "value": 1.423681
+            },
+            {
+              "path": "canonical.lines.1.5.brier",
+              "value": 0.125884
+            },
+            {
+              "path": "canonical.lines.1.5.log_loss",
+              "value": 0.416599
+            },
+            {
+              "path": "canonical.lines.2.5.brier",
+              "value": 0.239069
+            },
+            {
+              "path": "canonical.lines.2.5.log_loss",
+              "value": 0.669724
+            },
+            {
+              "path": "canonical.lines.3.5.brier",
+              "value": 0.216993
+            },
+            {
+              "path": "canonical.lines.3.5.log_loss",
+              "value": 0.62863
+            },
+            {
+              "path": "challenger.lambda_mae",
+              "value": 1.422797
+            },
+            {
+              "path": "challenger.lines.1.5.brier",
+              "value": 0.126337
+            },
+            {
+              "path": "challenger.lines.1.5.log_loss",
+              "value": 0.418474
+            },
+            {
+              "path": "challenger.lines.2.5.brier",
+              "value": 0.238187
+            },
+            {
+              "path": "challenger.lines.2.5.log_loss",
+              "value": 0.667707
+            },
+            {
+              "path": "challenger.lines.3.5.brier",
+              "value": 0.217576
+            },
+            {
+              "path": "challenger.lines.3.5.log_loss",
+              "value": 0.631656
+            },
+            {
+              "path": "improvement.lambda_mae_delta_challenger_minus_canonical",
+              "value": -0.000884
+            },
+            {
+              "path": "improvement.leagues_where_challenger_improves_o2_5_brier",
+              "value": 1.0
+            },
+            {
+              "path": "improvement.lines.1.5.brier_delta_challenger_minus_canonical",
+              "value": 0.000453
+            },
+            {
+              "path": "improvement.lines.1.5.log_loss_delta_challenger_minus_canonical",
+              "value": 0.001875
+            },
+            {
+              "path": "improvement.lines.2.5.brier_delta_challenger_minus_canonical",
+              "value": -0.000882
+            },
+            {
+              "path": "improvement.lines.2.5.log_loss_delta_challenger_minus_canonical",
+              "value": -0.002017
+            }
+          ],
+          "model": null,
+          "sample_evidence": [
+            {
+              "path": "canonical.lines.1.5.n",
+              "value": 62.0
+            },
+            {
+              "path": "canonical.lines.2.5.n",
+              "value": 62.0
+            },
+            {
+              "path": "canonical.lines.3.5.n",
+              "value": 62.0
+            },
+            {
+              "path": "canonical.n",
+              "value": 62.0
+            },
+            {
+              "path": "challenger.lines.1.5.n",
+              "value": 62.0
+            },
+            {
+              "path": "challenger.lines.2.5.n",
+              "value": 62.0
+            },
+            {
+              "path": "challenger.lines.3.5.n",
+              "value": 62.0
+            },
+            {
+              "path": "challenger.n",
+              "value": 62.0
+            },
+            {
+              "path": "evaluated_fixtures",
+              "value": 62.0
+            },
+            {
+              "path": "improvement.lines.1.5.n",
+              "value": 62.0
+            },
+            {
+              "path": "improvement.lines.2.5.n",
+              "value": 62.0
+            },
+            {
+              "path": "improvement.lines.3.5.n",
+              "value": 62.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_FT_GOALS_SHADOW_VALIDATION"
+        }
+      ],
+      "reports_expected": [
+        "ft_totals_validation.json",
+        "ft_goals_shadow_validation.json"
+      ],
+      "reports_found": [
+        "ft_totals_validation.json",
+        "ft_goals_shadow_validation.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "TEAM_TOTALS",
+      "max_detected_sample": 2460.0,
+      "reports": [
+        {
+          "file": "team_totals_validation.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.actionable_review_sample_gate_met",
+              "value": true
+            },
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.market_comparison_sample_gate_met",
+              "value": true
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 2,
+          "max_detected_sample": 2460.0,
+          "metric_evidence": [
+            {
+              "path": "by_line.0.5.mean_brier",
+              "value": 0.196443
+            },
+            {
+              "path": "by_line.0.5.mean_log_loss",
+              "value": 0.575968
+            },
+            {
+              "path": "by_line.1.5.mean_brier",
+              "value": 0.255348
+            },
+            {
+              "path": "by_line.1.5.mean_log_loss",
+              "value": 0.738889
+            },
+            {
+              "path": "by_line.2.5.mean_brier",
+              "value": 0.142694
+            },
+            {
+              "path": "by_line.2.5.mean_log_loss",
+              "value": 0.504719
+            },
+            {
+              "path": "by_role_line_selection.AWAY:0.5:OVER.mean_brier",
+              "value": 0.216014
+            },
+            {
+              "path": "by_role_line_selection.AWAY:0.5:OVER.mean_log_loss",
+              "value": 0.621643
+            },
+            {
+              "path": "by_role_line_selection.AWAY:0.5:UNDER.mean_brier",
+              "value": 0.216014
+            },
+            {
+              "path": "by_role_line_selection.AWAY:0.5:UNDER.mean_log_loss",
+              "value": 0.621643
+            },
+            {
+              "path": "by_role_line_selection.AWAY:1.5:OVER.mean_brier",
+              "value": 0.249414
+            },
+            {
+              "path": "by_role_line_selection.AWAY:1.5:OVER.mean_log_loss",
+              "value": 0.722243
+            },
+            {
+              "path": "by_role_line_selection.AWAY:1.5:UNDER.mean_brier",
+              "value": 0.249414
+            },
+            {
+              "path": "by_role_line_selection.AWAY:1.5:UNDER.mean_log_loss",
+              "value": 0.722243
+            },
+            {
+              "path": "by_role_line_selection.AWAY:2.5:OVER.mean_brier",
+              "value": 0.117499
+            },
+            {
+              "path": "by_role_line_selection.AWAY:2.5:OVER.mean_log_loss",
+              "value": 0.44212
+            },
+            {
+              "path": "by_role_line_selection.AWAY:2.5:UNDER.mean_brier",
+              "value": 0.117499
+            },
+            {
+              "path": "by_role_line_selection.AWAY:2.5:UNDER.mean_log_loss",
+              "value": 0.44212
+            },
+            {
+              "path": "by_role_line_selection.HOME:0.5:OVER.mean_brier",
+              "value": 0.176872
+            },
+            {
+              "path": "by_role_line_selection.HOME:0.5:OVER.mean_log_loss",
+              "value": 0.530292
+            }
+          ],
+          "model": "CANONICAL_TEAM_LAMBDA_POISSON_DERIVATION_v0.1",
+          "sample_evidence": [
+            {
+              "path": "by_line.0.5.n",
+              "value": 820.0
+            },
+            {
+              "path": "by_line.1.5.n",
+              "value": 820.0
+            },
+            {
+              "path": "by_line.2.5.n",
+              "value": 820.0
+            },
+            {
+              "path": "by_role_line_selection.AWAY:0.5:OVER.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_role_line_selection.AWAY:0.5:UNDER.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_role_line_selection.AWAY:1.5:OVER.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_role_line_selection.AWAY:1.5:UNDER.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_role_line_selection.AWAY:2.5:OVER.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_role_line_selection.AWAY:2.5:UNDER.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_role_line_selection.HOME:0.5:OVER.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_role_line_selection.HOME:0.5:UNDER.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_role_line_selection.HOME:1.5:OVER.n",
+              "value": 205.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_TEAM_TOTALS_VALIDATION"
+        }
+      ],
+      "reports_expected": [
+        "team_totals_validation.json"
+      ],
+      "reports_found": [
+        "team_totals_validation.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "CORRECT_SCORE",
+      "max_detected_sample": 205.0,
+      "reports": [
+        {
+          "file": "correct_score_validation.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.actionable_review_sample_gate_met",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.market_comparison_sample_gate_met",
+              "value": false
+            }
+          ],
+          "gate_false_count": 3,
+          "gate_true_count": 0,
+          "max_detected_sample": 205.0,
+          "metric_evidence": [
+            {
+              "path": "by_league.2. Division - Group 2.mean_multiclass_brier",
+              "value": 0.913638
+            },
+            {
+              "path": "by_league.2. Division - Group 2.mean_negative_log_likelihood",
+              "value": 2.640139
+            },
+            {
+              "path": "by_league.3. Liga.mean_multiclass_brier",
+              "value": 0.939308
+            },
+            {
+              "path": "by_league.3. Liga.mean_negative_log_likelihood",
+              "value": 2.843421
+            },
+            {
+              "path": "by_league.AFC Champions League Two.mean_multiclass_brier",
+              "value": 1.26623
+            },
+            {
+              "path": "by_league.AFC Champions League Two.mean_negative_log_likelihood",
+              "value": 7.575913
+            },
+            {
+              "path": "by_league.Allsvenskan.mean_multiclass_brier",
+              "value": 0.891433
+            },
+            {
+              "path": "by_league.Allsvenskan.mean_negative_log_likelihood",
+              "value": 2.483813
+            },
+            {
+              "path": "by_league.Asian Games.mean_multiclass_brier",
+              "value": 1.141356
+            },
+            {
+              "path": "by_league.Asian Games.mean_negative_log_likelihood",
+              "value": 2.443108
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.mean_multiclass_brier",
+              "value": 0.955221
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.mean_negative_log_likelihood",
+              "value": 2.64359
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.mean_multiclass_brier",
+              "value": 1.022054
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.mean_negative_log_likelihood",
+              "value": 3.635936
+            },
+            {
+              "path": "by_league.Canadian Championship.mean_multiclass_brier",
+              "value": 0.917186
+            },
+            {
+              "path": "by_league.Canadian Championship.mean_negative_log_likelihood",
+              "value": 2.800011
+            },
+            {
+              "path": "by_league.Canadian Premier League.mean_multiclass_brier",
+              "value": 0.911182
+            },
+            {
+              "path": "by_league.Canadian Premier League.mean_negative_log_likelihood",
+              "value": 2.709159
+            },
+            {
+              "path": "by_league.Challenger Pro League.mean_multiclass_brier",
+              "value": 0.879145
+            },
+            {
+              "path": "by_league.Challenger Pro League.mean_negative_log_likelihood",
+              "value": 2.384193
+            }
+          ],
+          "model": "CANONICAL_HOME_AWAY_LAMBDA_INDEPENDENT_POISSON_EXACT_SCORE_v0.1",
+          "sample_evidence": [
+            {
+              "path": "by_league.2. Division - Group 2.n",
+              "value": 1.0
+            },
+            {
+              "path": "by_league.3. Liga.n",
+              "value": 7.0
+            },
+            {
+              "path": "by_league.AFC Champions League Two.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Allsvenskan.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Asian Games.n",
+              "value": 1.0
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.n",
+              "value": 4.0
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Canadian Championship.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Canadian Premier League.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Challenger Pro League.n",
+              "value": 1.0
+            },
+            {
+              "path": "by_league.Championship.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Copa Ecuador.n",
+              "value": 1.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_CORRECT_SCORE_VALIDATION"
+        }
+      ],
+      "reports_expected": [
+        "correct_score_validation.json"
+      ],
+      "reports_found": [
+        "correct_score_validation.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "BTTS",
+      "max_detected_sample": 205.0,
+      "reports": [
+        {
+          "file": "btts_validation.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.actionable_review_sample_gate_met",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.market_comparison_sample_gate_met",
+              "value": true
+            }
+          ],
+          "gate_false_count": 2,
+          "gate_true_count": 1,
+          "max_detected_sample": 205.0,
+          "metric_evidence": [
+            {
+              "path": "by_data_tier.A.brier",
+              "value": 0.299423
+            },
+            {
+              "path": "by_data_tier.A.log_loss",
+              "value": 0.813746
+            },
+            {
+              "path": "by_data_tier.B.brier",
+              "value": 0.281237
+            },
+            {
+              "path": "by_data_tier.B.log_loss",
+              "value": 0.788104
+            },
+            {
+              "path": "by_league.2. Division - Group 2.brier",
+              "value": 0.385059
+            },
+            {
+              "path": "by_league.2. Division - Group 2.log_loss",
+              "value": 0.968982
+            },
+            {
+              "path": "by_league.3. Liga.brier",
+              "value": 0.201592
+            },
+            {
+              "path": "by_league.3. Liga.log_loss",
+              "value": 0.591326
+            },
+            {
+              "path": "by_league.AFC Champions League Two.brier",
+              "value": 0.411244
+            },
+            {
+              "path": "by_league.AFC Champions League Two.log_loss",
+              "value": 1.20338
+            },
+            {
+              "path": "by_league.Allsvenskan.brier",
+              "value": 0.354467
+            },
+            {
+              "path": "by_league.Allsvenskan.log_loss",
+              "value": 0.904786
+            },
+            {
+              "path": "by_league.Asian Games.brier",
+              "value": 0.00404
+            },
+            {
+              "path": "by_league.Asian Games.log_loss",
+              "value": 0.06567
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.brier",
+              "value": 0.347762
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.log_loss",
+              "value": 0.921281
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.brier",
+              "value": 0.27124
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.log_loss",
+              "value": 0.736122
+            },
+            {
+              "path": "by_league.Canadian Championship.brier",
+              "value": 0.372017
+            },
+            {
+              "path": "by_league.Canadian Championship.log_loss",
+              "value": 0.967965
+            }
+          ],
+          "model": "CANONICAL_SCORE_MATRIX_BTTS_v0.1",
+          "sample_evidence": [
+            {
+              "path": "by_data_tier.A.n",
+              "value": 19.0
+            },
+            {
+              "path": "by_data_tier.B.n",
+              "value": 186.0
+            },
+            {
+              "path": "by_league.2. Division - Group 2.n",
+              "value": 1.0
+            },
+            {
+              "path": "by_league.3. Liga.n",
+              "value": 7.0
+            },
+            {
+              "path": "by_league.AFC Champions League Two.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Allsvenskan.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Asian Games.n",
+              "value": 1.0
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.n",
+              "value": 4.0
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Canadian Championship.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Canadian Premier League.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Challenger Pro League.n",
+              "value": 1.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_BTTS_VALIDATION"
+        }
+      ],
+      "reports_expected": [
+        "btts_validation.json"
+      ],
+      "reports_found": [
+        "btts_validation.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "1X2",
+      "max_detected_sample": 152.0,
+      "reports": [
+        {
+          "file": "one_x_two_calibration.json",
+          "gate_evidence": [
+            {
+              "path": "activation_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": 152.0,
+          "metric_evidence": [
+            {
+              "path": "multiclass_brier",
+              "value": 0.6274
+            },
+            {
+              "path": "multiclass_log_loss",
+              "value": 1.0495
+            }
+          ],
+          "model": null,
+          "sample_evidence": [
+            {
+              "path": "accuracy_by_latest_stage.CLOSE.n",
+              "value": 6.0
+            },
+            {
+              "path": "accuracy_by_latest_stage.T-10.n",
+              "value": 152.0
+            },
+            {
+              "path": "accuracy_by_latest_stage.T-20.n",
+              "value": 18.0
+            },
+            {
+              "path": "accuracy_by_latest_stage.T-40.n",
+              "value": 16.0
+            },
+            {
+              "path": "accuracy_by_latest_stage.T-60.n",
+              "value": 4.0
+            },
+            {
+              "path": "accuracy_by_latest_stage.T-90.n",
+              "value": 9.0
+            },
+            {
+              "path": "accuracy_by_max_probability.40-49%.n",
+              "value": 81.0
+            },
+            {
+              "path": "accuracy_by_max_probability.50-59%.n",
+              "value": 56.0
+            },
+            {
+              "path": "accuracy_by_max_probability.<40%.n",
+              "value": 31.0
+            },
+            {
+              "path": "accuracy_by_max_probability.>=60%.n",
+              "value": 37.0
+            },
+            {
+              "path": "calibration_by_outcome.A.00-10%.n",
+              "value": 5.0
+            },
+            {
+              "path": "calibration_by_outcome.A.10-20%.n",
+              "value": 36.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_NOT_ACTIONABLE"
+        },
+        {
+          "file": "one_x_two_model_selection.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [
+            {
+              "path": "canonical.multiclass_brier",
+              "value": 0.6274
+            },
+            {
+              "path": "canonical.multiclass_log_loss",
+              "value": 1.0495
+            },
+            {
+              "path": "challengers[1].baseline_brier",
+              "value": 0.6263
+            },
+            {
+              "path": "challengers[1].baseline_log_loss",
+              "value": 1.0493
+            },
+            {
+              "path": "challengers[1].brier_delta",
+              "value": -0.0009
+            },
+            {
+              "path": "challengers[1].challenger_brier",
+              "value": 0.6254
+            },
+            {
+              "path": "challengers[1].challenger_log_loss",
+              "value": 1.0475
+            },
+            {
+              "path": "challengers[1].log_loss_delta",
+              "value": -0.0018
+            },
+            {
+              "path": "challengers[2].baseline_brier",
+              "value": 0.6263
+            },
+            {
+              "path": "challengers[2].baseline_log_loss",
+              "value": 1.0493
+            },
+            {
+              "path": "challengers[2].brier_delta",
+              "value": -0.0029
+            },
+            {
+              "path": "challengers[2].challenger_brier",
+              "value": 0.6234
+            },
+            {
+              "path": "challengers[2].challenger_log_loss",
+              "value": 1.0461
+            },
+            {
+              "path": "challengers[2].log_loss_delta",
+              "value": -0.0032
+            }
+          ],
+          "model": null,
+          "sample_evidence": [],
+          "status": "RESEARCH_ONLY_MODEL_SELECTION"
+        }
+      ],
+      "reports_expected": [
+        "one_x_two_calibration.json",
+        "one_x_two_model_selection.json"
+      ],
+      "reports_found": [
+        "one_x_two_calibration.json",
+        "one_x_two_model_selection.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "DOUBLE_CHANCE",
+      "max_detected_sample": 615.0,
+      "reports": [
+        {
+          "file": "double_chance_validation.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.actionable_review_sample_gate_met",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.market_comparison_sample_gate_met",
+              "value": true
+            }
+          ],
+          "gate_false_count": 2,
+          "gate_true_count": 1,
+          "max_detected_sample": 615.0,
+          "metric_evidence": [
+            {
+              "path": "by_league.2. Division - Group 2.brier",
+              "value": 0.125724
+            },
+            {
+              "path": "by_league.2. Division - Group 2.log_loss",
+              "value": 0.423934
+            },
+            {
+              "path": "by_league.3. Liga.brier",
+              "value": 0.221636
+            },
+            {
+              "path": "by_league.3. Liga.log_loss",
+              "value": 0.641716
+            },
+            {
+              "path": "by_league.AFC Champions League Two.brier",
+              "value": 0.376262
+            },
+            {
+              "path": "by_league.AFC Champions League Two.log_loss",
+              "value": 1.033196
+            },
+            {
+              "path": "by_league.Allsvenskan.brier",
+              "value": 0.095545
+            },
+            {
+              "path": "by_league.Allsvenskan.log_loss",
+              "value": 0.355014
+            },
+            {
+              "path": "by_league.Asian Games.brier",
+              "value": 0.205754
+            },
+            {
+              "path": "by_league.Asian Games.log_loss",
+              "value": 0.564359
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.brier",
+              "value": 0.171107
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.log_loss",
+              "value": 0.524858
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.brier",
+              "value": 0.151268
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.log_loss",
+              "value": 0.473581
+            },
+            {
+              "path": "by_league.Canadian Championship.brier",
+              "value": 0.086264
+            },
+            {
+              "path": "by_league.Canadian Championship.log_loss",
+              "value": 0.333726
+            },
+            {
+              "path": "by_league.Canadian Premier League.brier",
+              "value": 0.151687
+            },
+            {
+              "path": "by_league.Canadian Premier League.log_loss",
+              "value": 0.475921
+            },
+            {
+              "path": "by_league.Challenger Pro League.brier",
+              "value": 0.1511
+            },
+            {
+              "path": "by_league.Challenger Pro League.log_loss",
+              "value": 0.479605
+            }
+          ],
+          "model": "CANONICAL_1X2_DERIVED_DOUBLE_CHANCE_v0.1",
+          "sample_evidence": [
+            {
+              "path": "by_league.2. Division - Group 2.n",
+              "value": 3.0
+            },
+            {
+              "path": "by_league.3. Liga.n",
+              "value": 21.0
+            },
+            {
+              "path": "by_league.AFC Champions League Two.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.Allsvenskan.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.Asian Games.n",
+              "value": 3.0
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.n",
+              "value": 12.0
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.Canadian Championship.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.Canadian Premier League.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.Challenger Pro League.n",
+              "value": 3.0
+            },
+            {
+              "path": "by_league.Championship.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.Copa Ecuador.n",
+              "value": 3.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_DOUBLE_CHANCE_VALIDATION"
+        }
+      ],
+      "reports_expected": [
+        "double_chance_validation.json"
+      ],
+      "reports_found": [
+        "double_chance_validation.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "DNB",
+      "max_detected_sample": 324.0,
+      "reports": [
+        {
+          "file": "dnb_validation.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.actionable_review_sample_gate_met",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.market_comparison_sample_gate_met",
+              "value": false
+            }
+          ],
+          "gate_false_count": 3,
+          "gate_true_count": 0,
+          "max_detected_sample": 324.0,
+          "metric_evidence": [
+            {
+              "path": "by_league.2. Division - Group 2.brier",
+              "value": 0.125738
+            },
+            {
+              "path": "by_league.2. Division - Group 2.log_loss",
+              "value": 0.437878
+            },
+            {
+              "path": "by_league.3. Liga.brier",
+              "value": 0.266205
+            },
+            {
+              "path": "by_league.3. Liga.log_loss",
+              "value": 0.742494
+            },
+            {
+              "path": "by_league.AFC Champions League Two.brier",
+              "value": 0.395282
+            },
+            {
+              "path": "by_league.AFC Champions League Two.log_loss",
+              "value": 1.001428
+            },
+            {
+              "path": "by_league.Allsvenskan.brier",
+              "value": 0.080928
+            },
+            {
+              "path": "by_league.Allsvenskan.log_loss",
+              "value": 0.332066
+            },
+            {
+              "path": "by_league.Asian Games.brier",
+              "value": 0.026282
+            },
+            {
+              "path": "by_league.Asian Games.log_loss",
+              "value": 0.176876
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.brier",
+              "value": 0.173534
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.log_loss",
+              "value": 0.521683
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.brier",
+              "value": 0.180225
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.log_loss",
+              "value": 0.524143
+            },
+            {
+              "path": "by_league.Canadian Championship.brier",
+              "value": 0.072298
+            },
+            {
+              "path": "by_league.Canadian Championship.log_loss",
+              "value": 0.313182
+            },
+            {
+              "path": "by_league.Canadian Premier League.brier",
+              "value": 0.180064
+            },
+            {
+              "path": "by_league.Canadian Premier League.log_loss",
+              "value": 0.538306
+            },
+            {
+              "path": "by_league.Challenger Pro League.brier",
+              "value": 0.160768
+            },
+            {
+              "path": "by_league.Challenger Pro League.log_loss",
+              "value": 0.512425
+            }
+          ],
+          "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
+          "sample_evidence": [
+            {
+              "path": "by_league.2. Division - Group 2.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.3. Liga.n",
+              "value": 10.0
+            },
+            {
+              "path": "by_league.AFC Champions League Two.n",
+              "value": 4.0
+            },
+            {
+              "path": "by_league.Allsvenskan.n",
+              "value": 4.0
+            },
+            {
+              "path": "by_league.Asian Games.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.n",
+              "value": 8.0
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.n",
+              "value": 4.0
+            },
+            {
+              "path": "by_league.Canadian Championship.n",
+              "value": 4.0
+            },
+            {
+              "path": "by_league.Canadian Premier League.n",
+              "value": 4.0
+            },
+            {
+              "path": "by_league.Challenger Pro League.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Championship.n",
+              "value": 2.0
+            },
+            {
+              "path": "by_league.Copa Ecuador.n",
+              "value": 2.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_DNB_VALIDATION"
+        }
+      ],
+      "reports_expected": [
+        "dnb_validation.json"
+      ],
+      "reports_found": [
+        "dnb_validation.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "ASIAN_HANDICAP",
+      "max_detected_sample": 2255.0,
+      "reports": [
+        {
+          "file": "asian_handicap_validation.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": 2255.0,
+          "metric_evidence": [
+            {
+              "path": "by_home_handicap.-0.25.mean_settlement_brier_3state",
+              "value": 0.464156
+            },
+            {
+              "path": "by_home_handicap.-0.5.mean_settlement_brier_3state",
+              "value": 0.481004
+            },
+            {
+              "path": "by_home_handicap.-0.75.mean_settlement_brier_3state",
+              "value": 0.446898
+            },
+            {
+              "path": "by_home_handicap.-1.0.mean_settlement_brier_3state",
+              "value": 0.587282
+            },
+            {
+              "path": "by_home_handicap.-1.5.mean_settlement_brier_3state",
+              "value": 0.344583
+            },
+            {
+              "path": "by_home_handicap.0.0.mean_settlement_brier_3state",
+              "value": 0.627394
+            },
+            {
+              "path": "by_home_handicap.0.25.mean_settlement_brier_3state",
+              "value": 0.43046
+            },
+            {
+              "path": "by_home_handicap.0.5.mean_settlement_brier_3state",
+              "value": 0.413612
+            },
+            {
+              "path": "by_home_handicap.0.75.mean_settlement_brier_3state",
+              "value": 0.376701
+            },
+            {
+              "path": "by_home_handicap.1.0.mean_settlement_brier_3state",
+              "value": 0.481285
+            },
+            {
+              "path": "by_home_handicap.1.5.mean_settlement_brier_3state",
+              "value": 0.26597
+            },
+            {
+              "path": "by_league.2. Division - Group 2.mean_settlement_brier_3state",
+              "value": 0.402961
+            },
+            {
+              "path": "by_league.3. Liga.mean_settlement_brier_3state",
+              "value": 0.455558
+            },
+            {
+              "path": "by_league.AFC Champions League Two.mean_settlement_brier_3state",
+              "value": 0.633117
+            },
+            {
+              "path": "by_league.Allsvenskan.mean_settlement_brier_3state",
+              "value": 0.317221
+            },
+            {
+              "path": "by_league.Asian Games.mean_settlement_brier_3state",
+              "value": 0.526326
+            },
+            {
+              "path": "by_league.CONCACAF Caribbean Club Championship.mean_settlement_brier_3state",
+              "value": 0.39242
+            },
+            {
+              "path": "by_league.CONCACAF Central American Cup.mean_settlement_brier_3state",
+              "value": 0.46512
+            },
+            {
+              "path": "by_league.Canadian Championship.mean_settlement_brier_3state",
+              "value": 0.255833
+            },
+            {
+              "path": "by_league.Canadian Premier League.mean_settlement_brier_3state",
+              "value": 0.446917
+            }
+          ],
+          "model": "CANONICAL_SCORE_MARGIN_ASIAN_HANDICAP_v0.1",
+          "sample_evidence": [
+            {
+              "path": "by_home_handicap.-0.25.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.-0.5.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.-0.75.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.-1.0.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.-1.5.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.0.0.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.0.25.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.0.5.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.0.75.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.1.0.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_home_handicap.1.5.n",
+              "value": 205.0
+            },
+            {
+              "path": "by_league.2. Division - Group 2.n",
+              "value": 11.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_ASIAN_HANDICAP_VALIDATION"
+        }
+      ],
+      "reports_expected": [
+        "asian_handicap_validation.json"
+      ],
+      "reports_found": [
+        "asian_handicap_validation.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "1H_GOALS",
+      "max_detected_sample": 220.0,
+      "reports": [
+        {
+          "file": "one_h_goals_model.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [
+            {
+              "path": "metrics.over_1_5_brier",
+              "value": 0.2358
+            },
+            {
+              "path": "metrics.over_1_5_log_loss",
+              "value": 0.6644
+            }
+          ],
+          "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
+          "sample_evidence": [],
+          "status": "RESEARCH_ONLY_NOT_ACTIONABLE"
+        },
+        {
+          "file": "one_h_goals_calibration.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": 220.0,
+          "metric_evidence": [
+            {
+              "path": "baseline_same_sample.brier",
+              "value": 0.2305
+            },
+            {
+              "path": "baseline_same_sample.log_loss",
+              "value": 0.6536
+            },
+            {
+              "path": "challenger.brier",
+              "value": 0.2294
+            },
+            {
+              "path": "challenger.log_loss",
+              "value": 0.6511
+            },
+            {
+              "path": "improvement.brier_delta",
+              "value": -0.0011
+            },
+            {
+              "path": "improvement.log_loss_delta",
+              "value": -0.0025
+            }
+          ],
+          "model": null,
+          "sample_evidence": [
+            {
+              "path": "baseline_same_sample.n",
+              "value": 220.0
+            },
+            {
+              "path": "challenger.n",
+              "value": 220.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_NOT_ACTIONABLE"
+        }
+      ],
+      "reports_expected": [
+        "one_h_goals_model.json",
+        "one_h_goals_calibration.json"
+      ],
+      "reports_found": [
+        "one_h_goals_model.json",
+        "one_h_goals_calibration.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "2H_GOALS_PREGAME",
+      "max_detected_sample": null,
+      "reports": [
+        {
+          "file": "two_h_goals_model.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [
+            {
+              "path": "metrics.over_1_5_brier",
+              "value": 0.2527
+            },
+            {
+              "path": "metrics.over_1_5_log_loss",
+              "value": 0.6985
+            }
+          ],
+          "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
+          "sample_evidence": [],
+          "status": "RESEARCH_ONLY_NOT_ACTIONABLE"
+        }
+      ],
+      "reports_expected": [
+        "two_h_goals_model.json"
+      ],
+      "reports_found": [
+        "two_h_goals_model.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "2H_HALFTIME",
+      "max_detected_sample": 95.0,
+      "reports": [
+        {
+          "file": "two_h_halftime_conditioned.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": 95.0,
+          "metric_evidence": [
+            {
+              "path": "baseline.brier_o1_5",
+              "value": 0.252843
+            },
+            {
+              "path": "baseline.log_loss_o1_5",
+              "value": 0.698797
+            },
+            {
+              "path": "baseline.mae_2h_lambda",
+              "value": 0.974765
+            },
+            {
+              "path": "challenger.brier_o1_5",
+              "value": 0.254907
+            },
+            {
+              "path": "challenger.log_loss_o1_5",
+              "value": 0.702994
+            },
+            {
+              "path": "challenger.mae_2h_lambda",
+              "value": 0.97911
+            },
+            {
+              "path": "improvement.brier_delta_baseline_minus_conditioned",
+              "value": -0.002064
+            },
+            {
+              "path": "improvement.log_loss_delta_baseline_minus_conditioned",
+              "value": -0.004197
+            },
+            {
+              "path": "improvement.mae_delta_baseline_minus_conditioned",
+              "value": -0.004345
+            },
+            {
+              "path": "rows[0].baseline_brier",
+              "value": 0.23129190402863983
+            },
+            {
+              "path": "rows[0].baseline_log_loss",
+              "value": 0.6557130032782653
+            },
+            {
+              "path": "rows[0].conditioned_brier",
+              "value": 0.16654557238130052
+            },
+            {
+              "path": "rows[0].conditioned_log_loss",
+              "value": 0.5244174994174874
+            },
+            {
+              "path": "rows[1].baseline_brier",
+              "value": 0.22979842754298754
+            },
+            {
+              "path": "rows[1].baseline_log_loss",
+              "value": 0.6527213332043392
+            },
+            {
+              "path": "rows[1].conditioned_brier",
+              "value": 0.30635737983437344
+            },
+            {
+              "path": "rows[1].conditioned_log_loss",
+              "value": 0.8063060255351158
+            },
+            {
+              "path": "rows[2].baseline_brier",
+              "value": 0.22837000367382213
+            },
+            {
+              "path": "rows[2].baseline_log_loss",
+              "value": 0.6498592537908928
+            },
+            {
+              "path": "rows[2].conditioned_brier",
+              "value": 0.29967071078530955
+            }
+          ],
+          "model": "PREGAME_2H_BASELINE_X_HALFTIME_STATE_MULTIPLIER_v0.1",
+          "sample_evidence": [
+            {
+              "path": "full_history_state_registry.buckets.AWAY_LEAD|HT1.n",
+              "value": 53.0
+            },
+            {
+              "path": "full_history_state_registry.buckets.AWAY_LEAD|HT2_PLUS.n",
+              "value": 44.0
+            },
+            {
+              "path": "full_history_state_registry.buckets.DRAW|HT0.n",
+              "value": 95.0
+            },
+            {
+              "path": "full_history_state_registry.buckets.DRAW|HT2_PLUS.n",
+              "value": 42.0
+            },
+            {
+              "path": "full_history_state_registry.buckets.HOME_LEAD|HT1.n",
+              "value": 71.0
+            },
+            {
+              "path": "full_history_state_registry.buckets.HOME_LEAD|HT2_PLUS.n",
+              "value": 50.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_HALFTIME_CONDITIONED_2H_CHALLENGER"
+        }
+      ],
+      "reports_expected": [
+        "two_h_halftime_conditioned.json"
+      ],
+      "reports_found": [
+        "two_h_halftime_conditioned.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "CORNERS_FT",
+      "max_detected_sample": 38.0,
+      "reports": [
+        {
+          "file": "corners_baseline.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": 38.0,
+          "metric_evidence": [
+            {
+              "path": "baseline.lines.10.5.brier",
+              "value": 0.225447
+            },
+            {
+              "path": "baseline.lines.10.5.log_loss",
+              "value": 0.643672
+            },
+            {
+              "path": "baseline.lines.8.5.brier",
+              "value": 0.268172
+            },
+            {
+              "path": "baseline.lines.8.5.log_loss",
+              "value": 0.733974
+            },
+            {
+              "path": "baseline.lines.9.5.brier",
+              "value": 0.260614
+            },
+            {
+              "path": "baseline.lines.9.5.log_loss",
+              "value": 0.714589
+            },
+            {
+              "path": "baseline.mae_total_corners",
+              "value": 2.34458
+            },
+            {
+              "path": "formation_challenger.lines.10.5.brier",
+              "value": 0.227213
+            },
+            {
+              "path": "formation_challenger.lines.10.5.log_loss",
+              "value": 0.647682
+            },
+            {
+              "path": "formation_challenger.lines.8.5.brier",
+              "value": 0.267865
+            },
+            {
+              "path": "formation_challenger.lines.8.5.log_loss",
+              "value": 0.733249
+            },
+            {
+              "path": "formation_challenger.lines.9.5.brier",
+              "value": 0.261413
+            },
+            {
+              "path": "formation_challenger.lines.9.5.log_loss",
+              "value": 0.716219
+            },
+            {
+              "path": "formation_challenger.mae_total_corners",
+              "value": 2.348965
+            }
+          ],
+          "model": null,
+          "sample_evidence": [
+            {
+              "path": "baseline.n",
+              "value": 38.0
+            },
+            {
+              "path": "formation_challenger.n",
+              "value": 38.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_CORNERS_BASELINE"
+        }
+      ],
+      "reports_expected": [
+        "corners_baseline.json"
+      ],
+      "reports_found": [
+        "corners_baseline.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "TEAM_CORNERS",
+      "max_detected_sample": 228.0,
+      "reports": [
+        {
+          "file": "team_corners_validation.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.actionable_review_sample_gate_met",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            },
+            {
+              "path": "promotion_gate.market_comparison_sample_gate_met",
+              "value": true
+            }
+          ],
+          "gate_false_count": 2,
+          "gate_true_count": 1,
+          "max_detected_sample": 228.0,
+          "metric_evidence": [
+            {
+              "path": "by_league.1104.brier",
+              "value": 0.21876
+            },
+            {
+              "path": "by_league.1104.log_loss",
+              "value": 0.630595
+            },
+            {
+              "path": "by_league.172.brier",
+              "value": 0.344082
+            },
+            {
+              "path": "by_league.172.log_loss",
+              "value": 0.942861
+            },
+            {
+              "path": "by_league.207.brier",
+              "value": 0.318698
+            },
+            {
+              "path": "by_league.207.log_loss",
+              "value": 0.863299
+            },
+            {
+              "path": "by_league.233.brier",
+              "value": 0.268084
+            },
+            {
+              "path": "by_league.233.log_loss",
+              "value": 0.744317
+            },
+            {
+              "path": "by_league.236.brier",
+              "value": 0.183204
+            },
+            {
+              "path": "by_league.236.log_loss",
+              "value": 0.546271
+            },
+            {
+              "path": "by_league.254.brier",
+              "value": 0.156609
+            },
+            {
+              "path": "by_league.254.log_loss",
+              "value": 0.487692
+            },
+            {
+              "path": "by_league.286.brier",
+              "value": 0.334714
+            },
+            {
+              "path": "by_league.286.log_loss",
+              "value": 0.876545
+            },
+            {
+              "path": "by_league.288.brier",
+              "value": 0.143847
+            },
+            {
+              "path": "by_league.288.log_loss",
+              "value": 0.459993
+            },
+            {
+              "path": "by_league.327.brier",
+              "value": 0.194486
+            },
+            {
+              "path": "by_league.327.log_loss",
+              "value": 0.567667
+            },
+            {
+              "path": "by_league.344.brier",
+              "value": 0.296281
+            },
+            {
+              "path": "by_league.344.log_loss",
+              "value": 0.812502
+            }
+          ],
+          "model": null,
+          "sample_evidence": [
+            {
+              "path": "by_league.1104.n",
+              "value": 24.0
+            },
+            {
+              "path": "by_league.172.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.207.n",
+              "value": 12.0
+            },
+            {
+              "path": "by_league.233.n",
+              "value": 24.0
+            },
+            {
+              "path": "by_league.236.n",
+              "value": 24.0
+            },
+            {
+              "path": "by_league.254.n",
+              "value": 12.0
+            },
+            {
+              "path": "by_league.286.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.288.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.327.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.344.n",
+              "value": 30.0
+            },
+            {
+              "path": "by_league.41.n",
+              "value": 6.0
+            },
+            {
+              "path": "by_league.48.n",
+              "value": 48.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_TEAM_CORNERS_VALIDATION"
+        }
+      ],
+      "reports_expected": [
+        "team_corners_validation.json"
+      ],
+      "reports_found": [
+        "team_corners_validation.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "ONE_OR_MORE_PROMOTION_GATES_NOT_MET",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": true,
+      "family": "CARDS_TOTAL",
+      "max_detected_sample": 40.0,
+      "reports": [
+        {
+          "file": "cards_baseline.json",
+          "gate_evidence": [
+            {
+              "path": "promotion_gate.enabled",
+              "value": false
+            }
+          ],
+          "gate_false_count": 1,
+          "gate_true_count": 0,
+          "max_detected_sample": 40.0,
+          "metric_evidence": [
+            {
+              "path": "metrics.lines.2.5.brier",
+              "value": 0.146796
+            },
+            {
+              "path": "metrics.lines.2.5.log_loss",
+              "value": 0.469879
+            },
+            {
+              "path": "metrics.lines.3.5.brier",
+              "value": 0.234304
+            },
+            {
+              "path": "metrics.lines.3.5.log_loss",
+              "value": 0.661165
+            },
+            {
+              "path": "metrics.lines.4.5.brier",
+              "value": 0.270016
+            },
+            {
+              "path": "metrics.lines.4.5.log_loss",
+              "value": 0.734737
+            },
+            {
+              "path": "metrics.lines.5.5.brier",
+              "value": 0.206398
+            },
+            {
+              "path": "metrics.lines.5.5.log_loss",
+              "value": 0.607716
+            },
+            {
+              "path": "metrics.mae_total_yellow",
+              "value": 1.837302
+            }
+          ],
+          "model": "WALK_FORWARD_TEAM_DISCIPLINE_PLUS_OPTIONAL_REFEREE_YELLOW_CARDS_v0.1",
+          "sample_evidence": [
+            {
+              "path": "metrics.n",
+              "value": 40.0
+            }
+          ],
+          "status": "RESEARCH_ONLY_CARDS_BASELINE"
+        }
+      ],
+      "reports_expected": [
+        "cards_baseline.json"
+      ],
+      "reports_found": [
+        "cards_baseline.json"
+      ],
+      "reports_missing": [],
+      "review_status": "DATA_ACCUMULATING"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "STANDARD_CALIBRATION_METRICS_NOT_DETECTED",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": false,
+      "family": "PLAYER_SHOTS",
+      "max_detected_sample": null,
+      "reports": [
+        {
+          "file": "player_shots_model_sanity.json",
+          "gate_evidence": [],
+          "gate_false_count": 0,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [],
+          "model": null,
+          "sample_evidence": [],
+          "status": "PASS"
+        }
+      ],
+      "reports_expected": [
+        "player_shots_model_sanity.json"
+      ],
+      "reports_found": [
+        "player_shots_model_sanity.json"
+      ],
+      "reports_missing": [],
+      "review_status": "READY_FOR_MANUAL_PROMOTION_REVIEW"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "STANDARD_CALIBRATION_METRICS_NOT_DETECTED",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": false,
+      "family": "PLAYER_SOT",
+      "max_detected_sample": null,
+      "reports": [
+        {
+          "file": "player_sot_model_sanity.json",
+          "gate_evidence": [],
+          "gate_false_count": 0,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [],
+          "model": null,
+          "sample_evidence": [],
+          "status": "PASS"
+        }
+      ],
+      "reports_expected": [
+        "player_sot_model_sanity.json"
+      ],
+      "reports_found": [
+        "player_sot_model_sanity.json"
+      ],
+      "reports_missing": [],
+      "review_status": "READY_FOR_MANUAL_PROMOTION_REVIEW"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "STANDARD_CALIBRATION_METRICS_NOT_DETECTED",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": false,
+      "family": "GOALSCORER",
+      "max_detected_sample": null,
+      "reports": [
+        {
+          "file": "player_goalscorer_model_sanity.json",
+          "gate_evidence": [],
+          "gate_false_count": 0,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [],
+          "model": null,
+          "sample_evidence": [],
+          "status": "PASS"
+        }
+      ],
+      "reports_expected": [
+        "player_goalscorer_model_sanity.json"
+      ],
+      "reports_found": [
+        "player_goalscorer_model_sanity.json"
+      ],
+      "reports_missing": [],
+      "review_status": "READY_FOR_MANUAL_PROMOTION_REVIEW"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "STANDARD_CALIBRATION_METRICS_NOT_DETECTED",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": false,
+      "family": "ASSISTS",
+      "max_detected_sample": null,
+      "reports": [
+        {
+          "file": "player_assists_model_sanity.json",
+          "gate_evidence": [],
+          "gate_false_count": 0,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [],
+          "model": null,
+          "sample_evidence": [],
+          "status": "PASS"
+        }
+      ],
+      "reports_expected": [
+        "player_assists_model_sanity.json"
+      ],
+      "reports_found": [
+        "player_assists_model_sanity.json"
+      ],
+      "reports_missing": [],
+      "review_status": "READY_FOR_MANUAL_PROMOTION_REVIEW"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "STANDARD_CALIBRATION_METRICS_NOT_DETECTED",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": false,
+      "family": "GK_SAVES",
+      "max_detected_sample": null,
+      "reports": [
+        {
+          "file": "gk_saves_model_sanity.json",
+          "gate_evidence": [],
+          "gate_false_count": 0,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [],
+          "model": null,
+          "sample_evidence": [],
+          "status": "BLOCKED_INSUFFICIENT_FINALIZED_GK_DATA"
+        }
+      ],
+      "reports_expected": [
+        "gk_saves_model_sanity.json"
+      ],
+      "reports_found": [
+        "gk_saves_model_sanity.json"
+      ],
+      "reports_missing": [],
+      "review_status": "READY_FOR_MANUAL_PROMOTION_REVIEW"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "STANDARD_CALIBRATION_METRICS_NOT_DETECTED",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": false,
+      "family": "PLAYER_CARDS",
+      "max_detected_sample": null,
+      "reports": [
+        {
+          "file": "player_cards_model_sanity.json",
+          "gate_evidence": [],
+          "gate_false_count": 0,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [],
+          "model": null,
+          "sample_evidence": [],
+          "status": "PASS"
+        }
+      ],
+      "reports_expected": [
+        "player_cards_model_sanity.json"
+      ],
+      "reports_found": [
+        "player_cards_model_sanity.json"
+      ],
+      "reports_missing": [],
+      "review_status": "READY_FOR_MANUAL_PROMOTION_REVIEW"
+    },
+    {
+      "automatic_promotion_allowed": false,
+      "blockers": [
+        "STANDARD_CALIBRATION_METRICS_NOT_DETECTED",
+        "MANUAL_REVIEW_REQUIRED",
+        "NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE"
+      ],
+      "calibration_metrics_detected": false,
+      "family": "XG_XGA",
+      "max_detected_sample": null,
+      "reports": [
+        {
+          "file": "xg_registry_sanity.json",
+          "gate_evidence": [],
+          "gate_false_count": 0,
+          "gate_true_count": 0,
+          "max_detected_sample": null,
+          "metric_evidence": [],
+          "model": null,
+          "sample_evidence": [],
+          "status": "BLOCKED_ACCUMULATING_API_FOOTBALL_XG"
+        }
+      ],
+      "reports_expected": [
+        "xg_registry_sanity.json"
+      ],
+      "reports_found": [
+        "xg_registry_sanity.json"
+      ],
+      "reports_missing": [],
+      "review_status": "READY_FOR_MANUAL_PROMOTION_REVIEW"
+    }
+  ],
+  "global_blockers": [
+    "PROMOTION_REQUIRES_VERSIONED_MANUAL_DECISION",
+    "TRUE_CLV_REQUIRED_WHERE_MARKET_HISTORY_EXISTS",
+    "NO_SINGLE_GAME_OR_SMALL_SAMPLE_RECALIBRATION"
+  ],
+  "policy": "CONSOLIDATE_OOS_BRIER_LOGLOSS_CLV_ROI_AND_SAMPLE_GATES; NEVER_AUTO_PROMOTE; NEVER_AUTO_CHANGE_WEIGHTS; VERSIONED_MANUAL_REVIEW_REQUIRED",
+  "schema_version": "1.0.0",
+  "status": "STANDARDIZED_MANUAL_PROMOTION_REVIEW"
+}
