@@ -5,8 +5,9 @@ from typing import Any
 
 from mcp_gateway import galaxy_builder_v2 as v2
 from mcp_gateway import galaxy_builder_v3 as v3
+from mcp_gateway import quote_freshness as qf
 
-SCHEMA_VERSION = "0.4.1"
+SCHEMA_VERSION = "0.4.2"
 TARGET_DECIMAL = v2.TARGET_DECIMAL
 TARGET_EDGE_PP = v2.TARGET_EDGE_PP
 MIN_AVAILABILITY = v2.MIN_AVAILABILITY
@@ -33,15 +34,22 @@ def _verified_quotes(leg: dict[str, Any]) -> list[dict[str, Any]]:
         market = str(quote.get("market") or "").strip()
         selection_text = str(quote.get("selection_text") or "").strip()
         price = _num(quote.get("price"))
+        provider_update = quote.get("provider_update")
         if not bookmaker or not market or not selection_text or price is None or price <= 1:
             continue
+        if not qf.is_fresh(provider_update):
+            continue
+        age = qf.age_minutes(provider_update)
         out.append(
             {
                 "bookmaker": bookmaker,
                 "market": market,
                 "selection_text": selection_text,
                 "price": round(price, 4),
-                "provider_update": quote.get("provider_update"),
+                "provider_update": provider_update,
+                "quote_age_minutes": round(age, 2) if age is not None else None,
+                "quote_fresh": True,
+                "quote_freshness_anchor": "PROVIDER_UPDATE",
             }
         )
     return out
@@ -339,7 +347,14 @@ def _dedupe_multis(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             except (TypeError, ValueError):
                 valid = False
                 break
-            if not _verified_quotes(leg) and _num(leg.get("decimal_price")) is None:
+            verified_quotes = _verified_quotes(leg)
+            direct_price = _num(leg.get("decimal_price"))
+            direct_price_fresh = (
+                direct_price is not None
+                and direct_price > 1
+                and qf.is_fresh(leg.get("provider_update"))
+            )
+            if not verified_quotes and not direct_price_fresh:
                 valid = False
                 break
         if not valid or len(set(fixture_ids)) != len(fixture_ids):
@@ -425,6 +440,9 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
             "minimum_incremental_probability_drop_per_leg": MIN_INCREMENTAL_PROBABILITY_DROP,
             "maximum_primary_sgp_candidates_per_fixture": 1,
             "synthetic_unquoted_lines_allowed": False,
+            "quote_freshness_anchor": "PROVIDER_UPDATE",
+            "quote_freshness_limit_minutes": qf.DEFAULT_MAX_AGE_MINUTES,
+            "missing_or_stale_quote_allowed": False,
             "ft_goals_leg_source": "CANONICAL_MARKET_DECISION_LADDER",
             "ft_goals_probability_source": "P_SHRUNK_MATCHED_TO_THE_SAME_OBSERVED_BOOKMAKER_QUOTE",
             "ft_goals_score_matrix_role": "JOINT_SGP_CORRELATION_ONLY",
