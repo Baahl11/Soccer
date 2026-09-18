@@ -2,8 +2,8 @@
   "models": {
     "1H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 2588,
-      "market_quotes_persisted": 18438,
+      "market_groups_persisted": 2708,
+      "market_quotes_persisted": 19256,
       "requirements_remaining": [
         "dedicated 1H market-vs-model calibration",
         "stable OOS Brier/log-loss improvement",
@@ -13,26 +13,26 @@
       "research_model": {
         "calibration": {
           "baseline_same_sample": {
-            "accuracy_at_0_5": 0.6455,
-            "brier": 0.2285,
-            "log_loss": 0.6496,
-            "mean_predicted_probability": 0.397,
+            "accuracy_at_0_5": 0.6409,
+            "brier": 0.2294,
+            "log_loss": 0.6513,
+            "mean_predicted_probability": 0.3967,
             "n": 220,
-            "observed_rate": 0.35
+            "observed_rate": 0.3545
           },
           "challenger": {
-            "accuracy_at_0_5": 0.65,
-            "brier": 0.2265,
-            "log_loss": 0.6452,
-            "mean_predicted_probability": 0.3466,
+            "accuracy_at_0_5": 0.6455,
+            "brier": 0.2277,
+            "log_loss": 0.6475,
+            "mean_predicted_probability": 0.3451,
             "n": 220,
-            "observed_rate": 0.35
+            "observed_rate": 0.3545
           },
           "improvement": {
-            "accuracy_delta_pp": 0.45,
-            "brier_delta": -0.002,
-            "log_loss_delta": -0.0044,
-            "mean_probability_delta_pp": -5.04
+            "accuracy_delta_pp": 0.46,
+            "brier_delta": -0.0017,
+            "log_loss_delta": -0.0038,
+            "mean_probability_delta_pp": -5.16
           },
           "method": "WALK_FORWARD_SHRUNK_MULTIPLICATIVE_1H_LAMBDA_CALIBRATION",
           "promotion_gate": {
@@ -51,12 +51,12 @@
         },
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_1h_total_goals_error": 0.9998,
-          "mean_predicted_over_1_5_probability": 0.4157,
-          "observed_over_1_5_rate": 0.3711,
-          "over_1_5_accuracy_at_0_5_threshold": 0.6101,
-          "over_1_5_brier": 0.235,
-          "over_1_5_log_loss": 0.6626
+          "mean_abs_1h_total_goals_error": 0.9987,
+          "mean_predicted_over_1_5_probability": 0.4156,
+          "observed_over_1_5_rate": 0.373,
+          "over_1_5_accuracy_at_0_5_threshold": 0.6082,
+          "over_1_5_brier": 0.2354,
+          "over_1_5_log_loss": 0.6636
         },
         "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -68,14 +68,14 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 318
+        "walk_forward_evaluated": 319
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
     "2H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 1423,
-      "market_quotes_persisted": 12691,
+      "market_groups_persisted": 1472,
+      "market_quotes_persisted": 13155,
       "requirements_remaining": [
         "dedicated pregame 2H market-vs-model calibration",
         "stable OOS validation",
@@ -85,10 +85,10 @@
       "research_model": {
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_2h_total_goals_error": 0.9553,
+          "mean_abs_2h_total_goals_error": 0.9577,
           "mean_predicted_over_1_5_probability": 0.4998,
-          "observed_over_1_5_rate": 0.5063,
-          "over_1_5_accuracy_at_0_5_threshold": 0.4686,
+          "observed_over_1_5_rate": 0.5047,
+          "over_1_5_accuracy_at_0_5_threshold": 0.4671,
           "over_1_5_brier": 0.2526,
           "over_1_5_log_loss": 0.6984
         },
@@ -102,7 +102,7 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 318
+        "walk_forward_evaluated": 319
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },

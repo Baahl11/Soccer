@@ -1,14 +1,14 @@
 {
   "anti_leakage": "Every target multiplier uses only earlier finalized fixtures; target second-half outcome never enters its own state multiplier.",
   "baseline": {
-    "brier_o1_5": 0.252774,
-    "log_loss_o1_5": 0.698657,
-    "mae_2h_lambda": 0.971493
+    "brier_o1_5": 0.252797,
+    "log_loss_o1_5": 0.698703,
+    "mae_2h_lambda": 0.973958
   },
   "challenger": {
-    "brier_o1_5": 0.254459,
-    "log_loss_o1_5": 0.702095,
-    "mae_2h_lambda": 0.974631
+    "brier_o1_5": 0.254478,
+    "log_loss_o1_5": 0.702132,
+    "mae_2h_lambda": 0.977091
   },
   "conditioning_features": [
     "halftime home/away score",
@@ -18,42 +18,42 @@
   "full_history_state_registry": {
     "buckets": {
       "AWAY_LEAD|HT1": {
-        "multiplier_vs_global": 0.949529,
+        "multiplier_vs_global": 0.95146,
         "n": 52,
-        "shrunk_2h_total_rate": 1.609834
+        "shrunk_2h_total_rate": 1.608485
       },
       "AWAY_LEAD|HT2_PLUS": {
-        "multiplier_vs_global": 1.000915,
-        "n": 43,
-        "shrunk_2h_total_rate": 1.696953
+        "multiplier_vs_global": 0.987209,
+        "n": 44,
+        "shrunk_2h_total_rate": 1.66892
       },
       "DRAW|HT0": {
-        "multiplier_vs_global": 0.977401,
+        "multiplier_vs_global": 0.979706,
         "n": 94,
-        "shrunk_2h_total_rate": 1.657088
+        "shrunk_2h_total_rate": 1.656236
       },
       "DRAW|HT2_PLUS": {
-        "multiplier_vs_global": 1.072409,
+        "multiplier_vs_global": 1.074548,
         "n": 41,
-        "shrunk_2h_total_rate": 1.818165
+        "shrunk_2h_total_rate": 1.816572
       },
       "HOME_LEAD|HT1": {
-        "multiplier_vs_global": 1.054539,
+        "multiplier_vs_global": 1.05693,
         "n": 70,
-        "shrunk_2h_total_rate": 1.787867
+        "shrunk_2h_total_rate": 1.786788
       },
       "HOME_LEAD|HT2_PLUS": {
-        "multiplier_vs_global": 0.95334,
+        "multiplier_vs_global": 0.955234,
         "n": 48,
-        "shrunk_2h_total_rate": 1.616295
+        "shrunk_2h_total_rate": 1.614866
       }
     },
-    "global_2h_total_rate": 1.695402
+    "global_2h_total_rate": 1.690544
   },
   "improvement": {
-    "brier_delta_baseline_minus_conditioned": -0.001685,
-    "log_loss_delta_baseline_minus_conditioned": -0.003438,
-    "mae_delta_baseline_minus_conditioned": -0.003138
+    "brier_delta_baseline_minus_conditioned": -0.001681,
+    "log_loss_delta_baseline_minus_conditioned": -0.003429,
+    "mae_delta_baseline_minus_conditioned": -0.003133
   },
   "live_status": "OFFLINE_MODEL_BUILT; SCHEDULER_HAS_NO_DEDICATED_HT_RESEARCH_STAGE_YET",
   "model": "PREGAME_2H_BASELINE_X_HALFTIME_STATE_MULTIPLIER_v0.1",
@@ -6632,9 +6632,31 @@
       "prior_state_n": 42,
       "state_bucket": "AWAY_LEAD|HT2_PLUS",
       "state_multiplier": 0.989998
+    },
+    {
+      "actual_2h_total": 0,
+      "actual_over_1_5": 0,
+      "baseline_2h_lambda": 1.708591,
+      "baseline_abs_lambda_error": 1.7085912172119069,
+      "baseline_brier": 0.25950461294675176,
+      "baseline_log_loss": 0.7121586645637195,
+      "baseline_p_over_1_5": 0.509416,
+      "conditioned_2h_lambda": 1.710154,
+      "conditioned_abs_lambda_error": 1.7101540932244224,
+      "conditioned_brier": 0.2599974278396397,
+      "conditioned_log_loss": 0.7131446622893016,
+      "conditioned_p_over_1_5": 0.509899,
+      "fixture_id": 1619017,
+      "ht_score": "0-2",
+      "league": "Primera División",
+      "prior_global_2h_rate": 1.695402,
+      "prior_state_2h_rate_shrunk": 1.696953,
+      "prior_state_n": 43,
+      "state_bucket": "AWAY_LEAD|HT2_PLUS",
+      "state_multiplier": 1.000915
     }
   ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_HALFTIME_CONDITIONED_2H_CHALLENGER",
-  "walk_forward_evaluated": 298
+  "walk_forward_evaluated": 299
 }

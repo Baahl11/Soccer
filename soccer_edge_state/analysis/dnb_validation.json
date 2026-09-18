@@ -323,10 +323,10 @@
       "observed_win_rate": 0.5
     },
     "Primera División": {
-      "brier": 0.20175,
-      "log_loss": 0.59562,
+      "brier": 0.206435,
+      "log_loss": 0.605063,
       "mean_probability": 0.5,
-      "n": 26,
+      "n": 28,
       "observed_win_rate": 0.5
     },
     "Prva Liga": {
@@ -444,36 +444,36 @@
   },
   "by_selection": {
     "AWAY": {
-      "brier": 0.223206,
-      "log_loss": 0.642972,
-      "mean_probability": 0.452834,
-      "n": 156,
-      "observed_win_rate": 0.423077
+      "brier": 0.223487,
+      "log_loss": 0.643512,
+      "mean_probability": 0.453026,
+      "n": 157,
+      "observed_win_rate": 0.426752
     },
     "HOME": {
-      "brier": 0.223206,
-      "log_loss": 0.642972,
-      "mean_probability": 0.547166,
-      "n": 156,
-      "observed_win_rate": 0.576923
+      "brier": 0.223487,
+      "log_loss": 0.643512,
+      "mean_probability": 0.546974,
+      "n": 157,
+      "observed_win_rate": 0.573248
     }
   },
   "draw_push_fixtures": 42,
-  "evaluated_binary_rows": 312,
-  "fixtures_with_result": 198,
+  "evaluated_binary_rows": 314,
+  "fixtures_with_result": 199,
   "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
-  "non_draw_oos_fixtures": 156,
+  "non_draw_oos_fixtures": 157,
   "notes": [
     "Draw fixtures are pushes and are excluded from conditional HOME/AWAY calibration scoring.",
     "DNB fair probability is P(win | no draw), while push probability is tracked separately.",
     "This report cannot promote DNB to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
-  "observed_draw_push_rate": 0.212121,
+  "observed_draw_push_rate": 0.211055,
   "overall_non_draw": {
-    "brier": 0.223206,
-    "log_loss": 0.642972,
+    "brier": 0.223487,
+    "log_loss": 0.643512,
     "mean_probability": 0.5,
-    "n": 312,
+    "n": 314,
     "observed_win_rate": 0.5
   },
   "promotion_gate": {
@@ -3428,6 +3428,26 @@
       "league": "League Cup",
       "log_loss": 0.9062682636910228,
       "probability_win_given_no_draw": 0.595971,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.2673336129856132,
+      "fixture_id": 1619017,
+      "league": "Primera División",
+      "log_loss": 0.727827954827992,
+      "probability_win_given_no_draw": 0.517043,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.2673336129856133,
+      "fixture_id": 1619017,
+      "league": "Primera División",
+      "log_loss": 0.7278279548279922,
+      "probability_win_given_no_draw": 0.482957,
       "selection": "AWAY",
       "stage": "CLOSE"
     },

@@ -64,11 +64,11 @@
       "observed_rate": 0.333333
     },
     "344": {
-      "brier": 0.356307,
-      "log_loss": 0.955054,
-      "mean_probability": 0.550884,
-      "n": 18,
-      "observed_rate": 0.555556
+      "brier": 0.332953,
+      "log_loss": 0.897429,
+      "mean_probability": 0.546371,
+      "n": 24,
+      "observed_rate": 0.625
     },
     "41": {
       "brier": 0.266307,
@@ -101,61 +101,61 @@
   },
   "by_role_line": {
     "AWAY|3.5": {
-      "brier": 0.255771,
-      "log_loss": 0.704947,
-      "mean_probability": 0.569807,
-      "n": 36,
-      "observed_rate": 0.527778
+      "brier": 0.253799,
+      "log_loss": 0.700972,
+      "mean_probability": 0.569878,
+      "n": 37,
+      "observed_rate": 0.540541
     },
     "AWAY|4.5": {
-      "brier": 0.237391,
-      "log_loss": 0.668317,
-      "mean_probability": 0.374611,
-      "n": 36,
-      "observed_rate": 0.361111
+      "brier": 0.241462,
+      "log_loss": 0.676613,
+      "mean_probability": 0.374678,
+      "n": 37,
+      "observed_rate": 0.378378
     },
     "AWAY|5.5": {
-      "brier": 0.22381,
-      "log_loss": 0.647928,
-      "mean_probability": 0.217767,
-      "n": 36,
-      "observed_rate": 0.305556
+      "brier": 0.23422,
+      "log_loss": 0.671385,
+      "mean_probability": 0.217817,
+      "n": 37,
+      "observed_rate": 0.324324
     },
     "HOME|3.5": {
-      "brier": 0.241053,
-      "log_loss": 0.712909,
-      "mean_probability": 0.849163,
-      "n": 36,
-      "observed_rate": 0.694444
+      "brier": 0.235344,
+      "log_loss": 0.698764,
+      "mean_probability": 0.848573,
+      "n": 37,
+      "observed_rate": 0.702703
     },
     "HOME|4.5": {
-      "brier": 0.289437,
-      "log_loss": 0.783712,
-      "mean_probability": 0.716223,
-      "n": 36,
-      "observed_rate": 0.527778
+      "brier": 0.284324,
+      "log_loss": 0.772821,
+      "mean_probability": 0.715335,
+      "n": 37,
+      "observed_rate": 0.540541
     },
     "HOME|5.5": {
-      "brier": 0.281089,
-      "log_loss": 0.75648,
-      "mean_probability": 0.55675,
-      "n": 36,
-      "observed_rate": 0.333333
+      "brier": 0.280721,
+      "log_loss": 0.755712,
+      "mean_probability": 0.55568,
+      "n": 37,
+      "observed_rate": 0.324324
     }
   },
-  "evaluated_fixtures": 36,
-  "evaluated_rows": 216,
+  "evaluated_fixtures": 37,
+  "evaluated_rows": 222,
   "notes": [
     "Validation uses walk-forward home/away lambdas already produced by the FT corners baseline.",
     "Diagnostic lines do not claim sportsbook availability; live market comparison requires exact observed lines.",
     "No BET/LEAN/Galaxy promotion is permitted by this report."
   ],
   "overall": {
-    "brier": 0.254759,
-    "log_loss": 0.712382,
-    "mean_probability": 0.547387,
-    "n": 216,
-    "observed_rate": 0.458333
+    "brier": 0.254978,
+    "log_loss": 0.712711,
+    "mean_probability": 0.546993,
+    "n": 222,
+    "observed_rate": 0.468468
   },
   "promotion_gate": {
     "actionable_review_sample_gate_met": false,
@@ -2113,6 +2113,60 @@
       "league_id": 41,
       "line": 5.5,
       "p_over": 0.21487,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1619017,
+      "lambda": 5.77273,
+      "league_id": 344,
+      "line": 3.5,
+      "p_over": 0.827335,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1619017,
+      "lambda": 5.77273,
+      "league_id": 344,
+      "line": 4.5,
+      "p_over": 0.683372,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 0,
+      "fixture_id": 1619017,
+      "lambda": 5.77273,
+      "league_id": 344,
+      "line": 5.5,
+      "p_over": 0.517161,
+      "team_role": "HOME"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1619017,
+      "lambda": 4.0303,
+      "league_id": 344,
+      "line": 3.5,
+      "p_over": 0.572427,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1619017,
+      "lambda": 4.0303,
+      "league_id": 344,
+      "line": 4.5,
+      "p_over": 0.377082,
+      "team_role": "AWAY"
+    },
+    {
+      "actual_over": 1,
+      "fixture_id": 1619017,
+      "lambda": 4.0303,
+      "league_id": 344,
+      "line": 5.5,
+      "p_over": 0.219623,
       "team_role": "AWAY"
     }
   ],
