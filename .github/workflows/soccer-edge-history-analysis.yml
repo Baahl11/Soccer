@@ -103,6 +103,12 @@ jobs:
       - name: Validate player cards research distribution (data-aware sanity)
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/validate_player_cards_model.py --player-registry state/soccer_edge_state/analysis/player_trend_model_registry.json --cards-registry state/soccer_edge_state/analysis/cards_rate_registry.json --output state/soccer_edge_state/analysis/player_cards_model_sanity.json
+      - name: Build API-Football historical xG/xGA registry
+        env: {PYTHONPATH: engine}
+        run: python engine/mcp_gateway/build_xg_team_registry.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/xg_team_registry.json
+      - name: Validate API-Football historical xG/xGA registry
+        env: {PYTHONPATH: engine}
+        run: python engine/mcp_gateway/validate_xg_registry.py --registry state/soccer_edge_state/analysis/xg_team_registry.json --output state/soccer_edge_state/analysis/xg_registry_sanity.json
       - name: Evaluate explicit corners research model
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/analyze_corners_baseline.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/corners_baseline.json
