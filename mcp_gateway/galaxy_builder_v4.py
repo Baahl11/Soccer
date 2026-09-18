@@ -240,6 +240,8 @@ def _candidate_rank(row: dict[str, Any]) -> tuple[float, float, float, float]:
 
 
 def _sgp_market_backed(event: dict[str, Any]) -> list[dict[str, Any]]:
+    if event.get("stage") not in {"T-40", "T-20", "T-10"}:
+        return []
     coverage = event.get("coverage") if isinstance(event.get("coverage"), dict) else {}
     tier = event.get("tier") or coverage.get("data_tier")
     availability = _num(event.get("availability_confidence"))
