@@ -267,6 +267,22 @@ async def get_odds(fixture_id: int, bookmaker_id: int | None = None, page: int =
 
 
 @mcp.tool()
+async def get_prematch_bet_types(
+    bet_id: int | None = None,
+    search: str | None = None,
+) -> dict[str, Any]:
+    """Get the API-Football /odds/bets prematch market catalog for audit/reference."""
+    params: dict[str, Any] = {}
+    if bet_id is not None:
+        params["id"] = _positive_int(bet_id, "bet_id")
+    if search is not None:
+        value = str(search).strip()
+        if value:
+            params["search"] = value
+    return await _get("odds/bets", params)
+
+
+@mcp.tool()
 async def get_match_stats(fixture_id: int) -> dict[str, Any]:
     """Get provider-supported team match statistics for a fixture."""
     return await _get("fixtures/statistics", {"fixture": _positive_int(fixture_id, "fixture_id")})
@@ -292,7 +308,7 @@ async def health(request: Request) -> Response:
     return JSONResponse({
         "status": "ok",
         "service": "soccer-edge-api",
-        "version": "1.2.0",
+        "version": "1.3.0",
         "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
         "scheduler_endpoint": True,
         "scheduler_isolated_worker": True,
