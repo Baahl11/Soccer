@@ -99,9 +99,10 @@ jobs:
           from datetime import datetime
           from pathlib import Path
 
-          latest = json.load(open("/tmp/soccer_tick.json", encoding="utf-8"))
+          tick = json.load(open("/tmp/soccer_tick.json", encoding="utf-8"))
           state_path = Path("soccer_edge_state/pending_opportunities.json")
-          now = datetime.fromisoformat(latest["generated_at_local"])
+          latest_path = Path("soccer_edge_state/latest.json")
+          now = datetime.fromisoformat(tick["generated_at_local"])
 
           def dt(value):
               try:
@@ -119,55 +120,58 @@ jobs:
           if state_path.exists():
               try:
                   old = json.load(open(state_path, encoding="utf-8"))
-                  for row in old.get("opportunities", []) if isinstance(old, dict) else []:
+                  rows = old.get("opportunities", []) if isinstance(old, dict) else []
+                  for row in rows:
                       ko = dt(((row.get("fixture") or {}).get("kickoff")))
                       if ko and ko > now and row.get("key"):
                           previous[row["key"]] = row
               except Exception:
                   previous = {}
 
-          current = {}
-          sources = [latest]
-          latest_state_path = Path("soccer_edge_state/latest.json")
-          if latest_state_path.exists():
+          sources = [tick]
+          if latest_path.exists():
               try:
-                  persisted_latest = json.load(open(latest_state_path, encoding="utf-8"))
+                  persisted_latest = json.load(open(latest_path, encoding="utf-8"))
                   if isinstance(persisted_latest, dict):
                       sources.append(persisted_latest)
               except Exception:
                   pass
 
+          current = {}
           for source in sources:
-              source_seen_at = source.get("generated_at_local") or latest["generated_at_local"]
+              source_seen_at = source.get("generated_at_local") or tick["generated_at_local"]
               for event in source.get("events") or []:
-                      fixture = event.get("fixture") or {}
-              fixture_id = fixture.get("fixture_id")
-              kickoff = dt(fixture.get("kickoff"))
-              if not fixture_id or not kickoff or kickoff <= now:
+                  fixture = event.get("fixture") or {}
+                  fixture_id = fixture.get("fixture_id")
+                  kickoff = dt(fixture.get("kickoff"))
+                  if not fixture_id or not kickoff or kickoff <= now:
                       continue
 
-              shortlist = event.get("sporting_shortlist") or {}
-              raw = event.get("raw_projection") or {}
-              best = event.get("best_market") or {}
-              availability = num(event.get("availability_confidence"))
-              rank = num(shortlist.get("rank"))
-              two_way = num(shortlist.get("two_way_scoring_score"))
-              goals_env = num(shortlist.get("goal_environment_score"))
-              tracks = set(shortlist.get("tracks") or [])
-              over25 = num(raw.get("raw_over_2_5_prob"))
-              home = num(raw.get("raw_home_win_prob"))
-              draw = num(raw.get("raw_draw_prob"))
-              away = num(raw.get("raw_away_win_prob"))
+                  shortlist = event.get("sporting_shortlist") or {}
+                  raw = event.get("raw_projection") or {}
+                  best = event.get("best_market") or {}
+                  availability = num(event.get("availability_confidence"))
+                  rank = num(shortlist.get("rank"))
+                  two_way = num(shortlist.get("two_way_scoring_score"))
+                  goals_env = num(shortlist.get("goal_environment_score"))
+                  tracks = set(shortlist.get("tracks") or [])
+                  over25 = num(raw.get("raw_over_2_5_prob"))
+                  home = num(raw.get("raw_home_win_prob"))
+                  draw = num(raw.get("raw_draw_prob"))
+                  away = num(raw.get("raw_away_win_prob"))
 
-              strong_sport = bool(shortlist.get("shortlisted")) and (
+                  strong_sport = bool(shortlist.get("shortlisted")) and (
                       (rank is not None and rank >= 80.0)
                       or (two_way is not None and two_way >= 80.0)
                       or (goals_env is not None and goals_env >= 75.0)
                       or ("GOALS_OVER" in tracks and over25 is not None and over25 >= 0.60)
                       or ("GOALS_UNDER" in tracks and over25 is not None and (1.0 - over25) >= 0.60)
-                      or ("SIDE" in tracks and max([p for p in (home, draw, away) if p is not None] or [0.0]) >= 0.60)
-              )
-              if strong_sport:
+                      or (
+                          "SIDE" in tracks
+                          and max([p for p in (home, draw, away) if p is not None] or [0.0]) >= 0.60
+                      )
+                  )
+                  if strong_sport:
                       key = f"sport:{fixture_id}"
                       current[key] = {
                           "key": key,
@@ -184,17 +188,27 @@ jobs:
                           "notes": event.get("notes") or [],
                       }
 
-              edge = num(best.get("prob_edge_pp"))
-              tier = best.get("tier")
-              market_fresh = bool(best.get("quote_fresh")) or bool((event.get("market_provenance") or {}).get("fresh"))
-              if best and edge is not None and edge >= 3.0:
-                      key = f"market:{fixture_id}:{best.get('family')}:{best.get('selection')}:{best.get('line')}"
-                      if event.get("classification") in {"BET", "LEAN"} and market_fresh and (availability or 0.0) >= 0.85:
+                  edge = num(best.get("prob_edge_pp"))
+                  tier = best.get("tier")
+                  market_fresh = bool(best.get("quote_fresh")) or bool(
+                      (event.get("market_provenance") or {}).get("fresh")
+                  )
+                  if best and edge is not None and edge >= 3.0:
+                      key = (
+                          f"market:{fixture_id}:{best.get('family')}:"
+                          f"{best.get('selection')}:{best.get('line')}"
+                      )
+                      if (
+                          event.get("classification") in {"BET", "LEAN"}
+                          and market_fresh
+                          and (availability or 0.0) >= 0.85
+                      ):
                           signal_type = "ACTION_NOW"
                       elif tier in {"A", "S"} or edge >= 5.0:
                           signal_type = "MARKET_CHECK_NEEDED"
                       else:
                           signal_type = "WATCH_EDGE"
+
                       current[key] = {
                           "key": key,
                           "signal_type": signal_type,
@@ -221,14 +235,16 @@ jobs:
                   row.get("key") or "",
               ),
           )[:100]
+
+          payload = {
+              "schema_version": "1.0.0",
+              "generated_at_local": tick["generated_at_local"],
+              "version": tick.get("version"),
+              "opportunity_count": len(opportunities),
+              "opportunities": opportunities,
+          }
           state_path.write_text(
-              json.dumps({
-                  "schema_version": "1.0.0",
-                  "generated_at_local": latest["generated_at_local"],
-                  "version": latest.get("version"),
-                  "opportunity_count": len(opportunities),
-                  "opportunities": opportunities,
-              }, ensure_ascii=False, indent=2) + "\n",
+              json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
               encoding="utf-8",
           )
           PY
