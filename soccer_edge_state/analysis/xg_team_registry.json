@@ -1,0 +1,29 @@
+{
+  "actionable": false,
+  "block_reason": "NO_PERSISTED_VERIFIED_POSTGAME_XG_YET",
+  "data_accumulating": true,
+  "decision_weight": 0.0,
+  "fixture_count": 0,
+  "generated_at_utc": "2026-09-18T00:51:39.943995+00:00",
+  "global": {
+    "avg_team_xg": null,
+    "team_observations": 0
+  },
+  "policy": [
+    "Only API-Football expected_goals captured from finalized fixture statistics is accepted as realized xG.",
+    "Realized xG from a fixture may be used only as historical data for later fixtures.",
+    "Internal goal lambdas, goals, shots and scorelines are never relabeled as xG.",
+    "xGA equals opponent verified xG in the same finalized fixture."
+  ],
+  "profiles": {},
+  "schema_version": "1.1.0",
+  "source": {
+    "endpoint": "/fixtures/statistics",
+    "provider": "API-Football v3",
+    "same_fixture_pregame_use_allowed": false,
+    "stat_type": "expected_goals",
+    "usage": "FINALIZED_FIXTURE_HISTORY_ONLY"
+  },
+  "status": "API_FOOTBALL_XG_DATA_ACCUMULATING",
+  "team_profile_count": 0
+}
