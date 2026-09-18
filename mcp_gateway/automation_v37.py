@@ -180,7 +180,11 @@ def _extract_event_entries(
         probability = _num(leg.get("probability"))
         if probability is None or probability < MIN_LEG_PROBABILITY or probability >= 1:
             continue
-        quotes = _best_quotes(\n            v4._verified_quotes(leg),\n            now=now,\n            max_age_minutes=market_freshness_minutes,\n        )
+        quotes = _best_quotes(
+            v4._verified_quotes(leg),
+            now=now,
+            max_age_minutes=market_freshness_minutes,
+        )
         if not quotes:
             continue
         row = {
@@ -194,7 +198,11 @@ def _extract_event_entries(
             "research_only_reason": leg.get("research_only_reason"),
             "quotes": quotes,
             "market_source": provenance.get("source"),
-            "market_fresh_at_capture": True,\n            "captured_at_utc": now.isoformat(),\n            "quote_freshness_anchor": "PROVIDER_UPDATE",\n            "capture_time_refreshes_quote_age": False,\n            "freshness_limit_minutes": market_freshness_minutes,
+            "market_fresh_at_capture": True,
+            "captured_at_utc": now.isoformat(),
+            "quote_freshness_anchor": "PROVIDER_UPDATE",
+            "capture_time_refreshes_quote_age": False,
+            "freshness_limit_minutes": market_freshness_minutes,
         }
         best_edge = _leg_best_edge_pp(row)
         if best_edge is None or best_edge < MIN_COMPONENT_EDGE_PP:
