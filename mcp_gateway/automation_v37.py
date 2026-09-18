@@ -154,7 +154,7 @@ def _extract_event_entries(
 ) -> list[dict[str, Any]]:
     if event.get("event_type") != "SOCCER_REFRESH":
         return []
-    if event.get("stage") in {"POSTGAME", "CLOSE"}:
+    if event.get("stage") not in {"T-40", "T-20", "T-10"}:
         return []
 
     provenance = event.get("market_provenance") if isinstance(event.get("market_provenance"), dict) else {}
