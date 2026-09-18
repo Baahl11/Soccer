@@ -1,14 +1,14 @@
 {
   "anti_leakage": "Every target multiplier uses only earlier finalized fixtures; target second-half outcome never enters its own state multiplier.",
   "baseline": {
-    "brier_o1_5": 0.252843,
-    "log_loss_o1_5": 0.698797,
-    "mae_2h_lambda": 0.974765
+    "brier_o1_5": 0.252721,
+    "log_loss_o1_5": 0.698552,
+    "mae_2h_lambda": 0.97133
   },
   "challenger": {
-    "brier_o1_5": 0.254907,
-    "log_loss_o1_5": 0.702994,
-    "mae_2h_lambda": 0.97911
+    "brier_o1_5": 0.254783,
+    "log_loss_o1_5": 0.702744,
+    "mae_2h_lambda": 0.975653
   },
   "conditioning_features": [
     "halftime home/away score",
@@ -18,42 +18,42 @@
   "full_history_state_registry": {
     "buckets": {
       "AWAY_LEAD|HT1": {
-        "multiplier_vs_global": 0.957072,
+        "multiplier_vs_global": 0.957491,
         "n": 53,
-        "shrunk_2h_total_rate": 1.612194
+        "shrunk_2h_total_rate": 1.611911
       },
       "AWAY_LEAD|HT2_PLUS": {
-        "multiplier_vs_global": 0.989627,
+        "multiplier_vs_global": 0.990043,
         "n": 44,
-        "shrunk_2h_total_rate": 1.667033
+        "shrunk_2h_total_rate": 1.66671
       },
       "DRAW|HT0": {
-        "multiplier_vs_global": 0.979206,
+        "multiplier_vs_global": 0.9797,
         "n": 95,
-        "shrunk_2h_total_rate": 1.649479
+        "shrunk_2h_total_rate": 1.6493
       },
       "DRAW|HT2_PLUS": {
-        "multiplier_vs_global": 1.05985,
+        "multiplier_vs_global": 1.060303,
         "n": 42,
-        "shrunk_2h_total_rate": 1.785325
+        "shrunk_2h_total_rate": 1.784991
       },
       "HOME_LEAD|HT1": {
-        "multiplier_vs_global": 1.048274,
-        "n": 71,
-        "shrunk_2h_total_rate": 1.765826
+        "multiplier_vs_global": 1.04539,
+        "n": 73,
+        "shrunk_2h_total_rate": 1.759887
       },
       "HOME_LEAD|HT2_PLUS": {
-        "multiplier_vs_global": 0.972647,
+        "multiplier_vs_global": 0.973069,
         "n": 50,
-        "shrunk_2h_total_rate": 1.638431
+        "shrunk_2h_total_rate": 1.638135
       }
     },
-    "global_2h_total_rate": 1.684507
+    "global_2h_total_rate": 1.683473
   },
   "improvement": {
-    "brier_delta_baseline_minus_conditioned": -0.002064,
-    "log_loss_delta_baseline_minus_conditioned": -0.004197,
-    "mae_delta_baseline_minus_conditioned": -0.004345
+    "brier_delta_baseline_minus_conditioned": -0.002062,
+    "log_loss_delta_baseline_minus_conditioned": -0.004192,
+    "mae_delta_baseline_minus_conditioned": -0.004323
   },
   "live_status": "OFFLINE_MODEL_BUILT; SCHEDULER_HAS_NO_DEDICATED_HT_RESEARCH_STAGE_YET",
   "model": "PREGAME_2H_BASELINE_X_HALFTIME_STATE_MULTIPLIER_v0.1",
@@ -6786,9 +6786,53 @@
       "prior_state_n": 49,
       "state_bucket": "HOME_LEAD|HT2_PLUS",
       "state_multiplier": 0.969896
+    },
+    {
+      "actual_2h_total": 1,
+      "actual_over_1_5": 0,
+      "baseline_2h_lambda": 1.651911,
+      "baseline_abs_lambda_error": 0.6519114688128778,
+      "baseline_brier": 0.24174119379110465,
+      "baseline_log_loss": 0.6766280467914655,
+      "baseline_p_over_1_5": 0.491672,
+      "conditioned_2h_lambda": 1.731657,
+      "conditioned_abs_lambda_error": 0.7316566161643321,
+      "conditioned_brier": 0.2667921870010966,
+      "conditioned_log_loss": 0.7267438816120304,
+      "conditioned_p_over_1_5": 0.516519,
+      "fixture_id": 1581422,
+      "ht_score": "1-0",
+      "league": "Liga de Expansión MX",
+      "prior_global_2h_rate": 1.684507,
+      "prior_state_2h_rate_shrunk": 1.765826,
+      "prior_state_n": 71,
+      "state_bucket": "HOME_LEAD|HT1",
+      "state_multiplier": 1.048274
+    },
+    {
+      "actual_2h_total": 2,
+      "actual_over_1_5": 1,
+      "baseline_2h_lambda": 1.756895,
+      "baseline_abs_lambda_error": 0.2431052093973438,
+      "baseline_brier": 0.22637345638013928,
+      "baseline_log_loss": 0.6458575636070099,
+      "baseline_p_over_1_5": 0.524213,
+      "conditioned_2h_lambda": 1.834684,
+      "conditioned_abs_lambda_error": 0.1653157180517959,
+      "conditioned_brier": 0.20484720332659048,
+      "conditioned_log_loss": 0.6025763770693047,
+      "conditioned_p_over_1_5": 0.5474,
+      "fixture_id": 1636691,
+      "ht_score": "1-0",
+      "league": "CONCACAF Central American Cup",
+      "prior_global_2h_rate": 1.682584,
+      "prior_state_2h_rate_shrunk": 1.757084,
+      "prior_state_n": 72,
+      "state_bucket": "HOME_LEAD|HT1",
+      "state_multiplier": 1.044277
     }
   ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_HALFTIME_CONDITIONED_2H_CHALLENGER",
-  "walk_forward_evaluated": 305
+  "walk_forward_evaluated": 307
 }

@@ -1,60 +1,60 @@
 {
   "anti_leakage": "Uses the latest persisted shadow snapshot strictly before kickoff and joins the final result later by fixture_id; no final result or market odds enter either stored sport projection.",
   "canonical": {
-    "lambda_mae": 1.423681,
+    "lambda_mae": 1.411251,
     "lines": {
       "1.5": {
-        "brier": 0.125884,
-        "log_loss": 0.416599,
-        "mean_probability": 0.758668,
-        "n": 62,
-        "observed_rate": 0.854839
+        "brier": 0.124956,
+        "log_loss": 0.414758,
+        "mean_probability": 0.758377,
+        "n": 63,
+        "observed_rate": 0.857143
       },
       "2.5": {
-        "brier": 0.239069,
-        "log_loss": 0.669724,
-        "mean_probability": 0.528245,
-        "n": 62,
-        "observed_rate": 0.5
+        "brier": 0.239112,
+        "log_loss": 0.669835,
+        "mean_probability": 0.527665,
+        "n": 63,
+        "observed_rate": 0.492063
       },
       "3.5": {
-        "brier": 0.216993,
-        "log_loss": 0.62863,
-        "mean_probability": 0.316634,
-        "n": 62,
-        "observed_rate": 0.354839
+        "brier": 0.21473,
+        "log_loss": 0.62371,
+        "mean_probability": 0.315939,
+        "n": 63,
+        "observed_rate": 0.349206
       }
     },
-    "n": 62
+    "n": 63
   },
   "challenger": {
-    "lambda_mae": 1.422797,
+    "lambda_mae": 1.408917,
     "lines": {
       "1.5": {
-        "brier": 0.126337,
-        "log_loss": 0.418474,
-        "mean_probability": 0.750249,
-        "n": 62,
-        "observed_rate": 0.854839
+        "brier": 0.125554,
+        "log_loss": 0.416991,
+        "mean_probability": 0.749808,
+        "n": 63,
+        "observed_rate": 0.857143
       },
       "2.5": {
-        "brier": 0.238187,
-        "log_loss": 0.667707,
-        "mean_probability": 0.517527,
-        "n": 62,
-        "observed_rate": 0.5
+        "brier": 0.237891,
+        "log_loss": 0.667142,
+        "mean_probability": 0.516749,
+        "n": 63,
+        "observed_rate": 0.492063
       },
       "3.5": {
-        "brier": 0.217576,
-        "log_loss": 0.631656,
-        "mean_probability": 0.307167,
-        "n": 62,
-        "observed_rate": 0.354839
+        "brier": 0.215137,
+        "log_loss": 0.626255,
+        "mean_probability": 0.306305,
+        "n": 63,
+        "observed_rate": 0.349206
       }
     },
-    "n": 62
+    "n": 63
   },
-  "evaluated_fixtures": 62,
+  "evaluated_fixtures": 63,
   "evaluations": [
     {
       "away_team": "Zaglebie Lubin",
@@ -1419,27 +1419,49 @@
       "league": "Primera División",
       "league_id": 344,
       "stage": "T-10"
+    },
+    {
+      "away_team": "Cruz Azul Hidalgo",
+      "canonical_lambda": 2.6406,
+      "canonical_probs": {
+        "1.5": 0.740363,
+        "2.5": 0.49172,
+        "3.5": 0.272863
+      },
+      "challenger_lambda": 2.5484,
+      "challenger_probs": {
+        "1.5": 0.722485,
+        "2.5": 0.468533,
+        "3.5": 0.252812
+      },
+      "final_total": 2,
+      "fixture_id": 1581422,
+      "generated_at_local": "2026-09-17T18:59:26.976108-06:00",
+      "home_team": "Durango",
+      "league": "Liga de Expansión MX",
+      "league_id": 263,
+      "stage": "CLOSE"
     }
   ],
   "improvement": {
-    "lambda_mae_delta_challenger_minus_canonical": -0.000884,
+    "lambda_mae_delta_challenger_minus_canonical": -0.002334,
     "leagues_where_challenger_improves_o2_5_brier": 1,
     "leagues_with_10plus_evaluations": 1,
     "lines": {
       "1.5": {
-        "brier_delta_challenger_minus_canonical": 0.000453,
-        "log_loss_delta_challenger_minus_canonical": 0.001875,
-        "n": 62
+        "brier_delta_challenger_minus_canonical": 0.000598,
+        "log_loss_delta_challenger_minus_canonical": 0.002233,
+        "n": 63
       },
       "2.5": {
-        "brier_delta_challenger_minus_canonical": -0.000882,
-        "log_loss_delta_challenger_minus_canonical": -0.002017,
-        "n": 62
+        "brier_delta_challenger_minus_canonical": -0.001221,
+        "log_loss_delta_challenger_minus_canonical": -0.002693,
+        "n": 63
       },
       "3.5": {
-        "brier_delta_challenger_minus_canonical": 0.000583,
-        "log_loss_delta_challenger_minus_canonical": 0.003026,
-        "n": 62
+        "brier_delta_challenger_minus_canonical": 0.000407,
+        "log_loss_delta_challenger_minus_canonical": 0.002545,
+        "n": 63
       }
     }
   },

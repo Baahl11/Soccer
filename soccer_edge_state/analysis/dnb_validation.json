@@ -43,10 +43,10 @@
       "observed_win_rate": 0.5
     },
     "CONCACAF Central American Cup": {
-      "brier": 0.180225,
-      "log_loss": 0.524143,
+      "brier": 0.137373,
+      "log_loss": 0.435388,
       "mean_probability": 0.5,
-      "n": 4,
+      "n": 6,
       "observed_win_rate": 0.5
     },
     "Canadian Championship": {
@@ -243,6 +243,13 @@
       "log_loss": 0.639715,
       "mean_probability": 0.5,
       "n": 4,
+      "observed_win_rate": 0.5
+    },
+    "Liga de Expansión MX": {
+      "brier": 0.159645,
+      "log_loss": 0.510086,
+      "mean_probability": 0.5,
+      "n": 2,
       "observed_win_rate": 0.5
     },
     "Ligat Ha'al": {
@@ -444,36 +451,36 @@
   },
   "by_selection": {
     "AWAY": {
-      "brier": 0.222067,
-      "log_loss": 0.639631,
-      "mean_probability": 0.454086,
-      "n": 162,
-      "observed_win_rate": 0.419753
+      "brier": 0.220648,
+      "log_loss": 0.636513,
+      "mean_probability": 0.45237,
+      "n": 164,
+      "observed_win_rate": 0.414634
     },
     "HOME": {
-      "brier": 0.222067,
-      "log_loss": 0.639631,
-      "mean_probability": 0.545914,
-      "n": 162,
-      "observed_win_rate": 0.580247
+      "brier": 0.220648,
+      "log_loss": 0.636513,
+      "mean_probability": 0.54763,
+      "n": 164,
+      "observed_win_rate": 0.585366
     }
   },
   "draw_push_fixtures": 43,
-  "evaluated_binary_rows": 324,
-  "fixtures_with_result": 205,
+  "evaluated_binary_rows": 328,
+  "fixtures_with_result": 207,
   "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
-  "non_draw_oos_fixtures": 162,
+  "non_draw_oos_fixtures": 164,
   "notes": [
     "Draw fixtures are pushes and are excluded from conditional HOME/AWAY calibration scoring.",
     "DNB fair probability is P(win | no draw), while push probability is tracked separately.",
     "This report cannot promote DNB to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
-  "observed_draw_push_rate": 0.209756,
+  "observed_draw_push_rate": 0.207729,
   "overall_non_draw": {
-    "brier": 0.222067,
-    "log_loss": 0.639631,
+    "brier": 0.220648,
+    "log_loss": 0.636513,
     "mean_probability": 0.5,
-    "n": 324,
+    "n": 328,
     "observed_win_rate": 0.5
   },
   "promotion_gate": {
@@ -3730,6 +3737,46 @@
       "probability_win_given_no_draw": 0.57312,
       "selection": "AWAY",
       "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.15964504332793375,
+      "fixture_id": 1581422,
+      "league": "Liga de Expansión MX",
+      "log_loss": 0.5100859936998825,
+      "probability_win_given_no_draw": 0.600444,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.15964504332793372,
+      "fixture_id": 1581422,
+      "league": "Liga de Expansión MX",
+      "log_loss": 0.5100859936998825,
+      "probability_win_given_no_draw": 0.399556,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.051669824095124016,
+      "fixture_id": 1636691,
+      "league": "CONCACAF Central American Cup",
+      "log_loss": 0.2578773115849431,
+      "probability_win_given_no_draw": 0.77269,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.05166982409512405,
+      "fixture_id": 1636691,
+      "league": "CONCACAF Central American Cup",
+      "log_loss": 0.2578773115849432,
+      "probability_win_given_no_draw": 0.22731,
+      "selection": "AWAY",
+      "stage": "CLOSE"
     }
   ],
   "schema_version": "1.0.0",

@@ -1,7 +1,7 @@
 {
   "anti_leakage": "Every target uses only finalized fixtures with kickoff strictly earlier than the target; no target fixture halftime/fulltime result enters its own predictors.",
   "explicit_period_model": true,
-  "finalized_fixtures_with_halftime_target": 355,
+  "finalized_fixtures_with_halftime_target": 357,
   "formula": {
     "away_lambda_1h": "league_away_1h_rate * away_1h_attack_strength * home_1h_defensive_weakness",
     "hierarchy": "global 1H home/away rates -> league 1H rates shrunk to global -> venue-specific team 1H attack/defense shrunk to league",
@@ -11,68 +11,16 @@
   },
   "market_scope": "NO_ACTIONABLE_1H_MARKET_PRICING_YET",
   "metrics": {
-    "mean_abs_1h_total_goals_error": 1.0016,
-    "mean_predicted_over_1_5_probability": 0.4152,
-    "observed_over_1_5_rate": 0.3754,
-    "over_1_5_accuracy_at_0_5_threshold": 0.6062,
-    "over_1_5_brier": 0.2358,
-    "over_1_5_log_loss": 0.6644
+    "mean_abs_1h_total_goals_error": 0.9978,
+    "mean_predicted_over_1_5_probability": 0.4151,
+    "observed_over_1_5_rate": 0.3731,
+    "over_1_5_accuracy_at_0_5_threshold": 0.6086,
+    "over_1_5_brier": 0.2354,
+    "over_1_5_log_loss": 0.6634
   },
   "minimum_training_fixtures": 30,
   "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
   "predictions": [
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 0,
-        "total": 0
-      },
-      "away_lambda_1h": 0.780538,
-      "away_team": "Cheongju",
-      "fixture_id": 1510446,
-      "global_away_1h_rate": 0.847619,
-      "global_home_1h_rate": 0.695238,
-      "home_lambda_1h": 0.648033,
-      "home_team": "Asan Mugunghwa",
-      "kickoff_local": "2026-09-12T04:00:00-06:00",
-      "league": "K League 2",
-      "league_away_1h_rate": 0.780538,
-      "league_home_1h_rate": 0.648033,
-      "league_id": 293,
-      "p_over_0_5_1h": 0.760349,
-      "p_over_1_5_1h": 0.41799,
-      "p_over_2_5_1h": 0.173448,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 3.0,
-      "total_lambda_1h": 1.428571
-    },
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 0,
-        "total": 0
-      },
-      "away_lambda_1h": 0.839623,
-      "away_team": "Kungsängen",
-      "fixture_id": 1510847,
-      "global_away_1h_rate": 0.839623,
-      "global_home_1h_rate": 0.688679,
-      "home_lambda_1h": 0.688679,
-      "home_team": "Enskede",
-      "kickoff_local": "2026-09-12T04:00:00-06:00",
-      "league": "Division 2 - Norra Svealand",
-      "league_away_1h_rate": 0.839623,
-      "league_home_1h_rate": 0.688679,
-      "league_id": 593,
-      "p_over_0_5_1h": 0.783096,
-      "p_over_1_5_1h": 0.451601,
-      "p_over_2_5_1h": 0.19829,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 0.0,
-      "total_lambda_1h": 1.528302
-    },
     {
       "actual_halftime": {
         "away": 0,
@@ -6520,6 +6468,58 @@
       "prior_home_home_matches": 0.0,
       "prior_league_matches": 1.0,
       "total_lambda_1h": 1.389292
+    },
+    {
+      "actual_halftime": {
+        "away": 0,
+        "home": 1,
+        "total": 1
+      },
+      "away_lambda_1h": 0.595573,
+      "away_team": "Cruz Azul Hidalgo",
+      "fixture_id": 1581422,
+      "global_away_1h_rate": 0.625352,
+      "global_home_1h_rate": 0.735211,
+      "home_lambda_1h": 0.74782,
+      "home_team": "Durango",
+      "kickoff_local": "2026-09-17T19:00:00-06:00",
+      "league": "Liga de Expansión MX",
+      "league_away_1h_rate": 0.595573,
+      "league_home_1h_rate": 0.74782,
+      "league_id": 263,
+      "p_over_0_5_1h": 0.739041,
+      "p_over_1_5_1h": 0.388471,
+      "p_over_2_5_1h": 0.152994,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 1.0,
+      "total_lambda_1h": 1.343394
+    },
+    {
+      "actual_halftime": {
+        "away": 0,
+        "home": 1,
+        "total": 1
+      },
+      "away_lambda_1h": 0.61236,
+      "away_team": "Firpo",
+      "fixture_id": 1636691,
+      "global_away_1h_rate": 0.623596,
+      "global_home_1h_rate": 0.735955,
+      "home_lambda_1h": 0.805414,
+      "home_team": "CD Olimpia",
+      "kickoff_local": "2026-09-17T21:15:00-06:00",
+      "league": "CONCACAF Central American Cup",
+      "league_away_1h_rate": 0.61236,
+      "league_home_1h_rate": 0.805414,
+      "league_id": 1028,
+      "p_over_0_5_1h": 0.757747,
+      "p_over_1_5_1h": 0.414287,
+      "p_over_2_5_1h": 0.170813,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 2.0,
+      "total_lambda_1h": 1.417773
     }
   ],
   "promotion_gate": {
@@ -6535,5 +6535,5 @@
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "target": "HALFTIME_HOME_AND_AWAY_GOALS",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 325
+  "walk_forward_evaluated": 327
 }

@@ -49,9 +49,9 @@
       "top5_hit_rate": 0.5
     },
     "CONCACAF Central American Cup": {
-      "mean_multiclass_brier": 1.022054,
-      "mean_negative_log_likelihood": 3.635936,
-      "n": 2,
+      "mean_multiclass_brier": 0.995092,
+      "mean_negative_log_likelihood": 3.32066,
+      "n": 3,
       "top1_hit_rate": 0.0,
       "top3_hit_rate": 0.0,
       "top5_hit_rate": 0.0
@@ -313,11 +313,11 @@
       "top5_hit_rate": 0.8
     },
     "Liga de Expansión MX": {
-      "mean_multiclass_brier": 0.860054,
-      "mean_negative_log_likelihood": 2.338151,
-      "n": 1,
-      "top1_hit_rate": 1.0,
-      "top3_hit_rate": 1.0,
+      "mean_multiclass_brier": 0.886356,
+      "mean_negative_log_likelihood": 2.443097,
+      "n": 2,
+      "top1_hit_rate": 0.5,
+      "top3_hit_rate": 0.5,
       "top5_hit_rate": 1.0
     },
     "Ligat Ha'al": {
@@ -569,7 +569,7 @@
       "top5_hit_rate": 1.0
     }
   },
-  "evaluated_fixtures": 205,
+  "evaluated_fixtures": 207,
   "model": "CANONICAL_HOME_AWAY_LAMBDA_INDEPENDENT_POISSON_EXACT_SCORE_v0.1",
   "notes": [
     "Latest persisted pregame canonical home/away lambdas are evaluated against final exact score.",
@@ -578,12 +578,12 @@
     "This report cannot promote Correct Score to BET/LEAN/Galaxy by itself."
   ],
   "overall": {
-    "mean_multiclass_brier": 0.958303,
-    "mean_negative_log_likelihood": 3.24412,
-    "n": 205,
-    "top1_hit_rate": 0.097561,
-    "top3_hit_rate": 0.302439,
-    "top5_hit_rate": 0.473171
+    "mean_multiclass_brier": 0.958,
+    "mean_negative_log_likelihood": 3.238081,
+    "n": 207,
+    "top1_hit_rate": 0.096618,
+    "top3_hit_rate": 0.299517,
+    "top5_hit_rate": 0.47343
   },
   "promotion_gate": {
     "actionable_review_sample_gate_met": false,
@@ -4081,6 +4081,40 @@
       "multiclass_brier_grid_0_5_plus_other": 1.0464639486157334,
       "negative_log_likelihood": 3.868924366175399,
       "stage": "T-10",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 0
+    },
+    {
+      "actual_score": "2-0",
+      "actual_score_probability": 0.0782347,
+      "actual_score_rank_within_0_5_grid": 5,
+      "away_lambda": 1.1594,
+      "away_team": "Cruz Azul Hidalgo",
+      "fixture_id": 1581422,
+      "home_lambda": 1.4812,
+      "home_team": "Durango",
+      "league": "Liga de Expansión MX",
+      "multiclass_brier_grid_0_5_plus_other": 0.9126569999127973,
+      "negative_log_likelihood": 2.548042040445304,
+      "stage": "CLOSE",
+      "top1_hit": 0,
+      "top3_hit": 0,
+      "top5_hit": 1
+    },
+    {
+      "actual_score": "3-0",
+      "actual_score_probability": 0.06787363,
+      "actual_score_rank_within_0_5_grid": 6,
+      "away_lambda": 0.8304,
+      "away_team": "Firpo",
+      "fixture_id": 1636691,
+      "home_lambda": 1.7545,
+      "home_team": "CD Olimpia",
+      "league": "CONCACAF Central American Cup",
+      "multiclass_brier_grid_0_5_plus_other": 0.9411674293125432,
+      "negative_log_likelihood": 2.6901077211046567,
+      "stage": "CLOSE",
       "top1_hit": 0,
       "top3_hit": 0,
       "top5_hit": 0

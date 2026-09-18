@@ -43,10 +43,10 @@
       "observed_hit_rate": 0.666667
     },
     "CONCACAF Central American Cup": {
-      "brier": 0.151268,
-      "log_loss": 0.473581,
+      "brier": 0.128622,
+      "log_loss": 0.424449,
       "mean_probability": 0.666667,
-      "n": 6,
+      "n": 9,
       "observed_hit_rate": 0.666667
     },
     "Canadian Championship": {
@@ -274,10 +274,10 @@
       "observed_hit_rate": 0.666667
     },
     "Liga de Expansión MX": {
-      "brier": 0.308843,
-      "log_loss": 0.838401,
+      "brier": 0.231335,
+      "log_loss": 0.662135,
       "mean_probability": 0.666667,
-      "n": 3,
+      "n": 6,
       "observed_hit_rate": 0.666667
     },
     "Ligat Ha'al": {
@@ -500,29 +500,29 @@
   },
   "by_selection": {
     "12": {
-      "brier": 0.180087,
-      "log_loss": 0.544037,
-      "mean_probability": 0.730124,
-      "n": 205,
-      "observed_hit_rate": 0.790244
+      "brier": 0.178928,
+      "log_loss": 0.541497,
+      "mean_probability": 0.730365,
+      "n": 207,
+      "observed_hit_rate": 0.792271
     },
     "1X": {
-      "brier": 0.206805,
-      "log_loss": 0.602012,
-      "mean_probability": 0.672202,
-      "n": 205,
-      "observed_hit_rate": 0.668293
+      "brier": 0.205379,
+      "log_loss": 0.598822,
+      "mean_probability": 0.673093,
+      "n": 207,
+      "observed_hit_rate": 0.671498
     },
     "X2": {
-      "brier": 0.240501,
-      "log_loss": 0.683405,
-      "mean_probability": 0.597674,
-      "n": 205,
-      "observed_hit_rate": 0.541463
+      "brier": 0.240461,
+      "log_loss": 0.683228,
+      "mean_probability": 0.596542,
+      "n": 207,
+      "observed_hit_rate": 0.536232
     }
   },
-  "evaluated_binary_rows": 615,
-  "evaluated_fixtures": 205,
+  "evaluated_binary_rows": 621,
+  "evaluated_fixtures": 207,
   "model": "CANONICAL_1X2_DERIVED_DOUBLE_CHANCE_v0.1",
   "notes": [
     "Double Chance probabilities are derived only from canonical pregame 1X2 probabilities.",
@@ -530,10 +530,10 @@
     "This report cannot promote Double Chance to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
   "overall": {
-    "brier": 0.209131,
-    "log_loss": 0.609818,
+    "brier": 0.208256,
+    "log_loss": 0.607849,
     "mean_probability": 0.666667,
-    "n": 615,
+    "n": 621,
     "observed_hit_rate": 0.666667
   },
   "promotion_gate": {
@@ -6700,6 +6700,66 @@
       "probability": 0.705916,
       "selection": "12",
       "stage": "T-10"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.0879990253139626,
+      "fixture_id": 1581422,
+      "league": "Liga de Expansión MX",
+      "log_loss": 0.3518953794852583,
+      "probability": 0.703354,
+      "selection": "1X",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 0,
+      "brier": 0.30714490472550227,
+      "fixture_id": 1581422,
+      "league": "Liga de Expansión MX",
+      "log_loss": 0.8078995602617167,
+      "probability": 0.554207,
+      "selection": "X2",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.06633728627450622,
+      "fixture_id": 1581422,
+      "league": "Liga de Expansión MX",
+      "log_loss": 0.29781356656183444,
+      "probability": 0.74244,
+      "selection": "12",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.030445713168999983,
+      "fixture_id": 1636691,
+      "league": "CONCACAF Central American Cup",
+      "log_loss": 0.19175026771445716,
+      "probability": 0.825513,
+      "selection": "1X",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 0,
+      "brier": 0.1655431969,
+      "fixture_id": 1636691,
+      "league": "CONCACAF Central American Cup",
+      "log_loss": 0.5223416797272383,
+      "probability": 0.40687,
+      "selection": "X2",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.054001858689,
+      "fixture_id": 1636691,
+      "league": "CONCACAF Central American Cup",
+      "log_loss": 0.26446436814229507,
+      "probability": 0.767617,
+      "selection": "12",
+      "stage": "CLOSE"
     }
   ],
   "schema_version": "1.0.0",
