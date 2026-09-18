@@ -50,12 +50,44 @@ jobs:
             jq --arg http_code "$HTTP_CODE" '{captured_at: now|todateiso8601,http_code:$http_code,response:.}' /tmp/soccer_tick.json > soccer_edge_state/last_error.json
             if jq -e '(.detail // "") | test("request limit for the day"; "i")' /tmp/soccer_tick.json >/dev/null; then date -u -d 'tomorrow 00:05:00' +%s > soccer_edge_state/quota_block_until.txt; fi
             git config user.name soccer-edge-bot; git config user.email soccer-edge-bot@users.noreply.github.com
-            git add -f soccer_edge_state/last_error.json soccer_edge_state/quota_block_until.txt 2>/dev/null || true
+            git add -f soccer_edge_state/last_error.json
+            if [ -f soccer_edge_state/quota_block_until.txt ]; then git add -f soccer_edge_state/quota_block_until.txt; fi
             if ! git diff --cached --quiet; then git commit -m "Soccer Edge scheduler error"; git push origin HEAD:soccer-edge-state; fi
             exit 1
           fi
           echo "event_count=$(jq -r '.event_count // 0' /tmp/soccer_tick.json)" >> "$GITHUB_OUTPUT"
           echo "run_date=$(jq -r '.generated_at_local[0:10]' /tmp/soccer_tick.json)" >> "$GITHUB_OUTPUT"
+      - name: Persist scheduler heartbeat
+        if: steps.quota_guard.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p soccer_edge_state
+          jq '{
+            status:"ok",
+            service,
+            version,
+            model_version,
+            generated_at_utc,
+            generated_at_local,
+            timezone,
+            fixture_scan_count,
+            due_fixture_count,
+            event_count,
+            actionable_refresh_count,
+            bet_candidate_count,
+            api_calls_this_tick,
+            last_daily_remaining,
+            daily_budget_mode,
+            database_persisted
+          }' /tmp/soccer_tick.json > soccer_edge_state/health.json
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/health.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Soccer Edge health heartbeat"
+            git push origin HEAD:soccer-edge-state
+          fi
       - name: Build compact notification state
         if: steps.quota_guard.outputs.skip != 'true' && steps.tick.outputs.event_count != '0'
         shell: bash
