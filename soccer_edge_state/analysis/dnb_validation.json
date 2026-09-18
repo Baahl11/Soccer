@@ -43,10 +43,10 @@
       "observed_win_rate": 0.5
     },
     "CONCACAF Central American Cup": {
-      "brier": 0.031983,
-      "log_loss": 0.197035,
+      "brier": 0.180225,
+      "log_loss": 0.524143,
       "mean_probability": 0.5,
-      "n": 2,
+      "n": 4,
       "observed_win_rate": 0.5
     },
     "Canadian Championship": {
@@ -232,10 +232,10 @@
       "observed_win_rate": 0.5
     },
     "Liga Pro Serie B": {
-      "brier": 0.165277,
-      "log_loss": 0.520127,
+      "brier": 0.137349,
+      "log_loss": 0.455903,
       "mean_probability": 0.5,
-      "n": 6,
+      "n": 8,
       "observed_win_rate": 0.5
     },
     "Liga Profesional Argentina": {
@@ -323,10 +323,10 @@
       "observed_win_rate": 0.5
     },
     "Primera División": {
-      "brier": 0.206435,
-      "log_loss": 0.605063,
+      "brier": 0.19412,
+      "log_loss": 0.575355,
       "mean_probability": 0.5,
-      "n": 28,
+      "n": 30,
       "observed_win_rate": 0.5
     },
     "Prva Liga": {
@@ -444,36 +444,36 @@
   },
   "by_selection": {
     "AWAY": {
-      "brier": 0.223718,
-      "log_loss": 0.643687,
-      "mean_probability": 0.456666,
-      "n": 159,
-      "observed_win_rate": 0.427673
+      "brier": 0.222067,
+      "log_loss": 0.639631,
+      "mean_probability": 0.454086,
+      "n": 162,
+      "observed_win_rate": 0.419753
     },
     "HOME": {
-      "brier": 0.223718,
-      "log_loss": 0.643687,
-      "mean_probability": 0.543334,
-      "n": 159,
-      "observed_win_rate": 0.572327
+      "brier": 0.222067,
+      "log_loss": 0.639631,
+      "mean_probability": 0.545914,
+      "n": 162,
+      "observed_win_rate": 0.580247
     }
   },
-  "draw_push_fixtures": 42,
-  "evaluated_binary_rows": 318,
-  "fixtures_with_result": 201,
+  "draw_push_fixtures": 43,
+  "evaluated_binary_rows": 324,
+  "fixtures_with_result": 205,
   "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
-  "non_draw_oos_fixtures": 159,
+  "non_draw_oos_fixtures": 162,
   "notes": [
     "Draw fixtures are pushes and are excluded from conditional HOME/AWAY calibration scoring.",
     "DNB fair probability is P(win | no draw), while push probability is tracked separately.",
     "This report cannot promote DNB to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
-  "observed_draw_push_rate": 0.208955,
+  "observed_draw_push_rate": 0.209756,
   "overall_non_draw": {
-    "brier": 0.223718,
-    "log_loss": 0.643687,
+    "brier": 0.222067,
+    "log_loss": 0.639631,
     "mean_probability": 0.5,
-    "n": 318,
+    "n": 324,
     "observed_win_rate": 0.5
   },
   "promotion_gate": {
@@ -3532,6 +3532,26 @@
       "stage": "T-10"
     },
     {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.021719597158605018,
+      "fixture_id": 1619018,
+      "league": "Primera División",
+      "log_loss": 0.15943627482969325,
+      "probability_win_given_no_draw": 0.852624,
+      "selection": "HOME",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.021719597158605008,
+      "fixture_id": 1619018,
+      "league": "Primera División",
+      "log_loss": 0.15943627482969325,
+      "probability_win_given_no_draw": 0.147376,
+      "selection": "AWAY",
+      "stage": "T-10"
+    },
+    {
       "actual_win_given_no_draw": 0,
       "brier": 0.16589207555567095,
       "fixture_id": 1505259,
@@ -3670,6 +3690,46 @@
       "probability_win_given_no_draw": 0.670342,
       "selection": "AWAY",
       "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.053562507841867876,
+      "fixture_id": 1636696,
+      "league": "Liga Pro Serie B",
+      "log_loss": 0.2632311191886816,
+      "probability_win_given_no_draw": 0.768564,
+      "selection": "HOME",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.05356250784186788,
+      "fixture_id": 1636696,
+      "league": "Liga Pro Serie B",
+      "log_loss": 0.2632311191886816,
+      "probability_win_given_no_draw": 0.231436,
+      "selection": "AWAY",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.3284665266059285,
+      "fixture_id": 1636690,
+      "league": "CONCACAF Central American Cup",
+      "log_loss": 0.8512523197661345,
+      "probability_win_given_no_draw": 0.42688,
+      "selection": "HOME",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.3284665266059285,
+      "fixture_id": 1636690,
+      "league": "CONCACAF Central American Cup",
+      "log_loss": 0.8512523197661345,
+      "probability_win_given_no_draw": 0.57312,
+      "selection": "AWAY",
+      "stage": "T-10"
     }
   ],
   "schema_version": "1.0.0",

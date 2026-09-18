@@ -2,25 +2,25 @@
   "baseline": {
     "lines": {
       "10.5": {
-        "accuracy_at_0_5": 0.7027,
-        "brier": 0.227333,
-        "log_loss": 0.647506
+        "accuracy_at_0_5": 0.7105,
+        "brier": 0.225447,
+        "log_loss": 0.643672
       },
       "8.5": {
-        "accuracy_at_0_5": 0.5405,
-        "brier": 0.272045,
-        "log_loss": 0.742029
+        "accuracy_at_0_5": 0.5526,
+        "brier": 0.268172,
+        "log_loss": 0.733974
       },
       "9.5": {
-        "accuracy_at_0_5": 0.4324,
-        "brier": 0.261417,
-        "log_loss": 0.716201
+        "accuracy_at_0_5": 0.4474,
+        "brier": 0.260614,
+        "log_loss": 0.714589
       }
     },
-    "mae_total_corners": 2.403107,
-    "mean_actual_total": 9.2162,
-    "mean_predicted_total": 10.0326,
-    "n": 37
+    "mae_total_corners": 2.34458,
+    "mean_actual_total": 9.2368,
+    "mean_predicted_total": 10.027,
+    "n": 38
   },
   "baseline_method": "LEAGUE_HOME_AWAY_CORNERS_X_SHRUNK_TEAM_ATTACK_X_OPPONENT_DEFENSE_WEAKNESS",
   "evaluations": [
@@ -837,31 +837,53 @@
       "matchup": "5-4-1 vs 4-1-4-1",
       "prior_matchup_n": 0,
       "prior_pool_n": 66
+    },
+    {
+      "actual_away_corners": 0.0,
+      "actual_home_corners": 10.0,
+      "actual_total_corners": 10.0,
+      "base_over_10_5": 0.394565,
+      "base_over_8_5": 0.646657,
+      "base_over_9_5": 0.519472,
+      "baseline_away_lambda": 4.0597,
+      "baseline_home_lambda": 5.76119,
+      "baseline_total_lambda": 9.8209,
+      "challenger_over_10_5": 0.394565,
+      "challenger_over_8_5": 0.646657,
+      "challenger_over_9_5": 0.519472,
+      "challenger_total_lambda": 9.8209,
+      "fixture_id": 1619018,
+      "formation_scale": 1.0,
+      "kickoff_local": "2026-09-17T18:30:00-06:00",
+      "league_id": 344,
+      "matchup": "4-4-2 vs 4-2-3-1",
+      "prior_matchup_n": 0,
+      "prior_pool_n": 67
     }
   ],
   "formation_adjusted_evaluations": 2,
   "formation_challenger": {
     "lines": {
       "10.5": {
-        "accuracy_at_0_5": 0.7027,
-        "brier": 0.229146,
-        "log_loss": 0.651625
+        "accuracy_at_0_5": 0.7105,
+        "brier": 0.227213,
+        "log_loss": 0.647682
       },
       "8.5": {
-        "accuracy_at_0_5": 0.5405,
-        "brier": 0.27173,
-        "log_loss": 0.741284
+        "accuracy_at_0_5": 0.5526,
+        "brier": 0.267865,
+        "log_loss": 0.733249
       },
       "9.5": {
-        "accuracy_at_0_5": 0.4324,
-        "brier": 0.262237,
-        "log_loss": 0.717876
+        "accuracy_at_0_5": 0.4474,
+        "brier": 0.261413,
+        "log_loss": 0.716219
       }
     },
-    "mae_total_corners": 2.40761,
-    "mean_actual_total": 9.2162,
-    "mean_predicted_total": 9.9971,
-    "n": 37
+    "mae_total_corners": 2.348965,
+    "mean_actual_total": 9.2368,
+    "mean_predicted_total": 9.9925,
+    "n": 38
   },
   "policy": "NO_ACTIONABLE_CORNERS_PICK; WALK_FORWARD_ONLY; FORMATION_MUST_ADD_OOS_LIFT_OVER_TEAM_LEAGUE_BASELINE",
   "promotion_gate": {
@@ -875,8 +897,8 @@
       "verified market-price CLV evidence"
     ]
   },
-  "rows_with_verified_postgame_corners": 67,
+  "rows_with_verified_postgame_corners": 68,
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_CORNERS_BASELINE",
-  "walk_forward_evaluations": 37
+  "walk_forward_evaluations": 38
 }

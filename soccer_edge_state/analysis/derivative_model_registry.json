@@ -2,8 +2,8 @@
   "models": {
     "1H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 2708,
-      "market_quotes_persisted": 19256,
+      "market_groups_persisted": 2748,
+      "market_quotes_persisted": 19533,
       "requirements_remaining": [
         "dedicated 1H market-vs-model calibration",
         "stable OOS Brier/log-loss improvement",
@@ -13,26 +13,26 @@
       "research_model": {
         "calibration": {
           "baseline_same_sample": {
-            "accuracy_at_0_5": 0.6409,
-            "brier": 0.229,
-            "log_loss": 0.6505,
-            "mean_predicted_probability": 0.3963,
+            "accuracy_at_0_5": 0.6318,
+            "brier": 0.2305,
+            "log_loss": 0.6536,
+            "mean_predicted_probability": 0.3961,
             "n": 220,
-            "observed_rate": 0.3545
+            "observed_rate": 0.3636
           },
           "challenger": {
-            "accuracy_at_0_5": 0.6455,
-            "brier": 0.2273,
-            "log_loss": 0.6468,
-            "mean_predicted_probability": 0.3506,
+            "accuracy_at_0_5": 0.6318,
+            "brier": 0.2294,
+            "log_loss": 0.6511,
+            "mean_predicted_probability": 0.3536,
             "n": 220,
-            "observed_rate": 0.3545
+            "observed_rate": 0.3636
           },
           "improvement": {
-            "accuracy_delta_pp": 0.46,
-            "brier_delta": -0.0017,
-            "log_loss_delta": -0.0037,
-            "mean_probability_delta_pp": -4.57
+            "accuracy_delta_pp": 0.0,
+            "brier_delta": -0.0011,
+            "log_loss_delta": -0.0025,
+            "mean_probability_delta_pp": -4.25
           },
           "method": "WALK_FORWARD_SHRUNK_MULTIPLICATIVE_1H_LAMBDA_CALIBRATION",
           "promotion_gate": {
@@ -51,12 +51,12 @@
         },
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_1h_total_goals_error": 0.9948,
-          "mean_predicted_over_1_5_probability": 0.4154,
-          "observed_over_1_5_rate": 0.3707,
-          "over_1_5_accuracy_at_0_5_threshold": 0.6106,
-          "over_1_5_brier": 0.2349,
-          "over_1_5_log_loss": 0.6626
+          "mean_abs_1h_total_goals_error": 1.0016,
+          "mean_predicted_over_1_5_probability": 0.4152,
+          "observed_over_1_5_rate": 0.3754,
+          "over_1_5_accuracy_at_0_5_threshold": 0.6062,
+          "over_1_5_brier": 0.2358,
+          "over_1_5_log_loss": 0.6644
         },
         "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -68,14 +68,14 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 321
+        "walk_forward_evaluated": 325
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
     "2H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 1472,
-      "market_quotes_persisted": 13155,
+      "market_groups_persisted": 1487,
+      "market_quotes_persisted": 13289,
       "requirements_remaining": [
         "dedicated pregame 2H market-vs-model calibration",
         "stable OOS validation",
@@ -85,12 +85,12 @@
       "research_model": {
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_2h_total_goals_error": 0.958,
+          "mean_abs_2h_total_goals_error": 0.9587,
           "mean_predicted_over_1_5_probability": 0.4998,
-          "observed_over_1_5_rate": 0.5047,
-          "over_1_5_accuracy_at_0_5_threshold": 0.4673,
+          "observed_over_1_5_rate": 0.5046,
+          "over_1_5_accuracy_at_0_5_threshold": 0.4646,
           "over_1_5_brier": 0.2527,
-          "over_1_5_log_loss": 0.6984
+          "over_1_5_log_loss": 0.6985
         },
         "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -102,7 +102,7 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 321
+        "walk_forward_evaluated": 325
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },

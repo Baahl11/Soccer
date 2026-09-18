@@ -1,7 +1,7 @@
 {
   "anti_leakage": "Every target uses only finalized fixtures with kickoff strictly earlier than the target; no target fixture halftime/fulltime result enters its own predictors.",
   "explicit_period_model": true,
-  "finalized_fixtures_with_halftime_target": 351,
+  "finalized_fixtures_with_halftime_target": 355,
   "formula": {
     "away_lambda_1h": "league_away_1h_rate * away_1h_attack_strength * home_1h_defensive_weakness",
     "hierarchy": "global 1H home/away rates -> league 1H rates shrunk to global -> venue-specific team 1H attack/defense shrunk to league",
@@ -11,120 +11,16 @@
   },
   "market_scope": "NO_ACTIONABLE_1H_MARKET_PRICING_YET",
   "metrics": {
-    "mean_abs_1h_total_goals_error": 0.9948,
-    "mean_predicted_over_1_5_probability": 0.4154,
-    "observed_over_1_5_rate": 0.3707,
-    "over_1_5_accuracy_at_0_5_threshold": 0.6106,
-    "over_1_5_brier": 0.2349,
-    "over_1_5_log_loss": 0.6626
+    "mean_abs_1h_total_goals_error": 1.0016,
+    "mean_predicted_over_1_5_probability": 0.4152,
+    "observed_over_1_5_rate": 0.3754,
+    "over_1_5_accuracy_at_0_5_threshold": 0.6062,
+    "over_1_5_brier": 0.2358,
+    "over_1_5_log_loss": 0.6644
   },
   "minimum_training_fixtures": 30,
   "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
   "predictions": [
-    {
-      "actual_halftime": {
-        "away": 1,
-        "home": 2,
-        "total": 3
-      },
-      "away_lambda_1h": 0.801119,
-      "away_team": "Benevento U19",
-      "fixture_id": 1623559,
-      "global_away_1h_rate": 0.871287,
-      "global_home_1h_rate": 0.693069,
-      "home_lambda_1h": 0.776582,
-      "home_team": "Pescara U19",
-      "kickoff_local": "2026-09-12T03:30:00-06:00",
-      "league": "Campionato Primavera - 2",
-      "league_away_1h_rate": 0.801119,
-      "league_home_1h_rate": 0.776582,
-      "league_id": 706,
-      "p_over_0_5_1h": 0.79355,
-      "p_over_1_5_1h": 0.467835,
-      "p_over_2_5_1h": 0.210894,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 3.0,
-      "total_lambda_1h": 1.577701
-    },
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 1,
-        "total": 1
-      },
-      "away_lambda_1h": 0.830999,
-      "away_team": "Azkals",
-      "fixture_id": 1639084,
-      "global_away_1h_rate": 0.872549,
-      "global_home_1h_rate": 0.705882,
-      "home_lambda_1h": 0.719888,
-      "home_team": "Stallion",
-      "kickoff_local": "2026-09-12T03:45:00-06:00",
-      "league": "PFL",
-      "league_away_1h_rate": 0.830999,
-      "league_home_1h_rate": 0.719888,
-      "league_id": 765,
-      "p_over_0_5_1h": 0.787939,
-      "p_over_1_5_1h": 0.459059,
-      "p_over_2_5_1h": 0.20403,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 1.0,
-      "total_lambda_1h": 1.550887
-    },
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 0,
-        "total": 0
-      },
-      "away_lambda_1h": 0.881807,
-      "away_team": "Pohang Steelers",
-      "fixture_id": 1507067,
-      "global_away_1h_rate": 0.864078,
-      "global_home_1h_rate": 0.708738,
-      "home_lambda_1h": 0.70325,
-      "home_team": "Daejeon Citizen",
-      "kickoff_local": "2026-09-12T04:00:00-06:00",
-      "league": "K League 1",
-      "league_away_1h_rate": 0.881807,
-      "league_home_1h_rate": 0.70325,
-      "league_id": 292,
-      "p_over_0_5_1h": 0.795063,
-      "p_over_1_5_1h": 0.470228,
-      "p_over_2_5_1h": 0.212786,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 3.0,
-      "total_lambda_1h": 1.585057
-    },
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 0,
-        "total": 0
-      },
-      "away_lambda_1h": 0.823427,
-      "away_team": "Hwaseong",
-      "fixture_id": 1510445,
-      "global_away_1h_rate": 0.855769,
-      "global_home_1h_rate": 0.701923,
-      "home_lambda_1h": 0.683566,
-      "home_team": "Ansan Greeners",
-      "kickoff_local": "2026-09-12T04:00:00-06:00",
-      "league": "K League 2",
-      "league_away_1h_rate": 0.823427,
-      "league_home_1h_rate": 0.683566,
-      "league_id": 293,
-      "p_over_0_5_1h": 0.778424,
-      "p_over_1_5_1h": 0.444512,
-      "p_over_2_5_1h": 0.19291,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 2.0,
-      "total_lambda_1h": 1.506993
-    },
     {
       "actual_halftime": {
         "away": 0,
@@ -6520,6 +6416,110 @@
       "prior_home_home_matches": 0.0,
       "prior_league_matches": 3.0,
       "total_lambda_1h": 1.349068
+    },
+    {
+      "actual_halftime": {
+        "away": 0,
+        "home": 0,
+        "total": 0
+      },
+      "away_lambda_1h": 0.730651,
+      "away_team": "El Nacional",
+      "fixture_id": 1636696,
+      "global_away_1h_rate": 0.626781,
+      "global_home_1h_rate": 0.723647,
+      "home_lambda_1h": 0.603039,
+      "home_team": "Santo Domingo",
+      "kickoff_local": "2026-09-17T18:00:00-06:00",
+      "league": "Liga Pro Serie B",
+      "league_away_1h_rate": 0.730651,
+      "league_home_1h_rate": 0.603039,
+      "league_id": 243,
+      "p_over_0_5_1h": 0.736497,
+      "p_over_1_5_1h": 0.385065,
+      "p_over_2_5_1h": 0.150715,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 4.0,
+      "total_lambda_1h": 1.333689
+    },
+    {
+      "actual_halftime": {
+        "away": 2,
+        "home": 2,
+        "total": 4
+      },
+      "away_lambda_1h": 0.595238,
+      "away_team": "Millonarios W",
+      "fixture_id": 1639698,
+      "global_away_1h_rate": 0.625,
+      "global_home_1h_rate": 0.721591,
+      "home_lambda_1h": 0.734848,
+      "home_team": "Santa Fe W",
+      "kickoff_local": "2026-09-17T18:00:00-06:00",
+      "league": "Liga Femenina",
+      "league_away_1h_rate": 0.595238,
+      "league_home_1h_rate": 0.734848,
+      "league_id": 712,
+      "p_over_0_5_1h": 0.735545,
+      "p_over_1_5_1h": 0.383798,
+      "p_over_2_5_1h": 0.149871,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 1.0,
+      "total_lambda_1h": 1.330087
+    },
+    {
+      "actual_halftime": {
+        "away": 0,
+        "home": 3,
+        "total": 3
+      },
+      "away_lambda_1h": 0.725108,
+      "away_team": "Gualberto Villarroel SJ",
+      "fixture_id": 1619018,
+      "global_away_1h_rate": 0.628895,
+      "global_home_1h_rate": 0.725212,
+      "home_lambda_1h": 0.685343,
+      "home_team": "Bolívar",
+      "kickoff_local": "2026-09-17T18:30:00-06:00",
+      "league": "Primera División",
+      "league_away_1h_rate": 0.725108,
+      "league_home_1h_rate": 0.685343,
+      "league_id": 344,
+      "p_over_0_5_1h": 0.755966,
+      "p_over_1_5_1h": 0.411769,
+      "p_over_2_5_1h": 0.169033,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 7.0,
+      "total_lambda_1h": 1.41045
+    },
+    {
+      "actual_halftime": {
+        "away": 0,
+        "home": 2,
+        "total": 2
+      },
+      "away_lambda_1h": 0.644875,
+      "away_team": "CD Marathon",
+      "fixture_id": 1636690,
+      "global_away_1h_rate": 0.627119,
+      "global_home_1h_rate": 0.731638,
+      "home_lambda_1h": 0.744418,
+      "home_team": "LD Alajuelense",
+      "kickoff_local": "2026-09-17T18:30:00-06:00",
+      "league": "CONCACAF Central American Cup",
+      "league_away_1h_rate": 0.644875,
+      "league_home_1h_rate": 0.744418,
+      "league_id": 1028,
+      "p_over_0_5_1h": 0.750748,
+      "p_over_1_5_1h": 0.404465,
+      "p_over_2_5_1h": 0.16392,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 1.0,
+      "total_lambda_1h": 1.389292
     }
   ],
   "promotion_gate": {
@@ -6535,5 +6535,5 @@
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "target": "HALFTIME_HOME_AND_AWAY_GOALS",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 321
+  "walk_forward_evaluated": 325
 }

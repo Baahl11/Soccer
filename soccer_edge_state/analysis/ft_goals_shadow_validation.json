@@ -1,60 +1,60 @@
 {
   "anti_leakage": "Uses the latest persisted shadow snapshot strictly before kickoff and joins the final result later by fixture_id; no final result or market odds enter either stored sport projection.",
   "canonical": {
-    "lambda_mae": 1.4082,
+    "lambda_mae": 1.423681,
     "lines": {
       "1.5": {
-        "brier": 0.123838,
-        "log_loss": 0.412647,
-        "mean_probability": 0.759946,
-        "n": 59,
-        "observed_rate": 0.864407
+        "brier": 0.125884,
+        "log_loss": 0.416599,
+        "mean_probability": 0.758668,
+        "n": 62,
+        "observed_rate": 0.854839
       },
       "2.5": {
-        "brier": 0.242173,
-        "log_loss": 0.676128,
-        "mean_probability": 0.529925,
-        "n": 59,
-        "observed_rate": 0.491525
+        "brier": 0.239069,
+        "log_loss": 0.669724,
+        "mean_probability": 0.528245,
+        "n": 62,
+        "observed_rate": 0.5
       },
       "3.5": {
-        "brier": 0.212741,
-        "log_loss": 0.620021,
-        "mean_probability": 0.318109,
-        "n": 59,
-        "observed_rate": 0.338983
+        "brier": 0.216993,
+        "log_loss": 0.62863,
+        "mean_probability": 0.316634,
+        "n": 62,
+        "observed_rate": 0.354839
       }
     },
-    "n": 59
+    "n": 62
   },
   "challenger": {
-    "lambda_mae": 1.406876,
+    "lambda_mae": 1.422797,
     "lines": {
       "1.5": {
-        "brier": 0.124583,
-        "log_loss": 0.415112,
-        "mean_probability": 0.751817,
-        "n": 59,
-        "observed_rate": 0.864407
+        "brier": 0.126337,
+        "log_loss": 0.418474,
+        "mean_probability": 0.750249,
+        "n": 62,
+        "observed_rate": 0.854839
       },
       "2.5": {
-        "brier": 0.241054,
-        "log_loss": 0.673658,
-        "mean_probability": 0.519498,
-        "n": 59,
-        "observed_rate": 0.491525
+        "brier": 0.238187,
+        "log_loss": 0.667707,
+        "mean_probability": 0.517527,
+        "n": 62,
+        "observed_rate": 0.5
       },
       "3.5": {
-        "brier": 0.212879,
-        "log_loss": 0.622029,
-        "mean_probability": 0.308824,
-        "n": 59,
-        "observed_rate": 0.338983
+        "brier": 0.217576,
+        "log_loss": 0.631656,
+        "mean_probability": 0.307167,
+        "n": 62,
+        "observed_rate": 0.354839
       }
     },
-    "n": 59
+    "n": 62
   },
-  "evaluated_fixtures": 59,
+  "evaluated_fixtures": 62,
   "evaluations": [
     {
       "away_team": "Zaglebie Lubin",
@@ -1353,34 +1353,100 @@
       "league": "Primera División",
       "league_id": 344,
       "stage": "CLOSE"
+    },
+    {
+      "away_team": "El Nacional",
+      "canonical_lambda": 2.1344,
+      "canonical_probs": {
+        "1.5": 0.629145,
+        "2.5": 0.359642,
+        "3.5": 0.167901
+      },
+      "challenger_lambda": 2.0494,
+      "challenger_probs": {
+        "1.5": 0.6072,
+        "2.5": 0.336692,
+        "3.5": 0.151899
+      },
+      "final_total": 1,
+      "fixture_id": 1636696,
+      "generated_at_local": "2026-09-17T17:52:11.425894-06:00",
+      "home_team": "Santo Domingo",
+      "league": "Liga Pro Serie B",
+      "league_id": 243,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Millonarios W",
+      "canonical_lambda": 2.5,
+      "canonical_probs": {
+        "1.5": 0.712702,
+        "2.5": 0.456187,
+        "3.5": 0.242424
+      },
+      "challenger_lambda": 2.4156,
+      "challenger_probs": {
+        "1.5": 0.694934,
+        "2.5": 0.434354,
+        "3.5": 0.224538
+      },
+      "final_total": 4,
+      "fixture_id": 1639698,
+      "generated_at_local": "2026-09-17T17:52:11.425894-06:00",
+      "home_team": "Santa Fe W",
+      "league": "Liga Femenina",
+      "league_id": 712,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Gualberto Villarroel SJ",
+      "canonical_lambda": 3.45,
+      "canonical_probs": {
+        "1.5": 0.858723,
+        "2.5": 0.669785,
+        "3.5": 0.452507
+      },
+      "challenger_lambda": 3.4261,
+      "challenger_probs": {
+        "1.5": 0.856088,
+        "2.5": 0.665257,
+        "3.5": 0.447318
+      },
+      "final_total": 6,
+      "fixture_id": 1619018,
+      "generated_at_local": "2026-09-17T18:20:51.587677-06:00",
+      "home_team": "Bolívar",
+      "league": "Primera División",
+      "league_id": 344,
+      "stage": "T-10"
     }
   ],
   "improvement": {
-    "lambda_mae_delta_challenger_minus_canonical": -0.001324,
+    "lambda_mae_delta_challenger_minus_canonical": -0.000884,
     "leagues_where_challenger_improves_o2_5_brier": 1,
     "leagues_with_10plus_evaluations": 1,
     "lines": {
       "1.5": {
-        "brier_delta_challenger_minus_canonical": 0.000745,
-        "log_loss_delta_challenger_minus_canonical": 0.002465,
-        "n": 59
+        "brier_delta_challenger_minus_canonical": 0.000453,
+        "log_loss_delta_challenger_minus_canonical": 0.001875,
+        "n": 62
       },
       "2.5": {
-        "brier_delta_challenger_minus_canonical": -0.001119,
-        "log_loss_delta_challenger_minus_canonical": -0.00247,
-        "n": 59
+        "brier_delta_challenger_minus_canonical": -0.000882,
+        "log_loss_delta_challenger_minus_canonical": -0.002017,
+        "n": 62
       },
       "3.5": {
-        "brier_delta_challenger_minus_canonical": 0.000138,
-        "log_loss_delta_challenger_minus_canonical": 0.002008,
-        "n": 59
+        "brier_delta_challenger_minus_canonical": 0.000583,
+        "log_loss_delta_challenger_minus_canonical": 0.003026,
+        "n": 62
       }
     }
   },
   "league_stability": {
     "Primera División": {
-      "n": 10,
-      "o2_5_brier_delta": -0.009
+      "n": 11,
+      "o2_5_brier_delta": -0.007908
     }
   },
   "method": "DIRECT_PERSISTED_PREKICKOFF_CANONICAL_VS_RELATIVE_STRENGTH_SHADOW",

@@ -1,7 +1,7 @@
 {
   "anti_leakage": "Every target uses only finalized fixtures with kickoff strictly earlier than the target. FT and HT scores are used only to construct historical second-half targets.",
   "explicit_period_model": true,
-  "finalized_fixtures_with_second_half_target": 351,
+  "finalized_fixtures_with_second_half_target": 355,
   "formula": {
     "away_lambda_2h": "league_away_2h_rate * away_2h_attack_strength * home_2h_defensive_weakness",
     "hierarchy": "global 2H home/away rates -> league 2H rates shrunk to global -> venue-specific team 2H attack/defense shrunk to league",
@@ -11,121 +11,17 @@
   },
   "market_scope": "NO_ACTIONABLE_2H_MARKET_PRICING_YET",
   "metrics": {
-    "mean_abs_2h_total_goals_error": 0.958,
+    "mean_abs_2h_total_goals_error": 0.9587,
     "mean_predicted_over_1_5_probability": 0.4998,
-    "observed_over_1_5_rate": 0.5047,
-    "over_1_5_accuracy_at_0_5_threshold": 0.4673,
+    "observed_over_1_5_rate": 0.5046,
+    "over_1_5_accuracy_at_0_5_threshold": 0.4646,
     "over_1_5_brier": 0.2527,
-    "over_1_5_log_loss": 0.6984
+    "over_1_5_log_loss": 0.6985
   },
   "minimum_training_fixtures": 30,
   "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
   "model_timing": "PREGAME_SECOND_HALF_MARKET_MODEL_NOT_LIVE_HALFTIME_MODEL",
   "predictions": [
-    {
-      "actual_second_half": {
-        "away": 0,
-        "home": 1,
-        "total": 1
-      },
-      "away_lambda_2h": 0.906156,
-      "away_team": "Benevento U19",
-      "fixture_id": 1623559,
-      "global_away_2h_rate": 0.792079,
-      "global_home_2h_rate": 0.891089,
-      "home_lambda_2h": 0.905295,
-      "home_team": "Pescara U19",
-      "kickoff_local": "2026-09-12T03:30:00-06:00",
-      "league": "Campionato Primavera - 2",
-      "league_away_2h_rate": 0.906156,
-      "league_home_2h_rate": 0.905295,
-      "league_id": 706,
-      "p_over_0_5_2h": 0.83658,
-      "p_over_1_5_2h": 0.540558,
-      "p_over_2_5_2h": 0.272444,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 3.0,
-      "total_lambda_2h": 1.811451
-    },
-    {
-      "actual_second_half": {
-        "away": 0,
-        "home": 3,
-        "total": 3
-      },
-      "away_lambda_2h": 0.746965,
-      "away_team": "Azkals",
-      "fixture_id": 1639084,
-      "global_away_2h_rate": 0.784314,
-      "global_home_2h_rate": 0.892157,
-      "home_lambda_2h": 0.849673,
-      "home_team": "Stallion",
-      "kickoff_local": "2026-09-12T03:45:00-06:00",
-      "league": "PFL",
-      "league_away_2h_rate": 0.746965,
-      "league_home_2h_rate": 0.849673,
-      "league_id": 765,
-      "p_over_0_5_2h": 0.797423,
-      "p_over_1_5_2h": 0.473982,
-      "p_over_2_5_2h": 0.215772,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 1.0,
-      "total_lambda_2h": 1.596639
-    },
-    {
-      "actual_second_half": {
-        "away": 2,
-        "home": 2,
-        "total": 4
-      },
-      "away_lambda_2h": 0.762347,
-      "away_team": "Pohang Steelers",
-      "fixture_id": 1507067,
-      "global_away_2h_rate": 0.776699,
-      "global_home_2h_rate": 0.912621,
-      "home_lambda_2h": 0.924019,
-      "home_team": "Daejeon Citizen",
-      "kickoff_local": "2026-09-12T04:00:00-06:00",
-      "league": "K League 1",
-      "league_away_2h_rate": 0.762347,
-      "league_home_2h_rate": 0.924019,
-      "league_id": 292,
-      "p_over_0_5_2h": 0.814807,
-      "p_over_1_5_2h": 0.502507,
-      "p_over_2_5_2h": 0.23918,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 3.0,
-      "total_lambda_2h": 1.686366
-    },
-    {
-      "actual_second_half": {
-        "away": 2,
-        "home": 0,
-        "total": 2
-      },
-      "away_lambda_2h": 0.762238,
-      "away_team": "Hwaseong",
-      "fixture_id": 1510445,
-      "global_away_2h_rate": 0.788462,
-      "global_home_2h_rate": 0.923077,
-      "home_lambda_2h": 0.93007,
-      "home_team": "Ansan Greeners",
-      "kickoff_local": "2026-09-12T04:00:00-06:00",
-      "league": "K League 2",
-      "league_away_2h_rate": 0.762238,
-      "league_home_2h_rate": 0.93007,
-      "league_id": 293,
-      "p_over_0_5_2h": 0.815904,
-      "p_over_1_5_2h": 0.50436,
-      "p_over_2_5_2h": 0.240746,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 2.0,
-      "total_lambda_2h": 1.692308
-    },
     {
       "actual_second_half": {
         "away": 1,
@@ -6521,6 +6417,110 @@
       "prior_home_home_matches": 0.0,
       "prior_league_matches": 3.0,
       "total_lambda_2h": 1.64472
+    },
+    {
+      "actual_second_half": {
+        "away": 0,
+        "home": 1,
+        "total": 1
+      },
+      "away_lambda_2h": 0.787393,
+      "away_team": "El Nacional",
+      "fixture_id": 1636696,
+      "global_away_2h_rate": 0.794872,
+      "global_home_2h_rate": 0.891738,
+      "home_lambda_2h": 0.909782,
+      "home_team": "Santo Domingo",
+      "kickoff_local": "2026-09-17T18:00:00-06:00",
+      "league": "Liga Pro Serie B",
+      "league_away_2h_rate": 0.787393,
+      "league_home_2h_rate": 0.909782,
+      "league_id": 243,
+      "p_over_0_5_2h": 0.816798,
+      "p_over_1_5_2h": 0.505875,
+      "p_over_2_5_2h": 0.242029,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 4.0,
+      "total_lambda_2h": 1.697175
+    },
+    {
+      "actual_second_half": {
+        "away": 0,
+        "home": 0,
+        "total": 0
+      },
+      "away_lambda_2h": 0.850108,
+      "away_team": "Millonarios W",
+      "fixture_id": 1639698,
+      "global_away_2h_rate": 0.792614,
+      "global_home_2h_rate": 0.892045,
+      "home_lambda_2h": 0.849567,
+      "home_team": "Santa Fe W",
+      "kickoff_local": "2026-09-17T18:00:00-06:00",
+      "league": "Liga Femenina",
+      "league_away_2h_rate": 0.850108,
+      "league_home_2h_rate": 0.849567,
+      "league_id": 712,
+      "p_over_0_5_2h": 0.817255,
+      "p_over_1_5_2h": 0.506652,
+      "p_over_2_5_2h": 0.242689,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 1.0,
+      "total_lambda_2h": 1.699675
+    },
+    {
+      "actual_second_half": {
+        "away": 2,
+        "home": 1,
+        "total": 3
+      },
+      "away_lambda_2h": 0.733606,
+      "away_team": "Gualberto Villarroel SJ",
+      "fixture_id": 1619018,
+      "global_away_2h_rate": 0.790368,
+      "global_home_2h_rate": 0.889518,
+      "home_lambda_2h": 0.844088,
+      "home_team": "Bolívar",
+      "kickoff_local": "2026-09-17T18:30:00-06:00",
+      "league": "Primera División",
+      "league_away_2h_rate": 0.733606,
+      "league_home_2h_rate": 0.844088,
+      "league_id": 344,
+      "p_over_0_5_2h": 0.793548,
+      "p_over_1_5_2h": 0.467833,
+      "p_over_2_5_2h": 0.210893,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 7.0,
+      "total_lambda_2h": 1.577694
+    },
+    {
+      "actual_second_half": {
+        "away": 1,
+        "home": 1,
+        "total": 2
+      },
+      "away_lambda_2h": 0.803605,
+      "away_team": "CD Marathon",
+      "fixture_id": 1636690,
+      "global_away_2h_rate": 0.793785,
+      "global_home_2h_rate": 0.889831,
+      "home_lambda_2h": 0.942696,
+      "home_team": "LD Alajuelense",
+      "kickoff_local": "2026-09-17T18:30:00-06:00",
+      "league": "CONCACAF Central American Cup",
+      "league_away_2h_rate": 0.803605,
+      "league_home_2h_rate": 0.942696,
+      "league_id": 1028,
+      "p_over_0_5_2h": 0.82558,
+      "p_over_1_5_2h": 0.520993,
+      "p_over_2_5_2h": 0.255044,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 1.0,
+      "total_lambda_2h": 1.746301
     }
   ],
   "promotion_gate": {
@@ -6536,5 +6536,5 @@
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "target": "SECOND_HALF_HOME_AND_AWAY_GOALS_FROM_FT_MINUS_HT",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 321
+  "walk_forward_evaluated": 325
 }
