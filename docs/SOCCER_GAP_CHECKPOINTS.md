@@ -47,8 +47,8 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 27 | Assists | ✅ confirmed starter + persisted assists/minutes + team/rival goal environment | ✅ v3.40 Gamma-Poisson/Negative-Binomial 1+/2+ assist probabilities | 🟡 v3.40 research-only | 🔴 | ⏳ | 🟡 LIVE RESEARCH MODEL v3.40 | Natural persistence; ≥1000 OOS assist review, ≥2000 market review, ≥4000 actionable review; xA/chance-quality and observed assist price/CLV remain required before promotion. |
 | 28 | GK Saves | 🟠 capture/persistence path fixed; confirmed GK + team/opponent SOT available, but 0 finalized GK saves+conceded samples currently persisted | ✅ v3.41 model built: projected opponent SOT × shrunk save-result proxy; Poisson O/U 1.5–5.5 | 🟠 dormant/data-blocked | 🔴 | ⏳ data accumulation | 🟠 BUILT / DATA-BLOCKED v3.41 | Accumulate natural finalized GK samples first; then ≥300 OOS save-line review, ≥750 market review, ≥1500 actionable review; observed save price/CLV required. PSxG/shot-quality remains external. |
 | 29 | Player Cards | 🟠 capture path fixed; yellow/red fields retained forward, but 0 finalized yellow-card player samples currently persisted | ✅ v3.42 Gamma-Poisson/Negative-Binomial player-booked + 2+ yellow probabilities with shrunk team-discipline environment | 🟠 dormant/data-blocked | 🔴 | ⏳ data accumulation | 🟠 BUILT / DATA-BLOCKED v3.42 | Accumulate natural finalized player-yellow samples; ≥1000 OOS booked review, ≥2000 market review, ≥4000 actionable review; verified sportsbook player-card price + explicit card-scoring rule + CLV required. Referee numeric effect remains disabled until player-card-specific OOS lift. |
-| 30 | xG/xGA | ⚫ Sportmonks adapter/registry built; no verified imported xG observations/token configured yet | ✅ v3.43 research projection architecture from external xGF + opponent xGA, shrunk toward global xG | 🟠 dormant/external-data-blocked | 🔴 | ⏳ external import | 🟠 BUILT / EXTERNAL-BLOCKED v3.43 | Configure Sportmonks xG access/token and import mapped type_id 5304 observations; audit coverage/mapping; then ≥500 OOS feature review, ≥1000 λ challenger, ≥2000 production review. Never infer xG from goals. |
-| 31 | npxG/npxGA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Same source + penalty exclusion. |
+| 30 | xG/xGA | ⚫ Approved-source audit complete: current API-Football fixture-statistics contract and current GalaxyParlay integration contract do not expose verified xG | 🔴 no defensible xG projection from approved sources yet | 🟠 v3.43.1 source guard attached/dormant | 🔴 | ⏳ | 🟠 APPROVED-SOURCE BLOCKED v3.43.1 | Wait for explicit verified xG in API-Football or GalaxyParlay contract, then coverage/provenance audit + ≥500 OOS feature review, ≥1000 λ challenger, ≥2000 production review. Internal goal lambdas are never xG; no third provider without explicit approval. |
+| 31 | npxG/npxGA | ⚫ Approved-source audit complete: neither current API-Football nor GalaxyParlay contract exposes verified npxG | 🔴 native/shot-level non-penalty xG model unavailable | 🟠 v3.44 source/penalty-exclusion guard attached and data-blocked | 🔴 | ⏳ | 🟠 LIVE GUARD / APPROVED-SOURCE BLOCKED v3.44 | Require native npxG or verified shot-level/penalty xG provenance from API-Football/GalaxyParlay. Never subtract a fixed penalty-xG constant or penalty goal count. Then OOS/calibration gates before any weight. |
 | 32 | PPDA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source + normalized definition. |
 | 33 | Field Tilt | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source + consistent territorial definition. |
 | 34 | Box Entries | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source integration. |
@@ -67,7 +67,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 
 ## Engineering checkpoints materially completed/improved
 
-#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props · #25 v3.38 SOT props · #26 v3.39 Goalscorer · #27 v3.40 Assists · #28 v3.41 GK Saves (built/data-blocked) · #29 v3.42 Player Cards (built/data-blocked) · #30 v3.43 xG/xGA (built/external-data-blocked).
+#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props · #25 v3.38 SOT props · #26 v3.39 Goalscorer · #27 v3.40 Assists · #28 v3.41 GK Saves (built/data-blocked) · #29 v3.42 Player Cards (built/data-blocked) · #30 v3.43.1 xG/xGA approved-source guard · #31 v3.44 npxG/npxGA approved-source guard.
 
 ### #21 Goalkeeper — v3.34
 - `fixtures/players` compact now retains provider fields `goals.saves` and `goals.conceded` when supplied.
@@ -160,20 +160,32 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 - No sportsbook player-card price or explicit bookmaker card-scoring rule is attached, so EV/CLV and BET/LEAN/Galaxy eligibility remain blocked.
 - actionable=false, decision_weight=0; canonical model weights, thresholds, tier, stake and bet eligibility remain unchanged; v3.42 adds zero live provider requests.
 
-### #30 xG/xGA — v3.43
-- Source decision: use a formal external advanced-data provider rather than relabeling Soccer Edge goal lambdas as xG. Current adapter targets Sportmonks Expected Goals `type_id=5304`.
-- A dedicated importer requests fixture xG only when `SPORTMONKS_API_TOKEN` is explicitly configured; the normal live tick never calls Sportmonks and adds zero API-Football requests.
-- Mapping from Sportmonks fixtures to API-Football fixtures is conservative: exact normalized UTC-date + home/away names, plus an explicit alias file. No fuzzy auto-match is allowed.
-- Normalized observations preserve source fixture ID, API fixture/team IDs, xG metric/type ID and retrieval provenance.
-- The xG registry builds team L5/L10/L20 xGF/xGA. Here xGA means opponent verified xG in the same fixture; it is not inferred from goals conceded.
-- v3.43 can form a research projection from shrunk recent xGF and opponent xGA relative to the external global xG baseline, but canonical goal-lambda adjustment remains exactly 0.0.
-- Current status is EXTERNAL-DATA-BLOCKED until a Sportmonks token/access plan is configured and verified observations are imported.
-- Registry validation treats missing external observations as `BLOCKED_EXTERNAL_XG_DATA`, not PASS and not FAIL.
-- Before any production weight: coverage/mapping audit, ≥500 OOS feature-lift fixtures, ≥1000 λ-challenger fixtures, ≥2000 production-review fixtures, league/sample calibration and versioned promotion.
+### #30 xG/xGA — v3.43.1
+- Correction: the earlier Sportmonks dependency was not part of the approved project architecture and has been removed from active code, workflows and the tracker.
+- Approved sources remain API-Football v3 as the primary soccer-data provider plus the existing GalaxyParlay persisted integration contract.
+- API-Football's current documented fixture-statistics contract does not expose a verified shot-quality xG field for this pipeline; GalaxyParlay currently reports raw_home_xg/raw_away_xg as NOT EXPOSED BY INTEGRATION CONTRACT.
+- Soccer Edge raw_home_goal_rate/raw_away_goal_rate are model goal lambdas and are explicitly prohibited from being relabeled as xG.
+- v3.43.1 therefore attaches a zero-call source guard to eligible live research events and reports APPROVED_SOURCES_XG_NOT_EXPOSED while the approved contracts remain unchanged.
+- Any future Galaxy xG value must be explicitly numeric and carry a verified-source contract flag before the guard can accept it.
+- xGA remains defined only as opponent verified xG in the same fixture; goals conceded, shots, model lambdas and scoreline-derived proxies are invalid substitutes.
 - actionable=false, decision_weight=0; canonical probabilities, weights, thresholds, tier, stake and bet eligibility remain unchanged.
+- No third data provider may be introduced for this module without explicit project approval.
+- Once approved-source xG exists: coverage/provenance audit, ≥500 OOS feature-lift fixtures, ≥1000 lambda-challenger fixtures and ≥2000 production-review fixtures are still required.
+
+### #31 npxG/npxGA — v3.44
+- A live zero-call source/definition guard is built on top of corrected v3.43.1 and uses only API-Football + GalaxyParlay.
+- Current approved contracts do not expose native verified npxG, so DATA remains externally blocked and no numeric npxG model is claimed.
+- API-Football penalty goal/missed-penalty events are useful event facts but are not sufficient to identify the xG mass of each penalty or to reconstruct shot-level non-penalty xG.
+- Fixed penalty-xG subtraction is prohibited; subtracting a constant such as 0.76/0.78 per penalty would manufacture a provider-independent metric and is not accepted.
+- Subtracting penalty goal counts from xG is also prohibited because goals are outcomes, not expected-goal mass.
+- A future implementation may activate only if API-Football or GalaxyParlay exposes native npxG or verified shot-level/penalty xG provenance with an auditable definition.
+- npxGA is defined only as opponent verified npxG from the same fixture.
+- v3.44 attaches this blocked state to normal eligible scheduler events and match-intelligence areas with zero additional provider requests.
+- actionable=false, decision_weight=0; canonical probabilities, weights, thresholds, tier, stake and bet eligibility remain unchanged.
+- Natural persistence must confirm the guard after deployment; predictive/OOS gates begin only after real approved-source npxG data exists.
 
 ## Engineering rule
 Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until persisted natural state and calibration/promotion gates are satisfied.
 
 ## Next engineering target
-#31 npxG/npxGA — extend the external advanced-data adapter to verified non-penalty xG (Sportmonks type_id 7943 where covered), preserving xG and npxG as separate metrics and requiring coverage/provenance checks.
+#32 PPDA — first audit API-Football + GalaxyParlay for an explicit, normalized pressure definition. If neither approved source exposes it, build the same zero-weight source guard rather than inventing a proxy under the PPDA name.
