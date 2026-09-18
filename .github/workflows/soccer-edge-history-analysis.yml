@@ -18,6 +18,8 @@ jobs:
       - name: Checkout engine
         uses: actions/checkout@v4
         with: {ref: soccer-edge-mcp-v1, path: engine, fetch-depth: 1}
+      - name: Compile current Soccer Edge automation chain
+        run: python -m py_compile engine/mcp_gateway/xg_intelligence.py engine/mcp_gateway/build_xg_team_registry.py engine/mcp_gateway/validate_xg_registry.py engine/mcp_gateway/npxg_intelligence.py engine/mcp_gateway/ppda_intelligence.py engine/mcp_gateway/field_tilt_intelligence.py engine/mcp_gateway/box_entries_intelligence.py engine/mcp_gateway/automation_v67.py engine/mcp_gateway/automation_v68.py engine/mcp_gateway/automation_v69.py engine/mcp_gateway/automation_v70.py engine/mcp_gateway/automation_v71.py engine/mcp_gateway/tick_worker.py
       - name: Build historical signal ledger
         run: python engine/mcp_gateway/build_signal_ledger.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/signal_ledger.jsonl --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
       - name: Build league strength baseline registry
