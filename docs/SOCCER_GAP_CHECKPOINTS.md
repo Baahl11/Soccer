@@ -49,7 +49,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 | 29 | Player Cards | 🟠 capture path fixed; yellow/red fields retained forward, but 0 finalized yellow-card player samples currently persisted | ✅ v3.42 Gamma-Poisson/Negative-Binomial player-booked + 2+ yellow probabilities with shrunk team-discipline environment | 🟠 dormant/data-blocked | 🔴 | ⏳ data accumulation | 🟠 BUILT / DATA-BLOCKED v3.42 | Accumulate natural finalized player-yellow samples; ≥1000 OOS booked review, ≥2000 market review, ≥4000 actionable review; verified sportsbook player-card price + explicit card-scoring rule + CLV required. Referee numeric effect remains disabled until player-card-specific OOS lift. |
 | 30 | xG/xGA | 🟠 API-Football finalized /fixtures/statistics exposes expected_goals; zero-extra-call POSTGAME capture path now persists it, but Soccer Edge historical sample starts accumulating only from v3.43.2 | ✅ v3.43.2 historical xGF + opponent xGA shrinkage architecture with same-fixture leakage guard | 🟠 capture live / projection dormant until ≥5 team samples | 🔴 | ⏳ | 🟠 BUILT / DATA-ACCUMULATING v3.43.2 | Accumulate natural finalized xG samples, validate registry persistence, then ≥500 OOS feature review, ≥1000 λ challenger, ≥2000 production review. Realized same-fixture xG is never used pregame; internal lambdas are never xG. |
 | 31 | npxG/npxGA | ⚫ Approved-source audit complete: neither current API-Football nor GalaxyParlay contract exposes verified npxG | 🔴 native/shot-level non-penalty xG model unavailable | 🟠 v3.44 source/penalty-exclusion guard attached and data-blocked | 🔴 | ⏳ | 🟠 LIVE GUARD / APPROVED-SOURCE BLOCKED v3.44 | Require native npxG or verified shot-level/penalty xG provenance from API-Football/GalaxyParlay. Never subtract a fixed penalty-xG constant or penalty goal count. Then OOS/calibration gates before any weight. |
-| 32 | PPDA | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source + normalized definition. |
+| 32 | PPDA | ⚫ Approved-source audit complete: current API-Football/Galaxy contracts do not expose normalized PPDA inputs/definition | 🔴 true PPDA model unavailable; total-pass/tackle proxy prohibited | 🟠 v3.45 source/definition guard attached and data-blocked | 🔴 | ⏳ | 🟠 LIVE GUARD / APPROVED-SOURCE BLOCKED v3.45 | Require approved source with auditable spatial zone + defensive-action denominator. Legacy ppda placeholder is not data. No proxy relabeling; then OOS lift/calibration before weighting. |
 | 33 | Field Tilt | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source + consistent territorial definition. |
 | 34 | Box Entries | ⚫ | 🔴 | 🔴 | 🔴 | — | ⚫ EXTERNAL | Provider/source integration. |
 | 35 | Big Chances | 🟠 provider-dependent | 🔴 | 🔴 | 🔴 | — | ⚫/🟠 | Consistent live/historical source before weighting. |
@@ -67,7 +67,7 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 
 ## Engineering checkpoints materially completed/improved
 
-#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props · #25 v3.38 SOT props · #26 v3.39 Goalscorer · #27 v3.40 Assists · #28 v3.41 GK Saves (built/data-blocked) · #29 v3.42 Player Cards (built/data-blocked) · #30 v3.43.2 API-Football historical xG/xGA (built/data-accumulating) · #31 v3.44 npxG/npxGA approved-source guard.
+#1 v3.14 FT Goals · #2 v3.15 Team Totals · #3 v3.16 Correct Score · #4 v3.17 BTTS · #5 v3.18 1X2 · #6 v3.19 Double Chance · #7 v3.20 DNB · #8 v3.21 Asian Handicap · #9 v3.22 1H Goals · #10 v3.23 2H pregame · #12 v3.24 Corners FT · #13 v3.25 Team Corners · #14 v3.26 Cards total · #15 v3.27 Team Cards · #11 v3.28 2H halftime · #16 v3.29 Red Cards · #17 v3.30 Referee · #18 v3.31 Formations · #19 v3.32 Coaches · #20 v3.33 XI · #21 v3.34 Goalkeeper data/profile · #22 v3.35 Injuries/suspensions · #23 v3.36 Player trends · #24 v3.37 Shots props · #25 v3.38 SOT props · #26 v3.39 Goalscorer · #27 v3.40 Assists · #28 v3.41 GK Saves (built/data-blocked) · #29 v3.42 Player Cards (built/data-blocked) · #30 v3.43.2 API-Football historical xG/xGA (built/data-accumulating) · #31 v3.44 npxG/npxGA approved-source guard · #32 v3.45 PPDA approved-source guard.
 
 ### #21 Goalkeeper — v3.34
 - `fixtures/players` compact now retains provider fields `goals.saves` and `goals.conceded` when supplied.
@@ -184,8 +184,17 @@ Statuses: ✅ PASS · 🟢 IMPROVED · 🟡 LIVE RESEARCH · 🟠 OFFLINE/BUILT 
 - actionable=false, decision_weight=0; canonical probabilities, weights, thresholds, tier, stake and bet eligibility remain unchanged.
 - Natural persistence must confirm the guard after deployment; predictive/OOS gates begin only after real approved-source npxG data exists.
 
+### #32 PPDA — v3.45
+- API-Football + GalaxyParlay remain the only approved data sources for this module.
+- Current API-Football fixture statistics expose possession, passes, tackles/fouls and related match facts, but not a normalized PPDA metric or the spatial-zone event data needed to reconstruct PPDA faithfully.
+- GalaxyParlay currently does not expose a persisted PPDA field in its Sports Edge contract.
+- Legacy tactical_analysis code contains a defensive read of stats['ppda'] when supplied by a caller; no approved ingestion path populates that field, so it is explicitly treated as a placeholder rather than verified data.
+- v3.45 attaches a zero-call guard to eligible live events and match-intelligence areas so PPDA stays visibly NOT MODELED instead of silently becoming 0 or a synthetic proxy.
+- Whole-match passes divided by tackles/fouls/defensive actions is explicitly prohibited from being labeled PPDA because the required provider zone/action definition is missing.
+- actionable=false, decision_weight=0; canonical probabilities, weights, thresholds, tier, stake and bet eligibility remain unchanged.
+- Activation requires an approved source with auditable PPDA definition, historical/live consistency and then OOS feature-lift/calibration evidence.
 ## Engineering rule
 Natural validation is asynchronous and non-blocking. A module is not called fully RESOLVED until persisted natural state and calibration/promotion gates are satisfied.
 
 ## Next engineering target
-#32 PPDA — first audit API-Football + GalaxyParlay for an explicit, normalized pressure definition. If neither approved source exposes it, build the same zero-weight source guard rather than inventing a proxy under the PPDA name.
+#33 Field Tilt — audit API-Football + GalaxyParlay for an explicit, consistent territorial-possession definition before implementing any numeric feature.
