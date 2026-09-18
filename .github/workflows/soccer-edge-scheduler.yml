@@ -127,12 +127,24 @@ jobs:
                   previous = {}
 
           current = {}
-          for event in latest.get("events") or []:
-              fixture = event.get("fixture") or {}
+          sources = [latest]
+          latest_state_path = Path("soccer_edge_state/latest.json")
+          if latest_state_path.exists():
+              try:
+                  persisted_latest = json.load(open(latest_state_path, encoding="utf-8"))
+                  if isinstance(persisted_latest, dict):
+                      sources.append(persisted_latest)
+              except Exception:
+                  pass
+
+          for source in sources:
+              source_seen_at = source.get("generated_at_local") or latest["generated_at_local"]
+              for event in source.get("events") or []:
+                      fixture = event.get("fixture") or {}
               fixture_id = fixture.get("fixture_id")
               kickoff = dt(fixture.get("kickoff"))
               if not fixture_id or not kickoff or kickoff <= now:
-                  continue
+                      continue
 
               shortlist = event.get("sporting_shortlist") or {}
               raw = event.get("raw_projection") or {}
@@ -148,56 +160,56 @@ jobs:
               away = num(raw.get("raw_away_win_prob"))
 
               strong_sport = bool(shortlist.get("shortlisted")) and (
-                  (rank is not None and rank >= 80.0)
-                  or (two_way is not None and two_way >= 80.0)
-                  or (goals_env is not None and goals_env >= 75.0)
-                  or ("GOALS_OVER" in tracks and over25 is not None and over25 >= 0.60)
-                  or ("GOALS_UNDER" in tracks and over25 is not None and (1.0 - over25) >= 0.60)
-                  or ("SIDE" in tracks and max([p for p in (home, draw, away) if p is not None] or [0.0]) >= 0.60)
+                      (rank is not None and rank >= 80.0)
+                      or (two_way is not None and two_way >= 80.0)
+                      or (goals_env is not None and goals_env >= 75.0)
+                      or ("GOALS_OVER" in tracks and over25 is not None and over25 >= 0.60)
+                      or ("GOALS_UNDER" in tracks and over25 is not None and (1.0 - over25) >= 0.60)
+                      or ("SIDE" in tracks and max([p for p in (home, draw, away) if p is not None] or [0.0]) >= 0.60)
               )
               if strong_sport:
-                  key = f"sport:{fixture_id}"
-                  current[key] = {
-                      "key": key,
-                      "signal_type": "PRE_MARKET_WATCH",
-                      "first_seen_at": (previous.get(key) or {}).get("first_seen_at", latest["generated_at_local"]),
-                      "last_seen_at": latest["generated_at_local"],
-                      "fixture": fixture,
-                      "stage": event.get("stage"),
-                      "classification": event.get("classification"),
-                      "availability_confidence": event.get("availability_confidence"),
-                      "sporting_shortlist": shortlist,
-                      "raw_projection": raw,
-                      "market_provenance": event.get("market_provenance"),
-                      "notes": event.get("notes") or [],
-                  }
+                      key = f"sport:{fixture_id}"
+                      current[key] = {
+                          "key": key,
+                          "signal_type": "PRE_MARKET_WATCH",
+                          "first_seen_at": (previous.get(key) or {}).get("first_seen_at", source_seen_at),
+                          "last_seen_at": source_seen_at,
+                          "fixture": fixture,
+                          "stage": event.get("stage"),
+                          "classification": event.get("classification"),
+                          "availability_confidence": event.get("availability_confidence"),
+                          "sporting_shortlist": shortlist,
+                          "raw_projection": raw,
+                          "market_provenance": event.get("market_provenance"),
+                          "notes": event.get("notes") or [],
+                      }
 
               edge = num(best.get("prob_edge_pp"))
               tier = best.get("tier")
               market_fresh = bool(best.get("quote_fresh")) or bool((event.get("market_provenance") or {}).get("fresh"))
               if best and edge is not None and edge >= 3.0:
-                  key = f"market:{fixture_id}:{best.get('family')}:{best.get('selection')}:{best.get('line')}"
-                  if event.get("classification") in {"BET", "LEAN"} and market_fresh and (availability or 0.0) >= 0.85:
-                      signal_type = "ACTION_NOW"
-                  elif tier in {"A", "S"} or edge >= 5.0:
-                      signal_type = "MARKET_CHECK_NEEDED"
-                  else:
-                      signal_type = "WATCH_EDGE"
-                  current[key] = {
-                      "key": key,
-                      "signal_type": signal_type,
-                      "first_seen_at": (previous.get(key) or {}).get("first_seen_at", latest["generated_at_local"]),
-                      "last_seen_at": latest["generated_at_local"],
-                      "fixture": fixture,
-                      "stage": event.get("stage"),
-                      "classification": event.get("classification"),
-                      "availability_confidence": event.get("availability_confidence"),
-                      "sporting_shortlist": shortlist,
-                      "raw_projection": raw,
-                      "market_provenance": event.get("market_provenance"),
-                      "best_market": best,
-                      "notes": event.get("notes") or [],
-                  }
+                      key = f"market:{fixture_id}:{best.get('family')}:{best.get('selection')}:{best.get('line')}"
+                      if event.get("classification") in {"BET", "LEAN"} and market_fresh and (availability or 0.0) >= 0.85:
+                          signal_type = "ACTION_NOW"
+                      elif tier in {"A", "S"} or edge >= 5.0:
+                          signal_type = "MARKET_CHECK_NEEDED"
+                      else:
+                          signal_type = "WATCH_EDGE"
+                      current[key] = {
+                          "key": key,
+                          "signal_type": signal_type,
+                          "first_seen_at": (previous.get(key) or {}).get("first_seen_at", source_seen_at),
+                          "last_seen_at": source_seen_at,
+                          "fixture": fixture,
+                          "stage": event.get("stage"),
+                          "classification": event.get("classification"),
+                          "availability_confidence": event.get("availability_confidence"),
+                          "sporting_shortlist": shortlist,
+                          "raw_projection": raw,
+                          "market_provenance": event.get("market_provenance"),
+                          "best_market": best,
+                          "notes": event.get("notes") or [],
+                      }
 
           merged = dict(previous)
           merged.update(current)
