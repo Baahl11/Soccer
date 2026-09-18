@@ -2,23 +2,23 @@
   "service": "soccer-edge-automation",
   "version": "3.43.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-18T00:51:32.571738+00:00",
-  "generated_at_local": "2026-09-17T18:51:32.571738-06:00",
+  "generated_at_utc": "2026-09-18T00:59:26.976108+00:00",
+  "generated_at_local": "2026-09-17T18:59:26.976108-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 174,
-  "due_fixture_count": 4,
-  "event_count": 1,
+  "due_fixture_count": 6,
+  "event_count": 3,
   "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 2,
+  "api_calls_this_tick": 4,
   "max_api_calls_per_tick": 20,
   "effective_max_api_calls_per_tick": 20,
-  "last_daily_remaining": 7453,
+  "last_daily_remaining": 7445,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 1,
-  "shortlist_event_count": 1,
+  "deep_dive_processed_count": 3,
+  "shortlist_event_count": 3,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
@@ -39,14 +39,14 @@
   "one_h_market_groups_this_tick": 0,
   "two_h_market_groups_this_tick": 0,
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
-  "relative_strength_1x2_shadow_count_this_tick": 1,
+  "relative_strength_1x2_shadow_count_this_tick": 0,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
   "trend_context_count_this_tick": 0,
   "trend_signal_count_this_tick": 0,
   "trend_model_disagreement_count_this_tick": 0,
   "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
-  "player_trend_fixture_calls_attempted_this_tick": 1,
-  "player_trend_fixtures_captured_this_tick": 1,
+  "player_trend_fixture_calls_attempted_this_tick": 0,
+  "player_trend_fixtures_captured_this_tick": 0,
   "player_trend_players_captured_this_tick": 0,
   "player_trend_max_fixture_calls_per_tick": 2,
   "player_trend_policy": "SELECTIVE_T40_T20_T10_ONLY; MAX_2_FIXTURES_PER_TICK; RESEARCH_ONLY; ZERO_DECISION_WEIGHT; NO_BET_UPGRADE",
@@ -56,7 +56,7 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 133,
+  "shortlist_state_count": 125,
   "shortlist_seed_imported": 133,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
@@ -65,7 +65,7 @@
     "galaxy_fixture_hits": 0,
     "galaxy_fixture_misses": 1,
     "galaxy_raw_used": 0,
-    "galaxy_raw_fallbacks": 1,
+    "galaxy_raw_fallbacks": 0,
     "api_team_stats_calls_avoided": 0,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
@@ -116,7 +116,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-17T18:51:32.571738-06:00",
+    "generated_at_local": "2026-09-17T18:59:26.976108-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -1756,12 +1756,13 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 1,
-        "rows_attached": 1,
+        "row_count": 3,
+        "rows_attached": 3,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "WATCH": 1
+          "CLOSE": 1,
+          "POSTGAME": 2
         }
       }
     },
@@ -1784,7 +1785,7 @@
       "competition": "Liga de Expansión MX",
       "data_tier": "B",
       "kickoff": "2026-09-17T19:00:00-06:00",
-      "stage": "T-10",
+      "stage": "CLOSE",
       "home": "Durango",
       "away": "Cruz Azul Hidalgo",
       "tracks": [
@@ -1793,17 +1794,72 @@
       "side_score": 54.2,
       "goals_score": 58.1,
       "two_way_score": 80.8,
-      "availability_confidence": 0.6,
+      "availability_confidence": null,
       "market_source": null,
       "market": null,
       "selection": null,
       "line": null,
       "price": null,
       "bookmaker": null,
-      "classification": "WATCH",
+      "classification": "CLOSE",
       "tier": null,
       "stake_units": 0.0,
-      "reason": "NO_SUPPORTED_CANONICAL_FT_MARKET"
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1549117,
+      "country": "World",
+      "competition": "CONCACAF Caribbean Club Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-17T17:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Cibao",
+      "away": "Portmore United",
+      "tracks": [
+        "SIDE",
+        "GOALS_UNDER"
+      ],
+      "side_score": 65.5,
+      "goals_score": 24.4,
+      "two_way_score": 48.3,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
+    },
+    {
+      "fixture_id": 1610971,
+      "country": "World",
+      "competition": "CONCACAF Caribbean Club Championship",
+      "data_tier": "B",
+      "kickoff": "2026-09-17T17:00:00-06:00",
+      "stage": "POSTGAME",
+      "home": "Mount Pleasant Academy",
+      "away": "Cavalier",
+      "tracks": [
+        "GOALS_UNDER"
+      ],
+      "side_score": 55.1,
+      "goals_score": 28.4,
+      "two_way_score": 57.0,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_PASS"
     }
   ],
   "research_report": {
@@ -1817,20 +1873,20 @@
         "league": "Liga de Expansión MX",
         "home": "Durango",
         "away": "Cruz Azul Hidalgo",
-        "stage": "T-10",
+        "stage": "CLOSE",
         "tier": "B",
-        "research_status": "RESEARCHED_WATCH",
-        "classification": "WATCH",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "CLOSE",
         "bet_eligible": false,
         "goals": {
-          "lambda_total": 2.6406,
-          "over_2_5_prob": 0.4917
+          "lambda_total": null,
+          "over_2_5_prob": null
         },
-        "btts_yes_prob": 0.5303,
+        "btts_yes_prob": null,
         "one_x_two_research": {
-          "home": 0.4458,
-          "draw": 0.2576,
-          "away": 0.2966,
+          "home": null,
+          "draw": null,
+          "away": null,
           "actionable": false
         },
         "trend_reliability": null,
@@ -1849,20 +1905,20 @@
           "two_way_scoring_score": 80.8,
           "reason": "SPORTING_SCREEN_PASS"
         },
-        "market_status": "WATCH",
-        "market_reason": "NO_SUPPORTED_CANONICAL_FT_MARKET",
+        "market_status": null,
+        "market_reason": null,
         "best_market": {},
-        "reason": "NO_SUPPORTED_CANONICAL_FT_MARKET"
+        "reason": null
       }
     ],
     "counts": {
-      "RESEARCHED_WATCH": 1
+      "RESEARCHED_NO_ACTIONABLE_EDGE": 1
     },
     "researched_count": 1,
     "insufficient_data_count": 0,
     "actionable_signal_count": 0,
-    "watch_count": 1,
-    "no_actionable_edge_count": 0,
+    "watch_count": 0,
+    "no_actionable_edge_count": 1,
     "scope": [
       "FT_GOALS",
       "BTTS_RESEARCH",
@@ -1889,7 +1945,7 @@
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-17T18:51:32.571738-06:00",
+    "generated_at_local": "2026-09-17T18:59:26.976108-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -1986,8 +2042,8 @@
       "multi_match_active": 0,
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
-      "invalidated_fixture_count_this_tick": 1,
-      "updated_at_utc": "2026-09-18T00:51:32.571738+00:00",
+      "invalidated_fixture_count_this_tick": 3,
+      "updated_at_utc": "2026-09-18T00:59:26.976108+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -2034,7 +2090,7 @@
     "registry_loaded": false,
     "registry_status": "UNAVAILABLE",
     "live_research_events": 0,
-    "external_data_blocked_events": 1,
+    "external_data_blocked_events": 0,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -2046,21 +2102,29 @@
   "v343_xg_xga_checkpoint": "XG_XGA_ADAPTER_AND_REGISTRY_BUILT; EXTERNAL SPORTMONKS DATA/TOKEN_IMPORT_REQUIRED",
   "npxg_npxga_intelligence": null,
   "v344_npxg_npxga_checkpoint": null,
+  "ppda_intelligence": null,
+  "v345_ppda_checkpoint": null,
+  "field_tilt_intelligence": null,
+  "v346_field_tilt_checkpoint": null,
+  "box_entries_intelligence": null,
+  "v347_box_entries_checkpoint": null,
+  "big_chances_intelligence": null,
+  "v348_big_chances_checkpoint": null,
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7454",
+    "daily_remaining": "7448",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
   "events": [
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-10",
-      "classification": "WATCH",
+      "stage": "CLOSE",
+      "classification": "CLOSE",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.6,
+      "availability_confidence": null,
       "fixture": {
         "fixture_id": 1581422,
         "kickoff": "2026-09-17T19:00:00-06:00",
@@ -2118,28 +2182,8 @@
         "two_way_scoring_score": 80.8,
         "reason": "SPORTING_SCREEN_PASS"
       },
-      "sporting_screen_initial": {
-        "shortlisted": true,
-        "rank": 81.8,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 57.8,
-        "goal_environment_score": 61.2,
-        "two_way_scoring_score": 81.8,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_refined": {
-        "shortlisted": true,
-        "rank": 80.8,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 54.2,
-        "goal_environment_score": 58.1,
-        "two_way_scoring_score": 80.8,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
       "galaxy_source": null,
       "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
       "market_provenance": {
@@ -2160,22 +2204,7 @@
         "actionable": false,
         "decision_weight": 0.0
       },
-      "player_trends_research": {
-        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "teams": [],
-        "goalkeeper_fields_retained": [
-          "saves",
-          "goals_conceded"
-        ],
-        "player_card_fields_retained": [
-          "yellow_cards",
-          "red_cards"
-        ],
-        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-        "fixture_id": 1581422
-      },
+      "player_trends_research": null,
       "postgame_player_stats": null,
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
@@ -2184,11 +2213,11 @@
         "fixture_id": 1581422,
         "kickoff": "2026-09-17T19:00:00-06:00",
         "match": "Durango vs Cruz Azul Hidalgo",
-        "stage": "T-10",
+        "stage": "CLOSE",
         "data_tier": "B",
         "bet_tier": null,
-        "classification": "WATCH",
-        "availability_confidence": 0.6,
+        "classification": "CLOSE",
+        "availability_confidence": null,
         "sport_first": true,
         "areas": {
           "side_control": {
@@ -2270,7 +2299,7 @@
               "market_pricing": "NO_VERIFIED_TOTAL_LINE_PRICED_THIS_TICK",
               "production_family": "FT_TOTALS_CANONICAL_ACTIONABLE_SCOPE",
               "data_tier": "B",
-              "availability_confidence": 0.6
+              "availability_confidence": null
             },
             "remaining_model_gaps": [
               "ADVANCED_XG_NPXG_NOT_LIVE",
@@ -2378,14 +2407,12 @@
             }
           },
           "players": {
-            "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-            "teams": [],
+            "status": "NOT_CAPTURED_THIS_TICK",
             "probability_model": "MISSING_PLAYER_PROP_MODEL",
-            "actionable": false,
-            "decision_weight": 0.0
+            "actionable": false
           },
           "lineups_formations": {
-            "status": "PENDING",
+            "status": "NOT_VERIFIED",
             "both_xi_confirmed": false,
             "both_goalkeepers_confirmed": false,
             "teams": [],
@@ -2885,99 +2912,15 @@
           "xi_change_intelligence": {
             "schema_version": "1.0.0",
             "fixture_id": 1581422,
-            "status": "PENDING",
-            "source": "API_FIXTURE_LINEUPS",
-            "current": {
-              "teams": [],
-              "fingerprint": "",
-              "both_xi_confirmed": false,
-              "both_goalkeepers_confirmed": false,
-              "lineup_state": "PENDING"
-            },
-            "previous_capture_available": true,
-            "lineup_changed_since_previous_capture": false,
-            "changes": [],
-            "material_change": false,
-            "canonical_availability_gate_changed": false,
-            "policy": "OBSERVE/PERSIST XI CHANGES ONLY; DO NOT INVENT PLAYER IMPACT; MATERIAL CHANGES REQUIRE RECHECK BUT DO NOT ALTER CANONICAL PROBABILITY WITHOUT PLAYER-IMPACT MODEL"
+            "status": "NOT_VERIFIED",
+            "reason": "LINEUP_PAYLOAD_NOT_AVAILABLE",
+            "actionable": false
           },
           "goalkeeper": {
             "schema_version": "1.0.0",
             "fixture_id": 1581422,
             "status": "NOT_VERIFIED",
             "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "injuries": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "NOT_VERIFIED",
-            "reason": "CURRENT_INJURY_REPORT_NOT_AVAILABLE",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "player_trends": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "NOT_VERIFIED",
-            "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "player_shots": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "NOT_VERIFIED",
-            "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "player_sot": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "NOT_VERIFIED",
-            "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "goalscorer": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "NOT_VERIFIED",
-            "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "player_assists": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "NOT_VERIFIED",
-            "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "gk_saves": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "NOT_VERIFIED",
-            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "player_cards": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "NOT_VERIFIED",
-            "reason": "BOTH_STARTING_XI_NOT_CONFIRMED",
-            "actionable": false,
-            "decision_weight": 0.0
-          },
-          "xg_xga": {
-            "schema_version": "1.0.0",
-            "fixture_id": 1581422,
-            "status": "EXTERNAL_XG_REGISTRY_UNAVAILABLE",
-            "source_required": "Sportmonks xG type_id 5304",
             "actionable": false,
             "decision_weight": 0.0
           }
@@ -2998,21 +2941,14 @@
         "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET"
       },
       "postgame_xg_observation": null,
-      "xg_xga_intelligence": {
-        "schema_version": "1.0.0",
-        "fixture_id": 1581422,
-        "status": "EXTERNAL_XG_REGISTRY_UNAVAILABLE",
-        "source_required": "Sportmonks xG type_id 5304",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
+      "xg_xga_intelligence": null,
       "npxg_npxga_intelligence": null,
-      "lineups": {
-        "lineup_state": "PENDING",
-        "both_xi_confirmed": false,
-        "both_goalkeepers_confirmed": false,
-        "teams": []
-      },
+      "ppda_intelligence": null,
+      "field_tilt_intelligence": null,
+      "box_entries_intelligence": null,
+      "postgame_big_chances_observation": null,
+      "big_chances_intelligence": null,
+      "lineups": null,
       "raw_projection": {
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
@@ -3086,23 +3022,319 @@
           "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
         }
       },
-      "market_decision": {
-        "status": "WATCH",
-        "reason": "NO_SUPPORTED_CANONICAL_FT_MARKET",
-        "first_half_markets_ignored": null,
-        "first_half_reason": null,
-        "period_markets_ignored": 0,
-        "period_market_reason": null,
-        "btts_market_mode": "RESEARCH_ONLY_PENDING_VALIDATION",
-        "galaxy_publication_gate_downgraded": 0,
-        "galaxy_sample_gate_substitutions": null
-      },
+      "market_decision": null,
       "best_market": null,
       "notes": [
-        "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Last valid same-fixture sport projection restored for continuity; research-only."
       ],
       "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1549117,
+        "kickoff": "2026-09-17T17:00:00-06:00",
+        "timestamp": 1789686000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 856,
+        "league": "CONCACAF Caribbean Club Championship",
+        "country": "World",
+        "season": 2026,
+        "round": "Group Stage - 5",
+        "home_team_id": 8004,
+        "home_team": "Cibao",
+        "away_team_id": 3443,
+        "away_team": "Portmore United",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": 1,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 75.6,
+        "tracks": [
+          "SIDE",
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 65.5,
+        "goal_environment_score": 24.4,
+        "two_way_scoring_score": 48.3,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "postgame_player_stats": {
+        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+        "actionable": false,
+        "decision_weight": 0.0,
+        "teams": [],
+        "goalkeeper_fields_retained": [
+          "saves",
+          "goals_conceded"
+        ],
+        "player_card_fields_retained": [
+          "yellow_cards",
+          "red_cards"
+        ],
+        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+        "fixture_id": 1549117,
+        "capture_phase": "POSTGAME"
+      },
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": null,
+      "postgame_xg_observation": null,
+      "xg_xga_intelligence": null,
+      "npxg_npxga_intelligence": null,
+      "ppda_intelligence": null,
+      "field_tilt_intelligence": null,
+      "box_entries_intelligence": null,
+      "postgame_big_chances_observation": null,
+      "big_chances_intelligence": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 2
+        },
+        "score": {
+          "halftime": {
+            "home": 0,
+            "away": 1
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 2
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "player_stats": {
+          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+          "actionable": false,
+          "decision_weight": 0.0,
+          "teams": [],
+          "goalkeeper_fields_retained": [
+            "saves",
+            "goals_conceded"
+          ],
+          "player_card_fields_retained": [
+            "yellow_cards",
+            "red_cards"
+          ],
+          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+          "fixture_id": 1549117,
+          "capture_phase": "POSTGAME"
+        }
+      },
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "POSTGAME",
+      "classification": "POSTGAME",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1610971,
+        "kickoff": "2026-09-17T17:00:00-06:00",
+        "timestamp": 1789686000,
+        "status": "FT",
+        "status_long": "Match Finished",
+        "elapsed": 90,
+        "league_id": 856,
+        "league": "CONCACAF Caribbean Club Championship",
+        "country": "World",
+        "season": 2026,
+        "round": "Group Stage - 5",
+        "home_team_id": 3442,
+        "home_team": "Mount Pleasant Academy",
+        "away_team_id": 3437,
+        "away_team": "Cavalier",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 71.6,
+        "tracks": [
+          "GOALS_UNDER"
+        ],
+        "side_edge_score": 55.1,
+        "goal_environment_score": 28.4,
+        "two_way_scoring_score": 57.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "sporting_screen_initial": null,
+      "sporting_screen_refined": null,
+      "galaxy_source": null,
+      "market_source": null,
+      "market_provenance": null,
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "postgame_player_stats": {
+        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+        "actionable": false,
+        "decision_weight": 0.0,
+        "teams": [],
+        "goalkeeper_fields_retained": [
+          "saves",
+          "goals_conceded"
+        ],
+        "player_card_fields_retained": [
+          "yellow_cards",
+          "red_cards"
+        ],
+        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+        "fixture_id": 1610971,
+        "capture_phase": "POSTGAME"
+      },
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": null,
+      "postgame_xg_observation": null,
+      "xg_xga_intelligence": null,
+      "npxg_npxga_intelligence": null,
+      "ppda_intelligence": null,
+      "field_tilt_intelligence": null,
+      "box_entries_intelligence": null,
+      "postgame_big_chances_observation": null,
+      "big_chances_intelligence": null,
+      "lineups": null,
+      "raw_projection": null,
+      "market_decision": null,
+      "best_market": null,
+      "notes": [],
+      "result": {
+        "goals": {
+          "home": 1,
+          "away": 0
+        },
+        "score": {
+          "halftime": {
+            "home": 1,
+            "away": 0
+          },
+          "fulltime": {
+            "home": 1,
+            "away": 0
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "status": "FT",
+        "player_stats": {
+          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+          "actionable": false,
+          "decision_weight": 0.0,
+          "teams": [],
+          "goalkeeper_fields_retained": [
+            "saves",
+            "goals_conceded"
+          ],
+          "player_card_fields_retained": [
+            "yellow_cards",
+            "red_cards"
+          ],
+          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
+          "fixture_id": 1610971,
+          "capture_phase": "POSTGAME"
+        }
+      },
       "error": null
     }
   ]
