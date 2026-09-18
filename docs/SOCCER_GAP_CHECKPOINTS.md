@@ -205,6 +205,7 @@ This is the authoritative resumption point while v3.58 awaits a persisted natura
 
 - **Roadmap position:** #44 Galaxy SGP correlation remains the active numbered engineering checkpoint. Do not create #47 or replace this roadmap with a new numbering scheme.
 - **v3.58 Bet365-first status:** code is committed and the worker points to v3.58, with Bet365 as the primary verified common-book reference and explicit fallback. Natural state observed through 2026-09-18 00:27 CDMX still reported v3.56, so v3.58 is **NOT YET NATURALLY VALIDATED**.
+- **v3.58.1 manual-price patch:** built on top of v3.58. Missing final combined odds no longer hides a Galaxy candidate. The candidate remains classification WATCH, is surfaced as MODEL PLAY — MANUAL PRICE CHECK, and exposes a model-derived minimum acceptable decimal/american price. `bet_eligible` stays false until an executable quote is supplied; research-only/availability/model blockers remain real blockers.
 - **#43 Galaxy Multi:** distinct-fixture component odds may be multiplied only when all legs use the same verified bookmaker snapshot/reference. Bet365 is preferred when present and viable. Final executable placement/quote verification remains required.
 - **#44 Galaxy SGP correlation:** current direct score-matrix joint model covers FT Goals + BTTS + Double Chance. Same-game marginal multiplication remains prohibited. Next defensible score-derived expansion is 1X2, Team Totals, Correct Score, DNB and Asian Handicap before attempting corners/cards/player/GK correlations.
 - **#45 SGP pricing:** internal fair probability, fair decimal/american and minimum playable price are model-derived; executable Bet365 Bet Builder price is a separate market input. /odds/bets and /odds/bookmakers audit paths are built, pending natural validation.
@@ -214,8 +215,10 @@ This is the authoritative resumption point while v3.58 awaits a persisted natura
 - **Do not recalibrate FT Goals from the current BET sample.** The graded canonical BET sample remains too small for weight changes.
 - **Ops items remain transverse, outside the numbered map:** OPS-A lifecycle naming/dedupe (EARLY_RESEARCH != T-90), OPS-B health/watchdog, OPS-C natural T-40 -> T-20 -> T-10 -> CLOSE validation.
 
+- **Galaxy postgame grading:** `mcp_gateway/analyze_galaxy_history.py` is wired into the nightly analysis workflow. It deduplicates logical Galaxy combinations across ticks, grades every supported leg against persisted final results, reports MULTI and SGP W/L separately, and treats component-product profit as hypothetical reference bookkeeping only—not official bankroll ROI.
+
 ### Resume sequence
-1. Confirm a persisted natural state with version >=3.58 and inspect bookmaker/odds catalog audits.
+1. Confirm a persisted natural state with version >=3.58.1 and inspect bookmaker/odds catalog audits plus manual-price fields.
 2. Validate Bet365 identity, same-book leg selection, fallback behavior and multi-match combined price fields.
 3. Implement lifecycle separation/early post-shortlist market snapshot without allowing market-first screening.
 4. Fix promotion-review false-ready classification.
