@@ -2,13 +2,13 @@
   "anti_leakage": "Every target multiplier uses only earlier finalized fixtures; target second-half outcome never enters its own state multiplier.",
   "baseline": {
     "brier_o1_5": 0.252797,
-    "log_loss_o1_5": 0.698703,
-    "mae_2h_lambda": 0.973958
+    "log_loss_o1_5": 0.698704,
+    "mae_2h_lambda": 0.974188
   },
   "challenger": {
-    "brier_o1_5": 0.254478,
-    "log_loss_o1_5": 0.702132,
-    "mae_2h_lambda": 0.977091
+    "brier_o1_5": 0.254654,
+    "log_loss_o1_5": 0.702486,
+    "mae_2h_lambda": 0.977871
   },
   "conditioning_features": [
     "halftime home/away score",
@@ -18,42 +18,42 @@
   "full_history_state_registry": {
     "buckets": {
       "AWAY_LEAD|HT1": {
-        "multiplier_vs_global": 0.95146,
-        "n": 52,
-        "shrunk_2h_total_rate": 1.608485
+        "multiplier_vs_global": 0.95622,
+        "n": 53,
+        "shrunk_2h_total_rate": 1.61277
       },
       "AWAY_LEAD|HT2_PLUS": {
-        "multiplier_vs_global": 0.987209,
+        "multiplier_vs_global": 0.988783,
         "n": 44,
-        "shrunk_2h_total_rate": 1.66892
+        "shrunk_2h_total_rate": 1.667691
       },
       "DRAW|HT0": {
-        "multiplier_vs_global": 0.979706,
+        "multiplier_vs_global": 0.981582,
         "n": 94,
-        "shrunk_2h_total_rate": 1.656236
+        "shrunk_2h_total_rate": 1.655546
       },
       "DRAW|HT2_PLUS": {
-        "multiplier_vs_global": 1.074548,
+        "multiplier_vs_global": 1.07629,
         "n": 41,
-        "shrunk_2h_total_rate": 1.816572
+        "shrunk_2h_total_rate": 1.815282
       },
       "HOME_LEAD|HT1": {
-        "multiplier_vs_global": 1.05693,
-        "n": 70,
-        "shrunk_2h_total_rate": 1.786788
+        "multiplier_vs_global": 1.047242,
+        "n": 71,
+        "shrunk_2h_total_rate": 1.766288
       },
       "HOME_LEAD|HT2_PLUS": {
-        "multiplier_vs_global": 0.955234,
+        "multiplier_vs_global": 0.956777,
         "n": 48,
-        "shrunk_2h_total_rate": 1.614866
+        "shrunk_2h_total_rate": 1.613709
       }
     },
-    "global_2h_total_rate": 1.690544
+    "global_2h_total_rate": 1.68661
   },
   "improvement": {
-    "brier_delta_baseline_minus_conditioned": -0.001681,
-    "log_loss_delta_baseline_minus_conditioned": -0.003429,
-    "mae_delta_baseline_minus_conditioned": -0.003133
+    "brier_delta_baseline_minus_conditioned": -0.001857,
+    "log_loss_delta_baseline_minus_conditioned": -0.003782,
+    "mae_delta_baseline_minus_conditioned": -0.003683
   },
   "live_status": "OFFLINE_MODEL_BUILT; SCHEDULER_HAS_NO_DEDICATED_HT_RESEARCH_STAGE_YET",
   "model": "PREGAME_2H_BASELINE_X_HALFTIME_STATE_MULTIPLIER_v0.1",
@@ -6654,9 +6654,53 @@
       "prior_state_n": 43,
       "state_bucket": "AWAY_LEAD|HT2_PLUS",
       "state_multiplier": 1.000915
+    },
+    {
+      "actual_2h_total": 2,
+      "actual_over_1_5": 1,
+      "baseline_2h_lambda": 1.627768,
+      "baseline_abs_lambda_error": 0.3722323521750459,
+      "baseline_brier": 0.26626552614854515,
+      "baseline_log_loss": 0.7256894441034267,
+      "baseline_p_over_1_5": 0.483991,
+      "conditioned_2h_lambda": 1.548755,
+      "conditioned_abs_lambda_error": 0.45124499082417624,
+      "conditioned_brier": 0.293376875891373,
+      "conditioned_log_loss": 0.7801063917219122,
+      "conditioned_p_over_1_5": 0.458357,
+      "fixture_id": 1549117,
+      "ht_score": "0-1",
+      "league": "CONCACAF Caribbean Club Championship",
+      "prior_global_2h_rate": 1.690544,
+      "prior_state_2h_rate_shrunk": 1.608485,
+      "prior_state_n": 52,
+      "state_bucket": "AWAY_LEAD|HT1",
+      "state_multiplier": 0.95146
+    },
+    {
+      "actual_2h_total": 0,
+      "actual_over_1_5": 0,
+      "baseline_2h_lambda": 1.64472,
+      "baseline_abs_lambda_error": 1.64472049689441,
+      "baseline_brier": 0.23950422612569555,
+      "baseline_log_loss": 0.6721524991057418,
+      "baseline_p_over_1_5": 0.489392,
+      "conditioned_2h_lambda": 1.737637,
+      "conditioned_abs_lambda_error": 1.7376373267677614,
+      "conditioned_brier": 0.26868664349293087,
+      "conditioned_log_loss": 0.7305374115512524,
+      "conditioned_p_over_1_5": 0.51835,
+      "fixture_id": 1610971,
+      "ht_score": "1-0",
+      "league": "CONCACAF Caribbean Club Championship",
+      "prior_global_2h_rate": 1.691429,
+      "prior_state_2h_rate_shrunk": 1.786984,
+      "prior_state_n": 70,
+      "state_bucket": "HOME_LEAD|HT1",
+      "state_multiplier": 1.056494
     }
   ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_HALFTIME_CONDITIONED_2H_CHALLENGER",
-  "walk_forward_evaluated": 299
+  "walk_forward_evaluated": 301
 }

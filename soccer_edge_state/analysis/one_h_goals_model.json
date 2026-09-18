@@ -1,7 +1,7 @@
 {
   "anti_leakage": "Every target uses only finalized fixtures with kickoff strictly earlier than the target; no target fixture halftime/fulltime result enters its own predictors.",
   "explicit_period_model": true,
-  "finalized_fixtures_with_halftime_target": 349,
+  "finalized_fixtures_with_halftime_target": 351,
   "formula": {
     "away_lambda_1h": "league_away_1h_rate * away_1h_attack_strength * home_1h_defensive_weakness",
     "hierarchy": "global 1H home/away rates -> league 1H rates shrunk to global -> venue-specific team 1H attack/defense shrunk to league",
@@ -11,68 +11,16 @@
   },
   "market_scope": "NO_ACTIONABLE_1H_MARKET_PRICING_YET",
   "metrics": {
-    "mean_abs_1h_total_goals_error": 0.9987,
-    "mean_predicted_over_1_5_probability": 0.4156,
-    "observed_over_1_5_rate": 0.373,
-    "over_1_5_accuracy_at_0_5_threshold": 0.6082,
-    "over_1_5_brier": 0.2354,
-    "over_1_5_log_loss": 0.6636
+    "mean_abs_1h_total_goals_error": 0.9948,
+    "mean_predicted_over_1_5_probability": 0.4154,
+    "observed_over_1_5_rate": 0.3707,
+    "over_1_5_accuracy_at_0_5_threshold": 0.6106,
+    "over_1_5_brier": 0.2349,
+    "over_1_5_log_loss": 0.6626
   },
   "minimum_training_fixtures": 30,
   "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
   "predictions": [
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 0,
-        "total": 0
-      },
-      "away_lambda_1h": 0.853535,
-      "away_team": "Tochigi City",
-      "fixture_id": 1606648,
-      "global_away_1h_rate": 0.888889,
-      "global_home_1h_rate": 0.707071,
-      "home_lambda_1h": 0.82461,
-      "home_team": "Kataller Toyama",
-      "kickoff_local": "2026-09-12T03:30:00-06:00",
-      "league": "J2 League",
-      "league_away_1h_rate": 0.853535,
-      "league_home_1h_rate": 0.82461,
-      "league_id": 99,
-      "p_over_0_5_1h": 0.813278,
-      "p_over_1_5_1h": 0.499935,
-      "p_over_2_5_1h": 0.237017,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 2.0,
-      "total_lambda_1h": 1.678145
-    },
-    {
-      "actual_halftime": {
-        "away": 0,
-        "home": 0,
-        "total": 0
-      },
-      "away_lambda_1h": 0.808696,
-      "away_team": "Shonan Bellmare",
-      "fixture_id": 1606649,
-      "global_away_1h_rate": 0.88,
-      "global_home_1h_rate": 0.7,
-      "home_lambda_1h": 0.782609,
-      "home_team": "Vanraure Hachinohe",
-      "kickoff_local": "2026-09-12T03:30:00-06:00",
-      "league": "J2 League",
-      "league_away_1h_rate": 0.808696,
-      "league_home_1h_rate": 0.782609,
-      "league_id": 99,
-      "p_over_0_5_1h": 0.796339,
-      "p_over_1_5_1h": 0.472255,
-      "p_over_2_5_1h": 0.214396,
-      "prior_away_away_matches": 0.0,
-      "prior_home_home_matches": 0.0,
-      "prior_league_matches": 3.0,
-      "total_lambda_1h": 1.591304
-    },
     {
       "actual_halftime": {
         "away": 1,
@@ -6520,6 +6468,58 @@
       "prior_home_home_matches": 1.0,
       "prior_league_matches": 6.0,
       "total_lambda_1h": 1.320881
+    },
+    {
+      "actual_halftime": {
+        "away": 1,
+        "home": 0,
+        "total": 1
+      },
+      "away_lambda_1h": 0.570461,
+      "away_team": "Portmore United",
+      "fixture_id": 1549117,
+      "global_away_1h_rate": 0.627507,
+      "global_home_1h_rate": 0.724928,
+      "home_lambda_1h": 0.795389,
+      "home_team": "Cibao",
+      "kickoff_local": "2026-09-17T17:00:00-06:00",
+      "league": "CONCACAF Caribbean Club Championship",
+      "league_away_1h_rate": 0.570461,
+      "league_home_1h_rate": 0.795389,
+      "league_id": 856,
+      "p_over_0_5_1h": 0.744836,
+      "p_over_1_5_1h": 0.396321,
+      "p_over_2_5_1h": 0.158311,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 2.0,
+      "total_lambda_1h": 1.36585
+    },
+    {
+      "actual_halftime": {
+        "away": 0,
+        "home": 1,
+        "total": 1
+      },
+      "away_lambda_1h": 0.590062,
+      "away_team": "Cavalier",
+      "fixture_id": 1610971,
+      "global_away_1h_rate": 0.628571,
+      "global_home_1h_rate": 0.722857,
+      "home_lambda_1h": 0.759006,
+      "home_team": "Mount Pleasant Academy",
+      "kickoff_local": "2026-09-17T17:00:00-06:00",
+      "league": "CONCACAF Caribbean Club Championship",
+      "league_away_1h_rate": 0.590062,
+      "league_home_1h_rate": 0.759006,
+      "league_id": 856,
+      "p_over_0_5_1h": 0.740518,
+      "p_over_1_5_1h": 0.390459,
+      "p_over_2_5_1h": 0.154332,
+      "prior_away_away_matches": 0.0,
+      "prior_home_home_matches": 0.0,
+      "prior_league_matches": 3.0,
+      "total_lambda_1h": 1.349068
     }
   ],
   "promotion_gate": {
@@ -6535,5 +6535,5 @@
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "target": "HALFTIME_HOME_AND_AWAY_GOALS",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 319
+  "walk_forward_evaluated": 321
 }

@@ -36,10 +36,10 @@
       "observed_hit_rate": 0.666667
     },
     "CONCACAF Caribbean Club Championship": {
-      "brier": 0.130564,
-      "log_loss": 0.433197,
-      "mean_probability": 0.666666,
-      "n": 6,
+      "brier": 0.171107,
+      "log_loss": 0.524858,
+      "mean_probability": 0.666667,
+      "n": 12,
       "observed_hit_rate": 0.666667
     },
     "CONCACAF Central American Cup": {
@@ -500,29 +500,29 @@
   },
   "by_selection": {
     "12": {
-      "brier": 0.18073,
-      "log_loss": 0.545429,
-      "mean_probability": 0.73043,
-      "n": 199,
-      "observed_hit_rate": 0.788945
+      "brier": 0.180098,
+      "log_loss": 0.544171,
+      "mean_probability": 0.729706,
+      "n": 201,
+      "observed_hit_rate": 0.791045
     },
     "1X": {
-      "brier": 0.209206,
-      "log_loss": 0.607489,
-      "mean_probability": 0.67268,
-      "n": 199,
-      "observed_hit_rate": 0.663317
+      "brier": 0.209141,
+      "log_loss": 0.607396,
+      "mean_probability": 0.671076,
+      "n": 201,
+      "observed_hit_rate": 0.661692
     },
     "X2": {
-      "brier": 0.240168,
-      "log_loss": 0.682919,
-      "mean_probability": 0.59689,
-      "n": 199,
-      "observed_hit_rate": 0.547739
+      "brier": 0.240914,
+      "log_loss": 0.684406,
+      "mean_probability": 0.599218,
+      "n": 201,
+      "observed_hit_rate": 0.547264
     }
   },
-  "evaluated_binary_rows": 597,
-  "evaluated_fixtures": 199,
+  "evaluated_binary_rows": 603,
+  "evaluated_fixtures": 201,
   "model": "CANONICAL_1X2_DERIVED_DOUBLE_CHANCE_v0.1",
   "notes": [
     "Double Chance probabilities are derived only from canonical pregame 1X2 probabilities.",
@@ -530,16 +530,16 @@
     "This report cannot promote Double Chance to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
   "overall": {
-    "brier": 0.210035,
-    "log_loss": 0.611946,
+    "brier": 0.210051,
+    "log_loss": 0.611991,
     "mean_probability": 0.666667,
-    "n": 597,
+    "n": 603,
     "observed_hit_rate": 0.666667
   },
   "promotion_gate": {
     "actionable_review_sample_gate_met": false,
     "enabled": false,
-    "market_comparison_sample_gate_met": false,
+    "market_comparison_sample_gate_met": true,
     "minimum_oos_fixtures_for_actionable_review": 400,
     "minimum_oos_fixtures_for_market_comparison": 200,
     "requires": [
@@ -6518,6 +6518,66 @@
       "league": "Liga Pro Serie B",
       "log_loss": 0.40962826202005725,
       "probability": 0.663897,
+      "selection": "12",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 0,
+      "brier": 0.21296890225798254,
+      "fixture_id": 1549117,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 0.618940927619938,
+      "probability": 0.461486,
+      "selection": "1X",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.01503808682381132,
+      "fixture_id": 1549117,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 0.13082634299544035,
+      "probability": 0.87737,
+      "selection": "X2",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.11482315908956699,
+      "fixture_id": 1549117,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 0.41378309858775403,
+      "probability": 0.661144,
+      "selection": "12",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.19232434830399994,
+      "fixture_id": 1610971,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 0.577228993764929,
+      "probability": 0.561452,
+      "selection": "1X",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 0,
+      "brier": 0.6151782548889999,
+      "fixture_id": 1610971,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 1.5340197275554863,
+      "probability": 0.784333,
+      "selection": "X2",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_hit": 1,
+      "brier": 0.11956726622500001,
+      "fixture_id": 1610971,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 0.42431923537275285,
+      "probability": 0.654215,
       "selection": "12",
       "stage": "CLOSE"
     }

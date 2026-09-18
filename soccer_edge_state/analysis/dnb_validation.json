@@ -36,10 +36,10 @@
       "observed_win_rate": 0.5
     },
     "CONCACAF Caribbean Club Championship": {
-      "brier": 0.105188,
-      "log_loss": 0.385936,
+      "brier": 0.173534,
+      "log_loss": 0.521683,
       "mean_probability": 0.5,
-      "n": 4,
+      "n": 8,
       "observed_win_rate": 0.5
     },
     "CONCACAF Central American Cup": {
@@ -444,36 +444,36 @@
   },
   "by_selection": {
     "AWAY": {
-      "brier": 0.223487,
-      "log_loss": 0.643512,
-      "mean_probability": 0.453026,
-      "n": 157,
-      "observed_win_rate": 0.426752
+      "brier": 0.223718,
+      "log_loss": 0.643687,
+      "mean_probability": 0.456666,
+      "n": 159,
+      "observed_win_rate": 0.427673
     },
     "HOME": {
-      "brier": 0.223487,
-      "log_loss": 0.643512,
-      "mean_probability": 0.546974,
-      "n": 157,
-      "observed_win_rate": 0.573248
+      "brier": 0.223718,
+      "log_loss": 0.643687,
+      "mean_probability": 0.543334,
+      "n": 159,
+      "observed_win_rate": 0.572327
     }
   },
   "draw_push_fixtures": 42,
-  "evaluated_binary_rows": 314,
-  "fixtures_with_result": 199,
+  "evaluated_binary_rows": 318,
+  "fixtures_with_result": 201,
   "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
-  "non_draw_oos_fixtures": 157,
+  "non_draw_oos_fixtures": 159,
   "notes": [
     "Draw fixtures are pushes and are excluded from conditional HOME/AWAY calibration scoring.",
     "DNB fair probability is P(win | no draw), while push probability is tracked separately.",
     "This report cannot promote DNB to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
-  "observed_draw_push_rate": 0.211055,
+  "observed_draw_push_rate": 0.208955,
   "overall_non_draw": {
-    "brier": 0.223487,
-    "log_loss": 0.643512,
+    "brier": 0.223718,
+    "log_loss": 0.643687,
     "mean_probability": 0.5,
-    "n": 314,
+    "n": 318,
     "observed_win_rate": 0.5
   },
   "promotion_gate": {
@@ -3628,6 +3628,46 @@
       "league": "Liga Pro Serie B",
       "log_loss": 0.4940942814533518,
       "probability_win_given_no_draw": 0.610123,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.03440329352293743,
+      "fixture_id": 1549117,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 0.20515782903218394,
+      "probability_win_given_no_draw": 0.185481,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.03440329352293745,
+      "fixture_id": 1549117,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 0.20515782903218407,
+      "probability_win_given_no_draw": 0.814519,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.4493588241820552,
+      "fixture_id": 1610971,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 1.1097004921827338,
+      "probability_win_given_no_draw": 0.329658,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.449358824182055,
+      "fixture_id": 1610971,
+      "league": "CONCACAF Caribbean Club Championship",
+      "log_loss": 1.1097004921827336,
+      "probability_win_given_no_draw": 0.670342,
       "selection": "AWAY",
       "stage": "CLOSE"
     }
