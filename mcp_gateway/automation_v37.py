@@ -10,6 +10,7 @@ from mcp_gateway import automation_v6 as v6
 from mcp_gateway import automation_v36 as v36
 from mcp_gateway import galaxy_builder_v2 as v2
 from mcp_gateway import galaxy_builder_v4 as v4
+from mcp_gateway import quote_freshness as qf
 
 MODEL_VERSION = v36.MODEL_VERSION
 AUTOMATION_VERSION = "3.13.0"
@@ -63,15 +64,25 @@ def _leg_key(row: dict[str, Any]) -> str:
     )
 
 
-def _quote_map(quotes: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+def _quote_map(
+    quotes: list[dict[str, Any]],
+    now: datetime | None = None,
+    max_age_minutes: float | None = None,
+) -> dict[str, dict[str, Any]]:
+    current_time = now or datetime.now(dt_timezone.utc)
+    max_age = float(max_age_minutes or qf.DEFAULT_MAX_AGE_MINUTES)
     best: dict[str, dict[str, Any]] = {}
     for quote in quotes:
         if not isinstance(quote, dict):
             continue
         bookmaker = str(quote.get("bookmaker") or "").strip()
         price = _num(quote.get("price"))
+        provider_update = quote.get("provider_update")
         if not bookmaker or price is None or price <= 1:
             continue
+        if not qf.is_fresh(provider_update, current_time, max_age):
+            continue
+        age = qf.age_minutes(provider_update, current_time)
         current = best.get(bookmaker)
         if current is None or price > float(current.get("price") or 0):
             best[bookmaker] = {
@@ -79,16 +90,23 @@ def _quote_map(quotes: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
                 "market": quote.get("market"),
                 "selection_text": quote.get("selection_text"),
                 "price": round(price, 4),
-                "provider_update": quote.get("provider_update"),
+                "provider_update": provider_update,
+                "quote_age_minutes": round(age, 2) if age is not None else None,
+                "quote_fresh": True,
+                "quote_freshness_anchor": "PROVIDER_UPDATE",
             }
     return best
 
 
-def _best_quotes(quotes: list[dict[str, Any]], limit: int = 6) -> list[dict[str, Any]]:
-    rows = list(_quote_map(quotes).values())
+def _best_quotes(
+    quotes: list[dict[str, Any]],
+    limit: int = 6,
+    now: datetime | None = None,
+    max_age_minutes: float | None = None,
+) -> list[dict[str, Any]]:
+    rows = list(_quote_map(quotes, now, max_age_minutes).values())
     rows.sort(key=lambda q: float(q.get("price") or 0), reverse=True)
     return rows[:limit]
-
 
 def _leg_best_edge_pp(leg: dict[str, Any]) -> float | None:
     probability = _num(leg.get("probability"))
@@ -162,7 +180,7 @@ def _extract_event_entries(
         probability = _num(leg.get("probability"))
         if probability is None or probability < MIN_LEG_PROBABILITY or probability >= 1:
             continue
-        quotes = _best_quotes(v4._verified_quotes(leg))
+        quotes = _best_quotes(\n            v4._verified_quotes(leg),\n            now=now,\n            max_age_minutes=market_freshness_minutes,\n        )
         if not quotes:
             continue
         row = {
@@ -176,9 +194,7 @@ def _extract_event_entries(
             "research_only_reason": leg.get("research_only_reason"),
             "quotes": quotes,
             "market_source": provenance.get("source"),
-            "market_fresh_at_capture": True,
-            "captured_at_utc": now.isoformat(),
-            "freshness_limit_minutes": market_freshness_minutes,
+            "market_fresh_at_capture": True,\n            "captured_at_utc": now.isoformat(),\n            "quote_freshness_anchor": "PROVIDER_UPDATE",\n            "capture_time_refreshes_quote_age": False,\n            "freshness_limit_minutes": market_freshness_minutes,
         }
         best_edge = _leg_best_edge_pp(row)
         if best_edge is None or best_edge < MIN_COMPONENT_EDGE_PP:
@@ -208,11 +224,16 @@ def _entry_future_and_fresh(
     market_freshness_minutes: float,
 ) -> bool:
     kickoff = _dt(row.get("kickoff"))
-    captured = _dt(row.get("captured_at_utc"))
-    if kickoff is None or kickoff <= now or captured is None:
+    if kickoff is None or kickoff <= now:
         return False
-    age_minutes = (now - captured).total_seconds() / 60.0
-    return -1.0 <= age_minutes <= market_freshness_minutes
+    # Capture time is diagnostic only. A repeated worker capture must never make
+    # an old sportsbook snapshot current again.
+    fresh_quote_map = _quote_map(
+        list(row.get("quotes") or []),
+        now,
+        market_freshness_minutes,
+    )
+    return bool(fresh_quote_map)
 
 
 def _update_pool(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, int | float]]:
@@ -266,7 +287,8 @@ def _update_pool(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[st
     record["updated_at_utc"] = now.isoformat()
     record["policy"] = (
         "MARKET_BACKED_CANONICAL_LEGS_ONLY; SAME_FIXTURE_REFRESH_REPLACES_PRIOR_LEGS; "
-        "PRICE_FRESHNESS_REQUIRED; KICKOFF_EXPIRES; ZERO_EXTRA_PROVIDER_REQUESTS"
+        "PROVIDER_UPDATE_PRICE_FRESHNESS_REQUIRED; CAPTURE_TIME_NEVER_REFRESHES_QUOTE_AGE; "
+        "KICKOFF_EXPIRES; ZERO_EXTRA_PROVIDER_REQUESTS"
     )
     base._cache_set("sport_shortlist", LEG_POOL_CACHE_KEY, record, now)
 
@@ -528,8 +550,8 @@ async def run_tick() -> dict[str, Any]:
         "multi_leg_counts_supported": [2, 3],
         "provider_requests_added": 0,
         "policy": (
-            "PERSIST MARKET-BACKED INDIVIDUAL LEGS ACROSS NATURAL TICKS; "
-            "ONE LEG PER FIXTURE IN A MULTI; SAME-BOOK COMPONENT QUOTES; "
+            "PERSIST MARKET-BACKED INDIVIDUAL LEGS ACROSS NATURAL TICKS ONLY WHILE PROVIDER_UPDATE IS FRESH; "
+            "CAPTURE TIME DOES NOT RESET QUOTE AGE; ONE LEG PER FIXTURE IN A MULTI; SAME-BOOK COMPONENT QUOTES; "
             "EACH COMPONENT REQUIRES >=1PP EDGE VS ITS VERIFIED PRICE; "
             "DISTINCT-FIXTURE JOINT P USES EXISTING 2_PERCENT_UNCERTAINTY_HAIRCUT; "
             "FINAL PARLAY QUOTE REQUIRED FOR BET"
