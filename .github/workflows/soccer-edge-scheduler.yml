@@ -105,6 +105,134 @@ jobs:
           cp /tmp/soccer_compact.json soccer_edge_state/latest.json
           jq -c '.' /tmp/soccer_compact.json >> "soccer_edge_state/history/${RUN_DATE}.jsonl"
           jq '.shortlist_state // {}' /tmp/soccer_tick.json > soccer_edge_state/shortlist_state.json
+          python - <<'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+
+          latest = json.load(open("/tmp/soccer_compact.json", encoding="utf-8"))
+          state_path = Path("soccer_edge_state/pending_opportunities.json")
+          now = datetime.fromisoformat(latest["generated_at_local"])
+
+          def dt(value):
+              try:
+                  return datetime.fromisoformat(value) if value else None
+              except Exception:
+                  return None
+
+          def num(value):
+              try:
+                  return float(value)
+              except (TypeError, ValueError):
+                  return None
+
+          previous = {}
+          if state_path.exists():
+              try:
+                  old = json.load(open(state_path, encoding="utf-8"))
+                  rows = old.get("opportunities", []) if isinstance(old, dict) else []
+                  for row in rows:
+                      ko = dt(((row.get("fixture") or {}).get("kickoff")))
+                      if ko and ko > now and row.get("key"):
+                          previous[row["key"]] = row
+              except Exception:
+                  previous = {}
+
+          current = {}
+          for event in latest.get("events") or []:
+              fixture = event.get("fixture") or {}
+              fixture_id = fixture.get("fixture_id")
+              kickoff = dt(fixture.get("kickoff"))
+              if not fixture_id or not kickoff or kickoff <= now:
+                  continue
+
+              shortlist = event.get("sporting_shortlist") or {}
+              raw = event.get("raw_projection") or {}
+              best = event.get("best_market") or {}
+              availability = num(event.get("availability_confidence"))
+              rank = num(shortlist.get("rank"))
+              two_way = num(shortlist.get("two_way_scoring_score"))
+              goals_env = num(shortlist.get("goal_environment_score"))
+              tracks = set(shortlist.get("tracks") or [])
+              over25 = num(raw.get("raw_over_2_5_prob"))
+              home = num(raw.get("raw_home_win_prob"))
+              draw = num(raw.get("raw_draw_prob"))
+              away = num(raw.get("raw_away_win_prob"))
+
+              strong_sport = bool(shortlist.get("shortlisted")) and (
+                  (rank is not None and rank >= 80.0)
+                  or (two_way is not None and two_way >= 80.0)
+                  or (goals_env is not None and goals_env >= 75.0)
+                  or ("GOALS_OVER" in tracks and over25 is not None and over25 >= 0.60)
+                  or ("GOALS_UNDER" in tracks and over25 is not None and (1.0 - over25) >= 0.60)
+                  or ("SIDE" in tracks and max([p for p in (home, draw, away) if p is not None] or [0.0]) >= 0.60)
+              )
+              if strong_sport:
+                  key = f"sport:{fixture_id}"
+                  current[key] = {
+                      "key": key,
+                      "signal_type": "PRE_MARKET_WATCH",
+                      "first_seen_at": (previous.get(key) or {}).get("first_seen_at", latest["generated_at_local"]),
+                      "last_seen_at": latest["generated_at_local"],
+                      "fixture": fixture,
+                      "stage": event.get("stage"),
+                      "classification": event.get("classification"),
+                      "availability_confidence": event.get("availability_confidence"),
+                      "sporting_shortlist": shortlist,
+                      "raw_projection": raw,
+                      "market_provenance": event.get("market_provenance"),
+                      "notes": event.get("notes") or [],
+                  }
+
+              edge = num(best.get("prob_edge_pp"))
+              tier = best.get("tier")
+              market_fresh = bool(best.get("quote_fresh")) or bool((event.get("market_provenance") or {}).get("fresh"))
+              if best and edge is not None and edge >= 3.0:
+                  family = best.get("family")
+                  selection = best.get("selection")
+                  line = best.get("line")
+                  key = f"market:{fixture_id}:{family}:{selection}:{line}"
+                  if event.get("classification") in {"BET", "LEAN"} and market_fresh and (availability or 0.0) >= 0.85:
+                      signal_type = "ACTION_NOW"
+                  elif tier in {"A", "S"} or edge >= 5.0:
+                      signal_type = "MARKET_CHECK_NEEDED"
+                  else:
+                      signal_type = "WATCH_EDGE"
+                  current[key] = {
+                      "key": key,
+                      "signal_type": signal_type,
+                      "first_seen_at": (previous.get(key) or {}).get("first_seen_at", latest["generated_at_local"]),
+                      "last_seen_at": latest["generated_at_local"],
+                      "fixture": fixture,
+                      "stage": event.get("stage"),
+                      "classification": event.get("classification"),
+                      "availability_confidence": event.get("availability_confidence"),
+                      "sporting_shortlist": shortlist,
+                      "raw_projection": raw,
+                      "market_provenance": event.get("market_provenance"),
+                      "best_market": best,
+                      "notes": event.get("notes") or [],
+                  }
+
+          merged = dict(previous)
+          merged.update(current)
+          opportunities = sorted(
+              merged.values(),
+              key=lambda row: (
+                  ((row.get("fixture") or {}).get("kickoff") or ""),
+                  row.get("signal_type") or "",
+                  row.get("key") or "",
+              ),
+          )[:100]
+          payload = {
+              "schema_version": "1.0.0",
+              "generated_at_local": latest["generated_at_local"],
+              "version": latest.get("version"),
+              "opportunity_count": len(opportunities),
+              "opportunities": opportunities,
+          }
+          state_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
           rm -f soccer_edge_state/last_error.json soccer_edge_state/quota_block_until.txt
           git config user.name soccer-edge-bot; git config user.email soccer-edge-bot@users.noreply.github.com
           git add -A soccer_edge_state
