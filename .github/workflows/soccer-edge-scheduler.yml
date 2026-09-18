@@ -265,7 +265,6 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import json
-          import math
           from datetime import datetime
           from pathlib import Path
 
@@ -390,9 +389,8 @@ jobs:
               return f"{f.get('home_team','?')} vs {f.get('away_team','?')}"
 
           def kickoff_text(row):
-              value = ((row.get("fixture") or {}).get("kickoff")) or ""
-              d = dt(value)
-              return d.strftime("%H:%M CDMX") if d else value
+              d = dt(((row.get("fixture") or {}).get("kickoff")) or "")
+              return d.strftime("%H:%M CDMX") if d else "N/V"
 
           cards = []
           for row in selected:
@@ -417,8 +415,12 @@ jobs:
               else:
                   fresh = bool(best.get("quote_fresh")) or bool(prov.get("fresh"))
                   price_label = "FRESCA" if fresh else "STALE / REFERENCIA"
+                  market_line = best.get("line")
+                  market_text = f"{best.get('market') or best.get('family') or 'N/V'} — {best.get('selection') or 'N/V'}"
+                  if market_line is not None:
+                      market_text += f" {market_line}"
                   lines += [
-                      f"Mercado: {best.get('market') or best.get('family') or 'N/V'} — {best.get('selection') or 'N/V'} {best.get('line') if best.get('line') is not None else ''}".rstrip(),
+                      f"Mercado: {market_text}",
                       f"Precio: {best.get('decimal_price','N/V')} @ {best.get('bookmaker','N/V')} — **{price_label}**",
                       f"P_model/shrunk: {pct(best.get('p_shrunk'))} | Edge: {dec(best.get('prob_edge_pp'))} pp | Tier: {best.get('tier') or 'N/V'}",
                       f"Availability: {dec(av)} | quote age: {dec(best.get('quote_age_minutes'))} min",
@@ -449,15 +451,10 @@ jobs:
               snapshot = dict(row)
               snapshot["delivered_at_local"] = queue.get("generated_at_local")
               delivered[row["key"]] = snapshot
-
-          # Keep only bounded future/recent delivery state.
-          trimmed = {}
-          for key, row in list(delivered.items())[-500:]:
-              trimmed[key] = row
           next_state = {
               "schema_version": "1.0.0",
               "updated_at_local": queue.get("generated_at_local"),
-              "delivered": trimmed,
+              "delivered": dict(list(delivered.items())[-500:]),
           }
           Path("/tmp/soccer_alert_delivery_state_next.json").write_text(
               json.dumps(next_state, ensure_ascii=False, indent=2) + "\n",
@@ -472,29 +469,14 @@ jobs:
 
           ISSUE_NUMBER=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search '"Soccer Edge Live Alerts" in:title' --json number,title --jq '.[] | select(.title=="⚽ Soccer Edge Live Alerts") | .number' | head -n1)
           if [ -z "$ISSUE_NUMBER" ]; then
-            ISSUE_URL=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "⚽ Soccer Edge Live Alerts" --body         if: steps.quota_guard.outputs.skip != 'true' && steps.tick.outputs.event_count != '0'
-        shell: bash
-        run: |
-          set -euo pipefail
-          jq '{service,version,model_version,generated_at_utc,generated_at_local,timezone,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,effective_max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,deferred_due_to_budget,deferred_due_to_priority,deep_dive_processed_count,shortlist_event_count,screened_out_low_data_count,market_requests_avoided_by_sport_screen,max_deep_dive_fixtures_per_tick,priority_queue,urgent_late_shortlist_due,urgent_late_shortlist_processed,urgent_window_completion_rate_this_tick,urgent_window_policy,deep_dive_capacity_policy,base_deep_dive_cap,elastic_deep_dive_cap,provider_api_cap_unchanged,dedicated_close_snapshots_this_tick,dedicated_close_quotes_this_tick,clv_close_policy,derivative_research_snapshots_this_tick,derivative_research_quotes_this_tick,one_h_market_groups_this_tick,two_h_market_groups_this_tick,derivative_market_capture_policy,relative_strength_1x2_shadow_count_this_tick,relative_strength_1x2_policy,trend_context_count_this_tick,trend_signal_count_this_tick,trend_model_disagreement_count_this_tick,trend_context_policy,player_trend_fixture_calls_attempted_this_tick,player_trend_fixtures_captured_this_tick,player_trend_players_captured_this_tick,player_trend_max_fixture_calls_per_tick,player_trend_policy,request_pacing_seconds,rate_limit_max_retries,first_half_market_model,period_market_model,automated_market_scope,shortlist_persistence,shortlist_state_count,shortlist_seed_imported,galaxy_first_enabled,galaxy_first_policy,galaxy_first_metrics,actionable_model_scope,duplicate_request_policy,galaxy_sample_policy,tier_policy,odds_source_policy,league_coverage_registry:(if (.league_coverage_registry|type)=="object" then {schema_version:.league_coverage_registry.schema_version,generated_at_local:.league_coverage_registry.generated_at_local,scope:.league_coverage_registry.scope,provider_calls_per_league:.league_coverage_registry.provider_calls_per_league,galaxy_activation_is_eligibility_gate:.league_coverage_registry.galaxy_activation_is_eligibility_gate,competition_count:.league_coverage_registry.competition_count,data_tier_counts:.league_coverage_registry.data_tier_counts,pregame_data_eligible_fixture_count:.league_coverage_registry.pregame_data_eligible_fixture_count,errors:.league_coverage_registry.errors} else .league_coverage_registry end),presentation_contract,coverage_registry_policy,match_table_rows,research_report,research_report_count_this_tick,research_completed_count_this_tick,research_insufficient_data_count_this_tick,research_policy,daily_research,daily_research_count_this_tick,daily_research_horizon_hours,galaxy_builder,galaxy_builder_candidate_count_this_tick,galaxy_builder_policy,galaxy_builder_actionable_scope,match_intelligence_schema_version,match_intelligence_event_count_this_tick,referee_assignment_verified_count_this_tick,coach_pair_verified_count_this_tick,card_market_groups_this_tick,card_market_quotes_this_tick,cards_probability_model_status,match_intelligence_policy,v39_provider_requests_added,v39_model_weights_changed,v39_canonical_bet_logic_changed,xg_xga_intelligence,v343_xg_xga_checkpoint,npxg_npxga_intelligence,v344_npxg_npxga_checkpoint,ppda_intelligence,v345_ppda_checkpoint,field_tilt_intelligence,v346_field_tilt_checkpoint,box_entries_intelligence,v347_box_entries_checkpoint,big_chances_intelligence,v348_big_chances_checkpoint,set_piece_intelligence,v349_set_piece_checkpoint,tactical_style_intelligence,rest_intelligence,congestion_intelligence,travel_intelligence,weather_intelligence,competition_context_intelligence,v350_tactical_style_checkpoint,rest_intelligence,v351_rest_checkpoint,congestion_intelligence,v352_congestion_checkpoint,travel_intelligence,v353_travel_checkpoint,weather_intelligence,v354_weather_checkpoint,competition_context_intelligence,v355_competition_context_checkpoint,galaxy_joint_intelligence,v356_galaxy_joint_checkpoint,odds_catalog_audit,v357_provider_requests_added,v357_model_weights_changed,v357_canonical_bet_logic_changed,v357_odds_catalog_checkpoint,bookmaker_catalog_audit,primary_bookmaker_policy,v358_provider_requests_added,v358_model_weights_changed,v358_canonical_bet_logic_changed,v358_bookmaker_checkpoint,manual_price_check_count,manual_price_check_ready_count,manual_price_check_candidates,v3581_provider_requests_added,v3581_model_weights_changed,v3581_canonical_bet_logic_changed,v3581_manual_price_checkpoint,quota,database_persisted,events:[.events[]|{event_type,stage,classification,tier,stake_units,bet_eligible,availability_confidence,fixture,coverage:(if (.coverage|type)=="object" then {data_tier:.coverage.data_tier} else .coverage end),sporting_shortlist,sporting_screen_initial,sporting_screen_refined,galaxy_source,market_source,market_provenance,trend_context,player_trends_research,postgame_player_stats,closing_market_snapshot,derivative_research_market_snapshot:(if (.derivative_research_market_snapshot|type)=="object" then {schema_version:.derivative_research_market_snapshot.schema_version,captured_at_local:.derivative_research_market_snapshot.captured_at_local,research_only:.derivative_research_market_snapshot.research_only,actionable:.derivative_research_market_snapshot.actionable,policy:.derivative_research_market_snapshot.policy,group_count:.derivative_research_market_snapshot.group_count,quote_count:.derivative_research_market_snapshot.quote_count,contains_corner_markets:.derivative_research_market_snapshot.contains_corner_markets,groups:[.derivative_research_market_snapshot.groups[]?|{family,bookmaker,market,provider_update,value_count:(.values|length)}]} else .derivative_research_market_snapshot end),match_intelligence:(if (.match_intelligence|type)=="object" then {schema_version:.match_intelligence.schema_version,fixture_id:.match_intelligence.fixture_id,kickoff:.match_intelligence.kickoff,match:.match_intelligence.match,stage:.match_intelligence.stage,data_tier:.match_intelligence.data_tier,bet_tier:.match_intelligence.bet_tier,classification:.match_intelligence.classification,availability_confidence:.match_intelligence.availability_confidence,sport_first:.match_intelligence.sport_first,coverage_gaps:.match_intelligence.coverage_gaps,policy:.match_intelligence.policy,areas:(((.match_intelligence.areas // {})|with_entries(.value=(if (.value|type)=="object" then (.value|{status,actionable,decision_weight,production_status}) else .value end)))+{side_control:.match_intelligence.areas.side_control,goals_full_match:(if (.match_intelligence.areas.goals_full_match|type)=="object" then {status:.match_intelligence.areas.goals_full_match.status,home_lambda:.match_intelligence.areas.goals_full_match.home_lambda,away_lambda:.match_intelligence.areas.goals_full_match.away_lambda,total_lambda:.match_intelligence.areas.goals_full_match.total_lambda,over_2_5_prob:.match_intelligence.areas.goals_full_match.over_2_5_prob,goal_environment_score:.match_intelligence.areas.goals_full_match.goal_environment_score,scoring_path:.match_intelligence.areas.goals_full_match.scoring_path,canonical_projection_model:.match_intelligence.areas.goals_full_match.canonical_projection_model,observed_total_market_ladder:((.match_intelligence.areas.goals_full_match.observed_total_market_ladder // [])[0:8]),remaining_model_gaps:.match_intelligence.areas.goals_full_match.remaining_model_gaps} else .match_intelligence.areas.goals_full_match end),btts:(if (.match_intelligence.areas.btts|type)=="object" then {status:.match_intelligence.areas.btts.status,p_yes:.match_intelligence.areas.btts.p_yes,p_no:.match_intelligence.areas.btts.p_no,observed_market_rows:((.match_intelligence.areas.btts.observed_market_rows // [])[0:6]),actionable:.match_intelligence.areas.btts.actionable,decision_weight:.match_intelligence.areas.btts.decision_weight,production_status:.match_intelligence.areas.btts.production_status} else .match_intelligence.areas.btts end),one_x_two:(if (.match_intelligence.areas.one_x_two|type)=="object" then {status:.match_intelligence.areas.one_x_two.status,canonical:.match_intelligence.areas.one_x_two.canonical,observed_market_rows:((.match_intelligence.areas.one_x_two.observed_market_rows // [])[0:6]),actionable:.match_intelligence.areas.one_x_two.actionable,decision_weight:.match_intelligence.areas.one_x_two.decision_weight,production_status:.match_intelligence.areas.one_x_two.production_status} else .match_intelligence.areas.one_x_two end),double_chance:(if (.match_intelligence.areas.double_chance|type)=="object" then {status:.match_intelligence.areas.double_chance.status,probabilities:.match_intelligence.areas.double_chance.probabilities,observed_market_rows:((.match_intelligence.areas.double_chance.observed_market_rows // [])[0:6]),actionable:.match_intelligence.areas.double_chance.actionable,decision_weight:.match_intelligence.areas.double_chance.decision_weight,production_status:.match_intelligence.areas.double_chance.production_status} else .match_intelligence.areas.double_chance end),team_goals:(if (.match_intelligence.areas.team_goals|type)=="object" then {status:.match_intelligence.areas.team_goals.status,home_lambda:.match_intelligence.areas.team_goals.home_lambda,away_lambda:.match_intelligence.areas.team_goals.away_lambda,observed_exact_market_rows:((.match_intelligence.areas.team_goals.observed_exact_market_rows // [])[0:6]),actionable:.match_intelligence.areas.team_goals.actionable,decision_weight:.match_intelligence.areas.team_goals.decision_weight,production_status:.match_intelligence.areas.team_goals.production_status} else .match_intelligence.areas.team_goals end),lineups_formations:.match_intelligence.areas.lineups_formations,goalkeepers:.match_intelligence.areas.goalkeepers,goalkeeper:.match_intelligence.areas.goalkeeper,formations:.match_intelligence.areas.formations,coaches:.match_intelligence.areas.coaches,referee:.match_intelligence.areas.referee,injuries:.match_intelligence.areas.injuries,injuries_suspensions:.match_intelligence.areas.injuries_suspensions,competition_context:.match_intelligence.areas.competition_context,weather:.match_intelligence.areas.weather})} else .match_intelligence end),postgame_xg_observation,xg_xga_intelligence,npxg_npxga_intelligence,ppda_intelligence,field_tilt_intelligence,box_entries_intelligence,postgame_big_chances_observation,big_chances_intelligence,postgame_set_piece_observation,set_piece_intelligence,tactical_style_intelligence,rest_intelligence,congestion_intelligence,travel_intelligence,weather_intelligence,competition_context_intelligence,lineups:(if (.lineups|type)=="object" then {lineup_state:.lineups.lineup_state,both_xi_confirmed:.lineups.both_xi_confirmed,both_goalkeepers_confirmed:.lineups.both_goalkeepers_confirmed,teams:[.lineups.teams[]?|{team_id,team,formation,coach_id,coach,goalkeepers,starter_count:(.starters|length),substitutes_count}]} else .lineups end),raw_projection:(if (.raw_projection|type)=="object" then {status:.raw_projection.status,projection_model:.raw_projection.projection_model,sport_source:.raw_projection.sport_source,market_independent:.raw_projection.market_independent,advanced_metrics:.raw_projection.advanced_metrics,galaxy_contract_version:.raw_projection.galaxy_contract_version,galaxy_model_versions:.raw_projection.galaxy_model_versions,galaxy_data_cutoff:.raw_projection.galaxy_data_cutoff,galaxy_actionable_total_model:.raw_projection.galaxy_actionable_total_model,galaxy_actionable_reason:.raw_projection.galaxy_actionable_reason,raw_home_goal_rate:.raw_projection.raw_home_goal_rate,raw_away_goal_rate:.raw_projection.raw_away_goal_rate,raw_total_goals:.raw_projection.raw_total_goals,raw_home_win_prob:.raw_projection.raw_home_win_prob,raw_draw_prob:.raw_projection.raw_draw_prob,raw_away_win_prob:.raw_projection.raw_away_win_prob,raw_btts_yes_prob:.raw_projection.raw_btts_yes_prob,raw_over_2_5_prob:.raw_projection.raw_over_2_5_prob,scoring_path:.raw_projection.scoring_path,screen_scores:.raw_projection.screen_scores,relative_strength_shadow:.raw_projection.relative_strength_shadow} else .raw_projection end),market_decision:(if (.market_decision|type)=="object" then {status:.market_decision.status,reason:.market_decision.reason,first_half_markets_ignored:.market_decision.first_half_markets_ignored,first_half_reason:.market_decision.first_half_reason,period_markets_ignored:.market_decision.period_markets_ignored,period_market_reason:.market_decision.period_market_reason,btts_market_mode:.market_decision.btts_market_mode,galaxy_publication_gate_downgraded:.market_decision.galaxy_publication_gate_downgraded,galaxy_sample_gate_substitutions:.market_decision.galaxy_sample_gate_substitutions} else .market_decision end),best_market,notes,result,error}]}' /tmp/soccer_tick.json > /tmp/soccer_compact.json
-          jq -e . /tmp/soccer_compact.json >/dev/null
-      - name: Persist scheduler state
-        if: steps.quota_guard.outputs.skip != 'true' && steps.tick.outputs.event_count != '0'
-        shell: bash
-        env: {RUN_DATE: "${{ steps.tick.outputs.run_date }}"}
-        run: |
-          set -euo pipefail
-          mkdir -p soccer_edge_state/history
-          cp /tmp/soccer_compact.json soccer_edge_state/latest.json
-          jq -c '.' /tmp/soccer_compact.json >> "soccer_edge_state/history/${RUN_DATE}.jsonl"
-          jq '.shortlist_state // {}' /tmp/soccer_tick.json > soccer_edge_state/shortlist_state.json
-          rm -f soccer_edge_state/last_error.json soccer_edge_state/quota_block_until.txt
-          git config user.name soccer-edge-bot; git config user.email soccer-edge-bot@users.noreply.github.com
-          git add -A soccer_edge_state
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Soccer Edge tick ${RUN_DATE}"
-          git push origin HEAD:soccer-edge-state
-@Baahl11\n\nCanal automático de alertas del Soccer Edge Scheduler. Cada comentario es una oportunidad nueva o materialmente cambiada; WATCH no equivale a BET.')
+            cat >/tmp/soccer_issue_intro.md <<'EOF'
+          @Baahl11
+
+          Canal automático de alertas del Soccer Edge Scheduler.
+          Cada comentario es una oportunidad nueva o materialmente cambiada.
+          WATCH/PRE-MARKET no equivale a BET.
+          EOF
+            ISSUE_URL=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "⚽ Soccer Edge Live Alerts" --body-file /tmp/soccer_issue_intro.md)
             ISSUE_NUMBER="${ISSUE_URL##*/}"
           fi
 
