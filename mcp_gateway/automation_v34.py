@@ -6,6 +6,7 @@ from typing import Any
 from mcp_gateway import automation as base
 from mcp_gateway import automation_v6 as v6
 from mcp_gateway import automation_v33 as v33
+from mcp_gateway import quote_freshness as qf
 
 MODEL_VERSION = v33.MODEL_VERSION
 AUTOMATION_VERSION = "3.10.0"
@@ -71,6 +72,15 @@ def _candidate_future(candidate: dict[str, Any], now: datetime) -> bool:
     kickoffs = [_dt(leg.get("kickoff")) for leg in legs if isinstance(leg, dict)]
     kickoffs = [x for x in kickoffs if x is not None]
     return bool(kickoffs) and min(kickoffs) > now
+
+
+
+def _candidate_price_fresh(candidate: dict[str, Any], now: datetime) -> bool:
+    return qf.candidate_price_fresh(
+        candidate,
+        now,
+        qf.DEFAULT_MAX_AGE_MINUTES,
+    )
 
 
 def _candidate_fixture_ids(candidate: dict[str, Any]) -> set[int]:
@@ -146,27 +156,37 @@ def _rolling_builder(payload: dict[str, Any]) -> dict[str, Any]:
     # actively re-evaluated. The current tick is authoritative for that fixture.
     for key, row in list(same.items()):
         candidate = row.get("candidate") if isinstance(row, dict) else None
-        if not isinstance(candidate, dict) or not _candidate_future(candidate, now) or (_candidate_fixture_ids(candidate) & due_fixture_ids):
+        if (
+            not isinstance(candidate, dict)
+            or not _candidate_future(candidate, now)
+            or not _candidate_price_fresh(candidate, now)
+            or (_candidate_fixture_ids(candidate) & due_fixture_ids)
+        ):
             same.pop(key, None)
     for key, row in list(multi.items()):
         candidate = row.get("candidate") if isinstance(row, dict) else None
-        if not isinstance(candidate, dict) or not _candidate_future(candidate, now) or (_candidate_fixture_ids(candidate) & due_fixture_ids):
+        if (
+            not isinstance(candidate, dict)
+            or not _candidate_future(candidate, now)
+            or not _candidate_price_fresh(candidate, now)
+            or (_candidate_fixture_ids(candidate) & due_fixture_ids)
+        ):
             multi.pop(key, None)
 
     stamp = payload.get("generated_at_local") or payload.get("generated_at_utc")
     for candidate in current_sgp:
         candidate["rolling_registry_last_updated"] = stamp
-        candidate["rolling_registry_status"] = "ACTIVE_UNTIL_REEVALUATED_OR_KICKOFF"
+        candidate["rolling_registry_status"] = "ACTIVE_UNTIL_REEVALUATED_QUOTE_STALE_OR_KICKOFF"
         same[_sgp_key(candidate)] = {"updated_at": now.timestamp(), "candidate": candidate}
     for candidate in current_multi:
         candidate["rolling_registry_last_updated"] = stamp
-        candidate["rolling_registry_status"] = "ACTIVE_UNTIL_REEVALUATED_OR_FIRST_KICKOFF"
+        candidate["rolling_registry_status"] = "ACTIVE_UNTIL_REEVALUATED_QUOTE_STALE_OR_FIRST_KICKOFF"
         multi[_multi_key(candidate)] = {"updated_at": now.timestamp(), "candidate": candidate}
 
     active_sgp = [row.get("candidate") for row in same.values() if isinstance(row, dict) and isinstance(row.get("candidate"), dict)]
     active_multi = [row.get("candidate") for row in multi.values() if isinstance(row, dict) and isinstance(row.get("candidate"), dict)]
-    active_sgp = [x for x in active_sgp if _candidate_future(x, now)]
-    active_multi = [x for x in active_multi if _candidate_future(x, now)]
+    active_sgp = [x for x in active_sgp if _candidate_future(x, now) and _candidate_price_fresh(x, now)]
+    active_multi = [x for x in active_multi if _candidate_future(x, now) and _candidate_price_fresh(x, now)]
     active_sgp.sort(key=_rank_sgp, reverse=True)
     active_multi.sort(key=_rank_multi, reverse=True)
     active_sgp = active_sgp[:MAX_ACTIVE_SAME_GAME]
@@ -175,7 +195,7 @@ def _rolling_builder(payload: dict[str, Any]) -> dict[str, Any]:
     registry["same_game"] = {_sgp_key(x): {"updated_at": now.timestamp(), "candidate": x} for x in active_sgp}
     registry["multi_match"] = {_multi_key(x): {"updated_at": now.timestamp(), "candidate": x} for x in active_multi}
     registry["updated_at_utc"] = now.isoformat()
-    registry["policy"] = "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
+    registry["policy"] = "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     _persist_registry(registry, now)
 
     out = dict(builder)
@@ -209,7 +229,8 @@ async def run_tick() -> dict[str, Any]:
     payload["galaxy_builder_active_candidate_count"] = int(payload["galaxy_builder"].get("candidate_count") or 0)
     payload["galaxy_builder_rolling_registry_policy"] = (
         "DURABLE_VIA_SHORTLIST_STATE; ACTIVE_CANDIDATES_SURVIVE_NON_DUE_TICKS; "
-        "REEVALUATION_REPLACES_PRIOR_FIXTURE_CANDIDATES; KICKOFF_EXPIRES; ZERO_EXTRA_PROVIDER_REQUESTS"
+        "REEVALUATION_REPLACES_PRIOR_FIXTURE_CANDIDATES; PROVIDER_UPDATE_FRESHNESS_EXPIRES; "
+        "CAPTURE_TIME_DOES_NOT_REFRESH_QUOTES; KICKOFF_EXPIRES; ZERO_EXTRA_PROVIDER_REQUESTS"
     )
     payload["shortlist_state"] = v6.export_shortlist_state()
     payload["shortlist_state_count"] = len(payload["shortlist_state"])
