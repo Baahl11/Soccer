@@ -13,7 +13,7 @@ AUTOMATION_VERSION = "3.2.1"
 
 _ORIGINAL_GALAXY_AWARE_ODDS = v10._galaxy_aware_odds_7m
 _ALLOWED_SOURCES = {"GALAXY_ODDS", "API_FALLBACK_ODDS", "NOT_VERIFIED"}
-_MARKET_STAGES = {"T-40", "T-20", "T-10", "CLOSE"}
+_MARKET_STAGES = {"EARLY_RESEARCH", "T-90", "T-40", "T-20", "T-10", "CLOSE"}
 
 
 def _dt(value: Any) -> datetime | None:
