@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "updated_at_local": "2026-09-19T01:30:01.018543-06:00",
+  "updated_at_local": "2026-09-19T01:40:57.622632-06:00",
   "delivered": {
     "market:1557204:1X2:away:None": {
       "key": "market:1557204:1X2:away:None",
@@ -4633,7 +4633,7 @@
       "key": "sport:1570399",
       "signal_type": "PRE_MARKET_WATCH",
       "first_seen_at": "2026-09-18T22:41:10.466810-06:00",
-      "last_seen_at": "2026-09-18T22:41:10.466810-06:00",
+      "last_seen_at": "2026-09-19T01:40:57.622632-06:00",
       "fixture": {
         "fixture_id": 1570399,
         "kickoff": "2026-09-19T12:00:00+00:00",
@@ -4807,22 +4807,22 @@
         }
       },
       "market_provenance": {
-        "source": "API_FALLBACK_ODDS",
-        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-        "latest_market_timestamp": "2026-09-18T22:26:31+00:00",
-        "age_minutes": 374.66,
+        "source": "GALAXY_ODDS",
+        "source_raw": "GALAXYPARLAY_PERSISTED",
+        "latest_market_timestamp": "2026-09-19T07:21:46.098602+00:00",
+        "age_minutes": 19.19,
         "galaxy_freshness_limit_minutes": 20,
-        "freshness": "STALE_OR_TIMESTAMP_MISSING",
-        "fresh": false,
-        "market_count": 234,
-        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "freshness": "FRESH",
+        "fresh": true,
+        "market_count": 2,
+        "fallback_reason": null,
         "sport_first_order_preserved": true,
         "provenance_contract_version": "1.1.0"
       },
       "notes": [
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
-      "delivered_at_local": "2026-09-18T22:41:10.466810-06:00"
+      "delivered_at_local": "2026-09-19T01:40:57.622632-06:00"
     },
     "sport:1494281": {
       "key": "sport:1494281",
@@ -4982,7 +4982,7 @@
       "key": "sport:1494288",
       "signal_type": "PRE_MARKET_WATCH",
       "first_seen_at": "2026-09-18T22:41:10.466810-06:00",
-      "last_seen_at": "2026-09-18T22:41:10.466810-06:00",
+      "last_seen_at": "2026-09-19T01:40:57.622632-06:00",
       "fixture": {
         "fixture_id": 1494288,
         "kickoff": "2026-09-19T13:00:00+00:00",
@@ -5042,23 +5042,63 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
+        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "sport_source": null,
-        "market_independent": null,
+        "model_limitations": [
+          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
+          "Goals are not labeled or substituted as xG.",
+          "Lineup quality deltas are not quantified without a verified player-impact model."
+        ],
         "advanced_metrics": "NOT VERIFIED",
-        "galaxy_contract_version": null,
-        "galaxy_model_versions": null,
-        "galaxy_data_cutoff": null,
-        "galaxy_actionable_total_model": null,
-        "galaxy_actionable_reason": null,
+        "sample": {
+          "home_home_played": 10,
+          "away_away_played": 10,
+          "minimum_split_sample": 10
+        },
         "raw_home_goal_rate": 1.2563,
         "raw_away_goal_rate": 1.3969,
         "raw_total_goals": 2.6531,
+        "raw_home_xg": "NOT VERIFIED",
+        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.33734,
         "raw_draw_prob": 0.260063,
         "raw_away_win_prob": 0.402597,
         "raw_btts_yes_prob": 0.538342,
+        "raw_over_1_5_prob": 0.742707,
         "raw_over_2_5_prob": 0.494824,
+        "raw_over_3_5_prob": 0.275602,
+        "top_scorelines": [
+          {
+            "home": 1,
+            "away": 1,
+            "prob": 0.123594
+          },
+          {
+            "home": 0,
+            "away": 1,
+            "prob": 0.098383
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "prob": 0.088479
+          },
+          {
+            "home": 1,
+            "away": 2,
+            "prob": 0.086322
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "prob": 0.077632
+          },
+          {
+            "home": 0,
+            "away": 0,
+            "prob": 0.070431
+          }
+        ],
         "scoring_path": "MIXED / NO STRONG SCORING PATH",
         "screen_scores": {
           "side_edge_score": 51.8,
@@ -5114,28 +5154,28 @@
         }
       },
       "market_provenance": {
-        "source": "API_FALLBACK_ODDS",
-        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-        "latest_market_timestamp": "2026-09-19T00:07:18+00:00",
-        "age_minutes": 273.87,
+        "source": "GALAXY_ODDS",
+        "source_raw": "GALAXYPARLAY_PERSISTED",
+        "latest_market_timestamp": "2026-09-19T07:21:52.781162+00:00",
+        "age_minutes": 19.08,
         "galaxy_freshness_limit_minutes": 20,
-        "freshness": "STALE_OR_TIMESTAMP_MISSING",
-        "fresh": false,
-        "market_count": 195,
-        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "freshness": "FRESH",
+        "fresh": true,
+        "market_count": 2,
+        "fallback_reason": null,
         "sport_first_order_preserved": true,
         "provenance_contract_version": "1.1.0"
       },
       "notes": [
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
-      "delivered_at_local": "2026-09-18T22:54:29.365574-06:00"
+      "delivered_at_local": "2026-09-19T01:40:57.622632-06:00"
     },
     "sport:1550129": {
       "key": "sport:1550129",
       "signal_type": "PRE_MARKET_WATCH",
       "first_seen_at": "2026-09-18T22:41:10.466810-06:00",
-      "last_seen_at": "2026-09-18T22:41:10.466810-06:00",
+      "last_seen_at": "2026-09-19T01:40:57.622632-06:00",
       "fixture": {
         "fixture_id": 1550129,
         "kickoff": "2026-09-19T13:00:00+00:00",
@@ -5195,23 +5235,63 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
+        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "sport_source": null,
-        "market_independent": null,
+        "model_limitations": [
+          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
+          "Goals are not labeled or substituted as xG.",
+          "Lineup quality deltas are not quantified without a verified player-impact model."
+        ],
         "advanced_metrics": "NOT VERIFIED",
-        "galaxy_contract_version": null,
-        "galaxy_model_versions": null,
-        "galaxy_data_cutoff": null,
-        "galaxy_actionable_total_model": null,
-        "galaxy_actionable_reason": null,
+        "sample": {
+          "home_home_played": 2,
+          "away_away_played": 2,
+          "minimum_split_sample": 2
+        },
         "raw_home_goal_rate": 1.2031,
         "raw_away_goal_rate": 1.4062,
         "raw_total_goals": 2.6094,
+        "raw_home_xg": "NOT VERIFIED",
+        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.321696,
         "raw_draw_prob": 0.261747,
         "raw_away_win_prob": 0.416557,
         "raw_btts_yes_prob": 0.528265,
+        "raw_over_1_5_prob": 0.73442,
         "raw_over_2_5_prob": 0.483921,
+        "raw_over_3_5_prob": 0.266039,
+        "top_scorelines": [
+          {
+            "home": 1,
+            "away": 1,
+            "prob": 0.124491
+          },
+          {
+            "home": 0,
+            "away": 1,
+            "prob": 0.103473
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "prob": 0.088527
+          },
+          {
+            "home": 1,
+            "away": 2,
+            "prob": 0.087532
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "prob": 0.074889
+          },
+          {
+            "home": 0,
+            "away": 0,
+            "prob": 0.073581
+          }
+        ],
         "scoring_path": "MIXED / NO STRONG SCORING PATH",
         "screen_scores": {
           "side_edge_score": 52.6,
@@ -5226,22 +5306,22 @@
         }
       },
       "market_provenance": {
-        "source": "API_FALLBACK_ODDS",
-        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-        "latest_market_timestamp": "2026-09-19T03:47:17+00:00",
-        "age_minutes": 53.89,
+        "source": "GALAXY_ODDS",
+        "source_raw": "GALAXYPARLAY_PERSISTED",
+        "latest_market_timestamp": "2026-09-19T07:21:50.718790+00:00",
+        "age_minutes": 19.12,
         "galaxy_freshness_limit_minutes": 20,
-        "freshness": "STALE_OR_TIMESTAMP_MISSING",
-        "fresh": false,
-        "market_count": 237,
-        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "freshness": "FRESH",
+        "fresh": true,
+        "market_count": 2,
+        "fallback_reason": null,
         "sport_first_order_preserved": true,
         "provenance_contract_version": "1.1.0"
       },
       "notes": [
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
-      "delivered_at_local": "2026-09-18T22:54:29.365574-06:00"
+      "delivered_at_local": "2026-09-19T01:40:57.622632-06:00"
     },
     "sport:1550135": {
       "key": "sport:1550135",
