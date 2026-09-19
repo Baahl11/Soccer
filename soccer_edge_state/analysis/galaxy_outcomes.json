@@ -92,36 +92,82 @@
         "ungradable": 0,
         "win": 11
       }
+    },
+    "2026-09-18": {
+      "by_type": {
+        "MULTI_MATCH_PARLAY": {
+          "graded": 8,
+          "hit_rate_ex_push": 1.0,
+          "hypothetical_reference_profit_units": 13.7118,
+          "hypothetical_reference_roi": 1.714,
+          "loss": 0,
+          "n": 8,
+          "no_final": 0,
+          "push": 0,
+          "reference_priced_graded": 8,
+          "reference_profit_warning": "HYPOTHETICAL COMPONENT-PRODUCT REFERENCE ONLY; NOT EXECUTED PARLAY ODDS OR BANKROLL ROI",
+          "ungradable": 0,
+          "win": 8
+        },
+        "SAME_GAME_PARLAY": {
+          "graded": 1,
+          "hit_rate_ex_push": 1.0,
+          "hypothetical_reference_profit_units": null,
+          "hypothetical_reference_roi": null,
+          "loss": 0,
+          "n": 1,
+          "no_final": 0,
+          "push": 0,
+          "reference_priced_graded": 0,
+          "reference_profit_warning": "NOT CALCULATED FOR SGP; SAME-GAME COMPONENT PRODUCTS ARE NOT EXECUTABLE COMBINED ODDS",
+          "ungradable": 0,
+          "win": 1
+        }
+      },
+      "overall": {
+        "graded": 9,
+        "hit_rate_ex_push": 1.0,
+        "hypothetical_reference_profit_units": null,
+        "hypothetical_reference_roi": null,
+        "loss": 0,
+        "n": 9,
+        "no_final": 0,
+        "push": 0,
+        "reference_priced_graded": 0,
+        "reference_profit_warning": "NOT CALCULATED FOR SGP; SAME-GAME COMPONENT PRODUCTS ARE NOT EXECUTABLE COMBINED ODDS",
+        "ungradable": 0,
+        "win": 9
+      }
     }
   },
   "by_type": {
     "MULTI_MATCH_PARLAY": {
-      "graded": 28,
-      "hit_rate_ex_push": 0.4643,
-      "hypothetical_reference_profit_units": 9.4349,
-      "hypothetical_reference_roi": 0.337,
+      "graded": 36,
+      "hit_rate_ex_push": 0.5833,
+      "hypothetical_reference_profit_units": 23.1467,
+      "hypothetical_reference_roi": 0.643,
       "loss": 15,
-      "n": 37,
+      "n": 45,
       "no_final": 9,
       "push": 0,
-      "reference_priced_graded": 28,
+      "reference_priced_graded": 36,
       "reference_profit_warning": "HYPOTHETICAL COMPONENT-PRODUCT REFERENCE ONLY; NOT EXECUTED PARLAY ODDS OR BANKROLL ROI",
       "ungradable": 0,
-      "win": 13
+      "win": 21
     },
     "SAME_GAME_PARLAY": {
-      "graded": 43,
-      "hit_rate_ex_push": 0.6744,
+      "graded": 44,
+      "hit_rate_ex_push": 0.6818,
       "hypothetical_reference_profit_units": null,
       "hypothetical_reference_roi": null,
       "loss": 14,
-      "n": 56,
+      "n": 57,
       "no_final": 13,
       "push": 0,
       "reference_priced_graded": 0,
       "reference_profit_warning": "NOT CALCULATED FOR SGP; SAME-GAME COMPONENT PRODUCTS ARE NOT EXECUTABLE COMBINED ODDS",
       "ungradable": 0,
-      "win": 29
+      "win": 30
     }
   },
   "candidate_dedupe": "LOGICAL LEGS/FIXTURES; SAME COMBINATION ACROSS TICKS COUNTS ONCE",
@@ -15025,25 +15071,1730 @@
       "outcome": "LOSS",
       "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1619018\",\"FT_GOALS\",\"UNDER\",\"4.5\"],[\"1636690\",\"FT_GOALS\",\"UNDER\",\"3.5\"]]]",
       "type": "MULTI_MATCH_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "FINAL_PARLAY_QUOTE_NOT_VERIFIED",
+        "RESEARCH_ONLY_LEG_PRESENT"
+      ],
+      "bookmakers_seen": [
+        "Bet365"
+      ],
+      "fair_decimal": null,
+      "first_component_product_decimal_reference": 2.196,
+      "first_seen": "2026-09-18T06:11:51.086639-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": null,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "decimal_price": 1.22,
+          "family": "FT_GOALS",
+          "final_score": "1-0",
+          "fixture_id": 1565487,
+          "kickoff": "2026-09-18T06:30:00-06:00",
+          "league": "Premier League",
+          "line": 4.5,
+          "match": "Polessya vs Kryvbas KR",
+          "outcome": "WIN",
+          "probability": 0.815265,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Bet365",
+              "market": "Goals Over/Under",
+              "price": 1.22,
+              "provider_update": "2026-09-18T09:29:14+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.21,
+              "provider_update": "2026-09-18T09:29:14+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "Betfair",
+              "market": "Goals Over/Under",
+              "price": 1.2,
+              "provider_update": "2026-09-18T09:29:14+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.24,
+              "provider_update": "2026-09-18T09:29:14+00:00",
+              "selection_text": "Under 4.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": false,
+          "availability_confidence": 0.7,
+          "decimal_price": 1.8,
+          "family": "BTTS",
+          "final_score": "3-0",
+          "fixture_id": 1555508,
+          "kickoff": "2026-09-18T06:45:00-06:00",
+          "league": "Ligat Ha'al",
+          "line": null,
+          "match": "Hapoel Tel Aviv vs Hapoel Petah Tikva",
+          "outcome": "WIN",
+          "probability": 0.72025,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams Score",
+              "price": 1.8,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams Score - First Half",
+              "price": 1.17,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.25,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams Score",
+              "price": 1.8,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams Score - First Half",
+              "price": 1.17,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.25,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams Score",
+              "price": 1.71,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams Score - First Half",
+              "price": 1.13,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.23,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Betfair",
+              "market": "Both Teams Score",
+              "price": 1.75,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "BetVictor",
+              "market": "Both Teams Score",
+              "price": 1.73,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Both Teams Score",
+              "price": 1.73,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            }
+          ],
+          "research_only_reason": "BTTS_RESEARCH_ONLY",
+          "selection": "NO"
+        }
+      ],
+      "joint_probability": 0.575451,
+      "kickoff": null,
+      "last_component_product_decimal_reference": 2.196,
+      "last_seen": "2026-09-18T06:11:51.086639-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "decimal_price": 1.22,
+          "family": "FT_GOALS",
+          "fixture_id": 1565487,
+          "kickoff": "2026-09-18T06:30:00-06:00",
+          "league": "Premier League",
+          "line": 4.5,
+          "match": "Polessya vs Kryvbas KR",
+          "probability": 0.815265,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Bet365",
+              "market": "Goals Over/Under",
+              "price": 1.22,
+              "provider_update": "2026-09-18T09:29:14+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.21,
+              "provider_update": "2026-09-18T09:29:14+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "Betfair",
+              "market": "Goals Over/Under",
+              "price": 1.2,
+              "provider_update": "2026-09-18T09:29:14+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.24,
+              "provider_update": "2026-09-18T09:29:14+00:00",
+              "selection_text": "Under 4.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": false,
+          "availability_confidence": 0.7,
+          "decimal_price": 1.8,
+          "family": "BTTS",
+          "fixture_id": 1555508,
+          "kickoff": "2026-09-18T06:45:00-06:00",
+          "league": "Ligat Ha'al",
+          "line": null,
+          "match": "Hapoel Tel Aviv vs Hapoel Petah Tikva",
+          "probability": 0.72025,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams Score",
+              "price": 1.8,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams Score - First Half",
+              "price": 1.17,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.25,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams Score",
+              "price": 1.8,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams Score - First Half",
+              "price": 1.17,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.25,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams Score",
+              "price": 1.71,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams Score - First Half",
+              "price": 1.13,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.23,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Betfair",
+              "market": "Both Teams Score",
+              "price": 1.75,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "BetVictor",
+              "market": "Both Teams Score",
+              "price": 1.73,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Both Teams Score",
+              "price": 1.73,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            }
+          ],
+          "research_only_reason": "BTTS_RESEARCH_ONLY",
+          "selection": "NO"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": null,
+      "minimum_decimal": null,
+      "outcome": "WIN",
+      "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1555508\",\"BTTS\",\"NO\",\"\"],[\"1565487\",\"FT_GOALS\",\"UNDER\",\"4.5\"]]]",
+      "type": "MULTI_MATCH_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED",
+        "AVAILABILITY_BELOW_0.85",
+        "RESEARCH_ONLY_LEG_PRESENT"
+      ],
+      "bookmakers_seen": [
+        "Bet365"
+      ],
+      "fair_decimal": 1.6971,
+      "first_component_product_decimal_reference": 2.592,
+      "first_seen": "2026-09-18T06:11:51.086639-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": 1555508,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "family": "FT_GOALS",
+          "final_score": "3-0",
+          "line": 3.5,
+          "market_backed": true,
+          "market_line_verified": true,
+          "outcome": "WIN",
+          "probability": 0.73057,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Bet365",
+              "market": "Goals Over/Under",
+              "price": 1.44,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.39,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Betfair",
+              "market": "Goals Over/Under",
+              "price": 1.4,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "BetVictor",
+              "market": "Goals Over/Under",
+              "price": 1.4,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Pinnacle",
+              "market": "Goals Over/Under",
+              "price": 1.46,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.39,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": false,
+          "family": "BTTS",
+          "final_score": "3-0",
+          "line": null,
+          "market_backed": true,
+          "market_line_verified": true,
+          "outcome": "WIN",
+          "probability": 0.72025,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams Score",
+              "price": 1.8,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams Score - First Half",
+              "price": 1.17,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.25,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams Score",
+              "price": 1.8,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams Score - First Half",
+              "price": 1.17,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.25,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams Score",
+              "price": 1.71,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams Score - First Half",
+              "price": 1.13,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.23,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Betfair",
+              "market": "Both Teams Score",
+              "price": 1.75,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "BetVictor",
+              "market": "Both Teams Score",
+              "price": 1.73,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Both Teams Score",
+              "price": 1.73,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            }
+          ],
+          "research_only_reason": "BTTS_RESEARCH_ONLY",
+          "selection": "NO"
+        }
+      ],
+      "joint_probability": 0.589224,
+      "kickoff": "2026-09-18T06:45:00-06:00",
+      "last_component_product_decimal_reference": 2.592,
+      "last_seen": "2026-09-18T06:39:07.951828-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "family": "FT_GOALS",
+          "line": 3.5,
+          "market_backed": true,
+          "market_line_verified": true,
+          "probability": 0.73057,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Bet365",
+              "market": "Goals Over/Under",
+              "price": 1.44,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.39,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Betfair",
+              "market": "Goals Over/Under",
+              "price": 1.4,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "BetVictor",
+              "market": "Goals Over/Under",
+              "price": 1.4,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Pinnacle",
+              "market": "Goals Over/Under",
+              "price": 1.46,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.39,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "Under 3.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": false,
+          "family": "BTTS",
+          "line": null,
+          "market_backed": true,
+          "market_line_verified": true,
+          "probability": 0.72025,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams Score",
+              "price": 1.8,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams Score - First Half",
+              "price": 1.17,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "William Hill",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.25,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams Score",
+              "price": 1.8,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams Score - First Half",
+              "price": 1.17,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Bet365",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.25,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams Score",
+              "price": 1.71,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams Score - First Half",
+              "price": 1.13,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Both Teams To Score - Second Half",
+              "price": 1.23,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "Betfair",
+              "market": "Both Teams Score",
+              "price": 1.75,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "BetVictor",
+              "market": "Both Teams Score",
+              "price": 1.73,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Both Teams Score",
+              "price": 1.73,
+              "provider_update": "2026-09-18T09:08:17+00:00",
+              "selection_text": "No"
+            }
+          ],
+          "research_only_reason": "BTTS_RESEARCH_ONLY",
+          "selection": "NO"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": "Hapoel Tel Aviv vs Hapoel Petah Tikva",
+      "minimum_decimal": 1.8043,
+      "outcome": "WIN",
+      "signature": "[\"SAME_GAME_PARLAY\",\"1555508\",[[\"\",\"BTTS\",\"NO\",\"\"],[\"\",\"FT_GOALS\",\"UNDER\",\"3.5\"]]]",
+      "type": "SAME_GAME_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "FINAL_PARLAY_QUOTE_NOT_VERIFIED",
+        "AVAILABILITY_BELOW_0.85"
+      ],
+      "bookmakers_seen": [
+        "1xBet"
+      ],
+      "fair_decimal": null,
+      "first_component_product_decimal_reference": 2.619,
+      "first_seen": "2026-09-18T07:21:59.924063-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": null,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 34.93,
+          "data_tier": "B",
+          "decimal_price": 1.94,
+          "family": "FT_GOALS",
+          "final_score": "2-1",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "Chelyabinsk vs FC UFA",
+          "outcome": "WIN",
+          "probability": 0.864748,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 2.54,
+          "data_tier": "B",
+          "decimal_price": 1.35,
+          "family": "FT_GOALS",
+          "final_score": "2-0",
+          "fixture_id": 1525984,
+          "kickoff": "2026-09-18T07:30:00-06:00",
+          "league": "Premier League",
+          "line": 3.5,
+          "market": "Yellow Over/Under",
+          "match": "Belshina vs FC Minsk",
+          "outcome": "WIN",
+          "probability": 0.766134,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:00:59+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 3.5"
+        }
+      ],
+      "joint_probability": 0.649263,
+      "kickoff": null,
+      "last_component_product_decimal_reference": 2.619,
+      "last_seen": "2026-09-18T07:21:59.924063-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 34.93,
+          "data_tier": "B",
+          "decimal_price": 1.94,
+          "family": "FT_GOALS",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "Chelyabinsk vs FC UFA",
+          "probability": 0.864748,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 2.54,
+          "data_tier": "B",
+          "decimal_price": 1.35,
+          "family": "FT_GOALS",
+          "fixture_id": 1525984,
+          "kickoff": "2026-09-18T07:30:00-06:00",
+          "league": "Premier League",
+          "line": 3.5,
+          "market": "Yellow Over/Under",
+          "match": "Belshina vs FC Minsk",
+          "probability": 0.766134,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:00:59+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 3.5"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": null,
+      "minimum_decimal": 1.628,
+      "outcome": "WIN",
+      "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1525984\",\"FT_GOALS\",\"UNDER\",\"3.5\"],[\"1577531\",\"FT_GOALS\",\"UNDER\",\"4.5\"]]]",
+      "type": "MULTI_MATCH_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
+      ],
+      "bookmakers_seen": [
+        "1xBet"
+      ],
+      "fair_decimal": null,
+      "first_component_product_decimal_reference": 3.0294,
+      "first_seen": "2026-09-18T07:21:59.924063-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": null,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "decimal_price": 1.02,
+          "family": "FT_GOALS",
+          "final_score": "2-0",
+          "fixture_id": 1525984,
+          "kickoff": "2026-09-18T07:30:00-06:00",
+          "league": "Premier League",
+          "line": 5.5,
+          "match": "Belshina vs FC Minsk",
+          "outcome": "WIN",
+          "probability": 0.960611,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.02,
+              "provider_update": "2026-09-18T12:00:59+00:00",
+              "selection_text": "Under 5.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 2.97,
+          "family": "FT_GOALS",
+          "final_score": "2-1",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 3.5,
+          "match": "Chelyabinsk vs FC UFA",
+          "outcome": "WIN",
+          "probability": 0.716824,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.18,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Pinnacle",
+              "market": "Goals Over/Under",
+              "price": 1.23,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.18,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Yellow Over/Under",
+              "price": 2.97,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            }
+          ],
+          "selection": "UNDER"
+        }
+      ],
+      "joint_probability": 0.674817,
+      "kickoff": null,
+      "last_component_product_decimal_reference": 3.0294,
+      "last_seen": "2026-09-18T07:21:59.924063-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "decimal_price": 1.02,
+          "family": "FT_GOALS",
+          "fixture_id": 1525984,
+          "kickoff": "2026-09-18T07:30:00-06:00",
+          "league": "Premier League",
+          "line": 5.5,
+          "match": "Belshina vs FC Minsk",
+          "probability": 0.960611,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.02,
+              "provider_update": "2026-09-18T12:00:59+00:00",
+              "selection_text": "Under 5.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 2.97,
+          "family": "FT_GOALS",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 3.5,
+          "match": "Chelyabinsk vs FC UFA",
+          "probability": 0.716824,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.18,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Pinnacle",
+              "market": "Goals Over/Under",
+              "price": 1.23,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.18,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Yellow Over/Under",
+              "price": 2.97,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            }
+          ],
+          "selection": "UNDER"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": null,
+      "minimum_decimal": null,
+      "outcome": "WIN",
+      "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1525984\",\"FT_GOALS\",\"UNDER\",\"5.5\"],[\"1577531\",\"FT_GOALS\",\"UNDER\",\"3.5\"]]]",
+      "type": "MULTI_MATCH_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
+      ],
+      "bookmakers_seen": [
+        "1xBet"
+      ],
+      "fair_decimal": null,
+      "first_component_product_decimal_reference": 3.0888,
+      "first_seen": "2026-09-18T07:21:59.924063-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": null,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 2.97,
+          "family": "FT_GOALS",
+          "final_score": "2-1",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 3.5,
+          "match": "Chelyabinsk vs FC UFA",
+          "outcome": "WIN",
+          "probability": 0.716824,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.18,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Pinnacle",
+              "market": "Goals Over/Under",
+              "price": 1.23,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.18,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Yellow Over/Under",
+              "price": 2.97,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 1.04,
+          "family": "FT_GOALS",
+          "final_score": "1-1",
+          "fixture_id": 1577535,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 5.5,
+          "match": "FC Sochi vs Ska-khabarovsk",
+          "outcome": "WIN",
+          "probability": 0.915137,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.01,
+              "provider_update": "2026-09-18T09:25:15+00:00",
+              "selection_text": "Under 5.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.04,
+              "provider_update": "2026-09-18T09:25:15+00:00",
+              "selection_text": "Under 5.5"
+            }
+          ],
+          "selection": "UNDER"
+        }
+      ],
+      "joint_probability": 0.642872,
+      "kickoff": null,
+      "last_component_product_decimal_reference": 3.0888,
+      "last_seen": "2026-09-18T07:52:13.815140-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 2.97,
+          "family": "FT_GOALS",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 3.5,
+          "match": "Chelyabinsk vs FC UFA",
+          "probability": 0.716824,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.18,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "Pinnacle",
+              "market": "Goals Over/Under",
+              "price": 1.23,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.18,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Yellow Over/Under",
+              "price": 2.97,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 3.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 1.04,
+          "family": "FT_GOALS",
+          "fixture_id": 1577535,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 5.5,
+          "match": "FC Sochi vs Ska-khabarovsk",
+          "probability": 0.915137,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.01,
+              "provider_update": "2026-09-18T09:25:15+00:00",
+              "selection_text": "Under 5.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.04,
+              "provider_update": "2026-09-18T09:25:15+00:00",
+              "selection_text": "Under 5.5"
+            }
+          ],
+          "selection": "UNDER"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": null,
+      "minimum_decimal": null,
+      "outcome": "WIN",
+      "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1577531\",\"FT_GOALS\",\"UNDER\",\"3.5\"],[\"1577535\",\"FT_GOALS\",\"UNDER\",\"5.5\"]]]",
+      "type": "MULTI_MATCH_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "FINAL_PARLAY_QUOTE_NOT_VERIFIED",
+        "AVAILABILITY_BELOW_0.85"
+      ],
+      "bookmakers_seen": [
+        "1xBet"
+      ],
+      "fair_decimal": null,
+      "first_component_product_decimal_reference": 2.6384,
+      "first_seen": "2026-09-18T07:21:59.924063-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": null,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 34.93,
+          "data_tier": "B",
+          "decimal_price": 1.94,
+          "family": "FT_GOALS",
+          "final_score": "2-1",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "Chelyabinsk vs FC UFA",
+          "outcome": "WIN",
+          "probability": 0.864748,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 7.84,
+          "data_tier": "B",
+          "decimal_price": 1.36,
+          "family": "FT_GOALS",
+          "final_score": "1-1",
+          "fixture_id": 1577535,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "FC Sochi vs Ska-khabarovsk",
+          "outcome": "WIN",
+          "probability": 0.813686,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T09:25:15+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        }
+      ],
+      "joint_probability": 0.689561,
+      "kickoff": null,
+      "last_component_product_decimal_reference": 2.6384,
+      "last_seen": "2026-09-18T07:52:13.815140-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 34.93,
+          "data_tier": "B",
+          "decimal_price": 1.94,
+          "family": "FT_GOALS",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "Chelyabinsk vs FC UFA",
+          "probability": 0.864748,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 7.84,
+          "data_tier": "B",
+          "decimal_price": 1.36,
+          "family": "FT_GOALS",
+          "fixture_id": 1577535,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "FC Sochi vs Ska-khabarovsk",
+          "probability": 0.813686,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T09:25:15+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": null,
+      "minimum_decimal": 1.5277,
+      "outcome": "WIN",
+      "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1577531\",\"FT_GOALS\",\"UNDER\",\"4.5\"],[\"1577535\",\"FT_GOALS\",\"UNDER\",\"4.5\"]]]",
+      "type": "MULTI_MATCH_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
+      ],
+      "bookmakers_seen": [
+        "1xBet"
+      ],
+      "fair_decimal": null,
+      "first_component_product_decimal_reference": 2.4638,
+      "first_seen": "2026-09-18T07:21:59.924063-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": null,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 1.94,
+          "family": "FT_GOALS",
+          "final_score": "2-1",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "match": "Chelyabinsk vs FC UFA",
+          "outcome": "WIN",
+          "probability": 0.864748,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.03,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.03,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Yellow Over/Under",
+              "price": 1.94,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 1.27,
+          "family": "FT_GOALS",
+          "final_score": "0-1",
+          "fixture_id": 1577538,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "match": "Volga Ulyanovsk vs Spartak Kostroma",
+          "outcome": "WIN",
+          "probability": 0.902962,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.03,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.03,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Yellow Over/Under",
+              "price": 1.27,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            }
+          ],
+          "selection": "UNDER"
+        }
+      ],
+      "joint_probability": 0.765218,
+      "kickoff": null,
+      "last_component_product_decimal_reference": 2.4638,
+      "last_seen": "2026-09-18T07:52:13.815140-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 1.94,
+          "family": "FT_GOALS",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "match": "Chelyabinsk vs FC UFA",
+          "probability": 0.864748,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.03,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.03,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Yellow Over/Under",
+              "price": 1.94,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            }
+          ],
+          "selection": "UNDER"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "decimal_price": 1.27,
+          "family": "FT_GOALS",
+          "fixture_id": 1577538,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "match": "Volga Ulyanovsk vs Spartak Kostroma",
+          "probability": 0.902962,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "quotes": [
+            {
+              "bookmaker": "Marathonbet",
+              "market": "Goals Over/Under",
+              "price": 1.03,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Goals Over/Under",
+              "price": 1.03,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            },
+            {
+              "bookmaker": "1xBet",
+              "market": "Yellow Over/Under",
+              "price": 1.27,
+              "provider_update": "2026-09-18T12:01:00+00:00",
+              "selection_text": "Under 4.5"
+            }
+          ],
+          "selection": "UNDER"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": null,
+      "minimum_decimal": null,
+      "outcome": "WIN",
+      "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1577531\",\"FT_GOALS\",\"UNDER\",\"4.5\"],[\"1577538\",\"FT_GOALS\",\"UNDER\",\"4.5\"]]]",
+      "type": "MULTI_MATCH_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "FINAL_PARLAY_QUOTE_NOT_VERIFIED",
+        "AVAILABILITY_BELOW_0.85"
+      ],
+      "bookmakers_seen": [
+        "1xBet"
+      ],
+      "fair_decimal": null,
+      "first_component_product_decimal_reference": 2.3256,
+      "first_seen": "2026-09-18T07:21:59.924063-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": null,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 19.2,
+          "data_tier": "B",
+          "decimal_price": 1.71,
+          "family": "FT_GOALS",
+          "final_score": "0-1",
+          "fixture_id": 1577538,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 3.5,
+          "market": "Yellow Over/Under",
+          "match": "Volga Ulyanovsk vs Spartak Kostroma",
+          "outcome": "WIN",
+          "probability": 0.776777,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 3.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 7.84,
+          "data_tier": "B",
+          "decimal_price": 1.36,
+          "family": "FT_GOALS",
+          "final_score": "1-1",
+          "fixture_id": 1577535,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "FC Sochi vs Ska-khabarovsk",
+          "outcome": "WIN",
+          "probability": 0.813686,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T09:25:15+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        }
+      ],
+      "joint_probability": 0.619412,
+      "kickoff": null,
+      "last_component_product_decimal_reference": 2.3256,
+      "last_seen": "2026-09-18T07:52:13.815140-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 19.2,
+          "data_tier": "B",
+          "decimal_price": 1.71,
+          "family": "FT_GOALS",
+          "fixture_id": 1577538,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 3.5,
+          "market": "Yellow Over/Under",
+          "match": "Volga Ulyanovsk vs Spartak Kostroma",
+          "probability": 0.776777,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 3.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.7,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 7.84,
+          "data_tier": "B",
+          "decimal_price": 1.36,
+          "family": "FT_GOALS",
+          "fixture_id": 1577535,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "FC Sochi vs Ska-khabarovsk",
+          "probability": 0.813686,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T09:25:15+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": null,
+      "minimum_decimal": 1.7111,
+      "outcome": "WIN",
+      "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1577535\",\"FT_GOALS\",\"UNDER\",\"4.5\"],[\"1577538\",\"FT_GOALS\",\"UNDER\",\"3.5\"]]]",
+      "type": "MULTI_MATCH_PARLAY"
+    },
+    {
+      "block_reasons_seen": [
+        "FINAL_PARLAY_QUOTE_NOT_VERIFIED"
+      ],
+      "bookmakers_seen": [
+        "1xBet"
+      ],
+      "fair_decimal": null,
+      "first_component_product_decimal_reference": 3.3508,
+      "first_seen": "2026-09-18T07:44:26.721281-06:00",
+      "first_seen_date_local": "2026-09-18",
+      "first_version": "3.56.0",
+      "fixture_id": null,
+      "graded_legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 34.93,
+          "data_tier": "B",
+          "decimal_price": 1.94,
+          "family": "FT_GOALS",
+          "final_score": "2-1",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "Chelyabinsk vs FC UFA",
+          "outcome": "WIN",
+          "probability": 0.864748,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 11.56,
+          "data_tier": "B",
+          "decimal_price": 1.27,
+          "family": "FT_GOALS",
+          "final_score": "0-1",
+          "fixture_id": 1577538,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "Volga Ulyanovsk vs Spartak Kostroma",
+          "outcome": "WIN",
+          "probability": 0.902962,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 7.84,
+          "data_tier": "B",
+          "decimal_price": 1.36,
+          "family": "FT_GOALS",
+          "final_score": "1-1",
+          "fixture_id": 1577535,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "FC Sochi vs Ska-khabarovsk",
+          "outcome": "WIN",
+          "probability": 0.813686,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T09:25:15+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        }
+      ],
+      "joint_probability": 0.622647,
+      "kickoff": null,
+      "last_component_product_decimal_reference": 3.3508,
+      "last_seen": "2026-09-18T07:52:13.815140-06:00",
+      "last_version": "3.56.0",
+      "legs": [
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 34.93,
+          "data_tier": "B",
+          "decimal_price": 1.94,
+          "family": "FT_GOALS",
+          "fixture_id": 1577531,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "Chelyabinsk vs FC UFA",
+          "probability": 0.864748,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 11.56,
+          "data_tier": "B",
+          "decimal_price": 1.27,
+          "family": "FT_GOALS",
+          "fixture_id": 1577538,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "Volga Ulyanovsk vs Spartak Kostroma",
+          "probability": 0.902962,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T12:01:00+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        },
+        {
+          "actionable_model": true,
+          "availability_confidence": 0.9,
+          "bookmaker": "1xBet",
+          "component_edge_pp": 7.84,
+          "data_tier": "B",
+          "decimal_price": 1.36,
+          "family": "FT_GOALS",
+          "fixture_id": 1577535,
+          "kickoff": "2026-09-18T08:00:00-06:00",
+          "league": "First League",
+          "line": 4.5,
+          "market": "Yellow Over/Under",
+          "match": "FC Sochi vs Ska-khabarovsk",
+          "probability": 0.813686,
+          "probability_source": "DIRECT_SCORE_MATRIX",
+          "provider_update": "2026-09-18T09:25:15+00:00",
+          "research_only_reason": null,
+          "selection": "UNDER",
+          "selection_text": "Under 4.5"
+        }
+      ],
+      "manual_price_check_eligible_seen": false,
+      "match": null,
+      "minimum_decimal": 1.7017,
+      "outcome": "WIN",
+      "signature": "[\"MULTI_MATCH_PARLAY\",\"\",[[\"1577531\",\"FT_GOALS\",\"UNDER\",\"4.5\"],[\"1577535\",\"FT_GOALS\",\"UNDER\",\"4.5\"],[\"1577538\",\"FT_GOALS\",\"UNDER\",\"4.5\"]]]",
+      "type": "MULTI_MATCH_PARLAY"
     }
   ],
-  "generated_at": "2026-09-18T08:02:05.756573Z",
+  "generated_at": "2026-09-19T08:02:45.445595Z",
   "overall": {
-    "graded": 71,
-    "hit_rate_ex_push": 0.5915,
+    "graded": 80,
+    "hit_rate_ex_push": 0.6375,
     "hypothetical_reference_profit_units": null,
     "hypothetical_reference_roi": null,
     "loss": 29,
-    "n": 93,
+    "n": 102,
     "no_final": 22,
     "push": 0,
     "reference_priced_graded": 0,
     "reference_profit_warning": "NOT CALCULATED FOR SGP; SAME-GAME COMPONENT PRODUCTS ARE NOT EXECUTABLE COMBINED ODDS",
     "ungradable": 0,
-    "win": 42
+    "win": 51
   },
   "policy": "GALAXY WATCH OUTCOMES ARE GRADED FOR LEARNING EVEN WHEN NOT EXECUTED. MULTI REFERENCE ROI IS HYPOTHETICAL COMPONENT-PRODUCT BOOKKEEPING ONLY. SGP COMPONENT PRODUCTS ARE NEVER USED AS ROI.",
   "schema_version": "1.0.0",
   "source": "soccer_edge_state/history/*.jsonl galaxy_builder snapshots + persisted final results",
-  "ticks_parsed": 534
+  "ticks_parsed": 627
 }

@@ -1,60 +1,60 @@
 {
   "anti_leakage": "Uses the latest persisted shadow snapshot strictly before kickoff and joins the final result later by fixture_id; no final result or market odds enter either stored sport projection.",
   "canonical": {
-    "lambda_mae": 1.411251,
+    "lambda_mae": 1.269974,
     "lines": {
       "1.5": {
-        "brier": 0.124956,
-        "log_loss": 0.414758,
-        "mean_probability": 0.758377,
-        "n": 63,
-        "observed_rate": 0.857143
+        "brier": 0.147695,
+        "log_loss": 0.470541,
+        "mean_probability": 0.751052,
+        "n": 99,
+        "observed_rate": 0.808081
       },
       "2.5": {
-        "brier": 0.239112,
-        "log_loss": 0.669835,
-        "mean_probability": 0.527665,
-        "n": 63,
-        "observed_rate": 0.492063
+        "brier": 0.234109,
+        "log_loss": 0.65971,
+        "mean_probability": 0.519887,
+        "n": 99,
+        "observed_rate": 0.494949
       },
       "3.5": {
-        "brier": 0.21473,
-        "log_loss": 0.62371,
-        "mean_probability": 0.315939,
-        "n": 63,
-        "observed_rate": 0.349206
+        "brier": 0.193993,
+        "log_loss": 0.575514,
+        "mean_probability": 0.310758,
+        "n": 99,
+        "observed_rate": 0.292929
       }
     },
-    "n": 63
+    "n": 99
   },
   "challenger": {
-    "lambda_mae": 1.408917,
+    "lambda_mae": 1.267829,
     "lines": {
       "1.5": {
-        "brier": 0.125554,
-        "log_loss": 0.416991,
-        "mean_probability": 0.749808,
-        "n": 63,
-        "observed_rate": 0.857143
+        "brier": 0.148416,
+        "log_loss": 0.47207,
+        "mean_probability": 0.742183,
+        "n": 99,
+        "observed_rate": 0.808081
       },
       "2.5": {
-        "brier": 0.237891,
-        "log_loss": 0.667142,
-        "mean_probability": 0.516749,
-        "n": 63,
-        "observed_rate": 0.492063
+        "brier": 0.233441,
+        "log_loss": 0.657907,
+        "mean_probability": 0.508765,
+        "n": 99,
+        "observed_rate": 0.494949
       },
       "3.5": {
-        "brier": 0.215137,
-        "log_loss": 0.626255,
-        "mean_probability": 0.306305,
-        "n": 63,
-        "observed_rate": 0.349206
+        "brier": 0.193433,
+        "log_loss": 0.5748,
+        "mean_probability": 0.300999,
+        "n": 99,
+        "observed_rate": 0.292929
       }
     },
-    "n": 63
+    "n": 99
   },
-  "evaluated_fixtures": 63,
+  "evaluated_fixtures": 99,
   "evaluations": [
     {
       "away_team": "Zaglebie Lubin",
@@ -1441,34 +1441,826 @@
       "league": "Liga de Expansión MX",
       "league_id": 263,
       "stage": "CLOSE"
+    },
+    {
+      "away_team": "Wuhan Three Towns",
+      "canonical_lambda": 3.5969,
+      "canonical_probs": {
+        "1.5": 0.874002,
+        "2.5": 0.696697,
+        "3.5": 0.484115
+      },
+      "challenger_lambda": 3.5713,
+      "challenger_probs": {
+        "1.5": 0.87146,
+        "2.5": 0.692141,
+        "3.5": 0.478673
+      },
+      "final_total": 5,
+      "fixture_id": 1523230,
+      "generated_at_local": "2026-09-18T05:06:51.322207-06:00",
+      "home_team": "Hangzhou Greentown",
+      "league": "Super League",
+      "league_id": 169,
+      "stage": "T-30"
+    },
+    {
+      "away_team": "Ümraniyespor",
+      "canonical_lambda": 2.7156,
+      "canonical_probs": {
+        "1.5": 0.754159,
+        "2.5": 0.510191,
+        "3.5": 0.28935
+      },
+      "challenger_lambda": 2.7285,
+      "challenger_probs": {
+        "1.5": 0.756454,
+        "2.5": 0.513315,
+        "3.5": 0.292184
+      },
+      "final_total": 1,
+      "fixture_id": 1585760,
+      "generated_at_local": "2026-09-18T06:51:26.051236-06:00",
+      "home_team": "Bandırmaspor",
+      "league": "1. Lig",
+      "league_id": 204,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "FC Minsk",
+      "canonical_lambda": 2.4598,
+      "canonical_probs": {
+        "1.5": 0.704357,
+        "2.5": 0.44584,
+        "3.5": 0.233871
+      },
+      "challenger_lambda": 2.449,
+      "challenger_probs": {
+        "1.5": 0.702071,
+        "2.5": 0.443034,
+        "3.5": 0.231575
+      },
+      "final_total": 2,
+      "fixture_id": 1525984,
+      "generated_at_local": "2026-09-18T07:21:59.924063-06:00",
+      "home_team": "Belshina",
+      "league": "Premier League",
+      "league_id": 116,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Sepsi OSK Sfantu Gheorghe",
+      "canonical_lambda": 2.2906,
+      "canonical_probs": {
+        "1.5": 0.666978,
+        "2.5": 0.401473,
+        "3.5": 0.198749
+      },
+      "challenger_lambda": 2.2532,
+      "challenger_probs": {
+        "1.5": 0.658208,
+        "2.5": 0.391511,
+        "3.5": 0.191205
+      },
+      "final_total": 1,
+      "fixture_id": 1565262,
+      "generated_at_local": "2026-09-18T07:34:59.812005-06:00",
+      "home_team": "Uta Arad",
+      "league": "Liga I",
+      "league_id": 283,
+      "stage": "T-90"
+    },
+    {
+      "away_team": "FC UFA",
+      "canonical_lambda": 2.6875,
+      "canonical_probs": {
+        "1.5": 0.749062,
+        "2.5": 0.503308,
+        "3.5": 0.283154
+      },
+      "challenger_lambda": 2.662,
+      "challenger_probs": {
+        "1.5": 0.744354,
+        "2.5": 0.497011,
+        "3.5": 0.277539
+      },
+      "final_total": 3,
+      "fixture_id": 1577531,
+      "generated_at_local": "2026-09-18T07:52:13.815140-06:00",
+      "home_team": "Chelyabinsk",
+      "league": "First League",
+      "league_id": 236,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Ska-khabarovsk",
+      "canonical_lambda": 3.0094,
+      "canonical_probs": {
+        "1.5": 0.802247,
+        "2.5": 0.578905,
+        "3.5": 0.354865
+      },
+      "challenger_lambda": 3.0112,
+      "challenger_probs": {
+        "1.5": 0.802523,
+        "2.5": 0.57932,
+        "3.5": 0.355282
+      },
+      "final_total": 2,
+      "fixture_id": 1577535,
+      "generated_at_local": "2026-09-18T07:52:13.815140-06:00",
+      "home_team": "FC Sochi",
+      "league": "First League",
+      "league_id": 236,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Spartak Kostroma",
+      "canonical_lambda": 2.4094,
+      "canonical_probs": {
+        "1.5": 0.693594,
+        "2.5": 0.432739,
+        "3.5": 0.223239
+      },
+      "challenger_lambda": 2.3916,
+      "challenger_probs": {
+        "1.5": 0.689722,
+        "2.5": 0.42809,
+        "3.5": 0.219519
+      },
+      "final_total": 1,
+      "fixture_id": 1577538,
+      "generated_at_local": "2026-09-18T07:52:13.815140-06:00",
+      "home_team": "Volga Ulyanovsk",
+      "league": "First League",
+      "league_id": 236,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Wieczysta Kraków",
+      "canonical_lambda": 3.3219,
+      "canonical_probs": {
+        "1.5": 0.844044,
+        "2.5": 0.644946,
+        "3.5": 0.424487
+      },
+      "challenger_lambda": 3.3128,
+      "challenger_probs": {
+        "1.5": 0.84295,
+        "2.5": 0.643131,
+        "3.5": 0.42248
+      },
+      "final_total": 4,
+      "fixture_id": 1553179,
+      "generated_at_local": "2026-09-18T08:08:25.350725-06:00",
+      "home_team": "Widzew Łódź",
+      "league": "Ekstraklasa",
+      "league_id": 106,
+      "stage": "T-90"
+    },
+    {
+      "away_team": "Djurgården W",
+      "canonical_lambda": 2.8594,
+      "canonical_probs": {
+        "1.5": 0.778838,
+        "2.5": 0.544573,
+        "3.5": 0.32129
+      },
+      "challenger_lambda": 2.823,
+      "challenger_probs": {
+        "1.5": 0.772814,
+        "2.5": 0.536016,
+        "3.5": 0.313186
+      },
+      "final_total": 3,
+      "fixture_id": 1495561,
+      "generated_at_local": "2026-09-18T10:52:25.428236-06:00",
+      "home_team": "Malmö FF W",
+      "league": "Damallsvenskan",
+      "league_id": 549,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Silkeborg",
+      "canonical_lambda": 2.6031,
+      "canonical_probs": {
+        "1.5": 0.733218,
+        "2.5": 0.482354,
+        "3.5": 0.264678
+      },
+      "challenger_lambda": 2.6036,
+      "challenger_probs": {
+        "1.5": 0.733316,
+        "2.5": 0.482483,
+        "3.5": 0.264789
+      },
+      "final_total": 4,
+      "fixture_id": 1549024,
+      "generated_at_local": "2026-09-18T10:52:25.428236-06:00",
+      "home_team": "Lyngby",
+      "league": "Superliga",
+      "league_id": 119,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "CSKA 1948",
+      "canonical_lambda": 2.0469,
+      "canonical_probs": {
+        "1.5": 0.606533,
+        "2.5": 0.336009,
+        "3.5": 0.151433
+      },
+      "challenger_lambda": 1.9787,
+      "challenger_probs": {
+        "1.5": 0.588201,
+        "2.5": 0.317561,
+        "3.5": 0.139055
+      },
+      "final_total": 3,
+      "fixture_id": 1551115,
+      "generated_at_local": "2026-09-18T10:52:25.428236-06:00",
+      "home_team": "Slavia Sofia",
+      "league": "First League",
+      "league_id": 172,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Würzburger Kickers",
+      "canonical_lambda": 4.25,
+      "canonical_probs": {
+        "1.5": 0.925109,
+        "2.5": 0.796279,
+        "3.5": 0.61377
+      },
+      "challenger_lambda": 4.2603,
+      "challenger_probs": {
+        "1.5": 0.925733,
+        "2.5": 0.797607,
+        "3.5": 0.615652
+      },
+      "final_total": 3,
+      "fixture_id": 1584011,
+      "generated_at_local": "2026-09-18T10:52:25.428236-06:00",
+      "home_team": "Verl",
+      "league": "3. Liga",
+      "league_id": 80,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Iğdır FK",
+      "canonical_lambda": 1.8875,
+      "canonical_probs": {
+        "1.5": 0.562688,
+        "2.5": 0.292906,
+        "3.5": 0.123168
+      },
+      "challenger_lambda": 1.8644,
+      "challenger_probs": {
+        "1.5": 0.556059,
+        "2.5": 0.286688,
+        "3.5": 0.11928
+      },
+      "final_total": 4,
+      "fixture_id": 1585766,
+      "generated_at_local": "2026-09-18T10:52:25.428236-06:00",
+      "home_team": "Muğlaspor",
+      "league": "1. Lig",
+      "league_id": 204,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Budapest Honved",
+      "canonical_lambda": 3.5469,
+      "canonical_probs": {
+        "1.5": 0.868983,
+        "2.5": 0.687734,
+        "3.5": 0.473445
+      },
+      "challenger_lambda": 3.5327,
+      "challenger_probs": {
+        "1.5": 0.867531,
+        "2.5": 0.685163,
+        "3.5": 0.470411
+      },
+      "final_total": 4,
+      "fixture_id": 1560247,
+      "generated_at_local": "2026-09-18T11:27:43.831983-06:00",
+      "home_team": "Puskas Academy",
+      "league": "NB I",
+      "league_id": 271,
+      "stage": "CLOSE"
+    },
+    {
+      "away_team": "WSG Wattens",
+      "canonical_lambda": 3.7375,
+      "canonical_probs": {
+        "1.5": 0.887178,
+        "2.5": 0.720846,
+        "3.5": 0.513624
+      },
+      "challenger_lambda": 3.5427,
+      "challenger_probs": {
+        "1.5": 0.868552,
+        "2.5": 0.686967,
+        "3.5": 0.472534
+      },
+      "final_total": 3,
+      "fixture_id": 1561935,
+      "generated_at_local": "2026-09-18T11:27:43.831983-06:00",
+      "home_team": "Rapid Vienna",
+      "league": "Bundesliga",
+      "league_id": 218,
+      "stage": "CLOSE"
+    },
+    {
+      "away_team": "Sochaux",
+      "canonical_lambda": 1.9438,
+      "canonical_probs": {
+        "1.5": 0.578555,
+        "2.5": 0.308102,
+        "3.5": 0.132872
+      },
+      "challenger_lambda": 1.8109,
+      "challenger_probs": {
+        "1.5": 0.540403,
+        "2.5": 0.272304,
+        "3.5": 0.110469
+      },
+      "final_total": 2,
+      "fixture_id": 1552481,
+      "generated_at_local": "2026-09-18T11:45:16.728744-06:00",
+      "home_team": "Laval",
+      "league": "Ligue 2",
+      "league_id": 62,
+      "stage": "T-20"
+    },
+    {
+      "away_team": "Roda",
+      "canonical_lambda": 3.4933,
+      "canonical_probs": {
+        "1.5": 0.863401,
+        "2.5": 0.67791,
+        "3.5": 0.461917
+      },
+      "challenger_lambda": 3.362,
+      "challenger_probs": {
+        "1.5": 0.848788,
+        "2.5": 0.652872,
+        "3.5": 0.433316
+      },
+      "final_total": 0,
+      "fixture_id": 1551800,
+      "generated_at_local": "2026-09-18T11:52:27.922596-06:00",
+      "home_team": "Jong Ajax",
+      "league": "Eerste Divisie",
+      "league_id": 89,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "FC Volendam",
+      "canonical_lambda": 3.6875,
+      "canonical_probs": {
+        "1.5": 0.88265,
+        "2.5": 0.712443,
+        "3.5": 0.50323
+      },
+      "challenger_lambda": 3.6079,
+      "challenger_probs": {
+        "1.5": 0.875084,
+        "2.5": 0.698645,
+        "3.5": 0.486455
+      },
+      "final_total": 5,
+      "fixture_id": 1551801,
+      "generated_at_local": "2026-09-18T11:52:27.922596-06:00",
+      "home_team": "Jong AZ",
+      "league": "Eerste Divisie",
+      "league_id": 89,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Montpellier",
+      "canonical_lambda": 3.2,
+      "canonical_probs": {
+        "1.5": 0.828798,
+        "2.5": 0.620095,
+        "3.5": 0.397478
+      },
+      "challenger_lambda": 3.1726,
+      "challenger_probs": {
+        "1.5": 0.825196,
+        "2.5": 0.614356,
+        "3.5": 0.391383
+      },
+      "final_total": 2,
+      "fixture_id": 1552484,
+      "generated_at_local": "2026-09-18T11:52:27.922596-06:00",
+      "home_team": "Reims",
+      "league": "Ligue 2",
+      "league_id": 62,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Slask Wroclaw",
+      "canonical_lambda": 2.7531,
+      "canonical_probs": {
+        "1.5": 0.760818,
+        "2.5": 0.519297,
+        "3.5": 0.29765
+      },
+      "challenger_lambda": 2.741,
+      "challenger_probs": {
+        "1.5": 0.75868,
+        "2.5": 0.516359,
+        "3.5": 0.29496
+      },
+      "final_total": 3,
+      "fixture_id": 1553180,
+      "generated_at_local": "2026-09-18T12:27:31.917455-06:00",
+      "home_team": "Wisla Krakow",
+      "league": "Ekstraklasa",
+      "league_id": 106,
+      "stage": "CLOSE"
+    },
+    {
+      "away_team": "Watford",
+      "canonical_lambda": 2.0531,
+      "canonical_probs": {
+        "1.5": 0.608183,
+        "2.5": 0.3377,
+        "3.5": 0.152588
+      },
+      "challenger_lambda": 1.9472,
+      "challenger_probs": {
+        "1.5": 0.579517,
+        "2.5": 0.309039,
+        "3.5": 0.133479
+      },
+      "final_total": 1,
+      "fixture_id": 1563168,
+      "generated_at_local": "2026-09-18T12:52:16.924526-06:00",
+      "home_team": "Bristol City",
+      "league": "Championship",
+      "league_id": 40,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Club Guarani",
+      "canonical_lambda": 1.7094,
+      "canonical_probs": {
+        "1.5": 0.50966,
+        "2.5": 0.245254,
+        "3.5": 0.094597
+      },
+      "challenger_lambda": 1.6433,
+      "challenger_probs": {
+        "1.5": 0.488938,
+        "2.5": 0.227886,
+        "3.5": 0.084892
+      },
+      "final_total": 1,
+      "fixture_id": 1632013,
+      "generated_at_local": "2026-09-18T12:52:16.924526-06:00",
+      "home_team": "Sportivo Trinidense",
+      "league": "Division Profesional - Clausura",
+      "league_id": 252,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Lobos Upnfm",
+      "canonical_lambda": 2.7062,
+      "canonical_probs": {
+        "1.5": 0.752471,
+        "2.5": 0.507905,
+        "3.5": 0.287286
+      },
+      "challenger_lambda": 2.5689,
+      "challenger_probs": {
+        "1.5": 0.726553,
+        "2.5": 0.473736,
+        "3.5": 0.257249
+      },
+      "final_total": 2,
+      "fixture_id": 1636809,
+      "generated_at_local": "2026-09-18T14:52:09.415583-06:00",
+      "home_team": "Platense FC",
+      "league": "Liga Nacional",
+      "league_id": 234,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "JJ Urquiza",
+      "canonical_lambda": 1.6594,
+      "canonical_probs": {
+        "1.5": 0.494033,
+        "2.5": 0.232093,
+        "3.5": 0.087208
+      },
+      "challenger_lambda": 1.6121,
+      "challenger_probs": {
+        "1.5": 0.478959,
+        "2.5": 0.219765,
+        "3.5": 0.080486
+      },
+      "final_total": 0,
+      "fixture_id": 1500114,
+      "generated_at_local": "2026-09-18T15:29:09.312355-06:00",
+      "home_team": "Defensores de Cambaceres",
+      "league": "Primera C",
+      "league_id": 132,
+      "stage": "CLOSE"
+    },
+    {
+      "away_team": "America Mineiro",
+      "canonical_lambda": 2.7875,
+      "canonical_probs": {
+        "1.5": 0.766782,
+        "2.5": 0.527557,
+        "3.5": 0.305276
+      },
+      "challenger_lambda": 2.7784,
+      "challenger_probs": {
+        "1.5": 0.76522,
+        "2.5": 0.525383,
+        "3.5": 0.30326
+      },
+      "final_total": 1,
+      "fixture_id": 1520889,
+      "generated_at_local": "2026-09-18T16:20:50.712732-06:00",
+      "home_team": "Vila Nova",
+      "league": "Serie B",
+      "league_id": 72,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Union Magdalena",
+      "canonical_lambda": 2.2812,
+      "canonical_probs": {
+        "1.5": 0.664799,
+        "2.5": 0.398983,
+        "3.5": 0.196852
+      },
+      "challenger_lambda": 2.2482,
+      "challenger_probs": {
+        "1.5": 0.657022,
+        "2.5": 0.390177,
+        "3.5": 0.190204
+      },
+      "final_total": 3,
+      "fixture_id": 1549640,
+      "generated_at_local": "2026-09-18T16:59:33.318421-06:00",
+      "home_team": "Patriotas",
+      "league": "Primera B",
+      "league_id": 240,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "San Antonio Bulo Bulo",
+      "canonical_lambda": 3.1156,
+      "canonical_probs": {
+        "1.5": 0.817468,
+        "2.5": 0.602207,
+        "3.5": 0.37865
+      },
+      "challenger_lambda": 2.9419,
+      "challenger_probs": {
+        "1.5": 0.792004,
+        "2.5": 0.563667,
+        "3.5": 0.339752
+      },
+      "final_total": 4,
+      "fixture_id": 1619019,
+      "generated_at_local": "2026-09-18T16:59:33.318421-06:00",
+      "home_team": "Independiente Petrolero",
+      "league": "Primera División",
+      "league_id": 344,
+      "stage": "CLOSE"
+    },
+    {
+      "away_team": "Novorizontino",
+      "canonical_lambda": 2.4938,
+      "canonical_probs": {
+        "1.5": 0.711417,
+        "2.5": 0.454582,
+        "3.5": 0.241088
+      },
+      "challenger_lambda": 2.4514,
+      "challenger_probs": {
+        "1.5": 0.702591,
+        "2.5": 0.443671,
+        "3.5": 0.232095
+      },
+      "final_total": 3,
+      "fixture_id": 1520881,
+      "generated_at_local": "2026-09-18T17:28:56.219785-06:00",
+      "home_team": "Ceara",
+      "league": "Serie B",
+      "league_id": 72,
+      "stage": "CLOSE"
+    },
+    {
+      "away_team": "Atletico Goianiense",
+      "canonical_lambda": 2.1688,
+      "canonical_probs": {
+        "1.5": 0.637747,
+        "2.5": 0.368895,
+        "3.5": 0.174538
+      },
+      "challenger_lambda": 2.1973,
+      "challenger_probs": {
+        "1.5": 0.644775,
+        "2.5": 0.376567,
+        "3.5": 0.18012
+      },
+      "final_total": 1,
+      "fixture_id": 1520887,
+      "generated_at_local": "2026-09-18T17:59:03.119014-06:00",
+      "home_team": "São Bernardo",
+      "league": "Serie B",
+      "league_id": 72,
+      "stage": "CLOSE"
+    },
+    {
+      "away_team": "Cipolletti",
+      "canonical_lambda": 2.0812,
+      "canonical_probs": {
+        "1.5": 0.61554,
+        "2.5": 0.345304,
+        "3.5": 0.157828
+      },
+      "challenger_lambda": 2.0373,
+      "challenger_probs": {
+        "1.5": 0.603999,
+        "2.5": 0.333421,
+        "3.5": 0.149671
+      },
+      "final_total": 2,
+      "fixture_id": 1606423,
+      "generated_at_local": "2026-09-18T17:59:03.119014-06:00",
+      "home_team": "Juventud Antoniana",
+      "league": "Torneo Federal A",
+      "league_id": 134,
+      "stage": "CLOSE"
+    },
+    {
+      "away_team": "Macara",
+      "canonical_lambda": 2.3219,
+      "canonical_probs": {
+        "1.5": 0.674159,
+        "2.5": 0.409754,
+        "3.5": 0.205115
+      },
+      "challenger_lambda": 2.2513,
+      "challenger_probs": {
+        "1.5": 0.657757,
+        "2.5": 0.391003,
+        "3.5": 0.190824
+      },
+      "final_total": 3,
+      "fixture_id": 1639788,
+      "generated_at_local": "2026-09-18T17:59:03.119014-06:00",
+      "home_team": "Aucas",
+      "league": "Liga Pro",
+      "league_id": 242,
+      "stage": "T-30"
+    },
+    {
+      "away_team": "Mineros de Zacatecas",
+      "canonical_lambda": 4.1125,
+      "canonical_probs": {
+        "1.5": 0.916322,
+        "2.5": 0.777914,
+        "3.5": 0.588181
+      },
+      "challenger_lambda": 3.9989,
+      "challenger_probs": {
+        "1.5": 0.908335,
+        "2.5": 0.761721,
+        "3.5": 0.566293
+      },
+      "final_total": 1,
+      "fixture_id": 1581426,
+      "generated_at_local": "2026-09-18T18:53:54.720335-06:00",
+      "home_team": "Tepatitlán",
+      "league": "Liga de Expansión MX",
+      "league_id": 263,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Venados FC",
+      "canonical_lambda": 3.5438,
+      "canonical_probs": {
+        "1.5": 0.86866,
+        "2.5": 0.68716,
+        "3.5": 0.472762
+      },
+      "challenger_lambda": 3.5695,
+      "challenger_probs": {
+        "1.5": 0.871271,
+        "2.5": 0.691802,
+        "3.5": 0.478265
+      },
+      "final_total": 3,
+      "fixture_id": 1581478,
+      "generated_at_local": "2026-09-18T18:53:54.720335-06:00",
+      "home_team": "Piratas",
+      "league": "Liga de Expansión MX",
+      "league_id": 263,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "CD Arabe Unido",
+      "canonical_lambda": 2.5625,
+      "canonical_probs": {
+        "1.5": 0.725289,
+        "2.5": 0.472116,
+        "3.5": 0.255863
+      },
+      "challenger_lambda": 2.446,
+      "challenger_probs": {
+        "1.5": 0.701434,
+        "2.5": 0.442254,
+        "3.5": 0.230939
+      },
+      "final_total": 3,
+      "fixture_id": 1583765,
+      "generated_at_local": "2026-09-18T19:25:23.546758-06:00",
+      "home_team": "San Francisco FC",
+      "league": "Liga Panameña de Fútbol",
+      "league_id": 304,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Estrella Roja",
+      "canonical_lambda": 2.3656,
+      "canonical_probs": {
+        "1.5": 0.683999,
+        "2.5": 0.421285,
+        "3.5": 0.214123
+      },
+      "challenger_lambda": 2.2634,
+      "challenger_probs": {
+        "1.5": 0.660613,
+        "2.5": 0.394226,
+        "3.5": 0.193249
+      },
+      "final_total": 2,
+      "fixture_id": 1636810,
+      "generated_at_local": "2026-09-18T19:25:23.546758-06:00",
+      "home_team": "Atlético Choloma",
+      "league": "Liga Nacional",
+      "league_id": 234,
+      "stage": "T-10"
+    },
+    {
+      "away_team": "Kansas City W",
+      "canonical_lambda": 2.775,
+      "canonical_probs": {
+        "1.5": 0.76463,
+        "2.5": 0.524565,
+        "3.5": 0.302505
+      },
+      "challenger_lambda": 2.813,
+      "challenger_probs": {
+        "1.5": 0.771124,
+        "2.5": 0.533636,
+        "3.5": 0.310953
+      },
+      "final_total": 2,
+      "fixture_id": 1508548,
+      "generated_at_local": "2026-09-18T19:57:18.703228-06:00",
+      "home_team": "San Diego Wave W",
+      "league": "NWSL Women",
+      "league_id": 254,
+      "stage": "T-10"
     }
   ],
   "improvement": {
-    "lambda_mae_delta_challenger_minus_canonical": -0.002334,
+    "lambda_mae_delta_challenger_minus_canonical": -0.002145,
     "leagues_where_challenger_improves_o2_5_brier": 1,
     "leagues_with_10plus_evaluations": 1,
     "lines": {
       "1.5": {
-        "brier_delta_challenger_minus_canonical": 0.000598,
-        "log_loss_delta_challenger_minus_canonical": 0.002233,
-        "n": 63
+        "brier_delta_challenger_minus_canonical": 0.000721,
+        "log_loss_delta_challenger_minus_canonical": 0.001529,
+        "n": 99
       },
       "2.5": {
-        "brier_delta_challenger_minus_canonical": -0.001221,
-        "log_loss_delta_challenger_minus_canonical": -0.002693,
-        "n": 63
+        "brier_delta_challenger_minus_canonical": -0.000668,
+        "log_loss_delta_challenger_minus_canonical": -0.001803,
+        "n": 99
       },
       "3.5": {
-        "brier_delta_challenger_minus_canonical": 0.000407,
-        "log_loss_delta_challenger_minus_canonical": 0.002545,
-        "n": 63
+        "brier_delta_challenger_minus_canonical": -0.00056,
+        "log_loss_delta_challenger_minus_canonical": -0.000714,
+        "n": 99
       }
     }
   },
   "league_stability": {
     "Primera División": {
-      "n": 11,
-      "o2_5_brier_delta": -0.007908
+      "n": 12,
+      "o2_5_brier_delta": -0.00457
     }
   },
   "method": "DIRECT_PERSISTED_PREKICKOFF_CANONICAL_VS_RELATIVE_STRENGTH_SHADOW",

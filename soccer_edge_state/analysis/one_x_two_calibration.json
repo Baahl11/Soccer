@@ -1,16 +1,20 @@
 {
   "accuracy_by_latest_stage": {
     "CLOSE": {
-      "accuracy": 0.5714,
-      "n": 7
+      "accuracy": 0.375,
+      "n": 24
     },
     "T-10": {
-      "accuracy": 0.5526,
-      "n": 152
+      "accuracy": 0.5474,
+      "n": 190
     },
     "T-20": {
-      "accuracy": 0.4211,
-      "n": 19
+      "accuracy": 0.4091,
+      "n": 22
+    },
+    "T-30": {
+      "accuracy": 0.5,
+      "n": 2
     },
     "T-40": {
       "accuracy": 0.4375,
@@ -21,26 +25,26 @@
       "n": 4
     },
     "T-90": {
-      "accuracy": 0.4444,
-      "n": 9
+      "accuracy": 0.4545,
+      "n": 11
     }
   },
   "accuracy_by_max_probability": {
     "40-49%": {
-      "accuracy": 0.5,
-      "n": 82
+      "accuracy": 0.4865,
+      "n": 111
     },
     "50-59%": {
-      "accuracy": 0.5263,
-      "n": 57
+      "accuracy": 0.5385,
+      "n": 65
     },
     "<40%": {
-      "accuracy": 0.5161,
-      "n": 31
+      "accuracy": 0.4186,
+      "n": 43
     },
     ">=60%": {
-      "accuracy": 0.5946,
-      "n": 37
+      "accuracy": 0.6,
+      "n": 50
     }
   },
   "activation_gate": {
@@ -48,73 +52,78 @@
     "reason": "1X2 remains research-only until sample size and calibration quality are sufficient; no backend classification may be upgraded from this report."
   },
   "actual_outcome_counts": {
-    "A": 68,
-    "D": 43,
-    "H": 96
+    "A": 88,
+    "D": 55,
+    "H": 126
   },
   "calibration_by_outcome": {
     "A": {
       "00-10%": {
         "mean_forecast_midpoint": 0.05,
-        "n": 5,
-        "observed_rate": 0.2
+        "n": 7,
+        "observed_rate": 0.1429
       },
       "10-20%": {
         "mean_forecast_midpoint": 0.15,
-        "n": 37,
-        "observed_rate": 0.1622
-      },
-      "20-30%": {
-        "mean_forecast_midpoint": 0.25,
-        "n": 60,
-        "observed_rate": 0.2167
-      },
-      "30-40%": {
-        "mean_forecast_midpoint": 0.35,
-        "n": 47,
-        "observed_rate": 0.3617
-      },
-      "40-50%": {
-        "mean_forecast_midpoint": 0.45,
-        "n": 33,
-        "observed_rate": 0.5758
-      },
-      "50-60%": {
-        "mean_forecast_midpoint": 0.55,
-        "n": 14,
-        "observed_rate": 0.5
-      },
-      "60-70%": {
-        "mean_forecast_midpoint": 0.65,
-        "n": 6,
-        "observed_rate": 0.3333
-      },
-      "70-80%": {
-        "mean_forecast_midpoint": 0.75,
-        "n": 4,
-        "observed_rate": 0.5
-      },
-      "80-90%": {
-        "mean_forecast_midpoint": 0.85,
-        "n": 1,
-        "observed_rate": 1.0
-      }
-    },
-    "D": {
-      "10-20%": {
-        "mean_forecast_midpoint": 0.15,
-        "n": 22,
+        "n": 44,
         "observed_rate": 0.1818
       },
       "20-30%": {
         "mean_forecast_midpoint": 0.25,
-        "n": 146,
-        "observed_rate": 0.2192
+        "n": 77,
+        "observed_rate": 0.2597
       },
       "30-40%": {
         "mean_forecast_midpoint": 0.35,
-        "n": 25,
-        "observed_rate": 0.24
+        "n": 65,
+        "observed_rate": 0.3385
+      },
+      "40-50%": {
+        "mean_forecast_midpoint": 0.45,
+        "n": 45,
+        "observed_rate": 0.5111
+      },
+      "50-60%": {
+        "mean_forecast_midpoint": 0.55,
+        "n": 15,
+        "observed_rate": 0.4667
+      },
+      "60-70%": {
+        "mean_forecast_midpoint": 0.65,
+        "n": 7,
+        "observed_rate": 0.2857
+      },
+      "70-80%": {
+        "mean_forecast_midpoint": 0.75,
+        "n": 7,
+        "observed_rate": 0.4286
+      },
+      "80-90%": {
+        "mean_forecast_midpoint": 0.85,
+        "n": 2,
+        "observed_rate": 1.0
+      }
+    },
+    "D": {
+      "00-10%": {
+        "mean_forecast_midpoint": 0.05,
+        "n": 1,
+        "observed_rate": 0.0
+      },
+      "10-20%": {
+        "mean_forecast_midpoint": 0.15,
+        "n": 39,
+        "observed_rate": 0.1538
+      },
+      "20-30%": {
+        "mean_forecast_midpoint": 0.25,
+        "n": 181,
+        "observed_rate": 0.2155
+      },
+      "30-40%": {
+        "mean_forecast_midpoint": 0.35,
+        "n": 34,
+        "observed_rate": 0.2647
       },
       "40-50%": {
         "mean_forecast_midpoint": 0.45,
@@ -135,49 +144,54 @@
     "H": {
       "00-10%": {
         "mean_forecast_midpoint": 0.05,
-        "n": 2,
+        "n": 4,
         "observed_rate": 0.0
       },
       "10-20%": {
         "mean_forecast_midpoint": 0.15,
-        "n": 22,
-        "observed_rate": 0.4091
+        "n": 26,
+        "observed_rate": 0.4231
       },
       "20-30%": {
         "mean_forecast_midpoint": 0.25,
-        "n": 25,
-        "observed_rate": 0.36
+        "n": 29,
+        "observed_rate": 0.3793
       },
       "30-40%": {
         "mean_forecast_midpoint": 0.35,
-        "n": 51,
-        "observed_rate": 0.3137
+        "n": 70,
+        "observed_rate": 0.3
       },
       "40-50%": {
         "mean_forecast_midpoint": 0.45,
-        "n": 50,
-        "observed_rate": 0.46
+        "n": 68,
+        "observed_rate": 0.4853
       },
       "50-60%": {
         "mean_forecast_midpoint": 0.55,
-        "n": 33,
-        "observed_rate": 0.6667
+        "n": 40,
+        "observed_rate": 0.675
       },
       "60-70%": {
         "mean_forecast_midpoint": 0.65,
-        "n": 19,
-        "observed_rate": 0.7368
+        "n": 24,
+        "observed_rate": 0.75
       },
       "70-80%": {
         "mean_forecast_midpoint": 0.75,
-        "n": 5,
-        "observed_rate": 0.6
+        "n": 6,
+        "observed_rate": 0.5
+      },
+      "80-90%": {
+        "mean_forecast_midpoint": 0.85,
+        "n": 2,
+        "observed_rate": 1.0
       }
     }
   },
-  "finalized_fixtures_available": 357,
+  "finalized_fixtures_available": 419,
   "multiclass_brier": 0.6248,
-  "multiclass_log_loss": 1.0458,
+  "multiclass_log_loss": 1.0448,
   "notes": [
     "Joins the latest pre-kickoff raw 1X2 projection to a final result by fixture_id.",
     "Uses one projection per finalized fixture to avoid repeated-stage weighting.",
@@ -185,13 +199,13 @@
     "Calibration bins are descriptive and require larger samples before model changes are justified."
   ],
   "predicted_outcome_counts": {
-    "A": 68,
+    "A": 90,
     "D": 13,
-    "H": 126
+    "H": 166
   },
-  "sample_fixtures": 207,
+  "sample_fixtures": 269,
   "schema_version": "1.1.0",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "top1_accuracy": 0.5266
+  "top1_accuracy": 0.5093
 }

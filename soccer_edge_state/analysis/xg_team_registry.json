@@ -1,13 +1,13 @@
 {
   "actionable": false,
-  "block_reason": "NO_PERSISTED_VERIFIED_POSTGAME_XG_YET",
-  "data_accumulating": true,
+  "block_reason": null,
+  "data_accumulating": false,
   "decision_weight": 0.0,
-  "fixture_count": 0,
-  "generated_at_utc": "2026-09-18T08:01:52.802891+00:00",
+  "fixture_count": 1,
+  "generated_at_utc": "2026-09-19T08:02:28.296034+00:00",
   "global": {
-    "avg_team_xg": null,
-    "team_observations": 0
+    "avg_team_xg": 1.215,
+    "team_observations": 2
   },
   "policy": [
     "Only API-Football expected_goals captured from finalized fixture statistics is accepted as realized xG.",
@@ -15,7 +15,58 @@
     "Internal goal lambdas, goals, shots and scorelines are never relabeled as xG.",
     "xGA equals opponent verified xG in the same finalized fixture."
   ],
-  "profiles": {},
+  "profiles": {
+    "1018": {
+      "matches": 1,
+      "team": "NK Slaven Belupo",
+      "team_id": "1018",
+      "windows": {
+        "last_10": {
+          "avg_xg_against": 0.44,
+          "avg_xg_diff": 1.55,
+          "avg_xg_for": 1.99,
+          "n": 1
+        },
+        "last_20": {
+          "avg_xg_against": 0.44,
+          "avg_xg_diff": 1.55,
+          "avg_xg_for": 1.99,
+          "n": 1
+        },
+        "last_5": {
+          "avg_xg_against": 0.44,
+          "avg_xg_diff": 1.55,
+          "avg_xg_for": 1.99,
+          "n": 1
+        }
+      }
+    },
+    "1019": {
+      "matches": 1,
+      "team": "Rudes",
+      "team_id": "1019",
+      "windows": {
+        "last_10": {
+          "avg_xg_against": 1.99,
+          "avg_xg_diff": -1.55,
+          "avg_xg_for": 0.44,
+          "n": 1
+        },
+        "last_20": {
+          "avg_xg_against": 1.99,
+          "avg_xg_diff": -1.55,
+          "avg_xg_for": 0.44,
+          "n": 1
+        },
+        "last_5": {
+          "avg_xg_against": 1.99,
+          "avg_xg_diff": -1.55,
+          "avg_xg_for": 0.44,
+          "n": 1
+        }
+      }
+    }
+  },
   "schema_version": "1.1.0",
   "source": {
     "endpoint": "/fixtures/statistics",
@@ -24,6 +75,6 @@
     "stat_type": "expected_goals",
     "usage": "FINALIZED_FIXTURE_HISTORY_ONLY"
   },
-  "status": "API_FOOTBALL_XG_DATA_ACCUMULATING",
-  "team_profile_count": 0
+  "status": "RESEARCH_API_FOOTBALL_XG_TEAM_REGISTRY",
+  "team_profile_count": 2
 }

@@ -1,10 +1,10 @@
 {
   "canonical": {
     "multiclass_brier": 0.6248,
-    "multiclass_log_loss": 1.0458,
-    "sample_fixtures": 207,
+    "multiclass_log_loss": 1.0448,
+    "sample_fixtures": 269,
     "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
-    "top1_accuracy": 0.5266
+    "top1_accuracy": 0.5093
   },
   "challengers": [
     {
@@ -23,31 +23,31 @@
     },
     {
       "accuracy_delta_pp": 0.0,
-      "baseline_brier": 0.6232,
-      "baseline_log_loss": 1.045,
+      "baseline_brier": 0.6237,
+      "baseline_log_loss": 1.0441,
       "brier_delta": -0.001,
       "candidate": "DIXON_COLES",
-      "challenger_brier": 0.6222,
-      "challenger_log_loss": 1.0431,
-      "log_loss_delta": -0.0019,
-      "minimum_same_method_sample_gate_met": false,
+      "challenger_brier": 0.6227,
+      "challenger_log_loss": 1.0421,
+      "log_loss_delta": -0.002,
+      "minimum_same_method_sample_gate_met": true,
       "quality_better_on_matched_report": true,
-      "status": "INSUFFICIENT_SAME_METHOD_OOS_SAMPLE",
-      "walk_forward_evaluated": 177
+      "status": "PROMOTION_REVIEW_ELIGIBLE_RESEARCH_ONLY",
+      "walk_forward_evaluated": 239
     },
     {
-      "accuracy_delta_pp": -1.13,
-      "baseline_brier": 0.6232,
-      "baseline_log_loss": 1.045,
-      "brier_delta": -0.0037,
+      "accuracy_delta_pp": 0.42,
+      "baseline_brier": 0.6237,
+      "baseline_log_loss": 1.0441,
+      "brier_delta": -0.0032,
       "candidate": "CLASS_PRIOR_CALIBRATION",
-      "challenger_brier": 0.6195,
-      "challenger_log_loss": 1.0407,
-      "log_loss_delta": -0.0043,
-      "minimum_same_method_sample_gate_met": false,
+      "challenger_brier": 0.6205,
+      "challenger_log_loss": 1.0396,
+      "log_loss_delta": -0.0045,
+      "minimum_same_method_sample_gate_met": true,
       "quality_better_on_matched_report": true,
-      "status": "INSUFFICIENT_SAME_METHOD_OOS_SAMPLE",
-      "walk_forward_evaluated": 177
+      "status": "PROMOTION_REVIEW_ELIGIBLE_RESEARCH_ONLY",
+      "walk_forward_evaluated": 239
     }
   ],
   "methodology_notes": [
@@ -71,8 +71,11 @@
       "manual/versioned promotion; never automatic weight changes"
     ]
   },
-  "recommendation": "KEEP_CANONICAL_RESEARCH_BASELINE; NO_CHALLENGER_READY_FOR_FORMAL_REVIEW",
-  "review_eligible_challengers": [],
+  "recommendation": "RUN_SAME_FIXTURE_HEAD_TO_HEAD_AMONG_REVIEW_ELIGIBLE_CHALLENGERS",
+  "review_eligible_challengers": [
+    "DIXON_COLES",
+    "CLASS_PRIOR_CALIBRATION"
+  ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_MODEL_SELECTION"
 }
