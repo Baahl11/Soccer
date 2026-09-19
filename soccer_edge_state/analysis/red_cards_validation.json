@@ -1,13 +1,99 @@
 {
-  "by_league": {},
-  "by_probability_bucket": {},
+  "by_league": {
+    "Championship": {
+      "brier": 0.021399,
+      "log_loss": 0.158158,
+      "mean_probability": 0.146285,
+      "n": 1,
+      "observed_rate": 0.0
+    },
+    "Division Profesional - Clausura": {
+      "brier": 0.706369,
+      "log_loss": 1.836512,
+      "mean_probability": 0.159582,
+      "n": 2,
+      "observed_rate": 1.0
+    },
+    "Ekstraklasa": {
+      "brier": 0.026397,
+      "log_loss": 0.177301,
+      "mean_probability": 0.162472,
+      "n": 1,
+      "observed_rate": 0.0
+    },
+    "Liga Pro": {
+      "brier": 0.698121,
+      "log_loss": 1.805065,
+      "mean_probability": 0.164464,
+      "n": 1,
+      "observed_rate": 1.0
+    },
+    "Ligue 2": {
+      "brier": 0.375124,
+      "log_loss": 1.040902,
+      "mean_probability": 0.143429,
+      "n": 4,
+      "observed_rate": 0.5
+    },
+    "NWSL Women": {
+      "brier": 0.690595,
+      "log_loss": 1.777977,
+      "mean_probability": 0.16898,
+      "n": 1,
+      "observed_rate": 1.0
+    },
+    "Primera División": {
+      "brier": 0.026862,
+      "log_loss": 0.179003,
+      "mean_probability": 0.163897,
+      "n": 1,
+      "observed_rate": 0.0
+    },
+    "Segunda División": {
+      "brier": 0.024198,
+      "log_loss": 0.169076,
+      "mean_probability": 0.155556,
+      "n": 1,
+      "observed_rate": 0.0
+    },
+    "Serie B": {
+      "brier": 0.022943,
+      "log_loss": 0.164219,
+      "mean_probability": 0.151438,
+      "n": 4,
+      "observed_rate": 0.0
+    },
+    "Torneo Federal A": {
+      "brier": 0.705776,
+      "log_loss": 1.833236,
+      "mean_probability": 0.159895,
+      "n": 1,
+      "observed_rate": 1.0
+    }
+  },
+  "by_probability_bucket": {
+    "10-14%": {
+      "brier": 0.165587,
+      "log_loss": 0.522104,
+      "mean_probability": 0.14262,
+      "n": 5,
+      "observed_rate": 0.2
+    },
+    "15-19%": {
+      "brier": 0.364202,
+      "log_loss": 0.998567,
+      "mean_probability": 0.158923,
+      "n": 12,
+      "observed_rate": 0.5
+    }
+  },
   "model": "EMPIRICAL_BAYES_ANY_RED_CARD_MATCH_v0.1",
   "overall": {
-    "brier": null,
-    "log_loss": null,
-    "mean_probability": null,
-    "n": 0,
-    "observed_rate": null
+    "brier": 0.305786,
+    "log_loss": 0.858431,
+    "mean_probability": 0.154128,
+    "n": 17,
+    "observed_rate": 0.411765
   },
   "policy": "RED CARDS ONLY; WALK-FORWARD ANTI-LEAKAGE; YELLOW CARD COUNTS EXCLUDED; NO AUTOMATIC PROMOTION",
   "promotion_gate": {
@@ -32,8 +118,213 @@
     "n": 0,
     "observed_rate": null
   },
-  "rows": [],
+  "rows": [
+    {
+      "actual_any_red": 0,
+      "brier": 0.02041488255516605,
+      "bucket": "10-14%",
+      "fixture_id": 1552479,
+      "league": "Ligue 2",
+      "league_id": 62,
+      "log_loss": 0.15417811504585013,
+      "p_any_red": 0.142881,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.01955914540409117,
+      "bucket": "10-14%",
+      "fixture_id": 1552481,
+      "league": "Ligue 2",
+      "league_id": 62,
+      "log_loss": 0.15065315369354515,
+      "p_any_red": 0.139854,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.744904401531875,
+      "bucket": "10-14%",
+      "fixture_id": 1552483,
+      "league": "Ligue 2",
+      "league_id": 62,
+      "log_loss": 1.9883471054610586,
+      "p_any_red": 0.136922,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.7156192173086807,
+      "bucket": "15-19%",
+      "fixture_id": 1552484,
+      "league": "Ligue 2",
+      "league_id": 62,
+      "log_loss": 1.8704313032891633,
+      "p_any_red": 0.154057,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02639727254258225,
+      "bucket": "15-19%",
+      "fixture_id": 1553180,
+      "league": "Ekstraklasa",
+      "league_id": 106,
+      "log_loss": 0.17730103040116063,
+      "p_any_red": 0.162472,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02419753086419753,
+      "bucket": "15-19%",
+      "fixture_id": 1569926,
+      "league": "Segunda División",
+      "league_id": 141,
+      "log_loss": 0.169076330043934,
+      "p_any_red": 0.155556,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.0237614158122933,
+      "bucket": "15-19%",
+      "fixture_id": 1601537,
+      "league": "Serie B",
+      "league_id": 136,
+      "log_loss": 0.16741014662170806,
+      "p_any_red": 0.154147,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.021399310502153865,
+      "bucket": "10-14%",
+      "fixture_id": 1563168,
+      "league": "Championship",
+      "league_id": 40,
+      "log_loss": 0.15815790168766927,
+      "p_any_red": 0.146285,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.7201117163052908,
+      "bucket": "15-19%",
+      "fixture_id": 1632013,
+      "league": "Division Profesional - Clausura",
+      "league_id": 252,
+      "log_loss": 1.8877900730845345,
+      "p_any_red": 0.151406,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.6926272438232339,
+      "bucket": "15-19%",
+      "fixture_id": 1632010,
+      "league": "Division Profesional - Clausura",
+      "league_id": 252,
+      "log_loss": 1.7852345950737076,
+      "p_any_red": 0.167758,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02383417388747139,
+      "bucket": "15-19%",
+      "fixture_id": 1520889,
+      "league": "Serie B",
+      "league_id": 72,
+      "log_loss": 0.1676889826090029,
+      "p_any_red": 0.154383,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.026862186917911837,
+      "bucket": "15-19%",
+      "fixture_id": 1619019,
+      "league": "Primera División",
+      "league_id": 344,
+      "log_loss": 0.17900332292374224,
+      "p_any_red": 0.163897,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02251848681326309,
+      "bucket": "15-19%",
+      "fixture_id": 1520881,
+      "league": "Serie B",
+      "league_id": 72,
+      "log_loss": 0.16259141454617929,
+      "p_any_red": 0.150062,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02165617783061266,
+      "bucket": "10-14%",
+      "fixture_id": 1520887,
+      "league": "Serie B",
+      "league_id": 72,
+      "log_loss": 0.1591837694747515,
+      "p_any_red": 0.14716,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.7057758188920218,
+      "bucket": "15-19%",
+      "fixture_id": 1606423,
+      "league": "Torneo Federal A",
+      "league_id": 134,
+      "log_loss": 1.8332357251298188,
+      "p_any_red": 0.159895,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.6981206734604803,
+      "bucket": "15-19%",
+      "fixture_id": 1639788,
+      "league": "Liga Pro",
+      "league_id": 242,
+      "log_loss": 1.805064546177298,
+      "p_any_red": 0.164464,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.6905949159046977,
+      "bucket": "15-19%",
+      "fixture_id": 1508548,
+      "league": "NWSL Women",
+      "league_id": 254,
+      "log_loss": 1.7779773194619632,
+      "p_any_red": 0.16898,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    }
+  ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_RED_CARD_VALIDATION",
-  "walk_forward_evaluated": 0
+  "walk_forward_evaluated": 17
 }
