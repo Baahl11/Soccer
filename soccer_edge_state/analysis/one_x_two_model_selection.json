@@ -1,10 +1,10 @@
 {
   "canonical": {
-    "multiclass_brier": 0.6248,
-    "multiclass_log_loss": 1.0448,
-    "sample_fixtures": 269,
+    "multiclass_brier": 0.6337,
+    "multiclass_log_loss": 1.0565,
+    "sample_fixtures": 332,
     "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
-    "top1_accuracy": 0.5093
+    "top1_accuracy": 0.491
   },
   "challengers": [
     {
@@ -23,31 +23,31 @@
     },
     {
       "accuracy_delta_pp": 0.0,
-      "baseline_brier": 0.6237,
-      "baseline_log_loss": 1.0441,
-      "brier_delta": -0.001,
+      "baseline_brier": 0.6337,
+      "baseline_log_loss": 1.0571,
+      "brier_delta": -0.0004,
       "candidate": "DIXON_COLES",
-      "challenger_brier": 0.6227,
-      "challenger_log_loss": 1.0421,
-      "log_loss_delta": -0.002,
+      "challenger_brier": 0.6333,
+      "challenger_log_loss": 1.0563,
+      "log_loss_delta": -0.0008,
       "minimum_same_method_sample_gate_met": true,
       "quality_better_on_matched_report": true,
       "status": "PROMOTION_REVIEW_ELIGIBLE_RESEARCH_ONLY",
-      "walk_forward_evaluated": 239
+      "walk_forward_evaluated": 302
     },
     {
-      "accuracy_delta_pp": 0.42,
-      "baseline_brier": 0.6237,
-      "baseline_log_loss": 1.0441,
-      "brier_delta": -0.0032,
+      "accuracy_delta_pp": 0.0,
+      "baseline_brier": 0.6337,
+      "baseline_log_loss": 1.0571,
+      "brier_delta": 0.0013,
       "candidate": "CLASS_PRIOR_CALIBRATION",
-      "challenger_brier": 0.6205,
-      "challenger_log_loss": 1.0396,
-      "log_loss_delta": -0.0045,
+      "challenger_brier": 0.635,
+      "challenger_log_loss": 1.0602,
+      "log_loss_delta": 0.0031,
       "minimum_same_method_sample_gate_met": true,
-      "quality_better_on_matched_report": true,
-      "status": "PROMOTION_REVIEW_ELIGIBLE_RESEARCH_ONLY",
-      "walk_forward_evaluated": 239
+      "quality_better_on_matched_report": false,
+      "status": "MIXED_OR_WORSE_THAN_MATCHED_BASELINE",
+      "walk_forward_evaluated": 302
     }
   ],
   "methodology_notes": [
@@ -71,10 +71,9 @@
       "manual/versioned promotion; never automatic weight changes"
     ]
   },
-  "recommendation": "RUN_SAME_FIXTURE_HEAD_TO_HEAD_AMONG_REVIEW_ELIGIBLE_CHALLENGERS",
+  "recommendation": "RUN_SAME_FIXTURE_HEAD_TO_HEAD_BEFORE_ANY_PROMOTION:DIXON_COLES",
   "review_eligible_challengers": [
-    "DIXON_COLES",
-    "CLASS_PRIOR_CALIBRATION"
+    "DIXON_COLES"
   ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_MODEL_SELECTION"

@@ -1,42 +1,42 @@
 {
   "baseline": {
-    "accuracy": 0.5063,
-    "brier": 0.6237,
-    "log_loss": 1.0441,
-    "mean_draw_probability": 0.2617,
-    "n": 239,
-    "observed_draw_rate": 0.205,
+    "accuracy": 0.4868,
+    "brier": 0.6337,
+    "log_loss": 1.0571,
+    "mean_draw_probability": 0.2565,
+    "n": 302,
+    "observed_draw_rate": 0.2285,
     "predicted_counts": {
-      "A": 83,
+      "A": 101,
       "D": 13,
-      "H": 143
+      "H": 188
     }
   },
   "challenger": {
-    "accuracy": 0.5105,
-    "brier": 0.6205,
-    "log_loss": 1.0396,
-    "mean_draw_probability": 0.2164,
-    "n": 239,
-    "observed_draw_rate": 0.205,
+    "accuracy": 0.4868,
+    "brier": 0.635,
+    "log_loss": 1.0602,
+    "mean_draw_probability": 0.2127,
+    "n": 302,
+    "observed_draw_rate": 0.2285,
     "predicted_counts": {
-      "A": 81,
+      "A": 95,
       "D": 13,
-      "H": 145
+      "H": 194
     }
   },
   "diagnostic_interpretation": "If calibration improves materially but ranking/accuracy does not, output calibration is part of the issue. If it does not, upstream lambda/team-strength construction is the primary target.",
-  "eligible_fixtures": 269,
+  "eligible_fixtures": 332,
   "improvement": {
-    "accuracy_delta_pp": 0.42,
-    "brier_delta": -0.0032,
-    "draw_probability_delta_pp": -4.53,
-    "log_loss_delta": -0.0045
+    "accuracy_delta_pp": 0.0,
+    "brier_delta": 0.0013,
+    "draw_probability_delta_pp": -4.38,
+    "log_loss_delta": 0.0031
   },
   "latest_class_factors": [
-    1.1295,
-    0.8056,
-    0.9943
+    1.0664,
+    0.8808,
+    1.0095
   ],
   "method": "WALK_FORWARD_SHRUNK_CLASS_PRIOR_CALIBRATION",
   "minimum_training_fixtures": 30,
@@ -50,5 +50,5 @@
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 239
+  "walk_forward_evaluated": 302
 }
