@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "updated_at_local": "2026-09-19T22:35:15.011837-06:00",
+  "updated_at_local": "2026-09-19T22:46:57.411816-06:00",
   "delivered": {
     "market:1557204:1X2:away:None": {
       "key": "market:1557204:1X2:away:None",
@@ -19475,10 +19475,10 @@
       "key": "sport:1552176",
       "signal_type": "PRE_MARKET_WATCH",
       "first_seen_at": "2026-09-19T22:19:38.282171-06:00",
-      "last_seen_at": "2026-09-19T22:19:38.282171-06:00",
+      "last_seen_at": "2026-09-19T22:35:15.011837-06:00",
       "fixture": {
         "fixture_id": 1552176,
-        "kickoff": "2026-09-20T04:15:00-06:00",
+        "kickoff": "2026-09-20T10:15:00+00:00",
         "timestamp": 1789899300,
         "status": "NS",
         "status_long": "Not Started",
@@ -19493,7 +19493,7 @@
         "away_team_id": 207,
         "away_team": "Utrecht",
         "venue": "Stadion Feijenoord",
-        "city": "Rotterdam",
+        "city": null,
         "goals": {
           "home": null,
           "away": null
@@ -19516,7 +19516,7 @@
             "away": null
           }
         },
-        "referee": "Joey Kooij",
+        "referee": null,
         "fixture_timezone": "America/Mexico_City"
       },
       "stage": "EARLY_RESEARCH",
@@ -19536,63 +19536,23 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
-        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "model_limitations": [
-          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
-          "Goals are not labeled or substituted as xG.",
-          "Lineup quality deltas are not quantified without a verified player-impact model."
-        ],
+        "sport_source": null,
+        "market_independent": null,
         "advanced_metrics": "NOT VERIFIED",
-        "sample": {
-          "home_home_played": 2,
-          "away_away_played": 3,
-          "minimum_split_sample": 2
-        },
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
         "raw_home_goal_rate": 2.1875,
         "raw_away_goal_rate": 1.875,
         "raw_total_goals": 4.0625,
-        "raw_home_xg": "NOT VERIFIED",
-        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.458084,
         "raw_draw_prob": 0.203136,
         "raw_away_win_prob": 0.33878,
         "raw_btts_yes_prob": 0.751652,
-        "raw_over_1_5_prob": 0.912893,
         "raw_over_2_5_prob": 0.770907,
-        "raw_over_3_5_prob": 0.578634,
-        "top_scorelines": [
-          {
-            "home": 2,
-            "away": 1,
-            "prob": 0.077189
-          },
-          {
-            "home": 2,
-            "away": 2,
-            "prob": 0.072365
-          },
-          {
-            "home": 1,
-            "away": 1,
-            "prob": 0.070573
-          },
-          {
-            "home": 1,
-            "away": 2,
-            "prob": 0.066162
-          },
-          {
-            "home": 3,
-            "away": 1,
-            "prob": 0.056284
-          },
-          {
-            "home": 3,
-            "away": 2,
-            "prob": 0.052766
-          }
-        ],
         "scoring_path": "TWO-WAY OPEN GAME",
         "screen_scores": {
           "side_edge_score": 54.6,
@@ -19607,22 +19567,22 @@
         }
       },
       "market_provenance": {
-        "source": "API_FALLBACK_ODDS",
-        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-        "latest_market_timestamp": "2026-09-20T01:23:17+00:00",
-        "age_minutes": 176.35,
+        "source": "GALAXY_ODDS",
+        "source_raw": "GALAXYPARLAY_PERSISTED",
+        "latest_market_timestamp": "2026-09-20T04:21:40.599641+00:00",
+        "age_minutes": 13.57,
         "galaxy_freshness_limit_minutes": 20,
-        "freshness": "STALE_OR_TIMESTAMP_MISSING",
-        "fresh": false,
-        "market_count": 212,
-        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "freshness": "FRESH",
+        "fresh": true,
+        "market_count": 2,
+        "fallback_reason": null,
         "sport_first_order_preserved": true,
         "provenance_contract_version": "1.1.0"
       },
       "notes": [
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
-      "delivered_at_local": "2026-09-19T22:19:38.282171-06:00"
+      "delivered_at_local": "2026-09-19T22:46:57.411816-06:00"
     },
     "sport:1550130": {
       "key": "sport:1550130",
