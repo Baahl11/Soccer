@@ -1,0 +1,26 @@
+{
+  "by_classification": {
+    "BET": 5
+  },
+  "by_market_family": {
+    "1H_OTHER": 1,
+    "2H_BTTS": 1,
+    "2H_TOTALS": 2,
+    "FT_TOTALS": 1
+  },
+  "max_provider_calls_needed": 5,
+  "next_step": "A separate guarded backfill runner may consume this queue with provider budget limits and write final results to history/state.",
+  "pending_backlog_rows": 5,
+  "priority_policy": {
+    "BET": "+100",
+    "LEAN": "+25",
+    "canonical_market_family": "+10",
+    "per_source_row": "+1 up to +10",
+    "period_market": "+5"
+  },
+  "safety_note": "Queue generation is diagnostic/planning only. It does not call providers, trigger ticks, deploy Render, change runtime tiers, stakes, classifications, or model weights.",
+  "schema_version": "1.0.0",
+  "source_reason": "PENDING_FINAL_RESULT",
+  "status": "POSTGAME_FINAL_BACKFILL_QUEUE",
+  "unique_fixtures": 5
+}
