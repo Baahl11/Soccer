@@ -1,0 +1,86 @@
+name: Soccer Edge Final Backfill
+
+on:
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: "Actually call API-Football and write final-result history"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      max_calls:
+        description: "Maximum API-Football fixtures?id calls, capped at 5"
+        required: true
+        default: "5"
+        type: choice
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+          - "5"
+
+permissions: {contents: write}
+
+jobs:
+  guarded-final-backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with: {ref: soccer-edge-state, path: state, fetch-depth: 1}
+
+      - name: Checkout engine
+        uses: actions/checkout@v4
+        with: {ref: soccer-edge-mcp-v1, path: engine, fetch-depth: 1}
+
+      - name: Compile guarded runner
+        run: python -m py_compile engine/mcp_gateway/run_postgame_final_backfill.py
+
+      - name: Guardrail summary
+        run: |
+          echo "execute=${{ github.event.inputs.execute }}"
+          echo "max_calls=${{ github.event.inputs.max_calls }}"
+          echo "This workflow only allows API-Football fixtures?id calls via the guarded runner."
+          echo "No odds, no /internal/tick, no Render deploy, no runtime tier/stake/model changes."
+
+      - name: Run guarded final backfill
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: |
+          EXTRA_FLAGS=""
+          if [ "${{ github.event.inputs.execute }}" = "true" ]; then
+            EXTRA_FLAGS="--execute"
+          fi
+          python engine/mcp_gateway/run_postgame_final_backfill.py \
+            --queue state/soccer_edge_state/analysis/postgame_final_backfill_queue.jsonl \
+            --history-output state/soccer_edge_state/history/postgame_final_backfill.jsonl \
+            --report-output state/soccer_edge_state/analysis/postgame_final_backfill_run_report.json \
+            --max-calls "${{ github.event.inputs.max_calls }}" \
+            $EXTRA_FLAGS
+
+      - name: Persist final backfill outputs
+        working-directory: state
+        run: |
+          git config user.name "soccer-edge-bot"
+          git config user.email "soccer-edge-bot@users.noreply.github.com"
+          git add -f soccer_edge_state/analysis/postgame_final_backfill_run_report.json \
+            soccer_edge_state/history/postgame_final_backfill.jsonl
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update Soccer Edge final backfill outputs"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            echo "Concurrent soccer-edge-state update detected; retrying push (attempt $attempt/3)"
+            sleep $((attempt * 2))
+          done
+          echo "Failed to persist final backfill outputs after 3 retries"
+          exit 1
