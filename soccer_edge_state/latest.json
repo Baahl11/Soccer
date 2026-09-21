@@ -2,8 +2,8 @@
   "service": "soccer-edge-automation",
   "version": "3.60.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-21T04:25:41.711301+00:00",
-  "generated_at_local": "2026-09-20T22:25:41.711301-06:00",
+  "generated_at_utc": "2026-09-21T04:46:06.326180+00:00",
+  "generated_at_local": "2026-09-20T22:46:06.326180-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1125,
   "due_fixture_count": 3,
@@ -13,7 +13,7 @@
   "api_calls_this_tick": 12,
   "max_api_calls_per_tick": 35,
   "effective_max_api_calls_per_tick": 35,
-  "last_daily_remaining": 7305,
+  "last_daily_remaining": 7264,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
@@ -23,8 +23,8 @@
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
-  "urgent_late_shortlist_due": 0,
-  "urgent_late_shortlist_processed": 0,
+  "urgent_late_shortlist_due": 1,
+  "urgent_late_shortlist_processed": 1,
   "urgent_window_completion_rate_this_tick": 1.0,
   "urgent_window_policy": "EXISTING_T10_T20_CLOSE_SHORTLIST_FIRST; T40_DISCOVERY_AFTER; ELASTIC_DEEP_DIVE_CAP_MAY_USE_GALAXY_OR_CACHE_BUT_CANNOT_BYPASS_PROVIDER_CALL_BUDGET",
   "deep_dive_capacity_policy": "ELASTIC_WORK_CAP_WITH_UNCHANGED_PROVIDER_API_HARD_CAP",
@@ -56,8 +56,8 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 153,
-  "shortlist_seed_imported": 167,
+  "shortlist_state_count": 147,
+  "shortlist_seed_imported": 153,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
@@ -118,7 +118,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-20T22:25:41.711301-06:00",
+    "generated_at_local": "2026-09-20T22:46:06.326180-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -198,7 +198,7 @@
       "competition": "Premier League",
       "data_tier": "B",
       "kickoff": "2026-09-20T23:00:00-06:00",
-      "stage": "T-40",
+      "stage": "T-20",
       "home": "Khovd",
       "away": "Central Stallions",
       "tracks": [
@@ -208,7 +208,7 @@
       "side_score": 57.3,
       "goals_score": 80.0,
       "two_way_score": 100.0,
-      "availability_confidence": 0.7,
+      "availability_confidence": 0.6,
       "market_source": null,
       "market": null,
       "selection": null,
@@ -295,7 +295,7 @@
         "league": "Premier League",
         "home": "Khovd",
         "away": "Central Stallions",
-        "stage": "T-40",
+        "stage": "T-20",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -368,67 +368,9 @@
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-20T22:25:41.711301-06:00",
+    "generated_at_local": "2026-09-20T22:46:06.326180-06:00",
     "candidate_count": 0,
-    "candidates": [
-      {
-        "fixture_id": 1640414,
-        "kickoff": "2026-09-20T23:00:00-06:00",
-        "country": "Mongolia",
-        "league": "Premier League",
-        "match": "Khovd vs Central Stallions",
-        "data_tier": "B",
-        "stage": "T-40",
-        "availability_confidence": 0.7,
-        "projection_source": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "raw_total_goals": 3.4219,
-        "corridor_key": "O1.5_U4.5",
-        "goal_interval": {
-          "minimum": 2,
-          "maximum": 4
-        },
-        "legs": [
-          {
-            "family": "FT_GOALS",
-            "selection": "OVER",
-            "line": 1.5,
-            "observed": false,
-            "best_price": null,
-            "bookmaker": null,
-            "provider_update": null
-          },
-          {
-            "family": "FT_GOALS",
-            "selection": "UNDER",
-            "line": 4.5,
-            "observed": false,
-            "best_price": null,
-            "bookmaker": null,
-            "provider_update": null
-          }
-        ],
-        "joint_model_probability": 0.595728,
-        "fair_decimal": 1.679,
-        "fair_american": -147,
-        "minimum_sgp_decimal_for_target_edge": 1.783,
-        "minimum_sgp_american_for_target_edge": -128,
-        "target_probability_edge_pp": 3.5,
-        "target_sgp_price_zone_american": {
-          "minimum": 100,
-          "maximum": 160
-        },
-        "exact_sgp_quote": null,
-        "all_exact_legs_observed": false,
-        "status": "GALAXY WATCH — QUOTE/VERIFICATION NEEDED",
-        "bet_eligible": false,
-        "block_reasons": [
-          "ONE_OR_MORE_EXACT_LEGS_NOT_OBSERVED",
-          "AVAILABILITY_BELOW_0.85",
-          "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED"
-        ],
-        "joint_probability_method": "DIRECT_POISSON_GOAL_INTERVAL; NEVER_MULTIPLY_CORRELATED_LEGS"
-      }
-    ],
+    "candidates": [],
     "research_gates": {
       "data_tier": [
         "A",
@@ -530,7 +472,7 @@
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
       "invalidated_fixture_count_this_tick": 3,
-      "updated_at_utc": "2026-09-21T04:25:41.711301+00:00",
+      "updated_at_utc": "2026-09-21T04:46:06.326180+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -2599,12 +2541,12 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-40",
+      "stage": "T-20",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": 0.7,
+      "availability_confidence": 0.6,
       "fixture": {
         "fixture_id": 1640414,
         "kickoff": "2026-09-20T23:00:00-06:00",
@@ -2731,11 +2673,11 @@
         "fixture_id": 1640414,
         "kickoff": "2026-09-20T23:00:00-06:00",
         "match": "Khovd vs Central Stallions",
-        "stage": "T-40",
+        "stage": "T-20",
         "data_tier": "B",
         "bet_tier": null,
         "classification": "WATCH",
-        "availability_confidence": 0.7,
+        "availability_confidence": 0.6,
         "sport_first": true,
         "coverage_gaps": [
           "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
@@ -3582,7 +3524,8 @@
       "best_market": null,
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
+        "T-20 lineup/GK gate failed: BET eligibility blocked."
       ],
       "result": null,
       "error": null
