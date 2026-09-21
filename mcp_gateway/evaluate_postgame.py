@@ -297,6 +297,51 @@ def performance_summary(group: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def tier_gate(summary: dict[str, Any]) -> dict[str, Any]:
+    """Conservative promotion gate for market buckets.
+
+    This is not a betting recommendation. It prevents premature promotion by
+    requiring enough settled decisions and positive ROI before a bucket can
+    leave research mode. CLV still must be checked separately before Tier A/S.
+    """
+    n = int(summary.get("n") or 0)
+    settled = int(summary.get("settled") or 0)
+    unsupported = int(summary.get("unsupported_derivative") or 0)
+    roi = float(summary.get("roi_units") or 0.0)
+    hit_rate = summary.get("hit_rate_ex_push")
+
+    if unsupported and settled == 0:
+        status = "RESEARCH_ONLY_NEEDS_EXPLICIT_SETTLEMENT"
+        reason = "bucket has derivative picks but no explicit win/loss grading yet"
+    elif settled < 20:
+        status = "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+        reason = "fewer than 20 settled decisions"
+    elif hit_rate is None:
+        status = "HOLD_NO_DECIDED_OUTCOMES"
+        reason = "no win/loss decisions after pushes/ungraded rows"
+    elif roi <= 0:
+        status = "HOLD_NEGATIVE_OR_FLAT_ROI"
+        reason = "settled sample is non-positive ROI"
+    elif settled >= 100:
+        status = "TIER_S_CANDIDATE_REQUIRES_CLV"
+        reason = "100+ settled decisions and positive ROI; require CLV/segmentation confirmation"
+    elif settled >= 50:
+        status = "TIER_A_CANDIDATE_REQUIRES_CLV"
+        reason = "50+ settled decisions and positive ROI; require CLV/segmentation confirmation"
+    else:
+        status = "TIER_B_CANDIDATE"
+        reason = "20+ settled decisions and positive ROI; keep low stake until CLV/sample improves"
+
+    return {
+        "status": status,
+        "reason": reason,
+        "n": n,
+        "settled": settled,
+        "hit_rate_ex_push": hit_rate,
+        "roi_units": round(roi, 4),
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Evaluate Soccer Edge ledger rows once final results exist.")
     ap.add_argument("--ledger", default="soccer_edge_state/analysis/signal_ledger.jsonl")
@@ -418,14 +463,21 @@ def main() -> None:
             "roi_per_decision_units": round(roi / len(group), 4) if group else None,
         }
 
+    by_market_family = {k: performance_summary(v) for k, v in sorted(settlement_by_market.items())}
+    by_market_family_and_classification = {
+        family: {classification: performance_summary(rows) for classification, rows in sorted(groups.items())}
+        for family, groups in sorted(settlement_by_market_class.items())
+    }
     market_summary = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "timezone_basis": "America/Mexico_City",
         "settlement_decisions": len(settlement_decisions),
-        "by_market_family": {k: performance_summary(v) for k, v in sorted(settlement_by_market.items())},
-        "by_market_family_and_classification": {
-            family: {classification: performance_summary(rows) for classification, rows in sorted(groups.items())}
-            for family, groups in sorted(settlement_by_market_class.items())
+        "by_market_family": by_market_family,
+        "by_market_family_and_classification": by_market_family_and_classification,
+        "promotion_gate_review": {family: tier_gate(summary) for family, summary in by_market_family.items()},
+        "promotion_gate_by_market_family_and_classification": {
+            family: {classification: tier_gate(summary) for classification, summary in groups.items()}
+            for family, groups in by_market_family_and_classification.items()
         },
         "minimum_sample_policy": {
             "directional_read": 20,
