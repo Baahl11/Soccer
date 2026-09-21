@@ -2,10 +2,10 @@
   "service": "soccer-edge-automation",
   "version": "3.60.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-21T05:41:54.693313+00:00",
-  "generated_at_local": "2026-09-20T23:41:54.693313-06:00",
+  "generated_at_utc": "2026-09-21T06:39:19.288632+00:00",
+  "generated_at_local": "2026-09-21T00:39:19.288632-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 1125,
+  "fixture_scan_count": 3,
   "due_fixture_count": 1,
   "event_count": 2,
   "actionable_refresh_count": 0,
@@ -13,7 +13,7 @@
   "api_calls_this_tick": 4,
   "max_api_calls_per_tick": 35,
   "effective_max_api_calls_per_tick": 35,
-  "last_daily_remaining": 7252,
+  "last_daily_remaining": 7036,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
@@ -56,8 +56,8 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 133,
-  "shortlist_seed_imported": 131,
+  "shortlist_state_count": 99,
+  "shortlist_seed_imported": 133,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
@@ -71,10 +71,10 @@
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
     "galaxy_odds_stale_or_missing": 0,
-    "galaxy_slate_reads": 2,
+    "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 1,
-    "galaxy_slate_fallbacks": 1,
-    "galaxy_slate_stale_rejections": 1,
+    "galaxy_slate_fallbacks": 0,
+    "galaxy_slate_stale_rejections": 0,
     "api_slate_calls_avoided": 1,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
@@ -118,15 +118,13 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-20T23:41:54.693313-06:00",
+    "generated_at_local": "2026-09-21T00:39:19.288632-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
-    "competition_count": 325,
+    "competition_count": 1,
     "data_tier_counts": {
-      "A": 13,
-      "B": 207,
-      "D": 105
+      "B": 1
     },
     "pregame_data_eligible_fixture_count": 3,
     "errors": []
@@ -163,9 +161,9 @@
     ],
     "state_bounds": {
       "registry": {
-        "competition_count": 325,
-        "rows_attached": 300,
-        "truncated": true,
+        "competition_count": 1,
+        "rows_attached": 1,
+        "truncated": false,
         "max_rows": 300
       },
       "match_tables": {
@@ -193,7 +191,7 @@
   "match_table_rows": [
     {
       "fixture_id": 1493137,
-      "country": "Argentina",
+      "country": "NOT VERIFIED",
       "competition": "Liga Profesional Argentina",
       "data_tier": "B",
       "kickoff": "2026-09-21T17:30:00+00:00",
@@ -301,7 +299,7 @@
           "elapsed": null,
           "league_id": 128,
           "league": "Liga Profesional Argentina",
-          "country": "Argentina",
+          "country": null,
           "season": 2026,
           "round": "Clausura - 10",
           "home_team_id": 463,
@@ -356,7 +354,7 @@
           "galaxy_model_versions": [
             "v3.3.0"
           ],
-          "galaxy_data_cutoff": "2026-09-21T04:36:48.622552+00:00",
+          "galaxy_data_cutoff": "2026-09-21T06:01:24.970397+00:00",
           "galaxy_actionable_total_model": true,
           "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
           "model_limitations": [
@@ -410,7 +408,7 @@
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-20T23:41:54.693313-06:00",
+    "generated_at_local": "2026-09-21T00:39:19.288632-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -514,7 +512,7 @@
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
       "invalidated_fixture_count_this_tick": 1,
-      "updated_at_utc": "2026-09-21T05:41:54.693313+00:00",
+      "updated_at_utc": "2026-09-21T06:39:19.288632+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -2533,7 +2531,7 @@
   "events": [
     {
       "event_type": "DAILY_DISCOVERY",
-      "stage": "LATE_DISCOVERY",
+      "stage": "MORNING",
       "classification": "PRE-FINAL",
       "tier": null,
       "stake_units": null,
@@ -2598,7 +2596,7 @@
         "elapsed": null,
         "league_id": 128,
         "league": "Liga Profesional Argentina",
-        "country": "Argentina",
+        "country": null,
         "season": 2026,
         "round": "Clausura - 10",
         "home_team_id": 463,
@@ -2665,7 +2663,7 @@
       "galaxy_source": {
         "status": "AVAILABLE",
         "contract_version": "1.0.1",
-        "data_cutoff": "2026-09-21T04:36:48.622552+00:00",
+        "data_cutoff": "2026-09-21T06:01:24.970397+00:00",
         "external_api_calls": 0
       },
       "market_source": null,
@@ -2847,7 +2845,7 @@
             "status": "WEATHER_SOURCE_NOT_INTEGRATED",
             "venue": "Estadio Jose Maria Minella",
             "city": null,
-            "country": "Argentina",
+            "country": null,
             "kickoff": "2026-09-21T17:30:00+00:00",
             "temperature_c": null,
             "wind_kph": null,
@@ -2869,7 +2867,7 @@
             "fixture_id": 1493137,
             "status": "LIVE_VERIFIED_COMPETITION_CONTEXT",
             "competition": "Liga Profesional Argentina",
-            "country": "Argentina",
+            "country": null,
             "season": 2026,
             "provider_round": "Clausura - 10",
             "stage_descriptor": "PROVIDER_ROUND_LABEL_ONLY",
@@ -3422,7 +3420,7 @@
         "destination": {
           "venue": "Estadio Jose Maria Minella",
           "city": null,
-          "country": "Argentina"
+          "country": null
         },
         "destination_verified": true,
         "away_team": "Atletico Tucuman",
@@ -3446,7 +3444,7 @@
         "status": "WEATHER_SOURCE_NOT_INTEGRATED",
         "venue": "Estadio Jose Maria Minella",
         "city": null,
-        "country": "Argentina",
+        "country": null,
         "kickoff": "2026-09-21T17:30:00+00:00",
         "temperature_c": null,
         "wind_kph": null,
@@ -3468,7 +3466,7 @@
         "fixture_id": 1493137,
         "status": "LIVE_VERIFIED_COMPETITION_CONTEXT",
         "competition": "Liga Profesional Argentina",
-        "country": "Argentina",
+        "country": null,
         "season": 2026,
         "provider_round": "Clausura - 10",
         "stage_descriptor": "PROVIDER_ROUND_LABEL_ONLY",
@@ -3493,7 +3491,7 @@
         "galaxy_model_versions": [
           "v3.3.0"
         ],
-        "galaxy_data_cutoff": "2026-09-21T04:36:48.622552+00:00",
+        "galaxy_data_cutoff": "2026-09-21T06:01:24.970397+00:00",
         "galaxy_actionable_total_model": true,
         "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
         "raw_home_goal_rate": null,
