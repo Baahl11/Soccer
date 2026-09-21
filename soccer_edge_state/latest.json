@@ -2,23 +2,23 @@
   "service": "soccer-edge-automation",
   "version": "3.60.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-21T04:46:06.326180+00:00",
-  "generated_at_local": "2026-09-20T22:46:06.326180-06:00",
+  "generated_at_utc": "2026-09-21T04:56:18.724000+00:00",
+  "generated_at_local": "2026-09-20T22:56:18.724000-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1125,
   "due_fixture_count": 3,
-  "event_count": 4,
+  "event_count": 1,
   "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 12,
+  "api_calls_this_tick": 3,
   "max_api_calls_per_tick": 35,
   "effective_max_api_calls_per_tick": 35,
-  "last_daily_remaining": 7264,
+  "last_daily_remaining": 7261,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 3,
-  "shortlist_event_count": 3,
+  "deep_dive_processed_count": 1,
+  "shortlist_event_count": 1,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
@@ -41,7 +41,7 @@
   "derivative_market_capture_policy": "PERIOD_GOALS_RESEARCH_ONLY; NO_ACTIONABLE_CLASSIFICATION; EXPLICIT_PERIOD_MODEL_AND_OOS_CALIBRATION_REQUIRED",
   "relative_strength_1x2_shadow_count_this_tick": 0,
   "relative_strength_1x2_policy": "RESEARCH_ONLY_SHADOW; LEGACY_OR_VERIFIED_GALAXY_PRODUCTION_PATH_UNCHANGED; NO_BET_UPGRADE",
-  "trend_context_count_this_tick": 1,
+  "trend_context_count_this_tick": 0,
   "trend_signal_count_this_tick": 0,
   "trend_model_disagreement_count_this_tick": 0,
   "trend_context_policy": "RESEARCH_ONLY_CONTEXT; ZERO_DECISION_WEIGHT; DISAGREEMENT_FLAGS_DEEP_DIVE_ONLY; NO_CLASSIFICATION_OR_STAKE_CHANGE",
@@ -56,8 +56,8 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 147,
-  "shortlist_seed_imported": 153,
+  "shortlist_state_count": 137,
+  "shortlist_seed_imported": 147,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
@@ -118,7 +118,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-20T22:46:06.326180-06:00",
+    "generated_at_local": "2026-09-20T22:56:18.724000-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -169,13 +169,12 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 3,
-        "rows_attached": 3,
+        "row_count": 1,
+        "rows_attached": 1,
         "truncated": false,
         "max_rows": 200,
         "classification_counts": {
-          "WATCH": 1,
-          "POSTGAME": 2
+          "WATCH": 1
         }
       }
     },
@@ -198,7 +197,7 @@
       "competition": "Premier League",
       "data_tier": "B",
       "kickoff": "2026-09-20T23:00:00-06:00",
-      "stage": "T-20",
+      "stage": "T-10",
       "home": "Khovd",
       "away": "Central Stallions",
       "tracks": [
@@ -219,69 +218,6 @@
       "tier": null,
       "stake_units": 0.0,
       "reason": "NO_VERIFIED_MARKET"
-    },
-    {
-      "fixture_id": 1551689,
-      "country": "Costa-Rica",
-      "competition": "Primera División",
-      "data_tier": "B",
-      "kickoff": "2026-09-20T19:00:00-06:00",
-      "stage": "POSTGAME",
-      "home": "San Carlos",
-      "away": "CS Cartagines",
-      "tracks": [
-        "TWO_WAY"
-      ],
-      "side_score": 57.9,
-      "goals_score": 61.6,
-      "two_way_score": 82.2,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS",
-      "trend_context": {
-        "reliability": 0.1,
-        "signals": [],
-        "model_disagreements": [],
-        "deep_dive_flag": false,
-        "expected_corner_environment": null
-      }
-    },
-    {
-      "fixture_id": 1559647,
-      "country": "Guatemala",
-      "competition": "Liga Nacional",
-      "data_tier": "B",
-      "kickoff": "2026-09-20T19:00:00-06:00",
-      "stage": "POSTGAME",
-      "home": "Malacateco",
-      "away": "Mixco",
-      "tracks": [
-        "SIDE",
-        "GOALS_OVER",
-        "TWO_WAY"
-      ],
-      "side_score": 67.8,
-      "goals_score": 72.1,
-      "two_way_score": 87.4,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
     }
   ],
   "research_report": {
@@ -295,7 +231,7 @@
         "league": "Premier League",
         "home": "Khovd",
         "away": "Central Stallions",
-        "stage": "T-20",
+        "stage": "T-10",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -368,7 +304,7 @@
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-20T22:46:06.326180-06:00",
+    "generated_at_local": "2026-09-20T22:56:18.724000-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -471,8 +407,8 @@
       "multi_match_active": 0,
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
-      "invalidated_fixture_count_this_tick": 3,
-      "updated_at_utc": "2026-09-21T04:46:06.326180+00:00",
+      "invalidated_fixture_count_this_tick": 1,
+      "updated_at_utc": "2026-09-21T04:56:18.724000+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -550,7 +486,7 @@
     "live_research_events": 0,
     "data_accumulating_events": 1,
     "postgame_xg_captured": 0,
-    "postgame_xg_unavailable": 2,
+    "postgame_xg_unavailable": 0,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -616,7 +552,7 @@
     "schema_version": "1.0.0",
     "provider_policy": "API_FOOTBALL_EXPLICIT_FIELD_ONLY",
     "postgame_big_chances_captured": 0,
-    "postgame_big_chances_unavailable": 2,
+    "postgame_big_chances_unavailable": 0,
     "pregame_data_blocked_events": 1,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
@@ -630,7 +566,7 @@
   "set_piece_intelligence": {
     "schema_version": "1.0.0",
     "postgame_component_observations_captured": 0,
-    "postgame_component_observations_unavailable": 2,
+    "postgame_component_observations_unavailable": 0,
     "pregame_context_events": 0,
     "pregame_history_blocked_events": 1,
     "provider_requests_added": 0,
@@ -694,7 +630,7 @@
   },
   "competition_context_intelligence": {
     "schema_version": "1.0.0",
-    "context_events": 3,
+    "context_events": 1,
     "provider_requests_added": 0,
     "decision_weight": 0.0,
     "canonical_model_weights_changed": false,
@@ -743,7 +679,7 @@
   "odds_catalog_audit": {
     "schema_version": "1.0.0",
     "status": "NO_EXPLICIT_SGP_LIKE_BET_TYPE_FOUND_BY_NAME_AUDIT",
-    "source": "API_FOOTBALL_ODDS_BETS",
+    "source": "CACHE_24H",
     "catalog_count": 337,
     "bet_types": [
       {
@@ -2436,7 +2372,7 @@
     ],
     "explicit_sgp_like_count": 0,
     "explicit_sgp_like_bet_types": [],
-    "provider_requests_added": 1,
+    "provider_requests_added": 0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
     "internal_sgp_fair_price_status": "ALREADY_COMPUTED_FROM_DIRECT_SCORE_MATRIX_JOINT_PROBABILITY",
@@ -2444,14 +2380,14 @@
     "interpretation": "Catalog name audit can confirm an explicit SGP/Bet Builder-style bet type when present. Absence of a matching name means no explicit combined-price type was found in the current prematch bet catalog; it does not convert component-product odds into an executable SGP quote.",
     "policy": "SPORT FIRST -> MARKET SECOND -> COMBINATION THIRD; INTERNAL FAIR PRICE MAY BE CALCULATED; FINAL BET STILL REQUIRES A VERIFIED EXECUTABLE COMBINED PRICE"
   },
-  "v357_provider_requests_added": 1,
+  "v357_provider_requests_added": 0,
   "v357_model_weights_changed": false,
   "v357_canonical_bet_logic_changed": false,
   "v357_odds_catalog_checkpoint": "PREMATCH_ODDS_BET_CATALOG_AUDIT_ATTACHED; INTERNAL_SGP_FAIR_PRICE_CONFIRMED; EXECUTABLE_COMBINED_QUOTE_REMAINS_SEPARATE",
   "bookmaker_catalog_audit": {
     "schema_version": "1.0.0",
     "status": "PRIMARY_BOOKMAKER_FOUND",
-    "source": "API_FOOTBALL_ODDS_BOOKMAKERS",
+    "source": "CACHE_24H",
     "catalog_count": 32,
     "primary_bookmaker": "Bet365",
     "primary_bookmaker_found": true,
@@ -2461,7 +2397,7 @@
         "name": "Bet365"
       }
     ],
-    "provider_requests_added": 1,
+    "provider_requests_added": 0,
     "policy": "BET365_PRIMARY_BY_VERIFIED_PROVIDER_NAME; NEVER_INVENT_BOOKMAKER_ID"
   },
   "primary_bookmaker_policy": {
@@ -2475,7 +2411,7 @@
     "bet365_multi_match_candidates_active": 0,
     "fallback_multi_match_candidates_active": 0
   },
-  "v358_provider_requests_added": 1,
+  "v358_provider_requests_added": 0,
   "v358_model_weights_changed": false,
   "v358_canonical_bet_logic_changed": false,
   "v358_bookmaker_checkpoint": "BET365_PRIMARY_REFERENCE_ATTACHED; DISTINCT_FIXTURE_PARLAY_ODDS_CALCULATED_FROM_SAME_BOOK; SGP_INTERNAL_FAIR_PRICE_REMAINS_CORRELATION_AWARE_AND_EXECUTABLE_COMBINED_QUOTE_IS_SEPARATE",
@@ -2490,58 +2426,8 @@
   "database_persisted": false,
   "events": [
     {
-      "event_type": "DAILY_DISCOVERY",
-      "stage": "LATE_DISCOVERY",
-      "classification": "PRE-FINAL",
-      "tier": null,
-      "stake_units": null,
-      "bet_eligible": null,
-      "availability_confidence": null,
-      "fixture": null,
-      "coverage": null,
-      "sporting_shortlist": null,
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": null,
-      "player_trends_research": null,
-      "postgame_player_stats": null,
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "match_intelligence": null,
-      "postgame_xg_observation": null,
-      "xg_xga_intelligence": null,
-      "npxg_npxga_intelligence": null,
-      "ppda_intelligence": null,
-      "field_tilt_intelligence": null,
-      "box_entries_intelligence": null,
-      "postgame_big_chances_observation": null,
-      "big_chances_intelligence": null,
-      "postgame_set_piece_observation": null,
-      "set_piece_intelligence": null,
-      "tactical_style_intelligence": null,
-      "rest_intelligence": null,
-      "congestion_intelligence": null,
-      "travel_intelligence": null,
-      "weather_intelligence": null,
-      "competition_context_intelligence": null,
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [
-        "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
-        "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
-        "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
-      ],
-      "result": null,
-      "error": null
-    },
-    {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-20",
+      "stage": "T-10",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
@@ -2673,7 +2559,7 @@
         "fixture_id": 1640414,
         "kickoff": "2026-09-20T23:00:00-06:00",
         "match": "Khovd vs Central Stallions",
-        "stage": "T-20",
+        "stage": "T-10",
         "data_tier": "B",
         "bet_tier": null,
         "classification": "WATCH",
@@ -3524,518 +3410,9 @@
       "best_market": null,
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
-        "T-20 lineup/GK gate failed: BET eligibility blocked."
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1559647,
-        "kickoff": "2026-09-20T19:00:00-06:00",
-        "timestamp": 1789952400,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 339,
-        "league": "Liga Nacional",
-        "country": "Guatemala",
-        "season": 2026,
-        "round": "Regular Season - 10",
-        "home_team_id": 3664,
-        "home_team": "Malacateco",
-        "away_team_id": 3645,
-        "away_team": "Mixco",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "referee": null,
-        "fixture_timezone": "America/Mexico_City"
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 87.4,
-        "tracks": [
-          "SIDE",
-          "GOALS_OVER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 67.8,
-        "goal_environment_score": 72.1,
-        "two_way_scoring_score": 87.4,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "player_trends_research": null,
-      "postgame_player_stats": {
-        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "teams": [],
-        "goalkeeper_fields_retained": [
-          "saves",
-          "goals_conceded"
-        ],
-        "player_card_fields_retained": [
-          "yellow_cards",
-          "red_cards"
-        ],
-        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-        "fixture_id": 1559647,
-        "capture_phase": "POSTGAME"
-      },
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "match_intelligence": null,
-      "postgame_xg_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_XG_NOT_AVAILABLE_FOR_FIXTURE",
-        "api_fixture_id": 1559647,
-        "kickoff": "2026-09-20T19:00:00-06:00",
-        "home_team_id": 3664,
-        "home_team": "Malacateco",
-        "away_team_id": 3645,
-        "away_team": "Mixco",
-        "home_xg": null,
-        "away_xg": null,
-        "source": "API-Football v3",
-        "source_endpoint": "/fixtures/statistics",
-        "source_stat_type": "expected_goals",
-        "same_fixture_pregame_use_allowed": false,
-        "historical_feature_use_only": true,
-        "provider_requests_added": 0
-      },
-      "xg_xga_intelligence": null,
-      "npxg_npxga_intelligence": null,
-      "ppda_intelligence": null,
-      "field_tilt_intelligence": null,
-      "box_entries_intelligence": null,
-      "postgame_big_chances_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_BIG_CHANCES_NOT_AVAILABLE",
-        "api_fixture_id": 1559647,
-        "kickoff": "2026-09-20T19:00:00-06:00",
-        "home_team_id": 3664,
-        "home_team": "Malacateco",
-        "away_team_id": 3645,
-        "away_team": "Mixco",
-        "home_big_chances": null,
-        "away_big_chances": null,
-        "source": "API-Football v3",
-        "source_endpoint": "/fixtures/statistics",
-        "source_stat_type": null,
-        "provider_requests_added": 0,
-        "provider_dependent": true,
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "big_chances_intelligence": null,
-      "postgame_set_piece_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_SET_PIECE_COMPONENTS_NOT_AVAILABLE",
-        "api_fixture_id": 1559647,
-        "kickoff": "2026-09-20T19:00:00-06:00",
-        "home_team_id": 3664,
-        "home_team": "Malacateco",
-        "away_team_id": 3645,
-        "away_team": "Mixco",
-        "home_corners": null,
-        "away_corners": null,
-        "home_free_kicks": null,
-        "away_free_kicks": null,
-        "corners_verified": false,
-        "free_kicks_verified": false,
-        "corner_stat_type": null,
-        "free_kick_stat_type": null,
-        "set_piece_goals": "NOT_VERIFIED",
-        "set_piece_xg": "NOT_VERIFIED",
-        "aerial_duel_mismatch": "NOT_MODELED",
-        "source": "API-Football v3 /fixtures/statistics",
-        "provider_requests_added": 0,
-        "actionable": false,
-        "decision_weight": 0.0,
-        "policy": "EXPLICIT PROVIDER COMPONENTS ONLY; CORNERS/FREE KICKS ARE VOLUME CONTEXT, NOT SET-PIECE GOALS OR SET-PIECE xG"
-      },
-      "set_piece_intelligence": null,
-      "tactical_style_intelligence": null,
-      "rest_intelligence": null,
-      "congestion_intelligence": null,
-      "travel_intelligence": null,
-      "weather_intelligence": null,
-      "competition_context_intelligence": {
-        "schema_version": "1.0.0",
-        "fixture_id": 1559647,
-        "status": "LIVE_VERIFIED_COMPETITION_CONTEXT",
-        "competition": "Liga Nacional",
-        "country": "Guatemala",
-        "season": 2026,
-        "provider_round": "Regular Season - 10",
-        "stage_descriptor": "LEAGUE_OR_REGULAR_ROUND",
-        "knockout_label_from_round": false,
-        "aggregate_score": "NOT_VERIFIED",
-        "table_positions": "NOT_VERIFIED",
-        "qualification_math": "NOT_MODELED",
-        "objective_incentive": "NOT_INFERRED",
-        "motivation": "NOT_INFERRED",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "policy": "ROUND/STAGE LABELS MAY DESCRIBE COMPETITION STRUCTURE ONLY. NO MOTIVATION, MUST-WIN, ROTATION OR QUALIFICATION CLAIM WITHOUT VERIFIED TABLE/AGGREGATE DATA."
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "player_stats": {
-          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "teams": [],
-          "goalkeeper_fields_retained": [
-            "saves",
-            "goals_conceded"
-          ],
-          "player_card_fields_retained": [
-            "yellow_cards",
-            "red_cards"
-          ],
-          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-          "fixture_id": 1559647,
-          "capture_phase": "POSTGAME"
-        }
-      },
-      "error": null
-    },
-    {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1551689,
-        "kickoff": "2026-09-20T19:00:00-06:00",
-        "timestamp": 1789952400,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 162,
-        "league": "Primera División",
-        "country": "Costa-Rica",
-        "season": 2026,
-        "round": "Apertura - 9",
-        "home_team_id": 823,
-        "home_team": "San Carlos",
-        "away_team_id": 820,
-        "away_team": "CS Cartagines",
-        "venue": null,
-        "city": "Ciudad Quesada",
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "referee": null,
-        "fixture_timezone": "America/Mexico_City"
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 82.2,
-        "tracks": [
-          "TWO_WAY"
-        ],
-        "side_edge_score": 57.9,
-        "goal_environment_score": 61.6,
-        "two_way_scoring_score": 82.2,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
-      "sporting_screen_initial": null,
-      "sporting_screen_refined": null,
-      "galaxy_source": null,
-      "market_source": null,
-      "market_provenance": null,
-      "trend_context": {
-        "status": "RESEARCH_ONLY_TREND_CONTEXT",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "source_generated_at_utc": "2026-09-20T08:02:20.856331+00:00",
-        "window": "last_10",
-        "reliability": 0.1,
-        "signals": [],
-        "model_disagreements": [],
-        "deep_dive_flag": false,
-        "home": {
-          "team": "San Carlos",
-          "over25_rate": 0.0,
-          "btts_rate": 0.0,
-          "scored_rate": 1.0,
-          "avg_goals_for": 2.0,
-          "avg_goals_against": 0.0,
-          "avg_corners_for": null,
-          "venue_over25_rate": null
-        },
-        "away": {
-          "team": "CS Cartagines",
-          "over25_rate": 1.0,
-          "btts_rate": 1.0,
-          "scored_rate": 1.0,
-          "avg_goals_for": 3.0,
-          "avg_goals_against": 2.0,
-          "avg_corners_for": null,
-          "venue_over25_rate": null
-        },
-        "expected_corner_environment": null,
-        "policy": "CONTEXT_ONLY; MAY FLAG DEEP_DIVE; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY"
-      },
-      "player_trends_research": null,
-      "postgame_player_stats": {
-        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "teams": [],
-        "goalkeeper_fields_retained": [
-          "saves",
-          "goals_conceded"
-        ],
-        "player_card_fields_retained": [
-          "yellow_cards",
-          "red_cards"
-        ],
-        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-        "fixture_id": 1551689,
-        "capture_phase": "POSTGAME"
-      },
-      "closing_market_snapshot": null,
-      "derivative_research_market_snapshot": null,
-      "match_intelligence": null,
-      "postgame_xg_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_XG_NOT_AVAILABLE_FOR_FIXTURE",
-        "api_fixture_id": 1551689,
-        "kickoff": "2026-09-20T19:00:00-06:00",
-        "home_team_id": 823,
-        "home_team": "San Carlos",
-        "away_team_id": 820,
-        "away_team": "CS Cartagines",
-        "home_xg": null,
-        "away_xg": null,
-        "source": "API-Football v3",
-        "source_endpoint": "/fixtures/statistics",
-        "source_stat_type": "expected_goals",
-        "same_fixture_pregame_use_allowed": false,
-        "historical_feature_use_only": true,
-        "provider_requests_added": 0
-      },
-      "xg_xga_intelligence": null,
-      "npxg_npxga_intelligence": null,
-      "ppda_intelligence": null,
-      "field_tilt_intelligence": null,
-      "box_entries_intelligence": null,
-      "postgame_big_chances_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_BIG_CHANCES_NOT_AVAILABLE",
-        "api_fixture_id": 1551689,
-        "kickoff": "2026-09-20T19:00:00-06:00",
-        "home_team_id": 823,
-        "home_team": "San Carlos",
-        "away_team_id": 820,
-        "away_team": "CS Cartagines",
-        "home_big_chances": null,
-        "away_big_chances": null,
-        "source": "API-Football v3",
-        "source_endpoint": "/fixtures/statistics",
-        "source_stat_type": null,
-        "provider_requests_added": 0,
-        "provider_dependent": true,
-        "actionable": false,
-        "decision_weight": 0.0
-      },
-      "big_chances_intelligence": null,
-      "postgame_set_piece_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_SET_PIECE_COMPONENTS_NOT_AVAILABLE",
-        "api_fixture_id": 1551689,
-        "kickoff": "2026-09-20T19:00:00-06:00",
-        "home_team_id": 823,
-        "home_team": "San Carlos",
-        "away_team_id": 820,
-        "away_team": "CS Cartagines",
-        "home_corners": null,
-        "away_corners": null,
-        "home_free_kicks": null,
-        "away_free_kicks": null,
-        "corners_verified": false,
-        "free_kicks_verified": false,
-        "corner_stat_type": null,
-        "free_kick_stat_type": null,
-        "set_piece_goals": "NOT_VERIFIED",
-        "set_piece_xg": "NOT_VERIFIED",
-        "aerial_duel_mismatch": "NOT_MODELED",
-        "source": "API-Football v3 /fixtures/statistics",
-        "provider_requests_added": 0,
-        "actionable": false,
-        "decision_weight": 0.0,
-        "policy": "EXPLICIT PROVIDER COMPONENTS ONLY; CORNERS/FREE KICKS ARE VOLUME CONTEXT, NOT SET-PIECE GOALS OR SET-PIECE xG"
-      },
-      "set_piece_intelligence": null,
-      "tactical_style_intelligence": null,
-      "rest_intelligence": null,
-      "congestion_intelligence": null,
-      "travel_intelligence": null,
-      "weather_intelligence": null,
-      "competition_context_intelligence": {
-        "schema_version": "1.0.0",
-        "fixture_id": 1551689,
-        "status": "LIVE_VERIFIED_COMPETITION_CONTEXT",
-        "competition": "Primera División",
-        "country": "Costa-Rica",
-        "season": 2026,
-        "provider_round": "Apertura - 9",
-        "stage_descriptor": "PROVIDER_ROUND_LABEL_ONLY",
-        "knockout_label_from_round": false,
-        "aggregate_score": "NOT_VERIFIED",
-        "table_positions": "NOT_VERIFIED",
-        "qualification_math": "NOT_MODELED",
-        "objective_incentive": "NOT_INFERRED",
-        "motivation": "NOT_INFERRED",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "policy": "ROUND/STAGE LABELS MAY DESCRIBE COMPETITION STRUCTURE ONLY. NO MOTIVATION, MUST-WIN, ROTATION OR QUALIFICATION CLAIM WITHOUT VERIFIED TABLE/AGGREGATE DATA."
-      },
-      "lineups": null,
-      "raw_projection": null,
-      "market_decision": null,
-      "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 1,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "player_stats": {
-          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "teams": [],
-          "goalkeeper_fields_retained": [
-            "saves",
-            "goals_conceded"
-          ],
-          "player_card_fields_retained": [
-            "yellow_cards",
-            "red_cards"
-          ],
-          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-          "fixture_id": 1551689,
-          "capture_phase": "POSTGAME"
-        }
-      },
       "error": null
     }
   ]
