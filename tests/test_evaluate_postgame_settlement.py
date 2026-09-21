@@ -8,6 +8,16 @@ FINAL_2_1 = {
     "score": {"halftime": {"home": 1, "away": 0}, "fulltime": {"home": 2, "away": 1}},
 }
 
+TACTICAL_2_1 = {
+    **FINAL_2_1,
+    "tactical_stats": {
+        "teams": [
+            {"team_id": 10, "team": "Home", "corners": 6, "yellow_cards": 3, "red_cards": 0},
+            {"team_id": 20, "team": "Away", "corners": 4, "yellow_cards": 2, "red_cards": 1},
+        ]
+    },
+}
+
 
 def test_ft_total_grades_against_match_total() -> None:
     best = {"market": "Goals Over/Under", "selection": "Over 2.5", "line": 2.5, "decimal_price": 1.91}
@@ -55,10 +65,33 @@ def test_team_total_without_side_remains_ungradable() -> None:
     assert grade_market(best, FINAL_2_1, "Home", "Away") == "UNGRADABLE_TEAM_TOTAL_SIDE"
 
 
-def test_corners_remain_bucketed_but_not_graded_without_stats() -> None:
+def test_corners_total_grades_when_tactical_stats_exist() -> None:
     best = {"market": "Corners Over/Under", "selection": "Over 9.5", "line": 9.5, "decimal_price": 1.95}
     assert market_family(best) == "FT_CORNERS"
-    assert grade_market(best, FINAL_2_1, "Home", "Away") == "UNSUPPORTED_DERIVATIVE"
+    assert grade_market(best, TACTICAL_2_1, "Home", "Away", 10, 20) == "WIN"
+
+
+def test_team_corners_grade_when_side_is_identified() -> None:
+    best = {"market": "Corners Over/Under", "selection": "Home Over 5.5", "line": 5.5, "decimal_price": 2.05}
+    assert market_family(best) == "FT_CORNERS"
+    assert grade_market(best, TACTICAL_2_1, "Home", "Away", 10, 20) == "WIN"
+
+
+def test_corners_without_tactical_stats_are_not_graded() -> None:
+    best = {"market": "Corners Over/Under", "selection": "Over 9.5", "line": 9.5, "decimal_price": 1.95}
+    assert grade_market(best, FINAL_2_1, "Home", "Away") == "NO_TACTICAL_STATS"
+
+
+def test_yellow_cards_grade_only_when_market_is_explicit_yellow() -> None:
+    best = {"market": "Yellow Cards Over/Under", "selection": "Over 4.5", "line": 4.5, "decimal_price": 1.9}
+    assert market_family(best) == "FT_CARDS"
+    assert grade_market(best, TACTICAL_2_1, "Home", "Away", 10, 20) == "WIN"
+
+
+def test_generic_cards_remain_unsupported_without_book_rule() -> None:
+    best = {"market": "Cards Over/Under", "selection": "Over 4.5", "line": 4.5, "decimal_price": 1.9}
+    assert market_family(best) == "FT_CARDS"
+    assert grade_market(best, TACTICAL_2_1, "Home", "Away", 10, 20) == "UNSUPPORTED_CARD_RULES"
 
 
 def test_settlement_row_has_market_family_and_roi() -> None:
@@ -92,7 +125,7 @@ def test_performance_summary_counts_ungraded_derivatives() -> None:
     rows = [
         {"settlement_status": "WIN", "roi_units": 0.9},
         {"settlement_status": "LOSS", "roi_units": -1.0},
-        {"settlement_status": "UNSUPPORTED_DERIVATIVE", "roi_units": None},
+        {"settlement_status": "UNSUPPORTED_CARD_RULES", "roi_units": None},
     ]
     summary = performance_summary(rows)
     assert summary["n"] == 3
