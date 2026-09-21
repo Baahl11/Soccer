@@ -1,14 +1,601 @@
 {
   "schema_version": "1.0.0",
-  "generated_at_local": "2026-09-21T10:33:53.176363-06:00",
+  "generated_at_local": "2026-09-21T10:47:17.676314-06:00",
   "version": "3.60.0",
-  "opportunity_count": 10,
+  "opportunity_count": 13,
   "opportunities": [
+    {
+      "key": "sport:1496697",
+      "signal_type": "PRE_MARKET_WATCH",
+      "first_seen_at": "2026-09-21T10:47:17.676314-06:00",
+      "last_seen_at": "2026-09-21T10:47:17.676314-06:00",
+      "fixture": {
+        "fixture_id": 1496697,
+        "kickoff": "2026-09-21T11:00:00-06:00",
+        "timestamp": 1790010000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 775,
+        "league": "3. Division - Girone 2",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 7014,
+        "home_team": "Nardo",
+        "away_team_id": 16224,
+        "away_team": "Ranheim II",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "stage": "T-20",
+      "classification": "WATCH",
+      "availability_confidence": 0.6,
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 77.6,
+        "goal_environment_score": 100.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "model_version": "SOCCER EDGE ENGINE v1.0",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "model_limitations": [
+          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
+          "Goals are not labeled or substituted as xG.",
+          "Lineup quality deltas are not quantified without a verified player-impact model."
+        ],
+        "advanced_metrics": "NOT VERIFIED",
+        "sample": {
+          "home_home_played": 9,
+          "away_away_played": 9,
+          "minimum_split_sample": 9
+        },
+        "raw_home_goal_rate": 3.2062,
+        "raw_away_goal_rate": 1.9969,
+        "raw_total_goals": 5.2031,
+        "raw_home_xg": "NOT VERIFIED",
+        "raw_away_xg": "NOT VERIFIED",
+        "raw_home_win_prob": 0.619277,
+        "raw_draw_prob": 0.158227,
+        "raw_away_win_prob": 0.222497,
+        "raw_btts_yes_prob": 0.829213,
+        "raw_over_1_5_prob": 0.965869,
+        "raw_over_2_5_prob": 0.89139,
+        "raw_over_3_5_prob": 0.762216,
+        "top_scorelines": [
+          {
+            "home": 3,
+            "away": 1,
+            "prob": 0.060357
+          },
+          {
+            "home": 3,
+            "away": 2,
+            "prob": 0.060263
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "prob": 0.056474
+          },
+          {
+            "home": 2,
+            "away": 2,
+            "prob": 0.056386
+          },
+          {
+            "home": 4,
+            "away": 1,
+            "prob": 0.04838
+          },
+          {
+            "home": 4,
+            "away": 2,
+            "prob": 0.048304
+          }
+        ],
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 77.6,
+          "goal_environment_score": 79.0,
+          "two_way_scoring_score": 79.0,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "RESEARCH_ONLY_SHADOW",
+          "actionable": false,
+          "projection_model": "LEAGUE_RELATIVE_STRENGTH_POISSON_v0.2",
+          "baseline_source": "PAIR_COMPLEMENTARY_VENUE_BASELINE",
+          "sample": {
+            "home_home_played": 9,
+            "away_away_played": 9,
+            "minimum_split_sample": 9,
+            "shrinkage_prior_games": 5.0
+          },
+          "strengths": {
+            "home_attack": 0.8367,
+            "home_defensive_weakness": 0.9175,
+            "away_attack": 1.1846,
+            "away_defensive_weakness": 1.1862,
+            "baseline_home_goals": 3.15,
+            "baseline_away_goals": 1.85
+          },
+          "challenger": {
+            "raw_home_goal_rate": 3.1265,
+            "raw_away_goal_rate": 2.0107,
+            "raw_total_goals": 5.1372,
+            "raw_home_win_prob": 0.604064,
+            "raw_draw_prob": 0.162171,
+            "raw_away_win_prob": 0.233766,
+            "raw_btts_yes_prob": 0.828087,
+            "raw_over_1_5_prob": 0.963934,
+            "raw_over_2_5_prob": 0.886391,
+            "raw_over_3_5_prob": 0.753605
+          },
+          "baseline": {
+            "raw_home_goal_rate": 3.2062,
+            "raw_away_goal_rate": 1.9969,
+            "raw_total_goals": 5.2031,
+            "raw_home_win_prob": 0.619277,
+            "raw_draw_prob": 0.158227,
+            "raw_away_win_prob": 0.222497,
+            "raw_btts_yes_prob": 0.829213,
+            "raw_over_1_5_prob": 0.965869,
+            "raw_over_2_5_prob": 0.89139,
+            "raw_over_3_5_prob": 0.762216
+          },
+          "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
+        }
+      },
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-21T12:00:19+00:00",
+        "age_minutes": 286.98,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "STALE_OR_TIMESTAMP_MISSING",
+        "fresh": false,
+        "market_count": 92,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
+        "T-20 lineup/GK gate failed: BET eligibility blocked."
+      ]
+    },
+    {
+      "key": "sport:1496880",
+      "signal_type": "PRE_MARKET_WATCH",
+      "first_seen_at": "2026-09-21T10:47:17.676314-06:00",
+      "last_seen_at": "2026-09-21T10:47:17.676314-06:00",
+      "fixture": {
+        "fixture_id": 1496880,
+        "kickoff": "2026-09-21T11:00:00-06:00",
+        "timestamp": 1790010000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 776,
+        "league": "3. Division - Girone 3",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 12825,
+        "home_team": "Os",
+        "away_team_id": 22871,
+        "away_team": "Åsane II",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "stage": "T-20",
+      "classification": "WATCH",
+      "availability_confidence": 0.6,
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 100.0,
+        "tracks": [
+          "SIDE",
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 92.0,
+        "goal_environment_score": 100.0,
+        "two_way_scoring_score": 100.0,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "model_version": "SOCCER EDGE ENGINE v1.0",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "model_limitations": [
+          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
+          "Goals are not labeled or substituted as xG.",
+          "Lineup quality deltas are not quantified without a verified player-impact model."
+        ],
+        "advanced_metrics": "NOT VERIFIED",
+        "sample": {
+          "home_home_played": 9,
+          "away_away_played": 10,
+          "minimum_split_sample": 9
+        },
+        "raw_home_goal_rate": 3.3062,
+        "raw_away_goal_rate": 1.525,
+        "raw_total_goals": 4.8312,
+        "raw_home_xg": "NOT VERIFIED",
+        "raw_away_xg": "NOT VERIFIED",
+        "raw_home_win_prob": 0.719205,
+        "raw_draw_prob": 0.138416,
+        "raw_away_win_prob": 0.142379,
+        "raw_btts_yes_prob": 0.753683,
+        "raw_over_1_5_prob": 0.953457,
+        "raw_over_2_5_prob": 0.860306,
+        "raw_over_3_5_prob": 0.710295,
+        "top_scorelines": [
+          {
+            "home": 3,
+            "away": 1,
+            "prob": 0.07332
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "prob": 0.066528
+          },
+          {
+            "home": 4,
+            "away": 1,
+            "prob": 0.060604
+          },
+          {
+            "home": 3,
+            "away": 2,
+            "prob": 0.055906
+          },
+          {
+            "home": 2,
+            "away": 2,
+            "prob": 0.050728
+          },
+          {
+            "home": 3,
+            "away": 0,
+            "prob": 0.048079
+          }
+        ],
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 79.0,
+          "goal_environment_score": 79.0,
+          "two_way_scoring_score": 79.0,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "RESEARCH_ONLY_SHADOW",
+          "actionable": false,
+          "projection_model": "LEAGUE_RELATIVE_STRENGTH_POISSON_v0.2",
+          "baseline_source": "PAIR_COMPLEMENTARY_VENUE_BASELINE",
+          "sample": {
+            "home_home_played": 9,
+            "away_away_played": 10,
+            "minimum_split_sample": 9,
+            "shrinkage_prior_games": 5.0
+          },
+          "strengths": {
+            "home_attack": 1.1735,
+            "home_defensive_weakness": 0.8615,
+            "away_attack": 1.2126,
+            "away_defensive_weakness": 0.7645,
+            "baseline_home_goals": 3.45,
+            "baseline_away_goals": 1.45
+          },
+          "challenger": {
+            "raw_home_goal_rate": 3.0952,
+            "raw_away_goal_rate": 1.5147,
+            "raw_total_goals": 4.6099,
+            "raw_home_win_prob": 0.690742,
+            "raw_draw_prob": 0.149993,
+            "raw_away_win_prob": 0.159265,
+            "raw_btts_yes_prob": 0.744803,
+            "raw_over_1_5_prob": 0.944144,
+            "raw_over_2_5_prob": 0.838349,
+            "raw_over_3_5_prob": 0.675781
+          },
+          "baseline": {
+            "raw_home_goal_rate": 3.3062,
+            "raw_away_goal_rate": 1.525,
+            "raw_total_goals": 4.8312,
+            "raw_home_win_prob": 0.719205,
+            "raw_draw_prob": 0.138416,
+            "raw_away_win_prob": 0.142379,
+            "raw_btts_yes_prob": 0.753683,
+            "raw_over_1_5_prob": 0.953457,
+            "raw_over_2_5_prob": 0.860306,
+            "raw_over_3_5_prob": 0.710295
+          },
+          "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
+        }
+      },
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": null,
+        "age_minutes": null,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "STALE_OR_TIMESTAMP_MISSING",
+        "fresh": false,
+        "market_count": 0,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
+        "T-20 lineup/GK gate failed: BET eligibility blocked."
+      ]
+    },
+    {
+      "key": "sport:1504547",
+      "signal_type": "PRE_MARKET_WATCH",
+      "first_seen_at": "2026-09-21T10:47:17.676314-06:00",
+      "last_seen_at": "2026-09-21T10:47:17.676314-06:00",
+      "fixture": {
+        "fixture_id": 1504547,
+        "kickoff": "2026-09-21T11:00:00-06:00",
+        "timestamp": 1790010000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 564,
+        "league": "Ettan - Södra",
+        "country": "Sweden",
+        "season": 2026,
+        "round": "Södra - 23",
+        "home_team_id": 2168,
+        "home_team": "Angelholms FF",
+        "away_team_id": 6663,
+        "away_team": "Eskilsminne",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "stage": "T-20",
+      "classification": "WATCH",
+      "availability_confidence": 0.6,
+      "sporting_shortlist": {
+        "shortlisted": true,
+        "rank": 94.7,
+        "tracks": [
+          "GOALS_OVER",
+          "TWO_WAY"
+        ],
+        "side_edge_score": 56.2,
+        "goal_environment_score": 72.1,
+        "two_way_scoring_score": 94.7,
+        "reason": "SPORTING_SCREEN_PASS"
+      },
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "model_version": "SOCCER EDGE ENGINE v1.0",
+        "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "model_limitations": [
+          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
+          "Goals are not labeled or substituted as xG.",
+          "Lineup quality deltas are not quantified without a verified player-impact model."
+        ],
+        "advanced_metrics": "NOT VERIFIED",
+        "sample": {
+          "home_home_played": 11,
+          "away_away_played": 11,
+          "minimum_split_sample": 11
+        },
+        "raw_home_goal_rate": 1.375,
+        "raw_away_goal_rate": 1.7625,
+        "raw_total_goals": 3.1375,
+        "raw_home_xg": "NOT VERIFIED",
+        "raw_away_xg": "NOT VERIFIED",
+        "raw_home_win_prob": 0.300815,
+        "raw_draw_prob": 0.23228,
+        "raw_away_win_prob": 0.466905,
+        "raw_btts_yes_prob": 0.618936,
+        "raw_over_1_5_prob": 0.820469,
+        "raw_over_2_5_prob": 0.606899,
+        "raw_over_3_5_prob": 0.383541,
+        "top_scorelines": [
+          {
+            "home": 1,
+            "away": 1,
+            "prob": 0.105156
+          },
+          {
+            "home": 1,
+            "away": 2,
+            "prob": 0.092669
+          },
+          {
+            "home": 0,
+            "away": 1,
+            "prob": 0.076477
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "prob": 0.072295
+          },
+          {
+            "home": 0,
+            "away": 2,
+            "prob": 0.067395
+          },
+          {
+            "home": 2,
+            "away": 2,
+            "prob": 0.06371
+          }
+        ],
+        "scoring_path": "TWO-WAY OPEN GAME",
+        "screen_scores": {
+          "side_edge_score": 56.2,
+          "goal_environment_score": 72.1,
+          "two_way_scoring_score": 79.0,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "LIMITED_VERIFIED_INPUTS"
+        },
+        "relative_strength_shadow": {
+          "status": "RESEARCH_ONLY_SHADOW",
+          "actionable": false,
+          "projection_model": "LEAGUE_RELATIVE_STRENGTH_POISSON_v0.2",
+          "baseline_source": "PAIR_COMPLEMENTARY_VENUE_BASELINE",
+          "sample": {
+            "home_home_played": 11,
+            "away_away_played": 11,
+            "minimum_split_sample": 11,
+            "shrinkage_prior_games": 5.0
+          },
+          "strengths": {
+            "home_attack": 0.6706,
+            "home_defensive_weakness": 1.1826,
+            "away_attack": 0.957,
+            "away_defensive_weakness": 1.2148,
+            "baseline_home_goals": 1.5,
+            "baseline_away_goals": 1.6
+          },
+          "challenger": {
+            "raw_home_goal_rate": 1.222,
+            "raw_away_goal_rate": 1.8109,
+            "raw_total_goals": 3.0328,
+            "raw_home_win_prob": 0.257603,
+            "raw_draw_prob": 0.230463,
+            "raw_away_win_prob": 0.511934,
+            "raw_btts_yes_prob": 0.590017,
+            "raw_over_1_5_prob": 0.805703,
+            "raw_over_2_5_prob": 0.584127,
+            "raw_over_3_5_prob": 0.360124
+          },
+          "baseline": {
+            "raw_home_goal_rate": 1.375,
+            "raw_away_goal_rate": 1.7625,
+            "raw_total_goals": 3.1375,
+            "raw_home_win_prob": 0.300815,
+            "raw_draw_prob": 0.23228,
+            "raw_away_win_prob": 0.466905,
+            "raw_btts_yes_prob": 0.618936,
+            "raw_over_1_5_prob": 0.820469,
+            "raw_over_2_5_prob": 0.606899,
+            "raw_over_3_5_prob": 0.383541
+          },
+          "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
+        }
+      },
+      "market_provenance": {
+        "source": "API_FALLBACK_ODDS",
+        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
+        "latest_market_timestamp": "2026-09-21T12:05:16+00:00",
+        "age_minutes": 282.03,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "STALE_OR_TIMESTAMP_MISSING",
+        "fresh": false,
+        "market_count": 132,
+        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
+        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG.",
+        "T-20 lineup/GK gate failed: BET eligibility blocked."
+      ]
+    },
     {
       "key": "sport:1509192",
       "signal_type": "PRE_MARKET_WATCH",
       "first_seen_at": "2026-09-21T01:08:37.612753-06:00",
-      "last_seen_at": "2026-09-21T10:19:22.970483-06:00",
+      "last_seen_at": "2026-09-21T10:33:53.176363-06:00",
       "fixture": {
         "fixture_id": 1509192,
         "kickoff": "2026-09-21T11:00:00-06:00",
@@ -52,9 +639,9 @@
         "referee": "B. Bregadze",
         "fixture_timezone": "America/Mexico_City"
       },
-      "stage": "T-40",
+      "stage": "T-30",
       "classification": "WATCH",
-      "availability_confidence": 0.7,
+      "availability_confidence": 0.6,
       "sporting_shortlist": {
         "shortlisted": true,
         "rank": 95.2,
@@ -139,22 +726,10 @@
           "policy": "OBSERVE_ONLY; DOES_NOT_CHANGE_SHORTLIST_MARKET_DECISION_CLASSIFICATION_OR_STAKE"
         }
       },
-      "market_provenance": {
-        "source": "API_FALLBACK_ODDS",
-        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-        "latest_market_timestamp": "2026-09-21T12:07:14+00:00",
-        "age_minutes": 252.15,
-        "galaxy_freshness_limit_minutes": 20,
-        "freshness": "STALE_OR_TIMESTAMP_MISSING",
-        "fresh": false,
-        "market_count": 110,
-        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
-        "sport_first_order_preserved": true,
-        "provenance_contract_version": "1.1.0"
-      },
+      "market_provenance": null,
       "notes": [
         "Material lineup/goalkeeper information remains NOT VERIFIED.",
-        "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
+        "Last valid same-fixture sport projection restored for continuity; research-only."
       ]
     },
     {
@@ -222,63 +797,23 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
-        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "model_limitations": [
-          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
-          "Goals are not labeled or substituted as xG.",
-          "Lineup quality deltas are not quantified without a verified player-impact model."
-        ],
+        "sport_source": null,
+        "market_independent": null,
         "advanced_metrics": "NOT VERIFIED",
-        "sample": {
-          "home_home_played": 14,
-          "away_away_played": 14,
-          "minimum_split_sample": 14
-        },
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
         "raw_home_goal_rate": 1.3344,
         "raw_away_goal_rate": 0.75,
         "raw_total_goals": 2.0844,
-        "raw_home_xg": "NOT VERIFIED",
-        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.506154,
         "raw_draw_prob": 0.2837,
         "raw_away_win_prob": 0.210145,
         "raw_btts_yes_prob": 0.388696,
-        "raw_over_1_5_prob": 0.61635,
         "raw_over_2_5_prob": 0.346148,
-        "raw_over_3_5_prob": 0.158414,
-        "top_scorelines": [
-          {
-            "home": 1,
-            "away": 0,
-            "prob": 0.165976
-          },
-          {
-            "home": 1,
-            "away": 1,
-            "prob": 0.124482
-          },
-          {
-            "home": 0,
-            "away": 0,
-            "prob": 0.124385
-          },
-          {
-            "home": 2,
-            "away": 0,
-            "prob": 0.110737
-          },
-          {
-            "home": 0,
-            "away": 1,
-            "prob": 0.093289
-          },
-          {
-            "home": 2,
-            "away": 1,
-            "prob": 0.083053
-          }
-        ],
         "scoring_path": "MIXED / NO STRONG SCORING PATH",
         "screen_scores": {
           "side_edge_score": 61.5,
@@ -415,63 +950,23 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
-        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "model_limitations": [
-          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
-          "Goals are not labeled or substituted as xG.",
-          "Lineup quality deltas are not quantified without a verified player-impact model."
-        ],
+        "sport_source": null,
+        "market_independent": null,
         "advanced_metrics": "NOT VERIFIED",
-        "sample": {
-          "home_home_played": 14,
-          "away_away_played": 14,
-          "minimum_split_sample": 14
-        },
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
         "raw_home_goal_rate": 0.9844,
         "raw_away_goal_rate": 0.9188,
         "raw_total_goals": 1.9031,
-        "raw_home_xg": "NOT VERIFIED",
-        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.358694,
         "raw_draw_prob": 0.317681,
         "raw_away_win_prob": 0.323625,
         "raw_btts_yes_prob": 0.376412,
-        "raw_over_1_5_prob": 0.567138,
         "raw_over_2_5_prob": 0.297123,
-        "raw_over_3_5_prob": 0.125833,
-        "top_scorelines": [
-          {
-            "home": 0,
-            "away": 0,
-            "prob": 0.149102
-          },
-          {
-            "home": 1,
-            "away": 0,
-            "prob": 0.146772
-          },
-          {
-            "home": 0,
-            "away": 1,
-            "prob": 0.136987
-          },
-          {
-            "home": 1,
-            "away": 1,
-            "prob": 0.134847
-          },
-          {
-            "home": 2,
-            "away": 0,
-            "prob": 0.072239
-          },
-          {
-            "home": 2,
-            "away": 1,
-            "prob": 0.06637
-          }
-        ],
         "scoring_path": "MIXED / NO STRONG SCORING PATH",
         "screen_scores": {
           "side_edge_score": 50.9,
@@ -608,63 +1103,23 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
-        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "model_limitations": [
-          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
-          "Goals are not labeled or substituted as xG.",
-          "Lineup quality deltas are not quantified without a verified player-impact model."
-        ],
+        "sport_source": null,
+        "market_independent": null,
         "advanced_metrics": "NOT VERIFIED",
-        "sample": {
-          "home_home_played": 14,
-          "away_away_played": 14,
-          "minimum_split_sample": 14
-        },
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
         "raw_home_goal_rate": 1.0531,
         "raw_away_goal_rate": 1.2125,
         "raw_total_goals": 2.2656,
-        "raw_home_xg": "NOT VERIFIED",
-        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.317893,
         "raw_draw_prob": 0.285067,
         "raw_away_win_prob": 0.39704,
         "raw_btts_yes_prob": 0.457467,
-        "raw_over_1_5_prob": 0.661142,
         "raw_over_2_5_prob": 0.394826,
-        "raw_over_3_5_prob": 0.193701,
-        "top_scorelines": [
-          {
-            "home": 1,
-            "away": 1,
-            "prob": 0.132499
-          },
-          {
-            "home": 0,
-            "away": 1,
-            "prob": 0.125815
-          },
-          {
-            "home": 1,
-            "away": 0,
-            "prob": 0.109278
-          },
-          {
-            "home": 0,
-            "away": 0,
-            "prob": 0.103765
-          },
-          {
-            "home": 1,
-            "away": 2,
-            "prob": 0.080328
-          },
-          {
-            "home": 0,
-            "away": 2,
-            "prob": 0.076276
-          }
-        ],
         "scoring_path": "MIXED / NO STRONG SCORING PATH",
         "screen_scores": {
           "side_edge_score": 52.1,
@@ -800,63 +1255,23 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
-        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "model_limitations": [
-          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
-          "Goals are not labeled or substituted as xG.",
-          "Lineup quality deltas are not quantified without a verified player-impact model."
-        ],
+        "sport_source": null,
+        "market_independent": null,
         "advanced_metrics": "NOT VERIFIED",
-        "sample": {
-          "home_home_played": 14,
-          "away_away_played": 14,
-          "minimum_split_sample": 14
-        },
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
         "raw_home_goal_rate": 0.7406,
         "raw_away_goal_rate": 0.8938,
         "raw_total_goals": 1.6344,
-        "raw_home_xg": "NOT VERIFIED",
-        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.282988,
         "raw_draw_prob": 0.347207,
         "raw_away_win_prob": 0.369805,
         "raw_btts_yes_prob": 0.30914,
-        "raw_over_1_5_prob": 0.486101,
         "raw_over_2_5_prob": 0.225562,
-        "raw_over_3_5_prob": 0.083622,
-        "top_scorelines": [
-          {
-            "home": 0,
-            "away": 0,
-            "prob": 0.195074
-          },
-          {
-            "home": 0,
-            "away": 1,
-            "prob": 0.174348
-          },
-          {
-            "home": 1,
-            "away": 0,
-            "prob": 0.144477
-          },
-          {
-            "home": 1,
-            "away": 1,
-            "prob": 0.129126
-          },
-          {
-            "home": 0,
-            "away": 2,
-            "prob": 0.077912
-          },
-          {
-            "home": 1,
-            "away": 2,
-            "prob": 0.057703
-          }
-        ],
         "scoring_path": "MUTUAL SUPPRESSION UNDER",
         "screen_scores": {
           "side_edge_score": 52.0,
@@ -992,63 +1407,23 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
-        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "model_limitations": [
-          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
-          "Goals are not labeled or substituted as xG.",
-          "Lineup quality deltas are not quantified without a verified player-impact model."
-        ],
+        "sport_source": null,
+        "market_independent": null,
         "advanced_metrics": "NOT VERIFIED",
-        "sample": {
-          "home_home_played": 14,
-          "away_away_played": 14,
-          "minimum_split_sample": 14
-        },
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
         "raw_home_goal_rate": 1.0469,
         "raw_away_goal_rate": 0.6813,
         "raw_total_goals": 1.7281,
-        "raw_home_xg": "NOT VERIFIED",
-        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.436465,
         "raw_draw_prob": 0.328748,
         "raw_away_win_prob": 0.234787,
         "raw_btts_yes_prob": 0.3206,
-        "raw_over_1_5_prob": 0.515438,
         "raw_over_2_5_prob": 0.250219,
-        "raw_over_3_5_prob": 0.097442,
-        "top_scorelines": [
-          {
-            "home": 1,
-            "away": 0,
-            "prob": 0.185943
-          },
-          {
-            "home": 0,
-            "away": 0,
-            "prob": 0.177617
-          },
-          {
-            "home": 1,
-            "away": 1,
-            "prob": 0.126674
-          },
-          {
-            "home": 0,
-            "away": 1,
-            "prob": 0.121002
-          },
-          {
-            "home": 2,
-            "away": 0,
-            "prob": 0.09733
-          },
-          {
-            "home": 2,
-            "away": 1,
-            "prob": 0.066306
-          }
-        ],
         "scoring_path": "MUTUAL SUPPRESSION UNDER",
         "screen_scores": {
           "side_edge_score": 54.8,
@@ -1184,63 +1559,23 @@
       },
       "raw_projection": {
         "status": "MODELED_LIMITED",
-        "model_version": "SOCCER EDGE ENGINE v1.0",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
-        "model_limitations": [
-          "API-Football goal rates are used as a verified baseline; xG/npxG/PPDA/field tilt are NOT VERIFIED in this automated layer.",
-          "Goals are not labeled or substituted as xG.",
-          "Lineup quality deltas are not quantified without a verified player-impact model."
-        ],
+        "sport_source": null,
+        "market_independent": null,
         "advanced_metrics": "NOT VERIFIED",
-        "sample": {
-          "home_home_played": 14,
-          "away_away_played": 14,
-          "minimum_split_sample": 14
-        },
+        "galaxy_contract_version": null,
+        "galaxy_model_versions": null,
+        "galaxy_data_cutoff": null,
+        "galaxy_actionable_total_model": null,
+        "galaxy_actionable_reason": null,
         "raw_home_goal_rate": 1.05,
         "raw_away_goal_rate": 0.7344,
         "raw_total_goals": 1.7844,
-        "raw_home_xg": "NOT VERIFIED",
-        "raw_away_xg": "NOT VERIFIED",
         "raw_home_win_prob": 0.423828,
         "raw_draw_prob": 0.324573,
         "raw_away_win_prob": 0.251599,
         "raw_btts_yes_prob": 0.338159,
-        "raw_over_1_5_prob": 0.532498,
         "raw_over_2_5_prob": 0.265199,
-        "raw_over_3_5_prob": 0.106211,
-        "top_scorelines": [
-          {
-            "home": 1,
-            "away": 0,
-            "prob": 0.176297
-          },
-          {
-            "home": 0,
-            "away": 0,
-            "prob": 0.167902
-          },
-          {
-            "home": 1,
-            "away": 1,
-            "prob": 0.129468
-          },
-          {
-            "home": 0,
-            "away": 1,
-            "prob": 0.123303
-          },
-          {
-            "home": 2,
-            "away": 0,
-            "prob": 0.092556
-          },
-          {
-            "home": 2,
-            "away": 1,
-            "prob": 0.067971
-          }
-        ],
         "scoring_path": "MUTUAL SUPPRESSION UNDER",
         "screen_scores": {
           "side_edge_score": 54.1,
@@ -1316,7 +1651,7 @@
       "key": "sport:1565260",
       "signal_type": "PRE_MARKET_WATCH",
       "first_seen_at": "2026-09-21T01:08:37.612753-06:00",
-      "last_seen_at": "2026-09-21T10:19:22.970483-06:00",
+      "last_seen_at": "2026-09-21T10:33:53.176363-06:00",
       "fixture": {
         "fixture_id": 1565260,
         "kickoff": "2026-09-21T12:00:00-06:00",
@@ -1360,7 +1695,7 @@
         "referee": "Sorin Dan Vadana",
         "fixture_timezone": "America/Mexico_City"
       },
-      "stage": "EARLY_RESEARCH",
+      "stage": "T-90",
       "classification": "WATCH",
       "availability_confidence": null,
       "sporting_shortlist": {
@@ -1451,7 +1786,7 @@
         "source": "API_FALLBACK_ODDS",
         "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
         "latest_market_timestamp": "2026-09-21T12:28:19+00:00",
-        "age_minutes": 231.07,
+        "age_minutes": 245.57,
         "galaxy_freshness_limit_minutes": 20,
         "freshness": "STALE_OR_TIMESTAMP_MISSING",
         "fresh": false,
