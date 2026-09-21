@@ -2,8 +2,8 @@
   "service": "soccer-edge-automation",
   "version": "3.60.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-21T02:34:02.625868+00:00",
-  "generated_at_local": "2026-09-20T20:34:02.625868-06:00",
+  "generated_at_utc": "2026-09-21T02:53:42.816020+00:00",
+  "generated_at_local": "2026-09-20T20:53:42.816020-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1122,
   "due_fixture_count": 10,
@@ -13,7 +13,7 @@
   "api_calls_this_tick": 20,
   "max_api_calls_per_tick": 35,
   "effective_max_api_calls_per_tick": 35,
-  "last_daily_remaining": 7374,
+  "last_daily_remaining": 7369,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
@@ -56,8 +56,8 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 217,
-  "shortlist_seed_imported": 219,
+  "shortlist_state_count": 215,
+  "shortlist_seed_imported": 217,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
@@ -70,7 +70,7 @@
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
-    "galaxy_odds_stale_or_missing": 1,
+    "galaxy_odds_stale_or_missing": 0,
     "galaxy_slate_reads": 1,
     "galaxy_slate_hits": 0,
     "galaxy_slate_fallbacks": 1,
@@ -79,15 +79,15 @@
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
     "provider_requests_avoided": 0,
-    "odds_market_events": 2,
+    "odds_market_events": 1,
     "galaxy_odds_market_events": 0,
-    "api_odds_fallback_events": 1,
+    "api_odds_fallback_events": 0,
     "not_verified_odds_market_events": 1,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
     "odds_provenance_accounting_valid": true,
-    "odds_provenance_metadata_repairs": 1,
+    "odds_provenance_metadata_repairs": 0,
     "unverified_market_source_safety_blocks": 0,
     "stale_provider_quote_decisions_downgraded": 0,
     "stale_verified_market_safety_blocks": 0
@@ -118,7 +118,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-20T20:34:02.625868-06:00",
+    "generated_at_local": "2026-09-20T20:53:42.816020-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -226,7 +226,7 @@
       "competition": "Friendlies",
       "data_tier": "B",
       "kickoff": "2026-09-20T22:00:00-06:00",
-      "stage": "T-90",
+      "stage": "T-60",
       "home": "New Caledonia",
       "away": "Solomon Islands",
       "tracks": [
@@ -235,7 +235,7 @@
       "side_score": 53.5,
       "goals_score": 8.7,
       "two_way_score": 46.1,
-      "availability_confidence": null,
+      "availability_confidence": 0.7,
       "market_source": null,
       "market": null,
       "selection": null,
@@ -491,7 +491,7 @@
         "league": "Friendlies",
         "home": "New Caledonia",
         "away": "Solomon Islands",
-        "stage": "T-90",
+        "stage": "T-60",
         "tier": "B",
         "research_status": "RESEARCHED_WATCH",
         "classification": "WATCH",
@@ -743,9 +743,67 @@
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-20T20:34:02.625868-06:00",
+    "generated_at_local": "2026-09-20T20:53:42.816020-06:00",
     "candidate_count": 0,
-    "candidates": [],
+    "candidates": [
+      {
+        "fixture_id": 1640499,
+        "kickoff": "2026-09-20T22:00:00-06:00",
+        "country": "World",
+        "league": "Friendlies",
+        "match": "New Caledonia vs Solomon Islands",
+        "data_tier": "B",
+        "stage": "T-60",
+        "availability_confidence": 0.7,
+        "projection_source": "GOAL_RATE_POISSON_LIMITED_v0.1",
+        "raw_total_goals": 0.8736,
+        "corridor_key": "O0.5_U4.5",
+        "goal_interval": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "legs": [
+          {
+            "family": "FT_GOALS",
+            "selection": "OVER",
+            "line": 0.5,
+            "observed": false,
+            "best_price": null,
+            "bookmaker": null,
+            "provider_update": null
+          },
+          {
+            "family": "FT_GOALS",
+            "selection": "UNDER",
+            "line": 4.5,
+            "observed": false,
+            "best_price": null,
+            "bookmaker": null,
+            "provider_update": null
+          }
+        ],
+        "joint_model_probability": 0.58049,
+        "fair_decimal": 1.723,
+        "fair_american": -138,
+        "minimum_sgp_decimal_for_target_edge": 1.833,
+        "minimum_sgp_american_for_target_edge": -120,
+        "target_probability_edge_pp": 3.5,
+        "target_sgp_price_zone_american": {
+          "minimum": 100,
+          "maximum": 160
+        },
+        "exact_sgp_quote": null,
+        "all_exact_legs_observed": false,
+        "status": "GALAXY WATCH — QUOTE/VERIFICATION NEEDED",
+        "bet_eligible": false,
+        "block_reasons": [
+          "ONE_OR_MORE_EXACT_LEGS_NOT_OBSERVED",
+          "AVAILABILITY_BELOW_0.85",
+          "EXACT_CORRELATION_ADJUSTED_SGP_QUOTE_NOT_EXPOSED"
+        ],
+        "joint_probability_method": "DIRECT_POISSON_GOAL_INTERVAL; NEVER_MULTIPLY_CORRELATED_LEGS"
+      }
+    ],
     "research_gates": {
       "data_tier": [
         "A",
@@ -847,7 +905,7 @@
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
       "invalidated_fixture_count_this_tick": 10,
-      "updated_at_utc": "2026-09-21T02:34:02.625868+00:00",
+      "updated_at_utc": "2026-09-21T02:53:42.816020+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -2863,7 +2921,7 @@
   "v3581_manual_price_checkpoint": "MISSING FINAL PARLAY/SGP QUOTE NO LONGER HIDES A MODEL PLAY; GALAXY SURFACES WATCH + MODEL-DERIVED MINIMUM ACCEPTABLE PRICE FOR MANUAL BOOK CHECK",
   "quota": {
     "daily_limit": "7500",
-    "daily_remaining": "7393",
+    "daily_remaining": "7372",
     "per_minute_remaining": "299"
   },
   "database_persisted": false,
@@ -2920,12 +2978,12 @@
     },
     {
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-90",
+      "stage": "T-60",
       "classification": "WATCH",
       "tier": null,
       "stake_units": 0.0,
       "bet_eligible": false,
-      "availability_confidence": null,
+      "availability_confidence": 0.7,
       "fixture": {
         "fixture_id": 1640499,
         "kickoff": "2026-09-20T22:00:00-06:00",
@@ -3006,20 +3064,8 @@
         "reason": "SPORTING_SCREEN_PASS"
       },
       "galaxy_source": null,
-      "market_source": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-      "market_provenance": {
-        "source": "API_FALLBACK_ODDS",
-        "source_raw": "API_FOOTBALL_FALLBACK_GALAXY_STALE_OR_MISSING",
-        "latest_market_timestamp": null,
-        "age_minutes": null,
-        "galaxy_freshness_limit_minutes": 20,
-        "freshness": "STALE_OR_TIMESTAMP_MISSING",
-        "fresh": false,
-        "market_count": 0,
-        "fallback_reason": "GALAXY_ODDS_MISSING_OR_STALE",
-        "sport_first_order_preserved": true,
-        "provenance_contract_version": "1.1.0"
-      },
+      "market_source": null,
+      "market_provenance": null,
       "trend_context": {
         "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
         "actionable": false,
@@ -3034,11 +3080,11 @@
         "fixture_id": 1640499,
         "kickoff": "2026-09-20T22:00:00-06:00",
         "match": "New Caledonia vs Solomon Islands",
-        "stage": "T-90",
+        "stage": "T-60",
         "data_tier": "B",
         "bet_tier": null,
         "classification": "WATCH",
-        "availability_confidence": null,
+        "availability_confidence": 0.7,
         "sport_first": true,
         "coverage_gaps": [
           "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
@@ -3121,7 +3167,7 @@
             "production_status": null
           },
           "lineups_formations": {
-            "status": "NOT_VERIFIED",
+            "status": "PENDING",
             "both_xi_confirmed": false,
             "both_goalkeepers_confirmed": false,
             "teams": [],
@@ -3228,7 +3274,7 @@
             "production_status": null
           },
           "market": {
-            "status": "API_FALLBACK_ODDS",
+            "status": "NOT_VERIFIED",
             "actionable": null,
             "decision_weight": null,
             "production_status": null
@@ -3328,8 +3374,8 @@
             "decision_weight": 0.0
           },
           "xi_change_intelligence": {
-            "status": "NOT_VERIFIED",
-            "actionable": false,
+            "status": "PENDING",
+            "actionable": null,
             "decision_weight": null,
             "production_status": null
           },
@@ -3833,7 +3879,12 @@
         "decision_weight": 0.0,
         "policy": "ROUND/STAGE LABELS MAY DESCRIBE COMPETITION STRUCTURE ONLY. NO MOTIVATION, MUST-WIN, ROTATION OR QUALIFICATION CLAIM WITHOUT VERIFIED TABLE/AGGREGATE DATA."
       },
-      "lineups": null,
+      "lineups": {
+        "lineup_state": "PENDING",
+        "both_xi_confirmed": false,
+        "both_goalkeepers_confirmed": false,
+        "teams": []
+      },
       "raw_projection": {
         "status": "MODELED_LIMITED",
         "projection_model": "GOAL_RATE_POISSON_LIMITED_v0.1",
@@ -3869,6 +3920,7 @@
       "market_decision": null,
       "best_market": null,
       "notes": [
+        "Material lineup/goalkeeper information remains NOT VERIFIED.",
         "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
       ],
       "result": null,
@@ -5021,16 +5073,16 @@
             }
           ],
           "totals": {
-            "fouls": 20.0,
-            "possession": 100.0,
-            "shots_outside_box": 12.0,
-            "blocked_shots": 7.0,
-            "corners": 8.0,
-            "shots_on_goal": 12.0,
             "total_shots": 31.0,
-            "shots_inside_box": 19.0,
+            "corners": 8.0,
             "yellow_cards": 3.0,
-            "red_cards": 2.0
+            "red_cards": 2.0,
+            "shots_on_goal": 12.0,
+            "blocked_shots": 7.0,
+            "shots_inside_box": 19.0,
+            "fouls": 20.0,
+            "shots_outside_box": 12.0,
+            "possession": 100.0
           }
         },
         "player_stats": {
@@ -7093,16 +7145,16 @@
             }
           ],
           "totals": {
-            "fouls": 22.0,
-            "possession": 100.0,
-            "shots_outside_box": 9.0,
-            "blocked_shots": 7.0,
-            "corners": 8.0,
-            "shots_on_goal": 11.0,
             "total_shots": 28.0,
-            "shots_inside_box": 19.0,
+            "corners": 8.0,
             "yellow_cards": 2.0,
-            "red_cards": 0.0
+            "red_cards": 0.0,
+            "shots_on_goal": 11.0,
+            "blocked_shots": 7.0,
+            "shots_inside_box": 19.0,
+            "fouls": 22.0,
+            "shots_outside_box": 9.0,
+            "possession": 100.0
           }
         },
         "player_stats": {
