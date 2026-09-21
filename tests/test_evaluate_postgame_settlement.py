@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from mcp_gateway.evaluate_postgame import grade_market, market_family, performance_summary, settlement_row
+from mcp_gateway.evaluate_postgame import grade_market, market_family, performance_summary, settlement_row, tier_gate
 
 
 FINAL_2_1 = {
@@ -60,3 +60,13 @@ def test_performance_summary_counts_ungraded_derivatives() -> None:
     assert summary["ungraded"] == 1
     assert summary["unsupported_derivative"] == 1
     assert summary["hit_rate_ex_push"] == 0.5
+
+
+def test_tier_gate_keeps_small_samples_in_research() -> None:
+    status = tier_gate({"n": 3, "settled": 2, "roi_units": 2.0, "hit_rate_ex_push": 1.0})
+    assert status["status"] == "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+
+
+def test_tier_gate_marks_positive_sample_as_tier_b_candidate() -> None:
+    status = tier_gate({"n": 24, "settled": 24, "roi_units": 5.0, "hit_rate_ex_push": 0.625})
+    assert status["status"] == "TIER_B_CANDIDATE"
