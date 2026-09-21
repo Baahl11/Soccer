@@ -25,7 +25,7 @@ jobs:
         with: {ref: soccer-edge-mcp-v1, path: engine, fetch-depth: 1}
 
       - name: Compile settlement review modules
-        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py
+        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py
 
       - name: Build historical signal ledger
         run: python engine/mcp_gateway/build_signal_ledger.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/signal_ledger.jsonl --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
@@ -42,6 +42,9 @@ jobs:
       - name: Audit settlement coverage backlog
         run: python engine/mcp_gateway/analyze_settlement_coverage.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --postgame-evaluation state/soccer_edge_state/analysis/postgame_evaluation.jsonl --settlement-ledger state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl --output state/soccer_edge_state/analysis/settlement_coverage_report.json --backlog-output state/soccer_edge_state/analysis/settlement_backlog.jsonl
 
+      - name: Build postgame final-result backfill queue
+        run: python engine/mcp_gateway/build_postgame_backfill_queue.py --backlog state/soccer_edge_state/analysis/settlement_backlog.jsonl --queue-output state/soccer_edge_state/analysis/postgame_final_backfill_queue.jsonl --summary-output state/soccer_edge_state/analysis/postgame_final_backfill_queue_summary.json
+
       - name: Persist settlement review
         working-directory: state
         run: |
@@ -56,7 +59,9 @@ jobs:
             soccer_edge_state/analysis/settlement_segments_summary.json \
             soccer_edge_state/analysis/settlement_promotion_review.json \
             soccer_edge_state/analysis/settlement_coverage_report.json \
-            soccer_edge_state/analysis/settlement_backlog.jsonl
+            soccer_edge_state/analysis/settlement_backlog.jsonl \
+            soccer_edge_state/analysis/postgame_final_backfill_queue.jsonl \
+            soccer_edge_state/analysis/postgame_final_backfill_queue_summary.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Soccer Edge settlement review"
           for attempt in 1 2 3; do
