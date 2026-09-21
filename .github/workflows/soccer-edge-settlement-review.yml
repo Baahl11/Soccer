@@ -3,6 +3,10 @@ name: Soccer Edge Settlement Review
 on:
   schedule:
     - cron: "20 8 * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/soccer-edge-settlement-review.yml"
   workflow_dispatch:
 
 permissions: {contents: write}
