@@ -22,6 +22,13 @@ def norm(x: Any) -> str:
     return re.sub(r"\s+", " ", str(x or "").strip()).lower()
 
 
+def intish(x: Any) -> int | None:
+    try:
+        return int(x)
+    except (TypeError, ValueError):
+        return None
+
+
 def period_type(market: str) -> str:
     n = norm(market)
     if any(s in n for s in ("first half", "1st half", "1h", "half time", "halftime")):
@@ -31,6 +38,46 @@ def period_type(market: str) -> str:
     return "FT"
 
 
+def market_family(best: dict[str, Any] | None) -> str:
+    if not best:
+        return "NO_MARKET"
+    market = norm(best.get("market"))
+    selection = norm(best.get("selection"))
+    period = period_type(market)
+    if "team total" in market or "team goals" in market:
+        return f"{period}_TEAM_TOTAL"
+    if "corner" in market:
+        return f"{period}_CORNERS"
+    if "card" in market or "booking" in market:
+        return f"{period}_CARDS"
+    if "player" in market or any(token in market for token in ("shots", "saves", "assists", "goalscorer")):
+        return "PLAYER_PROP"
+    if "double chance" in market:
+        return f"{period}_DOUBLE_CHANCE"
+    if "draw no bet" in market or market == "dnb":
+        return f"{period}_DNB"
+    if "asian" in market or "handicap" in market:
+        return f"{period}_HANDICAP"
+    if "correct score" in market:
+        return f"{period}_CORRECT_SCORE"
+    if "result/total" in market or "winner &" in market or "win and" in market:
+        return f"{period}_COMPOUND"
+    if "both teams to score" in market or market == "btts":
+        return f"{period}_BTTS"
+    if market in {"match winner", "winner"}:
+        return f"{period}_1X2"
+    if (
+        "over/under" in market
+        or market in {"goals over/under", "over/under"}
+        or selection.startswith("over")
+        or selection.startswith("under")
+        or " over " in f" {selection} "
+        or " under " in f" {selection} "
+    ):
+        return f"{period}_TOTALS"
+    return f"{period}_OTHER"
+
+
 def canonical_full_match(best: dict[str, Any] | None) -> bool:
     if not best:
         return False
@@ -38,9 +85,8 @@ def canonical_full_match(best: dict[str, Any] | None) -> bool:
     if period_type(market) != "FT":
         return False
     banned = (
-        "team total", "corners", "cards", "player", "double chance", "draw no bet",
-        "asian", "handicap", "correct score", "odd/even", "both halves", "result/total",
-        "winner &", "win and",
+        "team total", "team goals", "corners", "cards", "booking", "player", "double chance", "draw no bet",
+        "asian", "handicap", "correct score", "odd/even", "both halves", "result/total", "winner &", "win and",
     )
     if any(x in market for x in banned):
         return False
@@ -75,49 +121,180 @@ def final_score(result: dict[str, Any] | None) -> tuple[int | None, int | None, 
     return out[0], out[1], out[2], out[3]
 
 
-def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, home: str, away: str) -> str:
-    if not best or not result:
-        return "NO_MARKET_OR_FINAL"
+def period_scores(result: dict[str, Any] | None, market: str) -> tuple[int | None, int | None]:
     h, a, hh, ha = final_score(result)
     if h is None or a is None:
-        return "NO_FINAL"
-    market = norm(best.get("market"))
-    sel = norm(best.get("selection"))
+        return None, None
     p = period_type(market)
     if p == "FT":
-        ph, pa = h, a
-    elif p == "1H" and hh is not None and ha is not None:
-        ph, pa = hh, ha
-    elif p == "2H" and hh is not None and ha is not None:
-        ph, pa = h - hh, a - ha
-    else:
-        return "UNGRADABLE"
+        return h, a
+    if p == "1H" and hh is not None and ha is not None:
+        return hh, ha
+    if p == "2H" and hh is not None and ha is not None:
+        return h - hh, a - ha
+    return None, None
 
-    if "both teams to score" in market or market == "btts":
+
+def _team_aliases(name: Any) -> set[str]:
+    n = norm(name)
+    aliases = {n}
+    if n:
+        aliases.add(n.replace(" fc", ""))
+        aliases.add(n.replace(" cf", ""))
+        aliases.add(n.replace(" club", ""))
+    return {a for a in aliases if a}
+
+
+def _side_from_text(text: str, home: str, away: str) -> str | None:
+    if re.search(r"\b(home|team\s*1)\b", text):
+        return "home"
+    if re.search(r"\b(away|team\s*2)\b", text):
+        return "away"
+    for alias in _team_aliases(home):
+        if alias and alias in text:
+            return "home"
+    for alias in _team_aliases(away):
+        if alias and alias in text:
+            return "away"
+    return None
+
+
+def team_total_side(best: dict[str, Any], home: str, away: str) -> str | None:
+    for field in (best.get("team"), best.get("team_name"), best.get("participant"), best.get("selection")):
+        side = _side_from_text(norm(field), home, away)
+        if side:
+            return side
+    return None
+
+
+def is_over_under_selection(best: dict[str, Any]) -> tuple[bool, bool]:
+    sel = norm(best.get("selection"))
+    market = norm(best.get("market"))
+    text = f" {sel} {market} "
+    return sel.startswith("over") or " over " in text, sel.startswith("under") or " under " in text
+
+
+def grade_over_under(total: int | float, line: float | None, is_over: bool, is_under: bool) -> str:
+    if line is None or not (is_over or is_under):
+        return "UNGRADABLE"
+    if math.isclose(float(total), float(line)):
+        return "PUSH"
+    if is_over:
+        return "WIN" if total > line else "LOSS"
+    return "WIN" if total < line else "LOSS"
+
+
+def tactical_stats(result: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(result, dict):
+        return None
+    tactical = result.get("tactical_stats") or result.get("postgame_tactical_stats")
+    return tactical if isinstance(tactical, dict) else None
+
+
+def team_name(t: dict[str, Any]) -> str:
+    return str(t.get("team") or t.get("team_name") or t.get("name") or t.get("teamName") or "")
+
+
+def stat_value(t: dict[str, Any], keys: tuple[str, ...]) -> float | None:
+    for key in keys:
+        v = fnum(t.get(key))
+        if v is not None:
+            return v
+    return None
+
+
+def stat_keys(stat: str) -> tuple[str, ...]:
+    if stat == "corners":
+        return ("corners", "corner_kicks", "cornerKicks")
+    if stat == "yellow_cards":
+        return ("yellow_cards", "yellowcards", "yellowCards", "yellow")
+    if stat == "red_cards":
+        return ("red_cards", "redcards", "redCards", "red")
+    return (stat,)
+
+
+def tactical_team_values(result: dict[str, Any] | None, stat: str, home: str, away: str, home_id: Any = None, away_id: Any = None) -> dict[str, float | None]:
+    tactical = tactical_stats(result)
+    if not tactical:
+        return {"home": None, "away": None, "total": None}
+    teams = [t for t in (tactical.get("teams") or []) if isinstance(t, dict)]
+    keys = stat_keys(stat)
+    home_i = intish(home_id)
+    away_i = intish(away_id)
+    home_v = away_v = None
+    total = 0.0
+    total_n = 0
+    for t in teams:
+        value = stat_value(t, keys)
+        if value is None:
+            continue
+        total += value
+        total_n += 1
+        tid = intish(t.get("team_id") or t.get("id"))
+        name = team_name(t)
+        if home_v is None and ((home_i is not None and tid == home_i) or norm(name) in _team_aliases(home)):
+            home_v = value
+        if away_v is None and ((away_i is not None and tid == away_i) or norm(name) in _team_aliases(away)):
+            away_v = value
+    return {"home": home_v, "away": away_v, "total": total if total_n else None}
+
+
+def card_stat_kind(best: dict[str, Any]) -> str | None:
+    text = f" {norm(best.get('market'))} {norm(best.get('selection'))} "
+    if "yellow" in text or "booking" in text:
+        return "yellow_cards"
+    if "red" in text:
+        return "red_cards"
+    return None
+
+
+def grade_tactical_over_under(best: dict[str, Any], result: dict[str, Any] | None, home: str, away: str, home_id: Any, away_id: Any, stat: str) -> str:
+    values = tactical_team_values(result, stat, home, away, home_id, away_id)
+    if values["total"] is None:
+        return "NO_TACTICAL_STATS"
+    is_over, is_under = is_over_under_selection(best)
+    side = team_total_side(best, home, away)
+    total = values.get(side) if side in {"home", "away"} else values.get("total")
+    if total is None:
+        return "UNGRADABLE_TACTICAL_SIDE_STATS"
+    return grade_over_under(total, parse_line(best), is_over, is_under)
+
+
+def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, home: str, away: str, home_id: Any = None, away_id: Any = None) -> str:
+    if not best or not result:
+        return "NO_MARKET_OR_FINAL"
+    family = market_family(best)
+    market = norm(best.get("market"))
+    sel = norm(best.get("selection"))
+    if family.endswith("_CORNERS"):
+        return grade_tactical_over_under(best, result, home, away, home_id, away_id, "corners")
+    if family.endswith("_CARDS"):
+        stat = card_stat_kind(best)
+        if stat is None:
+            return "UNSUPPORTED_CARD_RULES"
+        return grade_tactical_over_under(best, result, home, away, home_id, away_id, stat)
+    ph, pa = period_scores(result, market)
+    if ph is None or pa is None:
+        return "NO_FINAL"
+    if family.endswith("_BTTS"):
         yes = ph > 0 and pa > 0
         if sel in {"yes", "y", "btts yes"}:
             return "WIN" if yes else "LOSS"
         if sel in {"no", "n", "btts no"}:
             return "WIN" if not yes else "LOSS"
         return "UNGRADABLE"
-
-    if "over/under" in market or market in {"goals over/under", "over/under"} or " over " in f" {sel} " or " under " in f" {sel} ":
-        line = parse_line(best)
-        if line is None:
-            return "UNGRADABLE"
-        total = ph + pa
-        is_over = sel.startswith("over") or " over " in f" {sel} "
-        is_under = sel.startswith("under") or " under " in f" {sel} "
-        if not (is_over or is_under):
-            return "UNGRADABLE"
-        if math.isclose(total, line):
-            return "PUSH"
-        if is_over:
-            return "WIN" if total > line else "LOSS"
-        return "WIN" if total < line else "LOSS"
-
-    if market in {"match winner", "winner"}:
-        actual = "home" if h > a else "away" if a > h else "draw"
+    if family.endswith("_TOTALS"):
+        is_over, is_under = is_over_under_selection(best)
+        return grade_over_under(ph + pa, parse_line(best), is_over, is_under)
+    if family.endswith("_TEAM_TOTAL"):
+        side = team_total_side(best, home, away)
+        if side is None:
+            return "UNGRADABLE_TEAM_TOTAL_SIDE"
+        is_over, is_under = is_over_under_selection(best)
+        team_goals = ph if side == "home" else pa
+        return grade_over_under(team_goals, parse_line(best), is_over, is_under)
+    if family.endswith("_1X2"):
+        actual = "home" if ph > pa else "away" if pa > ph else "draw"
         if sel in {"home", "1", norm(home)}:
             pick = "home"
         elif sel in {"away", "2", norm(away)}:
@@ -127,7 +304,8 @@ def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, hom
         else:
             return "UNGRADABLE"
         return "WIN" if pick == actual else "LOSS"
-
+    if family == "PLAYER_PROP":
+        return "UNSUPPORTED_DERIVATIVE"
     return "UNGRADABLE"
 
 
@@ -140,7 +318,6 @@ def research_signal_grades(row: dict[str, Any], result: dict[str, Any]) -> dict[
     tracks = set(shortlist.get("tracks") or [])
     raw = row.get("raw_projection") or {}
     out: dict[str, Any] = {}
-
     if "GOALS_OVER" in tracks:
         out["GOALS_OVER"] = {"hit_3plus": total >= 3, "actual_total": total}
     if "GOALS_UNDER" in tracks:
@@ -148,25 +325,16 @@ def research_signal_grades(row: dict[str, Any], result: dict[str, Any]) -> dict[
     if "TWO_WAY" in tracks:
         out["TWO_WAY"] = {"btts_yes": h > 0 and a > 0, "actual_total": total}
     if "SIDE" in tracks:
-        probs = {
-            "home": fnum(raw.get("raw_home_win_prob")),
-            "draw": fnum(raw.get("raw_draw_prob")),
-            "away": fnum(raw.get("raw_away_win_prob")),
-        }
+        probs = {"home": fnum(raw.get("raw_home_win_prob")), "draw": fnum(raw.get("raw_draw_prob")), "away": fnum(raw.get("raw_away_win_prob"))}
         valid = {k: v for k, v in probs.items() if v is not None}
         if len(valid) == 3:
             predicted = max(valid, key=valid.get)
             actual = "home" if h > a else "away" if a > h else "draw"
-            out["SIDE"] = {
-                "predicted": predicted,
-                "actual": actual,
-                "hit": predicted == actual,
-                "raw_probs": probs,
-            }
+            out["SIDE"] = {"predicted": predicted, "actual": actual, "hit": predicted == actual, "raw_probs": probs}
     return out
 
 
-def roi_units(outcome: str, price: float | None, stake: float | None) -> float | None:
+def roi_units(outcome: str | None, price: float | None, stake: float | None) -> float | None:
     if price is None:
         return None
     s = stake if stake and stake > 0 else 1.0
@@ -179,11 +347,65 @@ def roi_units(outcome: str, price: float | None, stake: float | None) -> float |
     return None
 
 
+def decision_key(ev: dict[str, Any]) -> tuple[Any, ...]:
+    best = ev.get("best_market") or {}
+    return (ev["fixture_id"], ev["classification"], market_family(best), norm(best.get("market")), norm(best.get("selection")), fnum(best.get("line")))
+
+
+def settlement_row(ev: dict[str, Any]) -> dict[str, Any]:
+    best = ev.get("best_market") or {}
+    price = fnum(best.get("decimal_price"))
+    stake = fnum(ev.get("stake_units")) or 1.0
+    outcome = ev.get("market_outcome")
+    return {
+        "schema_version": "1.1.0",
+        "event_key": ev.get("event_key"), "fixture_id": ev.get("fixture_id"), "kickoff_local": ev.get("kickoff_local"), "generated_at_local": ev.get("generated_at_local"), "stage": ev.get("stage"),
+        "league": ev.get("league"), "home_team_id": ev.get("home_team_id"), "home_team": ev.get("home_team"), "away_team_id": ev.get("away_team_id"), "away_team": ev.get("away_team"),
+        "classification": ev.get("classification"), "tier": ev.get("tier"), "data_tier": ev.get("data_tier"), "availability_confidence": ev.get("availability_confidence"), "bet_eligible": ev.get("bet_eligible"),
+        "period": period_type(norm(best.get("market"))), "market_family": market_family(best), "canonical_ft_market": ev.get("canonical_ft_market"),
+        "market": best.get("market"), "selection": best.get("selection"), "line": fnum(best.get("line")), "decimal_price": price, "bookmaker": best.get("bookmaker") or best.get("book"), "stake_units": stake,
+        "settlement_status": outcome, "settled": outcome in {"WIN", "LOSS", "PUSH"}, "roi_units": ev.get("roi_units"), "has_tactical_stats": bool(tactical_stats(ev.get("result"))), "result": ev.get("result"),
+    }
+
+
+def performance_summary(group: list[dict[str, Any]]) -> dict[str, Any]:
+    c = Counter(row.get("settlement_status") for row in group)
+    decided = c["WIN"] + c["LOSS"]
+    settled = decided + c["PUSH"]
+    roi = sum(float(row.get("roi_units") or 0.0) for row in group)
+    return {"n": len(group), "settled": settled, "win": c["WIN"], "loss": c["LOSS"], "push": c["PUSH"], "ungraded": len(group) - settled, "unsupported_derivative": c["UNSUPPORTED_DERIVATIVE"] + c["UNSUPPORTED_CARD_RULES"], "no_tactical_stats": c["NO_TACTICAL_STATS"], "hit_rate_ex_push": round(c["WIN"] / decided, 4) if decided else None, "roi_units": round(roi, 4), "roi_per_decision_units": round(roi / len(group), 4) if group else None}
+
+
+def tier_gate(summary: dict[str, Any]) -> dict[str, Any]:
+    n = int(summary.get("n") or 0)
+    settled = int(summary.get("settled") or 0)
+    unsupported = int(summary.get("unsupported_derivative") or 0)
+    roi = float(summary.get("roi_units") or 0.0)
+    hit_rate = summary.get("hit_rate_ex_push")
+    if unsupported and settled == 0:
+        status = "RESEARCH_ONLY_NEEDS_EXPLICIT_SETTLEMENT"; reason = "bucket has derivative picks but no supported settlement yet"
+    elif settled < 20:
+        status = "RESEARCH_ONLY_SAMPLE_TOO_SMALL"; reason = "fewer than 20 settled decisions"
+    elif hit_rate is None:
+        status = "HOLD_NO_DECIDED_OUTCOMES"; reason = "no win/loss decisions after pushes/ungraded rows"
+    elif roi <= 0:
+        status = "HOLD_NEGATIVE_OR_FLAT_ROI"; reason = "settled sample is non-positive ROI"
+    elif settled >= 100:
+        status = "TIER_S_CANDIDATE_REQUIRES_CLV"; reason = "100+ settled decisions and positive ROI; require CLV/segmentation confirmation"
+    elif settled >= 50:
+        status = "TIER_A_CANDIDATE_REQUIRES_CLV"; reason = "50+ settled decisions and positive ROI; require CLV/segmentation confirmation"
+    else:
+        status = "TIER_B_CANDIDATE"; reason = "20+ settled decisions and positive ROI; keep low stake until CLV/sample improves"
+    return {"status": status, "reason": reason, "n": n, "settled": settled, "hit_rate_ex_push": hit_rate, "roi_units": round(roi, 4)}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Evaluate Soccer Edge ledger rows once final results exist.")
     ap.add_argument("--ledger", default="soccer_edge_state/analysis/signal_ledger.jsonl")
     ap.add_argument("--output", default="soccer_edge_state/analysis/postgame_evaluation.jsonl")
     ap.add_argument("--summary-output", default="soccer_edge_state/analysis/postgame_summary.json")
+    ap.add_argument("--settlement-output", default="soccer_edge_state/analysis/bet_settlement_ledger.jsonl")
+    ap.add_argument("--market-summary-output", default="soccer_edge_state/analysis/market_performance_summary.json")
     args = ap.parse_args()
 
     rows: list[dict[str, Any]] = []
@@ -205,55 +427,40 @@ def main() -> None:
         if not result:
             continue
         best = row.get("best_market")
-        outcome = grade_market(best, result, row.get("home_team") or "", row.get("away_team") or "") if best else None
+        outcome = grade_market(best, result, row.get("home_team") or "", row.get("away_team") or "", row.get("home_team_id"), row.get("away_team_id")) if best else None
         price = fnum((best or {}).get("decimal_price"))
         classification = str(row.get("classification") or "").upper()
         stake = fnum(row.get("stake_units"))
         eval_row = {
-            "event_key": row.get("event_key"),
-            "fixture_id": fid,
-            "kickoff_local": row.get("kickoff_local"),
-            "generated_at_local": row.get("generated_at_local"),
-            "stage": row.get("stage"),
-            "league": row.get("league"),
-            "home_team": row.get("home_team"),
-            "away_team": row.get("away_team"),
-            "classification": classification,
-            "tier": row.get("tier"),
-            "data_tier": row.get("data_tier"),
-            "availability_confidence": row.get("availability_confidence"),
-            "bet_eligible": row.get("bet_eligible"),
-            "canonical_ft_market": canonical_full_match(best),
-            "best_market": best,
-            "market_outcome": outcome,
+            "event_key": row.get("event_key"), "fixture_id": fid, "kickoff_local": row.get("kickoff_local"), "generated_at_local": row.get("generated_at_local"), "stage": row.get("stage"),
+            "league": row.get("league"), "home_team_id": row.get("home_team_id"), "home_team": row.get("home_team"), "away_team_id": row.get("away_team_id"), "away_team": row.get("away_team"),
+            "classification": classification, "tier": row.get("tier"), "data_tier": row.get("data_tier"), "availability_confidence": row.get("availability_confidence"), "bet_eligible": row.get("bet_eligible"),
+            "canonical_ft_market": canonical_full_match(best), "market_family": market_family(best), "best_market": best, "market_outcome": outcome,
             "roi_units": roi_units(outcome, price, stake) if classification in {"BET", "LEAN"} else None,
-            "research_signals": research_signal_grades(row, result),
-            "result": result,
+            "research_signals": research_signal_grades(row, result), "result": result,
         }
         evaluations.append(eval_row)
 
-    # One decision per fixture/market/classification for ROI to avoid counting repeated refresh snapshots twice.
     decision_best: dict[tuple[Any, ...], dict[str, Any]] = {}
     for ev in evaluations:
-        best = ev.get("best_market") or {}
-        key = (
-            ev["fixture_id"],
-            ev["classification"],
-            norm(best.get("market")),
-            norm(best.get("selection")),
-            fnum(best.get("line")),
-        )
+        key = decision_key(ev)
         prev = decision_best.get(key)
         if prev is None or str(ev.get("generated_at_local") or "") > str(prev.get("generated_at_local") or ""):
             decision_best[key] = ev
 
-    actionable = [
-        ev for ev in decision_best.values()
-        if ev["classification"] in {"BET", "LEAN"} and ev["canonical_ft_market"] and ev.get("market_outcome") in {"WIN", "LOSS", "PUSH"}
-    ]
+    settlement_decisions = [settlement_row(ev) for ev in decision_best.values() if ev["classification"] in {"BET", "LEAN"} and ev.get("best_market") and ev.get("result")]
+    actionable = [ev for ev in decision_best.values() if ev["classification"] in {"BET", "LEAN"} and ev["canonical_ft_market"] and ev.get("market_outcome") in {"WIN", "LOSS", "PUSH"}]
     by_class: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for ev in actionable:
         by_class[ev["classification"]].append(ev)
+
+    settlement_by_market: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    settlement_by_market_class: dict[str, dict[str, list[dict[str, Any]]]] = defaultdict(lambda: defaultdict(list))
+    for row in settlement_decisions:
+        family = str(row.get("market_family") or "UNKNOWN")
+        classification = str(row.get("classification") or "UNKNOWN")
+        settlement_by_market[family].append(row)
+        settlement_by_market_class[family][classification].append(row)
 
     signal_stats: dict[str, Counter[str]] = defaultdict(Counter)
     signal_unique: set[tuple[int, str]] = set()
@@ -264,66 +471,51 @@ def main() -> None:
                 continue
             signal_unique.add(key)
             if signal == "GOALS_OVER":
-                signal_stats[signal]["n"] += 1
-                signal_stats[signal]["hit"] += int(bool(payload.get("hit_3plus")))
+                signal_stats[signal]["n"] += 1; signal_stats[signal]["hit"] += int(bool(payload.get("hit_3plus")))
             elif signal == "GOALS_UNDER":
-                signal_stats[signal]["n"] += 1
-                signal_stats[signal]["hit"] += int(bool(payload.get("hit_0_2")))
+                signal_stats[signal]["n"] += 1; signal_stats[signal]["hit"] += int(bool(payload.get("hit_0_2")))
             elif signal == "TWO_WAY":
-                signal_stats[signal]["n"] += 1
-                signal_stats[signal]["hit"] += int(bool(payload.get("btts_yes")))
+                signal_stats[signal]["n"] += 1; signal_stats[signal]["hit"] += int(bool(payload.get("btts_yes")))
             elif signal == "SIDE" and payload.get("hit") is not None:
-                signal_stats[signal]["n"] += 1
-                signal_stats[signal]["hit"] += int(bool(payload.get("hit")))
+                signal_stats[signal]["n"] += 1; signal_stats[signal]["hit"] += int(bool(payload.get("hit")))
 
     def decision_summary(group: list[dict[str, Any]]) -> dict[str, Any]:
         c = Counter(ev["market_outcome"] for ev in group)
         decided = c["WIN"] + c["LOSS"]
         roi = sum(float(ev.get("roi_units") or 0.0) for ev in group)
-        risk = sum((fnum(ev.get("best_market", {}).get("decimal_price")) is not None) * (fnum(ev.get("roi_units")) is not None) * (fnum(ev.get("best_market", {}).get("decimal_price")) is not None) for ev in group)
-        # risk above is count-based because LEAN may not carry stake; ROI is still unit-normalized when stake absent.
-        return {
-            "n": len(group),
-            "win": c["WIN"],
-            "loss": c["LOSS"],
-            "push": c["PUSH"],
-            "hit_rate_ex_push": round(c["WIN"] / decided, 4) if decided else None,
-            "roi_units": round(roi, 4),
-            "roi_per_decision_units": round(roi / len(group), 4) if group else None,
-        }
+        return {"n": len(group), "win": c["WIN"], "loss": c["LOSS"], "push": c["PUSH"], "hit_rate_ex_push": round(c["WIN"] / decided, 4) if decided else None, "roi_units": round(roi, 4), "roi_per_decision_units": round(roi / len(group), 4) if group else None}
+
+    by_market_family = {k: performance_summary(v) for k, v in sorted(settlement_by_market.items())}
+    by_market_family_and_classification = {family: {classification: performance_summary(rows) for classification, rows in sorted(groups.items())} for family, groups in sorted(settlement_by_market_class.items())}
+    market_summary = {
+        "schema_version": "1.2.0", "timezone_basis": "America/Mexico_City", "settlement_decisions": len(settlement_decisions),
+        "by_market_family": by_market_family, "by_market_family_and_classification": by_market_family_and_classification,
+        "promotion_gate_review": {family: tier_gate(summary) for family, summary in by_market_family.items()},
+        "promotion_gate_by_market_family_and_classification": {family: {classification: tier_gate(summary) for classification, summary in groups.items()} for family, groups in by_market_family_and_classification.items()},
+        "minimum_sample_policy": {"directional_read": 20, "tier_b_candidate": 20, "tier_a_candidate": 50, "tier_s_candidate": 100},
+        "safety_note": "Corners and explicit yellow/red card markets are settled only when postgame tactical stats exist. Generic card markets remain unsupported because sportsbook card-point rules vary.",
+    }
 
     summary = {
-        "schema_version": "1.0.0",
-        "timezone_basis": "America/Mexico_City",
-        "ledger_rows_read": len(rows),
-        "final_fixture_count": len(finals),
-        "evaluation_rows": len(evaluations),
-        "canonical_ft_actionable_decisions": len(actionable),
-        "actionable_by_classification": {k: decision_summary(v) for k, v in sorted(by_class.items())},
-        "research_signal_performance": {
-            signal: {
-                "n": counts["n"],
-                "hit": counts["hit"],
-                "hit_rate": round(counts["hit"] / counts["n"], 4) if counts["n"] else None,
-                "definition": {
-                    "GOALS_OVER": "3+ final-match goals (research proxy; not a wager line)",
-                    "GOALS_UNDER": "0-2 final-match goals (research proxy; not a wager line)",
-                    "TWO_WAY": "BTTS Yes final result (research proxy)",
-                    "SIDE": "argmax raw 1X2 probability matched final 1/X/2 (research only)",
-                }.get(signal),
-            }
-            for signal, counts in sorted(signal_stats.items())
-        },
-        "safety_note": "Only canonical full-match Winner/1X2, Goals O/U and BTTS are included in actionable ROI summaries. Period/team/compound/player/corners/cards derivatives remain research-only and are excluded.",
+        "schema_version": "1.2.0", "timezone_basis": "America/Mexico_City", "ledger_rows_read": len(rows), "final_fixture_count": len(finals), "evaluation_rows": len(evaluations),
+        "canonical_ft_actionable_decisions": len(actionable), "settlement_decisions": len(settlement_decisions), "market_family_actionable_decisions": {k: len(v) for k, v in sorted(settlement_by_market.items())},
+        "actionable_by_classification": {k: decision_summary(v) for k, v in sorted(by_class.items())}, "actionable_by_market_family": market_summary["by_market_family"],
+        "research_signal_performance": {signal: {"n": counts["n"], "hit": counts["hit"], "hit_rate": round(counts["hit"] / counts["n"], 4) if counts["n"] else None, "definition": {"GOALS_OVER": "3+ final-match goals (research proxy; not a wager line)", "GOALS_UNDER": "0-2 final-match goals (research proxy; not a wager line)", "TWO_WAY": "BTTS Yes final result (research proxy)", "SIDE": "argmax raw 1X2 probability matched final 1/X/2 (research only)"}.get(signal)} for signal, counts in sorted(signal_stats.items())},
+        "safety_note": "Canonical full-match Winner/1X2, Goals O/U and BTTS remain the only promoted ROI group. Derivatives can be promoted only after explicit grading, enough sample and CLV confirmation.",
     }
 
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as fh:
         for ev in evaluations:
             fh.write(json.dumps(ev, ensure_ascii=False, separators=(",", ":")) + "\n")
+    os.makedirs(os.path.dirname(args.settlement_output), exist_ok=True)
+    with open(args.settlement_output, "w", encoding="utf-8") as fh:
+        for row in settlement_decisions:
+            fh.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
     with open(args.summary_output, "w", encoding="utf-8") as fh:
-        json.dump(summary, fh, ensure_ascii=False, indent=2, sort_keys=True)
-        fh.write("\n")
+        json.dump(summary, fh, ensure_ascii=False, indent=2, sort_keys=True); fh.write("\n")
+    with open(args.market_summary_output, "w", encoding="utf-8") as fh:
+        json.dump(market_summary, fh, ensure_ascii=False, indent=2, sort_keys=True); fh.write("\n")
     print(json.dumps(summary, indent=2, sort_keys=True))
 
 
