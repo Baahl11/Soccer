@@ -31,6 +31,53 @@ def period_type(market: str) -> str:
     return "FT"
 
 
+def market_family(best: dict[str, Any] | None) -> str:
+    """Return a stable family bucket for settlement/performance reporting.
+
+    The family is intentionally conservative. Derivative markets are bucketed,
+    but they are not graded as wins/losses unless explicit settlement logic
+    exists in grade_market().
+    """
+    if not best:
+        return "NO_MARKET"
+    market = norm(best.get("market"))
+    selection = norm(best.get("selection"))
+    period = period_type(market)
+
+    if "team total" in market or "team goals" in market:
+        return f"{period}_TEAM_TOTAL"
+    if "corner" in market:
+        return f"{period}_CORNERS"
+    if "card" in market or "booking" in market:
+        return f"{period}_CARDS"
+    if "player" in market or any(token in market for token in ("shots", "saves", "assists", "goalscorer")):
+        return "PLAYER_PROP"
+    if "double chance" in market:
+        return f"{period}_DOUBLE_CHANCE"
+    if "draw no bet" in market or market == "dnb":
+        return f"{period}_DNB"
+    if "asian" in market or "handicap" in market:
+        return f"{period}_HANDICAP"
+    if "correct score" in market:
+        return f"{period}_CORRECT_SCORE"
+    if "result/total" in market or "winner &" in market or "win and" in market:
+        return f"{period}_COMPOUND"
+    if "both teams to score" in market or market == "btts":
+        return f"{period}_BTTS"
+    if market in {"match winner", "winner"}:
+        return f"{period}_1X2"
+    if (
+        "over/under" in market
+        or market in {"goals over/under", "over/under"}
+        or selection.startswith("over")
+        or selection.startswith("under")
+        or " over " in f" {selection} "
+        or " under " in f" {selection} "
+    ):
+        return f"{period}_TOTALS"
+    return f"{period}_OTHER"
+
+
 def canonical_full_match(best: dict[str, Any] | None) -> bool:
     if not best:
         return False
@@ -38,7 +85,7 @@ def canonical_full_match(best: dict[str, Any] | None) -> bool:
     if period_type(market) != "FT":
         return False
     banned = (
-        "team total", "corners", "cards", "player", "double chance", "draw no bet",
+        "team total", "team goals", "corners", "cards", "booking", "player", "double chance", "draw no bet",
         "asian", "handicap", "correct score", "odd/even", "both halves", "result/total",
         "winner &", "win and",
     )
@@ -81,6 +128,7 @@ def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, hom
     h, a, hh, ha = final_score(result)
     if h is None or a is None:
         return "NO_FINAL"
+    family = market_family(best)
     market = norm(best.get("market"))
     sel = norm(best.get("selection"))
     p = period_type(market)
@@ -93,7 +141,7 @@ def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, hom
     else:
         return "UNGRADABLE"
 
-    if "both teams to score" in market or market == "btts":
+    if family.endswith("_BTTS"):
         yes = ph > 0 and pa > 0
         if sel in {"yes", "y", "btts yes"}:
             return "WIN" if yes else "LOSS"
@@ -101,7 +149,7 @@ def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, hom
             return "WIN" if not yes else "LOSS"
         return "UNGRADABLE"
 
-    if "over/under" in market or market in {"goals over/under", "over/under"} or " over " in f" {sel} " or " under " in f" {sel} ":
+    if family.endswith("_TOTALS"):
         line = parse_line(best)
         if line is None:
             return "UNGRADABLE"
@@ -116,8 +164,8 @@ def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, hom
             return "WIN" if total > line else "LOSS"
         return "WIN" if total < line else "LOSS"
 
-    if market in {"match winner", "winner"}:
-        actual = "home" if h > a else "away" if a > h else "draw"
+    if family.endswith("_1X2"):
+        actual = "home" if ph > pa else "away" if pa > ph else "draw"
         if sel in {"home", "1", norm(home)}:
             pick = "home"
         elif sel in {"away", "2", norm(away)}:
@@ -127,6 +175,9 @@ def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, hom
         else:
             return "UNGRADABLE"
         return "WIN" if pick == actual else "LOSS"
+
+    if family in {"FT_TEAM_TOTAL", "1H_TEAM_TOTAL", "2H_TEAM_TOTAL", "FT_CORNERS", "1H_CORNERS", "2H_CORNERS", "FT_CARDS", "1H_CARDS", "2H_CARDS", "PLAYER_PROP"}:
+        return "UNSUPPORTED_DERIVATIVE"
 
     return "UNGRADABLE"
 
@@ -179,11 +230,80 @@ def roi_units(outcome: str, price: float | None, stake: float | None) -> float |
     return None
 
 
+def decision_key(ev: dict[str, Any]) -> tuple[Any, ...]:
+    best = ev.get("best_market") or {}
+    return (
+        ev["fixture_id"],
+        ev["classification"],
+        market_family(best),
+        norm(best.get("market")),
+        norm(best.get("selection")),
+        fnum(best.get("line")),
+    )
+
+
+def settlement_row(ev: dict[str, Any]) -> dict[str, Any]:
+    best = ev.get("best_market") or {}
+    price = fnum(best.get("decimal_price"))
+    stake = fnum(ev.get("stake_units")) or 1.0
+    outcome = ev.get("market_outcome")
+    return {
+        "schema_version": "1.0.0",
+        "event_key": ev.get("event_key"),
+        "fixture_id": ev.get("fixture_id"),
+        "kickoff_local": ev.get("kickoff_local"),
+        "generated_at_local": ev.get("generated_at_local"),
+        "stage": ev.get("stage"),
+        "league": ev.get("league"),
+        "home_team": ev.get("home_team"),
+        "away_team": ev.get("away_team"),
+        "classification": ev.get("classification"),
+        "tier": ev.get("tier"),
+        "data_tier": ev.get("data_tier"),
+        "availability_confidence": ev.get("availability_confidence"),
+        "bet_eligible": ev.get("bet_eligible"),
+        "period": period_type(norm(best.get("market"))),
+        "market_family": market_family(best),
+        "canonical_ft_market": ev.get("canonical_ft_market"),
+        "market": best.get("market"),
+        "selection": best.get("selection"),
+        "line": fnum(best.get("line")),
+        "decimal_price": price,
+        "bookmaker": best.get("bookmaker") or best.get("book"),
+        "stake_units": stake,
+        "settlement_status": outcome,
+        "settled": outcome in {"WIN", "LOSS", "PUSH"},
+        "roi_units": ev.get("roi_units"),
+        "result": ev.get("result"),
+    }
+
+
+def performance_summary(group: list[dict[str, Any]]) -> dict[str, Any]:
+    c = Counter(row.get("settlement_status") for row in group)
+    decided = c["WIN"] + c["LOSS"]
+    settled = decided + c["PUSH"]
+    roi = sum(float(row.get("roi_units") or 0.0) for row in group)
+    return {
+        "n": len(group),
+        "settled": settled,
+        "win": c["WIN"],
+        "loss": c["LOSS"],
+        "push": c["PUSH"],
+        "ungraded": len(group) - settled,
+        "unsupported_derivative": c["UNSUPPORTED_DERIVATIVE"],
+        "hit_rate_ex_push": round(c["WIN"] / decided, 4) if decided else None,
+        "roi_units": round(roi, 4),
+        "roi_per_decision_units": round(roi / len(group), 4) if group else None,
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Evaluate Soccer Edge ledger rows once final results exist.")
     ap.add_argument("--ledger", default="soccer_edge_state/analysis/signal_ledger.jsonl")
     ap.add_argument("--output", default="soccer_edge_state/analysis/postgame_evaluation.jsonl")
     ap.add_argument("--summary-output", default="soccer_edge_state/analysis/postgame_summary.json")
+    ap.add_argument("--settlement-output", default="soccer_edge_state/analysis/bet_settlement_ledger.jsonl")
+    ap.add_argument("--market-summary-output", default="soccer_edge_state/analysis/market_performance_summary.json")
     args = ap.parse_args()
 
     rows: list[dict[str, Any]] = []
@@ -224,6 +344,7 @@ def main() -> None:
             "availability_confidence": row.get("availability_confidence"),
             "bet_eligible": row.get("bet_eligible"),
             "canonical_ft_market": canonical_full_match(best),
+            "market_family": market_family(best),
             "best_market": best,
             "market_outcome": outcome,
             "roi_units": roi_units(outcome, price, stake) if classification in {"BET", "LEAN"} else None,
@@ -235,17 +356,16 @@ def main() -> None:
     # One decision per fixture/market/classification for ROI to avoid counting repeated refresh snapshots twice.
     decision_best: dict[tuple[Any, ...], dict[str, Any]] = {}
     for ev in evaluations:
-        best = ev.get("best_market") or {}
-        key = (
-            ev["fixture_id"],
-            ev["classification"],
-            norm(best.get("market")),
-            norm(best.get("selection")),
-            fnum(best.get("line")),
-        )
+        key = decision_key(ev)
         prev = decision_best.get(key)
         if prev is None or str(ev.get("generated_at_local") or "") > str(prev.get("generated_at_local") or ""):
             decision_best[key] = ev
+
+    settlement_decisions = [
+        settlement_row(ev)
+        for ev in decision_best.values()
+        if ev["classification"] in {"BET", "LEAN"} and ev.get("best_market") and ev.get("result")
+    ]
 
     actionable = [
         ev for ev in decision_best.values()
@@ -254,6 +374,14 @@ def main() -> None:
     by_class: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for ev in actionable:
         by_class[ev["classification"]].append(ev)
+
+    settlement_by_market: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    settlement_by_market_class: dict[str, dict[str, list[dict[str, Any]]]] = defaultdict(lambda: defaultdict(list))
+    for row in settlement_decisions:
+        family = str(row.get("market_family") or "UNKNOWN")
+        classification = str(row.get("classification") or "UNKNOWN")
+        settlement_by_market[family].append(row)
+        settlement_by_market_class[family][classification].append(row)
 
     signal_stats: dict[str, Counter[str]] = defaultdict(Counter)
     signal_unique: set[tuple[int, str]] = set()
@@ -280,8 +408,6 @@ def main() -> None:
         c = Counter(ev["market_outcome"] for ev in group)
         decided = c["WIN"] + c["LOSS"]
         roi = sum(float(ev.get("roi_units") or 0.0) for ev in group)
-        risk = sum((fnum(ev.get("best_market", {}).get("decimal_price")) is not None) * (fnum(ev.get("roi_units")) is not None) * (fnum(ev.get("best_market", {}).get("decimal_price")) is not None) for ev in group)
-        # risk above is count-based because LEAN may not carry stake; ROI is still unit-normalized when stake absent.
         return {
             "n": len(group),
             "win": c["WIN"],
@@ -292,14 +418,35 @@ def main() -> None:
             "roi_per_decision_units": round(roi / len(group), 4) if group else None,
         }
 
-    summary = {
+    market_summary = {
         "schema_version": "1.0.0",
+        "timezone_basis": "America/Mexico_City",
+        "settlement_decisions": len(settlement_decisions),
+        "by_market_family": {k: performance_summary(v) for k, v in sorted(settlement_by_market.items())},
+        "by_market_family_and_classification": {
+            family: {classification: performance_summary(rows) for classification, rows in sorted(groups.items())}
+            for family, groups in sorted(settlement_by_market_class.items())
+        },
+        "minimum_sample_policy": {
+            "directional_read": 20,
+            "tier_b_candidate": 20,
+            "tier_a_candidate": 50,
+            "tier_s_candidate": 100,
+        },
+        "safety_note": "Derivative markets are included in settlement ledger buckets, but only markets with explicit grading logic produce WIN/LOSS/PUSH and ROI.",
+    }
+
+    summary = {
+        "schema_version": "1.1.0",
         "timezone_basis": "America/Mexico_City",
         "ledger_rows_read": len(rows),
         "final_fixture_count": len(finals),
         "evaluation_rows": len(evaluations),
         "canonical_ft_actionable_decisions": len(actionable),
+        "settlement_decisions": len(settlement_decisions),
+        "market_family_actionable_decisions": {k: len(v) for k, v in sorted(settlement_by_market.items())},
         "actionable_by_classification": {k: decision_summary(v) for k, v in sorted(by_class.items())},
+        "actionable_by_market_family": market_summary["by_market_family"],
         "research_signal_performance": {
             signal: {
                 "n": counts["n"],
@@ -314,15 +461,22 @@ def main() -> None:
             }
             for signal, counts in sorted(signal_stats.items())
         },
-        "safety_note": "Only canonical full-match Winner/1X2, Goals O/U and BTTS are included in actionable ROI summaries. Period/team/compound/player/corners/cards derivatives remain research-only and are excluded.",
+        "safety_note": "Canonical full-match Winner/1X2, Goals O/U and BTTS remain the only promoted ROI group. The settlement ledger also exposes market-family buckets so derivatives can be promoted only after explicit grading and sufficient sample.",
     }
 
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as fh:
         for ev in evaluations:
             fh.write(json.dumps(ev, ensure_ascii=False, separators=(",", ":")) + "\n")
+    os.makedirs(os.path.dirname(args.settlement_output), exist_ok=True)
+    with open(args.settlement_output, "w", encoding="utf-8") as fh:
+        for row in settlement_decisions:
+            fh.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
     with open(args.summary_output, "w", encoding="utf-8") as fh:
         json.dump(summary, fh, ensure_ascii=False, indent=2, sort_keys=True)
+        fh.write("\n")
+    with open(args.market_summary_output, "w", encoding="utf-8") as fh:
+        json.dump(market_summary, fh, ensure_ascii=False, indent=2, sort_keys=True)
         fh.write("\n")
     print(json.dumps(summary, indent=2, sort_keys=True))
 
