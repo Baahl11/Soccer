@@ -1,0 +1,133 @@
+{
+  "by_market_family": {
+    "FT_1X2": {
+      "hit_rate_ex_push": 0.5,
+      "loss": 5,
+      "n": 10,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": 1.12,
+      "roi_units": 11.2,
+      "settled": 10,
+      "ungraded": 0,
+      "unsupported_derivative": 0,
+      "win": 5
+    },
+    "FT_TOTALS": {
+      "hit_rate_ex_push": 0.7857,
+      "loss": 3,
+      "n": 14,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": 0.2646,
+      "roi_units": 3.7048,
+      "settled": 14,
+      "ungraded": 0,
+      "unsupported_derivative": 0,
+      "win": 11
+    }
+  },
+  "by_market_family_and_classification": {
+    "FT_1X2": {
+      "LEAN": {
+        "hit_rate_ex_push": 0.5,
+        "loss": 5,
+        "n": 10,
+        "no_tactical_stats": 0,
+        "push": 0,
+        "roi_per_decision_units": 1.12,
+        "roi_units": 11.2,
+        "settled": 10,
+        "ungraded": 0,
+        "unsupported_derivative": 0,
+        "win": 5
+      }
+    },
+    "FT_TOTALS": {
+      "BET": {
+        "hit_rate_ex_push": 0.5,
+        "loss": 3,
+        "n": 6,
+        "no_tactical_stats": 0,
+        "push": 0,
+        "roi_per_decision_units": -0.0342,
+        "roi_units": -0.2052,
+        "settled": 6,
+        "ungraded": 0,
+        "unsupported_derivative": 0,
+        "win": 3
+      },
+      "LEAN": {
+        "hit_rate_ex_push": 1.0,
+        "loss": 0,
+        "n": 8,
+        "no_tactical_stats": 0,
+        "push": 0,
+        "roi_per_decision_units": 0.4888,
+        "roi_units": 3.91,
+        "settled": 8,
+        "ungraded": 0,
+        "unsupported_derivative": 0,
+        "win": 8
+      }
+    }
+  },
+  "minimum_sample_policy": {
+    "directional_read": 20,
+    "tier_a_candidate": 50,
+    "tier_b_candidate": 20,
+    "tier_s_candidate": 100
+  },
+  "promotion_gate_by_market_family_and_classification": {
+    "FT_1X2": {
+      "LEAN": {
+        "hit_rate_ex_push": 0.5,
+        "n": 10,
+        "reason": "fewer than 20 settled decisions",
+        "roi_units": 11.2,
+        "settled": 10,
+        "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+      }
+    },
+    "FT_TOTALS": {
+      "BET": {
+        "hit_rate_ex_push": 0.5,
+        "n": 6,
+        "reason": "fewer than 20 settled decisions",
+        "roi_units": -0.2052,
+        "settled": 6,
+        "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+      },
+      "LEAN": {
+        "hit_rate_ex_push": 1.0,
+        "n": 8,
+        "reason": "fewer than 20 settled decisions",
+        "roi_units": 3.91,
+        "settled": 8,
+        "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+      }
+    }
+  },
+  "promotion_gate_review": {
+    "FT_1X2": {
+      "hit_rate_ex_push": 0.5,
+      "n": 10,
+      "reason": "fewer than 20 settled decisions",
+      "roi_units": 11.2,
+      "settled": 10,
+      "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+    },
+    "FT_TOTALS": {
+      "hit_rate_ex_push": 0.7857,
+      "n": 14,
+      "reason": "fewer than 20 settled decisions",
+      "roi_units": 3.7048,
+      "settled": 14,
+      "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+    }
+  },
+  "safety_note": "Corners and explicit yellow/red card markets are settled only when postgame tactical stats exist. Generic card markets remain unsupported because sportsbook card-point rules vary.",
+  "schema_version": "1.2.0",
+  "settlement_decisions": 24,
+  "timezone_basis": "America/Mexico_City"
+}

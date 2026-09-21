@@ -19,37 +19,70 @@
       "win": 13
     }
   },
+  "actionable_by_market_family": {
+    "FT_1X2": {
+      "hit_rate_ex_push": 0.5,
+      "loss": 5,
+      "n": 10,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": 1.12,
+      "roi_units": 11.2,
+      "settled": 10,
+      "ungraded": 0,
+      "unsupported_derivative": 0,
+      "win": 5
+    },
+    "FT_TOTALS": {
+      "hit_rate_ex_push": 0.7857,
+      "loss": 3,
+      "n": 14,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": 0.2646,
+      "roi_units": 3.7048,
+      "settled": 14,
+      "ungraded": 0,
+      "unsupported_derivative": 0,
+      "win": 11
+    }
+  },
   "canonical_ft_actionable_decisions": 24,
-  "evaluation_rows": 4302,
-  "final_fixture_count": 569,
-  "ledger_rows_read": 9854,
+  "evaluation_rows": 4518,
+  "final_fixture_count": 603,
+  "ledger_rows_read": 10194,
+  "market_family_actionable_decisions": {
+    "FT_1X2": 10,
+    "FT_TOTALS": 14
+  },
   "research_signal_performance": {
     "GOALS_OVER": {
       "definition": "3+ final-match goals (research proxy; not a wager line)",
-      "hit": 82,
-      "hit_rate": 0.6165,
-      "n": 133
+      "hit": 92,
+      "hit_rate": 0.6216,
+      "n": 148
     },
     "GOALS_UNDER": {
       "definition": "0-2 final-match goals (research proxy; not a wager line)",
-      "hit": 59,
-      "hit_rate": 0.5175,
-      "n": 114
+      "hit": 66,
+      "hit_rate": 0.5197,
+      "n": 127
     },
     "SIDE": {
       "definition": "argmax raw 1X2 probability matched final 1/X/2 (research only)",
-      "hit": 98,
-      "hit_rate": 0.5568,
-      "n": 176
+      "hit": 109,
+      "hit_rate": 0.5677,
+      "n": 192
     },
     "TWO_WAY": {
       "definition": "BTTS Yes final result (research proxy)",
-      "hit": 206,
-      "hit_rate": 0.5937,
-      "n": 347
+      "hit": 222,
+      "hit_rate": 0.5968,
+      "n": 372
     }
   },
-  "safety_note": "Only canonical full-match Winner/1X2, Goals O/U and BTTS are included in actionable ROI summaries. Period/team/compound/player/corners/cards derivatives remain research-only and are excluded.",
-  "schema_version": "1.0.0",
+  "safety_note": "Canonical full-match Winner/1X2, Goals O/U and BTTS remain the only promoted ROI group. Derivatives can be promoted only after explicit grading, enough sample and CLV confirmation.",
+  "schema_version": "1.2.0",
+  "settlement_decisions": 24,
   "timezone_basis": "America/Mexico_City"
 }
