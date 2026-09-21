@@ -15,9 +15,49 @@ def test_ft_total_grades_against_match_total() -> None:
     assert grade_market(best, FINAL_2_1, "Home", "Away") == "WIN"
 
 
-def test_team_total_is_bucketed_but_not_misgraded_as_match_total() -> None:
+def test_1h_total_grades_against_halftime_total() -> None:
+    best = {"market": "First Half Goals Over/Under", "selection": "Under 1.5", "line": 1.5, "decimal_price": 1.75}
+    assert market_family(best) == "1H_TOTALS"
+    assert grade_market(best, FINAL_2_1, "Home", "Away") == "WIN"
+
+
+def test_2h_total_grades_against_second_half_total() -> None:
+    best = {"market": "Second Half Goals Over/Under", "selection": "Over 1.5", "line": 1.5, "decimal_price": 2.05}
+    assert market_family(best) == "2H_TOTALS"
+    assert grade_market(best, FINAL_2_1, "Home", "Away") == "WIN"
+
+
+def test_period_btts_grades_against_period_score() -> None:
+    first_half = {"market": "First Half Both Teams To Score", "selection": "No", "decimal_price": 1.7}
+    second_half = {"market": "Second Half Both Teams To Score", "selection": "Yes", "decimal_price": 2.2}
+    assert market_family(first_half) == "1H_BTTS"
+    assert market_family(second_half) == "2H_BTTS"
+    assert grade_market(first_half, FINAL_2_1, "Home", "Away") == "WIN"
+    assert grade_market(second_half, FINAL_2_1, "Home", "Away") == "WIN"
+
+
+def test_team_total_grades_when_side_is_identified() -> None:
+    home_over = {"market": "Team Total Goals", "selection": "Home Over 1.5", "line": 1.5, "decimal_price": 1.83}
+    away_under = {"market": "Team Total Goals", "selection": "Away Under 1.5", "line": 1.5, "decimal_price": 1.66}
+    assert market_family(home_over) == "FT_TEAM_TOTAL"
+    assert grade_market(home_over, FINAL_2_1, "Home", "Away") == "WIN"
+    assert grade_market(away_under, FINAL_2_1, "Home", "Away") == "WIN"
+
+
+def test_team_total_can_use_team_name() -> None:
     best = {"market": "Team Total Goals", "selection": "Home Over 2.5", "line": 2.5, "decimal_price": 2.1}
     assert market_family(best) == "FT_TEAM_TOTAL"
+    assert grade_market(best, FINAL_2_1, "Home", "Away") == "LOSS"
+
+
+def test_team_total_without_side_remains_ungradable() -> None:
+    best = {"market": "Team Total Goals", "selection": "Over 1.5", "line": 1.5, "decimal_price": 1.9}
+    assert grade_market(best, FINAL_2_1, "Home", "Away") == "UNGRADABLE_TEAM_TOTAL_SIDE"
+
+
+def test_corners_remain_bucketed_but_not_graded_without_stats() -> None:
+    best = {"market": "Corners Over/Under", "selection": "Over 9.5", "line": 9.5, "decimal_price": 1.95}
+    assert market_family(best) == "FT_CORNERS"
     assert grade_market(best, FINAL_2_1, "Home", "Away") == "UNSUPPORTED_DERIVATIVE"
 
 
