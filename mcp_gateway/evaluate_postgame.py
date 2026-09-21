@@ -35,8 +35,8 @@ def market_family(best: dict[str, Any] | None) -> str:
     """Return a stable family bucket for settlement/performance reporting.
 
     The family is intentionally conservative. Derivative markets are bucketed,
-    but they are not graded as wins/losses unless explicit settlement logic
-    exists in grade_market().
+    and only markets with explicit settlement logic in grade_market() produce
+    WIN/LOSS/PUSH.
     """
     if not best:
         return "NO_MARKET"
@@ -122,24 +122,94 @@ def final_score(result: dict[str, Any] | None) -> tuple[int | None, int | None, 
     return out[0], out[1], out[2], out[3]
 
 
+def period_scores(result: dict[str, Any] | None, market: str) -> tuple[int | None, int | None]:
+    h, a, hh, ha = final_score(result)
+    if h is None or a is None:
+        return None, None
+    p = period_type(market)
+    if p == "FT":
+        return h, a
+    if p == "1H" and hh is not None and ha is not None:
+        return hh, ha
+    if p == "2H" and hh is not None and ha is not None:
+        return h - hh, a - ha
+    return None, None
+
+
+def _team_aliases(name: str) -> set[str]:
+    n = norm(name)
+    aliases = {n}
+    if n:
+        aliases.add(n.replace(" fc", ""))
+        aliases.add(n.replace(" cf", ""))
+    return {a for a in aliases if a}
+
+
+def team_total_side(best: dict[str, Any], home: str, away: str) -> str | None:
+    """Infer whether a team-total selection applies to home or away.
+
+    Supported examples:
+    - "Home Over 1.5", "Away Under 0.5"
+    - "Team 1 Over 1.5", "Team 2 Under 1.5"
+    - "<home team name> Over 1.5", "<away team name> Under 0.5"
+    - best["team"] / best["team_name"] / best["participant"] when available.
+    """
+    fields = [
+        best.get("selection"),
+        best.get("team"),
+        best.get("team_name"),
+        best.get("participant"),
+        best.get("label"),
+        best.get("name"),
+    ]
+    text = " ".join(norm(x) for x in fields if x)
+    if not text:
+        return None
+
+    if re.search(r"\b(home|team\s*1|1)\b", text) and not re.search(r"\b(away|team\s*2|2)\b", text):
+        return "home"
+    if re.search(r"\b(away|team\s*2|2)\b", text) and not re.search(r"\b(home|team\s*1|1)\b", text):
+        return "away"
+
+    for alias in _team_aliases(home):
+        if alias and alias in text:
+            return "home"
+    for alias in _team_aliases(away):
+        if alias and alias in text:
+            return "away"
+    return None
+
+
+def is_over_under_selection(best: dict[str, Any]) -> tuple[bool, bool]:
+    sel = norm(best.get("selection"))
+    market = norm(best.get("market"))
+    text = f" {sel} {market} "
+    return (
+        sel.startswith("over") or " over " in text,
+        sel.startswith("under") or " under " in text,
+    )
+
+
+def grade_over_under(total: int | float, line: float | None, is_over: bool, is_under: bool) -> str:
+    if line is None or not (is_over or is_under):
+        return "UNGRADABLE"
+    if math.isclose(float(total), float(line)):
+        return "PUSH"
+    if is_over:
+        return "WIN" if total > line else "LOSS"
+    return "WIN" if total < line else "LOSS"
+
+
 def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, home: str, away: str) -> str:
     if not best or not result:
         return "NO_MARKET_OR_FINAL"
-    h, a, hh, ha = final_score(result)
-    if h is None or a is None:
-        return "NO_FINAL"
+
     family = market_family(best)
     market = norm(best.get("market"))
     sel = norm(best.get("selection"))
-    p = period_type(market)
-    if p == "FT":
-        ph, pa = h, a
-    elif p == "1H" and hh is not None and ha is not None:
-        ph, pa = hh, ha
-    elif p == "2H" and hh is not None and ha is not None:
-        ph, pa = h - hh, a - ha
-    else:
-        return "UNGRADABLE"
+    ph, pa = period_scores(result, market)
+    if ph is None or pa is None:
+        return "NO_FINAL"
 
     if family.endswith("_BTTS"):
         yes = ph > 0 and pa > 0
@@ -150,19 +220,16 @@ def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, hom
         return "UNGRADABLE"
 
     if family.endswith("_TOTALS"):
-        line = parse_line(best)
-        if line is None:
-            return "UNGRADABLE"
-        total = ph + pa
-        is_over = sel.startswith("over") or " over " in f" {sel} "
-        is_under = sel.startswith("under") or " under " in f" {sel} "
-        if not (is_over or is_under):
-            return "UNGRADABLE"
-        if math.isclose(total, line):
-            return "PUSH"
-        if is_over:
-            return "WIN" if total > line else "LOSS"
-        return "WIN" if total < line else "LOSS"
+        is_over, is_under = is_over_under_selection(best)
+        return grade_over_under(ph + pa, parse_line(best), is_over, is_under)
+
+    if family.endswith("_TEAM_TOTAL"):
+        side = team_total_side(best, home, away)
+        if side is None:
+            return "UNGRADABLE_TEAM_TOTAL_SIDE"
+        is_over, is_under = is_over_under_selection(best)
+        team_goals = ph if side == "home" else pa
+        return grade_over_under(team_goals, parse_line(best), is_over, is_under)
 
     if family.endswith("_1X2"):
         actual = "home" if ph > pa else "away" if pa > ph else "draw"
@@ -176,7 +243,7 @@ def grade_market(best: dict[str, Any] | None, result: dict[str, Any] | None, hom
             return "UNGRADABLE"
         return "WIN" if pick == actual else "LOSS"
 
-    if family in {"FT_TEAM_TOTAL", "1H_TEAM_TOTAL", "2H_TEAM_TOTAL", "FT_CORNERS", "1H_CORNERS", "2H_CORNERS", "FT_CARDS", "1H_CARDS", "2H_CARDS", "PLAYER_PROP"}:
+    if family in {"FT_CORNERS", "1H_CORNERS", "2H_CORNERS", "FT_CARDS", "1H_CARDS", "2H_CARDS", "PLAYER_PROP"}:
         return "UNSUPPORTED_DERIVATIVE"
 
     return "UNGRADABLE"
@@ -248,7 +315,7 @@ def settlement_row(ev: dict[str, Any]) -> dict[str, Any]:
     stake = fnum(ev.get("stake_units")) or 1.0
     outcome = ev.get("market_outcome")
     return {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "event_key": ev.get("event_key"),
         "fixture_id": ev.get("fixture_id"),
         "kickoff_local": ev.get("kickoff_local"),
@@ -291,6 +358,7 @@ def performance_summary(group: list[dict[str, Any]]) -> dict[str, Any]:
         "push": c["PUSH"],
         "ungraded": len(group) - settled,
         "unsupported_derivative": c["UNSUPPORTED_DERIVATIVE"],
+        "ungradable_team_total_side": c["UNGRADABLE_TEAM_TOTAL_SIDE"],
         "hit_rate_ex_push": round(c["WIN"] / decided, 4) if decided else None,
         "roi_units": round(roi, 4),
         "roi_per_decision_units": round(roi / len(group), 4) if group else None,
@@ -307,12 +375,16 @@ def tier_gate(summary: dict[str, Any]) -> dict[str, Any]:
     n = int(summary.get("n") or 0)
     settled = int(summary.get("settled") or 0)
     unsupported = int(summary.get("unsupported_derivative") or 0)
+    ungraded = int(summary.get("ungraded") or 0)
     roi = float(summary.get("roi_units") or 0.0)
     hit_rate = summary.get("hit_rate_ex_push")
 
     if unsupported and settled == 0:
         status = "RESEARCH_ONLY_NEEDS_EXPLICIT_SETTLEMENT"
         reason = "bucket has derivative picks but no explicit win/loss grading yet"
+    elif ungraded and settled == 0:
+        status = "RESEARCH_ONLY_UNGRADABLE"
+        reason = "bucket has rows but cannot infer settlement from stored market metadata"
     elif settled < 20:
         status = "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
         reason = "fewer than 20 settled decisions"
@@ -398,7 +470,6 @@ def main() -> None:
         }
         evaluations.append(eval_row)
 
-    # One decision per fixture/market/classification for ROI to avoid counting repeated refresh snapshots twice.
     decision_best: dict[tuple[Any, ...], dict[str, Any]] = {}
     for ev in evaluations:
         key = decision_key(ev)
@@ -469,7 +540,7 @@ def main() -> None:
         for family, groups in sorted(settlement_by_market_class.items())
     }
     market_summary = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "timezone_basis": "America/Mexico_City",
         "settlement_decisions": len(settlement_decisions),
         "by_market_family": by_market_family,
@@ -479,17 +550,31 @@ def main() -> None:
             family: {classification: tier_gate(summary) for classification, summary in groups.items()}
             for family, groups in by_market_family_and_classification.items()
         },
+        "explicit_settlement_families": [
+            "FT_1X2",
+            "1H_1X2",
+            "2H_1X2",
+            "FT_TOTALS",
+            "1H_TOTALS",
+            "2H_TOTALS",
+            "FT_BTTS",
+            "1H_BTTS",
+            "2H_BTTS",
+            "FT_TEAM_TOTAL",
+            "1H_TEAM_TOTAL",
+            "2H_TEAM_TOTAL",
+        ],
         "minimum_sample_policy": {
             "directional_read": 20,
             "tier_b_candidate": 20,
             "tier_a_candidate": 50,
             "tier_s_candidate": 100,
         },
-        "safety_note": "Derivative markets are included in settlement ledger buckets, but only markets with explicit grading logic produce WIN/LOSS/PUSH and ROI.",
+        "safety_note": "Team totals and 1H/2H goal/BTTS/1X2 derivatives now settle when the stored market metadata identifies period, side, line and selection. Corners/cards/player props still require explicit stat feeds before promotion.",
     }
 
     summary = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "timezone_basis": "America/Mexico_City",
         "ledger_rows_read": len(rows),
         "final_fixture_count": len(finals),
@@ -513,7 +598,7 @@ def main() -> None:
             }
             for signal, counts in sorted(signal_stats.items())
         },
-        "safety_note": "Canonical full-match Winner/1X2, Goals O/U and BTTS remain the only promoted ROI group. The settlement ledger also exposes market-family buckets so derivatives can be promoted only after explicit grading and sufficient sample.",
+        "safety_note": "Canonical full-match Winner/1X2, Goals O/U and BTTS remain the only promoted ROI group. The settlement ledger now also settles explicit 1H/2H goal/BTTS/1X2 and team-total markets when metadata is sufficient.",
     }
 
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
