@@ -235,6 +235,10 @@ jobs:
               cls = row.get('classification') or 'N/V'
               reason = row.get('reason') or 'N/V'
               data_tier = row.get('data_tier') or 'N/V'
+              model_signal = row.get('model_signal') or 'N/V'
+              execution_status = row.get('execution_status') or 'N/V'
+              blockers = row.get('blockers') or []
+              blocker_text = ','.join(str(x) for x in blockers) if blockers else 'none'
               scores = []
               for label, key in [('side', 'side_score'), ('goals', 'goals_score'), ('two_way', 'two_way_score')]:
                   value = row.get(key)
@@ -245,7 +249,7 @@ jobs:
               if line is not None:
                   market_text += f" {line}"
               lines += [
-                  f"- **{cls}** {home} vs {away} | {row.get('kickoff','N/V')} | tier {data_tier} | {score_text} | {market_text} | price {price} | {reason}"
+                  f"- **{cls}** {home} vs {away} | {row.get('kickoff','N/V')} | tier {data_tier} | MODEL {model_signal} | EXEC {execution_status} | blockers {blocker_text} | {score_text} | {market_text} | price {price} | {reason}"
               ]
 
           body = '\n'.join(lines) + '\n'
