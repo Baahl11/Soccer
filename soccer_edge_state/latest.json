@@ -2,23 +2,23 @@
   "service": "soccer-edge-automation",
   "version": "3.60.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-22T02:56:59.965073+00:00",
-  "generated_at_local": "2026-09-21T20:56:59.965073-06:00",
+  "generated_at_utc": "2026-09-22T03:25:06.528376+00:00",
+  "generated_at_local": "2026-09-21T21:25:06.528376-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 150,
-  "due_fixture_count": 9,
+  "fixture_scan_count": 3,
+  "due_fixture_count": 0,
   "event_count": 1,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 2,
+  "api_calls_this_tick": 4,
   "max_api_calls_per_tick": 35,
   "effective_max_api_calls_per_tick": 35,
-  "last_daily_remaining": 7391,
+  "last_daily_remaining": 7385,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 1,
-  "shortlist_event_count": 1,
+  "deep_dive_processed_count": 0,
+  "shortlist_event_count": 0,
   "screened_out_low_data_count": 0,
   "market_requests_avoided_by_sport_screen": 0,
   "max_deep_dive_fixtures_per_tick": 12,
@@ -72,13 +72,13 @@
     "galaxy_odds_used": 0,
     "galaxy_odds_stale_or_missing": 0,
     "galaxy_slate_reads": 1,
-    "galaxy_slate_hits": 0,
-    "galaxy_slate_fallbacks": 1,
-    "galaxy_slate_stale_rejections": 1,
-    "api_slate_calls_avoided": 0,
+    "galaxy_slate_hits": 1,
+    "galaxy_slate_fallbacks": 0,
+    "galaxy_slate_stale_rejections": 0,
+    "api_slate_calls_avoided": 1,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 0,
+    "provider_requests_avoided": 1,
     "odds_market_events": 0,
     "galaxy_odds_market_events": 0,
     "api_odds_fallback_events": 0,
@@ -118,16 +118,15 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-21T20:56:59.965073-06:00",
+    "generated_at_local": "2026-09-21T21:25:06.528376-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
-    "competition_count": 73,
+    "competition_count": 1,
     "data_tier_counts": {
-      "B": 53,
-      "D": 20
+      "B": 1
     },
-    "pregame_data_eligible_fixture_count": 2,
+    "pregame_data_eligible_fixture_count": 0,
     "errors": []
   },
   "presentation_contract": {
@@ -162,19 +161,17 @@
     ],
     "state_bounds": {
       "registry": {
-        "competition_count": 73,
-        "rows_attached": 73,
+        "competition_count": 1,
+        "rows_attached": 1,
         "truncated": false,
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 1,
-        "rows_attached": 1,
+        "row_count": 0,
+        "rows_attached": 0,
         "truncated": false,
         "max_rows": 200,
-        "classification_counts": {
-          "POSTGAME": 1
-        }
+        "classification_counts": {}
       }
     },
     "validation": {
@@ -189,36 +186,7 @@
     "player_trends": "RESEARCH_ONLY; SHOW VERIFIED PLAYER FIXTURE STATS WHEN CAPTURED; NEVER USE AS BET JUSTIFICATION UNTIL OOS MODEL GATE PASSES"
   },
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
-  "match_table_rows": [
-    {
-      "fixture_id": 1583770,
-      "country": "Panama",
-      "competition": "Liga Panameña de Fútbol",
-      "data_tier": "B",
-      "kickoff": "2026-09-21T19:00:00-06:00",
-      "stage": "POSTGAME",
-      "home": "UMECIT",
-      "away": "Union Cocle",
-      "tracks": [
-        "GOALS_UNDER",
-        "TWO_WAY"
-      ],
-      "side_score": 59.9,
-      "goals_score": 47.5,
-      "two_way_score": 67.0,
-      "availability_confidence": null,
-      "market_source": null,
-      "market": null,
-      "selection": null,
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "classification": "POSTGAME",
-      "tier": null,
-      "stake_units": 0.0,
-      "reason": "SPORTING_SCREEN_PASS"
-    }
-  ],
+  "match_table_rows": [],
   "research_report": {
     "status": "RESEARCH_FIRST_SLATE_REPORT",
     "decision_policy": "RESEARCH_IS_NOT_A_BET; NO_BET_IS_VALID; NO_RESEARCH_IS_NOT",
@@ -255,7 +223,7 @@
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-21T20:56:59.965073-06:00",
+    "generated_at_local": "2026-09-21T21:25:06.528376-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -358,8 +326,8 @@
       "multi_match_active": 0,
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
-      "invalidated_fixture_count_this_tick": 1,
-      "updated_at_utc": "2026-09-22T02:56:59.965073+00:00",
+      "invalidated_fixture_count_this_tick": 0,
+      "updated_at_utc": "2026-09-22T03:25:06.528376+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -437,7 +405,7 @@
     "live_research_events": 0,
     "data_accumulating_events": 0,
     "postgame_xg_captured": 0,
-    "postgame_xg_unavailable": 1,
+    "postgame_xg_unavailable": 0,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -503,7 +471,7 @@
     "schema_version": "1.0.0",
     "provider_policy": "API_FOOTBALL_EXPLICIT_FIELD_ONLY",
     "postgame_big_chances_captured": 0,
-    "postgame_big_chances_unavailable": 1,
+    "postgame_big_chances_unavailable": 0,
     "pregame_data_blocked_events": 0,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
@@ -517,7 +485,7 @@
   "set_piece_intelligence": {
     "schema_version": "1.0.0",
     "postgame_component_observations_captured": 0,
-    "postgame_component_observations_unavailable": 1,
+    "postgame_component_observations_unavailable": 0,
     "pregame_context_events": 0,
     "pregame_history_blocked_events": 0,
     "provider_requests_added": 0,
@@ -581,7 +549,7 @@
   },
   "competition_context_intelligence": {
     "schema_version": "1.0.0",
-    "context_events": 1,
+    "context_events": 0,
     "provider_requests_added": 0,
     "decision_weight": 0.0,
     "canonical_model_weights_changed": false,
@@ -630,7 +598,7 @@
   "odds_catalog_audit": {
     "schema_version": "1.0.0",
     "status": "NO_EXPLICIT_SGP_LIKE_BET_TYPE_FOUND_BY_NAME_AUDIT",
-    "source": "CACHE_24H",
+    "source": "API_FOOTBALL_ODDS_BETS",
     "catalog_count": 337,
     "bet_types": [
       {
@@ -2323,7 +2291,7 @@
     ],
     "explicit_sgp_like_count": 0,
     "explicit_sgp_like_bet_types": [],
-    "provider_requests_added": 0,
+    "provider_requests_added": 1,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
     "internal_sgp_fair_price_status": "ALREADY_COMPUTED_FROM_DIRECT_SCORE_MATRIX_JOINT_PROBABILITY",
@@ -2331,14 +2299,14 @@
     "interpretation": "Catalog name audit can confirm an explicit SGP/Bet Builder-style bet type when present. Absence of a matching name means no explicit combined-price type was found in the current prematch bet catalog; it does not convert component-product odds into an executable SGP quote.",
     "policy": "SPORT FIRST -> MARKET SECOND -> COMBINATION THIRD; INTERNAL FAIR PRICE MAY BE CALCULATED; FINAL BET STILL REQUIRES A VERIFIED EXECUTABLE COMBINED PRICE"
   },
-  "v357_provider_requests_added": 0,
+  "v357_provider_requests_added": 1,
   "v357_model_weights_changed": false,
   "v357_canonical_bet_logic_changed": false,
   "v357_odds_catalog_checkpoint": "PREMATCH_ODDS_BET_CATALOG_AUDIT_ATTACHED; INTERNAL_SGP_FAIR_PRICE_CONFIRMED; EXECUTABLE_COMBINED_QUOTE_REMAINS_SEPARATE",
   "bookmaker_catalog_audit": {
     "schema_version": "1.0.0",
     "status": "PRIMARY_BOOKMAKER_FOUND",
-    "source": "CACHE_24H",
+    "source": "API_FOOTBALL_ODDS_BOOKMAKERS",
     "catalog_count": 32,
     "primary_bookmaker": "Bet365",
     "primary_bookmaker_found": true,
@@ -2348,7 +2316,7 @@
         "name": "Bet365"
       }
     ],
-    "provider_requests_added": 0,
+    "provider_requests_added": 1,
     "policy": "BET365_PRIMARY_BY_VERIFIED_PROVIDER_NAME; NEVER_INVENT_BOOKMAKER_ID"
   },
   "primary_bookmaker_policy": {
@@ -2362,7 +2330,7 @@
     "bet365_multi_match_candidates_active": 0,
     "fallback_multi_match_candidates_active": 0
   },
-  "v358_provider_requests_added": 0,
+  "v358_provider_requests_added": 1,
   "v358_model_weights_changed": false,
   "v358_canonical_bet_logic_changed": false,
   "v358_bookmaker_checkpoint": "BET365_PRIMARY_REFERENCE_ATTACHED; DISTINCT_FIXTURE_PARLAY_ODDS_CALCULATED_FROM_SAME_BOOK; SGP_INTERNAL_FAIR_PRICE_REMAINS_CORRELATION_AWARE_AND_EXECUTABLE_COMBINED_QUOTE_IS_SEPARATE",
@@ -2373,251 +2341,57 @@
   "v3581_model_weights_changed": false,
   "v3581_canonical_bet_logic_changed": false,
   "v3581_manual_price_checkpoint": "MISSING FINAL PARLAY/SGP QUOTE NO LONGER HIDES A MODEL PLAY; GALAXY SURFACES WATCH + MODEL-DERIVED MINIMUM ACCEPTABLE PRICE FOR MANUAL BOOK CHECK",
-  "quota": {
-    "daily_limit": "7500",
-    "daily_remaining": "7392",
-    "per_minute_remaining": "299"
-  },
+  "quota": {},
   "database_persisted": false,
   "events": [
     {
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "POSTGAME",
+      "event_type": "DAILY_DISCOVERY",
+      "stage": "LATE_DISCOVERY",
+      "classification": "PRE-FINAL",
       "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
+      "stake_units": null,
+      "bet_eligible": null,
       "availability_confidence": null,
-      "fixture": {
-        "fixture_id": 1583770,
-        "kickoff": "2026-09-21T19:00:00-06:00",
-        "timestamp": 1790038800,
-        "status": "FT",
-        "status_long": "Match Finished",
-        "elapsed": 90,
-        "league_id": 304,
-        "league": "Liga Panameña de Fútbol",
-        "country": "Panama",
-        "season": 2026,
-        "round": "Apertura - 9",
-        "home_team_id": 20788,
-        "home_team": "UMECIT",
-        "away_team_id": 27364,
-        "away_team": "Union Cocle",
-        "venue": null,
-        "city": null,
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "referee": null,
-        "fixture_timezone": "America/Mexico_City"
-      },
-      "coverage": {
-        "data_tier": "B"
-      },
-      "sporting_shortlist": {
-        "shortlisted": true,
-        "rank": 67.0,
-        "tracks": [
-          "GOALS_UNDER",
-          "TWO_WAY"
-        ],
-        "side_edge_score": 59.9,
-        "goal_environment_score": 47.5,
-        "two_way_scoring_score": 67.0,
-        "reason": "SPORTING_SCREEN_PASS"
-      },
+      "fixture": null,
+      "coverage": null,
+      "sporting_shortlist": null,
       "sporting_screen_initial": null,
       "sporting_screen_refined": null,
       "galaxy_source": null,
       "market_source": null,
       "market_provenance": null,
-      "trend_context": {
-        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
-        "actionable": false,
-        "decision_weight": 0.0
-      },
+      "trend_context": null,
       "player_trends_research": null,
-      "postgame_player_stats": {
-        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "teams": [],
-        "goalkeeper_fields_retained": [
-          "saves",
-          "goals_conceded"
-        ],
-        "player_card_fields_retained": [
-          "yellow_cards",
-          "red_cards"
-        ],
-        "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-        "fixture_id": 1583770,
-        "capture_phase": "POSTGAME"
-      },
+      "postgame_player_stats": null,
       "closing_market_snapshot": null,
       "derivative_research_market_snapshot": null,
       "match_intelligence": null,
-      "postgame_xg_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_XG_NOT_AVAILABLE_FOR_FIXTURE",
-        "api_fixture_id": 1583770,
-        "kickoff": "2026-09-21T19:00:00-06:00",
-        "home_team_id": 20788,
-        "home_team": "UMECIT",
-        "away_team_id": 27364,
-        "away_team": "Union Cocle",
-        "home_xg": null,
-        "away_xg": null,
-        "source": "API-Football v3",
-        "source_endpoint": "/fixtures/statistics",
-        "source_stat_type": "expected_goals",
-        "same_fixture_pregame_use_allowed": false,
-        "historical_feature_use_only": true,
-        "provider_requests_added": 0
-      },
+      "postgame_xg_observation": null,
       "xg_xga_intelligence": null,
       "npxg_npxga_intelligence": null,
       "ppda_intelligence": null,
       "field_tilt_intelligence": null,
       "box_entries_intelligence": null,
-      "postgame_big_chances_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_BIG_CHANCES_NOT_AVAILABLE",
-        "api_fixture_id": 1583770,
-        "kickoff": "2026-09-21T19:00:00-06:00",
-        "home_team_id": 20788,
-        "home_team": "UMECIT",
-        "away_team_id": 27364,
-        "away_team": "Union Cocle",
-        "home_big_chances": null,
-        "away_big_chances": null,
-        "source": "API-Football v3",
-        "source_endpoint": "/fixtures/statistics",
-        "source_stat_type": null,
-        "provider_requests_added": 0,
-        "provider_dependent": true,
-        "actionable": false,
-        "decision_weight": 0.0
-      },
+      "postgame_big_chances_observation": null,
       "big_chances_intelligence": null,
-      "postgame_set_piece_observation": {
-        "schema_version": "1.0.0",
-        "status": "API_FOOTBALL_SET_PIECE_COMPONENTS_NOT_AVAILABLE",
-        "api_fixture_id": 1583770,
-        "kickoff": "2026-09-21T19:00:00-06:00",
-        "home_team_id": 20788,
-        "home_team": "UMECIT",
-        "away_team_id": 27364,
-        "away_team": "Union Cocle",
-        "home_corners": null,
-        "away_corners": null,
-        "home_free_kicks": null,
-        "away_free_kicks": null,
-        "corners_verified": false,
-        "free_kicks_verified": false,
-        "corner_stat_type": null,
-        "free_kick_stat_type": null,
-        "set_piece_goals": "NOT_VERIFIED",
-        "set_piece_xg": "NOT_VERIFIED",
-        "aerial_duel_mismatch": "NOT_MODELED",
-        "source": "API-Football v3 /fixtures/statistics",
-        "provider_requests_added": 0,
-        "actionable": false,
-        "decision_weight": 0.0,
-        "policy": "EXPLICIT PROVIDER COMPONENTS ONLY; CORNERS/FREE KICKS ARE VOLUME CONTEXT, NOT SET-PIECE GOALS OR SET-PIECE xG"
-      },
+      "postgame_set_piece_observation": null,
       "set_piece_intelligence": null,
       "tactical_style_intelligence": null,
       "rest_intelligence": null,
       "congestion_intelligence": null,
       "travel_intelligence": null,
       "weather_intelligence": null,
-      "competition_context_intelligence": {
-        "schema_version": "1.0.0",
-        "fixture_id": 1583770,
-        "status": "LIVE_VERIFIED_COMPETITION_CONTEXT",
-        "competition": "Liga Panameña de Fútbol",
-        "country": "Panama",
-        "season": 2026,
-        "provider_round": "Apertura - 9",
-        "stage_descriptor": "PROVIDER_ROUND_LABEL_ONLY",
-        "knockout_label_from_round": false,
-        "aggregate_score": "NOT_VERIFIED",
-        "table_positions": "NOT_VERIFIED",
-        "qualification_math": "NOT_MODELED",
-        "objective_incentive": "NOT_INFERRED",
-        "motivation": "NOT_INFERRED",
-        "actionable": false,
-        "decision_weight": 0.0,
-        "policy": "ROUND/STAGE LABELS MAY DESCRIBE COMPETITION STRUCTURE ONLY. NO MOTIVATION, MUST-WIN, ROTATION OR QUALIFICATION CLAIM WITHOUT VERIFIED TABLE/AGGREGATE DATA."
-      },
+      "competition_context_intelligence": null,
       "lineups": null,
       "raw_projection": null,
       "market_decision": null,
       "best_market": null,
-      "notes": [],
-      "result": {
-        "goals": {
-          "home": 1,
-          "away": 0
-        },
-        "score": {
-          "halftime": {
-            "home": 0,
-            "away": 0
-          },
-          "fulltime": {
-            "home": 1,
-            "away": 0
-          },
-          "extratime": {
-            "home": null,
-            "away": null
-          },
-          "penalty": {
-            "home": null,
-            "away": null
-          }
-        },
-        "status": "FT",
-        "player_stats": {
-          "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
-          "actionable": false,
-          "decision_weight": 0.0,
-          "teams": [],
-          "goalkeeper_fields_retained": [
-            "saves",
-            "goals_conceded"
-          ],
-          "player_card_fields_retained": [
-            "yellow_cards",
-            "red_cards"
-          ],
-          "policy": "OBSERVATION_ONLY; VERIFIED FIXTURE PLAYER STATS; GOALKEEPER SAVES/CONCEDED AND PLAYER YELLOW/RED CARDS RETAINED WHEN SUPPLIED; NEVER CHANGES CLASSIFICATION,TIER,STAKE OR BET_ELIGIBILITY",
-          "fixture_id": 1583770,
-          "capture_phase": "POSTGAME"
-        }
-      },
+      "notes": [
+        "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
+        "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
+        "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
+      ],
+      "result": null,
       "error": null
     }
   ]
