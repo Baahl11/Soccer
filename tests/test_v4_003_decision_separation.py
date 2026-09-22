@@ -69,3 +69,32 @@ def test_pass_research_row_keeps_model_signal_but_is_not_ready():
     }
     assert v92._derive_model_signal(row) == "STRONG"
     assert v92._derive_execution_status(row) == "RESEARCH_ONLY"
+
+
+def test_shortlist_rank_does_not_inflate_model_strength():
+    row = {
+        "side_score": 52.6,
+        "goals_score": 10.0,
+        "two_way_score": 48.3,
+        "shortlist_rank": 100.0,
+    }
+    assert v92._derive_model_signal(row) == "WEAK"
+
+
+def test_decision_separation_exposes_actual_model_signal_score():
+    payload = {"match_table_rows": [{
+        "classification": "WATCH",
+        "event_classification": "PASS",
+        "side_score": 52.6,
+        "goals_score": 10.0,
+        "two_way_score": 48.3,
+        "shortlist_rank": 100.0,
+        "market": "Research screen",
+        "price": None,
+        "reason": "SPORTING_SCREEN_PASS",
+    }]}
+    v92._annotate_decision_separation(payload)
+    row = payload["match_table_rows"][0]
+    assert row["model_signal"] == "WEAK"
+    assert row["model_signal_score"] == 52.6
+    assert payload["decision_separation"]["shortlist_rank_is_not_model_strength"] is True

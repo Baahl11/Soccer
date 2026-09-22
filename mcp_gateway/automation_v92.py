@@ -54,7 +54,6 @@ def _derive_model_signal(row: dict[str, Any]) -> str:
         _num(row.get("side_score")),
         _num(row.get("goals_score")),
         _num(row.get("two_way_score")),
-        _num(row.get("shortlist_rank")),
     ]
     usable = [score for score in scores if score is not None]
     if not usable:
@@ -138,6 +137,7 @@ def _annotate_decision_separation(payload: dict[str, Any]) -> None:
         model_signal = _derive_model_signal(row)
         execution_status = _derive_execution_status(row)
         row["model_signal"] = model_signal
+        row["model_signal_score"] = max([score for score in (_num(row.get("side_score")), _num(row.get("goals_score")), _num(row.get("two_way_score"))) if score is not None], default=None)
         row["execution_status"] = execution_status
         row["blockers"] = _blockers(row, execution_status)
         row["model_signal_basis"] = "SPORTING_SCREEN_ONLY_NO_PRICE"
@@ -146,13 +146,15 @@ def _annotate_decision_separation(payload: dict[str, Any]) -> None:
         execution_counts[execution_status] = execution_counts.get(execution_status, 0) + 1
 
     payload["decision_separation"] = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "policy": "MODEL_SIGNAL_INDEPENDENT_OF_PRICE_EXECUTION_STATUS_INDEPENDENT_OF_SPORT_STRENGTH",
         "row_count": len([row for row in rows if isinstance(row, dict)]),
         "model_signal_counts": model_counts,
         "execution_status_counts": execution_counts,
         "valid_model_signals": sorted(MODEL_SIGNALS),
         "valid_execution_statuses": sorted(EXECUTION_STATUSES),
+        "model_signal_inputs": ["side_score", "goals_score", "two_way_score"],
+        "shortlist_rank_is_not_model_strength": True,
     }
     payload["v4_003_model_signal_execution_status"] = True
     payload["v4_003_provider_requests_added"] = 0
