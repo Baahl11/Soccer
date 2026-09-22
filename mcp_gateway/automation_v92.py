@@ -197,6 +197,9 @@ def _annotate_decision_separation(payload: dict[str, Any]) -> None:
 
 async def run_tick() -> dict[str, Any]:
     payload = await v91.run_tick()
+    # Free cyclic-GC candidates before V4 observability and JSON serialization on the 512 MB Render worker.
+    import gc
+    gc.collect()
     _annotate_decision_separation(payload)
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
