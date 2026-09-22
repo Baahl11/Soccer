@@ -660,6 +660,18 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
         provenance = event.get("market_provenance") if isinstance(event.get("market_provenance"), dict) else {}
         if provenance.get("fresh") is not True:
             gate_counts["MARKET_NOT_FRESH"] += 1
+            source = str(provenance.get("source") or "UNKNOWN")
+            gate_counts[f"MARKET_NOT_FRESH_SOURCE_{source}"] += 1
+            if provenance.get("latest_market_timestamp") is None:
+                gate_counts["MARKET_TIMESTAMP_MISSING"] += 1
+            else:
+                age = _num(provenance.get("age_minutes"))
+                if age is not None and age > qf.DEFAULT_MAX_AGE_MINUTES:
+                    gate_counts["MARKET_TIMESTAMP_TOO_OLD"] += 1
+                elif age is not None and age < -qf.MAX_FUTURE_SKEW_MINUTES:
+                    gate_counts["MARKET_TIMESTAMP_FUTURE_SKEW"] += 1
+                else:
+                    gate_counts["MARKET_TIMESTAMP_OTHER_FRESHNESS_FAILURE"] += 1
             continue
         gate_counts["MARKET_FRESH"] += 1
 
