@@ -644,21 +644,34 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
     all_settlement: list[dict[str, Any]] = []
     family_counts: Counter[str] = Counter()
     events_modeled = 0
+    gate_counts: Counter[str] = Counter()
 
     for event in payload.get("events") or []:
-        if (
-            not isinstance(event, dict)
-            or event.get("event_type") != "SOCCER_REFRESH"
-            or event.get("stage") not in ACTIONABLE_STAGES
-        ):
+        if not isinstance(event, dict):
+            gate_counts["NOT_DICT"] += 1
             continue
+        if event.get("event_type") != "SOCCER_REFRESH":
+            gate_counts["NOT_SOCCER_REFRESH"] += 1
+            continue
+        if event.get("stage") not in ACTIONABLE_STAGES:
+            gate_counts[f"STAGE_{event.get('stage') or 'MISSING'}"] += 1
+            continue
+        gate_counts["ACTIONABLE_STAGE"] += 1
         provenance = event.get("market_provenance") if isinstance(event.get("market_provenance"), dict) else {}
         if provenance.get("fresh") is not True:
+            gate_counts["MARKET_NOT_FRESH"] += 1
             continue
+        gate_counts["MARKET_FRESH"] += 1
 
         matrix = _matrix(event)
         if not matrix:
+            raw = event.get("raw_projection") if isinstance(event.get("raw_projection"), dict) else {}
+            if _num(raw.get("raw_home_goal_rate")) is None or _num(raw.get("raw_away_goal_rate")) is None:
+                gate_counts["MISSING_RAW_GOAL_RATES"] += 1
+            else:
+                gate_counts["INVALID_RAW_GOAL_RATES"] += 1
             continue
+        gate_counts["MATRIX_READY"] += 1
 
         base_legs, _ = v4._market_backed_legs(event)
         extra_legs = _binary_extra_legs(event, matrix)
@@ -676,6 +689,9 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
         )
         if extra_legs or settlement_legs:
             events_modeled += 1
+            gate_counts["EXPANDED_LEGS_PRESENT"] += 1
+        else:
+            gate_counts["NO_FRESH_EXPANSION_MARKETS"] += 1
 
         event["galaxy_score_matrix_expansion"] = {
             "schema_version": SCHEMA_VERSION,
@@ -720,6 +736,7 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
         "schema_version": SCHEMA_VERSION,
         "status": "LIVE_RESEARCH",
         "events_modeled": events_modeled,
+        "gate_counts": dict(gate_counts),
         "family_leg_counts": dict(family_counts),
         "research_candidate_count": len(all_candidates),
         "research_candidates": all_candidates,
@@ -740,6 +757,7 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "events_modeled": events_modeled,
+        "gate_counts": dict(gate_counts),
         "family_leg_counts": dict(family_counts),
         "research_candidate_count": len(all_candidates),
         "settlement_diagnostic_count": len(all_settlement),
