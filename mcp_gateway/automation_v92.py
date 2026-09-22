@@ -5,7 +5,7 @@ from typing import Any
 from mcp_gateway import automation_v91 as v91
 
 MODEL_VERSION = v91.MODEL_VERSION
-AUTOMATION_VERSION = "4.0.0-v4.003"
+AUTOMATION_VERSION = "4.0.1-v4.004"
 
 MODEL_SIGNALS = {
     "VERY_STRONG",
@@ -161,6 +161,11 @@ def _annotate_decision_separation(payload: dict[str, Any]) -> None:
     payload["v4_003_model_weights_changed"] = False
     payload["v4_003_canonical_bet_logic_changed"] = False
     payload["v4_003_runtime_promotion_added"] = False
+    payload["v4_004_research_board_v2"] = True
+    payload["v4_004_model_signal_scale_audited"] = True
+    payload["v4_004_provider_requests_added"] = 0
+    payload["v4_004_model_weights_changed"] = False
+    payload["v4_004_canonical_bet_logic_changed"] = False
     payload["v4_003_checkpoint"] = (
         "MODEL_SIGNAL and EXECUTION_STATUS are now explicit independent fields on research rows. "
         "MODEL_SIGNAL uses only existing sporting-screen scores; EXECUTION_STATUS uses readiness/market blockers. "
