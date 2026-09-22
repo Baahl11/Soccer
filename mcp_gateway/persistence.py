@@ -220,7 +220,12 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                     tick.get("event_count", 0),
                     tick.get("actionable_refresh_count", 0),
                     _quota_remaining(tick),
-                    json.dumps(tick),
+                    # The relational tables below already persist the detailed
+                    # per-event payloads. Keeping the entire tick (including all
+                    # events) again in soccer_pipeline_runs temporarily creates a
+                    # very large JSON string on the 512 MB worker. Persist a
+                    # compact run envelope here instead.
+                    json.dumps({key: value for key, value in tick.items() if key not in {"events", "shortlist_state"}}),
                 ),
             )
             for event in tick.get("events") or []:
