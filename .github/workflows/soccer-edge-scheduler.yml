@@ -54,8 +54,9 @@ jobs:
             local response token
             response=$(curl -fsS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
               "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
-            token=$(echo "$response" | jq -r '.value')
-            test -n "$token" && test "$token" != "null"
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            echo "::add-mask::$token" >&2
             printf '%s' "$token"
           }
 
@@ -69,6 +70,10 @@ jobs:
           }
 
           OIDC_TOKEN=$(get_oidc_token)
+          if [ -z "$OIDC_TOKEN" ]; then
+            echo "::error::GitHub OIDC token acquisition returned empty output"
+            exit 1
+          fi
           HTTP_CODE=$(post_tick "$OIDC_TOKEN")
 
           if [ "$HTTP_CODE" = "401" ] && jq -e '(.detail // "") | test("Signature has expired"; "i")' /tmp/soccer_tick.json >/dev/null; then
