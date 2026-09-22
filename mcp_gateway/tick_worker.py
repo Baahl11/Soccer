@@ -45,9 +45,15 @@ async def _main() -> int:
         payload = await automation_v92.run_tick()
         payload["shortlist_seed_imported"] = imported
         try:
-            db_payload = dict(payload)
-            db_payload.pop("shortlist_state", None)
-            payload["database_persisted"] = persist_tick(db_payload)
+            # Avoid retaining a second top-level payload mapping on the 512 MB
+            # Render instance. shortlist_state is durable scheduler handoff data,
+            # not relational tick history, so remove it only while persisting.
+            shortlist_state = payload.pop("shortlist_state", None)
+            try:
+                payload["database_persisted"] = persist_tick(payload)
+            finally:
+                if shortlist_state is not None:
+                    payload["shortlist_state"] = shortlist_state
         except Exception as db_exc:
             payload["database_persisted"] = False
             payload["database_error"] = str(db_exc)[:300]
