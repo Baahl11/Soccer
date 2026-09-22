@@ -98,3 +98,29 @@ def test_decision_separation_exposes_actual_model_signal_score():
     assert row["model_signal"] == "WEAK"
     assert row["model_signal_score"] == 52.6
     assert payload["decision_separation"]["shortlist_rank_is_not_model_strength"] is True
+
+
+def test_v4_005_score_matrix_observability_preserves_research_only_gate():
+    payload = {
+        "match_table_rows": [],
+        "galaxy_builder": {
+            "score_matrix_expansion": {
+                "schema_version": "0.6.0",
+                "status": "LIVE_RESEARCH",
+                "events_modeled": 3,
+                "family_leg_counts": {"TEAM_TOTAL_HOME": 2, "CORRECT_SCORE": 1},
+                "research_candidate_count": 2,
+                "settlement_diagnostic_count": 4,
+                "binary_joint_method": "DIRECT_SCORE_MATRIX_INTERSECTION",
+                "settlement_joint_method": "DIRECT_SCORE_MATRIX_SETTLEMENT_INTEGRATION",
+                "production_promotion_allowed": False,
+                "candidate_merge_into_primary_galaxy_feed": False,
+            }
+        },
+    }
+    v92._annotate_decision_separation(payload)
+    summary = payload["v4_005_score_matrix_observability"]
+    assert summary["events_modeled"] == 3
+    assert summary["research_candidate_count"] == 2
+    assert summary["production_promotion_allowed"] is False
+    assert summary["candidate_merge_into_primary_galaxy_feed"] is False
