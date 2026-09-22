@@ -113,10 +113,10 @@
       "observed_rate": 0.0
     },
     "Frauen Bundesliga": {
-      "brier": 0.029217,
-      "log_loss": 0.187449,
-      "mean_probability": 0.170929,
-      "n": 1,
+      "brier": 0.031314,
+      "log_loss": 0.194652,
+      "mean_probability": 0.176858,
+      "n": 2,
       "observed_rate": 0.0
     },
     "HNL": {
@@ -162,11 +162,11 @@
       "observed_rate": 0.0
     },
     "Liga I": {
-      "brier": 0.357464,
-      "log_loss": 0.973973,
-      "mean_probability": 0.178254,
-      "n": 2,
-      "observed_rate": 0.5
+      "brier": 0.19728,
+      "log_loss": 0.593951,
+      "mean_probability": 0.185423,
+      "n": 4,
+      "observed_rate": 0.25
     },
     "Liga MX": {
       "brier": 0.352795,
@@ -176,11 +176,11 @@
       "observed_rate": 0.5
     },
     "Liga Pro": {
-      "brier": 0.257631,
-      "log_loss": 0.74493,
-      "mean_probability": 0.183719,
-      "n": 3,
-      "observed_rate": 0.333333
+      "brier": 0.201919,
+      "log_loss": 0.6103,
+      "mean_probability": 0.184414,
+      "n": 4,
+      "observed_rate": 0.25
     },
     "Liga Profesional Argentina": {
       "brier": 0.347104,
@@ -281,11 +281,11 @@
       "observed_rate": 0.2
     },
     "Serie B": {
-      "brier": 0.089421,
-      "log_loss": 0.32535,
-      "mean_probability": 0.165092,
-      "n": 10,
-      "observed_rate": 0.1
+      "brier": 0.083732,
+      "log_loss": 0.31204,
+      "mean_probability": 0.164979,
+      "n": 11,
+      "observed_rate": 0.090909
     },
     "Super League": {
       "brier": 0.24923,
@@ -353,11 +353,11 @@
       "observed_rate": 0.2
     },
     "15-19%": {
-      "brier": 0.170529,
-      "log_loss": 0.527764,
-      "mean_probability": 0.181968,
-      "n": 141,
-      "observed_rate": 0.212766
+      "brier": 0.165848,
+      "log_loss": 0.516643,
+      "mean_probability": 0.182026,
+      "n": 146,
+      "observed_rate": 0.205479
     },
     "20-24%": {
       "brier": 0.339325,
@@ -369,11 +369,11 @@
   },
   "model": "EMPIRICAL_BAYES_ANY_RED_CARD_MATCH_v0.1",
   "overall": {
-    "brier": 0.174866,
-    "log_loss": 0.53788,
-    "mean_probability": 0.181196,
-    "n": 150,
-    "observed_rate": 0.22
+    "brier": 0.170317,
+    "log_loss": 0.527078,
+    "mean_probability": 0.181276,
+    "n": 155,
+    "observed_rate": 0.212903
   },
   "policy": "RED CARDS ONLY; WALK-FORWARD ANTI-LEAKAGE; YELLOW CARD COUNTS EXCLUDED; NO AUTOMATIC PROMOTION",
   "promotion_gate": {
@@ -2198,9 +2198,69 @@
       "p_any_red": 0.181268,
       "referee_adjusted": false,
       "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03777885441838536,
+      "bucket": "15-19%",
+      "fixture_id": 1565259,
+      "league": "Liga I",
+      "league_id": 283,
+      "log_loss": 0.21612800885271571,
+      "p_any_red": 0.194368,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03341100589359961,
+      "bucket": "15-19%",
+      "fixture_id": 1593141,
+      "league": "Frauen Bundesliga",
+      "league_id": 82,
+      "log_loss": 0.20185523546726925,
+      "p_any_red": 0.182787,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.036411339246990165,
+      "bucket": "15-19%",
+      "fixture_id": 1565260,
+      "league": "Liga I",
+      "league_id": 283,
+      "log_loss": 0.2117308680305316,
+      "p_any_red": 0.190818,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03478274023072965,
+      "bucket": "15-19%",
+      "fixture_id": 1639819,
+      "league": "Liga Pro",
+      "league_id": 242,
+      "log_loss": 0.20641096791976382,
+      "p_any_red": 0.186501,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.026846527231556682,
+      "bucket": "15-19%",
+      "fixture_id": 1520883,
+      "league": "Serie B",
+      "league_id": 72,
+      "log_loss": 0.17894617855556014,
+      "p_any_red": 0.163849,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
     }
   ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_RED_CARD_VALIDATION",
-  "walk_forward_evaluated": 150
+  "walk_forward_evaluated": 155
 }
