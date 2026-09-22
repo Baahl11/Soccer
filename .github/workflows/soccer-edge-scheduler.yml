@@ -56,7 +56,6 @@ jobs:
               "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
             token=$(echo "$response" | jq -r '.value // empty')
             test -n "$token"
-            echo "::add-mask::$token" >&2
             printf '%s' "$token"
           }
 
