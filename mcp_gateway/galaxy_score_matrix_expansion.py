@@ -10,7 +10,8 @@ from mcp_gateway import galaxy_builder_v4 as v4
 from mcp_gateway import quote_freshness as qf
 
 SCHEMA_VERSION = "0.6.0"
-ACTIONABLE_STAGES = {"T-40", "T-20", "T-10"}\nOBSERVATION_STAGES = {"T-90", "T-60", "T-30"}
+ACTIONABLE_STAGES = {"T-40", "T-20", "T-10"}
+OBSERVATION_STAGES = {"T-90", "T-60", "T-30"}
 MAX_EVENT_RESEARCH_CANDIDATES = 3
 MAX_GLOBAL_RESEARCH_CANDIDATES = 12
 MAX_SETTLEMENT_DIAGNOSTICS_PER_EVENT = 8
