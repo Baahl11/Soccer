@@ -177,6 +177,7 @@ def _annotate_decision_separation(payload: dict[str, Any]) -> None:
         "schema_version": score_matrix.get("schema_version"),
         "status": score_matrix.get("status") or "NOT_PRESENT_THIS_TICK",
         "events_modeled": int(score_matrix.get("events_modeled") or 0),
+        "gate_counts": dict(score_matrix.get("gate_counts") or {}),
         "family_leg_counts": dict(score_matrix.get("family_leg_counts") or {}),
         "research_candidate_count": int(score_matrix.get("research_candidate_count") or 0),
         "settlement_diagnostic_count": int(score_matrix.get("settlement_diagnostic_count") or 0),
