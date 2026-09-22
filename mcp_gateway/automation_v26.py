@@ -241,7 +241,9 @@ def _repair_payload(payload: dict[str, Any], now: datetime) -> None:
             age_minutes = round(max(0.0, (now - latest).total_seconds() / 60.0), 2)
 
         if source == "GALAXY_ODDS":
-            fresh = age_minutes is not None and age_minutes <= v23.GALAXY_ODDS_MAX_AGE_MINUTES
+            # Keep aggregate market provenance on the exact same provider-update
+            # freshness contract used by quote-level consumers.
+            fresh = qf.is_fresh(latest, now, qf.DEFAULT_MAX_AGE_MINUTES)
             freshness = "FRESH" if fresh else "STALE_OR_TIMESTAMP_MISSING"
             galaxy_events += 1
         elif source == "API_FALLBACK_ODDS":
