@@ -2,25 +2,25 @@
   "service": "soccer-edge-automation",
   "version": "3.61.0",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-22T10:40:50.187107+00:00",
-  "generated_at_local": "2026-09-22T04:40:50.187107-06:00",
+  "generated_at_utc": "2026-09-22T11:19:56.607489+00:00",
+  "generated_at_local": "2026-09-22T05:19:56.607489-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 2,
-  "due_fixture_count": 0,
-  "event_count": 1,
+  "due_fixture_count": 1,
+  "event_count": 2,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 4,
   "max_api_calls_per_tick": 35,
   "effective_max_api_calls_per_tick": 35,
-  "last_daily_remaining": 7091,
+  "last_daily_remaining": 7084,
   "daily_budget_mode": "NORMAL",
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "deep_dive_processed_count": 0,
+  "deep_dive_processed_count": 1,
   "shortlist_event_count": 0,
   "screened_out_low_data_count": 0,
-  "market_requests_avoided_by_sport_screen": 0,
+  "market_requests_avoided_by_sport_screen": 1,
   "max_deep_dive_fixtures_per_tick": 12,
   "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
   "urgent_late_shortlist_due": 0,
@@ -56,17 +56,17 @@
   "period_market_model": "BLOCKED_PENDING_EXPLICIT_PERIOD_MODELS",
   "automated_market_scope": "CANONICAL_FT_1X2_TOTAL_BTTS_ONLY",
   "shortlist_persistence": "GITHUB_STATE_SEEDED",
-  "shortlist_state_count": 44,
+  "shortlist_state_count": 46,
   "shortlist_seed_imported": 44,
   "galaxy_first_enabled": true,
   "galaxy_first_policy": "GALAXY_PERSISTED_SPORT_AND_FRESH_ODDS_FIRST; API_FOOTBALL_ONLY_FOR_MISSING_OR_STALE_DATA_AND_MATERIAL_AVAILABILITY",
   "galaxy_first_metrics": {
-    "galaxy_fixture_reads": 0,
-    "galaxy_fixture_hits": 0,
+    "galaxy_fixture_reads": 1,
+    "galaxy_fixture_hits": 1,
     "galaxy_fixture_misses": 0,
-    "galaxy_raw_used": 0,
+    "galaxy_raw_used": 1,
     "galaxy_raw_fallbacks": 0,
-    "api_team_stats_calls_avoided": 0,
+    "api_team_stats_calls_avoided": 2,
     "api_recent_calls_avoided": 0,
     "api_odds_calls_avoided": 0,
     "galaxy_odds_used": 0,
@@ -78,11 +78,11 @@
     "api_slate_calls_avoided": 1,
     "api_slate_reconciliation_calls": 0,
     "duplicate_requests_detected": 0,
-    "provider_requests_avoided": 1,
-    "odds_market_events": 0,
+    "provider_requests_avoided": 3,
+    "odds_market_events": 1,
     "galaxy_odds_market_events": 0,
     "api_odds_fallback_events": 0,
-    "not_verified_odds_market_events": 0,
+    "not_verified_odds_market_events": 1,
     "stale_galaxy_odds_safety_blocks": 0,
     "odds_duplicate_requests_detected": 0,
     "unclassified_odds_market_events": 0,
@@ -118,7 +118,7 @@
   },
   "league_coverage_registry": {
     "schema_version": "1.0.0",
-    "generated_at_local": "2026-09-22T04:40:50.187107-06:00",
+    "generated_at_local": "2026-09-22T05:19:56.607489-06:00",
     "scope": "ALL_COMPETITIONS_PRESENT_IN_SCANNED_PROVIDER_SLATE; NOT_LIMITED_TO_GALAXY_ACTIVE_LEAGUES",
     "provider_calls_per_league": 0,
     "galaxy_activation_is_eligibility_gate": false,
@@ -167,11 +167,13 @@
         "max_rows": 300
       },
       "match_tables": {
-        "row_count": 0,
-        "rows_attached": 0,
+        "row_count": 1,
+        "rows_attached": 1,
         "truncated": false,
         "max_rows": 200,
-        "classification_counts": {}
+        "classification_counts": {
+          "PASS": 1
+        }
       }
     },
     "validation": {
@@ -186,17 +188,88 @@
     "player_trends": "RESEARCH_ONLY; SHOW VERIFIED PLAYER FIXTURE STATS WHEN CAPTURED; NEVER USE AS BET JUSTIFICATION UNTIL OOS MODEL GATE PASSES"
   },
   "coverage_registry_policy": "GLOBAL_SLATE_FIRST; DATA_QUALITY_NOT_LEAGUE_WHITELIST; GALAXY_ACTIVE_LEAGUES_DO_NOT_DEFINE_ELIGIBILITY",
-  "match_table_rows": [],
+  "match_table_rows": [
+    {
+      "fixture_id": 1549790,
+      "country": "NOT VERIFIED",
+      "competition": "Primera A",
+      "data_tier": "B",
+      "kickoff": "2026-09-22T23:00:00+00:00",
+      "stage": "EARLY_RESEARCH",
+      "home": "Independiente Medellin",
+      "away": "Jaguares",
+      "tracks": [],
+      "side_score": 0.0,
+      "goals_score": 59.8,
+      "two_way_score": 49.7,
+      "availability_confidence": null,
+      "market_source": null,
+      "market": null,
+      "selection": null,
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+    }
+  ],
   "research_report": {
     "status": "RESEARCH_FIRST_SLATE_REPORT",
     "decision_policy": "RESEARCH_IS_NOT_A_BET; NO_BET_IS_VALID; NO_RESEARCH_IS_NOT",
-    "rows": [],
-    "counts": {},
-    "researched_count": 0,
+    "rows": [
+      {
+        "fixture_id": 1549790,
+        "kickoff": "2026-09-22T23:00:00+00:00",
+        "league_id": 239,
+        "league": "Primera A",
+        "home": "Independiente Medellin",
+        "away": "Jaguares",
+        "stage": "EARLY_RESEARCH",
+        "tier": "B",
+        "research_status": "RESEARCHED_NO_ACTIONABLE_EDGE",
+        "classification": "PASS",
+        "bet_eligible": false,
+        "goals": {
+          "lambda_total": 2.7001,
+          "over_2_5_prob": 0.5064
+        },
+        "btts_yes_prob": 0.497,
+        "one_x_two_research": {
+          "home": null,
+          "draw": null,
+          "away": null,
+          "actionable": false
+        },
+        "trend_reliability": null,
+        "trend_signals": [],
+        "model_trend_disagreements": [],
+        "deep_dive_flag": false,
+        "expected_corner_environment": null,
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "market_status": null,
+        "market_reason": null,
+        "best_market": {},
+        "reason": null
+      }
+    ],
+    "counts": {
+      "RESEARCHED_NO_ACTIONABLE_EDGE": 1
+    },
+    "researched_count": 1,
     "insufficient_data_count": 0,
     "actionable_signal_count": 0,
     "watch_count": 0,
-    "no_actionable_edge_count": 0,
+    "no_actionable_edge_count": 1,
     "scope": [
       "FT_GOALS",
       "BTTS_RESEARCH",
@@ -206,24 +279,136 @@
       "MARKET_AFTER_SPORT"
     ]
   },
-  "research_report_count_this_tick": 0,
-  "research_completed_count_this_tick": 0,
+  "research_report_count_this_tick": 1,
+  "research_completed_count_this_tick": 1,
   "research_insufficient_data_count_this_tick": 0,
   "research_policy": "EVERY_DUE_EVENT_MUST_END_AS_RESEARCHED_OR_EXPLICIT_INSUFFICIENT_DATA; ZERO_FORCED_PICKS; MARKET_REMAINS_AFTER_SPORT",
   "daily_research": {
     "status": "ACTIVE",
     "horizon_hours": 12,
     "stage": "EARLY_RESEARCH",
-    "fixtures_researched_this_tick": 0,
-    "rows": [],
+    "fixtures_researched_this_tick": 1,
+    "rows": [
+      {
+        "fixture": {
+          "fixture_id": 1549790,
+          "kickoff": "2026-09-22T23:00:00+00:00",
+          "timestamp": 1790118000,
+          "status": "NS",
+          "status_long": "Not Started",
+          "elapsed": null,
+          "league_id": 239,
+          "league": "Primera A",
+          "country": null,
+          "season": 2026,
+          "round": "Clausura - 11",
+          "home_team_id": 1128,
+          "home_team": "Independiente Medellin",
+          "away_team_id": 1133,
+          "away_team": "Jaguares",
+          "venue": "Estadio Atanasio Girardot",
+          "city": null,
+          "goals": {
+            "home": null,
+            "away": null
+          },
+          "score": {
+            "halftime": {
+              "home": null,
+              "away": null
+            },
+            "fulltime": {
+              "home": null,
+              "away": null
+            },
+            "extratime": {
+              "home": null,
+              "away": null
+            },
+            "penalty": {
+              "home": null,
+              "away": null
+            }
+          },
+          "referee": null,
+          "fixture_timezone": "America/Mexico_City"
+        },
+        "classification": "PASS",
+        "tier": "B",
+        "sporting_screen": {
+          "shortlisted": false,
+          "rank": 0.0,
+          "tracks": [],
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+        },
+        "raw_projection": {
+          "status": "MODELED_LIMITED",
+          "model_version": "SOCCER EDGE ENGINE v1.1",
+          "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "market_independent": true,
+          "galaxy_contract_version": "1.0.1",
+          "galaxy_model_versions": [
+            "v3.3.0"
+          ],
+          "galaxy_data_cutoff": "2026-09-22T10:36:48.679214+00:00",
+          "galaxy_actionable_total_model": true,
+          "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+          "model_limitations": [
+            "GalaxyParlay persisted SPORT-FIRST predictions are reused to avoid duplicate API-Football team-stat/recent requests.",
+            "1X2 remains research-only in Soccer Edge v1.1.",
+            "Home/away goal split is diagnostic only; FT totals use Galaxy probability vectors directly.",
+            "Lineups, goalkeeper and injuries are verified separately when material.",
+            "1X2 NOT MODELED: Galaxy match_winner_v2_shadow is missing/invalid; the previous neutral 0.365/0.27/0.365 fallback and its derived home/away goal split are explicitly prohibited."
+          ],
+          "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+          "sample": {
+            "minimum_split_sample": 0,
+            "source_sample": "NOT EXPOSED BY INTEGRATION CONTRACT"
+          },
+          "raw_home_goal_rate": null,
+          "raw_away_goal_rate": null,
+          "raw_total_goals": 2.7001,
+          "raw_home_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_away_xg": "NOT EXPOSED BY INTEGRATION CONTRACT",
+          "raw_home_win_prob": null,
+          "raw_draw_prob": null,
+          "raw_away_win_prob": null,
+          "raw_btts_yes_prob": 0.497,
+          "raw_over_1_5_prob": 0.7695,
+          "raw_over_2_5_prob": 0.5064,
+          "raw_over_3_5_prob": 0.2859,
+          "top_scorelines": [],
+          "scoring_path": "MIXED / NO STRONG SCORING PATH",
+          "screen_scores": {
+            "side_edge_score": 0.0,
+            "goal_environment_score": 59.8,
+            "two_way_scoring_score": 49.7,
+            "corners_opportunity_score": "NOT MODELED",
+            "score_status": "GALAXYPARLAY_SPORT_FIRST",
+            "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+          },
+          "side_model_status": "MISSING_MATCH_WINNER_V2_SHADOW",
+          "side_model_verified": false,
+          "home_away_goal_split_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "notes": [
+          "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+          "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
+        ]
+      }
+    ],
     "policy": "SPORTING_RESEARCH_UP_TO_12H_PREKICKOFF; EARLY_RESEARCH_AND_TRUE_T90_ARE_DISTINCT; PRICE_SNAPSHOT_ONLY_AFTER_SPORT_FIRST_SHORTLIST; CANONICAL_MARKET_EVALUATION_REMAINS_T40_T20_T10; NO_FORCED_PICKS"
   },
-  "daily_research_count_this_tick": 0,
+  "daily_research_count_this_tick": 1,
   "daily_research_horizon_hours": 12,
   "galaxy_builder": {
     "schema_version": "0.5.0",
     "status": "RESEARCH_ONLY_ACTIVE",
-    "generated_at_local": "2026-09-22T04:40:50.187107-06:00",
+    "generated_at_local": "2026-09-22T05:19:56.607489-06:00",
     "candidate_count": 0,
     "candidates": [],
     "research_gates": {
@@ -326,8 +511,8 @@
       "multi_match_active": 0,
       "current_tick_same_game": 0,
       "current_tick_multi_match": 0,
-      "invalidated_fixture_count_this_tick": 0,
-      "updated_at_utc": "2026-09-22T10:40:50.187107+00:00",
+      "invalidated_fixture_count_this_tick": 1,
+      "updated_at_utc": "2026-09-22T11:19:56.607489+00:00",
       "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
     },
     "rolling_leg_pool": {
@@ -388,7 +573,7 @@
   "galaxy_builder_policy": "SPORT FIRST; MARKET SECOND; COMBINATION THIRD; MARKET-BACKED LEGS ONLY; FT_GOALS USE THE CANONICAL OBSERVED MARKET LADDER; TARGET +110 OR BETTER; NO SYNTHETIC UNQUOTED LINES; NO LOGICALLY REDUNDANT LEGS; ONE PRIMARY SGP PER FIXTURE; EXACT SPORTSBOOK SGP QUOTE REQUIRED FOR FINAL BET",
   "galaxy_builder_actionable_scope": "V0.4 MARKET-BACKED RESEARCH; SGP LEGS MUST EXIST IN VERIFIED CURRENT MARKET; SAME-BOOK COMPONENT REFERENCE MUST REACH +110 TARGET FLOOR; LOGICALLY REDUNDANT LEGS BLOCKED; ONE PRIMARY SGP PER FIXTURE; EXACT CORRELATION-ADJUSTED SPORTSBOOK SGP QUOTE STILL REQUIRED FOR BET",
   "match_intelligence_schema_version": "0.1.0",
-  "match_intelligence_event_count_this_tick": 0,
+  "match_intelligence_event_count_this_tick": 1,
   "referee_assignment_verified_count_this_tick": 0,
   "coach_pair_verified_count_this_tick": 0,
   "card_market_groups_this_tick": 0,
@@ -403,14 +588,14 @@
     "registry_loaded": true,
     "registry_status": "RESEARCH_API_FOOTBALL_XG_TEAM_REGISTRY",
     "live_research_events": 0,
-    "data_accumulating_events": 0,
+    "data_accumulating_events": 1,
     "postgame_xg_captured": 0,
     "postgame_xg_unavailable": 0,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
     "canonical_bet_logic_changed": false,
-    "production_status": "DORMANT_WAITING_FOR_NATURAL_POSTGAME_XG",
+    "production_status": "HISTORICAL_API_FOOTBALL_XG_ACCUMULATING",
     "decision_weight": 0.0,
     "policy": "API-FOOTBALL /fixtures/statistics expected_goals FROM FINALIZED FIXTURES ONLY; SAME-FIXTURE REALIZED xG NEVER USED PREGAME; HISTORICAL xGF/xGA RESEARCH ONLY; INTERNAL GOAL LAMBDAS NEVER RELABELED xG"
   },
@@ -418,7 +603,7 @@
   "npxg_npxga_intelligence": {
     "schema_version": "1.0.0",
     "approved_source_policy": "API_FOOTBALL_PLUS_GALAXYPARLAY_ONLY",
-    "source_blocked_events": 0,
+    "source_blocked_events": 1,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -431,7 +616,7 @@
   "ppda_intelligence": {
     "schema_version": "1.0.0",
     "approved_source_policy": "API_FOOTBALL_PLUS_GALAXYPARLAY_ONLY",
-    "source_blocked_events": 0,
+    "source_blocked_events": 1,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -444,7 +629,7 @@
   "field_tilt_intelligence": {
     "schema_version": "1.0.0",
     "approved_source_policy": "API_FOOTBALL_PLUS_GALAXYPARLAY_ONLY",
-    "source_blocked_events": 0,
+    "source_blocked_events": 1,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -457,7 +642,7 @@
   "box_entries_intelligence": {
     "schema_version": "1.0.0",
     "approved_source_policy": "API_FOOTBALL_PLUS_GALAXYPARLAY_ONLY",
-    "source_blocked_events": 0,
+    "source_blocked_events": 1,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -472,7 +657,7 @@
     "provider_policy": "API_FOOTBALL_EXPLICIT_FIELD_ONLY",
     "postgame_big_chances_captured": 0,
     "postgame_big_chances_unavailable": 0,
-    "pregame_data_blocked_events": 0,
+    "pregame_data_blocked_events": 1,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -487,7 +672,7 @@
     "postgame_component_observations_captured": 0,
     "postgame_component_observations_unavailable": 0,
     "pregame_context_events": 0,
-    "pregame_history_blocked_events": 0,
+    "pregame_history_blocked_events": 1,
     "provider_requests_added": 0,
     "production_status": "CONTEXT_ONLY_NOT_ACTIONABLE",
     "canonical_model_weights_changed": false,
@@ -500,7 +685,7 @@
   "tactical_style_intelligence": {
     "schema_version": "1.0.0",
     "context_events": 0,
-    "history_insufficient_events": 0,
+    "history_insufficient_events": 1,
     "provider_requests_added": 0,
     "canonical_model_weights_changed": false,
     "canonical_thresholds_changed": false,
@@ -512,7 +697,7 @@
   "rest_intelligence": {
     "schema_version": "1.0.0",
     "context_events": 0,
-    "incomplete_events": 0,
+    "incomplete_events": 1,
     "provider_requests_added": 0,
     "decision_weight": 0.0,
     "canonical_model_weights_changed": false,
@@ -522,7 +707,7 @@
   "congestion_intelligence": {
     "schema_version": "1.0.0",
     "context_events": 0,
-    "incomplete_events": 0,
+    "incomplete_events": 1,
     "provider_requests_added": 0,
     "decision_weight": 0.0,
     "canonical_model_weights_changed": false,
@@ -531,7 +716,7 @@
   },
   "travel_intelligence": {
     "schema_version": "1.0.0",
-    "guard_events": 0,
+    "guard_events": 1,
     "provider_requests_added": 0,
     "decision_weight": 0.0,
     "canonical_model_weights_changed": false,
@@ -540,7 +725,7 @@
   },
   "weather_intelligence": {
     "schema_version": "1.0.0",
-    "guard_events": 0,
+    "guard_events": 1,
     "provider_requests_added": 0,
     "decision_weight": 0.0,
     "canonical_model_weights_changed": false,
@@ -549,7 +734,7 @@
   },
   "competition_context_intelligence": {
     "schema_version": "1.0.0",
-    "context_events": 0,
+    "context_events": 1,
     "provider_requests_added": 0,
     "decision_weight": 0.0,
     "canonical_model_weights_changed": false,
@@ -2390,6 +2575,949 @@
         "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
         "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
         "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00."
+      ],
+      "result": null,
+      "error": null
+    },
+    {
+      "event_type": "SOCCER_REFRESH",
+      "stage": "EARLY_RESEARCH",
+      "classification": "PASS",
+      "tier": null,
+      "stake_units": 0.0,
+      "bet_eligible": false,
+      "availability_confidence": null,
+      "fixture": {
+        "fixture_id": 1549790,
+        "kickoff": "2026-09-22T23:00:00+00:00",
+        "timestamp": 1790118000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 239,
+        "league": "Primera A",
+        "country": null,
+        "season": 2026,
+        "round": "Clausura - 11",
+        "home_team_id": 1128,
+        "home_team": "Independiente Medellin",
+        "away_team_id": 1133,
+        "away_team": "Jaguares",
+        "venue": "Estadio Atanasio Girardot",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "coverage": {
+        "data_tier": "B"
+      },
+      "sporting_shortlist": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_initial": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "sporting_screen_refined": {
+        "shortlisted": false,
+        "rank": 0.0,
+        "tracks": [],
+        "side_edge_score": 0.0,
+        "goal_environment_score": 59.8,
+        "two_way_scoring_score": 49.7,
+        "reason": "SPORTING_SCREEN_BELOW_SHORTLIST"
+      },
+      "galaxy_source": {
+        "status": "AVAILABLE",
+        "contract_version": "1.0.1",
+        "data_cutoff": "2026-09-22T10:36:48.679214+00:00",
+        "external_api_calls": 0
+      },
+      "market_source": null,
+      "market_provenance": {
+        "source": "NOT_VERIFIED",
+        "source_raw": null,
+        "latest_market_timestamp": null,
+        "age_minutes": null,
+        "galaxy_freshness_limit_minutes": 20,
+        "freshness": "NOT_VERIFIED",
+        "fresh": false,
+        "market_count": 0,
+        "fallback_reason": "NO_VERIFIED_MARKET",
+        "sport_first_order_preserved": true,
+        "provenance_contract_version": "1.1.0"
+      },
+      "trend_context": {
+        "status": "NOT_ENOUGH_PERSISTED_TREND_DATA",
+        "actionable": false,
+        "decision_weight": 0.0
+      },
+      "player_trends_research": null,
+      "postgame_player_stats": null,
+      "closing_market_snapshot": null,
+      "derivative_research_market_snapshot": null,
+      "match_intelligence": {
+        "schema_version": "0.1.0",
+        "fixture_id": 1549790,
+        "kickoff": "2026-09-22T23:00:00+00:00",
+        "match": "Independiente Medellin vs Jaguares",
+        "stage": "EARLY_RESEARCH",
+        "data_tier": "B",
+        "bet_tier": null,
+        "classification": "PASS",
+        "availability_confidence": null,
+        "sport_first": true,
+        "coverage_gaps": [
+          "1H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "2H_LIVE_MODEL_NOT_PRODUCTION_APPROVED",
+          "CORNERS_LIVE_PROBABILITY_MODEL_NOT_PRODUCTION_APPROVED",
+          "CARDS_TEAM_REFEREE_MODEL_NOT_PRODUCTION_APPROVED",
+          "PLAYER_PROP_PROBABILITY_MODELS_PENDING",
+          "ADVANCED_XG_NPXG_PPDA_FIELD_TILT_SOURCE_NOT_LIVE",
+          "WEATHER_LIVE_SOURCE_NOT_INTEGRATED",
+          "SET_PIECE_EXPLICIT_MODEL_PENDING",
+          "REST_TRAVEL_CONGESTION_EXPLICIT_FEATURES_PENDING",
+          "COACH_REGIME_CHANGE_MODEL_PENDING",
+          "REFEREE_NOT_VERIFIED_FOR_THIS_FIXTURE"
+        ],
+        "policy": "COMPLETE_MATCH_INTELLIGENCE_SURFACE; UNKNOWN_STAYS_NOT_VERIFIED; RESEARCH_NEVER_AUTO_PROMOTES_TO_BET",
+        "areas": {
+          "side_control": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "side_edge_score": 0.0,
+            "home_win_prob": null,
+            "draw_prob": null,
+            "away_win_prob": null
+          },
+          "goals_full_match": {
+            "status": "MODELED",
+            "home_lambda": null,
+            "away_lambda": null,
+            "total_lambda": 2.7001,
+            "over_2_5_prob": 0.5064,
+            "goal_environment_score": 59.8,
+            "scoring_path": "MIXED / NO STRONG SCORING PATH",
+            "canonical_projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+            "observed_total_market_ladder": [],
+            "remaining_model_gaps": [
+              "ADVANCED_XG_NPXG_NOT_LIVE",
+              "SHOT_QUALITY_NOT_LIVE",
+              "QUANTIFIED_GOALKEEPER_IMPACT_PENDING",
+              "SET_PIECE_GOAL_MODEL_PENDING",
+              "REST_CONGESTION_TRAVEL_FEATURES_PENDING",
+              "WEATHER_MATERIALITY_SOURCE_PENDING"
+            ]
+          },
+          "btts": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "p_yes": 0.497,
+            "p_no": 0.503,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": "RESEARCH_ONLY_NOT_ACTIONABLE"
+          },
+          "first_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "actionable": false,
+            "decision_weight": null,
+            "production_status": null
+          },
+          "second_half_goals": {
+            "status": "RESEARCH_MODEL_EXISTS_OFFLINE_NOT_ATTACHED_TO_LIVE_PROJECTION",
+            "actionable": false,
+            "decision_weight": null,
+            "production_status": null
+          },
+          "corners": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "players": {
+            "status": "NOT_CAPTURED_THIS_TICK",
+            "actionable": false,
+            "decision_weight": null,
+            "production_status": null
+          },
+          "lineups_formations": {
+            "status": "NOT_VERIFIED",
+            "both_xi_confirmed": false,
+            "both_goalkeepers_confirmed": false,
+            "teams": [],
+            "formation_model_status": "RESEARCH_ONLY_FORMATION_INTELLIGENCE",
+            "formation_decision_weight": 0.0
+          },
+          "goalkeepers": {
+            "status": "NOT_VERIFIED",
+            "teams": [],
+            "explicit_keeper_impact_model": "PENDING"
+          },
+          "coaches": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549790,
+            "status": "NOT_VERIFIED",
+            "reason": "CONFIRMED_BOTH_XI_REQUIRED_FOR_COACH_CONTEXT",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "referee": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549790,
+            "status": "NOT_VERIFIED",
+            "referee": null,
+            "reason": "CURRENT_FIXTURE_REFEREE_NOT_AVAILABLE",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "injuries_suspensions": {
+            "status": "NOT_VERIFIED",
+            "count": null,
+            "rows": []
+          },
+          "tactical_style": {
+            "status": "TACTICAL_STYLE_HISTORY_INSUFFICIENT",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": "CONTEXT_ONLY_NOT_ACTIONABLE"
+          },
+          "advanced_metrics": {
+            "status": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+            "actionable": null,
+            "decision_weight": null,
+            "production_status": null
+          },
+          "set_pieces": {
+            "status": "SET_PIECE_HISTORY_INSUFFICIENT",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "rest_congestion_travel": {
+            "status": "MISSING_EXPLICIT_LIVE_FEATURES",
+            "actionable": null,
+            "decision_weight": null,
+            "production_status": null
+          },
+          "weather": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549790,
+            "status": "WEATHER_SOURCE_NOT_INTEGRATED",
+            "venue": "Estadio Atanasio Girardot",
+            "city": null,
+            "country": null,
+            "kickoff": "2026-09-22T23:00:00+00:00",
+            "temperature_c": null,
+            "wind_kph": null,
+            "precipitation": null,
+            "humidity_pct": null,
+            "severe_weather": "NOT_VERIFIED",
+            "materiality": "NOT_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "block_reasons": [
+              "APPROVED_WEATHER_PROVIDER_NOT_INTEGRATED",
+              "VENUE_COORDINATES_OR_PROVIDER_LOCATION_MATCH_REQUIRED",
+              "KICKOFF_ALIGNED_FORECAST_REQUIRED"
+            ],
+            "policy": "NO WEATHER VALUE MAY BE INVENTED OR INFERRED FROM CITY/SEASON/COUNTRY."
+          },
+          "competition_context": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549790,
+            "status": "LIVE_VERIFIED_COMPETITION_CONTEXT",
+            "competition": "Primera A",
+            "country": null,
+            "season": 2026,
+            "provider_round": "Clausura - 11",
+            "stage_descriptor": "PROVIDER_ROUND_LABEL_ONLY",
+            "knockout_label_from_round": false,
+            "aggregate_score": "NOT_VERIFIED",
+            "table_positions": "NOT_VERIFIED",
+            "qualification_math": "NOT_MODELED",
+            "objective_incentive": "NOT_INFERRED",
+            "motivation": "NOT_INFERRED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "policy": "ROUND/STAGE LABELS MAY DESCRIBE COMPETITION STRUCTURE ONLY. NO MOTIVATION, MUST-WIN, ROTATION OR QUALIFICATION CLAIM WITHOUT VERIFIED TABLE/AGGREGATE DATA."
+          },
+          "venue": {
+            "status": "VERIFIED",
+            "actionable": null,
+            "decision_weight": null,
+            "production_status": null
+          },
+          "market": {
+            "status": "NOT_VERIFIED",
+            "actionable": null,
+            "decision_weight": null,
+            "production_status": null
+          },
+          "team_goals": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "home_lambda": null,
+            "away_lambda": null,
+            "observed_exact_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": "RESEARCH_ONLY_NOT_ACTIONABLE"
+          },
+          "correct_score": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": "RESEARCH_ONLY_NOT_ACTIONABLE"
+          },
+          "one_x_two": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "canonical": null,
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "double_chance": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "probabilities": {},
+            "observed_market_rows": [],
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "draw_no_bet": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "asian_handicap": {
+            "status": "NOT_MODELED_THIS_TICK",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "goals_first_half": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "goals_second_half_pregame": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "team_corners": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "team_cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "red_cards": {
+            "status": "LIVE_RESEARCH_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "formations": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549790,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_CONFIRMED_XI_FORMATIONS_NOT_AVAILABLE",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "xi_change_intelligence": {
+            "status": "NOT_VERIFIED",
+            "actionable": false,
+            "decision_weight": null,
+            "production_status": null
+          },
+          "goalkeeper": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549790,
+            "status": "NOT_VERIFIED",
+            "reason": "BOTH_STARTING_GOALKEEPERS_NOT_CONFIRMED",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "injuries": {
+            "schema_version": "1.0.0",
+            "fixture_id": 1549790,
+            "status": "NOT_VERIFIED",
+            "reason": "CURRENT_INJURY_REPORT_NOT_AVAILABLE",
+            "actionable": false,
+            "decision_weight": 0.0
+          },
+          "player_trends": {
+            "status": "NOT_VERIFIED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "player_shots": {
+            "status": "NOT_VERIFIED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "player_sot": {
+            "status": "NOT_VERIFIED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "goalscorer": {
+            "status": "NOT_VERIFIED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "player_assists": {
+            "status": "NOT_VERIFIED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "gk_saves": {
+            "status": "NOT_VERIFIED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "player_cards": {
+            "status": "NOT_VERIFIED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "xg_xga": {
+            "status": "INSUFFICIENT_TEAM_XG_HISTORY",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "npxg_npxga": {
+            "status": "APPROVED_SOURCES_NPXG_NOT_EXPOSED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "ppda": {
+            "status": "APPROVED_SOURCES_PPDA_NOT_EXPOSED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "field_tilt": {
+            "status": "APPROVED_SOURCES_FIELD_TILT_NOT_EXPOSED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "box_entries": {
+            "status": "APPROVED_SOURCES_BOX_ENTRIES_NOT_EXPOSED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "big_chances": {
+            "status": "BIG_CHANCES_HISTORY_NOT_YET_MODELED",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          },
+          "rest": {
+            "status": "REST_CONTEXT_INCOMPLETE",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": "CONTEXT_ONLY_NOT_ACTIONABLE"
+          },
+          "congestion": {
+            "status": "CONGESTION_CONTEXT_INCOMPLETE",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": "CONTEXT_ONLY_NOT_ACTIONABLE"
+          },
+          "travel": {
+            "status": "LIVE_TRAVEL_SOURCE_GUARD",
+            "actionable": false,
+            "decision_weight": 0.0,
+            "production_status": null
+          }
+        }
+      },
+      "postgame_xg_observation": null,
+      "xg_xga_intelligence": {
+        "schema_version": "1.2.0",
+        "fixture_id": 1549790,
+        "status": "INSUFFICIENT_TEAM_XG_HISTORY",
+        "source": {
+          "endpoint": "/fixtures/statistics",
+          "provider": "API-Football v3",
+          "same_fixture_pregame_use_allowed": false,
+          "stat_type": "expected_goals",
+          "usage": "FINALIZED_FIXTURE_HISTORY_ONLY"
+        },
+        "registry_fixture_count": 18,
+        "home": {
+          "team_id": 1128,
+          "team": "Independiente Medellin",
+          "history": {},
+          "status": "INSUFFICIENT_HISTORICAL_XG",
+          "projected_xg_research": null,
+          "own_sample_n": 0,
+          "opponent_sample_n": 0,
+          "numeric_modifier_applied_to_canonical_model": false
+        },
+        "away": {
+          "team_id": 1133,
+          "team": "Jaguares",
+          "history": {},
+          "status": "INSUFFICIENT_HISTORICAL_XG",
+          "projected_xg_research": null,
+          "own_sample_n": 0,
+          "opponent_sample_n": 0,
+          "numeric_modifier_applied_to_canonical_model": false
+        },
+        "xg_xga_definition": "Historical xG for = API-Football expected_goals from finalized fixtures; xGA = opponent verified xG in the same finalized fixture.",
+        "same_fixture_realized_xg_leakage_allowed": false,
+        "canonical_goal_lambda_adjustment": 0.0,
+        "canonical_model_weights_changed": false,
+        "actionable": false,
+        "decision_weight": 0.0,
+        "calibration_gate": {
+          "minimum_oos_fixtures_for_feature_review": 500,
+          "minimum_oos_fixtures_for_lambda_challenger": 1000,
+          "minimum_oos_fixtures_for_production_review": 2000
+        },
+        "policy": "API-FOOTBALL REALIZED xG MAY ENTER ONLY AFTER FIXTURE FINALIZATION AND ONLY AS HISTORY. NEVER USE SAME-FIXTURE REALIZED xG PREGAME; NEVER RELABEL INTERNAL GOAL LAMBDAS AS xG."
+      },
+      "npxg_npxga_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "APPROVED_SOURCES_NPXG_NOT_EXPOSED",
+        "approved_sources": [
+          "API-Football v3",
+          "GalaxyParlay persisted contract"
+        ],
+        "api_football": {
+          "status": "NPXG_NOT_EXPOSED_IN_CURRENT_APPROVED_CONTRACT",
+          "penalty_events_available": true,
+          "penalty_events_are_sufficient_to_compute_npxg": false
+        },
+        "galaxyparlay": {
+          "status": "NPXG_NOT_EXPOSED_IN_CURRENT_INTEGRATION_CONTRACT",
+          "sport_source": "GALAXYPARLAY_PERSISTED",
+          "contract_version": "1.0.1"
+        },
+        "dependency": {
+          "verified_xg_required": true,
+          "verified_penalty_xg_or_native_npxg_required": true,
+          "current_xg_status": "INSUFFICIENT_TEAM_XG_HISTORY"
+        },
+        "penalty_exclusion": {
+          "fixed_penalty_xg_subtraction_allowed": false,
+          "goal_event_count_subtraction_allowed": false,
+          "reason": "NPXG REQUIRES NATIVE NON-PENALTY xG OR SHOT-LEVEL/PENALTY xG PROVENANCE; PENALTY GOAL/MISS EVENTS ALONE DO NOT IDENTIFY THE xG MASS TO REMOVE"
+        },
+        "npxga_definition": "Opponent verified npxG in the same fixture.",
+        "canonical_goal_lambda_adjustment": 0.0,
+        "canonical_model_weights_changed": false,
+        "actionable": false,
+        "decision_weight": 0.0,
+        "block_reason": "API_FOOTBALL_AND_CURRENT_GALAXYPARLAY_CONTRACT_DO_NOT_EXPOSE_VERIFIED_NPXG",
+        "policy": "APPROVED SOURCES ONLY: API-FOOTBALL + GALAXYPARLAY. NEVER DERIVE npxG BY SUBTRACTING A FIXED PENALTY VALUE OR BY RELABELING GOAL LAMBDAS."
+      },
+      "ppda_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "APPROVED_SOURCES_PPDA_NOT_EXPOSED",
+        "approved_sources": [
+          "API-Football v3",
+          "GalaxyParlay persisted contract"
+        ],
+        "api_football": {
+          "status": "NO_NORMALIZED_PPDA_IN_CURRENT_FIXTURE_STATISTICS_CONTRACT",
+          "available_inputs_are_sufficient_to_reconstruct_ppda": false
+        },
+        "galaxyparlay": {
+          "status": "PPDA_NOT_EXPOSED_IN_CURRENT_PERSISTED_INTEGRATION_CONTRACT"
+        },
+        "definition_gate": {
+          "normalized_provider_definition_required": true,
+          "spatial_zone_definition_required": true,
+          "defensive_action_denominator_definition_required": true,
+          "whole_match_passes_divided_by_tackles_allowed": false
+        },
+        "legacy_code_warning": "Legacy tactical_analysis files read a ppda key when supplied by callers, but no approved ingestion path currently populates verified PPDA. That placeholder must not be treated as data.",
+        "canonical_model_weights_changed": false,
+        "actionable": false,
+        "decision_weight": 0.0,
+        "block_reason": "API_FOOTBALL_AND_CURRENT_GALAXYPARLAY_CONTRACT_DO_NOT_EXPOSE_NORMALIZED_PPDA",
+        "policy": "DO NOT INVENT PPDA FROM TOTAL PASSES, POSSESSION, TACKLES OR FOULS. ACTIVATE ONLY WITH AN APPROVED SOURCE THAT EXPOSES A NORMALIZED, AUDITABLE PPDA DEFINITION."
+      },
+      "field_tilt_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "APPROVED_SOURCES_FIELD_TILT_NOT_EXPOSED",
+        "approved_sources": [
+          "API-Football v3",
+          "GalaxyParlay persisted contract"
+        ],
+        "api_football": {
+          "status": "TOTAL_POSSESSION_AVAILABLE_BUT_FIELD_TILT_INPUTS_NOT_EXPOSED",
+          "total_ball_possession_may_be_relabeled_as_field_tilt": false
+        },
+        "galaxyparlay": {
+          "status": "FIELD_TILT_NOT_EXPOSED_IN_CURRENT_PERSISTED_INTEGRATION_CONTRACT"
+        },
+        "definition_gate": {
+          "territorial_zone_definition_required": true,
+          "touch_or_pass_denominator_definition_required": true,
+          "home_away_symmetric_measurement_required": true,
+          "plain_possession_percentage_is_sufficient": false
+        },
+        "canonical_model_weights_changed": false,
+        "actionable": false,
+        "decision_weight": 0.0,
+        "block_reason": "APPROVED_SOURCES_DO_NOT_EXPOSE_A_CONSISTENT_FIELD_TILT_DEFINITION_OR_INPUTS",
+        "policy": "DO NOT RELABEL TOTAL POSSESSION AS FIELD TILT. ACTIVATE ONLY WITH AN APPROVED SOURCE THAT EXPOSES CONSISTENT TERRITORIAL POSSESSION/TOUCH/PASS INPUTS AND AN AUDITABLE DEFINITION."
+      },
+      "box_entries_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "APPROVED_SOURCES_BOX_ENTRIES_NOT_EXPOSED",
+        "approved_sources": [
+          "API-Football v3",
+          "GalaxyParlay persisted contract"
+        ],
+        "api_football": {
+          "status": "SHOTS_INSIDE_BOX_MAY_EXIST_BUT_BOX_ENTRIES_NOT_EXPOSED",
+          "shots_inside_box_may_be_relabeled_as_box_entries": false
+        },
+        "galaxyparlay": {
+          "status": "BOX_ENTRIES_NOT_EXPOSED_IN_CURRENT_PERSISTED_INTEGRATION_CONTRACT"
+        },
+        "definition_gate": {
+          "explicit_penalty_area_entry_event_required": true,
+          "entry_definition_required": true,
+          "repeat_entry_counting_rule_required": true,
+          "shots_inside_box_are_sufficient": false
+        },
+        "canonical_model_weights_changed": false,
+        "actionable": false,
+        "decision_weight": 0.0,
+        "block_reason": "APPROVED_SOURCES_DO_NOT_EXPOSE_EXPLICIT_BOX_ENTRY_EVENTS_OR_METRIC",
+        "policy": "DO NOT RELABEL SHOTS INSIDE THE BOX, CROSSES, CORNERS OR POSSESSION AS BOX ENTRIES. ACTIVATE ONLY WITH AN APPROVED PROVIDER-DEFINED PENALTY-AREA ENTRY METRIC OR EVENT FEED."
+      },
+      "postgame_big_chances_observation": null,
+      "big_chances_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "BIG_CHANCES_HISTORY_NOT_YET_MODELED",
+        "source_policy": "API_FOOTBALL_EXPLICIT_PROVIDER_FIELD_ONLY",
+        "provider_dependent": true,
+        "shots_or_xg_proxy_allowed": false,
+        "actionable": false,
+        "decision_weight": 0.0,
+        "block_reason": "CONSISTENT_VERIFIED_HISTORICAL_BIG_CHANCES_SAMPLE_NOT_YET_ESTABLISHED",
+        "policy": "CAPTURE ONLY AN EXPLICIT API-FOOTBALL BIG CHANCES FIELD WHEN PRESENT. DO NOT RECONSTRUCT BIG CHANCES FROM SHOTS, SHOTS INSIDE BOX, xG OR GOALS."
+      },
+      "postgame_set_piece_observation": null,
+      "set_piece_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "SET_PIECE_HISTORY_INSUFFICIENT",
+        "source_registry_status": "RESEARCH_ONLY_SET_PIECE_COMPONENT_REGISTRY",
+        "set_piece_goal_probability": null,
+        "set_piece_xg": "NOT_VERIFIED",
+        "actionable": false,
+        "decision_weight": 0.0,
+        "block_reason": "PERSISTED_TEAM_SET_PIECE_COMPONENT_HISTORY_NOT_SUFFICIENT"
+      },
+      "tactical_style_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "TACTICAL_STYLE_HISTORY_INSUFFICIENT",
+        "source_generated_at_utc": "2026-09-22T08:03:07.520088+00:00",
+        "home": {
+          "sample_n": 0,
+          "formation": null,
+          "formation_family": "NOT_VERIFIED",
+          "avg_possession": null,
+          "possession_tendency": "NOT_VERIFIED",
+          "avg_shots": null,
+          "shot_volume_tendency": "NOT_VERIFIED",
+          "avg_sot": null,
+          "sot_volume_tendency": "NOT_VERIFIED",
+          "avg_corners": null,
+          "corner_volume_tendency": "NOT_VERIFIED",
+          "avg_yellow_cards": null,
+          "discipline_tendency": "NOT_VERIFIED",
+          "press_intensity": "NOT_VERIFIED_PPDA_REQUIRED",
+          "block_height": "NOT_VERIFIED_SPATIAL_DATA_REQUIRED",
+          "transition_speed": "NOT_VERIFIED_EVENT_SEQUENCE_DATA_REQUIRED",
+          "width_style": "NOT_VERIFIED_CORNERS_ARE_NOT_WIDTH"
+        },
+        "away": {
+          "sample_n": 0,
+          "formation": null,
+          "formation_family": "NOT_VERIFIED",
+          "avg_possession": null,
+          "possession_tendency": "NOT_VERIFIED",
+          "avg_shots": null,
+          "shot_volume_tendency": "NOT_VERIFIED",
+          "avg_sot": null,
+          "sot_volume_tendency": "NOT_VERIFIED",
+          "avg_corners": null,
+          "corner_volume_tendency": "NOT_VERIFIED",
+          "avg_yellow_cards": null,
+          "discipline_tendency": "NOT_VERIFIED",
+          "press_intensity": "NOT_VERIFIED_PPDA_REQUIRED",
+          "block_height": "NOT_VERIFIED_SPATIAL_DATA_REQUIRED",
+          "transition_speed": "NOT_VERIFIED_EVENT_SEQUENCE_DATA_REQUIRED",
+          "width_style": "NOT_VERIFIED_CORNERS_ARE_NOT_WIDTH"
+        },
+        "verified_descriptors": [
+          "formation_family",
+          "possession_tendency",
+          "shot_volume_tendency",
+          "sot_volume_tendency",
+          "corner_volume_tendency",
+          "discipline_tendency"
+        ],
+        "blocked_descriptors": [
+          "press_intensity",
+          "block_height",
+          "transition_speed",
+          "width_style"
+        ],
+        "actionable": false,
+        "decision_weight": 0.0,
+        "production_status": "CONTEXT_ONLY_NOT_ACTIONABLE",
+        "promotion_gate": {
+          "minimum_oos_feature_lift_sample": 500,
+          "requires_versioned_residual_test": true,
+          "requires_no_degradation_in_brier_logloss": true
+        },
+        "policy": "DESCRIBE ONLY OBSERVED FORMATION AND PERSISTED MATCH-STAT TENDENCIES. DO NOT INFER PRESS/BLOCK/TRANSITION/WIDTH WITHOUT PPDA/SPATIAL/EVENT-SEQUENCE EVIDENCE."
+      },
+      "rest_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "REST_CONTEXT_INCOMPLETE",
+        "home": {
+          "team": "Independiente Medellin",
+          "status": "NO_VERIFIED_COMPLETED_RECENT_FIXTURE",
+          "last_match_utc": null,
+          "rest_hours": null,
+          "rest_days": null,
+          "rest_bucket": "NOT_VERIFIED"
+        },
+        "away": {
+          "team": "Jaguares",
+          "status": "NO_VERIFIED_COMPLETED_RECENT_FIXTURE",
+          "last_match_utc": null,
+          "rest_hours": null,
+          "rest_days": null,
+          "rest_bucket": "NOT_VERIFIED"
+        },
+        "home_minus_away_rest_days": null,
+        "actionable": false,
+        "decision_weight": 0.0,
+        "production_status": "CONTEXT_ONLY_NOT_ACTIONABLE",
+        "promotion_gate": {
+          "minimum_oos_feature_lift_sample": 500,
+          "requires_league_schedule_calibration": true,
+          "requires_no_brier_logloss_degradation": true
+        },
+        "policy": "REST IS CALCULATED ONLY FROM VERIFIED COMPLETED RECENT FIXTURE DATES. NO LAMBDA OR BET ADJUSTMENT UNTIL OOS MATERIALITY IS VALIDATED."
+      },
+      "congestion_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "CONGESTION_CONTEXT_INCOMPLETE",
+        "home": {
+          "team": "Independiente Medellin",
+          "verified_completed_recent_fixtures": 0,
+          "matches_last_7d": 0,
+          "matches_last_14d": 0,
+          "matches_last_21d": 0,
+          "minutes_load": "NOT_VERIFIED",
+          "rotation_pressure": "NOT_MODELED"
+        },
+        "away": {
+          "team": "Jaguares",
+          "verified_completed_recent_fixtures": 0,
+          "matches_last_7d": 0,
+          "matches_last_14d": 0,
+          "matches_last_21d": 0,
+          "minutes_load": "NOT_VERIFIED",
+          "rotation_pressure": "NOT_MODELED"
+        },
+        "actionable": false,
+        "decision_weight": 0.0,
+        "production_status": "CONTEXT_ONLY_NOT_ACTIONABLE",
+        "promotion_gate": {
+          "minimum_oos_feature_lift_sample": 500,
+          "requires_minutes_or_rotation_enrichment_for_full_model": true,
+          "requires_competition_specific_calibration": true
+        },
+        "policy": "FIXTURE DENSITY ONLY FROM VERIFIED COMPLETED RECENT FIXTURES. MATCH COUNTS ARE NOT PLAYER MINUTES OR ROTATION PRESSURE. ZERO MODEL WEIGHT UNTIL OOS LIFT."
+      },
+      "travel_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "LIVE_TRAVEL_SOURCE_GUARD",
+        "destination": {
+          "venue": "Estadio Atanasio Girardot",
+          "city": null,
+          "country": null
+        },
+        "destination_verified": true,
+        "away_team": "Jaguares",
+        "travel_origin": "NOT_VERIFIED",
+        "distance_km": null,
+        "timezone_shift_hours": null,
+        "destination_altitude_m": null,
+        "logistics_burden": "NOT_MODELED",
+        "actionable": false,
+        "decision_weight": 0.0,
+        "block_reasons": [
+          "VERIFIED_AWAY_TEAM_TRAVEL_ORIGIN_COORDINATES_REQUIRED",
+          "VERIFIED_VENUE_COORDINATES_REQUIRED",
+          "TIMEZONE_AND_ALTITUDE_SOURCE_REQUIRED"
+        ],
+        "policy": "DO NOT ESTIMATE DISTANCE FROM CITY/COUNTRY LABELS ALONE; DO NOT ASSUME TEAM BASE, TRAVEL ORIGIN, ALTITUDE OR TIMEZONE SHIFT."
+      },
+      "weather_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "WEATHER_SOURCE_NOT_INTEGRATED",
+        "venue": "Estadio Atanasio Girardot",
+        "city": null,
+        "country": null,
+        "kickoff": "2026-09-22T23:00:00+00:00",
+        "temperature_c": null,
+        "wind_kph": null,
+        "precipitation": null,
+        "humidity_pct": null,
+        "severe_weather": "NOT_VERIFIED",
+        "materiality": "NOT_MODELED",
+        "actionable": false,
+        "decision_weight": 0.0,
+        "block_reasons": [
+          "APPROVED_WEATHER_PROVIDER_NOT_INTEGRATED",
+          "VENUE_COORDINATES_OR_PROVIDER_LOCATION_MATCH_REQUIRED",
+          "KICKOFF_ALIGNED_FORECAST_REQUIRED"
+        ],
+        "policy": "NO WEATHER VALUE MAY BE INVENTED OR INFERRED FROM CITY/SEASON/COUNTRY."
+      },
+      "competition_context_intelligence": {
+        "schema_version": "1.0.0",
+        "fixture_id": 1549790,
+        "status": "LIVE_VERIFIED_COMPETITION_CONTEXT",
+        "competition": "Primera A",
+        "country": null,
+        "season": 2026,
+        "provider_round": "Clausura - 11",
+        "stage_descriptor": "PROVIDER_ROUND_LABEL_ONLY",
+        "knockout_label_from_round": false,
+        "aggregate_score": "NOT_VERIFIED",
+        "table_positions": "NOT_VERIFIED",
+        "qualification_math": "NOT_MODELED",
+        "objective_incentive": "NOT_INFERRED",
+        "motivation": "NOT_INFERRED",
+        "actionable": false,
+        "decision_weight": 0.0,
+        "policy": "ROUND/STAGE LABELS MAY DESCRIBE COMPETITION STRUCTURE ONLY. NO MOTIVATION, MUST-WIN, ROTATION OR QUALIFICATION CLAIM WITHOUT VERIFIED TABLE/AGGREGATE DATA."
+      },
+      "lineups": null,
+      "raw_projection": {
+        "status": "MODELED_LIMITED",
+        "projection_model": "GALAXYPARLAY_SPORT_FIRST_v1",
+        "sport_source": "GALAXYPARLAY_PERSISTED",
+        "market_independent": true,
+        "advanced_metrics": "GALAXYPARLAY_PERSISTED_MODEL_LAYER",
+        "galaxy_contract_version": "1.0.1",
+        "galaxy_model_versions": [
+          "v3.3.0"
+        ],
+        "galaxy_data_cutoff": "2026-09-22T10:36:48.679214+00:00",
+        "galaxy_actionable_total_model": true,
+        "galaxy_actionable_reason": "PUBLISHED_OR_NOT_BLOCKED",
+        "raw_home_goal_rate": null,
+        "raw_away_goal_rate": null,
+        "raw_total_goals": 2.7001,
+        "raw_home_win_prob": null,
+        "raw_draw_prob": null,
+        "raw_away_win_prob": null,
+        "raw_btts_yes_prob": 0.497,
+        "raw_over_2_5_prob": 0.5064,
+        "scoring_path": "MIXED / NO STRONG SCORING PATH",
+        "screen_scores": {
+          "side_edge_score": 0.0,
+          "goal_environment_score": 59.8,
+          "two_way_scoring_score": 49.7,
+          "corners_opportunity_score": "NOT MODELED",
+          "score_status": "GALAXYPARLAY_SPORT_FIRST",
+          "side_score_status": "NOT_MODELED_MISSING_VERIFIED_1X2"
+        },
+        "relative_strength_shadow": null
+      },
+      "market_decision": null,
+      "best_market": null,
+      "notes": [
+        "GALAXY FIRST: fresh persisted sport projection reused; duplicate API-Football team-stat/recent requests skipped.",
+        "Galaxy SPORT-FIRST screen below shortlist threshold; availability/market refresh skipped."
       ],
       "result": null,
       "error": null
