@@ -10,7 +10,7 @@ from mcp_gateway import galaxy_builder_v4 as v4
 from mcp_gateway import quote_freshness as qf
 
 SCHEMA_VERSION = "0.6.0"
-ACTIONABLE_STAGES = {"T-40", "T-20", "T-10"}
+ACTIONABLE_STAGES = {"T-40", "T-20", "T-10"}\nOBSERVATION_STAGES = {"T-90", "T-60", "T-30"}
 MAX_EVENT_RESEARCH_CANDIDATES = 3
 MAX_GLOBAL_RESEARCH_CANDIDATES = 12
 MAX_SETTLEMENT_DIAGNOSTICS_PER_EVENT = 8
@@ -653,8 +653,22 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
         if event.get("event_type") != "SOCCER_REFRESH":
             gate_counts["NOT_SOCCER_REFRESH"] += 1
             continue
-        if event.get("stage") not in ACTIONABLE_STAGES:
-            gate_counts[f"STAGE_{event.get('stage') or 'MISSING'}"] += 1
+        stage = str(event.get("stage") or "")
+        gate_counts[f"STAGE_{stage or 'MISSING'}"] += 1
+        if stage in OBSERVATION_STAGES:
+            gate_counts["PRE_ACTIONABLE_OBSERVED"] += 1
+            provenance = event.get("market_provenance") if isinstance(event.get("market_provenance"), dict) else {}
+            if provenance.get("fresh") is True:
+                gate_counts["PRE_ACTIONABLE_MARKET_FRESH"] += 1
+            else:
+                gate_counts["PRE_ACTIONABLE_MARKET_NOT_FRESH"] += 1
+            raw = event.get("raw_projection") if isinstance(event.get("raw_projection"), dict) else {}
+            if _num(raw.get("raw_home_goal_rate")) is not None and _num(raw.get("raw_away_goal_rate")) is not None:
+                gate_counts["PRE_ACTIONABLE_GOAL_RATES_PRESENT"] += 1
+            else:
+                gate_counts["PRE_ACTIONABLE_GOAL_RATES_MISSING"] += 1
+            continue
+        if stage not in ACTIONABLE_STAGES:
             continue
         gate_counts["ACTIONABLE_STAGE"] += 1
         provenance = event.get("market_provenance") if isinstance(event.get("market_provenance"), dict) else {}
