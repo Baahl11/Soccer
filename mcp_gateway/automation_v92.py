@@ -5,7 +5,7 @@ from typing import Any
 from mcp_gateway import automation_v91 as v91
 
 MODEL_VERSION = v91.MODEL_VERSION
-AUTOMATION_VERSION = "4.0.1-v4.004"
+AUTOMATION_VERSION = "4.1.0-v4.005"
 
 MODEL_SIGNALS = {
     "VERY_STRONG",
@@ -166,6 +166,28 @@ def _annotate_decision_separation(payload: dict[str, Any]) -> None:
     payload["v4_004_provider_requests_added"] = 0
     payload["v4_004_model_weights_changed"] = False
     payload["v4_004_canonical_bet_logic_changed"] = False
+    score_matrix = (
+        (payload.get("galaxy_builder") or {}).get("score_matrix_expansion")
+        if isinstance(payload.get("galaxy_builder"), dict)
+        else {}
+    )
+    if not isinstance(score_matrix, dict):
+        score_matrix = {}
+    payload["v4_005_score_matrix_observability"] = {
+        "schema_version": score_matrix.get("schema_version"),
+        "status": score_matrix.get("status") or "NOT_PRESENT_THIS_TICK",
+        "events_modeled": int(score_matrix.get("events_modeled") or 0),
+        "family_leg_counts": dict(score_matrix.get("family_leg_counts") or {}),
+        "research_candidate_count": int(score_matrix.get("research_candidate_count") or 0),
+        "settlement_diagnostic_count": int(score_matrix.get("settlement_diagnostic_count") or 0),
+        "binary_joint_method": score_matrix.get("binary_joint_method"),
+        "settlement_joint_method": score_matrix.get("settlement_joint_method"),
+        "production_promotion_allowed": bool(score_matrix.get("production_promotion_allowed")),
+        "candidate_merge_into_primary_galaxy_feed": bool(score_matrix.get("candidate_merge_into_primary_galaxy_feed")),
+    }
+    payload["v4_005_provider_requests_added"] = 0
+    payload["v4_005_model_weights_changed"] = False
+    payload["v4_005_canonical_bet_logic_changed"] = False
     payload["v4_003_checkpoint"] = (
         "MODEL_SIGNAL and EXECUTION_STATUS are now explicit independent fields on research rows. "
         "MODEL_SIGNAL uses only existing sporting-screen scores; EXECUTION_STATUS uses readiness/market blockers. "
