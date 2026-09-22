@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 
 def _database_url() -> str | None:
@@ -13,12 +14,21 @@ def persistence_configured() -> bool:
     return _database_url() is not None
 
 
+def _ssl_database_url(url: str) -> str:
+    """Require TLS for Postgres unless DATABASE_SSLMODE explicitly overrides it."""
+    sslmode = os.getenv("DATABASE_SSLMODE", "").strip() or "require"
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    query.setdefault("sslmode", sslmode)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+
 def _connect():
     import psycopg
     url = _database_url()
     if not url:
         raise RuntimeError("DATABASE_URL is not configured")
-    return psycopg.connect(url, autocommit=True)
+    return psycopg.connect(_ssl_database_url(url), autocommit=True)
 
 
 def ensure_schema() -> None:
