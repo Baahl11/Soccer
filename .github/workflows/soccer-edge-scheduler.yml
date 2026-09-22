@@ -30,6 +30,10 @@ jobs:
           fi
           echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
 
+      - name: Manual validation marker
+        if: github.event_name == 'push'
+        run: echo "V4-001 post-env validation run"
+
       - name: Warm Render before OIDC
         if: steps.quota_guard.outputs.skip != 'true'
         shell: bash
