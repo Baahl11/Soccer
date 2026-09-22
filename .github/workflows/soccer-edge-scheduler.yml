@@ -73,7 +73,7 @@ jobs:
             HTTP_CODE=$(post_tick "$OIDC_TOKEN")
           fi
 
-          jq '{service,version,model_version,generated_at_local,event_count,due_fixture_count,fixture_scan_count,api_calls_this_tick,last_daily_remaining,database_persisted,error,detail}' /tmp/soccer_tick.json || true
+          jq '{service,version,model_version,generated_at_local,event_count,due_fixture_count,fixture_scan_count,api_calls_this_tick,last_daily_remaining,database_persisted,database_error,error,detail}' /tmp/soccer_tick.json || true
 
           if [ "$HTTP_CODE" -ne 200 ]; then
             mkdir -p soccer_edge_state
@@ -124,7 +124,8 @@ jobs:
             api_calls_this_tick,
             last_daily_remaining,
             daily_budget_mode,
-            database_persisted
+            database_persisted,
+            database_error
           }' /tmp/soccer_tick.json > soccer_edge_state/health.json
 
           cp /tmp/soccer_tick.json soccer_edge_state/latest.json
