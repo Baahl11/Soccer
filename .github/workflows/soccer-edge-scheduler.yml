@@ -162,17 +162,27 @@ jobs:
           tick = json.load(open('/tmp/soccer_tick.json', encoding='utf-8'))
           rows = tick.get('match_table_rows') or []
           actionable = [r for r in rows if str(r.get('classification') or '').upper() in {'BET','LEAN','WATCH'}]
-          Path('/tmp/soccer_alert_count').write_text(str(len(actionable)))
-          if not actionable:
+          selected = actionable[:8] if actionable else rows[:8]
+          alert_mode = 'ACTIONABLE' if actionable else 'NO_BET_RESEARCH_DIGEST'
+
+          Path('/tmp/soccer_alert_count').write_text(str(len(selected)))
+          if not selected:
               raise SystemExit(0)
 
           lines = [
               '@Baahl11',
               '',
-              f"### ⚽ Soccer Edge {tick.get('generated_at_local')} — {tick.get('version')}",
+              f"### ⚽ Soccer Edge {tick.get('generated_at_local')} — {tick.get('version')} — {alert_mode}",
               '',
           ]
-          for row in actionable[:8]:
+          if not actionable:
+              lines += [
+                  'No hubo BET/LEAN/WATCH en este tick. Te dejo los partidos analizados para que el sistema no se quede mudo.',
+                  f"Scan: {tick.get('fixture_scan_count', 0)} | Due: {tick.get('due_fixture_count', 0)} | Events: {tick.get('event_count', 0)} | API calls: {tick.get('api_calls_this_tick', 0)}",
+                  '',
+              ]
+
+          for row in selected:
               home = row.get('home') or '?'
               away = row.get('away') or '?'
               market = row.get('market') or 'N/V'
@@ -181,20 +191,30 @@ jobs:
               price = row.get('price') or 'N/V'
               cls = row.get('classification') or 'N/V'
               reason = row.get('reason') or 'N/V'
+              data_tier = row.get('data_tier') or 'N/V'
+              scores = []
+              for label, key in [('side', 'side_score'), ('goals', 'goals_score'), ('two_way', 'two_way_score')]:
+                  value = row.get(key)
+                  if value is not None:
+                      scores.append(f"{label}:{value}")
+              score_text = ' | '.join(scores) or 'scores N/V'
               market_text = f"{market} — {selection}"
               if line is not None:
                   market_text += f" {line}"
               lines += [
-                  f"- **{cls}** {home} vs {away} | {row.get('kickoff','N/V')} | {market_text} | price {price} | {reason}"
+                  f"- **{cls}** {home} vs {away} | {row.get('kickoff','N/V')} | tier {data_tier} | {score_text} | {market_text} | price {price} | {reason}"
               ]
+
           body = '\n'.join(lines) + '\n'
           Path('/tmp/soccer_alert_body.md').write_text(body, encoding='utf-8')
           Path('/tmp/soccer_alert_webhook.json').write_text(json.dumps({
               'source': 'soccer-edge-scheduler',
               'generated_at_local': tick.get('generated_at_local'),
-              'alert_count': len(actionable),
+              'alert_mode': alert_mode,
+              'alert_count': len(selected),
+              'actionable_count': len(actionable),
               'message': body,
-              'rows': actionable[:8],
+              'rows': selected,
           }, ensure_ascii=False), encoding='utf-8')
           PY
 
