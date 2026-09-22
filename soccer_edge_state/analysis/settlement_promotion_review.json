@@ -8,6 +8,130 @@
   "market_family_reviews": [
     {
       "blockers": [
+        "sample_below_tier_b_minimum",
+        "no_decided_win_loss_sample",
+        "non_positive_roi"
+      ],
+      "clv_review": {
+        "avg_true_clv_probability_pp": 0.1769,
+        "minimum_policy": {
+          "directional_read": 50,
+          "model_change": 200
+        },
+        "proxy_positive_clv_rate": 0.0048,
+        "proxy_rows": 830,
+        "reason": "true CLV sample is directional only; enough to avoid negative-CLV warning but not enough for Tier S",
+        "status": "CLV_DIRECTIONAL_OK",
+        "true_clv_rows": 104
+      },
+      "hit_rate_ex_push": null,
+      "league_stability": {
+        "negative_segments": 0,
+        "positive_segment_rate": null,
+        "positive_segments": 0,
+        "reviewed_segments": 0,
+        "sample_note": "no >=10-settled child segments"
+      },
+      "market_family": "1H_OTHER",
+      "n": 1,
+      "reason": "blocked by sample_below_tier_b_minimum, no_decided_win_loss_sample, non_positive_roi",
+      "recommendation": "HOLD_OR_DEMOTE_REVIEW",
+      "roi_per_settled_units": 0.0,
+      "roi_units": 0.0,
+      "settled": 0,
+      "stage_stability": {
+        "negative_segments": 0,
+        "positive_segment_rate": null,
+        "positive_segments": 0,
+        "reviewed_segments": 0,
+        "sample_note": "no >=10-settled child segments"
+      },
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "sample_below_tier_b_minimum",
+        "non_positive_roi"
+      ],
+      "clv_review": {
+        "avg_true_clv_probability_pp": 0.1769,
+        "minimum_policy": {
+          "directional_read": 50,
+          "model_change": 200
+        },
+        "proxy_positive_clv_rate": 0.0048,
+        "proxy_rows": 830,
+        "reason": "true CLV sample is directional only; enough to avoid negative-CLV warning but not enough for Tier S",
+        "status": "CLV_DIRECTIONAL_OK",
+        "true_clv_rows": 104
+      },
+      "hit_rate_ex_push": 0.0,
+      "league_stability": {
+        "negative_segments": 0,
+        "positive_segment_rate": null,
+        "positive_segments": 0,
+        "reviewed_segments": 0,
+        "sample_note": "no >=10-settled child segments"
+      },
+      "market_family": "2H_BTTS",
+      "n": 1,
+      "reason": "blocked by sample_below_tier_b_minimum, non_positive_roi",
+      "recommendation": "HOLD_OR_DEMOTE_REVIEW",
+      "roi_per_settled_units": -0.36,
+      "roi_units": -0.36,
+      "settled": 1,
+      "stage_stability": {
+        "negative_segments": 0,
+        "positive_segment_rate": null,
+        "positive_segments": 0,
+        "reviewed_segments": 0,
+        "sample_note": "no >=10-settled child segments"
+      },
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "sample_below_tier_b_minimum",
+        "non_positive_roi"
+      ],
+      "clv_review": {
+        "avg_true_clv_probability_pp": 0.1769,
+        "minimum_policy": {
+          "directional_read": 50,
+          "model_change": 200
+        },
+        "proxy_positive_clv_rate": 0.0048,
+        "proxy_rows": 830,
+        "reason": "true CLV sample is directional only; enough to avoid negative-CLV warning but not enough for Tier S",
+        "status": "CLV_DIRECTIONAL_OK",
+        "true_clv_rows": 104
+      },
+      "hit_rate_ex_push": 0.0,
+      "league_stability": {
+        "negative_segments": 0,
+        "positive_segment_rate": null,
+        "positive_segments": 0,
+        "reviewed_segments": 0,
+        "sample_note": "no >=10-settled child segments"
+      },
+      "market_family": "2H_TOTALS",
+      "n": 2,
+      "reason": "blocked by sample_below_tier_b_minimum, non_positive_roi",
+      "recommendation": "HOLD_OR_DEMOTE_REVIEW",
+      "roi_per_settled_units": -0.36,
+      "roi_units": -0.72,
+      "settled": 2,
+      "stage_stability": {
+        "negative_segments": 0,
+        "positive_segment_rate": null,
+        "positive_segments": 0,
+        "reviewed_segments": 0,
+        "sample_note": "no >=10-settled child segments"
+      },
+      "warnings": []
+    },
+    {
+      "blockers": [
         "sample_below_tier_b_minimum"
       ],
       "clv_review": {
@@ -72,7 +196,7 @@
         "status": "CLV_DIRECTIONAL_OK",
         "true_clv_rows": 104
       },
-      "hit_rate_ex_push": 0.7857,
+      "hit_rate_ex_push": 0.7333,
       "league_stability": {
         "negative_segments": 0,
         "positive_segment_rate": null,
@@ -81,12 +205,12 @@
         "sample_note": "no >=10-settled child segments"
       },
       "market_family": "FT_TOTALS",
-      "n": 14,
+      "n": 15,
       "reason": "blocked by sample_below_tier_b_minimum",
       "recommendation": "HOLD_OR_DEMOTE_REVIEW",
-      "roi_per_settled_units": 0.2646,
-      "roi_units": 3.7048,
-      "settled": 14,
+      "roi_per_settled_units": 0.223,
+      "roi_units": 3.3448,
+      "settled": 15,
       "stage_stability": {
         "negative_segments": 0,
         "positive_segment_rate": 1.0,
@@ -94,11 +218,11 @@
         "reviewed_segments": 1,
         "strongest_segments": [
           {
-            "hit_rate_ex_push": 0.7857,
+            "hit_rate_ex_push": 0.7333,
             "key": "FT_TOTALS|T_MINUS_0_30",
-            "roi_per_settled_units": 0.2646,
-            "roi_units": 3.7048,
-            "settled": 14,
+            "roi_per_settled_units": 0.223,
+            "roi_units": 3.3448,
+            "settled": 15,
             "status": "DIRECTIONAL_ONLY"
           }
         ],
@@ -117,7 +241,7 @@
     "true_clv_model_change_min_rows": 200
   },
   "recommendation_counts": {
-    "HOLD_OR_DEMOTE_REVIEW": 2
+    "HOLD_OR_DEMOTE_REVIEW": 5
   },
   "safety_note": "This report creates review candidates only. It must not change runtime pick tiers, stakes, classifications or model weights without a separate reviewed implementation PR.",
   "schema_version": "1.0.0",

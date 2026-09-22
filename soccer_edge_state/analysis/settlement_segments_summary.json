@@ -2,26 +2,27 @@
   "dimensions": {
     "classification": {
       "BET": {
-        "avg_decimal_price": 2.1383,
-        "hit_rate_ex_push": 0.5,
-        "loss": 3,
-        "n": 6,
+        "avg_decimal_price": 3.0982,
+        "hit_rate_ex_push": 0.3,
+        "loss": 7,
+        "n": 11,
         "outcome_counts": {
-          "LOSS": 3,
+          "LOSS": 7,
+          "UNGRADABLE": 1,
           "WIN": 3
         },
         "push": 0,
-        "roi_per_settled_units": -0.0342,
-        "roi_units": -0.2052,
+        "roi_per_settled_units": -0.1645,
+        "roi_units": -1.6452,
         "segment_review": {
-          "hit_rate_ex_push": 0.5,
-          "reason": "fewer than 10 settled decisions in this segment",
-          "roi_units": -0.2052,
-          "settled": 6,
-          "status": "INSUFFICIENT_SAMPLE"
+          "hit_rate_ex_push": 0.3,
+          "reason": "10-19 settled decisions; useful for diagnosis but not promotion",
+          "roi_units": -1.6452,
+          "settled": 10,
+          "status": "DIRECTIONAL_ONLY"
         },
-        "settled": 6,
-        "ungraded": 0,
+        "settled": 10,
+        "ungraded": 1,
         "win": 3
       },
       "LEAN": {
@@ -49,6 +50,72 @@
       }
     },
     "market_family": {
+      "1H_OTHER": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "outcome_counts": {
+          "UNGRADABLE": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": null,
+        "roi_units": 0,
+        "segment_review": {
+          "hit_rate_ex_push": null,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": 0.0,
+          "settled": 0,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 0,
+        "ungraded": 1,
+        "win": 0
+      },
+      "2H_BTTS": {
+        "avg_decimal_price": 3.25,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS": {
+        "avg_decimal_price": 5.2,
+        "hit_rate_ex_push": 0.0,
+        "loss": 2,
+        "n": 2,
+        "outcome_counts": {
+          "LOSS": 2
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.72,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.72,
+          "settled": 2,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 2,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_1X2": {
         "avg_decimal_price": 4.125,
         "hit_rate_ex_push": 0.5,
@@ -73,30 +140,96 @@
         "win": 5
       },
       "FT_TOTALS": {
-        "avg_decimal_price": 1.7671,
-        "hit_rate_ex_push": 0.7857,
-        "loss": 3,
-        "n": 14,
+        "avg_decimal_price": 1.8227,
+        "hit_rate_ex_push": 0.7333,
+        "loss": 4,
+        "n": 15,
         "outcome_counts": {
-          "LOSS": 3,
+          "LOSS": 4,
           "WIN": 11
         },
         "push": 0,
-        "roi_per_settled_units": 0.2646,
-        "roi_units": 3.7048,
+        "roi_per_settled_units": 0.223,
+        "roi_units": 3.3448,
         "segment_review": {
-          "hit_rate_ex_push": 0.7857,
+          "hit_rate_ex_push": 0.7333,
           "reason": "10-19 settled decisions; useful for diagnosis but not promotion",
-          "roi_units": 3.7048,
-          "settled": 14,
+          "roi_units": 3.3448,
+          "settled": 15,
           "status": "DIRECTIONAL_ONLY"
         },
-        "settled": 14,
+        "settled": 15,
         "ungraded": 0,
         "win": 11
       }
     },
     "market_family__classification": {
+      "1H_OTHER|BET": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "outcome_counts": {
+          "UNGRADABLE": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": null,
+        "roi_units": 0,
+        "segment_review": {
+          "hit_rate_ex_push": null,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": 0.0,
+          "settled": 0,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 0,
+        "ungraded": 1,
+        "win": 0
+      },
+      "2H_BTTS|BET": {
+        "avg_decimal_price": 3.25,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS|BET": {
+        "avg_decimal_price": 5.2,
+        "hit_rate_ex_push": 0.0,
+        "loss": 2,
+        "n": 2,
+        "outcome_counts": {
+          "LOSS": 2
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.72,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.72,
+          "settled": 2,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 2,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_1X2|LEAN": {
         "avg_decimal_price": 4.125,
         "hit_rate_ex_push": 0.5,
@@ -121,25 +254,25 @@
         "win": 5
       },
       "FT_TOTALS|BET": {
-        "avg_decimal_price": 2.1383,
-        "hit_rate_ex_push": 0.5,
-        "loss": 3,
-        "n": 6,
+        "avg_decimal_price": 2.2043,
+        "hit_rate_ex_push": 0.4286,
+        "loss": 4,
+        "n": 7,
         "outcome_counts": {
-          "LOSS": 3,
+          "LOSS": 4,
           "WIN": 3
         },
         "push": 0,
-        "roi_per_settled_units": -0.0342,
-        "roi_units": -0.2052,
+        "roi_per_settled_units": -0.0807,
+        "roi_units": -0.5652,
         "segment_review": {
-          "hit_rate_ex_push": 0.5,
+          "hit_rate_ex_push": 0.4286,
           "reason": "fewer than 10 settled decisions in this segment",
-          "roi_units": -0.2052,
-          "settled": 6,
+          "roi_units": -0.5652,
+          "settled": 7,
           "status": "INSUFFICIENT_SAMPLE"
         },
-        "settled": 6,
+        "settled": 7,
         "ungraded": 0,
         "win": 3
       },
@@ -167,6 +300,72 @@
       }
     },
     "market_family__classification__stage_bucket": {
+      "1H_OTHER|BET|T_MINUS_0_30": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "outcome_counts": {
+          "UNGRADABLE": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": null,
+        "roi_units": 0,
+        "segment_review": {
+          "hit_rate_ex_push": null,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": 0.0,
+          "settled": 0,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 0,
+        "ungraded": 1,
+        "win": 0
+      },
+      "2H_BTTS|BET|T_MINUS_0_30": {
+        "avg_decimal_price": 3.25,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS|BET|T_MINUS_0_30": {
+        "avg_decimal_price": 5.2,
+        "hit_rate_ex_push": 0.0,
+        "loss": 2,
+        "n": 2,
+        "outcome_counts": {
+          "LOSS": 2
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.72,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.72,
+          "settled": 2,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 2,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_1X2|LEAN|T_MINUS_0_30": {
         "avg_decimal_price": 4.125,
         "hit_rate_ex_push": 0.5,
@@ -191,25 +390,25 @@
         "win": 5
       },
       "FT_TOTALS|BET|T_MINUS_0_30": {
-        "avg_decimal_price": 2.1383,
-        "hit_rate_ex_push": 0.5,
-        "loss": 3,
-        "n": 6,
+        "avg_decimal_price": 2.2043,
+        "hit_rate_ex_push": 0.4286,
+        "loss": 4,
+        "n": 7,
         "outcome_counts": {
-          "LOSS": 3,
+          "LOSS": 4,
           "WIN": 3
         },
         "push": 0,
-        "roi_per_settled_units": -0.0342,
-        "roi_units": -0.2052,
+        "roi_per_settled_units": -0.0807,
+        "roi_units": -0.5652,
         "segment_review": {
-          "hit_rate_ex_push": 0.5,
+          "hit_rate_ex_push": 0.4286,
           "reason": "fewer than 10 settled decisions in this segment",
-          "roi_units": -0.2052,
-          "settled": 6,
+          "roi_units": -0.5652,
+          "settled": 7,
           "status": "INSUFFICIENT_SAMPLE"
         },
-        "settled": 6,
+        "settled": 7,
         "ungraded": 0,
         "win": 3
       },
@@ -237,6 +436,72 @@
       }
     },
     "market_family__data_tier": {
+      "1H_OTHER|B": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "outcome_counts": {
+          "UNGRADABLE": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": null,
+        "roi_units": 0,
+        "segment_review": {
+          "hit_rate_ex_push": null,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": 0.0,
+          "settled": 0,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 0,
+        "ungraded": 1,
+        "win": 0
+      },
+      "2H_BTTS|A": {
+        "avg_decimal_price": 3.25,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS|B": {
+        "avg_decimal_price": 5.2,
+        "hit_rate_ex_push": 0.0,
+        "loss": 2,
+        "n": 2,
+        "outcome_counts": {
+          "LOSS": 2
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.72,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.72,
+          "settled": 2,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 2,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_1X2|A": {
         "avg_decimal_price": 5.25,
         "hit_rate_ex_push": 0.0,
@@ -306,30 +571,118 @@
         "win": 3
       },
       "FT_TOTALS|B": {
-        "avg_decimal_price": 1.745,
-        "hit_rate_ex_push": 0.8,
-        "loss": 2,
-        "n": 10,
+        "avg_decimal_price": 1.8227,
+        "hit_rate_ex_push": 0.7273,
+        "loss": 3,
+        "n": 11,
         "outcome_counts": {
-          "LOSS": 2,
+          "LOSS": 3,
           "WIN": 8
         },
         "push": 0,
-        "roi_per_settled_units": 0.2155,
-        "roi_units": 2.1548,
+        "roi_per_settled_units": 0.1632,
+        "roi_units": 1.7948,
         "segment_review": {
-          "hit_rate_ex_push": 0.8,
+          "hit_rate_ex_push": 0.7273,
           "reason": "10-19 settled decisions; useful for diagnosis but not promotion",
-          "roi_units": 2.1548,
-          "settled": 10,
+          "roi_units": 1.7948,
+          "settled": 11,
           "status": "DIRECTIONAL_ONLY"
         },
-        "settled": 10,
+        "settled": 11,
         "ungraded": 0,
         "win": 8
       }
     },
     "market_family__league": {
+      "1H_OTHER|Premier League": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "outcome_counts": {
+          "UNGRADABLE": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": null,
+        "roi_units": 0,
+        "segment_review": {
+          "hit_rate_ex_push": null,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": 0.0,
+          "settled": 0,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 0,
+        "ungraded": 1,
+        "win": 0
+      },
+      "2H_BTTS|Allsvenskan": {
+        "avg_decimal_price": 3.25,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS|Damallsvenskan": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS|K League 1": {
+        "avg_decimal_price": 5.4,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_1X2|Liga Pro": {
         "avg_decimal_price": 3.88,
         "hit_rate_ex_push": 0.0,
@@ -664,6 +1017,28 @@
         "ungraded": 0,
         "win": 0
       },
+      "FT_TOTALS|Superettan": {
+        "avg_decimal_price": 2.6,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_TOTALS|Veikkausliiga": {
         "avg_decimal_price": 1.8,
         "hit_rate_ex_push": 1.0,
@@ -688,6 +1063,72 @@
       }
     },
     "market_family__odds_band": {
+      "1H_OTHER|GE_3_00": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "outcome_counts": {
+          "UNGRADABLE": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": null,
+        "roi_units": 0,
+        "segment_review": {
+          "hit_rate_ex_push": null,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": 0.0,
+          "settled": 0,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 0,
+        "ungraded": 1,
+        "win": 0
+      },
+      "2H_BTTS|GE_3_00": {
+        "avg_decimal_price": 3.25,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS|GE_3_00": {
+        "avg_decimal_price": 5.2,
+        "hit_rate_ex_push": 0.0,
+        "loss": 2,
+        "n": 2,
+        "outcome_counts": {
+          "LOSS": 2
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.72,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.72,
+          "settled": 2,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 2,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_1X2|1_80_2_19": {
         "avg_decimal_price": 1.95,
         "hit_rate_ex_push": 0.0,
@@ -801,24 +1242,24 @@
         "win": 3
       },
       "FT_TOTALS|2_20_2_99": {
-        "avg_decimal_price": 2.605,
+        "avg_decimal_price": 2.6033,
         "hit_rate_ex_push": 0.0,
-        "loss": 2,
-        "n": 2,
+        "loss": 3,
+        "n": 3,
         "outcome_counts": {
-          "LOSS": 2
+          "LOSS": 3
         },
         "push": 0,
         "roi_per_settled_units": -0.36,
-        "roi_units": -0.72,
+        "roi_units": -1.08,
         "segment_review": {
           "hit_rate_ex_push": 0.0,
           "reason": "fewer than 10 settled decisions in this segment",
-          "roi_units": -0.72,
-          "settled": 2,
+          "roi_units": -1.08,
+          "settled": 3,
           "status": "INSUFFICIENT_SAMPLE"
         },
-        "settled": 2,
+        "settled": 3,
         "ungraded": 0,
         "win": 0
       },
@@ -846,6 +1287,72 @@
       }
     },
     "market_family__stage_bucket": {
+      "1H_OTHER|T_MINUS_0_30": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "outcome_counts": {
+          "UNGRADABLE": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": null,
+        "roi_units": 0,
+        "segment_review": {
+          "hit_rate_ex_push": null,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": 0.0,
+          "settled": 0,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 0,
+        "ungraded": 1,
+        "win": 0
+      },
+      "2H_BTTS|T_MINUS_0_30": {
+        "avg_decimal_price": 3.25,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS|T_MINUS_0_30": {
+        "avg_decimal_price": 5.2,
+        "hit_rate_ex_push": 0.0,
+        "loss": 2,
+        "n": 2,
+        "outcome_counts": {
+          "LOSS": 2
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.72,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.72,
+          "settled": 2,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 2,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_1X2|T_MINUS_0_30": {
         "avg_decimal_price": 4.125,
         "hit_rate_ex_push": 0.5,
@@ -870,30 +1377,96 @@
         "win": 5
       },
       "FT_TOTALS|T_MINUS_0_30": {
-        "avg_decimal_price": 1.7671,
-        "hit_rate_ex_push": 0.7857,
-        "loss": 3,
-        "n": 14,
+        "avg_decimal_price": 1.8227,
+        "hit_rate_ex_push": 0.7333,
+        "loss": 4,
+        "n": 15,
         "outcome_counts": {
-          "LOSS": 3,
+          "LOSS": 4,
           "WIN": 11
         },
         "push": 0,
-        "roi_per_settled_units": 0.2646,
-        "roi_units": 3.7048,
+        "roi_per_settled_units": 0.223,
+        "roi_units": 3.3448,
         "segment_review": {
-          "hit_rate_ex_push": 0.7857,
+          "hit_rate_ex_push": 0.7333,
           "reason": "10-19 settled decisions; useful for diagnosis but not promotion",
-          "roi_units": 3.7048,
-          "settled": 14,
+          "roi_units": 3.3448,
+          "settled": 15,
           "status": "DIRECTIONAL_ONLY"
         },
-        "settled": 14,
+        "settled": 15,
         "ungraded": 0,
         "win": 11
       }
     },
     "market_family__stage_bucket__odds_band": {
+      "1H_OTHER|T_MINUS_0_30|GE_3_00": {
+        "avg_decimal_price": 5.0,
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "outcome_counts": {
+          "UNGRADABLE": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": null,
+        "roi_units": 0,
+        "segment_review": {
+          "hit_rate_ex_push": null,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": 0.0,
+          "settled": 0,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 0,
+        "ungraded": 1,
+        "win": 0
+      },
+      "2H_BTTS|T_MINUS_0_30|GE_3_00": {
+        "avg_decimal_price": 3.25,
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "outcome_counts": {
+          "LOSS": 1
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.36,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.36,
+          "settled": 1,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 1,
+        "ungraded": 0,
+        "win": 0
+      },
+      "2H_TOTALS|T_MINUS_0_30|GE_3_00": {
+        "avg_decimal_price": 5.2,
+        "hit_rate_ex_push": 0.0,
+        "loss": 2,
+        "n": 2,
+        "outcome_counts": {
+          "LOSS": 2
+        },
+        "push": 0,
+        "roi_per_settled_units": -0.36,
+        "roi_units": -0.72,
+        "segment_review": {
+          "hit_rate_ex_push": 0.0,
+          "reason": "fewer than 10 settled decisions in this segment",
+          "roi_units": -0.72,
+          "settled": 2,
+          "status": "INSUFFICIENT_SAMPLE"
+        },
+        "settled": 2,
+        "ungraded": 0,
+        "win": 0
+      },
       "FT_1X2|T_MINUS_0_30|1_80_2_19": {
         "avg_decimal_price": 1.95,
         "hit_rate_ex_push": 0.0,
@@ -1007,24 +1580,24 @@
         "win": 3
       },
       "FT_TOTALS|T_MINUS_0_30|2_20_2_99": {
-        "avg_decimal_price": 2.605,
+        "avg_decimal_price": 2.6033,
         "hit_rate_ex_push": 0.0,
-        "loss": 2,
-        "n": 2,
+        "loss": 3,
+        "n": 3,
         "outcome_counts": {
-          "LOSS": 2
+          "LOSS": 3
         },
         "push": 0,
         "roi_per_settled_units": -0.36,
-        "roi_units": -0.72,
+        "roi_units": -1.08,
         "segment_review": {
           "hit_rate_ex_push": 0.0,
           "reason": "fewer than 10 settled decisions in this segment",
-          "roi_units": -0.72,
-          "settled": 2,
+          "roi_units": -1.08,
+          "settled": 3,
           "status": "INSUFFICIENT_SAMPLE"
         },
-        "settled": 2,
+        "settled": 3,
         "ungraded": 0,
         "win": 0
       },
@@ -1052,7 +1625,7 @@
       }
     }
   },
-  "input_rows": 24,
+  "input_rows": 29,
   "minimum_sample_policy": {
     "directional_only_lt": 20,
     "insufficient_sample_lt": 10,
@@ -1066,31 +1639,32 @@
     ]
   },
   "overall": {
-    "avg_decimal_price": 2.7496,
-    "hit_rate_ex_push": 0.6667,
-    "loss": 8,
-    "n": 24,
+    "avg_decimal_price": 3.0083,
+    "hit_rate_ex_push": 0.5714,
+    "loss": 12,
+    "n": 29,
     "outcome_counts": {
-      "LOSS": 8,
+      "LOSS": 12,
+      "UNGRADABLE": 1,
       "WIN": 16
     },
     "push": 0,
-    "roi_per_settled_units": 0.621,
-    "roi_units": 14.9048,
+    "roi_per_settled_units": 0.4809,
+    "roi_units": 13.4648,
     "segment_review": {
-      "hit_rate_ex_push": 0.6667,
+      "hit_rate_ex_push": 0.5714,
       "reason": "20+ settled decisions and positive ROI; requires CLV and stability checks before promotion",
-      "roi_units": 14.9048,
-      "settled": 24,
+      "roi_units": 13.4648,
+      "settled": 28,
       "status": "PROMOTION_REVIEW_INPUT"
     },
-    "settled": 24,
-    "ungraded": 0,
+    "settled": 28,
+    "ungraded": 1,
     "win": 16
   },
   "safety_note": "This report is diagnostic only. It does not promote BET/LEAN tiers by itself; segments require CLV and stability confirmation before any production change.",
   "schema_version": "1.0.0",
-  "settled_rows": 24,
+  "settled_rows": 28,
   "status": "SEGMENTATION_RESEARCH_ONLY",
   "top_positive_segments": {
     "market_family__classification": [
@@ -1147,26 +1721,26 @@
         "win": 5
       },
       {
-        "avg_decimal_price": 1.7671,
-        "hit_rate_ex_push": 0.7857,
+        "avg_decimal_price": 1.8227,
+        "hit_rate_ex_push": 0.7333,
         "key": "FT_TOTALS|T_MINUS_0_30",
-        "loss": 3,
-        "n": 14,
+        "loss": 4,
+        "n": 15,
         "outcome_counts": {
-          "LOSS": 3,
+          "LOSS": 4,
           "WIN": 11
         },
         "push": 0,
-        "roi_per_settled_units": 0.2646,
-        "roi_units": 3.7048,
+        "roi_per_settled_units": 0.223,
+        "roi_units": 3.3448,
         "segment_review": {
-          "hit_rate_ex_push": 0.7857,
+          "hit_rate_ex_push": 0.7333,
           "reason": "10-19 settled decisions; useful for diagnosis but not promotion",
-          "roi_units": 3.7048,
-          "settled": 14,
+          "roi_units": 3.3448,
+          "settled": 15,
           "status": "DIRECTIONAL_ONLY"
         },
-        "settled": 14,
+        "settled": 15,
         "ungraded": 0,
         "win": 11
       }

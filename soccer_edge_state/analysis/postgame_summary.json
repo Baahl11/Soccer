@@ -1,12 +1,12 @@
 {
   "actionable_by_classification": {
     "BET": {
-      "hit_rate_ex_push": 0.5,
-      "loss": 3,
-      "n": 6,
+      "hit_rate_ex_push": 0.4286,
+      "loss": 4,
+      "n": 7,
       "push": 0,
-      "roi_per_decision_units": -0.0342,
-      "roi_units": -0.2052,
+      "roi_per_decision_units": -0.0807,
+      "roi_units": -0.5652,
       "win": 3
     },
     "LEAN": {
@@ -20,6 +20,45 @@
     }
   },
   "actionable_by_market_family": {
+    "1H_OTHER": {
+      "hit_rate_ex_push": null,
+      "loss": 0,
+      "n": 1,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": 0.0,
+      "roi_units": 0.0,
+      "settled": 0,
+      "ungraded": 1,
+      "unsupported_derivative": 0,
+      "win": 0
+    },
+    "2H_BTTS": {
+      "hit_rate_ex_push": 0.0,
+      "loss": 1,
+      "n": 1,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": -0.36,
+      "roi_units": -0.36,
+      "settled": 1,
+      "ungraded": 0,
+      "unsupported_derivative": 0,
+      "win": 0
+    },
+    "2H_TOTALS": {
+      "hit_rate_ex_push": 0.0,
+      "loss": 2,
+      "n": 2,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": -0.36,
+      "roi_units": -0.72,
+      "settled": 2,
+      "ungraded": 0,
+      "unsupported_derivative": 0,
+      "win": 0
+    },
     "FT_1X2": {
       "hit_rate_ex_push": 0.5,
       "loss": 5,
@@ -34,55 +73,58 @@
       "win": 5
     },
     "FT_TOTALS": {
-      "hit_rate_ex_push": 0.7857,
-      "loss": 3,
-      "n": 14,
+      "hit_rate_ex_push": 0.7333,
+      "loss": 4,
+      "n": 15,
       "no_tactical_stats": 0,
       "push": 0,
-      "roi_per_decision_units": 0.2646,
-      "roi_units": 3.7048,
-      "settled": 14,
+      "roi_per_decision_units": 0.223,
+      "roi_units": 3.3448,
+      "settled": 15,
       "ungraded": 0,
       "unsupported_derivative": 0,
       "win": 11
     }
   },
-  "canonical_ft_actionable_decisions": 24,
-  "evaluation_rows": 4518,
-  "final_fixture_count": 603,
-  "ledger_rows_read": 10194,
+  "canonical_ft_actionable_decisions": 25,
+  "evaluation_rows": 4648,
+  "final_fixture_count": 620,
+  "ledger_rows_read": 10300,
   "market_family_actionable_decisions": {
+    "1H_OTHER": 1,
+    "2H_BTTS": 1,
+    "2H_TOTALS": 2,
     "FT_1X2": 10,
-    "FT_TOTALS": 14
+    "FT_TOTALS": 15
   },
   "research_signal_performance": {
     "GOALS_OVER": {
       "definition": "3+ final-match goals (research proxy; not a wager line)",
-      "hit": 92,
-      "hit_rate": 0.6216,
-      "n": 148
+      "hit": 94,
+      "hit_rate": 0.6267,
+      "n": 150
     },
     "GOALS_UNDER": {
       "definition": "0-2 final-match goals (research proxy; not a wager line)",
-      "hit": 66,
-      "hit_rate": 0.5197,
-      "n": 127
+      "hit": 67,
+      "hit_rate": 0.5115,
+      "n": 131
     },
     "SIDE": {
       "definition": "argmax raw 1X2 probability matched final 1/X/2 (research only)",
-      "hit": 109,
-      "hit_rate": 0.5677,
-      "n": 192
+      "hit": 110,
+      "hit_rate": 0.5641,
+      "n": 195
     },
     "TWO_WAY": {
       "definition": "BTTS Yes final result (research proxy)",
-      "hit": 222,
-      "hit_rate": 0.5968,
-      "n": 372
+      "hit": 231,
+      "hit_rate": 0.6016,
+      "n": 384
     }
   },
   "safety_note": "Canonical full-match Winner/1X2, Goals O/U and BTTS remain the only promoted ROI group. Derivatives can be promoted only after explicit grading, enough sample and CLV confirmation.",
   "schema_version": "1.2.0",
-  "settlement_decisions": 24,
+  "settlement_decisions": 29,
   "timezone_basis": "America/Mexico_City"
 }

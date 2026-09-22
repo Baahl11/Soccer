@@ -1,5 +1,44 @@
 {
   "by_market_family": {
+    "1H_OTHER": {
+      "hit_rate_ex_push": null,
+      "loss": 0,
+      "n": 1,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": 0.0,
+      "roi_units": 0.0,
+      "settled": 0,
+      "ungraded": 1,
+      "unsupported_derivative": 0,
+      "win": 0
+    },
+    "2H_BTTS": {
+      "hit_rate_ex_push": 0.0,
+      "loss": 1,
+      "n": 1,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": -0.36,
+      "roi_units": -0.36,
+      "settled": 1,
+      "ungraded": 0,
+      "unsupported_derivative": 0,
+      "win": 0
+    },
+    "2H_TOTALS": {
+      "hit_rate_ex_push": 0.0,
+      "loss": 2,
+      "n": 2,
+      "no_tactical_stats": 0,
+      "push": 0,
+      "roi_per_decision_units": -0.36,
+      "roi_units": -0.72,
+      "settled": 2,
+      "ungraded": 0,
+      "unsupported_derivative": 0,
+      "win": 0
+    },
     "FT_1X2": {
       "hit_rate_ex_push": 0.5,
       "loss": 5,
@@ -14,20 +53,65 @@
       "win": 5
     },
     "FT_TOTALS": {
-      "hit_rate_ex_push": 0.7857,
-      "loss": 3,
-      "n": 14,
+      "hit_rate_ex_push": 0.7333,
+      "loss": 4,
+      "n": 15,
       "no_tactical_stats": 0,
       "push": 0,
-      "roi_per_decision_units": 0.2646,
-      "roi_units": 3.7048,
-      "settled": 14,
+      "roi_per_decision_units": 0.223,
+      "roi_units": 3.3448,
+      "settled": 15,
       "ungraded": 0,
       "unsupported_derivative": 0,
       "win": 11
     }
   },
   "by_market_family_and_classification": {
+    "1H_OTHER": {
+      "BET": {
+        "hit_rate_ex_push": null,
+        "loss": 0,
+        "n": 1,
+        "no_tactical_stats": 0,
+        "push": 0,
+        "roi_per_decision_units": 0.0,
+        "roi_units": 0.0,
+        "settled": 0,
+        "ungraded": 1,
+        "unsupported_derivative": 0,
+        "win": 0
+      }
+    },
+    "2H_BTTS": {
+      "BET": {
+        "hit_rate_ex_push": 0.0,
+        "loss": 1,
+        "n": 1,
+        "no_tactical_stats": 0,
+        "push": 0,
+        "roi_per_decision_units": -0.36,
+        "roi_units": -0.36,
+        "settled": 1,
+        "ungraded": 0,
+        "unsupported_derivative": 0,
+        "win": 0
+      }
+    },
+    "2H_TOTALS": {
+      "BET": {
+        "hit_rate_ex_push": 0.0,
+        "loss": 2,
+        "n": 2,
+        "no_tactical_stats": 0,
+        "push": 0,
+        "roi_per_decision_units": -0.36,
+        "roi_units": -0.72,
+        "settled": 2,
+        "ungraded": 0,
+        "unsupported_derivative": 0,
+        "win": 0
+      }
+    },
     "FT_1X2": {
       "LEAN": {
         "hit_rate_ex_push": 0.5,
@@ -45,14 +129,14 @@
     },
     "FT_TOTALS": {
       "BET": {
-        "hit_rate_ex_push": 0.5,
-        "loss": 3,
-        "n": 6,
+        "hit_rate_ex_push": 0.4286,
+        "loss": 4,
+        "n": 7,
         "no_tactical_stats": 0,
         "push": 0,
-        "roi_per_decision_units": -0.0342,
-        "roi_units": -0.2052,
-        "settled": 6,
+        "roi_per_decision_units": -0.0807,
+        "roi_units": -0.5652,
+        "settled": 7,
         "ungraded": 0,
         "unsupported_derivative": 0,
         "win": 3
@@ -79,6 +163,36 @@
     "tier_s_candidate": 100
   },
   "promotion_gate_by_market_family_and_classification": {
+    "1H_OTHER": {
+      "BET": {
+        "hit_rate_ex_push": null,
+        "n": 1,
+        "reason": "fewer than 20 settled decisions",
+        "roi_units": 0.0,
+        "settled": 0,
+        "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+      }
+    },
+    "2H_BTTS": {
+      "BET": {
+        "hit_rate_ex_push": 0.0,
+        "n": 1,
+        "reason": "fewer than 20 settled decisions",
+        "roi_units": -0.36,
+        "settled": 1,
+        "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+      }
+    },
+    "2H_TOTALS": {
+      "BET": {
+        "hit_rate_ex_push": 0.0,
+        "n": 2,
+        "reason": "fewer than 20 settled decisions",
+        "roi_units": -0.72,
+        "settled": 2,
+        "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+      }
+    },
     "FT_1X2": {
       "LEAN": {
         "hit_rate_ex_push": 0.5,
@@ -91,11 +205,11 @@
     },
     "FT_TOTALS": {
       "BET": {
-        "hit_rate_ex_push": 0.5,
-        "n": 6,
+        "hit_rate_ex_push": 0.4286,
+        "n": 7,
         "reason": "fewer than 20 settled decisions",
-        "roi_units": -0.2052,
-        "settled": 6,
+        "roi_units": -0.5652,
+        "settled": 7,
         "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
       },
       "LEAN": {
@@ -109,6 +223,30 @@
     }
   },
   "promotion_gate_review": {
+    "1H_OTHER": {
+      "hit_rate_ex_push": null,
+      "n": 1,
+      "reason": "fewer than 20 settled decisions",
+      "roi_units": 0.0,
+      "settled": 0,
+      "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+    },
+    "2H_BTTS": {
+      "hit_rate_ex_push": 0.0,
+      "n": 1,
+      "reason": "fewer than 20 settled decisions",
+      "roi_units": -0.36,
+      "settled": 1,
+      "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+    },
+    "2H_TOTALS": {
+      "hit_rate_ex_push": 0.0,
+      "n": 2,
+      "reason": "fewer than 20 settled decisions",
+      "roi_units": -0.72,
+      "settled": 2,
+      "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
+    },
     "FT_1X2": {
       "hit_rate_ex_push": 0.5,
       "n": 10,
@@ -118,16 +256,16 @@
       "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
     },
     "FT_TOTALS": {
-      "hit_rate_ex_push": 0.7857,
-      "n": 14,
+      "hit_rate_ex_push": 0.7333,
+      "n": 15,
       "reason": "fewer than 20 settled decisions",
-      "roi_units": 3.7048,
-      "settled": 14,
+      "roi_units": 3.3448,
+      "settled": 15,
       "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
     }
   },
   "safety_note": "Corners and explicit yellow/red card markets are settled only when postgame tactical stats exist. Generic card markets remain unsupported because sportsbook card-point rules vary.",
   "schema_version": "1.2.0",
-  "settlement_decisions": 24,
+  "settlement_decisions": 29,
   "timezone_basis": "America/Mexico_City"
 }

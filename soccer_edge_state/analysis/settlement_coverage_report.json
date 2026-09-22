@@ -1,17 +1,16 @@
 {
-  "backlog_rows": 14,
+  "backlog_rows": 9,
   "by_classification": {
     "BET": {
       "reason_counts": {
         "DUPLICATE_OLDER_SNAPSHOT": 3,
-        "IN_SETTLEMENT_LEDGER": 6,
-        "PENDING_FINAL_RESULT": 5
+        "IN_SETTLEMENT_LEDGER": 11
       },
-      "rows_with_final": 9,
-      "rows_with_final_and_market": 9,
+      "rows_with_final": 14,
+      "rows_with_final_and_market": 14,
       "rows_with_market": 14,
-      "settlement_coverage_rate": 0.4286,
-      "settlement_rows": 6,
+      "settlement_coverage_rate": 0.7857,
+      "settlement_rows": 11,
       "source_rows": 14
     },
     "LEAN": {
@@ -29,13 +28,13 @@
   },
   "by_market_family_reason": {
     "1H_OTHER": {
-      "PENDING_FINAL_RESULT": 1
+      "IN_SETTLEMENT_LEDGER": 1
     },
     "2H_BTTS": {
-      "PENDING_FINAL_RESULT": 1
+      "IN_SETTLEMENT_LEDGER": 1
     },
     "2H_TOTALS": {
-      "PENDING_FINAL_RESULT": 2
+      "IN_SETTLEMENT_LEDGER": 2
     },
     "FT_1X2": {
       "DUPLICATE_OLDER_SNAPSHOT": 4,
@@ -43,14 +42,12 @@
     },
     "FT_TOTALS": {
       "DUPLICATE_OLDER_SNAPSHOT": 5,
-      "IN_SETTLEMENT_LEDGER": 14,
-      "PENDING_FINAL_RESULT": 1
+      "IN_SETTLEMENT_LEDGER": 15
     }
   },
   "by_reason": {
     "DUPLICATE_OLDER_SNAPSHOT": 9,
-    "IN_SETTLEMENT_LEDGER": 24,
-    "PENDING_FINAL_RESULT": 5
+    "IN_SETTLEMENT_LEDGER": 29
   },
   "policy": {
     "no_runtime_changes": true,
@@ -65,19 +62,14 @@
   },
   "recommended_next_actions": [
     {
-      "action": "No code change; these should enter settlement when final results arrive.",
-      "count": 5,
-      "reason": "PENDING_FINAL_RESULT"
-    },
-    {
       "action": "No action; dedupe keeps the latest decision snapshot.",
       "count": 9,
       "reason": "DUPLICATE_OLDER_SNAPSHOT"
     }
   ],
   "schema_version": "1.0.0",
-  "settlement_coverage_rate": 0.6316,
-  "settlement_rows": 24,
+  "settlement_coverage_rate": 0.7632,
+  "settlement_rows": 29,
   "source_actionable_rows": 38,
   "status": "SETTLEMENT_COVERAGE_AUDIT"
 }
