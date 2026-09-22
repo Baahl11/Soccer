@@ -132,7 +132,40 @@ jobs:
             database_error
           }' /tmp/soccer_tick.json > soccer_edge_state/health.json
 
-          cp /tmp/soccer_tick.json soccer_edge_state/latest.json
+          # latest.json is intentionally compact. The full tick is already durable in
+          # Postgres/history; keeping a multi-MB duplicate here makes GitHub content
+          # retrieval appear empty/truncated and bloats the state branch.
+          jq '{
+            schema_version:"4.0.0",
+            status:"ok",
+            service,
+            version,
+            model_version,
+            generated_at_utc,
+            generated_at_local,
+            timezone,
+            fixture_scan_count,
+            due_fixture_count,
+            event_count,
+            actionable_refresh_count,
+            bet_candidate_count,
+            api_calls_this_tick,
+            max_api_calls_per_tick,
+            effective_max_api_calls_per_tick,
+            last_daily_remaining,
+            daily_budget_mode,
+            database_persisted,
+            database_error,
+            deep_dive_processed_count,
+            deferred_due_to_budget,
+            deferred_due_to_priority,
+            research_visible_count,
+            match_table_rows:(.match_table_rows // []),
+            research_visibility:(.research_visibility // {}),
+            latest_payload_policy:"COMPACT_OPERATIONAL_VIEW_FULL_TICK_IN_POSTGRES_AND_HISTORY"
+          }' /tmp/soccer_tick.json > soccer_edge_state/latest.json
+          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null)' soccer_edge_state/latest.json >/dev/null
+          test -s soccer_edge_state/latest.json
           jq -c '.' /tmp/soccer_tick.json >> "soccer_edge_state/history/${RUN_DATE}.jsonl"
           jq '.shortlist_state // {}' /tmp/soccer_tick.json > soccer_edge_state/shortlist_state.json
           rm -f soccer_edge_state/last_error.json soccer_edge_state/quota_block_until.txt
