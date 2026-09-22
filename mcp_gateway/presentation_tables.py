@@ -69,10 +69,18 @@ def _escape(value: Any) -> str:
     return _text(value).replace("|", "\\|").replace("\n", " ")
 
 
+def _blockers(row: dict[str, Any]) -> str:
+    blockers = row.get("blockers")
+    if not isinstance(blockers, list):
+        return "—"
+    cleaned = [_text(item, "") for item in blockers]
+    return "; ".join(item for item in cleaned if item) or "—"
+
+
 def _detail_table(rows: Iterable[dict[str, Any]]) -> str:
     header = (
-        "| Hora CDMX | País / Liga | Partido | Tier | Señal deportiva | Disp. | Mercado | Precio | Book | Tier bet | Stake | Razón |\n"
-        "|---|---|---|---:|---|---:|---|---:|---|---|---:|---|"
+        "| Hora CDMX | País / Liga | Partido | Tier | MODEL_SIGNAL | Scores | EXECUTION_STATUS | Blockers | Disp. | Mercado | Precio | Book | Tier bet | Stake | Razón |\n"
+        "|---|---|---|---:|---|---|---|---|---:|---|---:|---|---|---:|---|"
     )
     body: list[str] = []
     for row in rows:
@@ -84,7 +92,10 @@ def _detail_table(rows: Iterable[dict[str, Any]]) -> str:
                     _escape(league),
                     _escape(_match(row)),
                     _escape(row.get("data_tier")),
+                    _escape(row.get("model_signal")),
                     _escape(_sport_signal(row)),
+                    _escape(row.get("execution_status")),
+                    _escape(_blockers(row)),
                     _escape(_pct(row.get("availability_confidence"))),
                     _escape(_market(row)),
                     _escape(row.get("price")),
@@ -95,7 +106,7 @@ def _detail_table(rows: Iterable[dict[str, Any]]) -> str:
                 ]
             ) + " |"
         )
-    return header + ("\n" + "\n".join(body) if body else "\n| — | — | Sin partidos | — | — | — | — | — | — | — | — | — |")
+    return header + ("\n" + "\n".join(body) if body else "\n| — | — | Sin partidos | — | — | — | — | — | — | — | — | — | — | — | — |")
 
 
 def _pass_summary(rows: Iterable[dict[str, Any]]) -> str:
