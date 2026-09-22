@@ -51,7 +51,18 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                         event.get("availability_confidence"),
                         event.get("classification"),
                         event.get("tier"),
-                        json.dumps(event),
+                        # soccer_refresh_events already stores the full event payload.
+                        # Keep model_runs focused on the model/projection snapshot to
+                        # avoid serializing and storing the same large event twice.
+                        json.dumps({
+                            "fixture": fx,
+                            "stage": event.get("stage"),
+                            "raw_projection": raw,
+                            "market_decision": decision,
+                            "availability_confidence": event.get("availability_confidence"),
+                            "classification": event.get("classification"),
+                            "tier": event.get("tier"),
+                        }),
                     ),
                 )
     return True
