@@ -168,9 +168,11 @@ jobs:
             research_visible_count,
             match_table_rows:(.match_table_rows // []),
             research_visibility:(.research_visibility // {}),
+            decision_separation:(.decision_separation // {}),
+            v4_005_score_matrix_observability:(.v4_005_score_matrix_observability // {}),
             latest_payload_policy:"COMPACT_OPERATIONAL_VIEW_FULL_TICK_IN_POSTGRES_AND_HISTORY"
           }' /tmp/soccer_tick.json > soccer_edge_state/latest.json
-          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null)' soccer_edge_state/latest.json >/dev/null
+          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object")' soccer_edge_state/latest.json >/dev/null
           test -s soccer_edge_state/latest.json
           jq -c '.' /tmp/soccer_tick.json >> "soccer_edge_state/history/${RUN_DATE}.jsonl"
           jq '.shortlist_state // {}' /tmp/soccer_tick.json > soccer_edge_state/shortlist_state.json
