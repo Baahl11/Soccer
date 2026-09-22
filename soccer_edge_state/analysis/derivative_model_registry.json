@@ -2,7 +2,7 @@
   "models": {
     "1H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 8458,
+      "market_groups_persisted": 9514,
       "market_quotes_persisted": 22454,
       "requirements_remaining": [
         "dedicated 1H market-vs-model calibration",
@@ -13,26 +13,26 @@
       "research_model": {
         "calibration": {
           "baseline_same_sample": {
-            "accuracy_at_0_5": 0.5818,
-            "brier": 0.248,
-            "log_loss": 0.6898,
-            "mean_predicted_probability": 0.3857,
+            "accuracy_at_0_5": 0.5909,
+            "brier": 0.245,
+            "log_loss": 0.6836,
+            "mean_predicted_probability": 0.3861,
             "n": 220,
-            "observed_rate": 0.4227
+            "observed_rate": 0.4182
           },
           "challenger": {
-            "accuracy_at_0_5": 0.5864,
-            "brier": 0.25,
-            "log_loss": 0.6942,
-            "mean_predicted_probability": 0.3784,
+            "accuracy_at_0_5": 0.5909,
+            "brier": 0.247,
+            "log_loss": 0.6878,
+            "mean_predicted_probability": 0.3823,
             "n": 220,
-            "observed_rate": 0.4227
+            "observed_rate": 0.4182
           },
           "improvement": {
-            "accuracy_delta_pp": 0.46,
+            "accuracy_delta_pp": 0.0,
             "brier_delta": 0.002,
-            "log_loss_delta": 0.0044,
-            "mean_probability_delta_pp": -0.73
+            "log_loss_delta": 0.0042,
+            "mean_probability_delta_pp": -0.38
           },
           "method": "WALK_FORWARD_SHRUNK_MULTIPLICATIVE_1H_LAMBDA_CALIBRATION",
           "promotion_gate": {
@@ -51,12 +51,12 @@
         },
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_1h_total_goals_error": 0.9572,
-          "mean_predicted_over_1_5_probability": 0.4037,
-          "observed_over_1_5_rate": 0.3918,
-          "over_1_5_accuracy_at_0_5_threshold": 0.5989,
-          "over_1_5_brier": 0.2401,
-          "over_1_5_log_loss": 0.6734
+          "mean_abs_1h_total_goals_error": 0.9607,
+          "mean_predicted_over_1_5_probability": 0.4027,
+          "observed_over_1_5_rate": 0.3997,
+          "over_1_5_accuracy_at_0_5_threshold": 0.5935,
+          "over_1_5_brier": 0.2407,
+          "over_1_5_log_loss": 0.6745
         },
         "model": "WALK_FORWARD_HIERARCHICAL_1H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -68,13 +68,13 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 536
+        "walk_forward_evaluated": 588
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },
     "2H_GOALS": {
       "actionable": false,
-      "market_groups_persisted": 3950,
+      "market_groups_persisted": 4431,
       "market_quotes_persisted": 15505,
       "requirements_remaining": [
         "dedicated pregame 2H market-vs-model calibration",
@@ -85,12 +85,12 @@
       "research_model": {
         "explicit_period_model": true,
         "metrics": {
-          "mean_abs_2h_total_goals_error": 0.9291,
-          "mean_predicted_over_1_5_probability": 0.4978,
-          "observed_over_1_5_rate": 0.5037,
-          "over_1_5_accuracy_at_0_5_threshold": 0.4627,
-          "over_1_5_brier": 0.2532,
-          "over_1_5_log_loss": 0.6996
+          "mean_abs_2h_total_goals_error": 0.9243,
+          "mean_predicted_over_1_5_probability": 0.4977,
+          "observed_over_1_5_rate": 0.5102,
+          "over_1_5_accuracy_at_0_5_threshold": 0.4609,
+          "over_1_5_brier": 0.2529,
+          "over_1_5_log_loss": 0.699
         },
         "model": "WALK_FORWARD_HIERARCHICAL_PREGAME_2H_POISSON_STRENGTH_v0.1",
         "promotion_gate": {
@@ -102,7 +102,7 @@
           "sample_gate_met_for_market_comparison": true
         },
         "reuses_ft_probability": false,
-        "walk_forward_evaluated": 536
+        "walk_forward_evaluated": 588
       },
       "status": "RESEARCH_MODEL_ACTIVE_NOT_ACTIONABLE"
     },

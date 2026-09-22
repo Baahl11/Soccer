@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T08:03:37.344734Z",
+  "generated_at": "2026-09-22T08:03:42.837652Z",
   "history_files": [
     "2026-09-11.jsonl",
     "2026-09-12.jsonl",
@@ -11,13 +11,15 @@
     "2026-09-18.jsonl",
     "2026-09-19.jsonl",
     "2026-09-20.jsonl",
-    "2026-09-21.jsonl"
+    "2026-09-21.jsonl",
+    "2026-09-22.jsonl",
+    "postgame_final_backfill.jsonl"
   ],
   "period": {
     "first_tick": "2026-09-11T23:16:15.092183-06:00",
-    "last_tick": "2026-09-21T01:53:59.610350-06:00"
+    "last_tick": "2026-09-22T02:13:58.587379Z"
   },
-  "ticks_parsed": 796,
+  "ticks_parsed": 863,
   "bad_json_lines": 0,
   "versions": {
     "1.0.0": 36,
@@ -63,34 +65,36 @@
     "3.41.0": 4,
     "3.43.0": 16,
     "3.56.0": 37,
-    "3.60.0": 239
+    "3.60.0": 299,
+    "3.61.0": 6,
+    "postgame-final-backfill-v1": 1
   },
-  "final_results_found": 569,
-  "unique_fixtures_with_shortlist": 521,
+  "final_results_found": 621,
+  "unique_fixtures_with_shortlist": 569,
   "market_calls": {
-    "unique_total": 521,
-    "canonical_ft": 405,
-    "legacy_invalid_model": 116,
-    "canonical_watch": 380,
+    "unique_total": 567,
+    "canonical_ft": 444,
+    "legacy_invalid_model": 123,
+    "canonical_watch": 419,
     "canonical_lean": 18,
     "canonical_bet": 7,
     "canonical_outcomes": {
-      "n": 405,
-      "win": 143,
-      "loss": 209,
+      "n": 444,
+      "win": 156,
+      "loss": 233,
       "push": 0,
       "ungradable": 0,
-      "no_final": 53,
-      "hit_rate_ex_push": 0.4062
+      "no_final": 55,
+      "hit_rate_ex_push": 0.401
     },
     "watch_outcomes": {
-      "n": 380,
-      "win": 127,
-      "loss": 201,
+      "n": 419,
+      "win": 140,
+      "loss": 224,
       "push": 0,
       "ungradable": 0,
-      "no_final": 52,
-      "hit_rate_ex_push": 0.3872
+      "no_final": 55,
+      "hit_rate_ex_push": 0.3846
     },
     "lean_outcomes": {
       "n": 18,
@@ -104,20 +108,20 @@
     "bet_outcomes": {
       "n": 7,
       "win": 3,
-      "loss": 3,
+      "loss": 4,
       "push": 0,
       "ungradable": 0,
-      "no_final": 1,
-      "hit_rate_ex_push": 0.5
+      "no_final": 0,
+      "hit_rate_ex_push": 0.4286
     },
     "legacy_outcomes": {
-      "n": 116,
-      "win": 1,
-      "loss": 6,
+      "n": 123,
+      "win": 2,
+      "loss": 11,
       "push": 0,
-      "ungradable": 26,
-      "no_final": 83,
-      "hit_rate_ex_push": 0.1429
+      "ungradable": 33,
+      "no_final": 77,
+      "hit_rate_ex_push": 0.1538
     },
     "by_market": {
       "both teams to score": {
@@ -130,22 +134,22 @@
         "hit_rate_ex_push": 0.4375
       },
       "goals over/under": {
-        "n": 207,
-        "win": 96,
-        "loss": 85,
+        "n": 228,
+        "win": 106,
+        "loss": 96,
         "push": 0,
         "ungradable": 0,
         "no_final": 26,
-        "hit_rate_ex_push": 0.5304
+        "hit_rate_ex_push": 0.5248
       },
       "match winner": {
-        "n": 181,
-        "win": 40,
-        "loss": 115,
+        "n": 199,
+        "win": 43,
+        "loss": 128,
         "push": 0,
         "ungradable": 0,
-        "no_final": 26,
-        "hit_rate_ex_push": 0.2581
+        "no_final": 28,
+        "hit_rate_ex_push": 0.2515
       }
     },
     "by_tier": {
@@ -159,128 +163,128 @@
         "hit_rate_ex_push": 0.2917
       },
       "B": {
-        "n": 101,
+        "n": 106,
         "win": 25,
-        "loss": 61,
+        "loss": 66,
         "push": 0,
         "ungradable": 0,
         "no_final": 15,
-        "hit_rate_ex_push": 0.2907
+        "hit_rate_ex_push": 0.2747
       },
       "NONE": {
-        "n": 251,
-        "win": 109,
-        "loss": 111,
+        "n": 284,
+        "win": 121,
+        "loss": 130,
         "push": 0,
         "ungradable": 0,
-        "no_final": 31,
-        "hit_rate_ex_push": 0.4955
+        "no_final": 33,
+        "hit_rate_ex_push": 0.4821
       },
       "S": {
-        "n": 26,
-        "win": 2,
+        "n": 27,
+        "win": 3,
         "loss": 20,
         "push": 0,
         "ungradable": 0,
         "no_final": 4,
-        "hit_rate_ex_push": 0.0909
+        "hit_rate_ex_push": 0.1304
       }
     }
   },
-  "generic_watch_count": 5077,
+  "generic_watch_count": 5200,
   "generic_watch_reasons": {
-    "GENERIC_WATCH": 3168,
-    "AVAILABILITY_NOT_VERIFIED": 1654,
-    "RAW_PROJECTION_NOT_AVAILABLE": 253,
-    "MARKET_NOT_VERIFIED": 2
+    "GENERIC_WATCH": 3187,
+    "AVAILABILITY_NOT_VERIFIED": 1715,
+    "RAW_PROJECTION_NOT_AVAILABLE": 294,
+    "MARKET_NOT_VERIFIED": 4
   },
   "sporting_signal_diagnostics": {
     "GOALS_OVER": {
-      "n": 163,
-      "with_final": 133,
-      "avg_goals": 3.2,
-      "pct_3plus": 0.6165
+      "n": 181,
+      "with_final": 150,
+      "avg_goals": 3.29,
+      "pct_3plus": 0.6267
     },
     "GOALS_UNDER": {
-      "n": 145,
-      "with_final": 114,
-      "avg_goals": 2.64,
-      "pct_0_2": 0.5175
+      "n": 164,
+      "with_final": 132,
+      "avg_goals": 2.58,
+      "pct_0_2": 0.5152
     },
     "TWO_WAY": {
-      "n": 426,
-      "with_final": 347,
-      "btts_rate": 0.5937
+      "n": 464,
+      "with_final": 385,
+      "btts_rate": 0.6
     },
     "SIDE": {
-      "n": 223,
-      "with_final": 176,
-      "predicted_side_win_rate": 0.5568
+      "n": 244,
+      "with_final": 195,
+      "predicted_side_win_rate": 0.5641
     }
   },
   "score_bin_diagnostics": {
     "two_way": {
       "85+": {
-        "n": 165,
-        "btts_rate": 0.6
+        "n": 185,
+        "btts_rate": 0.6054
       },
       "75-84": {
-        "n": 86,
-        "btts_rate": 0.6279
+        "n": 93,
+        "btts_rate": 0.6452
       },
       "65-74": {
-        "n": 96,
-        "btts_rate": 0.5521
+        "n": 107,
+        "btts_rate": 0.5514
       }
     },
     "goal_environment": {
       "70-79": {
-        "n": 58,
-        "avg_goals": 3.02,
-        "pct_3plus": 0.5172
+        "n": 61,
+        "avg_goals": 3.05,
+        "pct_3plus": 0.5246
       },
       "50-69": {
-        "n": 173,
-        "avg_goals": 2.94,
-        "pct_3plus": 0.5954
+        "n": 186,
+        "avg_goals": 2.97,
+        "pct_3plus": 0.5968
       },
       "30-49": {
-        "n": 86,
-        "avg_goals": 2.51,
-        "pct_3plus": 0.4302
+        "n": 101,
+        "avg_goals": 2.45,
+        "pct_3plus": 0.4356
       },
       "80-89": {
-        "n": 34,
-        "avg_goals": 3.41,
-        "pct_3plus": 0.7647
+        "n": 37,
+        "avg_goals": 3.51,
+        "pct_3plus": 0.7568
       },
       "90+": {
-        "n": 41,
-        "avg_goals": 3.27,
-        "pct_3plus": 0.6341
+        "n": 52,
+        "avg_goals": 3.42,
+        "pct_3plus": 0.6538
       },
       "<30": {
-        "n": 28,
-        "avg_goals": 3.04,
-        "pct_3plus": 0.6429
+        "n": 31,
+        "avg_goals": 3.03,
+        "pct_3plus": 0.6452
       }
     },
     "side_edge": {
       "70-79": {
-        "n": 52,
-        "win_rate": 0.5962
+        "n": 59,
+        "win_rate": 0.6271
       },
       "60-69": {
-        "n": 83,
-        "win_rate": 0.5181
+        "n": 91,
+        "win_rate": 0.5055
       },
       "80-89": {
-        "n": 26,
-        "win_rate": 0.5385
+        "n": 27,
+        "win_rate": 0.5185
       },
       "90+": {
-        "n": 15,
-        "win_rate": 0.6667
+        "n": 18,
+        "win_rate": 0.7222
       }
     }
   },
@@ -788,7 +792,7 @@
       "classifications": [
         "WATCH"
       ],
-      "outcome": "NO_FINAL",
+      "outcome": "WIN",
       "legacy_invalid_model": true
     },
     {
@@ -860,7 +864,7 @@
       "classifications": [
         "BET"
       ],
-      "outcome": "NO_FINAL",
+      "outcome": "LOSS",
       "legacy_invalid_model": true
     },
     {
@@ -1148,7 +1152,7 @@
       "classifications": [
         "BET"
       ],
-      "outcome": "NO_FINAL",
+      "outcome": "UNGRADABLE",
       "legacy_invalid_model": true
     },
     {
@@ -1509,7 +1513,7 @@
       "classifications": [
         "WATCH"
       ],
-      "outcome": "NO_FINAL",
+      "outcome": "LOSS",
       "legacy_invalid_model": true
     },
     {
@@ -2014,7 +2018,7 @@
       "classifications": [
         "BET"
       ],
-      "outcome": "NO_FINAL",
+      "outcome": "LOSS",
       "legacy_invalid_model": true
     },
     {
@@ -2230,7 +2234,7 @@
       "classifications": [
         "WATCH"
       ],
-      "outcome": "NO_FINAL",
+      "outcome": "LOSS",
       "legacy_invalid_model": true
     },
     {
@@ -3030,7 +3034,7 @@
       "classifications": [
         "BET"
       ],
-      "outcome": "NO_FINAL",
+      "outcome": "LOSS",
       "legacy_invalid_model": true
     },
     {
@@ -28170,7 +28174,7 @@
         "WATCH",
         "BET"
       ],
-      "outcome": "NO_FINAL",
+      "outcome": "LOSS",
       "legacy_invalid_model": false
     },
     {
@@ -38834,6 +38838,3440 @@
         "WATCH"
       ],
       "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1509190,
+      "fixture": {
+        "fixture_id": 1509190,
+        "kickoff": "2026-09-21T09:00:00-06:00",
+        "timestamp": 1790002800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 327,
+        "league": "Erovnuli Liga",
+        "country": "Georgia",
+        "season": 2026,
+        "round": "Regular Season - 27",
+        "home_team_id": 3501,
+        "home_team": "Rustavi",
+        "away_team_id": 3502,
+        "away_team": "FC Iberia 1999",
+        "venue": "David Petriashvili Stadium",
+        "city": "Tbilisi",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "A. Aptsiauri",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 2.82,
+      "bookmaker": "Pinnacle",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T08:47:58.543397-06:00",
+      "p_raw": 0.504578,
+      "p_shrunk": 0.352153,
+      "p_breakeven": 0.35461,
+      "p_market_fair": 0.32312,
+      "edge_pp": 2.903,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T08:47:58.543397-06:00",
+      "last_seen": "2026-09-21T08:47:58.543397-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1521697,
+      "fixture": {
+        "fixture_id": 1521697,
+        "kickoff": "2026-09-21T09:00:00-06:00",
+        "timestamp": 1790002800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 1126,
+        "league": "Esiliiga B",
+        "country": "Estonia",
+        "season": 2026,
+        "round": "Regular Season - 30",
+        "home_team_id": 7906,
+        "home_team": "Levadia U19",
+        "away_team_id": 10168,
+        "away_team": "Luunja",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 1.22,
+      "bookmaker": "Bet365",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T08:47:58.543397-06:00",
+      "p_raw": 0.773991,
+      "p_shrunk": 0.767517,
+      "p_breakeven": 0.819672,
+      "p_market_fair": 0.766284,
+      "edge_pp": 0.123,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T08:47:58.543397-06:00",
+      "last_seen": "2026-09-21T08:47:58.543397-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1561139,
+      "fixture": {
+        "fixture_id": 1561139,
+        "kickoff": "2026-09-21T09:00:00-06:00",
+        "timestamp": 1790002800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 506,
+        "league": "2. liga",
+        "country": "Slovakia",
+        "season": 2026,
+        "round": "Regular Season - 9",
+        "home_team_id": 10538,
+        "home_team": "Petržalka",
+        "away_team_id": 4134,
+        "away_team": "Pohronie",
+        "venue": null,
+        "city": "Bratislava",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 3.5,
+      "price": 2.55,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T08:47:58.543397-06:00",
+      "p_raw": 0.506475,
+      "p_shrunk": 0.385536,
+      "p_breakeven": 0.392157,
+      "p_market_fair": 0.3625,
+      "edge_pp": 2.304,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T08:47:58.543397-06:00",
+      "last_seen": "2026-09-21T08:47:58.543397-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1565259,
+      "fixture": {
+        "fixture_id": 1565259,
+        "kickoff": "2026-09-21T09:00:00-06:00",
+        "timestamp": 1790002800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 283,
+        "league": "Liga I",
+        "country": "Romania",
+        "season": 2026,
+        "round": "Regular Season - 10",
+        "home_team_id": 6886,
+        "home_team": "Oţelul",
+        "away_team_id": 20034,
+        "away_team": "Corvinul Hunedoara",
+        "venue": "Stadionul Oțelul",
+        "city": "Galati",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "Rares George Vidican",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "BTTS",
+      "market": "Both Teams Score",
+      "selection": "no",
+      "line": null,
+      "price": 2.0,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": "B",
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T08:47:58.543397-06:00",
+      "p_raw": 0.711207,
+      "p_shrunk": 0.510813,
+      "p_breakeven": 0.5,
+      "p_market_fair": 0.463807,
+      "edge_pp": 4.701,
+      "availability_confidence": 0.9,
+      "canonical_ft": false,
+      "first_seen": "2026-09-21T08:47:58.543397-06:00",
+      "last_seen": "2026-09-21T08:47:58.543397-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "UNGRADABLE",
+      "legacy_invalid_model": true
+    },
+    {
+      "fixture_id": 1640822,
+      "fixture": {
+        "fixture_id": 1640822,
+        "kickoff": "2026-09-21T09:00:00-06:00",
+        "timestamp": 1790002800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 10,
+        "league": "Friendlies",
+        "country": "World",
+        "season": 2026,
+        "round": "Friendly International",
+        "home_team_id": 5531,
+        "home_team": "Dominica",
+        "away_team_id": 8150,
+        "away_team": "Anguilla",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 1.5,
+      "price": 6.5,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": "S",
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T08:47:58.543397-06:00",
+      "p_raw": 0.832162,
+      "p_shrunk": 0.254725,
+      "p_breakeven": 0.153846,
+      "p_market_fair": 0.144737,
+      "edge_pp": 10.999,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T08:47:58.543397-06:00",
+      "last_seen": "2026-09-21T08:47:58.543397-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1516144,
+      "fixture": {
+        "fixture_id": 1516144,
+        "kickoff": "2026-09-21T09:15:00-06:00",
+        "timestamp": 1790003700,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 369,
+        "league": "Super League",
+        "country": "Uzbekistan",
+        "season": 2026,
+        "round": "Regular Season - 22",
+        "home_team_id": 16381,
+        "home_team": "Xorazm",
+        "away_team_id": 4221,
+        "away_team": "Qizilqum",
+        "venue": "Xorazm Stadium",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 3.9,
+      "bookmaker": "Bet365",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-20",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T08:56:52.438786-06:00",
+      "p_raw": 0.315783,
+      "p_shrunk": 0.244662,
+      "p_breakeven": 0.25641,
+      "p_market_fair": 0.231115,
+      "edge_pp": 1.355,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T08:56:52.438786-06:00",
+      "last_seen": "2026-09-21T08:56:52.438786-06:00",
+      "stages": [
+        "T-20"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1496699,
+      "fixture": {
+        "fixture_id": 1496699,
+        "kickoff": "2026-09-21T10:00:00-06:00",
+        "timestamp": 1790006400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 775,
+        "league": "3. Division - Girone 2",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 7030,
+        "home_team": "Spjelkavik",
+        "away_team_id": 10113,
+        "away_team": "Rosenborg II",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 6.67,
+      "bookmaker": "1xBet",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:54:16.388570-06:00",
+      "p_raw": 0.31847,
+      "p_shrunk": 0.164461,
+      "p_breakeven": 0.149925,
+      "p_market_fair": 0.135126,
+      "edge_pp": 2.934,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T09:44:59.495483-06:00",
+      "last_seen": "2026-09-21T09:54:16.388570-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1496877,
+      "fixture": {
+        "fixture_id": 1496877,
+        "kickoff": "2026-09-21T10:30:00-06:00",
+        "timestamp": 1790008200,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 776,
+        "league": "3. Division - Girone 3",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 16218,
+        "home_team": "Brann II",
+        "away_team_id": 6990,
+        "away_team": "Fyllingsdalen",
+        "venue": "Varden Amfi",
+        "city": "Bergen",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 5.5,
+      "price": 1.57,
+      "bookmaker": "Marathonbet",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-40",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:44:59.495483-06:00",
+      "p_raw": 0.745665,
+      "p_shrunk": 0.609492,
+      "p_breakeven": 0.636943,
+      "p_market_fair": 0.583554,
+      "edge_pp": 2.594,
+      "availability_confidence": 0.7,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T09:44:59.495483-06:00",
+      "last_seen": "2026-09-21T09:44:59.495483-06:00",
+      "stages": [
+        "T-40"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1497060,
+      "fixture": {
+        "fixture_id": 1497060,
+        "kickoff": "2026-09-21T10:00:00-06:00",
+        "timestamp": 1790006400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 777,
+        "league": "3. Division - Girone 4",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 7009,
+        "home_team": "Madla",
+        "away_team_id": 18439,
+        "away_team": "Haugesund II",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 1.65,
+      "bookmaker": "William Hill",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:54:16.388570-06:00",
+      "p_raw": 0.694184,
+      "p_shrunk": 0.564513,
+      "p_breakeven": 0.606061,
+      "p_market_fair": 0.539814,
+      "edge_pp": 2.47,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T09:44:59.495483-06:00",
+      "last_seen": "2026-09-21T09:54:16.388570-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1497062,
+      "fixture": {
+        "fixture_id": 1497062,
+        "kickoff": "2026-09-21T10:00:00-06:00",
+        "timestamp": 1790006400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 777,
+        "league": "3. Division - Girone 4",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 12860,
+        "home_team": "Staal Jørpeland",
+        "away_team_id": 12891,
+        "away_team": "Viking II",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 3.44,
+      "bookmaker": "1xBet",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:54:16.388570-06:00",
+      "p_raw": 0.374007,
+      "p_shrunk": 0.279965,
+      "p_breakeven": 0.290698,
+      "p_market_fair": 0.262052,
+      "edge_pp": 1.791,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T09:44:59.495483-06:00",
+      "last_seen": "2026-09-21T09:54:16.388570-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1497422,
+      "fixture": {
+        "fixture_id": 1497422,
+        "kickoff": "2026-09-21T10:00:00-06:00",
+        "timestamp": 1790006400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 779,
+        "league": "3. Division - Girone 6",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 6972,
+        "home_team": "Brumunddal",
+        "away_team_id": 21418,
+        "away_team": "Sandefjord II",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "BTTS",
+      "market": "Both Teams Score",
+      "selection": "yes",
+      "line": null,
+      "price": 1.44,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:54:16.388570-06:00",
+      "p_raw": 0.822867,
+      "p_shrunk": 0.67446,
+      "p_breakeven": 0.694444,
+      "p_market_fair": 0.646192,
+      "edge_pp": 2.827,
+      "availability_confidence": 0.6,
+      "canonical_ft": false,
+      "first_seen": "2026-09-21T09:44:59.495483-06:00",
+      "last_seen": "2026-09-21T09:54:16.388570-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "UNGRADABLE",
+      "legacy_invalid_model": true
+    },
+    {
+      "fixture_id": 1497427,
+      "fixture": {
+        "fixture_id": 1497427,
+        "kickoff": "2026-09-21T10:00:00-06:00",
+        "timestamp": 1790006400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 779,
+        "league": "3. Division - Girone 6",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 25499,
+        "home_team": "Lyn II",
+        "away_team_id": 16215,
+        "away_team": "Sarpsborg 08 II",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 4.6,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:54:16.388570-06:00",
+      "p_raw": 0.29027,
+      "p_shrunk": 0.210684,
+      "p_breakeven": 0.217391,
+      "p_market_fair": 0.195525,
+      "edge_pp": 1.516,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T09:54:16.388570-06:00",
+      "last_seen": "2026-09-21T09:54:16.388570-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1554162,
+      "fixture": {
+        "fixture_id": 1554162,
+        "kickoff": "2026-09-21T10:00:00-06:00",
+        "timestamp": 1790006400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 287,
+        "league": "Prva Liga",
+        "country": "Serbia",
+        "season": 2026,
+        "round": "Regular Season - 10",
+        "home_team_id": 2653,
+        "home_team": "Javor",
+        "away_team_id": 19839,
+        "away_team": "Naftagas",
+        "venue": "Stadion Kraj Moravice",
+        "city": "Ivanjica",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 3.5,
+      "price": 1.53,
+      "bookmaker": "Betano",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:54:16.388570-06:00",
+      "p_raw": 0.727823,
+      "p_shrunk": 0.611894,
+      "p_breakeven": 0.653595,
+      "p_market_fair": 0.589812,
+      "edge_pp": 2.208,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T09:54:16.388570-06:00",
+      "last_seen": "2026-09-21T09:54:16.388570-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1554163,
+      "fixture": {
+        "fixture_id": 1554163,
+        "kickoff": "2026-09-21T10:00:00-06:00",
+        "timestamp": 1790006400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 287,
+        "league": "Prva Liga",
+        "country": "Serbia",
+        "season": 2026,
+        "round": "Regular Season - 10",
+        "home_team_id": 12319,
+        "home_team": "Jedinstvo Ub",
+        "away_team_id": 12323,
+        "away_team": "Loznica",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 2.2,
+      "bookmaker": "Bet365",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:54:16.388570-06:00",
+      "p_raw": 0.617481,
+      "p_shrunk": 0.458797,
+      "p_breakeven": 0.454545,
+      "p_market_fair": 0.428571,
+      "edge_pp": 3.023,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T09:54:16.388570-06:00",
+      "last_seen": "2026-09-21T09:54:16.388570-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1571568,
+      "fixture": {
+        "fixture_id": 1571568,
+        "kickoff": "2026-09-21T10:30:00-06:00",
+        "timestamp": 1790008200,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 173,
+        "league": "Second League",
+        "country": "Bulgaria",
+        "season": 2026,
+        "round": "Regular Season - 10",
+        "home_team_id": 1424,
+        "home_team": "Montana",
+        "away_team_id": 4659,
+        "away_team": "Hebar 1918",
+        "venue": "Ogosta Stadium",
+        "city": "Montana",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 1.79,
+      "bookmaker": "BetVictor",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-40",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T09:54:16.388570-06:00",
+      "p_raw": 0.727548,
+      "p_shrunk": 0.546707,
+      "p_breakeven": 0.558659,
+      "p_market_fair": 0.512262,
+      "edge_pp": 3.445,
+      "availability_confidence": 0.7,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T09:54:16.388570-06:00",
+      "last_seen": "2026-09-21T09:54:16.388570-06:00",
+      "stages": [
+        "T-40"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1509192,
+      "fixture": {
+        "fixture_id": 1509192,
+        "kickoff": "2026-09-21T11:00:00-06:00",
+        "timestamp": 1790010000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 327,
+        "league": "Erovnuli Liga",
+        "country": "Georgia",
+        "season": 2026,
+        "round": "Regular Season - 27",
+        "home_team_id": 14864,
+        "home_team": "Spaeri",
+        "away_team_id": 3499,
+        "away_team": "Dila",
+        "venue": "Spaeri Stadium",
+        "city": "Tbilisi",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "B. Bregadze",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 1.92,
+      "bookmaker": "SBO",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T10:56:26.268184-06:00",
+      "p_raw": 0.574003,
+      "p_shrunk": 0.505174,
+      "p_breakeven": 0.520833,
+      "p_market_fair": 0.492063,
+      "edge_pp": 1.311,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T10:19:22.970483-06:00",
+      "last_seen": "2026-09-21T10:56:26.268184-06:00",
+      "stages": [
+        "T-40",
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1496697,
+      "fixture": {
+        "fixture_id": 1496697,
+        "kickoff": "2026-09-21T11:00:00-06:00",
+        "timestamp": 1790010000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 775,
+        "league": "3. Division - Girone 2",
+        "country": "Norway",
+        "season": 2026,
+        "round": "Regular Season - 20",
+        "home_team_id": 7014,
+        "home_team": "Nardo",
+        "away_team_id": 16224,
+        "away_team": "Ranheim II",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 1.17,
+      "bookmaker": "Bet365",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T10:56:26.268184-06:00",
+      "p_raw": 0.89139,
+      "p_shrunk": 0.809289,
+      "p_breakeven": 0.854701,
+      "p_market_fair": 0.793651,
+      "edge_pp": 1.564,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T10:47:17.676314-06:00",
+      "last_seen": "2026-09-21T10:56:26.268184-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1504547,
+      "fixture": {
+        "fixture_id": 1504547,
+        "kickoff": "2026-09-21T11:00:00-06:00",
+        "timestamp": 1790010000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 564,
+        "league": "Ettan - Södra",
+        "country": "Sweden",
+        "season": 2026,
+        "round": "Södra - 23",
+        "home_team_id": 2168,
+        "home_team": "Angelholms FF",
+        "away_team_id": 6663,
+        "away_team": "Eskilsminne",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 2.42,
+      "bookmaker": "SBO",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T10:56:26.268184-06:00",
+      "p_raw": 0.466905,
+      "p_shrunk": 0.368308,
+      "p_breakeven": 0.413223,
+      "p_market_fair": 0.349528,
+      "edge_pp": 1.878,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T10:47:17.676314-06:00",
+      "last_seen": "2026-09-21T10:56:26.268184-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1504551,
+      "fixture": {
+        "fixture_id": 1504551,
+        "kickoff": "2026-09-21T11:00:00-06:00",
+        "timestamp": 1790010000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 564,
+        "league": "Ettan - Södra",
+        "country": "Sweden",
+        "season": 2026,
+        "round": "Södra - 23",
+        "home_team_id": 764,
+        "home_team": "Jonkopings Sodra",
+        "away_team_id": 6698,
+        "away_team": "Skövde AIK",
+        "venue": "Stadsparksvallen",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 5.5,
+      "price": 1.05,
+      "bookmaker": "Betano",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T10:56:26.268184-06:00",
+      "p_raw": 0.965261,
+      "p_shrunk": 0.872787,
+      "p_breakeven": 0.952381,
+      "p_market_fair": 0.855172,
+      "edge_pp": 1.761,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T10:47:17.676314-06:00",
+      "last_seen": "2026-09-21T10:56:26.268184-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1505268,
+      "fixture": {
+        "fixture_id": 1505268,
+        "kickoff": "2026-09-21T11:00:00-06:00",
+        "timestamp": 1790010000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 563,
+        "league": "Ettan - Norra",
+        "country": "Sweden",
+        "season": 2026,
+        "round": "Norra - 23",
+        "home_team_id": 16597,
+        "home_team": "Arlanda",
+        "away_team_id": 16596,
+        "away_team": "Hammarby Talang",
+        "venue": "Midgardsvallen",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 4.5,
+      "price": 1.2,
+      "bookmaker": "Betano",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T10:56:26.268184-06:00",
+      "p_raw": 0.87565,
+      "p_shrunk": 0.772269,
+      "p_breakeven": 0.833333,
+      "p_market_fair": 0.752577,
+      "edge_pp": 1.969,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T10:47:17.676314-06:00",
+      "last_seen": "2026-09-21T10:56:26.268184-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1565260,
+      "fixture": {
+        "fixture_id": 1565260,
+        "kickoff": "2026-09-21T12:00:00-06:00",
+        "timestamp": 1790013600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 283,
+        "league": "Liga I",
+        "country": "Romania",
+        "season": 2026,
+        "round": "Regular Season - 10",
+        "home_team_id": 2598,
+        "home_team": "Petrolul Ploiesti",
+        "away_team_id": 6230,
+        "away_team": "Csikszereda",
+        "venue": "Stadionul Ilie Oana",
+        "city": "Ploiesti",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "Sorin Dan Vadana",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "BTTS",
+      "market": "Both Teams Score",
+      "selection": "no",
+      "line": null,
+      "price": 1.95,
+      "bookmaker": "William Hill",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T11:50:20.198775-06:00",
+      "p_raw": 0.569299,
+      "p_shrunk": 0.491275,
+      "p_breakeven": 0.512821,
+      "p_market_fair": 0.472973,
+      "edge_pp": 1.83,
+      "availability_confidence": 0.9,
+      "canonical_ft": false,
+      "first_seen": "2026-09-21T11:16:47.300136-06:00",
+      "last_seen": "2026-09-21T11:50:20.198775-06:00",
+      "stages": [
+        "T-40",
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "UNGRADABLE",
+      "legacy_invalid_model": true
+    },
+    {
+      "fixture_id": 1498828,
+      "fixture": {
+        "fixture_id": 1498828,
+        "kickoff": "2026-09-21T12:00:00-06:00",
+        "timestamp": 1790013600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 129,
+        "league": "Primera Nacional",
+        "country": "Argentina",
+        "season": 2026,
+        "round": "Regular Season - 30",
+        "home_team_id": 1965,
+        "home_team": "Tristan Suarez",
+        "away_team_id": 1948,
+        "away_team": "Atlanta",
+        "venue": "Estadio 20 de Octubre",
+        "city": "Tristan Suarez",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 1.5,
+      "price": 1.66,
+      "bookmaker": "BetVictor",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T11:50:20.198775-06:00",
+      "p_raw": 0.61635,
+      "p_shrunk": 0.562767,
+      "p_breakeven": 0.60241,
+      "p_market_fair": 0.552561,
+      "edge_pp": 1.021,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T11:40:15.296375-06:00",
+      "last_seen": "2026-09-21T11:50:20.198775-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1500111,
+      "fixture": {
+        "fixture_id": 1500111,
+        "kickoff": "2026-09-21T12:00:00-06:00",
+        "timestamp": 1790013600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 132,
+        "league": "Primera C",
+        "country": "Argentina",
+        "season": 2026,
+        "round": "Regular Season - 29",
+        "home_team_id": 1967,
+        "home_team": "Central Ballester",
+        "away_team_id": 790,
+        "away_team": "Central Cordoba",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 3.34,
+      "bookmaker": "1xBet",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T11:50:20.198775-06:00",
+      "p_raw": 0.358694,
+      "p_shrunk": 0.284124,
+      "p_breakeven": 0.299401,
+      "p_market_fair": 0.26992,
+      "edge_pp": 1.42,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T11:40:15.296375-06:00",
+      "last_seen": "2026-09-21T11:50:20.198775-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1500112,
+      "fixture": {
+        "fixture_id": 1500112,
+        "kickoff": "2026-09-21T12:00:00-06:00",
+        "timestamp": 1790013600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 132,
+        "league": "Primera C",
+        "country": "Argentina",
+        "season": 2026,
+        "round": "Regular Season - 29",
+        "home_team_id": 8391,
+        "home_team": "Claypole",
+        "away_team_id": 8398,
+        "away_team": "Yupanqui",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 3.67,
+      "bookmaker": "1xBet",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T11:50:20.198775-06:00",
+      "p_raw": 0.39704,
+      "p_shrunk": 0.269844,
+      "p_breakeven": 0.27248,
+      "p_market_fair": 0.245616,
+      "edge_pp": 2.423,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T11:40:15.296375-06:00",
+      "last_seen": "2026-09-21T11:50:20.198775-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1500115,
+      "fixture": {
+        "fixture_id": 1500115,
+        "kickoff": "2026-09-21T12:00:00-06:00",
+        "timestamp": 1790013600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 132,
+        "league": "Primera C",
+        "country": "Argentina",
+        "season": 2026,
+        "round": "Regular Season - 29",
+        "home_team_id": 8384,
+        "home_team": "El Porvenir",
+        "away_team_id": 8381,
+        "away_team": "Deportivo Español",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "BTTS",
+      "market": "Both Teams Score",
+      "selection": "no",
+      "line": null,
+      "price": 1.36,
+      "bookmaker": "BetVictor",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T11:50:20.198775-06:00",
+      "p_raw": 0.69086,
+      "p_shrunk": 0.625068,
+      "p_breakeven": 0.735294,
+      "p_market_fair": 0.612536,
+      "edge_pp": 1.253,
+      "availability_confidence": 0.6,
+      "canonical_ft": false,
+      "first_seen": "2026-09-21T11:40:15.296375-06:00",
+      "last_seen": "2026-09-21T11:50:20.198775-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "UNGRADABLE",
+      "legacy_invalid_model": true
+    },
+    {
+      "fixture_id": 1500121,
+      "fixture": {
+        "fixture_id": 1500121,
+        "kickoff": "2026-09-21T12:00:00-06:00",
+        "timestamp": 1790013600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 132,
+        "league": "Primera C",
+        "country": "Argentina",
+        "season": 2026,
+        "round": "Regular Season - 29",
+        "home_team_id": 1942,
+        "home_team": "Sacachispas",
+        "away_team_id": 1964,
+        "away_team": "Victoriano Arenas",
+        "venue": "Estadio Beto Larrosa",
+        "city": "Villa Soldati",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "BTTS",
+      "market": "Both Teams Score",
+      "selection": "no",
+      "line": null,
+      "price": 1.57,
+      "bookmaker": "William Hill",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T11:50:20.198775-06:00",
+      "p_raw": 0.661841,
+      "p_shrunk": 0.605119,
+      "p_breakeven": 0.636943,
+      "p_market_fair": 0.594315,
+      "edge_pp": 1.08,
+      "availability_confidence": 0.6,
+      "canonical_ft": false,
+      "first_seen": "2026-09-21T11:40:15.296375-06:00",
+      "last_seen": "2026-09-21T11:50:20.198775-06:00",
+      "stages": [
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "UNGRADABLE",
+      "legacy_invalid_model": true
+    },
+    {
+      "fixture_id": 1608283,
+      "fixture": {
+        "fixture_id": 1608283,
+        "kickoff": "2026-09-21T12:30:00-06:00",
+        "timestamp": 1790015400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 138,
+        "league": "Serie C - Girone A",
+        "country": "Italy",
+        "season": 2026,
+        "round": "Girone A - 6",
+        "home_team_id": 17820,
+        "home_team": "Dolomiti Bellunesi",
+        "away_team_id": 1689,
+        "away_team": "Lumezzane",
+        "venue": "Zugni Tauro",
+        "city": "Feltre",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "BTTS",
+      "market": "Both Teams Score",
+      "selection": "no",
+      "line": null,
+      "price": 1.8,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": "B",
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T12:26:55.086142-06:00",
+      "p_raw": 0.807449,
+      "p_shrunk": 0.561645,
+      "p_breakeven": 0.555556,
+      "p_market_fair": 0.514825,
+      "edge_pp": 4.682,
+      "availability_confidence": 0.6,
+      "canonical_ft": false,
+      "first_seen": "2026-09-21T11:50:20.198775-06:00",
+      "last_seen": "2026-09-21T12:26:55.086142-06:00",
+      "stages": [
+        "T-40",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "UNGRADABLE",
+      "legacy_invalid_model": true
+    },
+    {
+      "fixture_id": 1608289,
+      "fixture": {
+        "fixture_id": 1608289,
+        "kickoff": "2026-09-21T12:30:00-06:00",
+        "timestamp": 1790015400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 138,
+        "league": "Serie C - Girone A",
+        "country": "Italy",
+        "season": 2026,
+        "round": "Girone A - 6",
+        "home_team_id": 17147,
+        "home_team": "Trento",
+        "away_team_id": 526,
+        "away_team": "PRO Vercelli",
+        "venue": "Stadio Briamasco",
+        "city": "Trento",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 2.5,
+      "price": 1.95,
+      "bookmaker": "Bet365",
+      "classification": "WATCH",
+      "tier": "B",
+      "stage": "T-40",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T11:50:20.198775-06:00",
+      "p_raw": 0.759696,
+      "p_shrunk": 0.530499,
+      "p_breakeven": 0.512821,
+      "p_market_fair": 0.486842,
+      "edge_pp": 4.366,
+      "availability_confidence": 0.7,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T11:50:20.198775-06:00",
+      "last_seen": "2026-09-21T11:50:20.198775-06:00",
+      "stages": [
+        "T-40"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1608290,
+      "fixture": {
+        "fixture_id": 1608290,
+        "kickoff": "2026-09-21T12:30:00-06:00",
+        "timestamp": 1790015400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 138,
+        "league": "Serie C - Girone A",
+        "country": "Italy",
+        "season": 2026,
+        "round": "Girone A - 6",
+        "home_team_id": 22319,
+        "home_team": "Treviso",
+        "away_team_id": 17816,
+        "away_team": "Desenzano Calvina",
+        "venue": "Stadio Omobono Tenni",
+        "city": "Treviso",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 3.5,
+      "price": 1.21,
+      "bookmaker": "Betano",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-40",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T11:50:20.198775-06:00",
+      "p_raw": 0.851441,
+      "p_shrunk": 0.777326,
+      "p_breakeven": 0.826446,
+      "p_market_fair": 0.763209,
+      "edge_pp": 1.412,
+      "availability_confidence": 0.7,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T11:50:20.198775-06:00",
+      "last_seen": "2026-09-21T11:50:20.198775-06:00",
+      "stages": [
+        "T-40"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1639819,
+      "fixture": {
+        "fixture_id": 1639819,
+        "kickoff": "2026-09-21T13:00:00-06:00",
+        "timestamp": 1790017200,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 242,
+        "league": "Liga Pro",
+        "country": "Ecuador",
+        "season": 2026,
+        "round": "Relegation Group - 1",
+        "home_team_id": 1980,
+        "home_team": "Manta FC",
+        "away_team_id": 1992,
+        "away_team": "Orense SC",
+        "venue": "Estadio Jocay",
+        "city": "Manta",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "L. Quinonez",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 4.5,
+      "price": 1.03,
+      "bookmaker": "BetVictor",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T12:55:15.436575-06:00",
+      "p_raw": 0.921986,
+      "p_shrunk": 0.841886,
+      "p_breakeven": 0.970874,
+      "p_market_fair": 0.813743,
+      "edge_pp": 2.814,
+      "availability_confidence": 0.9,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T12:26:55.086142-06:00",
+      "last_seen": "2026-09-21T12:55:15.436575-06:00",
+      "stages": [
+        "T-40",
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1549636,
+      "fixture": {
+        "fixture_id": 1549636,
+        "kickoff": "2026-09-21T14:30:00-06:00",
+        "timestamp": 1790022600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 240,
+        "league": "Primera B",
+        "country": "Colombia",
+        "season": 2026,
+        "round": "Clausura - 10",
+        "home_team_id": 1458,
+        "home_team": "Bogota FC",
+        "away_team_id": 1466,
+        "away_team": "Barranquilla",
+        "venue": "Estadio Metropolitano de Techo",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 5.4,
+      "bookmaker": "Betano",
+      "classification": "WATCH",
+      "tier": "B",
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T14:21:34.832162-06:00",
+      "p_raw": 0.369194,
+      "p_shrunk": 0.201325,
+      "p_breakeven": 0.185185,
+      "p_market_fair": 0.16935,
+      "edge_pp": 3.198,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T13:49:42.365884-06:00",
+      "last_seen": "2026-09-21T14:21:34.832162-06:00",
+      "stages": [
+        "T-40",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1498823,
+      "fixture": {
+        "fixture_id": 1498823,
+        "kickoff": "2026-09-21T16:00:00-06:00",
+        "timestamp": 1790028000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 129,
+        "league": "Primera Nacional",
+        "country": "Argentina",
+        "season": 2026,
+        "round": "Regular Season - 30",
+        "home_team_id": 484,
+        "home_team": "Nueva Chicago",
+        "away_team_id": 444,
+        "away_team": "Patronato",
+        "venue": "Estadio Nueva Chicago",
+        "city": "Buenos Aires",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 1.5,
+      "price": 2.45,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-40",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T15:18:18.212579-06:00",
+      "p_raw": 0.483603,
+      "p_shrunk": 0.400291,
+      "p_breakeven": 0.408163,
+      "p_market_fair": 0.384422,
+      "edge_pp": 1.587,
+      "availability_confidence": 0.7,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T15:18:18.212579-06:00",
+      "last_seen": "2026-09-21T15:18:18.212579-06:00",
+      "stages": [
+        "T-40"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1549641,
+      "fixture": {
+        "fixture_id": 1549641,
+        "kickoff": "2026-09-21T16:00:00-06:00",
+        "timestamp": 1790028000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 240,
+        "league": "Primera B",
+        "country": "Colombia",
+        "season": 2026,
+        "round": "Clausura - 10",
+        "home_team_id": 22099,
+        "home_team": "Real Cundinamarca",
+        "away_team_id": 1461,
+        "away_team": "Quindio",
+        "venue": "Estadio Municipal de Mosquera",
+        "city": "Mosquera",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 3.5,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T15:50:37.103314-06:00",
+      "p_raw": 0.372194,
+      "p_shrunk": 0.274019,
+      "p_breakeven": 0.285714,
+      "p_market_fair": 0.255319,
+      "edge_pp": 1.87,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T15:18:18.212579-06:00",
+      "last_seen": "2026-09-21T15:50:37.103314-06:00",
+      "stages": [
+        "T-40",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1619682,
+      "fixture": {
+        "fixture_id": 1619682,
+        "kickoff": "2026-09-21T16:00:00-06:00",
+        "timestamp": 1790028000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 964,
+        "league": "Copa de la División Profesional",
+        "country": "Bolivia",
+        "season": 2026,
+        "round": "Group Stage - 4",
+        "home_team_id": 3704,
+        "home_team": "Guabirá",
+        "away_team_id": 17760,
+        "away_team": "San Antonio Bulo Bulo",
+        "venue": "Estadio Gilberto Parada",
+        "city": "Montero",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 4.82,
+      "bookmaker": "1xBet",
+      "classification": "WATCH",
+      "tier": "B",
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T15:50:37.103314-06:00",
+      "p_raw": 0.481917,
+      "p_shrunk": 0.234257,
+      "p_breakeven": 0.207469,
+      "p_market_fair": 0.187084,
+      "edge_pp": 4.717,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T15:18:18.212579-06:00",
+      "last_seen": "2026-09-21T15:50:37.103314-06:00",
+      "stages": [
+        "T-40",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1498823,
+      "fixture": {
+        "fixture_id": 1498823,
+        "kickoff": "2026-09-21T16:00:00-06:00",
+        "timestamp": 1790028000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 129,
+        "league": "Primera Nacional",
+        "country": "Argentina",
+        "season": 2026,
+        "round": "Regular Season - 30",
+        "home_team_id": 484,
+        "home_team": "Nueva Chicago",
+        "away_team_id": 444,
+        "away_team": "Patronato",
+        "venue": "Estadio Nueva Chicago",
+        "city": "Buenos Aires",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 2.5,
+      "price": 1.4,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T15:50:37.103314-06:00",
+      "p_raw": 0.748952,
+      "p_shrunk": 0.676459,
+      "p_breakeven": 0.714286,
+      "p_market_fair": 0.662651,
+      "edge_pp": 1.381,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T15:50:37.103314-06:00",
+      "last_seen": "2026-09-21T15:50:37.103314-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1520882,
+      "fixture": {
+        "fixture_id": 1520882,
+        "kickoff": "2026-09-21T16:30:00-06:00",
+        "timestamp": 1790029800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 72,
+        "league": "Serie B",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Regular Season - 29",
+        "home_team_id": 140,
+        "home_team": "Criciuma",
+        "away_team_id": 1223,
+        "away_team": "Operario-PR",
+        "venue": "Estadio Heriberto Hülse",
+        "city": "Chrissyuma",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "Lucas Guimaraes Rechatiko Horn",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 4.54,
+      "bookmaker": "Pinnacle",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-20",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T16:16:29.726626-06:00",
+      "p_raw": 0.343299,
+      "p_shrunk": 0.232822,
+      "p_breakeven": 0.220264,
+      "p_market_fair": 0.211779,
+      "edge_pp": 2.104,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T15:50:37.103314-06:00",
+      "last_seen": "2026-09-21T16:16:29.726626-06:00",
+      "stages": [
+        "T-40",
+        "T-20"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "NO_FINAL",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1639787,
+      "fixture": {
+        "fixture_id": 1639787,
+        "kickoff": "2026-09-21T16:30:00-06:00",
+        "timestamp": 1790029800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 268,
+        "league": "Primera División",
+        "country": "Uruguay",
+        "season": 2026,
+        "round": "Clausura - 7",
+        "home_team_id": 2368,
+        "home_team": "Central Espanol",
+        "away_team_id": 2365,
+        "away_team": "Atletico Torque",
+        "venue": "Parque Palermo",
+        "city": "Montevideo",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "H. Heras",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 4.33,
+      "bookmaker": "BetVictor",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-20",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T16:16:29.726626-06:00",
+      "p_raw": 0.277356,
+      "p_shrunk": 0.223932,
+      "p_breakeven": 0.230947,
+      "p_market_fair": 0.213756,
+      "edge_pp": 1.018,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T15:50:37.103314-06:00",
+      "last_seen": "2026-09-21T16:16:29.726626-06:00",
+      "stages": [
+        "T-40",
+        "T-20"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1603369,
+      "fixture": {
+        "fixture_id": 1603369,
+        "kickoff": "2026-09-21T17:00:00-06:00",
+        "timestamp": 1790031600,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 673,
+        "league": "Liga MX Femenil",
+        "country": "Mexico",
+        "season": 2026,
+        "round": "Regular Season - 8",
+        "home_team_id": 14877,
+        "home_team": "León W",
+        "away_team_id": 14869,
+        "away_team": "Juárez W",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "F. Lopez",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 3.5,
+      "price": 1.53,
+      "bookmaker": "Bet365",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T16:54:16.429637-06:00",
+      "p_raw": 0.740753,
+      "p_shrunk": 0.629825,
+      "p_breakeven": 0.653595,
+      "p_market_fair": 0.608696,
+      "edge_pp": 2.113,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T16:16:29.726626-06:00",
+      "last_seen": "2026-09-21T16:54:16.429637-06:00",
+      "stages": [
+        "T-40",
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1638674,
+      "fixture": {
+        "fixture_id": 1638674,
+        "kickoff": "2026-09-21T17:30:00-06:00",
+        "timestamp": 1790033400,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 742,
+        "league": "Copa Paulista",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Quarter-finals",
+        "home_team_id": 10019,
+        "home_team": "Juventus",
+        "away_team_id": 22852,
+        "away_team": "União São João",
+        "venue": "Estadio Rua Javari",
+        "city": "Sao Paulo",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 2.25,
+      "bookmaker": "Pinnacle",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-20",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T17:15:16.854121-06:00",
+      "p_raw": 0.561945,
+      "p_shrunk": 0.432543,
+      "p_breakeven": 0.444444,
+      "p_market_fair": 0.407895,
+      "edge_pp": 2.465,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T16:54:16.429637-06:00",
+      "last_seen": "2026-09-21T17:15:16.854121-06:00",
+      "stages": [
+        "T-40",
+        "T-20"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1603370,
+      "fixture": {
+        "fixture_id": 1603370,
+        "kickoff": "2026-09-21T18:00:00-06:00",
+        "timestamp": 1790035200,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 673,
+        "league": "Liga MX Femenil",
+        "country": "Mexico",
+        "season": 2026,
+        "round": "Regular Season - 8",
+        "home_team_id": 14885,
+        "home_team": "Toluca W",
+        "away_team_id": 14884,
+        "away_team": "Tigres UANL W",
+        "venue": null,
+        "city": "Toluca",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "F. Portillo",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 3.1,
+      "bookmaker": "Bet365",
+      "classification": "WATCH",
+      "tier": "B",
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T17:49:12.049260-06:00",
+      "p_raw": 0.518802,
+      "p_shrunk": 0.327499,
+      "p_breakeven": 0.322581,
+      "p_market_fair": 0.29106,
+      "edge_pp": 3.644,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T17:15:16.854121-06:00",
+      "last_seen": "2026-09-21T17:49:12.049260-06:00",
+      "stages": [
+        "T-40",
+        "T-20",
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1520883,
+      "fixture": {
+        "fixture_id": 1520883,
+        "kickoff": "2026-09-21T18:30:00-06:00",
+        "timestamp": 1790037000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 72,
+        "league": "Serie B",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Regular Season - 29",
+        "home_team_id": 1193,
+        "home_team": "Cuiaba",
+        "away_team_id": 755,
+        "away_team": "Nautico Recife",
+        "venue": "Arena Pantanal",
+        "city": "Cuiaba",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "Raimundo Rodrigues de Oliveira Junior",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 3.8,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-40",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T17:49:12.049260-06:00",
+      "p_raw": 0.301512,
+      "p_shrunk": 0.254151,
+      "p_breakeven": 0.263158,
+      "p_market_fair": 0.24513,
+      "edge_pp": 0.902,
+      "availability_confidence": 0.7,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T17:49:12.049260-06:00",
+      "last_seen": "2026-09-21T17:49:12.049260-06:00",
+      "stages": [
+        "T-40"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1549637,
+      "fixture": {
+        "fixture_id": 1549637,
+        "kickoff": "2026-09-21T18:30:00-06:00",
+        "timestamp": 1790037000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 240,
+        "league": "Primera B",
+        "country": "Colombia",
+        "season": 2026,
+        "round": "Clausura - 10",
+        "home_team_id": 1459,
+        "home_team": "Real Cartagena",
+        "away_team_id": 1129,
+        "away_team": "Envigado",
+        "venue": null,
+        "city": "Cartagena",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "over",
+      "line": 2.5,
+      "price": 2.1,
+      "bookmaker": "Betfair",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-40",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T17:49:12.049260-06:00",
+      "p_raw": 0.578906,
+      "p_shrunk": 0.462225,
+      "p_breakeven": 0.47619,
+      "p_market_fair": 0.44,
+      "edge_pp": 2.223,
+      "availability_confidence": 0.7,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T17:49:12.049260-06:00",
+      "last_seen": "2026-09-21T17:49:12.049260-06:00",
+      "stages": [
+        "T-40"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "LOSS",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1638747,
+      "fixture": {
+        "fixture_id": 1638747,
+        "kickoff": "2026-09-21T18:30:00-06:00",
+        "timestamp": 1790037000,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 74,
+        "league": "Brasileiro Women",
+        "country": "Brazil",
+        "season": 2026,
+        "round": "Semi-finals",
+        "home_team_id": 1798,
+        "home_team": "Corinthians W",
+        "away_team_id": 16496,
+        "away_team": "Bahia W",
+        "venue": "Neo Quimica Arena",
+        "city": "Sao Paulo",
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "BTTS",
+      "market": "Both Teams Score",
+      "selection": "yes",
+      "line": null,
+      "price": 1.95,
+      "bookmaker": "Betano",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-40",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T17:49:12.049260-06:00",
+      "p_raw": 0.652169,
+      "p_shrunk": 0.501644,
+      "p_breakeven": 0.512821,
+      "p_market_fair": 0.472973,
+      "edge_pp": 2.867,
+      "availability_confidence": 0.7,
+      "canonical_ft": false,
+      "first_seen": "2026-09-21T17:49:12.049260-06:00",
+      "last_seen": "2026-09-21T17:49:12.049260-06:00",
+      "stages": [
+        "T-40"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "NO_FINAL",
+      "legacy_invalid_model": true
+    },
+    {
+      "fixture_id": 1583770,
+      "fixture": {
+        "fixture_id": 1583770,
+        "kickoff": "2026-09-21T19:00:00-06:00",
+        "timestamp": 1790038800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 304,
+        "league": "Liga Panameña de Fútbol",
+        "country": "Panama",
+        "season": 2026,
+        "round": "Apertura - 9",
+        "home_team_id": 20788,
+        "home_team": "UMECIT",
+        "away_team_id": 27364,
+        "away_team": "Union Cocle",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 2.3,
+      "bookmaker": "William Hill",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T18:54:32.144248-06:00",
+      "p_raw": 0.492825,
+      "p_shrunk": 0.402703,
+      "p_breakeven": 0.434783,
+      "p_market_fair": 0.385537,
+      "edge_pp": 1.717,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T18:54:32.144248-06:00",
+      "last_seen": "2026-09-21T18:54:32.144248-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "WIN",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1601441,
+      "fixture": {
+        "fixture_id": 1601441,
+        "kickoff": "2026-09-21T19:00:00-06:00",
+        "timestamp": 1790038800,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 163,
+        "league": "Liga de Ascenso",
+        "country": "Costa-Rica",
+        "season": 2026,
+        "round": "Regular Season - 8",
+        "home_team_id": 26343,
+        "home_team": "Pitbulls Santa Barbara FC",
+        "away_team_id": 2052,
+        "away_team": "Cariari Pococi",
+        "venue": null,
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": null,
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "TOTAL",
+      "market": "Goals Over/Under",
+      "selection": "under",
+      "line": 3.5,
+      "price": 1.29,
+      "bookmaker": "BetVictor",
+      "classification": "WATCH",
+      "tier": null,
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T18:54:32.144248-06:00",
+      "p_raw": 0.758911,
+      "p_shrunk": 0.666167,
+      "p_breakeven": 0.775194,
+      "p_market_fair": 0.648501,
+      "edge_pp": 1.767,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T18:54:32.144248-06:00",
+      "last_seen": "2026-09-21T18:54:32.144248-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "NO_FINAL",
+      "legacy_invalid_model": false
+    },
+    {
+      "fixture_id": 1603371,
+      "fixture": {
+        "fixture_id": 1603371,
+        "kickoff": "2026-09-21T19:06:00-06:00",
+        "timestamp": 1790039160,
+        "status": "NS",
+        "status_long": "Not Started",
+        "elapsed": null,
+        "league_id": 673,
+        "league": "Liga MX Femenil",
+        "country": "Mexico",
+        "season": 2026,
+        "round": "Regular Season - 8",
+        "home_team_id": 14883,
+        "home_team": "Santos Laguna W",
+        "away_team_id": 14875,
+        "away_team": "Cruz Azul W",
+        "venue": "Estadio Corona",
+        "city": null,
+        "goals": {
+          "home": null,
+          "away": null
+        },
+        "score": {
+          "halftime": {
+            "home": null,
+            "away": null
+          },
+          "fulltime": {
+            "home": null,
+            "away": null
+          },
+          "extratime": {
+            "home": null,
+            "away": null
+          },
+          "penalty": {
+            "home": null,
+            "away": null
+          }
+        },
+        "referee": "F. Caballero",
+        "fixture_timezone": "America/Mexico_City"
+      },
+      "family": "1X2",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 3.58,
+      "bookmaker": "1xBet",
+      "classification": "WATCH",
+      "tier": "B",
+      "stage": "T-10",
+      "version": "3.60.0",
+      "timestamp": "2026-09-21T18:54:32.144248-06:00",
+      "p_raw": 0.521982,
+      "p_shrunk": 0.294912,
+      "p_breakeven": 0.27933,
+      "p_market_fair": 0.251661,
+      "edge_pp": 4.325,
+      "availability_confidence": 0.6,
+      "canonical_ft": true,
+      "first_seen": "2026-09-21T18:54:32.144248-06:00",
+      "last_seen": "2026-09-21T18:54:32.144248-06:00",
+      "stages": [
+        "T-10"
+      ],
+      "classifications": [
+        "WATCH"
+      ],
+      "outcome": "NO_FINAL",
       "legacy_invalid_model": false
     }
   ]
