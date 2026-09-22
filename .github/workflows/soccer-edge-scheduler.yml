@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout state branch
         uses: actions/checkout@v4
-        with: {ref: soccer-edge-state, fetch-depth: 0}
+        with: {ref: soccer-edge-state, fetch-depth: 1}
 
       - name: API quota circuit breaker
         id: quota_guard
