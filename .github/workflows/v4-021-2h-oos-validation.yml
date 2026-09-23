@@ -1,0 +1,69 @@
+name: V4-021 2H OOS Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/v4-021-2h-oos-validation.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run V4-021 unit tests
+        working-directory: runtime
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          PYTHONPATH=. pytest -q tests/test_v4_021_two_h_oos.py
+
+      - name: Build current 2H OOS validation report
+        working-directory: runtime
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m mcp_gateway.two_h_oos_v4             --model-report ../state/soccer_edge_state/analysis/two_h_halftime_conditioned.json             --true-clv-tracking ../state/soccer_edge_state/analysis/true_clv_tracking.jsonl             --output ../state/soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+
+      - name: Validate safety gates
+        run: |
+          set -euo pipefail
+          jq -e '.ticket == "V4-021"' state/soccer_edge_state/analysis/v4_021_2h_oos_validation.json >/dev/null
+          jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/v4_021_2h_oos_validation.json >/dev/null
+
+      - name: Persist validation report to state branch
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update V4-021 2H OOS validation report"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
