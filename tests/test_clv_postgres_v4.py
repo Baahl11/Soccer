@@ -39,7 +39,7 @@ def test_closing_line_candidate_requires_unambiguous_side():
 
 def test_family_mapping_uses_phase16_canonical_mapping():
     assert v._family({"family": "TOTAL", "market": "Goals Over/Under", "selection": "Over 2.5"}) == "FT_TOTALS"
-    assert v._family({"market_family": "CORNERS", "market": "Corners Over/Under", "selection": "Over", "line": 9.5}) == "CORNERS"
+    assert v._family({"market_family": "CORNERS", "market": "Corners Over/Under", "selection": "Over", "line": 9.5}) == "FT_CORNERS"
     assert v._family({"family": "BTTS", "market": "Both Teams To Score", "selection": "Yes"}) == "BTTS"
     assert v._family({"market": "First Half Goals Over/Under", "selection": "Over 1.5"}) == "1H"
     assert v._family({"market": "Home Team Total Goals", "selection": "Over 1.5"}) == "HOME_TT"
@@ -123,4 +123,4 @@ def test_merge_keeps_independent_market_families_from_same_fixture_and_run():
     ]
     merged = v._merge_signals(pipeline, [], max_rows=10)
     assert len(merged) == 2
-    assert {v._family(row["market_candidate"]) for row in merged} == {"FT_TOTALS", "CORNERS"}
+    assert {v._family(row["market_candidate"]) for row in merged} == {"FT_TOTALS", "FT_CORNERS"}
