@@ -31,6 +31,16 @@ def _parse_dt(value: Any) -> datetime | None:
         return None
 
 
+def _timestamp_sort_key(value: Any) -> tuple[int, float]:
+    parsed = _parse_dt(value)
+    if parsed is None:
+        return (1, 0.0)
+    try:
+        return (0, parsed.timestamp())
+    except (OSError, OverflowError, ValueError):
+        return (1, 0.0)
+
+
 def chronological_splits(
     rows: Iterable[dict[str, Any]],
     *,
@@ -57,7 +67,7 @@ def settlement_metrics(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         and bool(row.get("settled"))
         and str(row.get("settlement_status") or "").upper() in {"WIN", "LOSS", "PUSH", "HALF_WIN", "HALF_LOSS", "HALF_WIN_HALF_LOSS"}
     ]
-    settled.sort(key=lambda row: _parse_dt(row.get("generated_at_local")) or datetime.min)
+    settled.sort(key=lambda row: _timestamp_sort_key(row.get("generated_at_local")))
 
     returns: list[float] = []
     stake_sum = 0.0
@@ -115,7 +125,7 @@ def rolling_settlement_metrics(rows: Iterable[dict[str, Any]]) -> dict[str, Any]
         and bool(row.get("settled"))
         and _num(row.get("roi_units")) is not None
     ]
-    settled.sort(key=lambda row: _parse_dt(row.get("generated_at_local")) or datetime.min)
+    settled.sort(key=lambda row: _timestamp_sort_key(row.get("generated_at_local")))
     out: dict[str, Any] = {}
     for window in ROLLING_WINDOWS:
         if len(settled) < window:
