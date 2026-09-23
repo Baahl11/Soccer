@@ -7,6 +7,7 @@ from typing import Any
 import httpx
 
 from mcp_gateway import automation as base
+from mcp_gateway import research_artifact_cache
 
 SCHEMA_VERSION = "1.0.0"
 PLAYER_REGISTRY_URL = "https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-state/soccer_edge_state/analysis/player_trend_model_registry.json"
@@ -24,22 +25,12 @@ def _num(value: Any) -> float | None:
 
 
 def _load_json(cache_namespace: str, url: str, expected_status: str) -> dict[str, Any] | None:
-    now = datetime.now(dt_timezone.utc)
-    cached = base._cache_get(cache_namespace, "latest", CACHE_TTL, now)
-    if isinstance(cached, dict) and cached.get("status") == expected_status:
-        return cached
-    try:
-        response = httpx.get(url, timeout=5.0, follow_redirects=True)
-        if response.status_code != 200:
-            return None
-        payload = response.json()
-    except Exception:
-        return None
-    if not isinstance(payload, dict) or payload.get("status") != expected_status:
-        return None
-    base._cache_set(cache_namespace, "latest", payload, now)
-    return payload
-
+    return research_artifact_cache.load_json(
+        url=url,
+        expected_status=expected_status,
+        cache_namespace=cache_namespace,
+        ttl=CACHE_TTL,
+    )
 
 def load_player_registry() -> dict[str, Any] | None:
     return _load_json(
@@ -284,11 +275,21 @@ def build(
 
 
 def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
-    player_registry = load_player_registry()
-    team_report = load_team_trends()
+    events = [
+        event for event in (payload.get("events") or [])
+        if isinstance(event, dict)
+        and event.get("event_type") == "SOCCER_REFRESH"
+        and event.get("stage") not in {"POSTGAME", "HT", "CLOSE"}
+    ]
+    needs_model = any(
+        isinstance(event.get("lineups"), dict) and event["lineups"].get("both_xi_confirmed")
+        for event in events
+    )
+    player_registry = load_player_registry() if needs_model else None
+    team_report = load_team_trends() if needs_model else None
     modeled_events = modeled_players = 0
 
-    for event in payload.get("events") or []:
+    for event in events:
         if not isinstance(event, dict) or event.get("event_type") != "SOCCER_REFRESH" or event.get("stage") in {"POSTGAME", "HT", "CLOSE"}:
             continue
         intel = build(event, player_registry, team_report)
