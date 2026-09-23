@@ -6,6 +6,7 @@ from typing import Any
 import httpx
 
 from mcp_gateway import automation as base
+from mcp_gateway import research_artifact_cache
 
 SCHEMA_VERSION = "1.0.0"
 REGISTRY_URL = "https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-state/soccer_edge_state/analysis/player_trend_model_registry.json"
@@ -13,21 +14,12 @@ CACHE_TTL = timedelta(hours=6)
 
 
 def load_registry() -> dict[str, Any] | None:
-    now = datetime.now(dt_timezone.utc)
-    cached = base._cache_get("player_trend_model_registry", "latest", CACHE_TTL, now)
-    if isinstance(cached, dict) and cached.get("schema_version"):
-        return cached
-    try:
-        response = httpx.get(REGISTRY_URL, timeout=5.0, follow_redirects=True)
-        if response.status_code != 200:
-            return None
-        payload = response.json()
-    except Exception:
-        return None
-    if not isinstance(payload, dict) or payload.get("status") != "RESEARCH_PLAYER_TREND_MODEL_REGISTRY":
-        return None
-    base._cache_set("player_trend_model_registry", "latest", payload, now)
-    return payload
+    return research_artifact_cache.load_json(
+        url=REGISTRY_URL,
+        expected_status="RESEARCH_PLAYER_TREND_MODEL_REGISTRY",
+        cache_namespace="player_trend_model_registry",
+        ttl=CACHE_TTL,
+    )
 
 
 def build(event: dict[str, Any], registry: dict[str, Any] | None) -> dict[str, Any]:
@@ -116,9 +108,19 @@ def build(event: dict[str, Any], registry: dict[str, Any] | None) -> dict[str, A
 
 
 def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
-    registry = load_registry()
+    events = [
+        event for event in (payload.get("events") or [])
+        if isinstance(event, dict)
+        and event.get("event_type") == "SOCCER_REFRESH"
+        and event.get("stage") not in {"POSTGAME", "HT", "CLOSE"}
+    ]
+    needs_registry = any(
+        isinstance(event.get("lineups"), dict) and event["lineups"].get("both_xi_confirmed")
+        for event in events
+    )
+    registry = load_registry() if needs_registry else None
     modeled_events = starters = matched = modeled_players = 0
-    for event in payload.get("events") or []:
+    for event in events:
         if not isinstance(event, dict) or event.get("event_type") != "SOCCER_REFRESH" or event.get("stage") in {"POSTGAME", "HT", "CLOSE"}:
             continue
         intel = build(event, registry)
