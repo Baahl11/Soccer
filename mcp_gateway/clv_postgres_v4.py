@@ -13,6 +13,12 @@ MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
+DERIVATIVE_MARKET_SOURCES = (
+    ("TEAM_TOTALS", "team_totals_intelligence", "observed_exact_market_rows"),
+    ("1H", "one_h_goals_intelligence", "observed_market_rows"),
+    ("FT_CORNERS", "corners_intelligence", "observed_market_rows"),
+    ("TEAM_CORNERS", "team_corners_intelligence", "observed_market_rows"),
+)
 
 
 def _num(value: Any) -> float | None:
@@ -208,6 +214,63 @@ def _load_legacy_signals(conn, *, lookback_days: int, max_rows: int) -> list[dic
         return [dict(zip(columns, row)) for row in cur.fetchall()]
 
 
+def _load_derivative_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                e.fixture_id,
+                e.generated_at,
+                e.stage,
+                e.classification,
+                e.payload AS event_payload,
+                f.kickoff,
+                f.league,
+                f.home_team,
+                f.away_team,
+                p.payload ->> 'model_version' AS model_version,
+                p.payload ->> 'version' AS automation_version
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            LEFT JOIN soccer_pipeline_runs p ON p.generated_at_utc = e.generated_at
+            WHERE e.generated_at >= %s
+              AND e.stage = ANY(%s)
+              AND e.generated_at < f.kickoff
+            ORDER BY e.generated_at ASC
+            LIMIT %s
+            """,
+            (cutoff, list(SIGNAL_STAGES), max(1, int(max_rows))),
+        )
+        columns = [desc.name for desc in cur.description]
+        return [dict(zip(columns, row)) for row in cur.fetchall()]
+
+
+def _derivative_signals_from_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    signals: list[dict[str, Any]] = []
+    for event in events:
+        payload = event.get("event_payload")
+        if not isinstance(payload, dict):
+            continue
+        for family_hint, container_key, rows_key in DERIVATIVE_MARKET_SOURCES:
+            container = payload.get(container_key)
+            if not isinstance(container, dict):
+                continue
+            rows = container.get(rows_key)
+            if not isinstance(rows, list):
+                continue
+            for market_row in rows:
+                if not isinstance(market_row, dict):
+                    continue
+                candidate = dict(market_row)
+                candidate.setdefault("market_family", family_hint)
+                out = dict(event)
+                out["market_candidate"] = candidate
+                out["signal_source"] = f"DERIVATIVE_INTELLIGENCE:{container_key}"
+                signals.append(out)
+    return signals
+
+
 def _load_market_snapshots(conn, fixture_ids: list[int], *, cutoff: datetime) -> list[dict[str, Any]]:
     if not fixture_ids:
         return []
@@ -274,6 +337,7 @@ def _signal_identity(signal: dict[str, Any]) -> tuple[Any, ...]:
 
 def _merge_signals(
     pipeline_signals: list[dict[str, Any]],
+    derivative_signals: list[dict[str, Any]],
     legacy_signals: list[dict[str, Any]],
     *,
     max_rows: int,
@@ -281,6 +345,17 @@ def _merge_signals(
     merged: list[dict[str, Any]] = []
     seen: set[tuple[Any, ...]] = set()
     for raw in pipeline_signals:
+        if not isinstance(raw.get("market_candidate"), dict):
+            continue
+        key = _signal_identity(raw)
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(raw)
+        if len(merged) >= max_rows:
+            return merged
+
+    for raw in derivative_signals:
         if not isinstance(raw.get("market_candidate"), dict):
             continue
         key = _signal_identity(raw)
@@ -358,6 +433,12 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             lookback_days=lookback_days,
             max_rows=max_signals,
         )
+        derivative_events = _load_derivative_events(
+            conn,
+            lookback_days=lookback_days,
+            max_rows=max_signals,
+        )
+        derivative_signals = _derivative_signals_from_events(derivative_events)
         legacy_signals = _load_legacy_signals(
             conn,
             lookback_days=lookback_days,
@@ -365,6 +446,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         )
         signals = _merge_signals(
             pipeline_signals,
+            derivative_signals,
             legacy_signals,
             max_rows=max(1, int(max_signals)),
         )
@@ -540,6 +622,8 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "lookback_days": int(lookback_days),
         "signal_rows_considered": len(signals),
         "pipeline_market_rows_loaded": len(pipeline_signals),
+        "derivative_event_rows_loaded": len(derivative_events),
+        "derivative_market_rows_loaded": len(derivative_signals),
         "legacy_signal_rows_loaded": len(legacy_signals),
         "tracked_rows": len(tracked),
         "comparable_true_clv_rows": len(comparable),
@@ -555,7 +639,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "notes": [
-            "Primary signal source is Postgres soccer_pipeline_runs.match_table_rows; legacy event best_market rows are fallback-only.",
+            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; legacy event best_market rows are fallback-only.",
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
