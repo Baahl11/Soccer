@@ -362,7 +362,7 @@ async def internal_tick(request: Request) -> Response:
             # Worker diagnostics are otherwise swallowed on successful subprocesses.
             # Keep them in Render logs only; never mix them into the JSON response.
             for line in stderr_text.splitlines()[-200:]:
-                if line.startswith(("WORKER_MEM ", "MEMPROBE ")):
+                if line.startswith(("WORKER_MEM ", "MEMPROBE ", "V91_MEM ", "V92_MEM ")):
                     print(line, file=sys.stderr, flush=True)
         if proc.returncode != 0:
             detail = stderr_text[-1000:]
