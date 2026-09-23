@@ -236,7 +236,7 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
                 v5._mark_stage_processed(fx["fixture_id"], stage, now_utc)
                 continue
 
-            if deep_dive_processed >= v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK:
+            if deep_dive_processed >= elastic_deep_dive_cap:
                 deferred_due_to_priority += 1
                 continue
 
@@ -318,7 +318,7 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
             "shortlist_event_count": shortlist_events,
             "screened_out_low_data_count": sum(low_data_counts.values()),
             "market_requests_avoided_by_sport_screen": market_requests_avoided_by_screen,
-            "max_deep_dive_fixtures_per_tick": v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK,
+            "max_deep_dive_fixtures_per_tick": elastic_deep_dive_cap,\n            "configured_deep_dive_floor": v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK,\n            "elastic_deep_dive_cap": elastic_deep_dive_cap,\n            "elastic_deep_dive_cap_reason": elastic_cap_reason,\n            "elastic_deep_dive_daily_remaining_basis": v2._LAST_DAILY_REMAINING,
             "priority_queue": "DATA_TIER_THEN_STAGE_THEN_PRIOR_SHORTLIST_THEN_COMPETITION_THEN_COVERAGE",
             "request_pacing_seconds": v4.MIN_REQUEST_INTERVAL_SECONDS,
             "rate_limit_max_retries": v4.RATE_LIMIT_MAX_RETRIES,
