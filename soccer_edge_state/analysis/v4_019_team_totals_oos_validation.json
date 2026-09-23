@@ -1,0 +1,113 @@
+{
+  "blockers": [
+    "TEAM_TOTALS_TRUE_CLV_0_LT_50",
+    "SOURCE_TEAM_TOTALS_PROMOTION_GATE_DISABLED"
+  ],
+  "by_line": {
+    "0.5": {
+      "mean_brier": 0.191679,
+      "mean_log_loss": 0.567659,
+      "mean_probability": 0.5,
+      "n": 2000,
+      "observed_rate": 0.5
+    },
+    "1.5": {
+      "mean_brier": 0.260462,
+      "mean_log_loss": 0.747701,
+      "mean_probability": 0.5,
+      "n": 2000,
+      "observed_rate": 0.5
+    },
+    "2.5": {
+      "mean_brier": 0.148371,
+      "mean_log_loss": 0.518681,
+      "mean_probability": 0.5,
+      "n": 2000,
+      "observed_rate": 0.5
+    }
+  },
+  "by_team_role": {
+    "AWAY": {
+      "mean_brier": 0.194749,
+      "mean_log_loss": 0.595986,
+      "mean_probability": 0.5,
+      "n": 3000,
+      "observed_rate": 0.5
+    },
+    "HOME": {
+      "mean_brier": 0.205593,
+      "mean_log_loss": 0.626708,
+      "mean_probability": 0.5,
+      "n": 3000,
+      "observed_rate": 0.5
+    }
+  },
+  "canonical_bet_logic_changed": false,
+  "manual_review_required": true,
+  "missing_required_lines": [],
+  "model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "The current OOS probability sample is large enough for research/actionable review counts, but market evidence remains a separate gate.",
+    "Team-total true CLV must come from exact team-total line/price history; FT totals/1X2/BTTS closes cannot satisfy this requirement.",
+    "No production promotion occurs from probability calibration alone."
+  ],
+  "observed_lines": [
+    0.5,
+    1.5,
+    2.5
+  ],
+  "oos_sample": {
+    "evaluated_fixtures": 500,
+    "evaluated_probability_rows": 6000,
+    "minimum_actionable_review_fixtures": 200,
+    "minimum_research_fixtures": 100
+  },
+  "overall": {
+    "mean_brier": 0.200171,
+    "mean_log_loss": 0.611347,
+    "mean_probability": 0.5,
+    "n": 6000,
+    "observed_rate": 0.5
+  },
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "required_lines": [
+    0.5,
+    1.5,
+    2.5
+  ],
+  "role_line_calibration": {
+    "max_absolute_calibration_gap": 0.087565,
+    "n": 6000,
+    "weighted_absolute_calibration_gap": 0.05096183,
+    "worst_segment": "HOME:0.5:OVER"
+  },
+  "schema_version": "1.0.0",
+  "source_promotion_gate": {
+    "actionable_review_sample_gate_met": true,
+    "enabled": false,
+    "market_comparison_sample_gate_met": true,
+    "minimum_oos_fixtures_for_actionable_review": 200,
+    "minimum_oos_fixtures_for_market_comparison": 100,
+    "requires": [
+      "stable Brier/log-loss by home/away and 0.5/1.5/2.5",
+      "verified historical team-total prices and CLV evidence",
+      "stable calibration across competitions",
+      "no material degradation versus FT-goals calibration"
+    ]
+  },
+  "status": "RESEARCH_HOLD",
+  "ticket": "V4-019",
+  "true_clv": {
+    "avg_probability_clv_pp": null,
+    "family_specific": true,
+    "flat_rows": 0,
+    "minimum_rows": 50,
+    "negative_rows": 0,
+    "positive_rows": 0,
+    "rows": 0,
+    "unique_fixtures": 0
+  },
+  "warnings": []
+}
