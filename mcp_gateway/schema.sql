@@ -112,6 +112,39 @@ CREATE TABLE IF NOT EXISTS soccer_model_runs (
     payload JSONB NOT NULL
 );
 
+
+
+CREATE TABLE IF NOT EXISTS soccer_training_dataset_builds (
+    build_id TEXT PRIMARY KEY,
+    dataset_version TEXT NOT NULL,
+    feature_schema_version TEXT NOT NULL,
+    as_of TIMESTAMPTZ NOT NULL,
+    row_count INTEGER NOT NULL DEFAULT 0,
+    feature_count INTEGER NOT NULL DEFAULT 0,
+    dataset_sha256 TEXT NOT NULL,
+    selection_policy TEXT NOT NULL,
+    manifest JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS soccer_training_dataset_rows (
+    build_id TEXT NOT NULL REFERENCES soccer_training_dataset_builds(build_id) ON DELETE CASCADE,
+    row_number INTEGER NOT NULL,
+    fixture_id BIGINT NOT NULL,
+    snapshot_id BIGINT NOT NULL,
+    snapshot_captured_at TIMESTAMPTZ NOT NULL,
+    kickoff TIMESTAMPTZ NOT NULL,
+    league_id BIGINT,
+    season INTEGER,
+    stage TEXT,
+    features JSONB NOT NULL,
+    missingness JSONB NOT NULL,
+    targets JSONB NOT NULL,
+    row_sha256 TEXT NOT NULL,
+    PRIMARY KEY (build_id, row_number),
+    UNIQUE (build_id, fixture_id)
+);
+
 CREATE TABLE IF NOT EXISTS soccer_results (
     fixture_id BIGINT PRIMARY KEY,
     final_status TEXT,
@@ -145,3 +178,6 @@ CREATE INDEX IF NOT EXISTS idx_soccer_alerts_created ON soccer_alerts (created_a
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_notification ON soccer_alerts (notification_ready, created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_soccer_feature_fixture_time ON soccer_feature_snapshots (fixture_id, captured_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_soccer_training_rows_fixture ON soccer_training_dataset_rows (fixture_id);
+CREATE INDEX IF NOT EXISTS idx_soccer_training_builds_asof ON soccer_training_dataset_builds (as_of DESC);
