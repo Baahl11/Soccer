@@ -90,7 +90,7 @@ def test_v4_008_targets_are_derived_only_from_final_score():
 
 def test_v4_008_rejects_post_kickoff_snapshot():
     snapshot = feature_snapshot_v4.build(_tick(), _event())
-    with pytest.raises(ValueError, match="FEATURE_SNAPSHOT_AFTER_KICKOFF"):
+    with pytest.raises(ValueError, match="FEATURE_SNAPSHOT_NOT_STRICTLY_BEFORE_KICKOFF"):
         training_dataset_v4.build_row(
             snapshot=snapshot,
             kickoff="2026-09-23T04:30:00+00:00",
@@ -130,3 +130,25 @@ def test_v4_008_market_fields_do_not_enter_training_row():
     assert "decimal_price" not in serialized
     assert "match winner" not in serialized
     assert row["market_fields_included"] is False
+
+
+def test_v4_008_rejects_snapshot_exactly_at_kickoff():
+    snapshot = feature_snapshot_v4.build(_tick(), _event())
+    with pytest.raises(ValueError, match="FEATURE_SNAPSHOT_NOT_STRICTLY_BEFORE_KICKOFF"):
+        training_dataset_v4.build_row(
+            snapshot=snapshot,
+            kickoff="2026-09-23T04:55:00+00:00",
+            final_status="FT",
+            home_goals=1,
+            away_goals=0,
+        )
+
+
+def test_v4_008_manifest_fingerprint_is_deterministic():
+    row = _row()
+    first = training_dataset_v4.manifest([row], cutoff="2026-09-24T00:00:00+00:00")
+    second = training_dataset_v4.manifest([deepcopy(row)], cutoff="2026-09-24T00:00:00+00:00")
+    assert first["dataset_fingerprint"] == second["dataset_fingerprint"]
+    assert first["market_fields_included"] is False
+    assert first["post_kickoff_features_allowed"] is False
+    assert first["critical_missingness_imputed"] is False
