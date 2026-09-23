@@ -199,6 +199,36 @@ def _persist_refresh_event(cur, tick: dict[str, Any], event: dict[str, Any]) -> 
         )
 
 
+
+def load_latest_pipeline_payload() -> dict[str, Any] | None:
+    """Return the most recent compact persisted pipeline payload."""
+    if not persistence_configured():
+        return None
+    ensure_schema()
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT payload
+                FROM soccer_pipeline_runs
+                ORDER BY generated_at_utc DESC
+                LIMIT 1
+                """
+            )
+            row = cur.fetchone()
+    if not row:
+        return None
+    payload = row[0]
+    if isinstance(payload, dict):
+        return payload
+    if isinstance(payload, str):
+        try:
+            value = json.loads(payload)
+        except json.JSONDecodeError:
+            return None
+        return value if isinstance(value, dict) else None
+    return None
+
 def persist_tick(tick: dict[str, Any]) -> bool:
     if not persistence_configured():
         return False
