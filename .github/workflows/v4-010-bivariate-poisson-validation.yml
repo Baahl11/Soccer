@@ -1,0 +1,68 @@
+name: V4-010 Bivariate Poisson Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/v4-010-bivariate-poisson-validation.yml"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Warm Render
+        run: |
+          curl -sS --max-time 360 --retry 2 --retry-delay 5 --retry-all-errors \
+            https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+          cat /tmp/health.json || true
+
+      - name: Validate bivariate Poisson baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          response=$(curl -fsS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          token=$(echo "$response" | jq -r '.value // empty')
+          test -n "$token"
+          echo "::add-mask::$token"
+
+          cutoff=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          http_code=$(curl -sS --max-time 430 -o /tmp/v4_010.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${token}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg cutoff "$cutoff" '{cutoff:$cutoff,min_train_rows:30}')" \
+            https://soccer-edge-api.onrender.com/internal/bivariate-poisson/validate)
+
+          cat /tmp/v4_010.json | jq '{
+            status,
+            cutoff,
+            dataset_rows,
+            report:{
+              status:.report.status,
+              model_version:.report.model_version,
+              eligible_rows:.report.eligible_rows,
+              minimum_training_rows:.report.minimum_training_rows,
+              walk_forward_evaluated:.report.walk_forward_evaluated,
+              latest_fit:.report.latest_fit,
+              independent_poisson:.report.independent_poisson,
+              bivariate_poisson:.report.bivariate_poisson,
+              improvement:.report.improvement,
+              market_fields_used:.report.market_fields_used,
+              post_kickoff_features_used:.report.post_kickoff_features_used,
+              promotion_allowed:.report.promotion_allowed,
+              promotion_reason:.report.promotion_reason
+            }
+          }'
+
+          test "$http_code" = "200"
+          jq -e '.status == "OK"' /tmp/v4_010.json >/dev/null
+          jq -e '.report.market_fields_used == false' /tmp/v4_010.json >/dev/null
+          jq -e '.report.post_kickoff_features_used == false' /tmp/v4_010.json >/dev/null
+          jq -e '.report.promotion_allowed == false' /tmp/v4_010.json >/dev/null
