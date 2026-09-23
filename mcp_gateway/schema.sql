@@ -139,7 +139,9 @@ CREATE TABLE IF NOT EXISTS soccer_training_dataset_rows (
     stage TEXT,
     features JSONB NOT NULL,
     missingness JSONB NOT NULL,
+    provenance JSONB,
     targets JSONB NOT NULL,
+    row_payload JSONB,
     row_sha256 TEXT NOT NULL,
     PRIMARY KEY (build_id, row_number),
     UNIQUE (build_id, fixture_id)
@@ -181,3 +183,6 @@ CREATE INDEX IF NOT EXISTS idx_soccer_feature_fixture_time ON soccer_feature_sna
 
 CREATE INDEX IF NOT EXISTS idx_soccer_training_rows_fixture ON soccer_training_dataset_rows (fixture_id);
 CREATE INDEX IF NOT EXISTS idx_soccer_training_builds_asof ON soccer_training_dataset_builds (as_of DESC);
+
+ALTER TABLE soccer_training_dataset_rows ADD COLUMN IF NOT EXISTS provenance JSONB;
+ALTER TABLE soccer_training_dataset_rows ADD COLUMN IF NOT EXISTS row_payload JSONB;
