@@ -45,12 +45,27 @@ jobs:
           test -n "$TOKEN"
           echo "::add-mask::$TOKEN"
 
-          HTTP_CODE=$(curl -sS --max-time 420 -o /tmp/clv_v4.json -w "%{http_code}" \
-            -X POST \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d '{"lookback_days":60,"max_signals":10000}' \
-            https://soccer-edge-api.onrender.com/internal/clv-v4/build)
+          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
+          READY=0
+          for attempt in 1 2 3 4 5; do
+            HTTP_CODE=$(curl -sS --max-time 420 -o /tmp/clv_v4.json -w "%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{"lookback_days":60,"max_signals":10000}' \
+              https://soccer-edge-api.onrender.com/internal/clv-v4/build)
+
+            MODEL_VERSION=$(jq -r '.model_version // empty' /tmp/clv_v4.json 2>/dev/null || true)
+            if [ "$HTTP_CODE" = "200" ] && [ "$MODEL_VERSION" = "$EXPECTED_MODEL" ]; then
+              READY=1
+              break
+            fi
+
+            echo "::notice::CLV runtime not fresh yet (attempt $attempt/5, http=$HTTP_CODE, model=$MODEL_VERSION)"
+            if [ "$attempt" -lt 5 ]; then
+              sleep 20
+            fi
+          done
 
           cat /tmp/clv_v4.json | jq '{
             model_version,
@@ -66,7 +81,7 @@ jobs:
             error,
             detail
           }'
-          test "$HTTP_CODE" = "200"
+          test "$READY" = "1"
           jq -e '
             .schema_version == "1.0.0"
             and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
