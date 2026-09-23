@@ -196,6 +196,7 @@ jobs:
 
           git config user.name soccer-edge-bot
           git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/scheduler_fairness_state.json
           git add -A soccer_edge_state
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Soccer Edge tick ${RUN_DATE}"
