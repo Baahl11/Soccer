@@ -1,0 +1,131 @@
+{
+  "blockers": [
+    "FORMATION_ADJUSTED_39_LT_100",
+    "CORNERS_TRUE_CLV_0_LT_50",
+    "SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED",
+    "SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED"
+  ],
+  "canonical_bet_logic_changed": false,
+  "ft_corners": {
+    "all_required_lines_improve_brier_and_log_loss": true,
+    "baseline_mae_total_corners": 2.612748,
+    "challenger_mae_total_corners": 2.581188,
+    "formation_adjusted_evaluations": 39,
+    "line_improvements": [
+      {
+        "baseline_brier": 0.253428,
+        "baseline_log_loss": 0.701139,
+        "brier_delta_challenger_minus_baseline": -0.000942,
+        "challenger_brier": 0.252486,
+        "challenger_log_loss": 0.699201,
+        "improves_brier": true,
+        "improves_log_loss": true,
+        "line": 8.5,
+        "log_loss_delta_challenger_minus_baseline": -0.001938
+      },
+      {
+        "baseline_brier": 0.252232,
+        "baseline_log_loss": 0.697662,
+        "brier_delta_challenger_minus_baseline": -0.003369,
+        "challenger_brier": 0.248863,
+        "challenger_log_loss": 0.690901,
+        "improves_brier": true,
+        "improves_log_loss": true,
+        "line": 9.5,
+        "log_loss_delta_challenger_minus_baseline": -0.006761
+      },
+      {
+        "baseline_brier": 0.221616,
+        "baseline_log_loss": 0.63546,
+        "brier_delta_challenger_minus_baseline": -0.000491,
+        "challenger_brier": 0.221125,
+        "challenger_log_loss": 0.634773,
+        "improves_brier": true,
+        "improves_log_loss": true,
+        "line": 10.5,
+        "log_loss_delta_challenger_minus_baseline": -0.000687
+      }
+    ],
+    "mae_improves": true,
+    "minimum_formation_adjusted": 100,
+    "minimum_oos": 150,
+    "required_lines": [
+      8.5,
+      9.5,
+      10.5
+    ],
+    "walk_forward_evaluations": 244
+  },
+  "manual_review_required": true,
+  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "Corners OOS is evaluated separately from goals markets because market microstructure and variance differ.",
+    "Formation adjustment currently improves FT corners Brier/log-loss on 8.5/9.5/10.5 and total-corners MAE, but its adjusted sample remains too small.",
+    "Verified exact corners prices and family-specific true CLV are mandatory before any production promotion.",
+    "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals."
+  ],
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "schema_version": "1.0.0",
+  "source_ft_promotion_gate": {
+    "enabled": false,
+    "minimum_formation_adjusted_evaluations": 100,
+    "minimum_oos_evaluations": 150,
+    "requires": [
+      "lower total-corners MAE",
+      "lower Brier and log-loss across relevant market lines",
+      "stable lift across leagues",
+      "verified market-price CLV evidence"
+    ]
+  },
+  "source_team_promotion_gate": {
+    "actionable_review_sample_gate_met": true,
+    "enabled": false,
+    "market_comparison_sample_gate_met": true,
+    "minimum_oos_team_rows": 200,
+    "minimum_oos_team_rows_for_actionable_review": 400,
+    "requires": [
+      "stable team-line Brier/log-loss",
+      "verified historical team-corners prices and true CLV",
+      "league/venue stability",
+      "parent corners model adequate"
+    ]
+  },
+  "status": "RESEARCH_HOLD",
+  "team_corners": {
+    "evaluated_fixtures": 244,
+    "evaluated_rows": 1464,
+    "minimum_team_rows": 400,
+    "missing_required_lines": [],
+    "observed_lines": [
+      3.5,
+      4.5,
+      5.5
+    ],
+    "overall": {
+      "brier": 0.239094,
+      "log_loss": 0.673549,
+      "mean_probability": 0.523681,
+      "n": 1464,
+      "observed_rate": 0.468579
+    },
+    "required_lines": [
+      3.5,
+      4.5,
+      5.5
+    ]
+  },
+  "ticket": "V4-022",
+  "true_clv": {
+    "avg_probability_clv_pp": null,
+    "family_specific": true,
+    "flat_rows": 0,
+    "minimum_rows": 50,
+    "negative_rows": 0,
+    "positive_rows": 0,
+    "rows": 0,
+    "unique_fixtures": 0
+  },
+  "warnings": []
+}
