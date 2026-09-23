@@ -250,8 +250,14 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
 
         due.sort(key=lambda item: item["priority"])
 
-        elastic_deep_dive_cap, elastic_cap_reason = _elastic_deep_dive_cap(v2._LAST_DAILY_REMAINING, len(due))
-        elastic_request_cap, elastic_request_reason = _elastic_request_cap(v2._LAST_DAILY_REMAINING)
+        quota_remaining_basis = v2._LAST_DAILY_REMAINING
+        if quota_remaining_basis is None:
+            try:
+                quota_remaining_basis = int((quota or {}).get("daily_remaining"))
+            except (TypeError, ValueError):
+                quota_remaining_basis = None
+        elastic_deep_dive_cap, elastic_cap_reason = _elastic_deep_dive_cap(quota_remaining_basis, len(due))
+        elastic_request_cap, elastic_request_reason = _elastic_request_cap(quota_remaining_basis)
         # The budget wrapper reads this value dynamically. Cached reads do not increment it.
         v2.MAX_API_CALLS_PER_TICK = elastic_request_cap
         deep_dive_processed = 0
@@ -362,6 +368,7 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
             "elastic_deep_dive_cap_reason": elastic_cap_reason,
             "elastic_request_cap": elastic_request_cap,
             "elastic_request_cap_reason": elastic_request_reason,
+            "elastic_quota_remaining_basis": quota_remaining_basis,
             "priority_queue": "DATA_TIER_THEN_STAGE_THEN_PRIOR_SHORTLIST_THEN_COMPETITION_THEN_COVERAGE",
             "request_pacing_seconds": v4.MIN_REQUEST_INTERVAL_SECONDS,
             "rate_limit_max_retries": v4.RATE_LIMIT_MAX_RETRIES,
