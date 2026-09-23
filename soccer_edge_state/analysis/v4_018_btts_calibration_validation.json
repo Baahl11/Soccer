@@ -1,0 +1,58 @@
+{
+  "blockers": [
+    "BTTS_TRUE_CLV_25_LT_50",
+    "SOURCE_BTTS_PROMOTION_GATE_DISABLED"
+  ],
+  "calibration_sample": {
+    "brier": 0.276102,
+    "ece": 0.12049459,
+    "log_loss": 0.771148,
+    "mce": 0.64069,
+    "mean_probability": 0.495624,
+    "minimum_required": 300,
+    "n": 500,
+    "observed_rate": 0.588,
+    "usable_buckets": 9
+  },
+  "canonical_bet_logic_changed": false,
+  "manual_review_required": true,
+  "model_version": "SOCCER_BTTS_CALIBRATION_VALIDATION_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "BTTS calibration is evaluated independently from FT totals and 1X2.",
+    "True CLV counts only canonical BTTS rows; other market families cannot satisfy this gate.",
+    "Existing 500-fixture model diagnostics remain research evidence, not automatic production promotion."
+  ],
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "schema_version": "1.0.0",
+  "source_promotion_gate": {
+    "actionable_review_sample_gate_met": true,
+    "enabled": false,
+    "market_comparison_sample_gate_met": true,
+    "minimum_oos_fixtures_for_actionable_review": 300,
+    "minimum_oos_fixtures_for_market_comparison": 150,
+    "requires": [
+      "stable Brier/log-loss overall and across competitions",
+      "stable calibration by probability bucket and data tier",
+      "verified historical BTTS prices and true CLV evidence",
+      "validated market shrinkage policy",
+      "no material degradation versus canonical FT-goals calibration"
+    ]
+  },
+  "status": "RESEARCH_HOLD",
+  "ticket": "V4-018",
+  "true_clv": {
+    "avg_probability_clv_pp": 0.078764,
+    "family_specific": true,
+    "flat_rows": 24,
+    "minimum_rows": 50,
+    "negative_rows": 0,
+    "positive_rows": 1,
+    "rows": 25,
+    "unique_fixtures": 13
+  },
+  "warnings": [
+    "CALIBRATION_ECE_GE_0_10_REQUIRES_REVIEW"
+  ]
+}
