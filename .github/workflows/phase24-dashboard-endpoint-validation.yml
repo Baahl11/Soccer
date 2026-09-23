@@ -1,4 +1,4 @@
-name: Phase 24 Dashboard Endpoint Validation
+name: Phase 24 Dashboard Endpoint Validation - Retry
 
 on:
   workflow_dispatch:
@@ -47,5 +47,5 @@ jobs:
           code=$(curl -sS --max-time 60 -o /tmp/dashboard.html -w "%{http_code}" "https://soccer-edge-api.onrender.com/dashboard?limit=5")
           test "$code" = "200"
           grep -q "Soccer Edge v4" /tmp/dashboard.html
-          grep -q "Today's Slate" /tmp/dashboard.html
+          grep -q "Today&#x27;s Slate" /tmp/dashboard.html
           grep -q "Research-first dashboard" /tmp/dashboard.html
