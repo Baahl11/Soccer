@@ -1,0 +1,585 @@
+{
+  "schema_version": "1.0.0",
+  "model_version": "SOCCER_OOS_PREDICTION_LEDGER_V4_1.0.0",
+  "status": "COLLECTING_OOS_PREDICTIONS",
+  "lookback_days": 180,
+  "fixture_rows": 37,
+  "minimum_rows_per_target": 200,
+  "latest_pre_kickoff_prediction_per_fixture": true,
+  "anti_leakage": {
+    "prediction_timestamp_before_kickoff_required": true,
+    "final_result_joined_after_prediction": true,
+    "one_latest_pre_kickoff_prediction_per_fixture": true,
+    "market_fields_used": false
+  },
+  "model_version_counts": {
+    "SOCCER EDGE ENGINE v1.0": 37
+  },
+  "run_type_counts": {
+    "CLOSE": 6,
+    "EARLY_RESEARCH": 2,
+    "T-10": 25,
+    "T-20": 2,
+    "T-40": 2
+  },
+  "targets": {
+    "home_win": {
+      "rows": 37,
+      "status": "DATA_BLOCKED",
+      "raw_metrics": {
+        "status": "OK",
+        "row_count": 37,
+        "brier": 0.30026427,
+        "log_loss": 0.81441566,
+        "ece": 0.1738757,
+        "mce": 0.876913,
+        "bins": [
+          {
+            "bin_index": 1,
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 1,
+            "mean_prediction": 0.123087,
+            "observed_rate": 1.0,
+            "absolute_gap": 0.876913
+          },
+          {
+            "bin_index": 2,
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 8,
+            "mean_prediction": 0.24585737,
+            "observed_rate": 0.25,
+            "absolute_gap": 0.00414263
+          },
+          {
+            "bin_index": 3,
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 7,
+            "mean_prediction": 0.350256,
+            "observed_rate": 0.57142857,
+            "absolute_gap": 0.22117257
+          },
+          {
+            "bin_index": 4,
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 7,
+            "mean_prediction": 0.46151086,
+            "observed_rate": 0.57142857,
+            "absolute_gap": 0.10991771
+          },
+          {
+            "bin_index": 5,
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 7,
+            "mean_prediction": 0.54883857,
+            "observed_rate": 0.57142857,
+            "absolute_gap": 0.02259
+          },
+          {
+            "bin_index": 6,
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 3,
+            "mean_prediction": 0.65814433,
+            "observed_rate": 0.66666667,
+            "absolute_gap": 0.00852233
+          },
+          {
+            "bin_index": 7,
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 3,
+            "mean_prediction": 0.73015133,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.73015133
+          },
+          {
+            "bin_index": 8,
+            "lower": 0.8,
+            "upper": 0.9,
+            "n": 1,
+            "mean_prediction": 0.831564,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.831564
+          }
+        ],
+        "validation_errors": []
+      },
+      "calibrator": {
+        "schema_version": "1.0.0",
+        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
+        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
+        "readiness": {
+          "ready": false,
+          "row_count": 37,
+          "positive_count": 17,
+          "negative_count": 20,
+          "minimum_oos_rows": 200,
+          "minimum_positives": 25,
+          "minimum_negatives": 25,
+          "blockers": [
+            "OOS_ROWS_37_LT_200",
+            "POSITIVES_17_LT_25",
+            "NEGATIVES_20_LT_25"
+          ],
+          "validation_errors": []
+        },
+        "method": "PLATT_LOGIT",
+        "parameters": null,
+        "production_promotion_allowed": false
+      },
+      "calibrated_metrics": null,
+      "brier_delta": null,
+      "log_loss_delta": null,
+      "calibration_improves_brier_and_log_loss": false,
+      "production_promotion_allowed": false
+    },
+    "draw": {
+      "rows": 37,
+      "status": "DATA_BLOCKED",
+      "raw_metrics": {
+        "status": "OK",
+        "row_count": 37,
+        "brier": 0.13807228,
+        "log_loss": 0.44852683,
+        "ece": 0.1619277,
+        "mce": 0.601867,
+        "bins": [
+          {
+            "bin_index": 1,
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 8,
+            "mean_prediction": 0.16257225,
+            "observed_rate": 0.125,
+            "absolute_gap": 0.03757225
+          },
+          {
+            "bin_index": 2,
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 19,
+            "mean_prediction": 0.24934963,
+            "observed_rate": 0.15789474,
+            "absolute_gap": 0.09145489
+          },
+          {
+            "bin_index": 3,
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 6,
+            "mean_prediction": 0.33006683,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.33006683
+          },
+          {
+            "bin_index": 4,
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 2,
+            "mean_prediction": 0.4279125,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.4279125
+          },
+          {
+            "bin_index": 5,
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 1,
+            "mean_prediction": 0.515011,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.515011
+          },
+          {
+            "bin_index": 6,
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 1,
+            "mean_prediction": 0.601867,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.601867
+          }
+        ],
+        "validation_errors": []
+      },
+      "calibrator": {
+        "schema_version": "1.0.0",
+        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
+        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
+        "readiness": {
+          "ready": false,
+          "row_count": 37,
+          "positive_count": 4,
+          "negative_count": 33,
+          "minimum_oos_rows": 200,
+          "minimum_positives": 25,
+          "minimum_negatives": 25,
+          "blockers": [
+            "OOS_ROWS_37_LT_200",
+            "POSITIVES_4_LT_25"
+          ],
+          "validation_errors": []
+        },
+        "method": "PLATT_LOGIT",
+        "parameters": null,
+        "production_promotion_allowed": false
+      },
+      "calibrated_metrics": null,
+      "brier_delta": null,
+      "log_loss_delta": null,
+      "calibration_improves_brier_and_log_loss": false,
+      "production_promotion_allowed": false
+    },
+    "away_win": {
+      "rows": 37,
+      "status": "DATA_BLOCKED",
+      "raw_metrics": {
+        "status": "OK",
+        "row_count": 37,
+        "brier": 0.32630343,
+        "log_loss": 0.90104641,
+        "ece": 0.31398335,
+        "mce": 0.732346,
+        "bins": [
+          {
+            "bin_index": 0,
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 3,
+            "mean_prediction": 0.08285533,
+            "observed_rate": 0.66666667,
+            "absolute_gap": 0.58381133
+          },
+          {
+            "bin_index": 1,
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 8,
+            "mean_prediction": 0.15367712,
+            "observed_rate": 0.5,
+            "absolute_gap": 0.34632288
+          },
+          {
+            "bin_index": 2,
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 12,
+            "mean_prediction": 0.24261392,
+            "observed_rate": 0.41666667,
+            "absolute_gap": 0.17405275
+          },
+          {
+            "bin_index": 3,
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 6,
+            "mean_prediction": 0.33349683,
+            "observed_rate": 0.66666667,
+            "absolute_gap": 0.33316983
+          },
+          {
+            "bin_index": 4,
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 7,
+            "mean_prediction": 0.46790986,
+            "observed_rate": 0.14285714,
+            "absolute_gap": 0.32505271
+          },
+          {
+            "bin_index": 7,
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 1,
+            "mean_prediction": 0.732346,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.732346
+          }
+        ],
+        "validation_errors": []
+      },
+      "calibrator": {
+        "schema_version": "1.0.0",
+        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
+        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
+        "readiness": {
+          "ready": false,
+          "row_count": 37,
+          "positive_count": 16,
+          "negative_count": 21,
+          "minimum_oos_rows": 200,
+          "minimum_positives": 25,
+          "minimum_negatives": 25,
+          "blockers": [
+            "OOS_ROWS_37_LT_200",
+            "POSITIVES_16_LT_25",
+            "NEGATIVES_21_LT_25"
+          ],
+          "validation_errors": []
+        },
+        "method": "PLATT_LOGIT",
+        "parameters": null,
+        "production_promotion_allowed": false
+      },
+      "calibrated_metrics": null,
+      "brier_delta": null,
+      "log_loss_delta": null,
+      "calibration_improves_brier_and_log_loss": false,
+      "production_promotion_allowed": false
+    },
+    "btts": {
+      "rows": 37,
+      "status": "DATA_BLOCKED",
+      "raw_metrics": {
+        "status": "OK",
+        "row_count": 37,
+        "brier": 0.21546837,
+        "log_loss": 0.61543485,
+        "ece": 0.20250968,
+        "mce": 0.41432833,
+        "bins": [
+          {
+            "bin_index": 0,
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 1,
+            "mean_prediction": 0.065797,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.065797
+          },
+          {
+            "bin_index": 1,
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 3,
+            "mean_prediction": 0.146696,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.146696
+          },
+          {
+            "bin_index": 2,
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 2,
+            "mean_prediction": 0.245192,
+            "observed_rate": 0.5,
+            "absolute_gap": 0.254808
+          },
+          {
+            "bin_index": 3,
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 7,
+            "mean_prediction": 0.34785129,
+            "observed_rate": 0.0,
+            "absolute_gap": 0.34785129
+          },
+          {
+            "bin_index": 4,
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 7,
+            "mean_prediction": 0.44637814,
+            "observed_rate": 0.28571429,
+            "absolute_gap": 0.16066386
+          },
+          {
+            "bin_index": 5,
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 7,
+            "mean_prediction": 0.54232286,
+            "observed_rate": 0.57142857,
+            "absolute_gap": 0.02910571
+          },
+          {
+            "bin_index": 6,
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 7,
+            "mean_prediction": 0.638718,
+            "observed_rate": 0.42857143,
+            "absolute_gap": 0.21014657
+          },
+          {
+            "bin_index": 7,
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 3,
+            "mean_prediction": 0.74766167,
+            "observed_rate": 0.33333333,
+            "absolute_gap": 0.41432833
+          }
+        ],
+        "validation_errors": []
+      },
+      "calibrator": {
+        "schema_version": "1.0.0",
+        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
+        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
+        "readiness": {
+          "ready": false,
+          "row_count": 37,
+          "positive_count": 11,
+          "negative_count": 26,
+          "minimum_oos_rows": 200,
+          "minimum_positives": 25,
+          "minimum_negatives": 25,
+          "blockers": [
+            "OOS_ROWS_37_LT_200",
+            "POSITIVES_11_LT_25"
+          ],
+          "validation_errors": []
+        },
+        "method": "PLATT_LOGIT",
+        "parameters": null,
+        "production_promotion_allowed": false
+      },
+      "calibrated_metrics": null,
+      "brier_delta": null,
+      "log_loss_delta": null,
+      "calibration_improves_brier_and_log_loss": false,
+      "production_promotion_allowed": false
+    },
+    "over_2_5": {
+      "rows": 37,
+      "status": "DATA_BLOCKED",
+      "raw_metrics": {
+        "status": "OK",
+        "row_count": 37,
+        "brier": 0.25333526,
+        "log_loss": 0.74714645,
+        "ece": 0.22036216,
+        "mce": 0.364938,
+        "bins": [
+          {
+            "bin_index": 0,
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 3,
+            "mean_prediction": 0.05439167,
+            "observed_rate": 0.33333333,
+            "absolute_gap": 0.27894167
+          },
+          {
+            "bin_index": 1,
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 2,
+            "mean_prediction": 0.135062,
+            "observed_rate": 0.5,
+            "absolute_gap": 0.364938
+          },
+          {
+            "bin_index": 2,
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 4,
+            "mean_prediction": 0.252691,
+            "observed_rate": 0.25,
+            "absolute_gap": 0.002691
+          },
+          {
+            "bin_index": 3,
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 6,
+            "mean_prediction": 0.33149217,
+            "observed_rate": 0.5,
+            "absolute_gap": 0.16850783
+          },
+          {
+            "bin_index": 4,
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 5,
+            "mean_prediction": 0.445563,
+            "observed_rate": 0.2,
+            "absolute_gap": 0.245563
+          },
+          {
+            "bin_index": 5,
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 7,
+            "mean_prediction": 0.56325557,
+            "observed_rate": 0.85714286,
+            "absolute_gap": 0.29388729
+          },
+          {
+            "bin_index": 6,
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 3,
+            "mean_prediction": 0.63455733,
+            "observed_rate": 0.66666667,
+            "absolute_gap": 0.03210933
+          },
+          {
+            "bin_index": 7,
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 5,
+            "mean_prediction": 0.7637674,
+            "observed_rate": 0.4,
+            "absolute_gap": 0.3637674
+          },
+          {
+            "bin_index": 8,
+            "lower": 0.8,
+            "upper": 0.9,
+            "n": 2,
+            "mean_prediction": 0.8176515,
+            "observed_rate": 1.0,
+            "absolute_gap": 0.1823485
+          }
+        ],
+        "validation_errors": []
+      },
+      "calibrator": {
+        "schema_version": "1.0.0",
+        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
+        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
+        "readiness": {
+          "ready": false,
+          "row_count": 37,
+          "positive_count": 19,
+          "negative_count": 18,
+          "minimum_oos_rows": 200,
+          "minimum_positives": 25,
+          "minimum_negatives": 25,
+          "blockers": [
+            "OOS_ROWS_37_LT_200",
+            "POSITIVES_19_LT_25",
+            "NEGATIVES_18_LT_25"
+          ],
+          "validation_errors": []
+        },
+        "method": "PLATT_LOGIT",
+        "parameters": null,
+        "production_promotion_allowed": false
+      },
+      "calibrated_metrics": null,
+      "brier_delta": null,
+      "log_loss_delta": null,
+      "calibration_improves_brier_and_log_loss": false,
+      "production_promotion_allowed": false
+    }
+  },
+  "ready_target_count": 0,
+  "targets_improving_brier_and_log_loss": 0,
+  "provider_requests_added": 0,
+  "production_promotion_allowed": false,
+  "runtime_prediction_weight": 0.0,
+  "canonical_bet_logic_changed": false,
+  "notes": [
+    "The ledger uses the latest stored pre-kickoff model run per settled fixture.",
+    "Outcomes are joined only after the prediction timestamp and never feed the prediction features.",
+    "Calibration remains research-only; a fitted calibrator is not automatically promoted.",
+    "Current rows can contain multiple historical runtime model versions, which are reported explicitly."
+  ]
+}
