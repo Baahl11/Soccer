@@ -1,0 +1,85 @@
+name: V4 Market Validation Refresh
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/v4-market-validation-refresh.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Rebuild market-family validation reports from canonical CLV v4
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLV="../state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl"
+          test -f "$CLV"
+
+          PYTHONPATH=. python -m mcp_gateway.ft_totals_validation_v4             --ft-validation ../state/soccer_edge_state/analysis/ft_totals_validation.json             --market-summary ../state/soccer_edge_state/analysis/market_performance_summary.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
+
+          PYTHONPATH=. python -m mcp_gateway.one_x_two_validation_v4             --calibration ../state/soccer_edge_state/analysis/one_x_two_calibration.json             --prior-calibration ../state/soccer_edge_state/analysis/one_x_two_prior_calibration.json             --market-summary ../state/soccer_edge_state/analysis/market_performance_summary.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_017_1x2_calibration_validation.json
+
+          PYTHONPATH=. python -m mcp_gateway.btts_validation_v4             --validation ../state/soccer_edge_state/analysis/btts_validation.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_018_btts_calibration_validation.json
+
+          PYTHONPATH=. python -m mcp_gateway.team_totals_oos_v4             --validation ../state/soccer_edge_state/analysis/team_totals_validation.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_019_team_totals_oos_validation.json
+
+          PYTHONPATH=. python -m mcp_gateway.one_h_oos_v4             --calibration ../state/soccer_edge_state/analysis/one_h_goals_calibration.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_020_1h_oos_validation.json
+
+          PYTHONPATH=. python -m mcp_gateway.two_h_oos_v4             --model-report ../state/soccer_edge_state/analysis/two_h_halftime_conditioned.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+
+          PYTHONPATH=. python -m mcp_gateway.corners_oos_v4             --baseline ../state/soccer_edge_state/analysis/corners_baseline.json             --team-validation ../state/soccer_edge_state/analysis/team_corners_validation.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+
+          PYTHONPATH=. python -m mcp_gateway.cards_referee_phase14_v4             --yellow-cards ../state/soccer_edge_state/analysis/cards_baseline.json             --red-cards ../state/soccer_edge_state/analysis/red_cards_validation.json             --player-cards ../state/soccer_edge_state/analysis/player_cards_model_sanity.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/phase14_cards_referee_validation.json
+
+          PYTHONPATH=. python -m mcp_gateway.player_props_phase15_v4             --shots ../state/soccer_edge_state/analysis/player_shots_model_sanity.json             --sot ../state/soccer_edge_state/analysis/player_sot_model_sanity.json             --goalscorer ../state/soccer_edge_state/analysis/player_goalscorer_model_sanity.json             --assists ../state/soccer_edge_state/analysis/player_assists_model_sanity.json             --cards ../state/soccer_edge_state/analysis/player_cards_model_sanity.json             --gk-saves ../state/soccer_edge_state/analysis/gk_saves_model_sanity.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/phase15_player_props_validation.json
+
+      - name: Persist synchronized reports
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
+          git add -f soccer_edge_state/analysis/v4_017_1x2_calibration_validation.json
+          git add -f soccer_edge_state/analysis/v4_018_btts_calibration_validation.json
+          git add -f soccer_edge_state/analysis/v4_019_team_totals_oos_validation.json
+          git add -f soccer_edge_state/analysis/v4_020_1h_oos_validation.json
+          git add -f soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+          git add -f soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+          git add -f soccer_edge_state/analysis/phase14_cards_referee_validation.json
+          git add -f soccer_edge_state/analysis/phase15_player_props_validation.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Refresh V4 market validations from canonical CLV"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
