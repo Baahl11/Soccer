@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 from typing import Any, Iterable
 
 from mcp_gateway import feature_snapshot_v4
+from mcp_gateway import persistence as persistence_base
 
 SCHEMA_VERSION = "4.0.0"
 DATASET_VERSION = "4.0.0"
 POLICY = (
-    "LATEST_VALID_FEATURE_SNAPSHOT_AT_OR_BEFORE_KICKOFF;"
-    "FINAL_RESULT_TARGETS_ONLY;NO_MARKET_FIELDS;NO_POST_KICKOFF_FEATURES"
+    "LATEST_VALID_FEATURE_SNAPSHOT_STRICTLY_BEFORE_KICKOFF;"
+    "FINAL_RESULT_GRADED_BY_BUILD_CUTOFF_ONLY;NO_MARKET_FIELDS;"
+    "NO_POST_KICKOFF_FEATURES;DETERMINISTIC_FIXTURE_ORDER"
 )
 
 
@@ -49,8 +51,8 @@ def build_row(
 
     captured_dt = datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
     kickoff_dt = datetime.fromisoformat(str(kickoff).replace("Z", "+00:00"))
-    if captured_dt > kickoff_dt:
-        raise ValueError("FEATURE_SNAPSHOT_AFTER_KICKOFF")
+    if captured_dt >= kickoff_dt:
+        raise ValueError("FEATURE_SNAPSHOT_NOT_STRICTLY_BEFORE_KICKOFF")
 
     home = _as_int(home_goals)
     away = _as_int(away_goals)
@@ -125,8 +127,8 @@ def validate_row(row: dict[str, Any]) -> list[str]:
     try:
         captured_dt = datetime.fromisoformat(str(row.get("feature_captured_at")).replace("Z", "+00:00"))
         kickoff_dt = datetime.fromisoformat(str(row.get("kickoff")).replace("Z", "+00:00"))
-        if captured_dt > kickoff_dt:
-            errors.append("FEATURE_SNAPSHOT_AFTER_KICKOFF")
+        if captured_dt >= kickoff_dt:
+            errors.append("FEATURE_SNAPSHOT_NOT_STRICTLY_BEFORE_KICKOFF")
     except Exception:
         errors.append("INVALID_TIMESTAMPS")
     expected = row_fingerprint(row)
@@ -144,16 +146,18 @@ def dataset_fingerprint(rows: Iterable[dict[str, Any]]) -> str:
 
 
 def load_rows(conn: Any, *, cutoff: str | None = None) -> list[dict[str, Any]]:
-    params: list[Any] = [feature_snapshot_v4.SCHEMA_VERSION]
-    cutoff_clause = ""
-    if cutoff:
-        cutoff_clause = " AND s.captured_at <= %s"
-        params.append(cutoff)
+    build_cutoff = cutoff or datetime.now(dt_timezone.utc).isoformat()
+    params: list[Any] = [
+        feature_snapshot_v4.SCHEMA_VERSION,
+        build_cutoff,
+        build_cutoff,
+    ]
 
-    query = f"""
+    query = """
         SELECT DISTINCT ON (f.fixture_id)
             f.fixture_id,
             f.kickoff,
+            s.snapshot_id,
             s.payload,
             r.final_status,
             r.home_goals,
@@ -162,17 +166,19 @@ def load_rows(conn: Any, *, cutoff: str | None = None) -> list[dict[str, Any]]:
         JOIN soccer_results r ON r.fixture_id = f.fixture_id
         JOIN soccer_feature_snapshots s ON s.fixture_id = f.fixture_id
         WHERE s.schema_version = %s
-          AND s.captured_at <= f.kickoff
+          AND s.captured_at < f.kickoff
+          AND s.captured_at <= %s
+          AND r.graded_at IS NOT NULL
+          AND r.graded_at <= %s
           AND r.home_goals IS NOT NULL
           AND r.away_goals IS NOT NULL
-          {cutoff_clause}
-        ORDER BY f.fixture_id, s.captured_at DESC
+        ORDER BY f.fixture_id, s.captured_at DESC, s.snapshot_id DESC
     """
 
     rows: list[dict[str, Any]] = []
     with conn.cursor() as cur:
         cur.execute(query, tuple(params))
-        for fixture_id, kickoff, snapshot, final_status, home_goals, away_goals in cur.fetchall():
+        for fixture_id, kickoff, snapshot_id, snapshot, final_status, home_goals, away_goals in cur.fetchall():
             if not isinstance(snapshot, dict):
                 continue
             row = build_row(
@@ -184,21 +190,37 @@ def load_rows(conn: Any, *, cutoff: str | None = None) -> list[dict[str, Any]]:
             )
             if row.get("fixture_id") != fixture_id:
                 continue
+            row["snapshot_id"] = int(snapshot_id)
+            row["row_fingerprint"] = row_fingerprint(row)
             if not validate_row(row):
                 rows.append(row)
+    rows.sort(key=lambda item: (int(item.get("fixture_id") or 0), int(item.get("snapshot_id") or 0)))
     return rows
 
-
 def manifest(rows: list[dict[str, Any]], *, cutoff: str | None = None) -> dict[str, Any]:
+    feature_names = sorted({
+        key
+        for row in rows
+        for key in (row.get("features") or {}).keys()
+    })
+    missing_counts = {
+        key: sum(1 for row in rows if (row.get("features") or {}).get(key) is None)
+        for key in feature_names
+    }
     return {
         "dataset_version": DATASET_VERSION,
         "feature_schema_version": feature_snapshot_v4.SCHEMA_VERSION,
         "policy": POLICY,
         "row_count": len(rows),
         "fixture_count": len({row.get("fixture_id") for row in rows}),
+        "feature_count": len(feature_names),
+        "feature_names": feature_names,
+        "missing_counts": missing_counts,
         "cutoff": cutoff,
         "dataset_fingerprint": dataset_fingerprint(rows),
         "market_fields_included": False,
+        "post_kickoff_features_allowed": False,
+        "critical_missingness_imputed": False,
         "target_fields": [
             "home_goals",
             "away_goals",
@@ -211,4 +233,165 @@ def manifest(rows: list[dict[str, Any]], *, cutoff: str | None = None) -> dict[s
             "over_2_5",
             "over_3_5",
         ],
+    }
+
+
+def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int]:
+    """Derive v4 snapshots only from historical point-in-time refresh payloads.
+
+    No provider calls and no future information are used. Missing advanced
+    features remain explicitly missing under feature_snapshot_v4.
+    """
+    scanned = valid = inserted = invalid = 0
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT event_id, generated_at, payload
+            FROM soccer_refresh_events
+            WHERE event_type='SOCCER_REFRESH'
+              AND stage <> 'POSTGAME'
+            ORDER BY generated_at ASC, event_id ASC
+            LIMIT %s
+            """,
+            (int(limit),),
+        )
+        source_rows = cur.fetchall()
+
+    for _event_id, generated_at, payload in source_rows:
+        scanned += 1
+        if not isinstance(payload, dict):
+            invalid += 1
+            continue
+        tick = {
+            "generated_at_utc": generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at),
+            "model_version": payload.get("model_version"),
+        }
+        snapshot = feature_snapshot_v4.build(tick, payload)
+        errors = feature_snapshot_v4.validate(snapshot)
+        if errors:
+            invalid += 1
+            continue
+        valid += 1
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO soccer_feature_snapshots (
+                    fixture_id, captured_at, stage, schema_version,
+                    model_version, data_tier, feature_count,
+                    missing_feature_count, payload
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+                ON CONFLICT (fixture_id, captured_at, stage, schema_version) DO NOTHING
+                """,
+                (
+                    snapshot.get("fixture_id"),
+                    snapshot.get("captured_at"),
+                    snapshot.get("stage"),
+                    snapshot.get("schema_version"),
+                    snapshot.get("model_version"),
+                    snapshot.get("data_tier"),
+                    snapshot.get("feature_count", 0),
+                    snapshot.get("missing_feature_count", 0),
+                    _canonical_json(snapshot),
+                ),
+            )
+            inserted += max(int(cur.rowcount or 0), 0)
+
+    return {
+        "scanned_refresh_events": scanned,
+        "valid_snapshots": valid,
+        "inserted_snapshots": inserted,
+        "invalid_snapshots": invalid,
+    }
+
+
+def persist_materialized_dataset(
+    conn: Any,
+    rows: list[dict[str, Any]],
+    dataset_manifest: dict[str, Any],
+) -> str:
+    cutoff = str(dataset_manifest.get("cutoff") or "")
+    digest = str(dataset_manifest.get("dataset_fingerprint") or "")
+    compact_cutoff = (
+        cutoff.replace("-", "").replace(":", "").replace("+00:00", "Z").replace(".", "")
+        or "NO_CUTOFF"
+    )
+    build_id = f"v4-{compact_cutoff}-{digest[:12]}"
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO soccer_training_dataset_builds (
+                build_id, dataset_version, feature_schema_version, as_of,
+                row_count, feature_count, dataset_sha256, selection_policy, manifest
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+            ON CONFLICT (build_id) DO UPDATE SET
+                row_count=EXCLUDED.row_count,
+                feature_count=EXCLUDED.feature_count,
+                dataset_sha256=EXCLUDED.dataset_sha256,
+                selection_policy=EXCLUDED.selection_policy,
+                manifest=EXCLUDED.manifest
+            """,
+            (
+                build_id,
+                DATASET_VERSION,
+                feature_snapshot_v4.SCHEMA_VERSION,
+                cutoff,
+                dataset_manifest.get("row_count", 0),
+                dataset_manifest.get("feature_count", 0),
+                digest,
+                POLICY,
+                _canonical_json(dataset_manifest),
+            ),
+        )
+        cur.execute("DELETE FROM soccer_training_dataset_rows WHERE build_id=%s", (build_id,))
+        for index, row in enumerate(rows, start=1):
+            cur.execute(
+                """
+                INSERT INTO soccer_training_dataset_rows (
+                    build_id, row_number, fixture_id, snapshot_id,
+                    snapshot_captured_at, kickoff, league_id, season, stage,
+                    features, missingness, provenance, targets, row_payload, row_sha256
+                ) VALUES (
+                    %s,%s,%s,%s,%s,%s,%s,%s,%s,
+                    %s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s
+                )
+                """,
+                (
+                    build_id,
+                    index,
+                    row.get("fixture_id"),
+                    row.get("snapshot_id"),
+                    row.get("feature_captured_at"),
+                    row.get("kickoff"),
+                    None,
+                    None,
+                    row.get("stage"),
+                    _canonical_json(row.get("features") or {}),
+                    _canonical_json(row.get("feature_missing") or {}),
+                    _canonical_json(row.get("feature_provenance") or {}),
+                    _canonical_json(row.get("targets") or {}),
+                    _canonical_json(row),
+                    row.get("row_fingerprint"),
+                ),
+            )
+    return build_id
+
+
+def build_and_persist(*, cutoff: str | None = None, backfill_limit: int = 5000) -> dict[str, Any]:
+    build_cutoff = cutoff or datetime.now(dt_timezone.utc).isoformat()
+    persistence_base.ensure_schema()
+    with persistence_base._connect() as conn:
+        backfill = backfill_feature_snapshots(conn, limit=backfill_limit)
+        rows = load_rows(conn, cutoff=build_cutoff)
+        dataset_manifest = manifest(rows, cutoff=build_cutoff)
+        build_id = persist_materialized_dataset(conn, rows, dataset_manifest)
+
+    return {
+        "status": "OK",
+        "build_id": build_id,
+        "manifest": dataset_manifest,
+        "backfill": backfill,
+        "persisted_row_count": len(rows),
+        "provider_requests_added": 0,
+        "market_fields_included": False,
     }
