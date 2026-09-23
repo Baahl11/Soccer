@@ -12,6 +12,7 @@ from mcp_gateway import automation_v3 as v3
 from mcp_gateway import automation_v4 as v4
 from mcp_gateway import automation_v5 as v5
 from mcp_gateway import automation_v6 as v6
+from mcp_gateway import fair_scheduler
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
 AUTOMATION_VERSION = "1.7.0"
@@ -161,6 +162,7 @@ async def run_tick() -> dict[str, Any]:
                     "stage": stage,
                     "coverage": coverage,
                     "tier": tier,
+                    "prior_shortlisted": bool(prior and prior.get("shortlisted")),
                     "priority": _queue_priority(
                         fx,
                         stage,
@@ -176,20 +178,45 @@ async def run_tick() -> dict[str, Any]:
 
         due.sort(key=lambda item: item["priority"])
 
+        pass_through_due: list[dict[str, Any]] = []
+        fair_eligible_due: list[dict[str, Any]] = []
+        for item in due:
+            fx = item["fx"]
+            stage = item["stage"]
+            already_processed = v5._stage_already_processed(fx["fixture_id"], stage, now_utc)
+            item["stage_already_processed"] = already_processed
+            if already_processed or item["tier"] not in {"A", "B"}:
+                pass_through_due.append(item)
+                continue
+            state = fair_scheduler.get_state(fx["fixture_id"], now_utc)
+            item["fairness_state"] = state
+            item["fairness_category"] = fair_scheduler.category(
+                bool(item.get("prior_shortlisted")),
+                state,
+            )
+            fair_eligible_due.append(item)
+
+        fair_selected, fair_deferred, fair_plan = fair_scheduler.fair_order(
+            fair_eligible_due,
+            v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK,
+        )
+        due_execution_order = pass_through_due + fair_selected + fair_deferred
+
         deep_dive_processed = 0
         deferred_due_to_priority = 0
         deferred_due_to_budget = 0
         market_requests_avoided_by_screen = 0
         shortlist_events = 0
         urgent_late_shortlist_processed = 0
+        fair_processed_counts: Counter[str] = Counter()
 
-        for item in due:
+        for item in due_execution_order:
             fx = item["fx"]
             stage = item["stage"]
             coverage = item["coverage"]
             tier = item["tier"]
 
-            if v5._stage_already_processed(fx["fixture_id"], stage, now_utc):
+            if item.get("stage_already_processed"):
                 continue
 
             if tier not in {"A", "B"}:
@@ -235,6 +262,9 @@ async def run_tick() -> dict[str, Any]:
                 continue
 
             deep_dive_processed += 1
+            fairness_category = str(item.get("fairness_category") or "exploratory")
+            fair_processed_counts[fairness_category] += 1
+            fair_scheduler.record_deep_dive(fx["fixture_id"], stage, now_utc)
             if is_urgent_existing:
                 urgent_late_shortlist_processed += 1
             v5._mark_stage_processed(fx["fixture_id"], stage, now_utc)
@@ -265,6 +295,25 @@ async def run_tick() -> dict[str, Any]:
         ]
         bets = [e for e in events if e.get("classification") == "BET"]
         shortlist_state = v6.export_shortlist_state()
+        scheduler_fairness_state = fair_scheduler.export_state()
+        fair_metrics = {
+            **fair_plan,
+            **fair_scheduler.coverage_metrics(
+                due,
+                dict(fair_processed_counts),
+                v2._API_CALLS_THIS_TICK,
+                deep_dive_processed,
+                now_utc,
+            ),
+            "processed_category_counts": {
+                key: int(fair_processed_counts.get(key, 0))
+                for key in fair_scheduler.CATEGORY_WEIGHTS
+            },
+            "state_count": len(scheduler_fairness_state),
+            "provider_requests_added": 0,
+            "model_weights_changed": False,
+            "canonical_bet_logic_changed": False,
+        }
 
         return {
             "service": "soccer-edge-automation",
@@ -297,7 +346,8 @@ async def run_tick() -> dict[str, Any]:
             "screened_out_low_data_count": sum(low_data_counts.values()),
             "market_requests_avoided_by_sport_screen": market_requests_avoided_by_screen,
             "max_deep_dive_fixtures_per_tick": v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK,
-            "priority_queue": "TIER_THEN_EXISTING_LATE_GATE_THEN_T40_DISCOVERY_THEN_QUALITY",
+            "priority_queue": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY_WITH_LIFECYCLE_URGENCY",
+            "fair_scheduler": fair_metrics,
             "urgent_late_shortlist_due": urgent_late_shortlist_due,
             "urgent_late_shortlist_processed": urgent_late_shortlist_processed,
             "request_pacing_seconds": v4.MIN_REQUEST_INTERVAL_SECONDS,
@@ -308,6 +358,7 @@ async def run_tick() -> dict[str, Any]:
             "shortlist_persistence": "GITHUB_STATE_SEEDED",
             "shortlist_state_count": len(shortlist_state),
             "shortlist_state": shortlist_state,
+            "scheduler_fairness_state": scheduler_fairness_state,
             "quota": quota,
             "events": events,
             "database_persistence": "OPTIONAL_NOT_REQUIRED_FOR_SCHEDULER",
