@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.0.0",
+  "status": "COLLECTING_TRUE_CLV",
+  "lookback_days": 60,
+  "signal_rows_considered": 114,
+  "tracked_rows": 23,
+  "comparable_true_clv_rows": 23,
+  "minimum_true_close_rows": 50,
+  "family_counts": {
+    "1X2": 19,
+    "BTTS": 4
+  },
+  "skip_reasons": {
+    "NO_BEST_MARKET": 70,
+    "NO_SELECTION_MATCH_AT_CLOSE": 21
+  },
+  "provider_requests_added": 0,
+  "production_promotion_allowed": false,
+  "notes": [
+    "Source is Postgres soccer_refresh_events + soccer_market_snapshots; GitHub compact history is not required.",
+    "Probability/price CLV is computed only when the exact same market selection and line are comparable at close.",
+    "Line movement may still be recorded when the selected side survives but the sportsbook line changes.",
+    "Same-book close is preferred; otherwise the latest cross-book snapshot at the latest pre-kickoff timestamp is used."
+  ]
+}
