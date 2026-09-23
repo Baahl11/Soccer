@@ -192,9 +192,19 @@ def build(event: dict[str, Any], trends: dict[str, Any] | None) -> dict[str, Any
 
 
 def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
-    trends = load_player_trends()
+    events = [
+        event for event in (payload.get("events") or [])
+        if isinstance(event, dict)
+        and event.get("event_type") == "SOCCER_REFRESH"
+        and event.get("stage") not in {"POSTGAME", "HT", "CLOSE"}
+    ]
+    needs_trends = any(
+        isinstance(event.get("injuries"), list) and bool(event.get("injuries"))
+        for event in events
+    )
+    trends = load_player_trends() if needs_trends else None
     context_events = material_events = conflict_events = reports = 0
-    for event in payload.get("events") or []:
+    for event in events:
         if not isinstance(event, dict) or event.get("event_type") != "SOCCER_REFRESH" or event.get("stage") in {"POSTGAME", "HT", "CLOSE"}:
             continue
         intel = build(event, trends)
