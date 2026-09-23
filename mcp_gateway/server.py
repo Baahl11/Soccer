@@ -341,6 +341,12 @@ async def internal_tick(request: Request) -> Response:
 
     env = os.environ.copy()
     env.setdefault("MALLOC_ARENA_MAX", "2")
+    trace_path = "/tmp/soccer_v90_mem.trace"
+    env["SOCCER_EDGE_V90_TRACE_FILE"] = trace_path
+    try:
+        os.remove(trace_path)
+    except FileNotFoundError:
+        pass
     try:
         proc = await asyncio.create_subprocess_exec(
             sys.executable,
@@ -364,8 +370,19 @@ async def internal_tick(request: Request) -> Response:
             for line in stderr_text.splitlines()[-200:]:
                 if line.startswith(("WORKER_MEM ", "MEMPROBE ", "V90_MEM ", "V91_MEM ", "V92_MEM ")):
                     print(line, file=sys.stderr, flush=True)
+        trace_text = ""
+        try:
+            with open(trace_path, "r", encoding="utf-8") as handle:
+                trace_text = handle.read()[-4000:]
+        except OSError:
+            pass
+        if trace_text:
+            for line in trace_text.splitlines()[-100:]:
+                print(f"V90_TRACE {line}", file=sys.stderr, flush=True)
         if proc.returncode != 0:
             detail = stderr_text[-1000:]
+            if trace_text:
+                detail = (detail + "\\nLAST_V90_TRACE:\\n" + trace_text)[-5000:]
             return JSONResponse({"error": "tick_failed", "detail": detail}, status_code=500)
         if not stdout:
             return JSONResponse({"error": "tick_failed", "detail": "worker returned empty output"}, status_code=500)
