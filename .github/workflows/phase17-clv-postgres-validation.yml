@@ -1,4 +1,4 @@
-name: Phase 17 Postgres CLV Validation
+name: Phase 17 Postgres CLV Validation - Retry
 
 on:
   workflow_dispatch:
@@ -33,15 +33,15 @@ jobs:
           set -euo pipefail
 
           RESPONSE=$(curl -fsS \
-            -H "Authorization: bearer \${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "\${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
           TOKEN=$(echo "$RESPONSE" | jq -r '.value // empty')
           test -n "$TOKEN"
           echo "::add-mask::$TOKEN"
 
           HTTP_CODE=$(curl -sS --max-time 420 -o /tmp/clv_v4.json -w "%{http_code}" \
             -X POST \
-            -H "Authorization: Bearer \${TOKEN}" \
+            -H "Authorization: Bearer ${TOKEN}" \
             -H "Content-Type: application/json" \
             -d '{"lookback_days":60,"max_signals":10000}' \
             https://soccer-edge-api.onrender.com/internal/clv-v4/build)
