@@ -1,0 +1,125 @@
+{
+  "blockers": [
+    "BOOKMAKER_TIMESTAMP_DISCIPLINE_INCOMPLETE",
+    "LINEUP_TIMESTAMP_DISCIPLINE_INCOMPLETE",
+    "FEATURE_TIMESTAMP_DISCIPLINE_INCOMPLETE",
+    "SETTLED_28_LT_50",
+    "CLV_ENGINE_NOT_COMPLETE"
+  ],
+  "canonical_bet_logic_changed": false,
+  "chronological_split_preview": {
+    "test": {
+      "end": "2026-09-19T04:40:05.052131-06:00",
+      "rows": 7,
+      "start": "2026-09-13T17:06:28.022066-06:00"
+    },
+    "train": {
+      "end": "2026-09-13T16:06:53.910885-06:00",
+      "rows": 17,
+      "start": "2026-09-13T01:19:42.079504-06:00"
+    },
+    "validation": {
+      "end": "2026-09-13T16:52:30.621383-06:00",
+      "rows": 5,
+      "start": "2026-09-13T16:20:41.604671-06:00"
+    }
+  },
+  "clv_context": {
+    "overall": {
+      "avg_price_clv_pct": 0.512291,
+      "avg_probability_clv_pp": 0.150804,
+      "positive_probability_clv_rate": 0.04918
+    },
+    "rows": 122,
+    "status": "CLV_TRACKING_INCOMPLETE",
+    "true_closing_line_rows": 122
+  },
+  "framework": {
+    "chronological_splits": true,
+    "no_leakage_required": true,
+    "no_training_performance_promotion": true,
+    "rolling_windows": [
+      20,
+      50,
+      100
+    ],
+    "walk_forward_validation_supported": true
+  },
+  "manual_review_required": true,
+  "metric_availability_on_current_settlement_ledger": {
+    "brier": false,
+    "calibration": false,
+    "clv": true,
+    "drawdown": true,
+    "hit_rate": true,
+    "log_loss": false,
+    "mae": false,
+    "max_losing_streak": true,
+    "rmse": false,
+    "roi": true,
+    "volatility": true
+  },
+  "model_version": "SOCCER_OOS_BACKTEST_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "The settlement ledger can measure realized hit rate, ROI, drawdown, losing streak and volatility.",
+    "Brier/log-loss/calibration/MAE/RMSE require point-in-time model predictions joined to final outcomes; settlement ROI alone cannot substitute for those metrics.",
+    "Chronological split preview is diagnostic only. Production model evaluation must use frozen prediction snapshots and walk-forward/rolling retraining without leakage.",
+    "Bookmaker, lineup and feature timestamps must be explicit per prediction row before production promotion."
+  ],
+  "phase": "FASE_18_OOS_BACKTEST",
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "realized_settlement_metrics": {
+    "hit_rate_ex_push": 0.571429,
+    "losses": 12,
+    "max_drawdown_units": 2.64,
+    "max_losing_streak": 4,
+    "push_like": 0,
+    "return_volatility_stddev": 1.664659,
+    "roi_per_staked_unit": 0.480886,
+    "roi_units": 13.4648,
+    "settled_rows": 28,
+    "stake_units": 28.0,
+    "wins": 16
+  },
+  "rolling_settlement_metrics": {
+    "100": {
+      "available": false,
+      "reason": "SETTLED_28_LT_WINDOW_100"
+    },
+    "20": {
+      "available": true,
+      "metrics": {
+        "hit_rate_ex_push": 0.65,
+        "losses": 7,
+        "max_drawdown_units": 2.0,
+        "max_losing_streak": 4,
+        "push_like": 0,
+        "return_volatility_stddev": 1.295919,
+        "roi_per_staked_unit": 0.44374,
+        "roi_units": 8.8748,
+        "settled_rows": 20,
+        "stake_units": 20.0,
+        "wins": 13
+      }
+    },
+    "50": {
+      "available": false,
+      "reason": "SETTLED_28_LT_WINDOW_50"
+    }
+  },
+  "schema_version": "1.0.0",
+  "status": "OOS_FRAMEWORK_DATA_GAPS",
+  "timestamp_discipline": {
+    "bookmaker_timestamp_coverage": 0.0,
+    "decision_timestamp_coverage": 1.0,
+    "feature_timestamp_coverage": 0.0,
+    "lineup_timestamp_coverage": 0.0,
+    "pre_kickoff_decision_rate": 1.0,
+    "rows": 29
+  },
+  "warnings": [
+    "CHRONOLOGICAL_TEST_PARTITION_SMALL"
+  ]
+}
