@@ -23,6 +23,7 @@ CORE_SLATE_FLOOR_MIN_DAILY_REMAINING = int(
     os.getenv("SOCCER_EDGE_SLATE_FLOOR_MIN_DAILY_REMAINING", "4000")
 )
 ELASTIC_GC_BATCH_SIZE = max(1, int(os.getenv("SOCCER_EDGE_ELASTIC_GC_BATCH_SIZE", "4")))
+POSTGAME_STATS_MAX_ROWS = max(1, int(os.getenv("SOCCER_EDGE_POSTGAME_STATS_MAX_ROWS", "2")))
 
 RunTick = Callable[[], Awaitable[dict[str, Any]]]
 
@@ -110,6 +111,24 @@ def _compact_valid_fixture(row: Any) -> dict[str, Any] | None:
     ):
         return fx
     return None
+
+
+def _compact_runtime_event(event: dict[str, Any]) -> dict[str, Any]:
+    """Bound event retention without changing decision inputs or provider calls."""
+    if event.get("stage") == "POSTGAME" and isinstance(event.get("match_stats"), list):
+        # Full provider statistics are already durable/cached elsewhere; the tick only
+        # needs a bounded diagnostic snapshot for downstream presentation/persistence.
+        compact_rows = []
+        for row in event["match_stats"][:POSTGAME_STATS_MAX_ROWS]:
+            if not isinstance(row, dict):
+                continue
+            team = row.get("team") or {}
+            compact_rows.append({
+                "team": {"id": team.get("id"), "name": team.get("name")},
+                "statistics": (row.get("statistics") or [])[:24],
+            })
+        event["match_stats"] = compact_rows
+    return event
 
 
 def _append_fixture_payload(
@@ -325,7 +344,8 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
                 market_requests_avoided_by_screen += 1
             if (event.get("sporting_shortlist") or {}).get("shortlisted"):
                 shortlist_events += 1
-            events.append(event)
+            events.append(_compact_runtime_event(event))
+            event = None
 
             # Keep elastic coverage independent from worker memory growth. Persistent
             # provider caches live in SQLite, so collecting transient Python objects
@@ -389,6 +409,7 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
             "elastic_quota_remaining_basis": quota_remaining_basis,
             "elastic_gc_batch_size": ELASTIC_GC_BATCH_SIZE,
             "elastic_gc_batches_completed": gc_batches_completed,
+            "runtime_event_retention_policy": "COMPACT_POSTGAME_STATS_BOUNDED",
             "priority_queue": "DATA_TIER_THEN_STAGE_THEN_PRIOR_SHORTLIST_THEN_COMPETITION_THEN_COVERAGE",
             "request_pacing_seconds": v4.MIN_REQUEST_INTERVAL_SECONDS,
             "rate_limit_max_retries": v4.RATE_LIMIT_MAX_RETRIES,
