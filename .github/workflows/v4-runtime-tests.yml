@@ -24,4 +24,4 @@ jobs:
           pip install -r mcp_gateway/requirements.txt pytest
       - name: Run V4 scheduler regression tests
         run: |
-          pytest -q -c /dev/null tests/test_v4_006_fair_scheduler.py
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_v4_006_fair_scheduler.py
