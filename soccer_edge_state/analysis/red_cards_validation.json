@@ -77,6 +77,13 @@
       "n": 3,
       "observed_rate": 1.0
     },
+    "EFL Trophy": {
+      "brier": 0.145742,
+      "log_loss": 0.469426,
+      "mean_probability": 0.171148,
+      "n": 23,
+      "observed_rate": 0.173913
+    },
     "Eerste Divisie": {
       "brier": 0.662993,
       "log_loss": 1.683319,
@@ -281,11 +288,11 @@
       "observed_rate": 0.2
     },
     "Serie B": {
-      "brier": 0.083732,
-      "log_loss": 0.31204,
-      "mean_probability": 0.164979,
-      "n": 11,
-      "observed_rate": 0.090909
+      "brier": 0.078811,
+      "log_loss": 0.300281,
+      "mean_probability": 0.164324,
+      "n": 12,
+      "observed_rate": 0.083333
     },
     "Super League": {
       "brier": 0.24923,
@@ -336,6 +343,13 @@
       "n": 4,
       "observed_rate": 0.25
     },
+    "UEFA Champions League Women": {
+      "brier": 0.162097,
+      "log_loss": 0.507287,
+      "mean_probability": 0.188481,
+      "n": 5,
+      "observed_rate": 0.2
+    },
     "Veikkausliiga": {
       "brier": 0.037675,
       "log_loss": 0.215796,
@@ -353,11 +367,11 @@
       "observed_rate": 0.2
     },
     "15-19%": {
-      "brier": 0.165848,
-      "log_loss": 0.516643,
-      "mean_probability": 0.182026,
-      "n": 146,
-      "observed_rate": 0.205479
+      "brier": 0.162292,
+      "log_loss": 0.508194,
+      "mean_probability": 0.180638,
+      "n": 175,
+      "observed_rate": 0.2
     },
     "20-24%": {
       "brier": 0.339325,
@@ -369,11 +383,11 @@
   },
   "model": "EMPIRICAL_BAYES_ANY_RED_CARD_MATCH_v0.1",
   "overall": {
-    "brier": 0.170317,
-    "log_loss": 0.527078,
-    "mean_probability": 0.181276,
-    "n": 155,
-    "observed_rate": 0.212903
+    "brier": 0.16623,
+    "log_loss": 0.517398,
+    "mean_probability": 0.180074,
+    "n": 184,
+    "observed_rate": 0.206522
   },
   "policy": "RED CARDS ONLY; WALK-FORWARD ANTI-LEAKAGE; YELLOW CARD COUNTS EXCLUDED; NO AUTOMATIC PROMOTION",
   "promotion_gate": {
@@ -2258,9 +2272,357 @@
       "p_any_red": 0.163849,
       "referee_adjusted": false,
       "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03476984645393388,
+      "bucket": "15-19%",
+      "fixture_id": 1638300,
+      "league": "UEFA Champions League Women",
+      "league_id": 525,
+      "log_loss": 0.2063684724704615,
+      "p_any_red": 0.186467,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.6665113879865122,
+      "bucket": "15-19%",
+      "fixture_id": 1638309,
+      "league": "UEFA Champions League Women",
+      "league_id": 525,
+      "log_loss": 1.6950038999927817,
+      "p_any_red": 0.183599,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03170286464262395,
+      "bucket": "15-19%",
+      "fixture_id": 1588815,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.19607934182312087,
+      "p_any_red": 0.178053,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03077679858145711,
+      "bucket": "15-19%",
+      "fixture_id": 1588816,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.19289709007763153,
+      "p_any_red": 0.175433,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.029885604654944893,
+      "bucket": "15-19%",
+      "fixture_id": 1588823,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.18979888377457796,
+      "p_any_red": 0.172875,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.029027667703041937,
+      "bucket": "15-19%",
+      "fixture_id": 1588824,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.18678158330148412,
+      "p_any_red": 0.170375,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02712365004974212,
+      "bucket": "15-19%",
+      "fixture_id": 1588830,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.17995546928045814,
+      "p_any_red": 0.164693,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02635739020402437,
+      "bucket": "15-19%",
+      "fixture_id": 1588834,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.1771544404329358,
+      "p_any_red": 0.16235,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.0266385473931563,
+      "bucket": "15-19%",
+      "fixture_id": 1588843,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.17818595555765118,
+      "p_any_red": 0.163213,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.7040347226254778,
+      "bucket": "15-19%",
+      "fixture_id": 1588847,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 1.8267719341902315,
+      "p_any_red": 0.160932,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02941876542266561,
+      "bucket": "15-19%",
+      "fixture_id": 1588849,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.18816136856964452,
+      "p_any_red": 0.171519,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.028630903239621735,
+      "bucket": "15-19%",
+      "fixture_id": 1588853,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.18537423699834404,
+      "p_any_red": 0.169207,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02787036446520694,
+      "bucket": "15-19%",
+      "fixture_id": 1588854,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.18265464705666679,
+      "p_any_red": 0.166944,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.7030019875172823,
+      "bucket": "15-19%",
+      "fixture_id": 1588862,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 1.8229538203556004,
+      "p_any_red": 0.161548,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.6810641547519973,
+      "bucket": "15-19%",
+      "fixture_id": 1588865,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 1.7444910994106393,
+      "p_any_red": 0.174734,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03405739151551471,
+      "bucket": "15-19%",
+      "fixture_id": 1588871,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.20401081516473465,
+      "p_any_red": 0.184546,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03321004550356186,
+      "bucket": "15-19%",
+      "fixture_id": 1588872,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.20118178045782711,
+      "p_any_red": 0.182236,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.031156493602055375,
+      "bucket": "15-19%",
+      "fixture_id": 1588882,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.19420632707414293,
+      "p_any_red": 0.176512,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.031596997454798686,
+      "bucket": "15-19%",
+      "fixture_id": 1588886,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.19571741336631074,
+      "p_any_red": 0.177755,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02965321883594195,
+      "bucket": "15-19%",
+      "fixture_id": 1588888,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.188985028473297,
+      "p_any_red": 0.172201,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.028937368118885306,
+      "bucket": "15-19%",
+      "fixture_id": 1588891,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.1864619613240888,
+      "p_any_red": 0.17011,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.029365653326138903,
+      "bucket": "15-19%",
+      "fixture_id": 1588899,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.18797441910529644,
+      "p_any_red": 0.171364,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.0286681759849663,
+      "bucket": "15-19%",
+      "fixture_id": 1588908,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.18550677437607233,
+      "p_any_red": 0.169317,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 1,
+      "brier": 0.6987636758248177,
+      "bucket": "15-19%",
+      "fixture_id": 1588829,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 1.807406376107566,
+      "p_any_red": 0.164079,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.031122431628325946,
+      "bucket": "15-19%",
+      "fixture_id": 1588907,
+      "league": "EFL Trophy",
+      "league_id": 46,
+      "log_loss": 0.1940891341039683,
+      "p_any_red": 0.176416,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03747090848833276,
+      "bucket": "15-19%",
+      "fixture_id": 1638288,
+      "league": "UEFA Champions League Women",
+      "league_id": 525,
+      "log_loss": 0.21514318820597142,
+      "p_any_red": 0.193574,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.036388416109341334,
+      "bucket": "15-19%",
+      "fixture_id": 1638310,
+      "league": "UEFA Champions League Women",
+      "league_id": 525,
+      "log_loss": 0.21165662912910665,
+      "p_any_red": 0.190757,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.03534684345522424,
+      "bucket": "15-19%",
+      "fixture_id": 1638331,
+      "league": "UEFA Champions League Women",
+      "league_id": 525,
+      "log_loss": 0.208264251953508,
+      "p_any_red": 0.188008,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
+    },
+    {
+      "actual_any_red": 0,
+      "brier": 0.02468483487186178,
+      "bucket": "15-19%",
+      "fixture_id": 1520882,
+      "league": "Serie B",
+      "league_id": 72,
+      "log_loss": 0.17092365913853713,
+      "p_any_red": 0.157114,
+      "referee_adjusted": false,
+      "referee_prior_n": 0
     }
   ],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_RED_CARD_VALIDATION",
-  "walk_forward_evaluated": 155
+  "walk_forward_evaluated": 184
 }
