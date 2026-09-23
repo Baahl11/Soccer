@@ -1,0 +1,105 @@
+name: V4-011 LightGBM Goals Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/v4-011-lightgbm-validation.yml"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout runtime research code
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install offline challenger dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "lightgbm>=4,<5"
+
+      - name: Warm Render
+        run: |
+          curl -sS --max-time 360 --retry 2 --retry-delay 5 --retry-all-errors \
+            https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+          cat /tmp/health.json || true
+
+      - name: Export point-in-time training dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+          response=$(curl -fsS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          token=$(echo "$response" | jq -r '.value // empty')
+          test -n "$token"
+          echo "::add-mask::$token"
+
+          cutoff=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          http_code=$(curl -sS --max-time 430 -o /tmp/v4_011_dataset.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${token}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg cutoff "$cutoff" '{cutoff:$cutoff,row_limit:10000}')" \
+            https://soccer-edge-api.onrender.com/internal/training-dataset/export)
+
+          test "$http_code" = "200"
+          jq -e '.status == "OK"' /tmp/v4_011_dataset.json >/dev/null
+          jq -e '.market_fields_included == false' /tmp/v4_011_dataset.json >/dev/null
+
+      - name: Run chronological LightGBM challenger
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python - <<'PY'
+          import json
+          from pathlib import Path
+          from mcp_gateway import lightgbm_goals_v4
+
+          data = json.loads(Path("/tmp/v4_011_dataset.json").read_text())
+          report = lightgbm_goals_v4.walk_forward(
+              data.get("rows") or [],
+              min_train_rows=lightgbm_goals_v4.MIN_TRAIN_ROWS,
+              min_oos_rows=lightgbm_goals_v4.MIN_OOS_ROWS,
+          )
+          output = {
+              "dataset_version": data.get("dataset_version"),
+              "feature_schema_version": data.get("feature_schema_version"),
+              "dataset_fingerprint": data.get("dataset_fingerprint"),
+              "dataset_row_count": data.get("row_count"),
+              "report": report,
+          }
+          Path("/tmp/v4_011_report.json").write_text(
+              json.dumps(output, indent=2, sort_keys=True),
+              encoding="utf-8",
+          )
+          print(json.dumps(output, indent=2, sort_keys=True))
+
+          assert report["market_fields_used"] is False
+          assert report["post_kickoff_features_used"] is False
+          assert report["silent_imputation_used"] is False
+          assert report["promotion_allowed"] is False
+          assert report["status"] in {
+              "INSUFFICIENT_TRAINING_SAMPLE",
+              "RESEARCH_ONLY",
+              "LIGHTGBM_DEPENDENCY_UNAVAILABLE",
+          }
+          PY
+
+      - name: Upload research report
+        uses: actions/upload-artifact@v4
+        with:
+          name: v4-011-lightgbm-report
+          path: /tmp/v4_011_report.json
+          retention-days: 30
