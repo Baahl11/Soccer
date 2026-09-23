@@ -357,8 +357,15 @@ async def internal_tick(request: Request) -> Response:
             await proc.communicate()
             return JSONResponse({"error": "tick_timeout"}, status_code=504)
 
+        stderr_text = stderr.decode("utf-8", errors="replace")
+        if stderr_text:
+            # Worker diagnostics are otherwise swallowed on successful subprocesses.
+            # Keep them in Render logs only; never mix them into the JSON response.
+            for line in stderr_text.splitlines()[-200:]:
+                if line.startswith(("WORKER_MEM ", "MEMPROBE ")):
+                    print(line, file=sys.stderr, flush=True)
         if proc.returncode != 0:
-            detail = stderr.decode("utf-8", errors="replace")[-1000:]
+            detail = stderr_text[-1000:]
             return JSONResponse({"error": "tick_failed", "detail": detail}, status_code=500)
         if not stdout:
             return JSONResponse({"error": "tick_failed", "detail": "worker returned empty output"}, status_code=500)
