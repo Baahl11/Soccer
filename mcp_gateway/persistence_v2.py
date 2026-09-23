@@ -2,6 +2,7 @@ import json
 from typing import Any
 
 from mcp_gateway import persistence as base
+from mcp_gateway import feature_snapshot_v4
 
 
 def persist_tick(tick: dict[str, Any]) -> bool:
@@ -17,6 +18,33 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                 raw = event.get("raw_projection")
                 decision = event.get("market_decision") or {}
                 best = decision.get("best_decision") or {}
+
+                if fixture_id and event.get("event_type") == "SOCCER_REFRESH" and event.get("stage") != "POSTGAME":
+                    snapshot = feature_snapshot_v4.build(tick, event)
+                    validation_errors = feature_snapshot_v4.validate(snapshot)
+                    if not validation_errors:
+                        cur.execute(
+                            """
+                            INSERT INTO soccer_feature_snapshots (
+                                fixture_id, captured_at, stage, schema_version,
+                                model_version, data_tier, feature_count,
+                                missing_feature_count, payload
+                            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+                            ON CONFLICT (fixture_id, captured_at, stage, schema_version) DO NOTHING
+                            """,
+                            (
+                                fixture_id,
+                                snapshot.get("captured_at"),
+                                snapshot.get("stage"),
+                                snapshot.get("schema_version"),
+                                snapshot.get("model_version"),
+                                snapshot.get("data_tier"),
+                                snapshot.get("feature_count", 0),
+                                snapshot.get("missing_feature_count", 0),
+                                json.dumps(snapshot),
+                            ),
+                        )
+
                 if not fixture_id or not isinstance(raw, dict):
                     continue
                 cur.execute(
