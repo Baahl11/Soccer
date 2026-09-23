@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import os
 from collections import Counter
 from datetime import datetime, timedelta, timezone as dt_timezone
@@ -21,6 +22,7 @@ CORE_SLATE_FLOOR_MIN_FIXTURES = int(os.getenv("SOCCER_EDGE_SLATE_FLOOR_MIN_FIXTU
 CORE_SLATE_FLOOR_MIN_DAILY_REMAINING = int(
     os.getenv("SOCCER_EDGE_SLATE_FLOOR_MIN_DAILY_REMAINING", "4000")
 )
+ELASTIC_GC_BATCH_SIZE = max(1, int(os.getenv("SOCCER_EDGE_ELASTIC_GC_BATCH_SIZE", "4")))
 
 RunTick = Callable[[], Awaitable[dict[str, Any]]]
 
@@ -269,6 +271,7 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
         deferred_due_to_budget = 0
         market_requests_avoided_by_screen = 0
         shortlist_events = 0
+        gc_batches_completed = 0
 
         for item in due:
             fx = item["fx"]
@@ -324,6 +327,17 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
                 shortlist_events += 1
             events.append(event)
 
+            # Keep elastic coverage independent from worker memory growth. Persistent
+            # provider caches live in SQLite, so collecting transient Python objects
+            # between small batches does not discard cached API responses.
+            if deep_dive_processed % ELASTIC_GC_BATCH_SIZE == 0:
+                gc.collect()
+                gc_batches_completed += 1
+
+        if deep_dive_processed and deep_dive_processed % ELASTIC_GC_BATCH_SIZE:
+            gc.collect()
+            gc_batches_completed += 1
+
         if low_data_counts:
             events.append(
                 {
@@ -373,6 +387,8 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
             "elastic_request_cap": elastic_request_cap,
             "elastic_request_cap_reason": elastic_request_reason,
             "elastic_quota_remaining_basis": quota_remaining_basis,
+            "elastic_gc_batch_size": ELASTIC_GC_BATCH_SIZE,
+            "elastic_gc_batches_completed": gc_batches_completed,
             "priority_queue": "DATA_TIER_THEN_STAGE_THEN_PRIOR_SHORTLIST_THEN_COMPETITION_THEN_COVERAGE",
             "request_pacing_seconds": v4.MIN_REQUEST_INTERVAL_SECONDS,
             "rate_limit_max_retries": v4.RATE_LIMIT_MAX_RETRIES,
