@@ -1,0 +1,80 @@
+{
+  "blockers": [
+    "CALIBRATION_CHALLENGER_DOES_NOT_IMPROVE_BRIER_AND_LOG_LOSS"
+  ],
+  "calibration_sample": {
+    "minimum_required": 300,
+    "multiclass_brier": 0.6446,
+    "multiclass_log_loss": 1.072,
+    "n": 500,
+    "top1_accuracy": 0.466
+  },
+  "canonical_bet_logic_changed": false,
+  "manual_review_required": true,
+  "model_version": "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "The current class-prior challenger is not promoted unless both multiclass Brier and log loss improve.",
+    "True CLV is counted only from canonical 1X2/Match Winner observations.",
+    "This gate validates calibration evidence; it does not alter runtime probabilities or bet classification."
+  ],
+  "prior_calibration_challenger": {
+    "baseline": {
+      "accuracy": 0.4574,
+      "brier": 0.6487,
+      "log_loss": 1.0779,
+      "mean_draw_probability": 0.2651,
+      "n": 470,
+      "observed_draw_rate": 0.2362,
+      "predicted_counts": {
+        "A": 155,
+        "D": 32,
+        "H": 283
+      }
+    },
+    "challenger": {
+      "accuracy": 0.4617,
+      "brier": 0.6499,
+      "log_loss": 1.0801,
+      "mean_draw_probability": 0.2286,
+      "n": 470,
+      "observed_draw_rate": 0.2362,
+      "predicted_counts": {
+        "A": 144,
+        "D": 31,
+        "H": 295
+      }
+    },
+    "improvement": {
+      "accuracy_delta_pp": 0.43,
+      "brier_delta": 0.0012,
+      "draw_probability_delta_pp": -3.65,
+      "log_loss_delta": 0.0022
+    },
+    "improves_brier_and_log_loss": false
+  },
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "schema_version": "1.0.0",
+  "settlement_context": {
+    "hit_rate_ex_push": 0.5,
+    "roi_units": 11.2,
+    "settled": 10
+  },
+  "status": "RESEARCH_HOLD",
+  "ticket": "V4-017",
+  "true_clv": {
+    "avg_probability_clv_pp": 0.169371,
+    "family_specific": true,
+    "flat_rows": 90,
+    "minimum_rows": 50,
+    "negative_rows": 2,
+    "positive_rows": 5,
+    "rows": 97,
+    "unique_fixtures": 44
+  },
+  "warnings": [
+    "ACTIONABLE_SETTLEMENT_SAMPLE_LT_20",
+    "DRAW_CALIBRATION_HAS_SPARSE_BUCKETS"
+  ]
+}
