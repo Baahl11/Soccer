@@ -224,7 +224,15 @@ def _load_derivative_events(conn, *, lookback_days: int, max_rows: int) -> list[
                 e.generated_at,
                 e.stage,
                 e.classification,
-                e.payload AS event_payload,
+                jsonb_build_object(
+                    'tier', e.payload -> 'tier',
+                    'model_signal', e.payload -> 'model_signal',
+                    'sporting_shortlist', e.payload -> 'sporting_shortlist',
+                    'team_totals_intelligence', e.payload -> 'team_totals_intelligence',
+                    'one_h_goals_intelligence', e.payload -> 'one_h_goals_intelligence',
+                    'corners_intelligence', e.payload -> 'corners_intelligence',
+                    'team_corners_intelligence', e.payload -> 'team_corners_intelligence'
+                ) AS event_payload,
                 f.kickoff,
                 f.league,
                 f.home_team,
@@ -237,6 +245,12 @@ def _load_derivative_events(conn, *, lookback_days: int, max_rows: int) -> list[
             WHERE e.generated_at >= %s
               AND e.stage = ANY(%s)
               AND e.generated_at < f.kickoff
+              AND (
+                    jsonb_array_length(COALESCE(e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb)) > 0
+                 OR jsonb_array_length(COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)) > 0
+                 OR jsonb_array_length(COALESCE(e.payload -> 'corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)) > 0
+                 OR jsonb_array_length(COALESCE(e.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)) > 0
+              )
             ORDER BY e.generated_at ASC
             LIMIT %s
             """,
