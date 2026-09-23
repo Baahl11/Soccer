@@ -254,7 +254,7 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
 
         quota_remaining_basis = v2._LAST_DAILY_REMAINING
         if quota_remaining_basis is None:
-            for key in ("daily_remaining", "requests_remaining"):
+            for key in ("daily_remaining", "requests_remaining", "remaining"):
                 try:
                     value = (quota or {}).get(key)
                     if value is not None:
