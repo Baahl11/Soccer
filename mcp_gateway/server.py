@@ -164,7 +164,7 @@ def _compact_fixture(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _github_oidc_claims(request: Request) -> dict[str, Any]:
+def _github_oidc_claims(request: Request, allowed_workflow_paths: set[str] | None = None) -> dict[str, Any]:
     auth = request.headers.get("authorization", "")
     if not auth.startswith("Bearer "):
         raise PermissionError("Missing bearer token")
@@ -181,8 +181,11 @@ def _github_oidc_claims(request: Request) -> dict[str, Any]:
     if claims.get("repository") != GITHUB_REPOSITORY:
         raise PermissionError("Repository not allowed")
     workflow_ref = claims.get("workflow_ref", "")
-    expected_prefix = f"{GITHUB_REPOSITORY}/{GITHUB_WORKFLOW_PATH}@"
-    if not workflow_ref.startswith(expected_prefix):
+    workflow_paths = allowed_workflow_paths or {GITHUB_WORKFLOW_PATH}
+    if not any(
+        workflow_ref.startswith(f"{GITHUB_REPOSITORY}/{path}@")
+        for path in workflow_paths
+    ):
         raise PermissionError("Workflow not allowed")
     if claims.get("ref") != "refs/heads/main":
         raise PermissionError("Only main branch scheduler is allowed")
@@ -395,7 +398,10 @@ async def internal_tick(request: Request) -> Response:
 @mcp.custom_route("/internal/training-dataset/build", methods=["POST"])
 async def internal_training_dataset_build(request: Request) -> Response:
     try:
-        _github_oidc_claims(request)
+        _github_oidc_claims(
+            request,
+            {".github/workflows/v4-008-dataset-validation.yml"},
+        )
     except Exception as exc:
         return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
 
