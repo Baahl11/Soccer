@@ -541,13 +541,18 @@ async def run_tick() -> dict[str, Any]:
     # returned by that first API-Football response.
     v6._BASE_MAX_API_CALLS_PER_TICK = 70
     v6._adaptive_paced_api_get = elastic_adaptive_api_get
-    v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK = 12
+    # Safe before the first slate call: no deep-dive loop starts until the first
+    # provider response has had a chance to tighten this from verified quota.
+    v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK = 48
     try:
         payload = await v89.run_tick()
     finally:
         v6._adaptive_paced_api_get = original_adaptive
         v6._BASE_MAX_API_CALLS_PER_TICK = original_base_cap
         v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK = original_deep_cap
+
+    runtime_deep_cap_observed = payload.get("max_deep_dive_fixtures_per_tick")
+    runtime_request_cap_observed = payload.get("max_api_calls_per_tick")
 
     basis = elastic_state.get("basis")
     if basis is None:
@@ -571,6 +576,8 @@ async def run_tick() -> dict[str, Any]:
     payload["max_api_calls_per_tick"] = request_cap
     payload["effective_max_api_calls_per_tick"] = request_cap
     payload["v4_005_effective_scheduler_path"] = "V7_LOOP_WITH_V6_ADAPTIVE_ELASTIC_WRAPPER"
+    payload["v4_005_runtime_deep_cap_observed"] = runtime_deep_cap_observed
+    payload["v4_005_runtime_request_cap_observed"] = runtime_request_cap_observed
 
     _apply_top_level_metrics(payload)
     payload["v3621_provider_requests_added"] = int(
