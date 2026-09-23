@@ -47,6 +47,7 @@ jobs:
 
           # This contract check intentionally fails if Render is serving a stale runtime.
           # Diagnostics include per-market rejection counts from the live collector.
+          # Derivative CLV smoke includes persisted research market rows.
           EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
           READY=0
           for attempt in 1 2 3 4 5; do
