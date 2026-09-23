@@ -14,6 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
+from mcp_gateway import training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -389,6 +390,41 @@ async def internal_tick(request: Request) -> Response:
         return Response(content=stdout, media_type="application/json", status_code=200)
     except Exception as exc:
         return JSONResponse({"error": "tick_failed", "detail": str(exc)[:500]}, status_code=500)
+
+
+@mcp.custom_route("/internal/training-dataset/build", methods=["POST"])
+async def internal_training_dataset_build(request: Request) -> Response:
+    try:
+        _github_oidc_claims(request)
+    except Exception as exc:
+        return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    cutoff = body.get("cutoff")
+    backfill_limit = body.get("backfill_limit", 5000)
+    try:
+        backfill_limit = max(1, min(int(backfill_limit), 20000))
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "invalid_backfill_limit"}, status_code=400)
+
+    try:
+        result = await asyncio.to_thread(
+            training_dataset_v4.build_and_persist,
+            cutoff=str(cutoff) if cutoff else None,
+            backfill_limit=backfill_limit,
+        )
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse(
+            {"error": "training_dataset_build_failed", "detail": str(exc)[:500]},
+            status_code=500,
+        )
 
 
 app = mcp.streamable_http_app()
