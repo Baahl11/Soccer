@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import os
-import resource
-import sys
 from collections import Counter
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Any
@@ -153,29 +151,12 @@ def _mark_stage_processed(fixture_id: int, stage: str, now: datetime) -> None:
     conn.commit()
 
 
-def _rss_mb() -> float:
-    # Linux ru_maxrss is KiB. This is peak RSS, intentionally monotonic for diagnostics.
-    return round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0, 1)
-
-
-def _mem_probe(label: str, fixture_id: int | None = None) -> None:
-    suffix = f" fixture={fixture_id}" if fixture_id is not None else ""
-    print(f"MEMPROBE {label}{suffix} peak_rss_mb={_rss_mb()}", file=sys.stderr, flush=True)
-
-
-async def _profiled_api_get(endpoint: str, params: dict[str, Any], fixture_id: int | None = None) -> dict[str, Any]:
-    _mem_probe(f"before:{endpoint}", fixture_id)
-    payload = await base._api_get(endpoint, params)
-    _mem_probe(f"after:{endpoint}", fixture_id)
-    return payload
-
-
 async def _team_stats_12h(team_id: int, league_id: int, season: int, now: datetime) -> dict[str, Any]:
     key = f"{team_id}:{league_id}:{season}"
     cached = base._cache_get("team_stats", key, timedelta(hours=12), now)
     if isinstance(cached, dict):
         return cached
-    payload = await _profiled_api_get(
+    payload = await base._api_get(
         "teams/statistics", {"team": team_id, "league": league_id, "season": season}
     )
     compact = base._compact_team_stats(payload)
@@ -188,7 +169,7 @@ async def _recent_12h(team_id: int, now: datetime) -> list[dict[str, Any]]:
     cached = base._cache_get("recent", key, timedelta(hours=12), now)
     if isinstance(cached, list):
         return cached
-    payload = await _profiled_api_get(
+    payload = await base._api_get(
         "fixtures", {"team": team_id, "last": 8, "timezone": base.TIMEZONE_NAME}
     )
     matches = [base._compact_fixture(x) for x in payload.get("response", [])]
@@ -201,7 +182,7 @@ async def _injuries_2h(fixture_id: int, now: datetime) -> list[dict[str, Any]]:
     cached = base._cache_get("injuries", key, timedelta(hours=2), now)
     if isinstance(cached, list):
         return cached
-    compact = base._compact_injuries(await _profiled_api_get("injuries", {"fixture": fixture_id}, fixture_id))
+    compact = base._compact_injuries(await base._api_get("injuries", {"fixture": fixture_id}))
     base._cache_set("injuries", key, compact, now)
     return compact
 
@@ -216,7 +197,7 @@ async def _lineup_cached(fixture_id: int, now: datetime) -> dict[str, Any]:
         return pending
 
     compact = base._compact_lineups(
-        await _profiled_api_get("fixtures/lineups", {"fixture": fixture_id}, fixture_id)
+        await base._api_get("fixtures/lineups", {"fixture": fixture_id})
     )
     if compact.get("both_xi_confirmed") and compact.get("both_goalkeepers_confirmed"):
         base._cache_set("lineup_confirmed", key, compact, now)
@@ -231,7 +212,7 @@ async def _odds_7m(fixture_id: int, now: datetime) -> dict[str, Any]:
     if isinstance(cached, dict):
         return cached
     compact = base._compact_odds(
-        await _profiled_api_get("odds", {"fixture": fixture_id, "page": 1}, fixture_id)
+        await base._api_get("odds", {"fixture": fixture_id, "page": 1})
     )
     base._cache_set("odds_compact", key, compact, now)
     return compact
@@ -310,7 +291,7 @@ async def _priority_event(
 
     if stage == "POSTGAME":
         if coverage.get("statistics_fixtures"):
-            stats = await _profiled_api_get("fixtures/statistics", {"fixture": fx["fixture_id"]}, fx["fixture_id"])
+            stats = await base._api_get("fixtures/statistics", {"fixture": fx["fixture_id"]})
             event["match_stats"] = stats.get("response", [])
         event["result"] = {"goals": fx.get("goals"), "score": fx.get("score"), "status": fx.get("status")}
         event["classification"] = "POSTGAME"
