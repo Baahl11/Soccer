@@ -125,6 +125,12 @@ def _family(market_candidate: dict[str, Any]) -> str | None:
     })
 
 
+def _candidate_label(market_candidate: dict[str, Any]) -> str:
+    raw_family = market_candidate.get("market_family") or market_candidate.get("family") or "(none)"
+    market = market_candidate.get("market") or "(none)"
+    return f"{raw_family} | {market}"
+
+
 def _load_pipeline_market_signals(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
     with conn.cursor() as cur:
@@ -375,6 +381,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
     reasons: Counter[str] = Counter()
     family_counts: Counter[str] = Counter()
     signal_source_counts: Counter[str] = Counter()
+    skip_reason_market_counts: dict[str, Counter[str]] = defaultdict(Counter)
 
     for signal in signals:
         candidate = signal.get("market_candidate")
@@ -385,6 +392,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         family = _family(candidate)
         if family is None:
             reasons["UNMAPPED_MARKET_FAMILY"] += 1
+            skip_reason_market_counts["UNMAPPED_MARKET_FAMILY"][_candidate_label(candidate)] += 1
             continue
 
         entry_price = _num(candidate.get("decimal_price"))
@@ -392,6 +400,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             entry_price = _num(candidate.get("price"))
         if entry_price is None or entry_price <= 1.0:
             reasons["INVALID_ENTRY_PRICE"] += 1
+            skip_reason_market_counts["INVALID_ENTRY_PRICE"][_candidate_label(candidate)] += 1
             continue
 
         entry_line = _num(candidate.get("line"))
@@ -538,6 +547,10 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "family_counts": dict(sorted(family_counts.items())),
         "signal_source_counts": dict(sorted(signal_source_counts.items())),
         "skip_reasons": dict(sorted(reasons.items())),
+        "skip_reason_market_counts": {
+            reason: dict(counts.most_common())
+            for reason, counts in sorted(skip_reason_market_counts.items())
+        },
         "rows": tracked,
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
