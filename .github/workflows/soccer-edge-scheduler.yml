@@ -1,4 +1,4 @@
-name: Soccer Edge Scheduler - V4-013 State Validation
+name: Soccer Edge Scheduler - V4-014 State Validation
 on:
   schedule:
     - cron: "*/10 * * * *"
@@ -185,9 +185,10 @@ jobs:
             v4_011_lightgbm_goals_challenger:(.v4_011_lightgbm_goals_challenger // {}),
             v4_012_ensemble_v1:(.v4_012_ensemble_v1 // {}),
             v4_013_calibration_engine_v1:(.v4_013_calibration_engine_v1 // {}),
+            v4_014_model_disagreement_engine:(.v4_014_model_disagreement_engine // {}),
             latest_payload_policy:"COMPACT_OPERATIONAL_VIEW_FULL_TICK_IN_POSTGRES_COMPACT_HISTORY_IN_GIT"
           }' /tmp/soccer_tick.json > soccer_edge_state/latest.json
-          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object")' soccer_edge_state/latest.json >/dev/null
+          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object") and (.v4_014_model_disagreement_engine | type == "object")' soccer_edge_state/latest.json >/dev/null
           test -s soccer_edge_state/latest.json
           # Git history is an operational audit trail, not the canonical full-tick store.
           # Full payloads are durable in Postgres. Keep one compact record per tick so a
@@ -196,7 +197,7 @@ jobs:
           if [ -f "$HISTORY_FILE" ] && [ "$(wc -c < "$HISTORY_FILE")" -gt 90000000 ]; then
             mv "$HISTORY_FILE" "${HISTORY_FILE%.jsonl}-legacy-overflow.jsonl"
           fi
-          jq -c '{schema_version:"2.1.0",generated_at_utc,generated_at_local,version,model_version,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,database_persisted,deep_dive_processed_count,deferred_due_to_budget,deferred_due_to_priority,elastic_deep_dive_cap,elastic_deep_dive_cap_reason,elastic_request_cap,elastic_request_cap_reason,elastic_quota_remaining_basis,fair_scheduler:(.fair_scheduler // {}),v4_006_fair_scheduler:(.v4_006_fair_scheduler // {}),v4_007_feature_snapshot_schema:(.v4_007_feature_snapshot_schema // {}),v4_008_reproducible_training_dataset:(.v4_008_reproducible_training_dataset // {}),v4_009_dixon_coles_baseline:(.v4_009_dixon_coles_baseline // {}),v4_010_bivariate_poisson_baseline:(.v4_010_bivariate_poisson_baseline // {}),v4_011_lightgbm_goals_challenger:(.v4_011_lightgbm_goals_challenger // {}),v4_012_ensemble_v1:(.v4_012_ensemble_v1 // {}),v4_013_calibration_engine_v1:(.v4_013_calibration_engine_v1 // {}),v4_005_score_matrix_observability:(.v4_005_score_matrix_observability // {})}' /tmp/soccer_tick.json >> "$HISTORY_FILE"
+          jq -c '{schema_version:"2.1.0",generated_at_utc,generated_at_local,version,model_version,fixture_scan_count,due_fixture_count,event_count,actionable_refresh_count,bet_candidate_count,api_calls_this_tick,max_api_calls_per_tick,last_daily_remaining,daily_budget_mode,database_persisted,deep_dive_processed_count,deferred_due_to_budget,deferred_due_to_priority,elastic_deep_dive_cap,elastic_deep_dive_cap_reason,elastic_request_cap,elastic_request_cap_reason,elastic_quota_remaining_basis,fair_scheduler:(.fair_scheduler // {}),v4_006_fair_scheduler:(.v4_006_fair_scheduler // {}),v4_007_feature_snapshot_schema:(.v4_007_feature_snapshot_schema // {}),v4_008_reproducible_training_dataset:(.v4_008_reproducible_training_dataset // {}),v4_009_dixon_coles_baseline:(.v4_009_dixon_coles_baseline // {}),v4_010_bivariate_poisson_baseline:(.v4_010_bivariate_poisson_baseline // {}),v4_011_lightgbm_goals_challenger:(.v4_011_lightgbm_goals_challenger // {}),v4_012_ensemble_v1:(.v4_012_ensemble_v1 // {}),v4_013_calibration_engine_v1:(.v4_013_calibration_engine_v1 // {}),v4_014_model_disagreement_engine:(.v4_014_model_disagreement_engine // {}),v4_005_score_matrix_observability:(.v4_005_score_matrix_observability // {})}' /tmp/soccer_tick.json >> "$HISTORY_FILE"
           jq '.shortlist_state // {}' /tmp/soccer_tick.json > soccer_edge_state/shortlist_state.json
           jq '.scheduler_fairness_state // {}' /tmp/soccer_tick.json > soccer_edge_state/scheduler_fairness_state.json
           rm -f soccer_edge_state/last_error.json soccer_edge_state/quota_block_until.txt
