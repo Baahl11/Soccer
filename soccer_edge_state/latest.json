@@ -4,98 +4,37 @@
   "service": "soccer-edge-automation",
   "version": "4.1.0-v4.005",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-23T00:34:09.866728+00:00",
-  "generated_at_local": "2026-09-22T18:34:09.866728-06:00",
+  "generated_at_utc": "2026-09-23T00:43:01.214060+00:00",
+  "generated_at_local": "2026-09-22T18:43:01.214060-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 192,
   "due_fixture_count": 10,
-  "event_count": 1,
+  "event_count": 0,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 4,
+  "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 35,
   "effective_max_api_calls_per_tick": 35,
-  "last_daily_remaining": 7472,
+  "last_daily_remaining": 7440,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
-  "deep_dive_processed_count": 1,
+  "deep_dive_processed_count": 0,
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "research_visible_count": 1,
-  "match_table_rows": [
-    {
-      "row_type": "research_visibility",
-      "row_index": 0,
-      "event_type": "SOCCER_REFRESH",
-      "stage": "POSTGAME",
-      "classification": "WATCH",
-      "event_classification": "POSTGAME",
-      "fixture_id": 1520882,
-      "kickoff": "2026-09-22T16:30:00-06:00",
-      "league": "Serie B",
-      "country": "Brazil",
-      "home": "Criciuma",
-      "away": "Operario-PR",
-      "status": "FT",
-      "data_tier": "B",
-      "market_family": "FT_TOTALS_RESEARCH",
-      "market": "Goals Over/Under",
-      "selection": "Under research",
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "side_score": 50.8,
-      "goals_score": 48.9,
-      "two_way_score": 76.6,
-      "shortlist_rank": 76.6,
-      "tracks": [
-        "GOALS_UNDER",
-        "TWO_WAY"
-      ],
-      "prob_edge_pp": null,
-      "estimated_ev": null,
-      "p_market_fair": null,
-      "p_shrunk": null,
-      "reason": "SPORTING_SCREEN_PASS",
-      "notes_count": 0,
-      "market_use": null,
-      "model_signal": "STRONG",
-      "model_signal_score": 76.6,
-      "execution_status": "WAIT_PRICE",
-      "blockers": [
-        "WAIT_PRICE",
-        "SPORTING_SCREEN_PASS"
-      ],
-      "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
-    }
-  ],
+  "research_visible_count": 0,
+  "match_table_rows": [],
   "research_visibility": {
     "schema_version": "1.0.0",
     "policy": "ALWAYS_SURFACE_RESEARCH_ROWS_FOR_BET_LEAN_WATCH_PASS_EVENTS",
-    "row_count": 1,
+    "row_count": 0,
     "row_limit": 40,
-    "visible_classification_counts": {
-      "WATCH": 1
-    },
-    "raw_event_classification_counts": {
-      "POSTGAME": 1
-    },
-    "market_family_counts": {
-      "FT_TOTALS_RESEARCH": 1
-    },
-    "stage_counts": {
-      "POSTGAME": 1
-    },
-    "track_counts": {
-      "GOALS_UNDER": 1,
-      "TWO_WAY": 1
-    },
-    "silent_tick_prevention": true,
+    "visible_classification_counts": {},
+    "raw_event_classification_counts": {},
+    "market_family_counts": {},
+    "stage_counts": {},
+    "track_counts": {},
+    "silent_tick_prevention": false,
     "actionable_refresh_count": 0,
     "bet_candidate_count": 0,
     "note": "Rows are a visibility layer only. WATCH rows can include raw PASS/CLOSE events so the live digest shows what was analyzed and why no BET/LEAN was emitted."
@@ -103,13 +42,9 @@
   "decision_separation": {
     "schema_version": "1.1.0",
     "policy": "MODEL_SIGNAL_INDEPENDENT_OF_PRICE_EXECUTION_STATUS_INDEPENDENT_OF_SPORT_STRENGTH",
-    "row_count": 1,
-    "model_signal_counts": {
-      "STRONG": 1
-    },
-    "execution_status_counts": {
-      "WAIT_PRICE": 1
-    },
+    "row_count": 0,
+    "model_signal_counts": {},
+    "execution_status_counts": {},
     "valid_model_signals": [
       "INSUFFICIENT_DATA",
       "MODEL_DISAGREEMENT",
@@ -145,9 +80,7 @@
     "schema_version": "0.6.0",
     "status": "LIVE_RESEARCH",
     "events_modeled": 0,
-    "gate_counts": {
-      "STAGE_POSTGAME": 1
-    },
+    "gate_counts": {},
     "family_leg_counts": {},
     "research_candidate_count": 0,
     "settlement_diagnostic_count": 0,
@@ -156,5 +89,10 @@
     "production_promotion_allowed": false,
     "candidate_merge_into_primary_galaxy_feed": false
   },
-  "latest_payload_policy": "COMPACT_OPERATIONAL_VIEW_FULL_TICK_IN_POSTGRES_AND_HISTORY"
+  "elastic_deep_dive_cap": 12,
+  "elastic_deep_dive_cap_reason": null,
+  "elastic_request_cap": null,
+  "elastic_request_cap_reason": null,
+  "elastic_quota_remaining_basis": null,
+  "latest_payload_policy": "COMPACT_OPERATIONAL_VIEW_FULL_TICK_IN_POSTGRES_COMPACT_HISTORY_IN_GIT"
 }
