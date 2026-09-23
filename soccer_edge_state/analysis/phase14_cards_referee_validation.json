@@ -1,0 +1,112 @@
+{
+  "blockers": [
+    "YELLOW_REFEREE_ADJUSTED_0_LT_100",
+    "YELLOW_CARDS_PROMOTION_GATE_DISABLED",
+    "RED_CARD_OOS_184_LT_MARKET_REVIEW_500",
+    "RED_CARD_OOS_184_LT_ACTIONABLE_1000",
+    "RED_CARD_REFEREE_ADJUSTED_SAMPLE_INSUFFICIENT",
+    "RED_CARDS_PROMOTION_GATE_DISABLED",
+    "PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
+    "CARD_TRUE_CLV_0_LT_50"
+  ],
+  "canonical_bet_logic_changed": false,
+  "manual_review_required": true,
+  "model_version": "SOCCER_CARDS_REFEREE_PHASE14_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "Yellow-card counts, red-card occurrence and player-card props remain separate targets.",
+    "Referee effects cannot be promoted with zero verified referee-adjusted OOS observations.",
+    "Sportsbook card-settlement/scoring rules must be mapped explicitly; generic card points are not assumed.",
+    "Player-card structural sanity is necessary but not equivalent to OOS performance validation."
+  ],
+  "phase": "FASE_14_CARDS_REFEREE",
+  "player_cards": {
+    "actionable": false,
+    "bookmaker_card_scoring_rule_assumed": false,
+    "decision_weight": 0.0,
+    "oos_validation_complete": false,
+    "profiles_checked": 2514,
+    "structural_pass": true
+  },
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "red_cards": {
+    "minimum_actionable": 1000,
+    "minimum_market_review": 500,
+    "oos_n": 184,
+    "overall": {
+      "brier": 0.16623,
+      "log_loss": 0.517398,
+      "mean_probability": 0.180074,
+      "n": 184,
+      "observed_rate": 0.206522
+    },
+    "promotion_gate": {
+      "actionable_review_sample_gate_met": false,
+      "enabled": false,
+      "market_review_sample_gate_met": false,
+      "minimum_oos_for_actionable_review": 1000,
+      "minimum_oos_for_market_review": 500,
+      "minimum_referee_adjusted_oos": 200,
+      "referee_sample_gate_met": false,
+      "requires": [
+        "stable rare-event Brier/log-loss overall and by league/bucket",
+        "verified match-red-card YES/NO price history and true CLV",
+        "stable referee adjustment with verified assignments",
+        "explicit sportsbook settlement compatibility"
+      ]
+    },
+    "referee_adjusted_n": 0
+  },
+  "schema_version": "1.0.0",
+  "status": "RESEARCH_HOLD",
+  "true_clv": {
+    "avg_probability_clv_pp": null,
+    "family_specific": true,
+    "flat_rows": 0,
+    "minimum_rows": 50,
+    "negative_rows": 0,
+    "positive_rows": 0,
+    "rows": 0,
+    "unique_fixtures": 0
+  },
+  "warnings": [],
+  "yellow_cards": {
+    "lines": {
+      "2.5": {
+        "brier": 0.202219,
+        "log_loss": 0.594533
+      },
+      "3.5": {
+        "brier": 0.240655,
+        "log_loss": 0.674359
+      },
+      "4.5": {
+        "brier": 0.230767,
+        "log_loss": 0.653405
+      },
+      "5.5": {
+        "brier": 0.144097,
+        "log_loss": 0.463185
+      }
+    },
+    "mae_total_yellow": 1.587206,
+    "market_scope": "NO_ACTIONABLE_CARD_MARKET_MAPPING_YET",
+    "minimum_oos": 200,
+    "minimum_referee_adjusted": 100,
+    "oos_n": 254,
+    "promotion_gate": {
+      "enabled": false,
+      "minimum_oos_evaluations": 200,
+      "minimum_referee_adjusted_evaluations": 100,
+      "requires": [
+        "stable Brier/log-loss versus league baseline",
+        "stable performance across competitions",
+        "verified referee assignment",
+        "explicit mapping to each sportsbook card-scoring rule",
+        "verified market-price CLV evidence"
+      ]
+    },
+    "referee_adjusted_n": 0
+  }
+}
