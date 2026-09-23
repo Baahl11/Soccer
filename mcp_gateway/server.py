@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
-from mcp_gateway import dixon_coles_v4, persistence as persistence_base, training_dataset_v4
+from mcp_gateway import bivariate_poisson_v4, dixon_coles_v4, persistence as persistence_base, training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -474,6 +474,51 @@ async def internal_dixon_coles_validate(request: Request) -> Response:
     except Exception as exc:
         return JSONResponse(
             {"error": "dixon_coles_validation_failed", "detail": str(exc)[:500]},
+            status_code=500,
+        )
+
+
+@mcp.custom_route("/internal/bivariate-poisson/validate", methods=["POST"])
+async def internal_bivariate_poisson_validate(request: Request) -> Response:
+    try:
+        _github_oidc_claims(
+            request,
+            {".github/workflows/v4-010-bivariate-poisson-validation.yml"},
+        )
+    except Exception as exc:
+        return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    cutoff = str(body.get("cutoff") or datetime.now(dt_timezone.utc).isoformat())
+    try:
+        min_train_rows = max(5, min(int(body.get("min_train_rows", bivariate_poisson_v4.MIN_TRAIN_ROWS)), 5000))
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "invalid_min_train_rows"}, status_code=400)
+
+    def _validate() -> dict[str, Any]:
+        persistence_base.ensure_schema()
+        with persistence_base._connect() as conn:
+            rows = training_dataset_v4.load_rows(conn, cutoff=cutoff)
+        report = bivariate_poisson_v4.walk_forward(rows, min_train_rows=min_train_rows)
+        return {
+            "status": "OK",
+            "cutoff": cutoff,
+            "dataset_rows": len(rows),
+            "report": report,
+        }
+
+    try:
+        result = await asyncio.to_thread(_validate)
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse(
+            {"error": "bivariate_poisson_validation_failed", "detail": str(exc)[:500]},
             status_code=500,
         )
 
