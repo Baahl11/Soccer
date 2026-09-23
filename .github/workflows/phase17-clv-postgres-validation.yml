@@ -45,7 +45,7 @@ jobs:
           test -n "$TOKEN"
           echo "::add-mask::$TOKEN"
 
-          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
+          # This contract check intentionally fails if Render is serving a stale runtime.\n          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
           READY=0
           for attempt in 1 2 3 4 5; do
             HTTP_CODE=$(curl -sS --max-time 420 -o /tmp/clv_v4.json -w "%{http_code}" \
