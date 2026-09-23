@@ -158,6 +158,7 @@ def _append_fixture_payload(
 
 
 async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
+    _v90_mem("entered_core_slate_floor")
     v2._API_CALLS_THIS_TICK = 0
     v2._LAST_DAILY_REMAINING = None
 
@@ -487,6 +488,7 @@ def _apply_top_level_metrics(payload: dict[str, Any]) -> None:
 async def run_tick() -> dict[str, Any]:
     original_v5_run_tick: RunTick = v5.run_tick
     v5.run_tick = _run_tick_with_core_slate_floor
+    _v90_mem(f"wrapper_patch_applied same={v5.run_tick is _run_tick_with_core_slate_floor}")
     try:
         payload = await v89.run_tick()
     finally:
