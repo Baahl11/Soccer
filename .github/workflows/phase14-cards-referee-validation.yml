@@ -1,0 +1,69 @@
+name: Phase 14 Cards Referee Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/phase14-cards-referee-validation.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run Phase 14 unit tests
+        working-directory: runtime
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          PYTHONPATH=. pytest -q tests/test_phase14_cards_referee_v4.py
+
+      - name: Build Phase 14 validation report
+        working-directory: runtime
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m mcp_gateway.cards_referee_phase14_v4             --yellow-cards ../state/soccer_edge_state/analysis/cards_baseline.json             --red-cards ../state/soccer_edge_state/analysis/red_cards_validation.json             --player-cards ../state/soccer_edge_state/analysis/player_cards_model_sanity.json             --true-clv-tracking ../state/soccer_edge_state/analysis/true_clv_tracking.jsonl             --output ../state/soccer_edge_state/analysis/phase14_cards_referee_validation.json
+
+      - name: Validate safety gates
+        run: |
+          set -euo pipefail
+          jq -e '.phase == "FASE_14_CARDS_REFEREE"' state/soccer_edge_state/analysis/phase14_cards_referee_validation.json >/dev/null
+          jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/phase14_cards_referee_validation.json >/dev/null
+
+      - name: Persist report to state branch
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/phase14_cards_referee_validation.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update Phase 14 Cards Referee validation report"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
