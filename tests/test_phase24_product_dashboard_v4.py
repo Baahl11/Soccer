@@ -33,7 +33,7 @@ def test_dashboard_renders_master_sections_and_escapes_content():
         },
     }
     html = v.render_dashboard(payload)
-    assert "Today's Slate" in html
+    assert "Today&#x27;s Slate" in html
     assert "Strong Sport Signals" in html
     assert "Player Props" in html
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
