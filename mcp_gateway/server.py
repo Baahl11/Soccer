@@ -523,4 +523,53 @@ async def internal_bivariate_poisson_validate(request: Request) -> Response:
         )
 
 
+@mcp.custom_route("/internal/training-dataset/export", methods=["POST"])
+async def internal_training_dataset_export(request: Request) -> Response:
+    try:
+        _github_oidc_claims(
+            request,
+            {".github/workflows/v4-011-lightgbm-validation.yml"},
+        )
+    except Exception as exc:
+        return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    cutoff = str(body.get("cutoff") or datetime.now(dt_timezone.utc).isoformat())
+    try:
+        row_limit = max(1, min(int(body.get("row_limit", 10000)), 20000))
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "invalid_row_limit"}, status_code=400)
+
+    def _export() -> dict[str, Any]:
+        persistence_base.ensure_schema()
+        with persistence_base._connect() as conn:
+            rows = training_dataset_v4.load_rows(conn, cutoff=cutoff)
+        rows = rows[:row_limit]
+        return {
+            "status": "OK",
+            "cutoff": cutoff,
+            "dataset_version": training_dataset_v4.DATASET_VERSION,
+            "feature_schema_version": training_dataset_v4.SCHEMA_VERSION,
+            "row_count": len(rows),
+            "dataset_fingerprint": training_dataset_v4.dataset_fingerprint(rows),
+            "market_fields_included": False,
+            "rows": rows,
+        }
+
+    try:
+        result = await asyncio.to_thread(_export)
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse(
+            {"error": "training_dataset_export_failed", "detail": str(exc)[:500]},
+            status_code=500,
+        )
+
+
 app = mcp.streamable_http_app()
