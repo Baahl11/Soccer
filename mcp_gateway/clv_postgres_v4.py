@@ -214,7 +214,7 @@ def _load_legacy_signals(conn, *, lookback_days: int, max_rows: int) -> list[dic
         return [dict(zip(columns, row)) for row in cur.fetchall()]
 
 
-def _load_derivative_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
+def _load_derivative_signals(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
     with conn.cursor() as cur:
         cur.execute(
@@ -227,30 +227,57 @@ def _load_derivative_events(conn, *, lookback_days: int, max_rows: int) -> list[
                 jsonb_build_object(
                     'tier', e.payload -> 'tier',
                     'model_signal', e.payload -> 'model_signal',
-                    'sporting_shortlist', e.payload -> 'sporting_shortlist',
-                    'team_totals_intelligence', e.payload -> 'team_totals_intelligence',
-                    'one_h_goals_intelligence', e.payload -> 'one_h_goals_intelligence',
-                    'corners_intelligence', e.payload -> 'corners_intelligence',
-                    'team_corners_intelligence', e.payload -> 'team_corners_intelligence'
+                    'sporting_shortlist', e.payload -> 'sporting_shortlist'
                 ) AS event_payload,
                 f.kickoff,
                 f.league,
                 f.home_team,
                 f.away_team,
                 p.payload ->> 'model_version' AS model_version,
-                p.payload ->> 'version' AS automation_version
+                p.payload ->> 'version' AS automation_version,
+                d.market_candidate,
+                d.signal_source
             FROM soccer_refresh_events e
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             LEFT JOIN soccer_pipeline_runs p ON p.generated_at_utc = e.generated_at
+            CROSS JOIN LATERAL (
+                SELECT
+                    jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_TOTALS'::text), true) AS market_candidate,
+                    'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'::text AS signal_source
+                FROM jsonb_array_elements(
+                    COALESCE(e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb)
+                ) AS t(row_value)
+
+                UNION ALL
+
+                SELECT
+                    jsonb_set(row_value, '{market_family}', to_jsonb('1H'::text), true),
+                    'DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence'::text
+                FROM jsonb_array_elements(
+                    COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                ) AS h(row_value)
+
+                UNION ALL
+
+                SELECT
+                    jsonb_set(row_value, '{market_family}', to_jsonb('FT_CORNERS'::text), true),
+                    'DERIVATIVE_INTELLIGENCE:corners_intelligence'::text
+                FROM jsonb_array_elements(
+                    COALESCE(e.payload -> 'corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                ) AS c(row_value)
+
+                UNION ALL
+
+                SELECT
+                    jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_CORNERS'::text), true),
+                    'DERIVATIVE_INTELLIGENCE:team_corners_intelligence'::text
+                FROM jsonb_array_elements(
+                    COALESCE(e.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                ) AS tc(row_value)
+            ) AS d
             WHERE e.generated_at >= %s
               AND e.stage = ANY(%s)
               AND e.generated_at < f.kickoff
-              AND (
-                    jsonb_array_length(COALESCE(e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb)) > 0
-                 OR jsonb_array_length(COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)) > 0
-                 OR jsonb_array_length(COALESCE(e.payload -> 'corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)) > 0
-                 OR jsonb_array_length(COALESCE(e.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)) > 0
-              )
             ORDER BY e.generated_at ASC
             LIMIT %s
             """,
@@ -261,6 +288,7 @@ def _load_derivative_events(conn, *, lookback_days: int, max_rows: int) -> list[
 
 
 def _derivative_signals_from_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Compatibility helper for unit tests and legacy callers."""
     signals: list[dict[str, Any]] = []
     for event in events:
         payload = event.get("event_payload")
@@ -283,7 +311,6 @@ def _derivative_signals_from_events(events: list[dict[str, Any]]) -> list[dict[s
                 out["signal_source"] = f"DERIVATIVE_INTELLIGENCE:{container_key}"
                 signals.append(out)
     return signals
-
 
 def _load_market_snapshots(conn, fixture_ids: list[int], *, cutoff: datetime) -> list[dict[str, Any]]:
     if not fixture_ids:
@@ -447,12 +474,11 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             lookback_days=lookback_days,
             max_rows=max_signals,
         )
-        derivative_events = _load_derivative_events(
+        derivative_signals = _load_derivative_signals(
             conn,
             lookback_days=lookback_days,
             max_rows=max_signals,
         )
-        derivative_signals = _derivative_signals_from_events(derivative_events)
         legacy_signals = _load_legacy_signals(
             conn,
             lookback_days=lookback_days,
@@ -636,7 +662,10 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "lookback_days": int(lookback_days),
         "signal_rows_considered": len(signals),
         "pipeline_market_rows_loaded": len(pipeline_signals),
-        "derivative_event_rows_loaded": len(derivative_events),
+        "derivative_event_rows_loaded": len({
+            (row.get("fixture_id"), row.get("generated_at"))
+            for row in derivative_signals
+        }),
         "derivative_market_rows_loaded": len(derivative_signals),
         "legacy_signal_rows_loaded": len(legacy_signals),
         "tracked_rows": len(tracked),
