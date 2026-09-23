@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
-from mcp_gateway import bivariate_poisson_v4, dixon_coles_v4, persistence as persistence_base, training_dataset_v4
+from mcp_gateway import bivariate_poisson_v4, dixon_coles_v4, persistence as persistence_base, product_views_v4, training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -321,6 +321,56 @@ async def get_head_to_head(team_a_id: int, team_b_id: int, last: int = 10) -> di
         raise ValueError("last must be between 1 and 100")
     h2h = f"{_positive_int(team_a_id, 'team_a_id')}-{_positive_int(team_b_id, 'team_b_id')}"
     return await _get("fixtures/headtohead", {"h2h": h2h, "last": last})
+
+
+@mcp.tool()
+async def get_product_views(limit: int = product_views_v4.MAX_ROWS_PER_VIEW) -> dict[str, Any]:
+    """Get the latest persisted Soccer Edge dashboard views without making provider calls."""
+    bounded_limit = max(1, min(int(limit), product_views_v4.MAX_ROWS_PER_VIEW))
+    payload = await asyncio.to_thread(persistence_base.load_latest_pipeline_payload)
+    if not isinstance(payload, dict):
+        return {
+            "status": "NO_PERSISTED_PIPELINE_RUN",
+            "views": {},
+            "row_limit_per_view": bounded_limit,
+            "provider_requests_added": 0,
+        }
+    result = product_views_v4.build_views(payload, limit=bounded_limit)
+    result["generated_at_utc"] = payload.get("generated_at_utc")
+    result["pipeline_version"] = payload.get("version")
+    return result
+
+
+@mcp.custom_route("/product/views", methods=["GET"])
+async def product_views(request: Request) -> Response:
+    """Public read-only dashboard payload backed by the latest persisted tick."""
+    raw_limit = request.query_params.get("limit", str(product_views_v4.MAX_ROWS_PER_VIEW))
+    try:
+        limit = max(1, min(int(raw_limit), product_views_v4.MAX_ROWS_PER_VIEW))
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "invalid_limit"}, status_code=400)
+
+    try:
+        payload = await asyncio.to_thread(persistence_base.load_latest_pipeline_payload)
+    except Exception as exc:
+        return JSONResponse({"error": "product_views_unavailable", "detail": str(exc)[:300]}, status_code=503)
+
+    if not isinstance(payload, dict):
+        return JSONResponse(
+            {
+                "status": "NO_PERSISTED_PIPELINE_RUN",
+                "views": {},
+                "row_limit_per_view": limit,
+                "provider_requests_added": 0,
+            },
+            status_code=503,
+        )
+
+    result = product_views_v4.build_views(payload, limit=limit)
+    result["generated_at_utc"] = payload.get("generated_at_utc")
+    result["pipeline_version"] = payload.get("version")
+    result["source"] = "POSTGRES_LATEST_PIPELINE_RUN"
+    return JSONResponse(result)
 
 
 @mcp.custom_route("/health", methods=["GET"])
