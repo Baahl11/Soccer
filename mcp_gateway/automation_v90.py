@@ -117,7 +117,16 @@ def _compact_valid_fixture(row: Any) -> dict[str, Any] | None:
 
 def _v90_mem(label: str) -> None:
     rss = round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0, 1)
-    print(f"V90_MEM {label} peak_rss_mb={rss}", file=sys.stderr, flush=True)
+    line = f"V90_MEM {label} peak_rss_mb={rss}"
+    print(line, file=sys.stderr, flush=True)
+    trace_path = os.getenv("SOCCER_EDGE_V90_TRACE_FILE", "/tmp/soccer_v90_mem.trace")
+    try:
+        with open(trace_path, "a", encoding="utf-8") as handle:
+            handle.write(line + "\\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+    except OSError:
+        pass
 
 
 def _compact_runtime_event(event: dict[str, Any]) -> dict[str, Any]:
