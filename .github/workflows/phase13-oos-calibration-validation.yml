@@ -2,6 +2,8 @@ name: Phase 13 OOS Calibration Validation
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "37 6,18 * * *"
   push:
     branches: [main]
     paths: [".github/workflows/phase13-oos-calibration-validation.yml"]
