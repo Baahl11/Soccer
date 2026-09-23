@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import resource
+import sys
 from collections import Counter
 from typing import Any, Awaitable, Callable
 
@@ -14,6 +16,11 @@ GALAXY_SLATE_FLOOR_MIN_FIXTURES = int(
     os.getenv("SOCCER_EDGE_SLATE_FLOOR_MIN_FIXTURES", "12")
 )
 RESEARCH_VISIBILITY_ROW_LIMIT = int(os.getenv("SOCCER_EDGE_RESEARCH_VISIBILITY_ROW_LIMIT", "40"))
+
+def _rss_probe(label: str) -> None:
+    rss = round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0, 1)
+    print(f"V91_MEM {label} peak_rss_mb={rss}", file=sys.stderr, flush=True)
+
 
 GalaxySlatePayload = Callable[[str, Any], Awaitable[dict[str, Any] | None]]
 
@@ -359,11 +366,15 @@ async def run_tick() -> dict[str, Any]:
 
     v12._galaxy_slate_payload = floor_guarded_galaxy_slate_payload
     try:
+        _rss_probe("before_v90")
         payload = await v90.run_tick()
+        _rss_probe("after_v90")
     finally:
         v12._galaxy_slate_payload = original_galaxy_slate_payload
 
+    _rss_probe("before_annotate_payload")
     _annotate_payload(payload)
+    _rss_probe("after_annotate_payload")
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
     return payload
