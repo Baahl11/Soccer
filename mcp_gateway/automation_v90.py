@@ -187,6 +187,16 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
                 "fixtures", {"date": d.isoformat(), "timezone": base.TIMEZONE_NAME}
             )
             quota = payload.get("quota", quota)
+            # The primary slate is the first real API-Football request in this path.
+            # Capture its verified header quota immediately so elastic caps are based
+            # on the live provider budget rather than the unknown-safe fallback.
+            if v2._LAST_DAILY_REMAINING is None:
+                try:
+                    remaining = (quota or {}).get("daily_remaining")
+                    if remaining is not None:
+                        v2._LAST_DAILY_REMAINING = int(remaining)
+                except (TypeError, ValueError):
+                    pass
             added = _append_fixture_payload(fixtures, seen_fixture_ids, payload)
             if index == 0:
                 core_metrics["primary_slate_count"] = added
