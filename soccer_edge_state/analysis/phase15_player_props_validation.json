@@ -1,0 +1,121 @@
+{
+  "blockers": [
+    "SHOTS_OOS_VALIDATION_INCOMPLETE",
+    "SOT_OOS_VALIDATION_INCOMPLETE",
+    "GOALSCORER_OOS_VALIDATION_INCOMPLETE",
+    "ASSISTS_OOS_VALIDATION_INCOMPLETE",
+    "CARDS_OOS_VALIDATION_INCOMPLETE",
+    "GK_SAVES_OOS_VALIDATION_INCOMPLETE",
+    "GK_SAVES_VALID_PROFILES_22_LT_100",
+    "PLAYER_PROP_TRUE_CLV_0_LT_50",
+    "CONFIRMED_XI_OOS_COVERAGE_NOT_MATERIALIZED",
+    "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
+    "EXACT_OBSERVED_PROP_LINE_HISTORY_NOT_MATERIALIZED",
+    "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
+  ],
+  "canonical_bet_logic_changed": false,
+  "manual_review_required": true,
+  "model_version": "SOCCER_PLAYER_PROPS_PHASE15_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "All six prop modules currently pass structural sanity, but structural sanity is not OOS performance.",
+    "No player prop may become actionable without confirmed XI/role/minutes and an exact observed sportsbook line.",
+    "Goalkeeper saves currently has a much smaller validated profile pool than outfield prop families.",
+    "Prop-specific calibration and true CLV must be tracked independently by market family."
+  ],
+  "phase": "FASE_15_PLAYER_PROPS",
+  "production_promotion_allowed": false,
+  "prop_families": {
+    "assists": {
+      "actionable": false,
+      "decision_weight": 0.0,
+      "failures": [],
+      "oos_validation_complete": false,
+      "profiles_checked": 3160,
+      "profiles_valid": 3160,
+      "status": "PASS",
+      "structural_pass": true,
+      "validation_scope": "STRUCTURAL_ONLY_NOT_OOS_PERFORMANCE"
+    },
+    "cards": {
+      "actionable": false,
+      "decision_weight": 0.0,
+      "failures": [],
+      "oos_validation_complete": false,
+      "profiles_checked": 2514,
+      "profiles_valid": 2514,
+      "status": "PASS",
+      "structural_pass": true,
+      "validation_scope": "STRUCTURAL_ONLY_NOT_OOS_PERFORMANCE"
+    },
+    "gk_saves": {
+      "actionable": false,
+      "decision_weight": 0.0,
+      "failures": [],
+      "oos_validation_complete": false,
+      "profiles_checked": 22,
+      "profiles_valid": 22,
+      "status": "PASS",
+      "structural_pass": true,
+      "validation_scope": "STRUCTURAL_ONLY_NOT_OOS_PERFORMANCE"
+    },
+    "goalscorer": {
+      "actionable": false,
+      "decision_weight": 0.0,
+      "failures": [],
+      "oos_validation_complete": false,
+      "profiles_checked": 3160,
+      "profiles_valid": 3160,
+      "status": "PASS",
+      "structural_pass": true,
+      "validation_scope": "STRUCTURAL_ONLY_NOT_OOS_PERFORMANCE"
+    },
+    "shots": {
+      "actionable": false,
+      "decision_weight": 0.0,
+      "failures": [],
+      "oos_validation_complete": false,
+      "profiles_checked": 2915,
+      "profiles_valid": 2915,
+      "status": "PASS",
+      "structural_pass": true,
+      "validation_scope": "STRUCTURAL_ONLY_NOT_OOS_PERFORMANCE"
+    },
+    "sot": {
+      "actionable": false,
+      "decision_weight": 0.0,
+      "failures": [],
+      "oos_validation_complete": false,
+      "profiles_checked": 2834,
+      "profiles_valid": 2834,
+      "status": "PASS",
+      "structural_pass": true,
+      "validation_scope": "STRUCTURAL_ONLY_NOT_OOS_PERFORMANCE"
+    }
+  },
+  "provider_requests_added": 0,
+  "schema_version": "1.0.0",
+  "shared_engine_requirements": {
+    "confirmed_lineup_required": true,
+    "expected_minutes_required": true,
+    "opponent_adjustment_required": true,
+    "penalty_role_required_where_relevant": true,
+    "recent_and_season_rate_required": true,
+    "role_required": true,
+    "set_piece_role_required_where_relevant": true,
+    "shrinkage_required": true,
+    "starter_probability_required": true
+  },
+  "status": "RESEARCH_HOLD",
+  "true_clv": {
+    "avg_probability_clv_pp": null,
+    "family_specific": true,
+    "flat_rows": 0,
+    "minimum_rows": 50,
+    "negative_rows": 0,
+    "positive_rows": 0,
+    "rows": 0,
+    "unique_fixtures": 0
+  },
+  "warnings": []
+}
