@@ -86,7 +86,7 @@ def test_pipeline_market_rows_take_precedence_over_legacy_best_market():
         },
         "signal_source": "LEGACY_BEST_MARKET",
     }]
-    merged = v._merge_signals(pipeline, legacy, max_rows=10)
+    merged = v._merge_signals(pipeline, [], legacy, max_rows=10)
     assert len(merged) == 1
     assert merged[0]["signal_source"] == "PIPELINE_MATCH_TABLE"
 
@@ -121,6 +121,58 @@ def test_merge_keeps_independent_market_families_from_same_fixture_and_run():
             "signal_source": "PIPELINE_MATCH_TABLE",
         },
     ]
-    merged = v._merge_signals(pipeline, [], max_rows=10)
+    merged = v._merge_signals(pipeline, [], [], max_rows=10)
     assert len(merged) == 2
     assert {v._family(row["market_candidate"]) for row in merged} == {"FT_TOTALS", "FT_CORNERS"}
+
+
+def test_derivative_signals_extract_observed_research_markets():
+    event = {
+        "fixture_id": 10,
+        "generated_at": datetime(2026, 9, 23, 10, 0, tzinfo=timezone.utc),
+        "stage": "T-20",
+        "classification": "WATCH",
+        "event_payload": {
+            "team_totals_intelligence": {
+                "observed_exact_market_rows": [
+                    {
+                        "market": "Home Team Total Goals",
+                        "selection": "OVER",
+                        "line": 1.5,
+                        "decimal_price": 1.95,
+                        "bookmaker": "Book",
+                    }
+                ]
+            },
+            "one_h_goals_intelligence": {
+                "observed_market_rows": [
+                    {
+                        "market": "Goals Over/Under First Half",
+                        "selection": "UNDER",
+                        "line": 1.5,
+                        "decimal_price": 1.9,
+                        "bookmaker": "Book",
+                    }
+                ]
+            },
+            "corners_intelligence": {
+                "observed_market_rows": [
+                    {
+                        "market": "Corners Over/Under",
+                        "selection": "OVER",
+                        "line": 9.5,
+                        "decimal_price": 2.0,
+                        "bookmaker": "Book",
+                    }
+                ]
+            },
+        },
+    }
+    rows = v._derivative_signals_from_events([event])
+    assert len(rows) == 3
+    assert {v._family(row["market_candidate"]) for row in rows} == {
+        "HOME_TT",
+        "1H",
+        "FT_CORNERS",
+    }
+    assert all(row["signal_source"].startswith("DERIVATIVE_INTELLIGENCE:") for row in rows)
