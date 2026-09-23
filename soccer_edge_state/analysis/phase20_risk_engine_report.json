@@ -1,0 +1,44 @@
+{
+  "blockers": [
+    "NO_PRODUCTION_VALIDATED_MARKETS",
+    "OOS_FRAMEWORK_NOT_READY"
+  ],
+  "canonical_bet_logic_changed": false,
+  "current_realized_risk_context": {
+    "max_drawdown_units": 2.64,
+    "max_losing_streak": 4,
+    "return_volatility_stddev": 1.664659,
+    "settled_rows": 28
+  },
+  "eligible_production_markets": [],
+  "hard_principles": {
+    "no_chase": true,
+    "no_martingale": true,
+    "no_short_streak_stake_increase": true
+  },
+  "manual_policy_configuration_required": true,
+  "model_version": "SOCCER_RISK_ENGINE_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "No default production stake caps are invented. Fractional Kelly and exposure limits require explicit reviewed policy values.",
+    "The engine cannot size live stakes until at least one market/model is production validated by Phase 19.",
+    "Recent losing or winning streaks never increase stake; only validated probability edge and hard exposure controls may affect sizing."
+  ],
+  "phase": "FASE_20_BANKROLL_RISK",
+  "production_execution_enabled": false,
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "risk_controls": [
+    "unit_sizing",
+    "fractional_kelly",
+    "max_stake",
+    "max_daily_exposure",
+    "max_correlated_exposure",
+    "league_exposure",
+    "market_exposure",
+    "drawdown_control",
+    "stop_conditions"
+  ],
+  "schema_version": "1.0.0",
+  "status": "RISK_ENGINE_LOCKED"
+}
