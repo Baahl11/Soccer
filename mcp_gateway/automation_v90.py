@@ -16,6 +16,7 @@ from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v3 as v3
 from mcp_gateway import automation_v4 as v4
 from mcp_gateway import automation_v5 as v5
+from mcp_gateway import automation_v6 as v6
 from mcp_gateway import automation_v89 as v89
 
 MODEL_VERSION = v89.MODEL_VERSION
@@ -496,42 +497,80 @@ def _apply_top_level_metrics(payload: dict[str, Any]) -> None:
 
 
 async def run_tick() -> dict[str, Any]:
-    original_v5_run_tick: RunTick = v5.run_tick
-    v5.run_tick = _run_tick_with_core_slate_floor
-    _v90_mem(f"wrapper_patch_applied same={v5.run_tick is _run_tick_with_core_slate_floor}")
+    # v7 owns the effective scheduler loop and bypasses v6.run_tick/v5.run_tick.
+    # Apply V4-005 elasticity at the v6 adaptive-request symbol that v7 installs
+    # into the live path, preserving v7 queue/market-safety behavior.
+    original_adaptive = v6._adaptive_paced_api_get
+    original_base_cap = v6._BASE_MAX_API_CALLS_PER_TICK
+    original_deep_cap = v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK
+    elastic_state: dict[str, Any] = {
+        "basis": None,
+        "request_cap": 35,
+        "request_reason": "QUOTA_UNKNOWN_LEGACY",
+        "deep_cap": 12,
+        "deep_reason": "QUOTA_UNKNOWN_SAFE",
+    }
 
-    # Trace the effective wrapper chain without changing model/provider behavior.
-    # This reveals exactly which automation_vN layer bypasses the patched v5 entry.
-    wrapped_modules: list[tuple[Any, RunTick]] = []
-    for name, module in list(sys.modules.items()):
-        if not name.startswith("mcp_gateway.automation_v"):
-            continue
-        suffix = name.rsplit("_v", 1)[-1]
-        if not suffix.isdigit():
-            continue
-        version = int(suffix)
-        if version < 6 or version > 89:
-            continue
-        original = getattr(module, "run_tick", None)
-        if original is None or not callable(original):
-            continue
+    async def elastic_adaptive_api_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
+        payload = await original_adaptive(endpoint, params)
+        remaining = v2._LAST_DAILY_REMAINING
+        if remaining is None:
+            try:
+                raw = (payload.get("quota") or {}).get("daily_remaining")
+                remaining = int(raw) if raw is not None else None
+            except (TypeError, ValueError):
+                remaining = None
+        if remaining is not None:
+            request_cap, request_reason = _elastic_request_cap(remaining)
+            deep_cap, deep_reason = _elastic_deep_dive_cap(remaining, 1_000_000)
+            v2.MAX_API_CALLS_PER_TICK = request_cap
+            v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK = deep_cap
+            elastic_state.update(
+                {
+                    "basis": int(remaining),
+                    "request_cap": request_cap,
+                    "request_reason": request_reason,
+                    "deep_cap": deep_cap,
+                    "deep_reason": deep_reason,
+                }
+            )
+        return payload
 
-        @functools.wraps(original)
-        async def traced_run_tick(*args: Any, __original: Any = original, __version: int = version, **kwargs: Any) -> Any:
-            _v90_mem(f"chain_enter_v{__version}")
-            result = await __original(*args, **kwargs)
-            _v90_mem(f"chain_exit_v{__version}")
-            return result
-
-        wrapped_modules.append((module, original))
-        setattr(module, "run_tick", traced_run_tick)
-
+    # v7 resets to v6._BASE_MAX_API_CALLS_PER_TICK before its first provider call.
+    # Start permissive, then immediately tighten/expand from the verified quota
+    # returned by that first API-Football response.
+    v6._BASE_MAX_API_CALLS_PER_TICK = 70
+    v6._adaptive_paced_api_get = elastic_adaptive_api_get
+    v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK = 12
     try:
         payload = await v89.run_tick()
     finally:
-        for module, original in wrapped_modules:
-            setattr(module, "run_tick", original)
-        v5.run_tick = original_v5_run_tick
+        v6._adaptive_paced_api_get = original_adaptive
+        v6._BASE_MAX_API_CALLS_PER_TICK = original_base_cap
+        v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK = original_deep_cap
+
+    basis = elastic_state.get("basis")
+    if basis is None:
+        try:
+            last_remaining = payload.get("last_daily_remaining")
+            basis = int(last_remaining) if last_remaining is not None else None
+        except (TypeError, ValueError):
+            basis = None
+
+    due_count = int(payload.get("due_fixture_count") or 0)
+    deep_cap, deep_reason = _elastic_deep_dive_cap(basis, due_count)
+    request_cap, request_reason = _elastic_request_cap(basis)
+
+    payload["elastic_quota_remaining_basis"] = basis
+    payload["elastic_deep_dive_cap"] = deep_cap
+    payload["elastic_deep_dive_cap_reason"] = deep_reason
+    payload["elastic_request_cap"] = request_cap
+    payload["elastic_request_cap_reason"] = request_reason
+    payload["max_deep_dive_fixtures_per_tick"] = deep_cap
+    payload["configured_deep_dive_floor"] = original_deep_cap
+    payload["max_api_calls_per_tick"] = request_cap
+    payload["effective_max_api_calls_per_tick"] = request_cap
+    payload["v4_005_effective_scheduler_path"] = "V7_LOOP_WITH_V6_ADAPTIVE_ELASTIC_WRAPPER"
 
     _apply_top_level_metrics(payload)
     payload["v3621_provider_requests_added"] = int(
