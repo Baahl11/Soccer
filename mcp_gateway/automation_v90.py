@@ -25,6 +25,40 @@ CORE_SLATE_FLOOR_MIN_DAILY_REMAINING = int(
 RunTick = Callable[[], Awaitable[dict[str, Any]]]
 
 
+def _elastic_deep_dive_cap(daily_remaining: Any, due_count: int) -> tuple[int, str]:
+    """Scale fixture coverage from verified quota; caches still govern actual calls."""
+    try:
+        remaining = int(daily_remaining)
+    except (TypeError, ValueError):
+        return 12, "QUOTA_UNKNOWN_SAFE"
+    if remaining > 6000:
+        return min(max(due_count, 24), 48), "GT_6000"
+    if remaining > 4500:
+        return min(max(due_count, 20), 36), "GT_4500"
+    if remaining > 3000:
+        return min(max(due_count, 16), 28), "GT_3000"
+    if remaining > 1500:
+        return min(max(due_count, 12), 20), "GT_1500"
+    return min(max(due_count, 8), 12), "RESERVE_MODE"
+
+
+def _elastic_request_cap(daily_remaining: Any) -> tuple[int, str]:
+    """Hard per-tick request ceiling; cache hits consume zero provider requests."""
+    try:
+        remaining = int(daily_remaining)
+    except (TypeError, ValueError):
+        return 35, "QUOTA_UNKNOWN_LEGACY"
+    if remaining > 6000:
+        return 70, "GT_6000"
+    if remaining > 4500:
+        return 55, "GT_4500"
+    if remaining > 3000:
+        return 45, "GT_3000"
+    if remaining > 1500:
+        return 35, "GT_1500"
+    return 25, "RESERVE_MODE"
+
+
 def _new_core_metrics() -> dict[str, Any]:
     return {
         "schema_version": "1.0.0",
@@ -216,6 +250,10 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
 
         due.sort(key=lambda item: item["priority"])
 
+        elastic_deep_dive_cap, elastic_cap_reason = _elastic_deep_dive_cap(v2._LAST_DAILY_REMAINING, len(due))
+        elastic_request_cap, elastic_request_reason = _elastic_request_cap(v2._LAST_DAILY_REMAINING)
+        # The budget wrapper reads this value dynamically. Cached reads do not increment it.
+        v2.MAX_API_CALLS_PER_TICK = elastic_request_cap
         deep_dive_processed = 0
         deferred_due_to_priority = 0
         deferred_due_to_budget = 0
