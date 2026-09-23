@@ -1,0 +1,27 @@
+name: Soccer Edge V4 Runtime Tests
+
+on:
+  push:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - "mcp_gateway/**"
+      - "tests/test_v4_*.py"
+      - ".github/workflows/v4-runtime-tests.yml"
+
+jobs:
+  v4-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused runtime test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Run V4 scheduler regression tests
+        run: |
+          pytest -q tests/test_v4_006_fair_scheduler.py
