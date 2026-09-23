@@ -9,7 +9,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.0.0"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
@@ -54,6 +54,14 @@ def _selection_side(selection: Any) -> str:
     return text
 
 
+def _selection_matches(value_selection: Any, target_selection: Any) -> bool:
+    value_side = _selection_side(value_selection)
+    target_side = _selection_side(target_selection)
+    if target_side in {"over", "under"}:
+        return value_side == target_side
+    return _norm(value_selection) == _norm(target_selection)
+
+
 def _value_line(value: dict[str, Any]) -> float | None:
     line = _num(value.get("line"))
     return line if line is not None else _line_from_selection(value.get("selection"))
@@ -66,10 +74,16 @@ def _value_price(value: dict[str, Any]) -> float | None:
     return price
 
 
-def _group_fair_probability(values: list[dict[str, Any]], selection: Any, line: float | None) -> tuple[float | None, float | None]:
+def _group_fair_probability(
+    values: list[dict[str, Any]],
+    selection: Any,
+    line: float | None,
+) -> tuple[float | None, float | None]:
     implied: list[tuple[dict[str, Any], float]] = []
     for value in values:
         if not isinstance(value, dict):
+            continue
+        if line is not None and not _same_line(_value_line(value), line):
             continue
         price = _value_price(value)
         if price is None or price <= 1.0:
@@ -80,9 +94,7 @@ def _group_fair_probability(values: list[dict[str, Any]], selection: Any, line: 
         return None, None
 
     for value, prob in implied:
-        if _norm(value.get("selection")) != _norm(selection):
-            continue
-        if not _same_line(_value_line(value), line):
+        if not _selection_matches(value.get("selection"), selection):
             continue
         return prob / total, _value_price(value)
     return None, None
@@ -105,15 +117,58 @@ def _closing_line_candidate(values: list[dict[str, Any]], selection: Any) -> tup
     return candidates[0]
 
 
-def _family(best_market: dict[str, Any]) -> str | None:
+def _family(market_candidate: dict[str, Any]) -> str | None:
     return market_mismatch_v4.canonical_market_family({
-        "market_family": best_market.get("family"),
-        "market": best_market.get("market"),
-        "selection": best_market.get("selection"),
+        "market_family": market_candidate.get("market_family") or market_candidate.get("family"),
+        "market": market_candidate.get("market"),
+        "selection": market_candidate.get("selection"),
     })
 
 
-def _load_signals(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
+def _load_pipeline_market_signals(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                (mr.row ->> 'fixture_id')::BIGINT AS fixture_id,
+                p.generated_at_utc AS generated_at,
+                COALESCE(NULLIF(mr.row ->> 'stage', ''), e.stage) AS stage,
+                COALESCE(NULLIF(mr.row ->> 'classification', ''), e.classification) AS classification,
+                mr.row AS market_candidate,
+                e.payload AS event_payload,
+                f.kickoff,
+                f.league,
+                f.home_team,
+                f.away_team,
+                p.payload ->> 'model_version' AS model_version,
+                p.payload ->> 'version' AS automation_version,
+                'PIPELINE_MATCH_TABLE'::TEXT AS signal_source
+            FROM soccer_pipeline_runs p
+            CROSS JOIN LATERAL jsonb_array_elements(
+                COALESCE(p.payload -> 'match_table_rows', '[]'::jsonb)
+            ) AS mr(row)
+            JOIN soccer_fixtures f
+              ON f.fixture_id = (mr.row ->> 'fixture_id')::BIGINT
+            LEFT JOIN soccer_refresh_events e
+              ON e.fixture_id = f.fixture_id
+             AND e.generated_at = p.generated_at_utc
+            WHERE p.generated_at_utc >= %s
+              AND p.generated_at_utc < f.kickoff
+              AND COALESCE(NULLIF(mr.row ->> 'stage', ''), e.stage) = ANY(%s)
+              AND COALESCE(NULLIF(mr.row ->> 'classification', ''), e.classification) = ANY(%s)
+              AND NULLIF(mr.row ->> 'market', '') IS NOT NULL
+              AND NULLIF(mr.row ->> 'selection', '') IS NOT NULL
+            ORDER BY p.generated_at_utc ASC
+            LIMIT %s
+            """,
+            (cutoff, list(SIGNAL_STAGES), list(SIGNAL_CLASSES), max(1, int(max_rows))),
+        )
+        columns = [desc.name for desc in cur.description]
+        return [dict(zip(columns, row)) for row in cur.fetchall()]
+
+
+def _load_legacy_signals(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
     with conn.cursor() as cur:
         cur.execute(
@@ -123,13 +178,14 @@ def _load_signals(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, 
                 e.generated_at,
                 e.stage,
                 e.classification,
-                e.payload,
+                e.payload AS event_payload,
                 f.kickoff,
                 f.league,
                 f.home_team,
                 f.away_team,
                 p.payload ->> 'model_version' AS model_version,
-                p.payload ->> 'version' AS automation_version
+                p.payload ->> 'version' AS automation_version,
+                'LEGACY_BEST_MARKET'::TEXT AS signal_source
             FROM soccer_refresh_events e
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             LEFT JOIN soccer_pipeline_runs p ON p.generated_at_utc = e.generated_at
@@ -183,6 +239,66 @@ def _best_market_from_event(payload: Any) -> dict[str, Any] | None:
     return best if isinstance(best, dict) and best else None
 
 
+def _legacy_to_signal(signal: dict[str, Any]) -> dict[str, Any] | None:
+    best = _best_market_from_event(signal.get("event_payload"))
+    if best is None:
+        return None
+    out = dict(signal)
+    out["market_candidate"] = best
+    return out
+
+
+def _signal_identity(signal: dict[str, Any]) -> tuple[Any, ...]:
+    candidate = signal.get("market_candidate") if isinstance(signal.get("market_candidate"), dict) else {}
+    line = _num(candidate.get("line"))
+    if line is None:
+        line = _line_from_selection(candidate.get("selection"))
+    generated_at = signal.get("generated_at")
+    if hasattr(generated_at, "isoformat"):
+        generated_at = generated_at.isoformat()
+    return (
+        signal.get("fixture_id"),
+        generated_at,
+        _norm(candidate.get("market")),
+        _norm(candidate.get("selection")),
+        line,
+        _norm(candidate.get("bookmaker")),
+    )
+
+
+def _merge_signals(
+    pipeline_signals: list[dict[str, Any]],
+    legacy_signals: list[dict[str, Any]],
+    *,
+    max_rows: int,
+) -> list[dict[str, Any]]:
+    merged: list[dict[str, Any]] = []
+    seen: set[tuple[Any, ...]] = set()
+    for raw in pipeline_signals:
+        if not isinstance(raw.get("market_candidate"), dict):
+            continue
+        key = _signal_identity(raw)
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(raw)
+        if len(merged) >= max_rows:
+            return merged
+
+    for raw in legacy_signals:
+        signal = _legacy_to_signal(raw)
+        if signal is None:
+            continue
+        key = _signal_identity(signal)
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(signal)
+        if len(merged) >= max_rows:
+            break
+    return merged
+
+
 def _model_signal_from_event(payload: Any) -> str | None:
     if not isinstance(payload, dict):
         return None
@@ -210,10 +326,42 @@ def _model_signal_from_event(payload: Any) -> str | None:
     return "WEAK"
 
 
+def _model_signal_from_candidate(candidate: dict[str, Any], event_payload: Any) -> str | None:
+    direct = candidate.get("model_signal")
+    if direct:
+        return str(direct)
+    score = _num(candidate.get("model_signal_score"))
+    if score is None:
+        score = _num(candidate.get("sport_confidence_score"))
+    if score is not None:
+        if score >= 85:
+            return "VERY_STRONG"
+        if score >= 75:
+            return "STRONG"
+        if score >= 60:
+            return "MODERATE"
+        return "WEAK"
+    return _model_signal_from_event(event_payload)
+
+
 def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> dict[str, Any]:
     persistence.ensure_schema()
     with persistence._connect() as conn:
-        signals = _load_signals(conn, lookback_days=lookback_days, max_rows=max_signals)
+        pipeline_signals = _load_pipeline_market_signals(
+            conn,
+            lookback_days=lookback_days,
+            max_rows=max_signals,
+        )
+        legacy_signals = _load_legacy_signals(
+            conn,
+            lookback_days=lookback_days,
+            max_rows=max_signals,
+        )
+        signals = _merge_signals(
+            pipeline_signals,
+            legacy_signals,
+            max_rows=max(1, int(max_signals)),
+        )
         fixture_ids = sorted({int(row["fixture_id"]) for row in signals if row.get("fixture_id") is not None})
         cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
         snapshots = _load_market_snapshots(conn, fixture_ids, cutoff=cutoff)
@@ -226,31 +374,33 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
     tracked: list[dict[str, Any]] = []
     reasons: Counter[str] = Counter()
     family_counts: Counter[str] = Counter()
+    signal_source_counts: Counter[str] = Counter()
 
     for signal in signals:
-        payload = signal.get("payload")
-        best = _best_market_from_event(payload)
-        if best is None:
-            reasons["NO_BEST_MARKET"] += 1
+        candidate = signal.get("market_candidate")
+        if not isinstance(candidate, dict):
+            reasons["NO_MARKET_CANDIDATE"] += 1
             continue
 
-        family = _family(best)
+        family = _family(candidate)
         if family is None:
             reasons["UNMAPPED_MARKET_FAMILY"] += 1
             continue
 
-        entry_price = _num(best.get("decimal_price"))
+        entry_price = _num(candidate.get("decimal_price"))
         if entry_price is None:
-            entry_price = _num(best.get("price"))
+            entry_price = _num(candidate.get("price"))
         if entry_price is None or entry_price <= 1.0:
             reasons["INVALID_ENTRY_PRICE"] += 1
             continue
 
-        entry_line = _num(best.get("line"))
+        entry_line = _num(candidate.get("line"))
         if entry_line is None:
-            entry_line = _line_from_selection(best.get("selection"))
+            entry_line = _line_from_selection(candidate.get("selection"))
 
-        entry_fair = _num(best.get("p_market_fair"))
+        entry_fair = _num(candidate.get("p_market_fair"))
+        if entry_fair is None:
+            entry_fair = _num(candidate.get("market_fair_probability"))
         if entry_fair is None:
             entry_fair = 1.0 / entry_price
 
@@ -266,7 +416,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             for snap in snapshots_by_fixture.get(fixture_id, [])
             if snap.get("captured_at") is not None
             and generated_at <= snap["captured_at"] < kickoff
-            and _norm(snap.get("market")) == _norm(best.get("market"))
+            and _norm(snap.get("market")) == _norm(candidate.get("market"))
         ]
         if not candidates:
             reasons["NO_PREKICKOFF_MARKET_SNAPSHOT"] += 1
@@ -274,7 +424,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
 
         same_book = [
             snap for snap in candidates
-            if _norm(snap.get("bookmaker")) == _norm(best.get("bookmaker"))
+            if _norm(snap.get("bookmaker")) == _norm(candidate.get("bookmaker"))
         ]
         pool = same_book or candidates
         close_at = max(snap["captured_at"] for snap in pool)
@@ -287,7 +437,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
 
         for snap in close_groups:
             values = snap.get("values") if isinstance(snap.get("values"), list) else []
-            fair, price = _group_fair_probability(values, best.get("selection"), entry_line)
+            fair, price = _group_fair_probability(values, candidate.get("selection"), entry_line)
             if fair is not None:
                 fair_values.append(fair)
                 exact_comparable = True
@@ -296,7 +446,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
                 if entry_line is not None:
                     close_line_values.append(entry_line)
                 continue
-            close_line, close_price = _closing_line_candidate(values, best.get("selection"))
+            close_line, close_price = _closing_line_candidate(values, candidate.get("selection"))
             if close_line is not None:
                 close_line_values.append(close_line)
             if close_price is not None:
@@ -326,7 +476,10 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             else None
         )
 
+        source = str(signal.get("signal_source") or "UNKNOWN")
         family_counts[family] += 1
+        signal_source_counts[source] += 1
+        event_payload = signal.get("event_payload")
         tracked.append({
             "schema_version": SCHEMA_VERSION,
             "fixture_id": fixture_id,
@@ -337,12 +490,13 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             "stage": signal.get("stage"),
             "classification": signal.get("classification"),
             "market_family": family,
-            "market": best.get("market"),
-            "selection": best.get("selection"),
-            "tier": best.get("tier") or (payload.get("tier") if isinstance(payload, dict) else None),
-            "confidence": _model_signal_from_event(payload),
+            "market": candidate.get("market"),
+            "selection": candidate.get("selection"),
+            "tier": candidate.get("tier") or (event_payload.get("tier") if isinstance(event_payload, dict) else None),
+            "confidence": _model_signal_from_candidate(candidate, event_payload),
             "model_version": signal.get("model_version") or signal.get("automation_version"),
-            "bookmaker": best.get("bookmaker"),
+            "bookmaker": candidate.get("bookmaker"),
+            "signal_source": source,
             "entry_timestamp": generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at),
             "entry_line": entry_line,
             "line": entry_line,
@@ -361,7 +515,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             "price_clv": price_clv,
             "clv_price_pct": price_clv,
             "line_movement": line_movement,
-            "bookmaker_at_signal": best.get("bookmaker"),
+            "bookmaker_at_signal": candidate.get("bookmaker"),
             "is_true_closing_line": True,
             "closing_line_status": "POSTGRES_LATEST_PREKICKOFF_MARKET_SNAPSHOT",
             "probability_comparable_same_line": exact_comparable,
@@ -376,17 +530,22 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "status": "ACTIVE_TRUE_CLV_SAMPLE" if len(comparable) >= MIN_TRUE_CLOSE_ROWS else "COLLECTING_TRUE_CLV",
         "lookback_days": int(lookback_days),
         "signal_rows_considered": len(signals),
+        "pipeline_market_rows_loaded": len(pipeline_signals),
+        "legacy_signal_rows_loaded": len(legacy_signals),
         "tracked_rows": len(tracked),
         "comparable_true_clv_rows": len(comparable),
         "minimum_true_close_rows": MIN_TRUE_CLOSE_ROWS,
         "family_counts": dict(sorted(family_counts.items())),
+        "signal_source_counts": dict(sorted(signal_source_counts.items())),
         "skip_reasons": dict(sorted(reasons.items())),
         "rows": tracked,
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "notes": [
-            "Source is Postgres soccer_refresh_events + soccer_market_snapshots; GitHub compact history is not required.",
-            "Probability/price CLV is computed only when the exact same market selection and line are comparable at close.",
+            "Primary signal source is Postgres soccer_pipeline_runs.match_table_rows; legacy event best_market rows are fallback-only.",
+            "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
+            "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
+            "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
             "Line movement may still be recorded when the selected side survives but the sportsbook line changes.",
             "Same-book close is preferred; otherwise the latest cross-book snapshot at the latest pre-kickoff timestamp is used.",
         ],
