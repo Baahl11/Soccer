@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
-from mcp_gateway import bivariate_poisson_v4, dixon_coles_v4, persistence as persistence_base, product_dashboard_v4, product_views_v4, training_dataset_v4
+from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, persistence as persistence_base, product_dashboard_v4, product_views_v4, training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -469,6 +469,43 @@ async def internal_tick(request: Request) -> Response:
         return Response(content=stdout, media_type="application/json", status_code=200)
     except Exception as exc:
         return JSONResponse({"error": "tick_failed", "detail": str(exc)[:500]}, status_code=500)
+
+
+@mcp.custom_route("/internal/clv-v4/build", methods=["POST"])
+async def internal_clv_v4_build(request: Request) -> Response:
+    try:
+        _github_oidc_claims(
+            request,
+            {".github/workflows/phase17-clv-postgres-validation.yml"},
+        )
+    except Exception as exc:
+        return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    try:
+        lookback_days = max(1, min(int(body.get("lookback_days", 30)), 180))
+        max_signals = max(100, min(int(body.get("max_signals", 5000)), 20000))
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "invalid_clv_build_parameters"}, status_code=400)
+
+    try:
+        result = await asyncio.to_thread(
+            clv_postgres_v4.build_from_postgres,
+            lookback_days=lookback_days,
+            max_signals=max_signals,
+        )
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse(
+            {"error": "clv_v4_build_failed", "detail": str(exc)[:500]},
+            status_code=500,
+        )
 
 
 @mcp.custom_route("/internal/training-dataset/build", methods=["POST"])
