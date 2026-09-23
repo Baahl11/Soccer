@@ -4,18 +4,18 @@
   "service": "soccer-edge-automation",
   "version": "4.1.0-v4.005",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-23T03:06:41.016401+00:00",
-  "generated_at_local": "2026-09-22T21:06:41.016401-06:00",
+  "generated_at_utc": "2026-09-23T03:25:37.421720+00:00",
+  "generated_at_local": "2026-09-22T21:25:37.421720-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 192,
   "due_fixture_count": 6,
   "event_count": 7,
-  "actionable_refresh_count": 0,
+  "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 23,
+  "api_calls_this_tick": 24,
   "max_api_calls_per_tick": 35,
   "effective_max_api_calls_per_tick": 35,
-  "last_daily_remaining": 7197,
+  "last_daily_remaining": 7173,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -28,7 +28,7 @@
       "row_type": "research_visibility",
       "row_index": 2,
       "event_type": "SOCCER_REFRESH",
-      "stage": "T-60",
+      "stage": "T-40",
       "classification": "WATCH",
       "event_classification": "WATCH",
       "fixture_id": 1641076,
@@ -60,7 +60,7 @@
       "estimated_ev": null,
       "p_market_fair": null,
       "p_shrunk": null,
-      "reason": "SPORTING_SCREEN_PASS",
+      "reason": "NO_VERIFIED_MARKET",
       "notes_count": 2,
       "market_use": null,
       "model_signal": "STRONG",
@@ -68,7 +68,7 @@
       "execution_status": "WAIT_PRICE",
       "blockers": [
         "WAIT_PRICE",
-        "SPORTING_SCREEN_PASS"
+        "NO_VERIFIED_MARKET"
       ],
       "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
       "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
@@ -332,7 +332,7 @@
       "FT_TOTALS_RESEARCH": 4
     },
     "stage_counts": {
-      "T-60": 1,
+      "T-40": 1,
       "POSTGAME": 3,
       "EARLY_RESEARCH": 2
     },
@@ -343,7 +343,7 @@
       "GOALS_UNDER": 3
     },
     "silent_tick_prevention": true,
-    "actionable_refresh_count": 0,
+    "actionable_refresh_count": 1,
     "bet_candidate_count": 0,
     "note": "Rows are a visibility layer only. WATCH rows can include raw PASS/CLOSE events so the live digest shows what was analyzed and why no BET/LEAN was emitted."
   },
@@ -398,10 +398,11 @@
     "gate_counts": {
       "NOT_SOCCER_REFRESH": 1,
       "STAGE_POSTGAME": 3,
-      "STAGE_T-60": 1,
-      "PRE_ACTIONABLE_OBSERVED": 1,
-      "PRE_ACTIONABLE_MARKET_NOT_FRESH": 1,
-      "PRE_ACTIONABLE_GOAL_RATES_PRESENT": 1,
+      "STAGE_T-40": 1,
+      "ACTIONABLE_STAGE": 1,
+      "MARKET_NOT_FRESH": 1,
+      "MARKET_NOT_FRESH_SOURCE_NOT_VERIFIED": 1,
+      "MARKET_TIMESTAMP_MISSING": 1,
       "STAGE_EARLY_RESEARCH": 2
     },
     "family_leg_counts": {},
