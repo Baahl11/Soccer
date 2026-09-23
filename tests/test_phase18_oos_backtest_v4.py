@@ -1,22 +1,26 @@
+from datetime import datetime, timedelta, timezone
+
 from mcp_gateway import oos_backtest_v4 as v
 
 
 def _row(i: int, status: str, roi: float, *, quote_ts=True, lineup_ts=True, feature_ts=True):
+    base = datetime(2026, 9, 10, 10, 0, tzinfo=timezone(timedelta(hours=-6))) + timedelta(days=i)
+    kickoff = base + timedelta(hours=1)
     row = {
         "fixture_id": i,
-        "generated_at_local": f"2026-09-{10+i:02d}T10:00:00-06:00",
-        "kickoff_local": f"2026-09-{10+i:02d}T11:00:00-06:00",
+        "generated_at_local": base.isoformat(),
+        "kickoff_local": kickoff.isoformat(),
         "settled": True,
         "settlement_status": status,
         "roi_units": roi,
         "stake_units": 1.0,
     }
     if quote_ts:
-        row["quote_timestamp"] = f"2026-09-{10+i:02d}T09:55:00-06:00"
+        row["quote_timestamp"] = (base - timedelta(minutes=5)).isoformat()
     if lineup_ts:
-        row["lineup_captured_at"] = f"2026-09-{10+i:02d}T09:50:00-06:00"
+        row["lineup_captured_at"] = (base - timedelta(minutes=10)).isoformat()
     if feature_ts:
-        row["feature_captured_at"] = f"2026-09-{10+i:02d}T09:45:00-06:00"
+        row["feature_captured_at"] = (base - timedelta(minutes=15)).isoformat()
     return row
 
 
