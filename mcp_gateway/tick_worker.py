@@ -1,6 +1,8 @@
 import asyncio
 import json
 import logging
+import os
+import resource
 import sys
 
 import httpx
@@ -39,10 +41,22 @@ def _read_seed() -> dict:
     return {}
 
 
+def _rss_mb() -> float:
+    return round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0, 1)
+
+
+def _probe(label: str) -> None:
+    if os.getenv("SOCCER_EDGE_MEMORY_PROBE", "1") == "1":
+        sys.stderr.write(f"WORKER_MEM {label} peak_rss_mb={_rss_mb()}\\n")
+        sys.stderr.flush()
+
+
 async def _main() -> int:
     try:
         imported = automation_v6.import_shortlist_state(_read_seed())
+        _probe("before_run_tick")
         payload = await automation_v92.run_tick()
+        _probe("after_run_tick")
         payload["shortlist_seed_imported"] = imported
         try:
             # Avoid retaining a second top-level payload mapping on the 512 MB
@@ -50,15 +64,21 @@ async def _main() -> int:
             # not relational tick history, so remove it only while persisting.
             shortlist_state = payload.pop("shortlist_state", None)
             try:
+                _probe("before_persist_tick")
                 payload["database_persisted"] = persist_tick(payload)
+                _probe("after_persist_tick")
             finally:
                 if shortlist_state is not None:
                     payload["shortlist_state"] = shortlist_state
         except Exception as db_exc:
             payload["database_persisted"] = False
             payload["database_error"] = str(db_exc)[:300]
-        sys.stdout.write(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
+        _probe("before_json_dumps")
+        encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        _probe("after_json_dumps")
+        sys.stdout.write(encoded)
         sys.stdout.flush()
+        _probe("after_stdout_flush")
         return 0
     except Exception as exc:
         sys.stderr.write(f"tick_failed: {str(exc)[:500]}\n")
