@@ -1,15 +1,8 @@
 from __future__ import annotations
 
 from typing import Any
-import resource
-import sys
 
 from mcp_gateway import automation_v91 as v91
-
-def _rss_probe(label: str) -> None:
-    rss = round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0, 1)
-    print(f"V92_MEM {label} peak_rss_mb={rss}", file=sys.stderr, flush=True)
-
 
 MODEL_VERSION = v91.MODEL_VERSION
 AUTOMATION_VERSION = "4.1.0-v4.005"
@@ -204,15 +197,11 @@ def _annotate_decision_separation(payload: dict[str, Any]) -> None:
 
 
 async def run_tick() -> dict[str, Any]:
-    _rss_probe("before_v91")
     payload = await v91.run_tick()
-    _rss_probe("after_v91")
     # Free cyclic-GC candidates before V4 observability and JSON serialization on the 512 MB Render worker.
     import gc
     gc.collect()
-    _rss_probe("after_gc")
     _annotate_decision_separation(payload)
-    _rss_probe("after_decision_separation")
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
     return payload
