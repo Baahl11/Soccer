@@ -77,8 +77,6 @@ def normalize_row(row: dict[str, Any]) -> dict[str, Any]:
     confidence = row.get("confidence")
     if confidence is None:
         confidence = row.get("model_signal")
-    if confidence is None:
-        confidence = row.get("tier")
 
     model_version = row.get("model_version") or row.get("automation_version")
 
