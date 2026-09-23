@@ -1,0 +1,88 @@
+{
+  "asian_settlement_required": true,
+  "blockers": [
+    "CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
+    "CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
+    "1H_TRUE_CLV_0_LT_50",
+    "SOURCE_1H_PROMOTION_GATE_DISABLED"
+  ],
+  "calibration": {
+    "baseline": {
+      "accuracy_at_0_5": 0.5773,
+      "brier": 0.2459,
+      "log_loss": 0.6853,
+      "mean_predicted_probability": 0.3964,
+      "n": 220,
+      "observed_rate": 0.4318
+    },
+    "challenger": {
+      "accuracy_at_0_5": 0.5818,
+      "brier": 0.2484,
+      "log_loss": 0.6907,
+      "mean_predicted_probability": 0.3944,
+      "n": 220,
+      "observed_rate": 0.4318
+    },
+    "challenger_brier_improved": false,
+    "challenger_log_loss_improved": false,
+    "minimum_calibrated_oos": 100,
+    "n": 220
+  },
+  "canonical_bet_logic_changed": false,
+  "manual_review_required": true,
+  "missing_required_lines": [
+    0.5,
+    1.0,
+    1.25,
+    1.75,
+    2.0
+  ],
+  "model_version": "SOCCER_1H_OOS_VALIDATION_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "Current persisted 1H calibration evidence is for Over 1.5 only; other roadmap lines remain unvalidated.",
+    "The current challenger is not promoted unless it is no worse on both Brier and log loss.",
+    "Dedicated 1H exact-market history and true CLV are mandatory and cannot be substituted by FT market closes."
+  ],
+  "observed_lines": [
+    1.5
+  ],
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "required_lines": [
+    0.5,
+    1.0,
+    1.25,
+    1.5,
+    1.75,
+    2.0
+  ],
+  "schema_version": "1.0.0",
+  "source_promotion_gate": {
+    "decision": "KEEP_RESEARCH_ONLY",
+    "enabled": false,
+    "minimum_calibrated_oos_n": 100,
+    "requires": [
+      "challenger Brier <= baseline Brier",
+      "challenger log-loss <= baseline log-loss",
+      "dedicated 1H market comparison",
+      "no automatic BET/LEAN promotion"
+    ],
+    "sample_gate_met": true
+  },
+  "status": "RESEARCH_HOLD",
+  "ticket": "V4-020",
+  "true_clv": {
+    "avg_probability_clv_pp": null,
+    "family_specific": true,
+    "flat_rows": 0,
+    "minimum_rows": 50,
+    "negative_rows": 0,
+    "positive_rows": 0,
+    "rows": 0,
+    "unique_fixtures": 0
+  },
+  "warnings": [
+    "1H_LINE_COVERAGE_INCOMPLETE"
+  ]
+}
