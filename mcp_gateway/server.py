@@ -356,20 +356,36 @@ async def internal_tick(request: Request) -> Response:
             stderr=asyncio.subprocess.PIPE,
             env=env,
         )
-        try:
-            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=420)
-        except TimeoutError:
-            proc.kill()
-            await proc.communicate()
-            return JSONResponse({"error": "tick_timeout"}, status_code=504)
+        stderr_lines: list[str] = []
 
-        stderr_text = stderr.decode("utf-8", errors="replace")
-        if stderr_text:
-            # Worker diagnostics are otherwise swallowed on successful subprocesses.
-            # Keep them in Render logs only; never mix them into the JSON response.
-            for line in stderr_text.splitlines()[-200:]:
+        async def _pump_worker_stderr() -> None:
+            assert proc.stderr is not None
+            while True:
+                raw = await proc.stderr.readline()
+                if not raw:
+                    break
+                line = raw.decode("utf-8", errors="replace").rstrip()
+                stderr_lines.append(line)
+                if len(stderr_lines) > 200:
+                    del stderr_lines[:-200]
                 if line.startswith(("WORKER_MEM ", "MEMPROBE ", "V90_MEM ", "V91_MEM ", "V92_MEM ")):
                     print(line, file=sys.stderr, flush=True)
+
+        assert proc.stdout is not None
+        stderr_task = asyncio.create_task(_pump_worker_stderr())
+        stdout_task = asyncio.create_task(proc.stdout.read())
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=420)
+        except TimeoutError:
+            proc.kill()
+            await proc.wait()
+            await stderr_task
+            stdout_task.cancel()
+            return JSONResponse({"error": "tick_timeout"}, status_code=504)
+
+        await stderr_task
+        stdout = await stdout_task
+        stderr_text = "\n".join(stderr_lines)
         trace_text = ""
         try:
             with open(trace_path, "r", encoding="utf-8") as handle:
