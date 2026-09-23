@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gc
+import functools
 import os
 import resource
 import sys
@@ -498,9 +499,38 @@ async def run_tick() -> dict[str, Any]:
     original_v5_run_tick: RunTick = v5.run_tick
     v5.run_tick = _run_tick_with_core_slate_floor
     _v90_mem(f"wrapper_patch_applied same={v5.run_tick is _run_tick_with_core_slate_floor}")
+
+    # Trace the effective wrapper chain without changing model/provider behavior.
+    # This reveals exactly which automation_vN layer bypasses the patched v5 entry.
+    wrapped_modules: list[tuple[Any, RunTick]] = []
+    for name, module in list(sys.modules.items()):
+        if not name.startswith("mcp_gateway.automation_v"):
+            continue
+        suffix = name.rsplit("_v", 1)[-1]
+        if not suffix.isdigit():
+            continue
+        version = int(suffix)
+        if version < 6 or version > 89:
+            continue
+        original = getattr(module, "run_tick", None)
+        if original is None or not callable(original):
+            continue
+
+        @functools.wraps(original)
+        async def traced_run_tick(*args: Any, __original: Any = original, __version: int = version, **kwargs: Any) -> Any:
+            _v90_mem(f"chain_enter_v{__version}")
+            result = await __original(*args, **kwargs)
+            _v90_mem(f"chain_exit_v{__version}")
+            return result
+
+        wrapped_modules.append((module, original))
+        setattr(module, "run_tick", traced_run_tick)
+
     try:
         payload = await v89.run_tick()
     finally:
+        for module, original in wrapped_modules:
+            setattr(module, "run_tick", original)
         v5.run_tick = original_v5_run_tick
 
     _apply_top_level_metrics(payload)
