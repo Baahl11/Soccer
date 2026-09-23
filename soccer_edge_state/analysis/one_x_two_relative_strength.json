@@ -1,14 +1,88 @@
 {
   "anti_leakage": "For every target fixture, league and team strengths use only finalized fixtures with kickoff strictly earlier than the target kickoff.",
   "baseline": {
-    "n": 0
+    "accuracy": 0.0,
+    "actual_counts": {
+      "A": 1,
+      "H": 1
+    },
+    "brier": 0.8195,
+    "log_loss": 1.299,
+    "mean_draw_probability": 0.3817,
+    "n": 2,
+    "observed_draw_rate": 0.0,
+    "predicted_counts": {
+      "A": 1,
+      "D": 1
+    }
   },
   "challenger": {
-    "n": 0
+    "accuracy": 0.5,
+    "actual_counts": {
+      "A": 1,
+      "H": 1
+    },
+    "brier": 0.648,
+    "log_loss": 1.0307,
+    "mean_draw_probability": 0.1982,
+    "n": 2,
+    "observed_draw_rate": 0.0,
+    "predicted_counts": {
+      "H": 2
+    }
   },
-  "diagnostics": [],
-  "eligible_baseline_fixtures": 464,
-  "finalized_fixtures_joined": 621,
+  "diagnostics": [
+    {
+      "actual": "H",
+      "away_team": "Newcastle United U21",
+      "away_team_prior_away_matches": 1,
+      "baseline_probs": [
+        0.226371,
+        0.281123,
+        0.492506
+      ],
+      "challenger_away_lambda": 2.0385,
+      "challenger_home_lambda": 2.1538,
+      "challenger_probs": [
+        0.421011,
+        0.201505,
+        0.377484
+      ],
+      "fixture_id": 1588829,
+      "home_team": "Bradford",
+      "home_team_prior_home_matches": 0,
+      "league": "EFL Trophy",
+      "league_away_goal_rate": 1.8462,
+      "league_home_goal_rate": 2.3846,
+      "prior_league_matches": 26
+    },
+    {
+      "actual": "A",
+      "away_team": "Brentford U21",
+      "away_team_prior_away_matches": 0,
+      "baseline_probs": [
+        0.1889,
+        0.482338,
+        0.328763
+      ],
+      "challenger_away_lambda": 1.8462,
+      "challenger_home_lambda": 2.3846,
+      "challenger_probs": [
+        0.502846,
+        0.19486,
+        0.302294
+      ],
+      "fixture_id": 1588907,
+      "home_team": "Bromley",
+      "home_team_prior_home_matches": 0,
+      "league": "EFL Trophy",
+      "league_away_goal_rate": 1.8462,
+      "league_home_goal_rate": 2.3846,
+      "prior_league_matches": 26
+    }
+  ],
+  "eligible_baseline_fixtures": 500,
+  "finalized_fixtures_joined": 657,
   "formula": {
     "away_lambda": "league_away_goal_rate * away_attack_strength * home_defensive_weakness",
     "home_advantage": "implicit in separate league home/away goal baselines",
@@ -16,10 +90,10 @@
     "team_shrinkage_prior_games": 5.0
   },
   "improvement": {
-    "accuracy_delta_pp": null,
-    "brier_delta": null,
-    "draw_probability_delta_pp": null,
-    "log_loss_delta": null
+    "accuracy_delta_pp": 50.0,
+    "brier_delta": -0.1715,
+    "draw_probability_delta_pp": -18.35,
+    "log_loss_delta": -0.2683
   },
   "method": "WALK_FORWARD_LEAGUE_BASELINE_RELATIVE_ATTACK_DEFENSE_STRENGTH",
   "minimum_prior_league_matches": 20,
@@ -40,5 +114,5 @@
   "schema_version": "1.1.0",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "walk_forward_evaluated": 0
+  "walk_forward_evaluated": 2
 }

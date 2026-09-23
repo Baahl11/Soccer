@@ -1,16 +1,16 @@
 {
   "accuracy_by_latest_stage": {
     "CLOSE": {
-      "accuracy": 0.3977,
-      "n": 88
+      "accuracy": 0.3846,
+      "n": 104
     },
     "EARLY_RESEARCH": {
-      "accuracy": 0.5,
-      "n": 4
+      "accuracy": 0.4,
+      "n": 15
     },
     "T-10": {
-      "accuracy": 0.5125,
-      "n": 281
+      "accuracy": 0.5069,
+      "n": 288
     },
     "T-20": {
       "accuracy": 0.439,
@@ -29,26 +29,26 @@
       "n": 4
     },
     "T-90": {
-      "accuracy": 0.4545,
-      "n": 11
+      "accuracy": 0.3846,
+      "n": 13
     }
   },
   "accuracy_by_max_probability": {
     "40-49%": {
-      "accuracy": 0.4205,
-      "n": 195
+      "accuracy": 0.4198,
+      "n": 212
     },
     "50-59%": {
-      "accuracy": 0.4957,
-      "n": 117
+      "accuracy": 0.4729,
+      "n": 129
     },
     "<40%": {
-      "accuracy": 0.4412,
-      "n": 68
+      "accuracy": 0.4247,
+      "n": 73
     },
     ">=60%": {
-      "accuracy": 0.619,
-      "n": 84
+      "accuracy": 0.6047,
+      "n": 86
     }
   },
   "activation_gate": {
@@ -56,9 +56,9 @@
     "reason": "1X2 remains research-only until sample size and calibration quality are sufficient; no backend classification may be upgraded from this report."
   },
   "actual_outcome_counts": {
-    "A": 154,
-    "D": 106,
-    "H": 204
+    "A": 166,
+    "D": 116,
+    "H": 218
   },
   "calibration_by_outcome": {
     "A": {
@@ -69,28 +69,28 @@
       },
       "10-20%": {
         "mean_forecast_midpoint": 0.15,
-        "n": 73,
-        "observed_rate": 0.2055
+        "n": 77,
+        "observed_rate": 0.2208
       },
       "20-30%": {
         "mean_forecast_midpoint": 0.25,
-        "n": 133,
-        "observed_rate": 0.2782
+        "n": 152,
+        "observed_rate": 0.2697
       },
       "30-40%": {
         "mean_forecast_midpoint": 0.35,
-        "n": 118,
-        "observed_rate": 0.3729
+        "n": 125,
+        "observed_rate": 0.384
       },
       "40-50%": {
         "mean_forecast_midpoint": 0.45,
-        "n": 76,
-        "observed_rate": 0.4211
+        "n": 81,
+        "observed_rate": 0.4198
       },
       "50-60%": {
         "mean_forecast_midpoint": 0.55,
-        "n": 27,
-        "observed_rate": 0.5185
+        "n": 28,
+        "observed_rate": 0.5
       },
       "60-70%": {
         "mean_forecast_midpoint": 0.65,
@@ -116,32 +116,32 @@
       },
       "10-20%": {
         "mean_forecast_midpoint": 0.15,
-        "n": 76,
-        "observed_rate": 0.2105
+        "n": 77,
+        "observed_rate": 0.2208
       },
       "20-30%": {
         "mean_forecast_midpoint": 0.25,
-        "n": 321,
-        "observed_rate": 0.2399
+        "n": 331,
+        "observed_rate": 0.2447
       },
       "30-40%": {
         "mean_forecast_midpoint": 0.35,
-        "n": 51,
-        "observed_rate": 0.2353
+        "n": 57,
+        "observed_rate": 0.2105
       },
       "40-50%": {
         "mean_forecast_midpoint": 0.45,
-        "n": 2,
-        "observed_rate": 0.0
+        "n": 9,
+        "observed_rate": 0.2222
       },
       "50-60%": {
         "mean_forecast_midpoint": 0.55,
-        "n": 11,
-        "observed_rate": 0.0909
+        "n": 21,
+        "observed_rate": 0.1905
       },
       "60-70%": {
         "mean_forecast_midpoint": 0.65,
-        "n": 2,
+        "n": 4,
         "observed_rate": 0.0
       }
     },
@@ -153,28 +153,28 @@
       },
       "10-20%": {
         "mean_forecast_midpoint": 0.15,
-        "n": 36,
-        "observed_rate": 0.3889
+        "n": 42,
+        "observed_rate": 0.4048
       },
       "20-30%": {
         "mean_forecast_midpoint": 0.25,
-        "n": 59,
-        "observed_rate": 0.3559
+        "n": 77,
+        "observed_rate": 0.3636
       },
       "30-40%": {
         "mean_forecast_midpoint": 0.35,
-        "n": 107,
-        "observed_rate": 0.3084
+        "n": 112,
+        "observed_rate": 0.3036
       },
       "40-50%": {
         "mean_forecast_midpoint": 0.45,
-        "n": 121,
-        "observed_rate": 0.4298
+        "n": 127,
+        "observed_rate": 0.4331
       },
       "50-60%": {
         "mean_forecast_midpoint": 0.55,
-        "n": 79,
-        "observed_rate": 0.5443
+        "n": 80,
+        "observed_rate": 0.5375
       },
       "60-70%": {
         "mean_forecast_midpoint": 0.65,
@@ -193,9 +193,9 @@
       }
     }
   },
-  "finalized_fixtures_available": 621,
-  "multiclass_brier": 0.6359,
-  "multiclass_log_loss": 1.0595,
+  "finalized_fixtures_available": 657,
+  "multiclass_brier": 0.6446,
+  "multiclass_log_loss": 1.072,
   "notes": [
     "Joins the latest pre-kickoff raw 1X2 projection to a final result by fixture_id.",
     "Uses one projection per finalized fixture to avoid repeated-stage weighting.",
@@ -203,13 +203,13 @@
     "Calibration bins are descriptive and require larger samples before model changes are justified."
   ],
   "predicted_outcome_counts": {
-    "A": 156,
-    "D": 14,
-    "H": 294
+    "A": 162,
+    "D": 32,
+    "H": 306
   },
-  "sample_fixtures": 464,
+  "sample_fixtures": 500,
   "schema_version": "1.1.0",
   "status": "RESEARCH_ONLY_NOT_ACTIONABLE",
   "timezone_basis": "America/Mexico_City",
-  "top1_accuracy": 0.4784
+  "top1_accuracy": 0.466
 }

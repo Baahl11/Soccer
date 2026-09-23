@@ -133,6 +133,13 @@
       "n": 8,
       "observed_win_rate": 0.5
     },
+    "Copa Chile": {
+      "brier": 0.195564,
+      "log_loss": 0.583802,
+      "mean_probability": 0.5,
+      "n": 2,
+      "observed_win_rate": 0.5
+    },
     "Copa Ecuador": {
       "brier": 0.088966,
       "log_loss": 0.35421,
@@ -143,6 +150,13 @@
     "Copa Federacion": {
       "brier": 0.321222,
       "log_loss": 0.836474,
+      "mean_probability": 0.5,
+      "n": 2,
+      "observed_win_rate": 0.5
+    },
+    "Copa Paraguay": {
+      "brier": 0.281266,
+      "log_loss": 0.755758,
       "mean_probability": 0.5,
       "n": 2,
       "observed_win_rate": 0.5
@@ -190,10 +204,10 @@
       "observed_win_rate": 0.5
     },
     "EFL Trophy": {
-      "brier": 0.531959,
-      "log_loss": 1.402451,
+      "brier": 0.311746,
+      "log_loss": 0.849842,
       "mean_probability": 0.5,
-      "n": 10,
+      "n": 44,
       "observed_win_rate": 0.5
     },
     "Eerste Divisie": {
@@ -462,6 +476,13 @@
       "n": 18,
       "observed_win_rate": 0.5
     },
+    "Non League Premier - Southern South": {
+      "brier": 0.300285,
+      "log_loss": 0.794035,
+      "mean_probability": 0.5,
+      "n": 2,
+      "observed_win_rate": 0.5
+    },
     "Premier League": {
       "brier": 0.25402,
       "log_loss": 0.705731,
@@ -498,10 +519,10 @@
       "observed_win_rate": 0.5
     },
     "Primera B": {
-      "brier": 0.27054,
-      "log_loss": 0.735547,
+      "brier": 0.255629,
+      "log_loss": 0.705,
       "mean_probability": 0.5,
-      "n": 10,
+      "n": 14,
       "observed_win_rate": 0.5
     },
     "Primera C": {
@@ -547,10 +568,10 @@
       "observed_win_rate": 0.5
     },
     "Serie B": {
-      "brier": 0.262224,
-      "log_loss": 0.714146,
+      "brier": 0.262917,
+      "log_loss": 0.71578,
       "mean_probability": 0.5,
-      "n": 26,
+      "n": 28,
       "observed_win_rate": 0.5
     },
     "Serie C - Girone A": {
@@ -630,6 +651,13 @@
       "n": 2,
       "observed_win_rate": 0.5
     },
+    "UEFA Champions League Women": {
+      "brier": 0.360123,
+      "log_loss": 0.937686,
+      "mean_probability": 0.5,
+      "n": 6,
+      "observed_win_rate": 0.5
+    },
     "US Open Cup": {
       "brier": 0.226761,
       "log_loss": 0.646516,
@@ -668,36 +696,36 @@
   },
   "by_selection": {
     "AWAY": {
-      "brier": 0.231619,
-      "log_loss": 0.657449,
-      "mean_probability": 0.438752,
-      "n": 358,
-      "observed_win_rate": 0.430168
+      "brier": 0.233553,
+      "log_loss": 0.661438,
+      "mean_probability": 0.443526,
+      "n": 384,
+      "observed_win_rate": 0.432292
     },
     "HOME": {
-      "brier": 0.231619,
-      "log_loss": 0.657449,
-      "mean_probability": 0.561248,
-      "n": 358,
-      "observed_win_rate": 0.569832
+      "brier": 0.233553,
+      "log_loss": 0.661438,
+      "mean_probability": 0.556474,
+      "n": 384,
+      "observed_win_rate": 0.567708
     }
   },
-  "draw_push_fixtures": 106,
-  "evaluated_binary_rows": 716,
-  "fixtures_with_result": 464,
+  "draw_push_fixtures": 116,
+  "evaluated_binary_rows": 768,
+  "fixtures_with_result": 500,
   "model": "CANONICAL_1X2_CONDITIONAL_DNB_v0.1",
-  "non_draw_oos_fixtures": 358,
+  "non_draw_oos_fixtures": 384,
   "notes": [
     "Draw fixtures are pushes and are excluded from conditional HOME/AWAY calibration scoring.",
     "DNB fair probability is P(win | no draw), while push probability is tracked separately.",
     "This report cannot promote DNB to BET/LEAN/Galaxy while parent 1X2 remains research-only."
   ],
-  "observed_draw_push_rate": 0.228448,
+  "observed_draw_push_rate": 0.232,
   "overall_non_draw": {
-    "brier": 0.231619,
-    "log_loss": 0.657449,
+    "brier": 0.233553,
+    "log_loss": 0.661438,
     "mean_probability": 0.5,
-    "n": 716,
+    "n": 768,
     "observed_win_rate": 0.5
   },
   "promotion_gate": {
@@ -7256,6 +7284,26 @@
       "stage": "T-10"
     },
     {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.27192657980989876,
+      "fixture_id": 1520882,
+      "league": "Serie B",
+      "log_loss": 0.7370275957667064,
+      "probability_win_given_no_draw": 0.521466,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.27192657980989876,
+      "fixture_id": 1520882,
+      "league": "Serie B",
+      "log_loss": 0.7370275957667065,
+      "probability_win_given_no_draw": 0.478534,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
       "actual_win_given_no_draw": 1,
       "brier": 0.17605635231474262,
       "fixture_id": 1520883,
@@ -7872,6 +7920,506 @@
       "league": "Liga Panameña de Fútbol",
       "log_loss": 0.3875570174131499,
       "probability_win_given_no_draw": 0.321287,
+      "selection": "AWAY",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.1707117473900863,
+      "fixture_id": 1588815,
+      "league": "EFL Trophy",
+      "log_loss": 0.5330248491969265,
+      "probability_win_given_no_draw": 0.413173,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.17071174739008624,
+      "fixture_id": 1588815,
+      "league": "EFL Trophy",
+      "log_loss": 0.5330248491969265,
+      "probability_win_given_no_draw": 0.586827,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.15931890970699925,
+      "fixture_id": 1588823,
+      "league": "EFL Trophy",
+      "log_loss": 0.5094061802807243,
+      "probability_win_given_no_draw": 0.600852,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.1593189097069992,
+      "fixture_id": 1588823,
+      "league": "EFL Trophy",
+      "log_loss": 0.5094061802807243,
+      "probability_win_given_no_draw": 0.399148,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.14018753982600923,
+      "fixture_id": 1588824,
+      "league": "EFL Trophy",
+      "log_loss": 0.4690700898332222,
+      "probability_win_given_no_draw": 0.625584,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.14018753982600918,
+      "fixture_id": 1588824,
+      "league": "EFL Trophy",
+      "log_loss": 0.469070089833222,
+      "probability_win_given_no_draw": 0.374416,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.10771944752306298,
+      "fixture_id": 1588843,
+      "league": "EFL Trophy",
+      "log_loss": 0.397804143284382,
+      "probability_win_given_no_draw": 0.671794,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.10771944752306291,
+      "fixture_id": 1588843,
+      "league": "EFL Trophy",
+      "log_loss": 0.39780414328438185,
+      "probability_win_given_no_draw": 0.328206,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.3295041569929555,
+      "fixture_id": 1588849,
+      "league": "EFL Trophy",
+      "log_loss": 0.8533735082513131,
+      "probability_win_given_no_draw": 0.425975,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.3295041569929555,
+      "fixture_id": 1588849,
+      "league": "EFL Trophy",
+      "log_loss": 0.8533735082513131,
+      "probability_win_given_no_draw": 0.574025,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.23020787001535062,
+      "fixture_id": 1588853,
+      "league": "EFL Trophy",
+      "log_loss": 0.6535415854424909,
+      "probability_win_given_no_draw": 0.4798,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.23020787001535073,
+      "fixture_id": 1588853,
+      "league": "EFL Trophy",
+      "log_loss": 0.6535415854424911,
+      "probability_win_given_no_draw": 0.5202,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.3851678469120615,
+      "fixture_id": 1588854,
+      "league": "EFL Trophy",
+      "log_loss": 0.9692140974147831,
+      "probability_win_given_no_draw": 0.379381,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.3851678469120614,
+      "fixture_id": 1588854,
+      "league": "EFL Trophy",
+      "log_loss": 0.9692140974147828,
+      "probability_win_given_no_draw": 0.620619,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.11543942661096372,
+      "fixture_id": 1638309,
+      "league": "UEFA Champions League Women",
+      "log_loss": 0.41515759982118905,
+      "probability_win_given_no_draw": 0.660236,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.1154394266109637,
+      "fixture_id": 1638309,
+      "league": "UEFA Champions League Women",
+      "log_loss": 0.4151575998211889,
+      "probability_win_given_no_draw": 0.339764,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.32651094939249914,
+      "fixture_id": 1588871,
+      "league": "EFL Trophy",
+      "log_loss": 0.8472577155983263,
+      "probability_win_given_no_draw": 0.428589,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.32651094939249914,
+      "fixture_id": 1588871,
+      "league": "EFL Trophy",
+      "log_loss": 0.8472577155983263,
+      "probability_win_given_no_draw": 0.571411,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.35410506874699244,
+      "fixture_id": 1588872,
+      "league": "EFL Trophy",
+      "log_loss": 0.90403435124975,
+      "probability_win_given_no_draw": 0.595067,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.35410506874699244,
+      "fixture_id": 1588872,
+      "league": "EFL Trophy",
+      "log_loss": 0.90403435124975,
+      "probability_win_given_no_draw": 0.404933,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.22487566674633663,
+      "fixture_id": 1588882,
+      "league": "EFL Trophy",
+      "log_loss": 0.6428544736932069,
+      "probability_win_given_no_draw": 0.525789,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.22487566674633674,
+      "fixture_id": 1588882,
+      "league": "EFL Trophy",
+      "log_loss": 0.6428544736932071,
+      "probability_win_given_no_draw": 0.474211,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.21218346559215231,
+      "fixture_id": 1588886,
+      "league": "EFL Trophy",
+      "log_loss": 0.617360467835996,
+      "probability_win_given_no_draw": 0.539366,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.2121834655921524,
+      "fixture_id": 1588886,
+      "league": "EFL Trophy",
+      "log_loss": 0.6173604678359962,
+      "probability_win_given_no_draw": 0.460634,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.3693404758094437,
+      "fixture_id": 1588888,
+      "league": "EFL Trophy",
+      "log_loss": 0.9358148064657682,
+      "probability_win_given_no_draw": 0.392266,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.36934047580944357,
+      "fixture_id": 1588888,
+      "league": "EFL Trophy",
+      "log_loss": 0.9358148064657679,
+      "probability_win_given_no_draw": 0.607734,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.1116658188748184,
+      "fixture_id": 1588891,
+      "league": "EFL Trophy",
+      "log_loss": 0.4067124242935053,
+      "probability_win_given_no_draw": 0.334164,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.1116658188748184,
+      "fixture_id": 1588891,
+      "league": "EFL Trophy",
+      "log_loss": 0.4067124242935053,
+      "probability_win_given_no_draw": 0.665836,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.26384003659548105,
+      "fixture_id": 1588899,
+      "league": "EFL Trophy",
+      "log_loss": 0.7208341833994041,
+      "probability_win_given_no_draw": 0.513654,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.26384003659548105,
+      "fixture_id": 1588899,
+      "league": "EFL Trophy",
+      "log_loss": 0.7208341833994042,
+      "probability_win_given_no_draw": 0.486346,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.2107464210589138,
+      "fixture_id": 1588908,
+      "league": "EFL Trophy",
+      "log_loss": 0.6144677264426077,
+      "probability_win_given_no_draw": 0.540929,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.2107464210589138,
+      "fixture_id": 1588908,
+      "league": "EFL Trophy",
+      "log_loss": 0.6144677264426077,
+      "probability_win_given_no_draw": 0.459071,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.4693684281914748,
+      "fixture_id": 1588829,
+      "league": "EFL Trophy",
+      "log_loss": 1.1555150259031242,
+      "probability_win_given_no_draw": 0.314895,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.4693684281914748,
+      "fixture_id": 1588829,
+      "league": "EFL Trophy",
+      "log_loss": 1.1555150259031242,
+      "probability_win_given_no_draw": 0.685105,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.133158736651735,
+      "fixture_id": 1588907,
+      "league": "EFL Trophy",
+      "log_loss": 0.4539873249540795,
+      "probability_win_given_no_draw": 0.364909,
+      "selection": "HOME",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.13315873665173492,
+      "fixture_id": 1588907,
+      "league": "EFL Trophy",
+      "log_loss": 0.45398732495407934,
+      "probability_win_given_no_draw": 0.635091,
+      "selection": "AWAY",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.5725268397930449,
+      "fixture_id": 1638288,
+      "league": "UEFA Champions League Women",
+      "log_loss": 1.413275227312254,
+      "probability_win_given_no_draw": 0.243345,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.5725268397930446,
+      "fixture_id": 1638288,
+      "league": "UEFA Champions League Women",
+      "log_loss": 1.4132752273122535,
+      "probability_win_given_no_draw": 0.756655,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.3924023353980046,
+      "fixture_id": 1638310,
+      "league": "UEFA Champions League Women",
+      "log_loss": 0.9846237888183613,
+      "probability_win_given_no_draw": 0.62642,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.3924023353980046,
+      "fixture_id": 1638310,
+      "league": "UEFA Champions League Women",
+      "log_loss": 0.9846237888183613,
+      "probability_win_given_no_draw": 0.37358,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.3002853702266209,
+      "fixture_id": 1597344,
+      "league": "Non League Premier - Southern South",
+      "log_loss": 0.7940354931489609,
+      "probability_win_given_no_draw": 0.547983,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.3002853702266208,
+      "fixture_id": 1597344,
+      "league": "Non League Premier - Southern South",
+      "log_loss": 0.7940354931489608,
+      "probability_win_given_no_draw": 0.452017,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.158008406755318,
+      "fixture_id": 1549635,
+      "league": "Primera B",
+      "log_loss": 0.5066721163503083,
+      "probability_win_given_no_draw": 0.397503,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.15800840675531794,
+      "fixture_id": 1549635,
+      "league": "Primera B",
+      "log_loss": 0.5066721163503082,
+      "probability_win_given_no_draw": 0.602497,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.278692521504937,
+      "fixture_id": 1549638,
+      "league": "Primera B",
+      "log_loss": 0.7505927626328999,
+      "probability_win_given_no_draw": 0.527913,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.278692521504937,
+      "fixture_id": 1549638,
+      "league": "Primera B",
+      "log_loss": 0.7505927626328998,
+      "probability_win_given_no_draw": 0.472087,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.1955639493671762,
+      "fixture_id": 1638380,
+      "league": "Copa Chile",
+      "log_loss": 0.5838016482394085,
+      "probability_win_given_no_draw": 0.557774,
+      "selection": "HOME",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.19556394936717614,
+      "fixture_id": 1638380,
+      "league": "Copa Chile",
+      "log_loss": 0.5838016482394085,
+      "probability_win_given_no_draw": 0.442226,
+      "selection": "AWAY",
+      "stage": "CLOSE"
+    },
+    {
+      "actual_win_given_no_draw": 0,
+      "brier": 0.28126622961216313,
+      "fixture_id": 1639166,
+      "league": "Copa Paraguay",
+      "log_loss": 0.755757720582529,
+      "probability_win_given_no_draw": 0.530345,
+      "selection": "HOME",
+      "stage": "T-10"
+    },
+    {
+      "actual_win_given_no_draw": 1,
+      "brier": 0.28126622961216313,
+      "fixture_id": 1639166,
+      "league": "Copa Paraguay",
+      "log_loss": 0.7557577205825289,
+      "probability_win_given_no_draw": 0.469655,
       "selection": "AWAY",
       "stage": "T-10"
     }
