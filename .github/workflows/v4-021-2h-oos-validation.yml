@@ -43,7 +43,7 @@ jobs:
         working-directory: runtime
         run: |
           set -euo pipefail
-          PYTHONPATH=. python -m mcp_gateway.two_h_oos_v4             --model-report ../state/soccer_edge_state/analysis/two_h_halftime_conditioned.json             --true-clv-tracking ../state/soccer_edge_state/analysis/true_clv_tracking.jsonl             --output ../state/soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+          PYTHONPATH=. python -m mcp_gateway.two_h_oos_v4             --model-report ../state/soccer_edge_state/analysis/two_h_halftime_conditioned.json             --true-clv-tracking ../state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl             --output ../state/soccer_edge_state/analysis/v4_021_2h_oos_validation.json
 
       - name: Validate safety gates
         run: |
