@@ -7,6 +7,8 @@ on:
     paths:
       - "mcp_gateway/**"
       - "tests/test_v4_*.py"
+      - "tests/test_clv_postgres_v4.py"
+      - "tests/test_oos_prediction_ledger_v4.py"
       - ".github/workflows/v4-runtime-tests.yml"
 
 jobs:
@@ -24,4 +26,13 @@ jobs:
           pip install -r mcp_gateway/requirements.txt pytest
       - name: Run V4 scheduler regression tests
         run: |
-          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_v4_006_fair_scheduler.py tests/test_v4_007_feature_snapshot.py tests/test_v4_008_training_dataset.py tests/test_v4_009_dixon_coles.py tests/test_v4_010_bivariate_poisson.py tests/test_v4_011_lightgbm_goals.py tests/test_v4_012_ensemble.py
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_v4_006_fair_scheduler.py \
+            tests/test_v4_007_feature_snapshot.py \
+            tests/test_v4_008_training_dataset.py \
+            tests/test_v4_009_dixon_coles.py \
+            tests/test_v4_010_bivariate_poisson.py \
+            tests/test_v4_011_lightgbm_goals.py \
+            tests/test_v4_012_ensemble.py \
+            tests/test_clv_postgres_v4.py \
+            tests/test_oos_prediction_ledger_v4.py
