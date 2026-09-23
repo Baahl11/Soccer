@@ -252,10 +252,14 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
 
         quota_remaining_basis = v2._LAST_DAILY_REMAINING
         if quota_remaining_basis is None:
-            try:
-                quota_remaining_basis = int((quota or {}).get("daily_remaining"))
-            except (TypeError, ValueError):
-                quota_remaining_basis = None
+            for key in ("daily_remaining", "requests_remaining"):
+                try:
+                    value = (quota or {}).get(key)
+                    if value is not None:
+                        quota_remaining_basis = int(value)
+                        break
+                except (TypeError, ValueError):
+                    pass
         elastic_deep_dive_cap, elastic_cap_reason = _elastic_deep_dive_cap(quota_remaining_basis, len(due))
         elastic_request_cap, elastic_request_reason = _elastic_request_cap(quota_remaining_basis)
         # The budget wrapper reads this value dynamically. Cached reads do not increment it.
