@@ -1,0 +1,81 @@
+{
+  "baseline": {
+    "brier_o1_5": 0.253033,
+    "log_loss_o1_5": 0.699253,
+    "mae_2h_lambda": 0.931935
+  },
+  "blockers": [
+    "HALFTIME_CONDITIONED_CHALLENGER_DOES_NOT_BEAT_BASELINE",
+    "2H_TRUE_CLV_0_LT_50",
+    "SOURCE_2H_PROMOTION_GATE_DISABLED",
+    "DEDICATED_HT_RESEARCH_STAGE_MISSING"
+  ],
+  "canonical_bet_logic_changed": false,
+  "challenger": {
+    "brier_o1_5": 0.254011,
+    "log_loss_o1_5": 0.701232,
+    "mae_2h_lambda": 0.933602
+  },
+  "challenger_beats_baseline_on_brier_logloss_mae": false,
+  "conditioning_features": [
+    "halftime home/away score",
+    "halftime lead state",
+    "halftime total-goal bucket"
+  ],
+  "improvement": {
+    "brier_delta_baseline_minus_conditioned": -0.000978,
+    "log_loss_delta_baseline_minus_conditioned": -0.001979,
+    "mae_delta_baseline_minus_conditioned": -0.001667
+  },
+  "live_status": "OFFLINE_MODEL_BUILT; SCHEDULER_HAS_NO_DEDICATED_HT_RESEARCH_STAGE_YET",
+  "manual_review_required": true,
+  "model_version": "SOCCER_2H_OOS_VALIDATION_V4_1.0.0",
+  "model_weights_changed": false,
+  "not_yet_conditioned_on": [
+    "halftime red cards",
+    "halftime shots/SOT",
+    "halftime xG",
+    "substitutions",
+    "live weather"
+  ],
+  "notes": [
+    "V4-021 evaluates the halftime-conditioned 2H challenger against its pregame 2H baseline.",
+    "Negative baseline-minus-conditioned deltas mean the challenger is worse and therefore cannot be promoted.",
+    "Dedicated 2H market history and true CLV are mandatory; FT market closes cannot satisfy this gate.",
+    "A dedicated halftime scheduler/research stage is required before any live production review."
+  ],
+  "oos_sample": {
+    "minimum_required": 200,
+    "walk_forward_evaluated": 604
+  },
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "schema_version": "1.0.0",
+  "source_promotion_gate": {
+    "enabled": false,
+    "minimum_oos_for_live_research_review": 200,
+    "requires": [
+      "beats pregame 2H baseline on Brier/log-loss/MAE",
+      "dedicated HT scheduler path",
+      "verified current halftime score",
+      "red-card state before production review",
+      "live market price/CLV calibration"
+    ],
+    "sample_gate_met": true
+  },
+  "status": "RESEARCH_HOLD",
+  "ticket": "V4-021",
+  "true_clv": {
+    "avg_probability_clv_pp": null,
+    "family_specific": true,
+    "flat_rows": 0,
+    "minimum_rows": 50,
+    "negative_rows": 0,
+    "positive_rows": 0,
+    "rows": 0,
+    "unique_fixtures": 0
+  },
+  "warnings": [
+    "LIVE_CONTEXT_FEATURES_INCOMPLETE"
+  ]
+}
