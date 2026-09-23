@@ -1,0 +1,179 @@
+{
+  "automatic_demotion_allowed_under_safety_policy": true,
+  "automatic_promotion_allowed": false,
+  "automatic_report": true,
+  "canonical_bet_logic_changed": false,
+  "manual_approval_required": true,
+  "market_family_reviews": [
+    {
+      "automatic_demotion_candidate": false,
+      "avg_true_clv_probability_pp": null,
+      "blockers": [
+        "SETTLED_0_LT_DIRECTIONAL_20",
+        "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "TRUE_CLV_0_LT_DIRECTIONAL_50",
+        "ROI_NOT_POSITIVE",
+        "FAMILY_CLV_MISSING",
+        "OOS_FRAMEWORK_NOT_READY"
+      ],
+      "current_state": "RESEARCH",
+      "manual_approval_present": false,
+      "market_family": "1H_OTHER",
+      "oos_framework_ready": false,
+      "recommended_state": "RESEARCH",
+      "roi_per_settled_unit": 0.0,
+      "settled": 0,
+      "tier_review_eligibility": {
+        "directional_read": false,
+        "model_weight_change_review": false,
+        "tier_a_review": false,
+        "tier_b_review": false,
+        "tier_s_review": false
+      },
+      "true_clv_rows": 0,
+      "warnings": []
+    },
+    {
+      "automatic_demotion_candidate": false,
+      "avg_true_clv_probability_pp": null,
+      "blockers": [
+        "SETTLED_1_LT_DIRECTIONAL_20",
+        "SETTLED_1_LT_TIER_B_REVIEW_50",
+        "TRUE_CLV_0_LT_DIRECTIONAL_50",
+        "ROI_NOT_POSITIVE",
+        "FAMILY_CLV_MISSING",
+        "OOS_FRAMEWORK_NOT_READY"
+      ],
+      "current_state": "RESEARCH",
+      "manual_approval_present": false,
+      "market_family": "2H_BTTS",
+      "oos_framework_ready": false,
+      "recommended_state": "RESEARCH",
+      "roi_per_settled_unit": -0.36,
+      "settled": 1,
+      "tier_review_eligibility": {
+        "directional_read": false,
+        "model_weight_change_review": false,
+        "tier_a_review": false,
+        "tier_b_review": false,
+        "tier_s_review": false
+      },
+      "true_clv_rows": 0,
+      "warnings": []
+    },
+    {
+      "automatic_demotion_candidate": false,
+      "avg_true_clv_probability_pp": null,
+      "blockers": [
+        "SETTLED_2_LT_DIRECTIONAL_20",
+        "SETTLED_2_LT_TIER_B_REVIEW_50",
+        "TRUE_CLV_0_LT_DIRECTIONAL_50",
+        "ROI_NOT_POSITIVE",
+        "FAMILY_CLV_MISSING",
+        "OOS_FRAMEWORK_NOT_READY"
+      ],
+      "current_state": "RESEARCH",
+      "manual_approval_present": false,
+      "market_family": "2H_TOTALS",
+      "oos_framework_ready": false,
+      "recommended_state": "RESEARCH",
+      "roi_per_settled_unit": -0.36,
+      "settled": 2,
+      "tier_review_eligibility": {
+        "directional_read": false,
+        "model_weight_change_review": false,
+        "tier_a_review": false,
+        "tier_b_review": false,
+        "tier_s_review": false
+      },
+      "true_clv_rows": 0,
+      "warnings": []
+    },
+    {
+      "automatic_demotion_candidate": false,
+      "avg_true_clv_probability_pp": 0.169371,
+      "blockers": [
+        "SETTLED_10_LT_DIRECTIONAL_20",
+        "SETTLED_10_LT_TIER_B_REVIEW_50",
+        "OOS_FRAMEWORK_NOT_READY"
+      ],
+      "current_state": "RESEARCH",
+      "manual_approval_present": false,
+      "market_family": "FT_1X2",
+      "oos_framework_ready": false,
+      "recommended_state": "RESEARCH",
+      "roi_per_settled_unit": 1.12,
+      "settled": 10,
+      "tier_review_eligibility": {
+        "directional_read": false,
+        "model_weight_change_review": false,
+        "tier_a_review": false,
+        "tier_b_review": false,
+        "tier_s_review": false
+      },
+      "true_clv_rows": 97,
+      "warnings": []
+    },
+    {
+      "automatic_demotion_candidate": false,
+      "avg_true_clv_probability_pp": null,
+      "blockers": [
+        "SETTLED_15_LT_DIRECTIONAL_20",
+        "SETTLED_15_LT_TIER_B_REVIEW_50",
+        "TRUE_CLV_0_LT_DIRECTIONAL_50",
+        "FAMILY_CLV_MISSING",
+        "OOS_FRAMEWORK_NOT_READY"
+      ],
+      "current_state": "RESEARCH",
+      "manual_approval_present": false,
+      "market_family": "FT_TOTALS",
+      "oos_framework_ready": false,
+      "recommended_state": "RESEARCH",
+      "roi_per_settled_unit": 0.223,
+      "settled": 15,
+      "tier_review_eligibility": {
+        "directional_read": false,
+        "model_weight_change_review": false,
+        "tier_a_review": false,
+        "tier_b_review": false,
+        "tier_s_review": false
+      },
+      "true_clv_rows": 0,
+      "warnings": []
+    }
+  ],
+  "model_version": "SOCCER_PROMOTION_FRAMEWORK_V4_1.0.0",
+  "model_weights_changed": false,
+  "notes": [
+    "No market is automatically promoted. Tier B/A/S requires explicit manual approval after evidence gates pass.",
+    "Automatic demotion may be flagged only for an already-production market with >=50 settled decisions and both negative ROI and negative family-specific CLV.",
+    "Sample thresholds follow the V4 master roadmap: 20 directional, 50 Tier B review, 100 Tier A, 200 Tier S/model-weight review."
+  ],
+  "oos_framework_ready": false,
+  "phase": "FASE_19_PROMOTION_FRAMEWORK",
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "recommended_state_counts": {
+    "RESEARCH": 5
+  },
+  "runtime_state_mutation_enabled": false,
+  "sample_policy": {
+    "directional_read": 20,
+    "model_weight_change": 200,
+    "tier_a_review": 100,
+    "tier_b_review_preferred": 50,
+    "tier_s_review": 200
+  },
+  "schema_version": "1.0.0",
+  "states": [
+    "DORMANT",
+    "RESEARCH",
+    "SHADOW",
+    "LEAN_ELIGIBLE",
+    "TIER_B",
+    "TIER_A",
+    "TIER_S",
+    "DEMOTED"
+  ],
+  "status": "PROMOTION_REVIEW_FRAMEWORK_ACTIVE"
+}
