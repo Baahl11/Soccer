@@ -11,10 +11,10 @@ from jwt import PyJWKClient
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import HTMLResponse, JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
-from mcp_gateway import bivariate_poisson_v4, dixon_coles_v4, persistence as persistence_base, product_views_v4, training_dataset_v4
+from mcp_gateway import bivariate_poisson_v4, dixon_coles_v4, persistence as persistence_base, product_dashboard_v4, product_views_v4, training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -371,6 +371,32 @@ async def product_views(request: Request) -> Response:
     result["pipeline_version"] = payload.get("version")
     result["source"] = "POSTGRES_LATEST_PIPELINE_RUN"
     return JSONResponse(result)
+
+
+@mcp.custom_route("/dashboard", methods=["GET"])
+async def dashboard(request: Request) -> Response:
+    """Read-only Soccer Edge dashboard backed by the latest persisted tick."""
+    raw_limit = request.query_params.get("limit", str(product_views_v4.MAX_ROWS_PER_VIEW))
+    try:
+        limit = max(1, min(int(raw_limit), product_views_v4.MAX_ROWS_PER_VIEW))
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "invalid_limit"}, status_code=400)
+
+    try:
+        payload = await asyncio.to_thread(persistence_base.load_latest_pipeline_payload)
+    except Exception as exc:
+        return JSONResponse({"error": "dashboard_unavailable", "detail": str(exc)[:300]}, status_code=503)
+
+    if not isinstance(payload, dict):
+        return JSONResponse({"error": "NO_PERSISTED_PIPELINE_RUN"}, status_code=503)
+
+    product = product_views_v4.build_views(payload, limit=limit)
+    product["generated_at_utc"] = payload.get("generated_at_utc")
+    product["pipeline_version"] = payload.get("version")
+    product["source"] = "POSTGRES_LATEST_PIPELINE_RUN"
+    return HTMLResponse(product_dashboard_v4.render_dashboard(product))
+
+
 
 
 @mcp.custom_route("/health", methods=["GET"])
