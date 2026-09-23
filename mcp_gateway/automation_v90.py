@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import gc
-import functools
 import os
-import resource
-import sys
 from collections import Counter
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Any, Awaitable, Callable
@@ -117,20 +114,6 @@ def _compact_valid_fixture(row: Any) -> dict[str, Any] | None:
     return None
 
 
-def _v90_mem(label: str) -> None:
-    rss = round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0, 1)
-    line = f"V90_MEM {label} peak_rss_mb={rss}"
-    print(line, file=sys.stderr, flush=True)
-    trace_path = os.getenv("SOCCER_EDGE_V90_TRACE_FILE", "/tmp/soccer_v90_mem.trace")
-    try:
-        with open(trace_path, "a", encoding="utf-8") as handle:
-            handle.write(line + "\\n")
-            handle.flush()
-            os.fsync(handle.fileno())
-    except OSError:
-        pass
-
-
 def _compact_runtime_event(event: dict[str, Any]) -> dict[str, Any]:
     """Bound event retention without changing decision inputs or provider calls."""
     if event.get("stage") == "POSTGAME" and isinstance(event.get("match_stats"), list):
@@ -169,7 +152,6 @@ def _append_fixture_payload(
 
 
 async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
-    _v90_mem("entered_core_slate_floor")
     v2._API_CALLS_THIS_TICK = 0
     v2._LAST_DAILY_REMAINING = None
 
@@ -248,12 +230,10 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
             core_metrics["reason"] = "LEGACY_MULTI_DATE_SLATE_ALREADY_ENABLED"
             core_metrics["merged_slate_count"] = len(fixtures)
 
-        _v90_mem("after_slate")
         events: list[dict[str, Any]] = []
         discovery = await v3._daily_discovery_event(fixtures, now_utc, local_now)
         if discovery is not None:
             events.append(discovery)
-        _v90_mem("after_discovery")
 
         due: list[dict[str, Any]] = []
         low_data_counts: Counter[str] = Counter()
@@ -301,7 +281,6 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
             )
 
         due.sort(key=lambda item: item["priority"])
-        _v90_mem(f"after_due_build count={len(due)}")
 
         quota_remaining_basis = v2._LAST_DAILY_REMAINING
         if quota_remaining_basis is None:
@@ -389,7 +368,6 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
         if deep_dive_processed and deep_dive_processed % ELASTIC_GC_BATCH_SIZE:
             gc.collect()
             gc_batches_completed += 1
-        _v90_mem(f"after_deep_dive_loop processed={deep_dive_processed} events={len(events)}")
 
         if low_data_counts:
             events.append(
@@ -407,14 +385,11 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
                 }
             )
 
-        _v90_mem("before_actionable_lists")
         actionable = [
             e for e in events if e.get("stage") in {"T-40", "T-20", "T-10", "CLOSE"}
         ]
         bets = [e for e in events if e.get("classification") == "BET"]
-        _v90_mem(f"after_actionable_lists actionable={len(actionable)} bets={len(bets)}")
 
-        _v90_mem("before_return_payload")
         return {
             "service": "soccer-edge-automation",
             "version": v5.AUTOMATION_VERSION,
