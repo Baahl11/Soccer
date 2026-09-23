@@ -77,6 +77,22 @@ CREATE TABLE IF NOT EXISTS soccer_market_snapshots (
     provider_update TIMESTAMPTZ
 );
 
+
+
+CREATE TABLE IF NOT EXISTS soccer_feature_snapshots (
+    snapshot_id BIGSERIAL PRIMARY KEY,
+    fixture_id BIGINT NOT NULL,
+    captured_at TIMESTAMPTZ NOT NULL,
+    stage TEXT,
+    schema_version TEXT NOT NULL,
+    model_version TEXT,
+    data_tier TEXT,
+    feature_count INTEGER NOT NULL DEFAULT 0,
+    missing_feature_count INTEGER NOT NULL DEFAULT 0,
+    payload JSONB NOT NULL,
+    UNIQUE (fixture_id, captured_at, stage, schema_version)
+);
+
 CREATE TABLE IF NOT EXISTS soccer_model_runs (
     model_run_id BIGSERIAL PRIMARY KEY,
     fixture_id BIGINT NOT NULL,
@@ -127,3 +143,5 @@ CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_generated ON soccer_refresh
 CREATE INDEX IF NOT EXISTS idx_soccer_market_fixture_time ON soccer_market_snapshots (fixture_id, captured_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_created ON soccer_alerts (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_notification ON soccer_alerts (notification_ready, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_soccer_feature_fixture_time ON soccer_feature_snapshots (fixture_id, captured_at DESC);
