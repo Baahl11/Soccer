@@ -12,6 +12,7 @@ SCHEMA_VERSION = "1.3.0"
 MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.3.0"
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
 SUPPORTED_FAMILIES = {"1X2", "FT_TOTALS", "BTTS"}
+REQUIRED_EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
 DIRECTIONAL_MIN = 20
 REVIEW_MIN = 50
 
@@ -154,6 +155,8 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         family = str(candidate.get("market_family") or "").upper()
         if family not in SUPPORTED_FAMILIES:
+            continue
+        if str(candidate.get("evidence_regime") or "") != REQUIRED_EVIDENCE_REGIME:
             continue
         try:
             fixture_id = int(row.get("fixture_id"))
@@ -305,6 +308,7 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
         "model_version": MODEL_VERSION,
         "status": "PROMOTION_SHADOW_POSTGRES_ACTIVE",
         "supported_market_families": sorted(SUPPORTED_FAMILIES),
+        "required_evidence_regime": REQUIRED_EVIDENCE_REGIME,
         "source_regime": _current_source_regime(rows),
         "phase16_rankable_supported_rows_seen": len(supported_rankable_rows),
         "excluded_without_current_calibration_policy": excluded_without_current_calibration_policy,
@@ -316,6 +320,7 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
         "runtime_logic_changed": False,
         "notes": [
             "Reads persisted Phase16 market_mismatch_rows directly; legacy WATCH best_market and research-visibility rows are excluded.",
+            "Only PHASE16_DISCRIMINATION_GATED_V2 candidates count as promotion-quality; earlier Phase16 candidates remain historical diagnostics and are excluded from promotion evidence.",
             "Candidates enter the ledger immediately as PENDING and settle automatically after soccer_results receives final goals.",
             "Only Phase16 candidates explicitly marked promotion_shadow_eligible under the current calibration policy are admitted; legacy candidates are excluded.",
             "At most the latest pre-kickoff primary rankable candidate per fixture and market family is retained.",
