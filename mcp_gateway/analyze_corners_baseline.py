@@ -9,6 +9,10 @@ from typing import Any
 
 from mcp_gateway import analyze_formation_intelligence_v2 as formation_v2
 
+REQUIRED_LINES = (8.5, 9.5, 10.5)
+MIN_LEAGUE_LIFT_EVALS = 20
+MIN_LEAGUES_FOR_STABILITY = 2
+
 
 def fnum(v: Any) -> float | None:
     try:
@@ -40,6 +44,117 @@ def shrink_ratio(numer_sum: float, denom_sum: float, n: int, pseudo_n: float = 8
     raw = numer_sum / denom_sum
     weight = n / (n + pseudo_n)
     return 1.0 + weight * (raw - 1.0)
+
+
+def metrics_for_evals(evals: list[dict[str, Any]], prefix: str) -> dict[str, Any]:
+    if not evals:
+        return {"n": 0, "mae_total_corners": None, "lines": {}}
+    lam_key = "baseline_total_lambda" if prefix == "base" else "challenger_total_lambda"
+    out = {
+        "n": len(evals),
+        "mae_total_corners": round(
+            sum(abs(float(x[lam_key]) - x["actual_total_corners"]) for x in evals) / len(evals),
+            6,
+        ),
+        "mean_predicted_total": round(sum(float(x[lam_key]) for x in evals) / len(evals), 4),
+        "mean_actual_total": round(sum(x["actual_total_corners"] for x in evals) / len(evals), 4),
+        "lines": {},
+    }
+    for line in REQUIRED_LINES:
+        key = str(line).replace(".", "_")
+        ps = [float(x[f"{prefix}_over_{key}"]) for x in evals]
+        ys = [int(x["actual_total_corners"] > line) for x in evals]
+        out["lines"][str(line)] = {
+            "brier": round(sum(brier(p, y) for p, y in zip(ps, ys)) / len(ps), 6),
+            "log_loss": round(sum(logloss(p, y) for p, y in zip(ps, ys)) / len(ps), 6),
+            "accuracy_at_0_5": round(
+                sum(int((p >= 0.5) == bool(y)) for p, y in zip(ps, ys)) / len(ps),
+                4,
+            ),
+        }
+    return out
+
+
+def formation_lift_by_league(evals: list[dict[str, Any]]) -> dict[str, Any]:
+    adjusted = [row for row in evals if int(row.get("prior_matchup_n") or 0) >= 8]
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in adjusted:
+        grouped[str(row.get("league_id"))].append(row)
+
+    league_rows: dict[str, Any] = {}
+    review_eligible: list[str] = []
+    stable: list[str] = []
+    negative: list[str] = []
+
+    for league_id, rows in sorted(grouped.items()):
+        baseline = metrics_for_evals(rows, "base")
+        challenger = metrics_for_evals(rows, "challenger")
+        mae_improves = (
+            baseline.get("mae_total_corners") is not None
+            and challenger.get("mae_total_corners") is not None
+            and challenger["mae_total_corners"] < baseline["mae_total_corners"]
+        )
+        line_improvements: dict[str, Any] = {}
+        all_lines_improve = True
+        for line in REQUIRED_LINES:
+            key = str(line)
+            base_line = (baseline.get("lines") or {}).get(key) or {}
+            challenger_line = (challenger.get("lines") or {}).get(key) or {}
+            improves_brier = (
+                challenger_line.get("brier") is not None
+                and base_line.get("brier") is not None
+                and challenger_line["brier"] < base_line["brier"]
+            )
+            improves_log_loss = (
+                challenger_line.get("log_loss") is not None
+                and base_line.get("log_loss") is not None
+                and challenger_line["log_loss"] < base_line["log_loss"]
+            )
+            line_improvements[key] = {
+                "baseline_brier": base_line.get("brier"),
+                "challenger_brier": challenger_line.get("brier"),
+                "baseline_log_loss": base_line.get("log_loss"),
+                "challenger_log_loss": challenger_line.get("log_loss"),
+                "improves_brier": improves_brier,
+                "improves_log_loss": improves_log_loss,
+            }
+            all_lines_improve = all_lines_improve and improves_brier and improves_log_loss
+
+        eligible = len(rows) >= MIN_LEAGUE_LIFT_EVALS
+        stable_lift = eligible and mae_improves and all_lines_improve
+        if eligible:
+            review_eligible.append(league_id)
+            if stable_lift:
+                stable.append(league_id)
+            else:
+                negative.append(league_id)
+
+        league_rows[league_id] = {
+            "formation_adjusted_evaluations": len(rows),
+            "minimum_evaluations": MIN_LEAGUE_LIFT_EVALS,
+            "review_eligible": eligible,
+            "mae_improves": mae_improves,
+            "all_required_lines_improve_brier_and_log_loss": all_lines_improve,
+            "stable_lift": stable_lift,
+            "baseline": baseline,
+            "formation_challenger": challenger,
+            "line_improvements": line_improvements,
+        }
+
+    return {
+        "formation_adjusted_evaluations": len(adjusted),
+        "minimum_evaluations_per_league": MIN_LEAGUE_LIFT_EVALS,
+        "minimum_review_leagues": MIN_LEAGUES_FOR_STABILITY,
+        "league_count_with_adjusted_rows": len(league_rows),
+        "review_eligible_leagues": review_eligible,
+        "stable_lift_leagues": stable,
+        "negative_lift_leagues": negative,
+        "review_ready": (
+            len(review_eligible) >= MIN_LEAGUES_FOR_STABILITY
+            and len(stable) == len(review_eligible)
+        ),
+        "leagues": league_rows,
+    }
 
 
 def build_rows(history_dir: str) -> list[dict[str, Any]]:
@@ -129,29 +244,7 @@ def main() -> None:
         league_hist[r["league_id"]].append(r)
         global_hist.append(r)
 
-    def metrics(prefix: str) -> dict[str, Any]:
-        if not evals:
-            return {"n": 0, "mae_total_corners": None, "lines": {}}
-        lam_key = "baseline_total_lambda" if prefix == "base" else "challenger_total_lambda"
-        out = {
-            "n": len(evals),
-            "mae_total_corners": round(sum(abs(float(x[lam_key]) - x["actual_total_corners"]) for x in evals) / len(evals), 6),
-            "mean_predicted_total": round(sum(float(x[lam_key]) for x in evals) / len(evals), 4),
-            "mean_actual_total": round(sum(x["actual_total_corners"] for x in evals) / len(evals), 4),
-            "lines": {},
-        }
-        for line in (8.5, 9.5, 10.5):
-            key = str(line).replace(".", "_")
-            ps = [float(x[f"{prefix}_over_{key}"]) for x in evals]
-            ys = [int(x["actual_total_corners"] > line) for x in evals]
-            out["lines"][str(line)] = {
-                "brier": round(sum(brier(p,y) for p,y in zip(ps,ys))/len(ps), 6),
-                "log_loss": round(sum(logloss(p,y) for p,y in zip(ps,ys))/len(ps), 6),
-                "accuracy_at_0_5": round(sum(int((p>=0.5)==bool(y)) for p,y in zip(ps,ys))/len(ps), 4),
-            }
-        return out
-
-    bm = metrics("base"); cm = metrics("challenger")
+    bm = metrics_for_evals(evals, "base"); cm = metrics_for_evals(evals, "challenger")
     formation_evals = sum(1 for x in evals if x["prior_matchup_n"] >= 8)
     report = {
         "schema_version": "1.0.0",
@@ -163,6 +256,7 @@ def main() -> None:
         "baseline_method": "LEAGUE_HOME_AWAY_CORNERS_X_SHRUNK_TEAM_ATTACK_X_OPPONENT_DEFENSE_WEAKNESS",
         "baseline": bm,
         "formation_challenger": cm,
+        "formation_lift_by_league": formation_lift_by_league(evals),
         "promotion_gate": {
             "enabled": False,
             "minimum_oos_evaluations": 150,
