@@ -173,7 +173,21 @@ def analyze_row(row: dict[str, Any]) -> dict[str, Any] | None:
     if sport_score_raw is None:
         blockers.append("SPORT_CONFIDENCE_MISSING")
 
-    rankable = calibrated_edge_pp is not None and calibrated_edge_pp > 0 and price_score > 0 and sport_score_raw is not None
+    rankability_reasons: list[str] = []
+    if calibrated_probability is None:
+        rankability_reasons.append("CALIBRATED_MODEL_PROBABILITY_MISSING")
+    elif p_market is None:
+        rankability_reasons.append("MARKET_FAIR_PROBABILITY_MISSING")
+    elif calibrated_edge_pp is None:
+        rankability_reasons.append("CALIBRATED_EDGE_UNAVAILABLE")
+    elif calibrated_edge_pp <= 0:
+        rankability_reasons.append("CALIBRATED_EDGE_NOT_POSITIVE")
+    if price_score <= 0:
+        rankability_reasons.extend(price_reasons or ["PRICE_NOT_RANKABLE"])
+    if sport_score_raw is None:
+        rankability_reasons.append("SPORT_CONFIDENCE_MISSING")
+
+    rankable = not rankability_reasons
     edge_component = min(max((calibrated_edge_pp or 0.0) / 15.0, 0.0), 1.0)
     research_score = 100.0 * (
         SPORT_WEIGHT * sport_score
@@ -218,6 +232,7 @@ def analyze_row(row: dict[str, Any]) -> dict[str, Any] | None:
         "uncertainty": round(uncertainty, 6),
         "uncertainty_source": uncertainty_source,
         "rankable": rankable,
+        "rankability_reasons": sorted(set(rankability_reasons)),
         "mismatch_score": round(research_score, 4) if rankable else None,
         "raw_diagnostic_score": round(raw_diagnostic_score, 4) if raw_diagnostic_score is not None else None,
         "blockers": sorted(set(blockers)),
@@ -252,10 +267,17 @@ def find_mismatches(rows: Iterable[dict[str, Any]], *, top_n: int = 20) -> dict[
     primary.sort(key=lambda row: row["mismatch_score"] or -1.0, reverse=True)
     coverage_counts: dict[str, int] = defaultdict(int)
     rankable_counts: dict[str, int] = defaultdict(int)
+    non_rankable_reason_counts: dict[str, int] = defaultdict(int)
+    non_rankable_reason_counts_by_family: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     for row in analyzed:
         coverage_counts[row["market_family"]] += 1
         if row["rankable"]:
             rankable_counts[row["market_family"]] += 1
+            continue
+        reasons = row.get("rankability_reasons") or ["UNSPECIFIED_NON_RANKABLE"]
+        for reason in reasons:
+            non_rankable_reason_counts[str(reason)] += 1
+            non_rankable_reason_counts_by_family[row["market_family"]][str(reason)] += 1
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -264,6 +286,12 @@ def find_mismatches(rows: Iterable[dict[str, Any]], *, top_n: int = 20) -> dict[
         "rows_analyzed": len(analyzed),
         "fixtures_analyzed": len(by_fixture),
         "rankable_rows": sum(1 for row in analyzed if row["rankable"]),
+        "non_rankable_rows": sum(1 for row in analyzed if not row["rankable"]),
+        "non_rankable_reason_counts": dict(sorted(non_rankable_reason_counts.items())),
+        "non_rankable_reason_counts_by_family": {
+            family: dict(sorted(counts.items()))
+            for family, counts in sorted(non_rankable_reason_counts_by_family.items())
+        },
         "primary_candidates": primary[: max(int(top_n), 0)],
         "correlated_candidates_suppressed": suppressed[: max(int(top_n), 0)],
         "market_family_coverage": dict(sorted(coverage_counts.items())),
