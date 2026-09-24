@@ -59,3 +59,17 @@ def test_stage_diagnostics_never_changes_runtime_or_calls_provider():
     assert report["production_promotion_allowed"] is False
     assert report["anti_leakage"]["stage_calibrators_fitted"] is False
     assert report["anti_leakage"]["runtime_weights_changed"] is False
+
+
+def test_current_model_deployment_calibrators_are_research_only():
+    rows = []
+    for fid in range(1, 261):
+        outcome = "home" if fid % 3 == 0 else "draw" if fid % 3 == 1 else "away"
+        rows.append(_row(fid, "T-10", "SOCCER EDGE ENGINE v1.7", (0.6, 0.2, 0.2), outcome))
+    report = v.build_report(rows)
+    calibrators = report["current_model_deployment_calibrators"]
+    assert report["current_source_model_version"] == "SOCCER EDGE ENGINE v1.7"
+    assert calibrators["home_win"]["production_promotion_allowed"] is False
+    assert calibrators["home_win"]["runtime_prediction_weight"] == 0.0
+    assert calibrators["home_win"]["rows"] == 260
+    assert calibrators["btts"]["rows"] == 260
