@@ -21,6 +21,13 @@ jobs:
           ref: soccer-edge-mcp-v1
           fetch-depth: 1
 
+      - name: Checkout state for formation audit
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -51,12 +58,109 @@ jobs:
             -X POST \
             -H "Authorization: Bearer ${token}" \
             -H "Content-Type: application/json" \
-            -d "$(jq -nc --arg cutoff "$cutoff" '{cutoff:$cutoff,row_limit:10000}')" \
+            -d "$(jq -nc --arg cutoff "$cutoff" '{cutoff:$cutoff,row_limit:20000}')" \
             https://soccer-edge-api.onrender.com/internal/training-dataset/export)
 
           test "$http_code" = "200"
           jq -e '.status == "OK"' /tmp/v4_011_dataset.json >/dev/null
           jq -e '.market_fields_included == false' /tmp/v4_011_dataset.json >/dev/null
+
+      - name: Audit missing formations against persisted pre-kickoff feature snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          baseline = json.loads(
+              Path("state/soccer_edge_state/analysis/corners_baseline.json").read_text(encoding="utf-8")
+          )
+          dataset = json.loads(Path("/tmp/v4_011_dataset.json").read_text(encoding="utf-8"))
+
+          audit_rows = ((baseline.get("formation_eligibility_audit") or {}).get("rows") or [])
+          missing = {
+              int(row["fixture_id"]): row
+              for row in audit_rows
+              if row.get("fixture_id") is not None and not row.get("matchup")
+          }
+          dataset_by_fixture = {
+              int(row["fixture_id"]): row
+              for row in (dataset.get("rows") or [])
+              if row.get("fixture_id") is not None
+          }
+
+          reasons = Counter()
+          recovered = []
+          details = []
+
+          for fixture_id, source in sorted(missing.items()):
+              row = dataset_by_fixture.get(fixture_id)
+              if not row:
+                  reason = "NO_TRAINING_DATASET_ROW"
+                  details.append({"fixture_id": fixture_id, "reason": reason})
+                  reasons[reason] += 1
+                  continue
+
+              features = row.get("features") or {}
+              home = features.get("availability.home_formation")
+              away = features.get("availability.away_formation")
+              both = features.get("availability.both_xi_confirmed")
+              captured = row.get("feature_captured_at")
+              kickoff = row.get("kickoff")
+
+              if home and away and both is True:
+                  reason = "RECOVERABLE_PREKICKOFF_BOTH_FORMATIONS"
+                  recovered.append({
+                      "fixture_id": fixture_id,
+                      "feature_captured_at": captured,
+                      "kickoff": kickoff,
+                      "home_formation": home,
+                      "away_formation": away,
+                  })
+              elif bool(home) ^ bool(away):
+                  reason = "ONE_TEAM_FORMATION_IN_FEATURE_SNAPSHOT"
+              elif both is True:
+                  reason = "CONFIRMED_XI_WITHOUT_BOTH_FORMATIONS"
+              else:
+                  reason = "NO_VERIFIED_BOTH_FORMATIONS_IN_LATEST_PREKICKOFF_SNAPSHOT"
+
+              reasons[reason] += 1
+              details.append({
+                  "fixture_id": fixture_id,
+                  "reason": reason,
+                  "feature_captured_at": captured,
+                  "kickoff": kickoff,
+                  "home_formation": home,
+                  "away_formation": away,
+                  "both_xi_confirmed": both,
+              })
+
+          output = {
+              "status": "FORMATION_FEATURE_SNAPSHOT_RECONCILIATION_AUDIT",
+              "policy": "POSTGRES_DERIVED_FEATURE_SNAPSHOTS_STRICTLY_BEFORE_KICKOFF_ONLY",
+              "missing_matchup_targets": len(missing),
+              "training_dataset_rows": dataset.get("row_count"),
+              "targets_with_dataset_row": sum(1 for fid in missing if fid in dataset_by_fixture),
+              "recoverable_prekickoff_both_formations": len(recovered),
+              "reason_counts": dict(sorted(reasons.items())),
+              "recovered_rows": recovered,
+              "rows": details,
+          }
+          Path("/tmp/formation_feature_snapshot_audit.json").write_text(
+              json.dumps(output, indent=2, sort_keys=True),
+              encoding="utf-8",
+          )
+          print(json.dumps(output, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload formation reconciliation audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: formation-feature-snapshot-audit
+          path: /tmp/formation_feature_snapshot_audit.json
+          retention-days: 30
 
       - name: Run chronological LightGBM challenger
         shell: bash
