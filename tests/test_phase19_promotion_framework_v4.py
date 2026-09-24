@@ -18,6 +18,9 @@ def test_raw_clv_rows_cannot_inflate_promotion_sample():
         clv_rows=992,
         avg_clv_pp=0.5,
         stability_status="DATA_BLOCKED",
+        shadow_settled=100,
+        shadow_roi_per_settled_unit=0.05,
+        shadow_sample_status="SHADOW_REVIEW_READY",
         validation_blockers=[],
     )
     assert review["recommended_state"] == "RESEARCH"
@@ -70,6 +73,9 @@ def test_phase19_validation_blocker_holds_market_in_shadow_after_directional_sam
         clv_rows=200,
         avg_clv_pp=0.8,
         stability_status="STABILITY_REVIEW_READY",
+        shadow_settled=60,
+        shadow_roi_per_settled_unit=0.03,
+        shadow_sample_status="SHADOW_REVIEW_READY",
         validation_blockers=["FORMATION_ADJUSTED_39_LT_100"],
     )
     assert review["recommended_state"] == "SHADOW"
@@ -85,6 +91,9 @@ def test_phase19_flags_safety_demotion_only_for_production_collapse():
         clv_rows=120,
         avg_clv_pp=-0.2,
         stability_status="STABILITY_REVIEW_READY",
+        shadow_settled=60,
+        shadow_roi_per_settled_unit=-0.03,
+        shadow_sample_status="SHADOW_REVIEW_READY",
         validation_blockers=[],
         current_state="TIER_B",
     )
@@ -108,6 +117,15 @@ def test_build_report_uses_g5_unique_fixtures():
             }
         },
         {"1X2": {"status": "RESEARCH_HOLD", "blockers": ["ACTIONABLE_SAMPLE_LT_20"]}},
+        {
+            "by_market_family": {
+                "FT_1X2": {
+                    "rows": 30,
+                    "settled": 30,
+                    "shadow_roi_hypothetical_units": 1.5,
+                }
+            }
+        },
     )
     reviews = {row["market_family"]: row for row in report["market_family_reviews"]}
     assert reviews["1X2"]["unique_fixtures"] == 16
