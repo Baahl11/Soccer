@@ -37,6 +37,7 @@ def test_phase16_requires_calibrated_probability_for_rank():
     assert "CALIBRATED_MODEL_PROBABILITY_MISSING" in analyzed["blockers"]
     assert analyzed["raw_diagnostic_score"] is not None
     assert analyzed["mismatch_score"] is None
+    assert analyzed["rankability_reasons"] == ["CALIBRATED_MODEL_PROBABILITY_MISSING"]
 
 
 def test_phase16_ranks_positive_calibrated_edge():
@@ -91,3 +92,22 @@ def test_phase16_stale_quote_cannot_rank():
     assert analyzed["rankable"] is False
     assert "STALE_QUOTE" in analyzed["blockers"]
     assert analyzed["price_quality_score"] == 0.0
+
+
+def test_phase16_negative_calibrated_edge_is_explicitly_non_rankable():
+    analyzed = v.analyze_row(_row(p_model_calibrated=0.40, p_market_fair=0.55))
+    assert analyzed["rankable"] is False
+    assert analyzed["calibrated_edge_pp"] == -15.0
+    assert analyzed["rankability_reasons"] == ["CALIBRATED_EDGE_NOT_POSITIVE"]
+
+
+def test_phase16_summary_counts_non_rankable_reasons_by_family():
+    result = v.find_mismatches([
+        _row(p_model_calibrated=0.40, p_market_fair=0.55),
+        _row(fixture_id=2, p_model_calibrated=None),
+        _row(fixture_id=3, price=None, p_market_fair=None),
+    ])
+    assert result["non_rankable_rows"] == 3
+    assert result["non_rankable_reason_counts"]["CALIBRATED_EDGE_NOT_POSITIVE"] == 1
+    assert result["non_rankable_reason_counts"]["CALIBRATED_MODEL_PROBABILITY_MISSING"] >= 1
+    assert result["non_rankable_reason_counts_by_family"]["FT_TOTALS"]["CALIBRATED_EDGE_NOT_POSITIVE"] == 1
