@@ -1,0 +1,67 @@
+name: Team Corners Validation Refresh
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/team-corners-validation-refresh.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+          sparse-checkout: |
+            soccer_edge_state/analysis/corners_baseline.json
+            soccer_edge_state/analysis/team_corners_validation.json
+          sparse-checkout-cone-mode: false
+
+      - name: Build Team Corners validation
+        working-directory: runtime
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m mcp_gateway.analyze_team_corners \
+            --baseline-report ../state/soccer_edge_state/analysis/corners_baseline.json \
+            --output ../state/soccer_edge_state/analysis/team_corners_validation.json
+
+      - name: Validate league venue stability contract
+        run: |
+          set -euo pipefail
+          jq -e '.schema_version == "1.1.0"' state/soccer_edge_state/analysis/team_corners_validation.json >/dev/null
+          jq -e '(.league_venue_stability | type) == "object"' state/soccer_edge_state/analysis/team_corners_validation.json >/dev/null
+          jq -e '(.league_venue_stability.segments | type) == "object"' state/soccer_edge_state/analysis/team_corners_validation.json >/dev/null
+          jq -e '(.league_venue_stability.review_eligible_segments | type) == "array"' state/soccer_edge_state/analysis/team_corners_validation.json >/dev/null
+
+      - name: Persist Team Corners validation
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/team_corners_validation.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Refresh Team Corners validation"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
