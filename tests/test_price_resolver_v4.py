@@ -1,3 +1,5 @@
+import asyncio
+
 from mcp_gateway import price_resolver_v4 as v
 
 
@@ -370,3 +372,48 @@ def test_1x2_home_is_allowed_when_class_discrimination_is_ready():
     assert row["phase16_calibration_policy"] == "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50"
     assert row["phase16_1x2_family_discrimination_ready"] is False
     assert row["phase16_1x2_not_ready_classes"] == ["DRAW"]
+
+
+def test_research_cache_hydration_adds_zero_provider_calls(monkeypatch):
+    payload = {
+        "events": [{
+            "event_type": "SOCCER_REFRESH",
+            "stage": "T-40",
+            "fixture": {
+                "fixture_id": 222,
+                "home_team": "Home FC",
+                "away_team": "Away FC",
+            },
+            "raw_projection": {
+                "raw_home_goal_rate": 1.6,
+                "raw_away_goal_rate": 1.2,
+            },
+        }],
+        "match_table_rows": [],
+        "api_calls_this_tick": 12,
+    }
+
+    cached = [{
+        "fixture_id": 222,
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market_id": 10,
+        "market": "Home Team Total Goals",
+        "values": [
+            {"selection": "Over", "line": 1.5, "decimal_price": 1.95},
+            {"selection": "Under", "line": 1.5, "decimal_price": 1.85},
+        ],
+        "source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
+    }]
+
+    monkeypatch.setattr(v, "_load_cached_markets", lambda fixture_id, stage: cached if fixture_id == 222 else [])
+
+    result = asyncio.run(v.resolve_payload(payload, max_api_calls=0, calibration_state={}))
+
+    assert result["candidate_rows"] == 0
+    assert result["api_calls_added"] == 0
+    assert result["cache_hydrated_research_fixtures"] == 1
+    assert result["cache_hydrated_research_market_rows"] == 1
+    assert result["cache_hydration_provider_requests_added"] == 0
+    assert payload["api_calls_this_tick"] == 12
+    assert payload["events"][0]["market"]["markets"][0]["market"] == "Home Team Total Goals"

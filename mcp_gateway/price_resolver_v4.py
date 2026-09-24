@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.4.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.5.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -756,6 +756,43 @@ async def resolve_payload(
                 resolved_status = status
             counts[resolved_status] += 1
 
+    # Zero-provider-call research hydration for derivative markets such as Team Totals.
+    # Phase16 price targets above remain the only path allowed to spend API budget.
+    cache_hydrated_research_fixtures = 0
+    cache_hydrated_research_market_rows = 0
+    target_fixture_ids = {int(row["fixture_id"]) for row in targets}
+    for event in events:
+        if not isinstance(event, dict) or str(event.get("stage") or "").upper() == "POSTGAME":
+            continue
+        if str(event.get("event_type") or "") != "SOCCER_REFRESH":
+            continue
+        fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
+        fixture_id_value = fixture.get("fixture_id")
+        if fixture_id_value is None:
+            fixture_id_value = event.get("fixture_id")
+        try:
+            fixture_id = int(fixture_id_value)
+        except (TypeError, ValueError):
+            continue
+
+        raw = event.get("raw_projection") if isinstance(event.get("raw_projection"), dict) else {}
+        if _num(raw.get("raw_home_goal_rate")) is None and _num(raw.get("raw_away_goal_rate")) is None:
+            continue
+
+        if fixture_id in fixture_cache:
+            markets, status = fixture_cache[fixture_id]
+            if markets and not isinstance(event.get("market"), dict):
+                _attach_market_to_event(event, markets, status)
+            continue
+
+        cached = await asyncio.to_thread(_load_cached_markets, fixture_id, event.get("stage"))
+        fixture_cache[fixture_id] = (cached, "PRICE_CACHE_HIT_RESEARCH_ONLY" if cached else "PRICE_CACHE_MISS_RESEARCH_ONLY")
+        if not cached:
+            continue
+        _attach_market_to_event(event, cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
+        cache_hydrated_research_fixtures += 1
+        cache_hydrated_research_market_rows += len(cached)
+
     _apply_quota_accounting(payload, calls, provider_daily_remaining)
 
     calibrated_rows_added = sum(
@@ -783,6 +820,10 @@ async def resolve_payload(
         "provider_requests_added": calls,
         "provider_daily_remaining_observed": provider_daily_remaining,
         "quota_accounting_included_in_api_calls_this_tick": True,
+        "cache_hydrated_research_fixtures": cache_hydrated_research_fixtures,
+        "cache_hydrated_research_market_rows": cache_hydrated_research_market_rows,
+        "cache_hydration_provider_requests_added": 0,
+        "cache_hydration_policy": "PREGAME_SOCCER_REFRESH_WITH_TEAM_LAMBDAS_FRESH_POSTGRES_SNAPSHOTS_ONLY",
     }
     payload["price_resolution_provider_requests_added"] = calls
     return payload["price_resolution_v4"]
