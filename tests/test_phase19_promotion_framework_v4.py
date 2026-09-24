@@ -508,3 +508,35 @@ def test_multimarket_postgres_shadow_is_used_for_totals_and_btts():
     assert totals["evidence_source"] == "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE"
     assert btts["settled"] == 21
     assert btts["pending"] == 2
+
+
+def test_load_validation_reports_uses_family_view_for_shared_corners_validator(tmp_path):
+    corners = {
+        "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.1.0",
+        "status": "RESEARCH_HOLD",
+        "blockers": ["SHARED"],
+        "family_views": {
+            "FT_CORNERS": {
+                "status": "OOS_REVIEW_ELIGIBLE",
+                "blockers": [],
+                "true_clv": {"rows": 60, "minimum_rows": 50},
+            },
+            "TEAM_CORNERS": {
+                "status": "RESEARCH_HOLD",
+                "blockers": ["TEAM_CORNERS_TRUE_CLV_10_LT_50"],
+                "true_clv": {"rows": 10, "minimum_rows": 50},
+            },
+        },
+    }
+    for family, spec in v.FAMILY_SPECS.items():
+        path = tmp_path / str(spec["validation_file"])
+        if path.exists():
+            continue
+        path.write_text("{}", encoding="utf-8")
+    (tmp_path / "v4_022_corners_oos_validation.json").write_text(__import__("json").dumps(corners), encoding="utf-8")
+
+    reports = v._load_validation_reports(str(tmp_path))
+    assert reports["FT_CORNERS"]["status"] == "OOS_REVIEW_ELIGIBLE"
+    assert reports["FT_CORNERS"]["blockers"] == []
+    assert reports["FT_CORNERS"]["validation_family_view"] == "FT_CORNERS"
+    assert reports["TEAM_CORNERS"]["blockers"] == ["TEAM_CORNERS_TRUE_CLV_10_LT_50"]

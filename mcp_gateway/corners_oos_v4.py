@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.0.0"
+MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.1.0"
 MIN_FT_OOS = 150
 MIN_FORMATION_ADJUSTED = 100
 MIN_TEAM_ROWS = 400
@@ -34,18 +34,40 @@ def is_corners_market(row: dict[str, Any]) -> bool:
     return "corner" in market
 
 
-def summarize_true_clv(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
-    selected = [row for row in rows if isinstance(row, dict) and is_corners_market(row)]
+def _corner_family(row: dict[str, Any]) -> str | None:
+    family = str(row.get("market_family") or "").strip().upper()
+    if family in {"FT_CORNERS", "TEAM_CORNERS"}:
+        return family
+    market = _norm(row.get("market"))
+    if "corner" not in market:
+        return None
+    if "team" in market or "home corners" in market or "away corners" in market:
+        return "TEAM_CORNERS"
+    return "FT_CORNERS"
+
+
+def _summarize_selected_true_clv(selected: list[dict[str, Any]]) -> dict[str, Any]:
     values = [_num(row.get("clv_probability_pp")) for row in selected]
     valid = [value for value in values if value is not None]
+    fixtures = [row.get("fixture_id") for row in selected if row.get("fixture_id") is not None]
     return {
         "rows": len(selected),
-        "unique_fixtures": len({row.get("fixture_id") for row in selected if row.get("fixture_id") is not None}),
+        "unique_fixtures": len(set(fixtures)),
         "avg_probability_clv_pp": round(sum(valid) / len(valid), 6) if valid else None,
         "positive_rows": sum(1 for value in valid if value > 0),
         "negative_rows": sum(1 for value in valid if value < 0),
         "flat_rows": sum(1 for value in valid if math.isclose(value, 0.0, abs_tol=1e-12)),
     }
+
+
+def summarize_true_clv(rows: Iterable[dict[str, Any]], family: str | None = None) -> dict[str, Any]:
+    selected = [
+        row for row in rows
+        if isinstance(row, dict)
+        and is_corners_market(row)
+        and (family is None or _corner_family(row) == family)
+    ]
+    return _summarize_selected_true_clv(selected)
 
 
 def _line_improvement(baseline: dict[str, Any], challenger: dict[str, Any], line: float) -> dict[str, Any]:
@@ -104,28 +126,39 @@ def build_report(
     })
     missing_team_lines = [line for line in TEAM_LINES if line not in observed_team_lines]
 
+    true_clv_rows = [row for row in true_clv_rows if isinstance(row, dict)]
     clv = summarize_true_clv(true_clv_rows)
+    ft_clv = summarize_true_clv(true_clv_rows, "FT_CORNERS")
+    team_clv = summarize_true_clv(true_clv_rows, "TEAM_CORNERS")
     blockers: list[str] = []
     warnings: list[str] = []
 
+    ft_blockers: list[str] = []
+    team_blockers: list[str] = []
+
     if ft_n < MIN_FT_OOS:
-        blockers.append(f"FT_CORNERS_OOS_{ft_n}_LT_{MIN_FT_OOS}")
+        ft_blockers.append(f"FT_CORNERS_OOS_{ft_n}_LT_{MIN_FT_OOS}")
     if formation_n < MIN_FORMATION_ADJUSTED:
-        blockers.append(f"FORMATION_ADJUSTED_{formation_n}_LT_{MIN_FORMATION_ADJUSTED}")
-    if team_rows < MIN_TEAM_ROWS:
-        blockers.append(f"TEAM_CORNERS_ROWS_{team_rows}_LT_{MIN_TEAM_ROWS}")
+        ft_blockers.append(f"FORMATION_ADJUSTED_{formation_n}_LT_{MIN_FORMATION_ADJUSTED}")
     if not all_ft_lines_improve:
-        blockers.append("FORMATION_CHALLENGER_NOT_BETTER_ON_ALL_FT_LINES")
+        ft_blockers.append("FORMATION_CHALLENGER_NOT_BETTER_ON_ALL_FT_LINES")
     if not mae_improves:
-        blockers.append("FORMATION_CHALLENGER_MAE_NOT_BETTER")
-    if clv["rows"] < MIN_TRUE_CLV_ROWS:
-        blockers.append(f"CORNERS_TRUE_CLV_{clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
+        ft_blockers.append("FORMATION_CHALLENGER_MAE_NOT_BETTER")
+    if ft_clv["rows"] < MIN_TRUE_CLV_ROWS:
+        ft_blockers.append(f"FT_CORNERS_TRUE_CLV_{ft_clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
     if ft_gate.get("enabled") is not True:
-        blockers.append("SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED")
+        ft_blockers.append("SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED")
+
+    if team_rows < MIN_TEAM_ROWS:
+        team_blockers.append(f"TEAM_CORNERS_ROWS_{team_rows}_LT_{MIN_TEAM_ROWS}")
+    if team_clv["rows"] < MIN_TRUE_CLV_ROWS:
+        team_blockers.append(f"TEAM_CORNERS_TRUE_CLV_{team_clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
     if team_gate.get("enabled") is not True:
-        blockers.append("SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED")
+        team_blockers.append("SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED")
     if missing_team_lines:
         warnings.append("TEAM_CORNERS_LINE_COVERAGE_INCOMPLETE")
+
+    blockers = sorted(set(ft_blockers + team_blockers))
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -161,7 +194,30 @@ def build_report(
         "true_clv": {
             **clv,
             "minimum_rows": MIN_TRUE_CLV_ROWS,
-            "family_specific": True,
+            "family_specific": False,
+            "scope": "ALL_CORNERS_DIAGNOSTIC_ONLY",
+        },
+        "family_views": {
+            "FT_CORNERS": {
+                "status": "OOS_REVIEW_ELIGIBLE" if not ft_blockers else "RESEARCH_HOLD",
+                "blockers": ft_blockers,
+                "warnings": [],
+                "true_clv": {
+                    **ft_clv,
+                    "minimum_rows": MIN_TRUE_CLV_ROWS,
+                    "family_specific": True,
+                },
+            },
+            "TEAM_CORNERS": {
+                "status": "OOS_REVIEW_ELIGIBLE" if not team_blockers else "RESEARCH_HOLD",
+                "blockers": team_blockers,
+                "warnings": warnings,
+                "true_clv": {
+                    **team_clv,
+                    "minimum_rows": MIN_TRUE_CLV_ROWS,
+                    "family_specific": True,
+                },
+            },
         },
         "source_ft_promotion_gate": ft_gate,
         "source_team_promotion_gate": team_gate,
@@ -172,6 +228,7 @@ def build_report(
             "Formation adjustment currently improves FT corners Brier/log-loss on 8.5/9.5/10.5 and total-corners MAE, but its adjusted sample remains too small.",
             "Verified exact corners prices and family-specific true CLV are mandatory before any production promotion.",
             "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals.",
+            "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only.",
         ],
     }
 

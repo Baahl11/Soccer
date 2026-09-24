@@ -8,7 +8,7 @@ import re
 from typing import Any
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.9.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.10.0"
 
 STATES = (
     "DORMANT",
@@ -806,7 +806,17 @@ def build_report(
 def _load_validation_reports(analysis_dir: str) -> dict[str, dict[str, Any]]:
     reports: dict[str, dict[str, Any]] = {}
     for family, spec in FAMILY_SPECS.items():
-        reports[family] = _load_json(os.path.join(analysis_dir, str(spec["validation_file"])))
+        report = _load_json(os.path.join(analysis_dir, str(spec["validation_file"])))
+        family_views = report.get("family_views") if isinstance(report.get("family_views"), dict) else {}
+        family_view = family_views.get(family) if isinstance(family_views.get(family), dict) else None
+        if family_view is not None:
+            report = {
+                **report,
+                **family_view,
+                "shared_validation_model_version": report.get("model_version"),
+                "validation_family_view": family,
+            }
+        reports[family] = report
     return reports
 
 
