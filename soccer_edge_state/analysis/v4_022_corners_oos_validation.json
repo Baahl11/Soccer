@@ -5,6 +5,43 @@
     "SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED"
   ],
   "canonical_bet_logic_changed": false,
+  "family_views": {
+    "FT_CORNERS": {
+      "blockers": [
+        "FORMATION_ADJUSTED_39_LT_100",
+        "SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED"
+      ],
+      "status": "RESEARCH_HOLD",
+      "true_clv": {
+        "avg_probability_clv_pp": 2.624043,
+        "family_specific": true,
+        "flat_rows": 0,
+        "minimum_rows": 50,
+        "negative_rows": 137,
+        "positive_rows": 149,
+        "rows": 286,
+        "unique_fixtures": 7
+      },
+      "warnings": []
+    },
+    "TEAM_CORNERS": {
+      "blockers": [
+        "SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED"
+      ],
+      "status": "RESEARCH_HOLD",
+      "true_clv": {
+        "avg_probability_clv_pp": 3e-06,
+        "family_specific": true,
+        "flat_rows": 0,
+        "minimum_rows": 50,
+        "negative_rows": 44,
+        "positive_rows": 44,
+        "rows": 88,
+        "unique_fixtures": 6
+      },
+      "warnings": []
+    }
+  },
   "ft_corners": {
     "all_required_lines_improve_brier_and_log_loss": true,
     "baseline_mae_total_corners": 2.612748,
@@ -56,13 +93,14 @@
     "walk_forward_evaluations": 244
   },
   "manual_review_required": true,
-  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.0.0",
+  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.1.0",
   "model_weights_changed": false,
   "notes": [
     "Corners OOS is evaluated separately from goals markets because market microstructure and variance differ.",
     "Formation adjustment currently improves FT corners Brier/log-loss on 8.5/9.5/10.5 and total-corners MAE, but its adjusted sample remains too small.",
     "Verified exact corners prices and family-specific true CLV are mandatory before any production promotion.",
-    "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals."
+    "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals.",
+    "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only."
   ],
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
@@ -118,12 +156,13 @@
   "ticket": "V4-022",
   "true_clv": {
     "avg_probability_clv_pp": 2.006622,
-    "family_specific": true,
+    "family_specific": false,
     "flat_rows": 0,
     "minimum_rows": 50,
     "negative_rows": 181,
     "positive_rows": 193,
     "rows": 374,
+    "scope": "ALL_CORNERS_DIAGNOSTIC_ONLY",
     "unique_fixtures": 7
   },
   "warnings": []
