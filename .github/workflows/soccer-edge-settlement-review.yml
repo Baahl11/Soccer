@@ -1,4 +1,4 @@
-# Settlement freshness audit trigger: 2026-09-24-legacy-postgres-union
+# Settlement freshness audit trigger: 2026-09-24-atomic-source-merge
 name: Soccer Edge Settlement Review
 
 on:
@@ -87,10 +87,36 @@ jobs:
             and (.runtime_logic_changed == false)
           ' /tmp/settlement_v4.json >/dev/null
 
-          # Persist the Postgres diagnostic and merge it with the legacy ledger.
-          # Git history remains the canonical source for the pre-compact period;
-          # Postgres extends that history after detailed events moved out of Git.
+          # Persist the source diagnostic first. Merge happens in a separate
+          # step so a merge failure can never hide Postgres source diagnostics.
           jq 'del(.rows)' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/settlement_postgres_v4.json
+          POSTGRES_TOTAL=$(jq -r '.market_performance_summary.settlement_decisions // 0' /tmp/settlement_v4.json)
+          POSTGRES_FT=$(jq -r '.market_performance_summary.by_market_family.FT_TOTALS.settled // 0' /tmp/settlement_v4.json)
+          echo "Settlement source coverage legacy_total=$LEGACY_TOTAL postgres_total=$POSTGRES_TOTAL legacy_ft=$LEGACY_FT postgres_ft=$POSTGRES_FT"
+
+      - name: Persist Postgres source diagnostic
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name "soccer-edge-bot"
+          git config user.email "soccer-edge-bot@users.noreply.github.com"
+          git add -f soccer_edge_state/analysis/settlement_postgres_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update Postgres settlement source diagnostic"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
+
+      - name: Merge legacy and Postgres settlement evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          LEGACY_TOTAL=$(jq -r '.settlement_decisions // 0' state/soccer_edge_state/analysis/market_performance_summary.json)
+          LEGACY_FT=$(jq -r '.by_market_family.FT_TOTALS.settled // 0' state/soccer_edge_state/analysis/market_performance_summary.json)
 
           PYTHONPATH=engine python -m mcp_gateway.settlement_merge_v4 \
             --legacy-ledger state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
@@ -101,12 +127,10 @@ jobs:
 
           MERGED_TOTAL=$(jq -r '.settlement_decisions // 0' /tmp/market_performance_summary_merged.json)
           MERGED_FT=$(jq -r '.by_market_family.FT_TOTALS.settled // 0' /tmp/market_performance_summary_merged.json)
-          POSTGRES_TOTAL=$(jq -r '.market_performance_summary.settlement_decisions // 0' /tmp/settlement_v4.json)
-          POSTGRES_FT=$(jq -r '.market_performance_summary.by_market_family.FT_TOTALS.settled // 0' /tmp/settlement_v4.json)
-          echo "Settlement coverage legacy_total=$LEGACY_TOTAL postgres_total=$POSTGRES_TOTAL merged_total=$MERGED_TOTAL legacy_ft=$LEGACY_FT postgres_ft=$POSTGRES_FT merged_ft=$MERGED_FT"
+          echo "Settlement merged coverage legacy_total=$LEGACY_TOTAL merged_total=$MERGED_TOTAL legacy_ft=$LEGACY_FT merged_ft=$MERGED_FT"
 
           if [ "$MERGED_TOTAL" -lt "$LEGACY_TOTAL" ] || [ "$MERGED_FT" -lt "$LEGACY_FT" ]; then
-            echo "::warning::Merged settlement coverage regressed unexpectedly; preserving legacy canonical ledger while persisting diagnostics"
+            echo "::warning::Merged settlement coverage regressed unexpectedly; preserving legacy canonical ledger"
             echo "POSTGRES_SETTLEMENT_ACCEPTED=false" >> "$GITHUB_ENV"
           else
             mv /tmp/bet_settlement_ledger_merged.jsonl state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl
@@ -114,20 +138,19 @@ jobs:
             echo "POSTGRES_SETTLEMENT_ACCEPTED=true" >> "$GITHUB_ENV"
           fi
 
-      - name: Persist Postgres settlement checkpoint
+      - name: Persist merged settlement checkpoint
         working-directory: state
         run: |
           set -euo pipefail
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
-          git add -f soccer_edge_state/analysis/settlement_postgres_v4.json \
-            soccer_edge_state/analysis/settlement_merge_v4.json
+          git add -f soccer_edge_state/analysis/settlement_merge_v4.json
           if [ "${POSTGRES_SETTLEMENT_ACCEPTED:-false}" = "true" ]; then
             git add -f soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
               soccer_edge_state/analysis/market_performance_summary.json
           fi
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Update Postgres settlement checkpoint"
+          git commit -m "Update merged settlement checkpoint"
           for attempt in 1 2 3; do
             git fetch origin soccer-edge-state
             git rebase origin/soccer-edge-state
