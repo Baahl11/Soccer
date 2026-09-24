@@ -1,0 +1,56 @@
+name: Corners CLV Concentration Audit
+
+on:
+  push:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - "mcp_gateway/analyze_corners_clv_concentration.py"
+      - "tests/test_corners_clv_concentration.py"
+      - ".github/workflows/corners-clv-concentration-audit.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: code
+
+      - name: Checkout CLV tracking
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          sparse-checkout: |
+            soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl
+          sparse-checkout-cone-mode: false
+
+      - name: Run unit test
+        working-directory: code
+        run: PYTHONPATH=. python -m pytest -q tests/test_corners_clv_concentration.py
+
+      - name: Audit corners CLV concentration
+        working-directory: code
+        run: |
+          PYTHONPATH=. python mcp_gateway/analyze_corners_clv_concentration.py \
+            --tracking ../state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl \
+            --output /tmp/corners_clv_concentration.json
+          python - <<'PY'
+          import json
+          with open("/tmp/corners_clv_concentration.json", "r", encoding="utf-8") as fh:
+              report = json.load(fh)
+          compact = {
+              family: {
+                  "rows": row.get("rows"),
+                  "unique_fixtures": row.get("unique_fixtures"),
+                  "rows_per_fixture": row.get("rows_per_fixture"),
+                  "top_fixture_concentration": row.get("top_fixture_concentration"),
+              }
+              for family, row in (report.get("families") or {}).items()
+          }
+          print("CORNERS_CLV_CONCENTRATION=" + json.dumps(compact, sort_keys=True))
+          PY
