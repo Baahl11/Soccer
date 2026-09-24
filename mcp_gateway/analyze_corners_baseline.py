@@ -194,8 +194,38 @@ def formation_eligibility_audit(
 ) -> dict[str, Any]:
     reason_counts: dict[str, int] = defaultdict(int)
     detail: list[dict[str, Any]] = []
+    timing_integrity = {
+        "matchup_present_rows": 0,
+        "selected_formation_prekickoff_or_at_kickoff": 0,
+        "selected_formation_postkickoff": 0,
+        "selected_formation_missing_timestamp": 0,
+        "matchup_present_with_any_valid_prekickoff": 0,
+        "matchup_present_only_postkickoff": 0,
+    }
 
     for row in evals:
+        if row.get("matchup"):
+            timing_integrity["matchup_present_rows"] += 1
+            if int(audit.get("valid_both_prekickoff") or 0) > 0:
+                timing_integrity["matchup_present_with_any_valid_prekickoff"] += 1
+            elif int(audit.get("valid_both_postkickoff") or 0) > 0:
+                timing_integrity["matchup_present_only_postkickoff"] += 1
+
+            obs = [x for x in rec.get("lineup_obs") or [] if x[0] is not None]
+            if obs:
+                obs.sort(key=lambda x: x[0])
+                selected_ts = obs[-1][0]
+                kickoff_ts = formation_v2.base.parse_dt(rec.get("kickoff_local"))
+                if kickoff_ts is None:
+                    timing_integrity["selected_formation_missing_timestamp"] += 1
+                elif selected_ts <= kickoff_ts:
+                    timing_integrity["selected_formation_prekickoff_or_at_kickoff"] += 1
+                else:
+                    timing_integrity["selected_formation_postkickoff"] += 1
+            else:
+                timing_integrity["selected_formation_missing_timestamp"] += 1
+
+        prior_n = int(row.get("prior_matchup_n") or 0)
         prior_n = int(row.get("prior_matchup_n") or 0)
         if prior_n >= 8:
             continue
@@ -286,6 +316,7 @@ def formation_eligibility_audit(
         "missing_matchup_rows": len(missing_matchup),
         "recoverable_missing_matchup_rows": len(recoverable_missing),
         "reason_counts": dict(sorted(reason_counts.items())),
+        "timing_integrity": timing_integrity,
         "rows": detail,
     }
 
