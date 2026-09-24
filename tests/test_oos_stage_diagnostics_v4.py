@@ -160,8 +160,8 @@ def test_phase16_discrimination_gate_blocks_near_chance_binary_target():
     for i in range(200):
         observations.append({"probability": 0.51 if i % 2 == 0 else 0.49, "outcome": i % 2})
     result = v._auc_discrimination(observations)
-    assert result["passes_phase16_gate"] is False
-    assert result["lower_95"] <= 0.50
+    assert result["discrimination_ready"] is False
+    assert result["auc_lower_95"] <= 0.50
 
 
 def test_phase16_discrimination_gate_accepts_clear_signal():
@@ -171,4 +171,4 @@ def test_phase16_discrimination_gate_accepts_clear_signal():
         observations.append({"probability": 0.2, "outcome": 0})
     result = v._auc_discrimination(observations)
     assert result["auc"] == 1.0
-    assert result["passes_phase16_gate"] is True
+    assert result["discrimination_ready"] is True
