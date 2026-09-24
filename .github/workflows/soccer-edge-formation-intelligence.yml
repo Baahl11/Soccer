@@ -56,7 +56,17 @@ jobs:
           import json
           for p in ('state/soccer_edge_state/analysis/formation_intelligence.json','state/soccer_edge_state/analysis/corners_baseline.json'):
               d=json.load(open(p, encoding='utf-8'))
-              print(p, json.dumps({k:d.get(k) for k in ('status','fixtures_with_confirmed_both_formations_and_final','fixtures_with_postgame_corners_and_formations','rows_with_verified_postgame_corners','walk_forward_evaluations','formation_adjusted_evaluations')}, indent=2))
+              summary={k:d.get(k) for k in ('status','fixtures_with_confirmed_both_formations_and_final','fixtures_with_postgame_corners_and_formations','rows_with_verified_postgame_corners','walk_forward_evaluations','formation_adjusted_evaluations')}
+              if p.endswith('corners_baseline.json'):
+                  lift=d.get('formation_lift_by_league')
+                  assert isinstance(lift, dict)
+                  summary['formation_lift_by_league']={
+                      'review_ready': lift.get('review_ready'),
+                      'review_eligible_leagues': lift.get('review_eligible_leagues'),
+                      'stable_lift_leagues': lift.get('stable_lift_leagues'),
+                      'negative_lift_leagues': lift.get('negative_lift_leagues'),
+                  }
+              print(p, json.dumps(summary, indent=2))
           PY
 
       - name: Persist research analysis
