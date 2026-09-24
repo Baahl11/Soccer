@@ -51,7 +51,7 @@ jobs:
           EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.2"
           READY=0
           for attempt in 1 2 3 4 5; do
-            HTTP_CODE=$(curl -sS --max-time 420 -o /tmp/clv_v4.json -w "%{http_code}" \
+            HTTP_CODE=$(curl -sS --max-time 120 -o /tmp/clv_v4.json -w "%{http_code}" \
               -X POST \
               -H "Authorization: Bearer ${TOKEN}" \
               -H "Content-Type: application/json" \
