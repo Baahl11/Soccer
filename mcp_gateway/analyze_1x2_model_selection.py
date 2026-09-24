@@ -37,11 +37,31 @@ def challenger_row(name: str, report: dict[str, Any]) -> dict[str, Any]:
         base_brier is not None and chal_brier is not None and chal_brier < base_brier
         and base_ll is not None and chal_ll is not None and chal_ll < base_ll
     )
+    class_discrimination = (
+        improvement.get("class_discrimination")
+        if isinstance(improvement.get("class_discrimination"), dict)
+        else {}
+    )
+    draw_discrimination = (
+        class_discrimination.get("D")
+        if isinstance(class_discrimination.get("D"), dict)
+        else {}
+    )
+    class_discrimination_available = all(
+        isinstance(class_discrimination.get(label), dict)
+        for label in ("H", "D", "A")
+    )
+    draw_discrimination_ready = draw_discrimination.get("challenger_discrimination_ready") is True
+
     sample_gate = n >= 200
     if not sample_gate:
         status = "INSUFFICIENT_SAME_METHOD_OOS_SAMPLE"
     elif not quality_better:
         status = "MIXED_OR_WORSE_THAN_MATCHED_BASELINE"
+    elif not class_discrimination_available:
+        status = "CLASS_DISCRIMINATION_NOT_MEASURED"
+    elif not draw_discrimination_ready:
+        status = "DRAW_DISCRIMINATION_NOT_READY"
     else:
         status = "PROMOTION_REVIEW_ELIGIBLE_RESEARCH_ONLY"
     return {
@@ -56,6 +76,11 @@ def challenger_row(name: str, report: dict[str, Any]) -> dict[str, Any]:
         "accuracy_delta_pp": fnum(improvement.get("accuracy_delta_pp")),
         "quality_better_on_matched_report": quality_better,
         "minimum_same_method_sample_gate_met": sample_gate,
+        "class_discrimination_available": class_discrimination_available,
+        "draw_discrimination_ready": draw_discrimination_ready,
+        "draw_auc_lower_95": fnum(draw_discrimination.get("challenger_auc_lower_95")),
+        "draw_auc_lower_95_delta_vs_baseline": fnum(draw_discrimination.get("auc_lower_95_delta")),
+        "class_discrimination": class_discrimination,
         "status": status,
     }
 
@@ -110,6 +135,7 @@ def main() -> None:
             "requires": [
                 "same-fixture head-to-head comparison for shortlisted challengers",
                 "Brier and log-loss both improve versus canonical on the same cohort",
+                "same-cohort H/D/A class discrimination is measured and Draw AUC lower-95 exceeds 0.50",
                 "H/D/A calibration stable by probability bucket and competition",
                 "verified historical 1X2 prices and true CLV evidence",
                 "validated market shrinkage after final model selection",

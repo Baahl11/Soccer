@@ -81,6 +81,70 @@ def dc_probs(lh: float, la: float, rho: float, max_goals: int = 10) -> list[floa
     return [hwin / total, draw / total, awin / total]
 
 
+def auc_discrimination(observations: list[tuple[float, int]]) -> dict[str, Any]:
+    positives = [row for row in observations if row[1] == 1]
+    negatives = [row for row in observations if row[1] == 0]
+    n_pos = len(positives)
+    n_neg = len(negatives)
+    if n_pos == 0 or n_neg == 0:
+        return {
+            "auc": None,
+            "auc_standard_error": None,
+            "auc_lower_95": None,
+            "positive_count": n_pos,
+            "negative_count": n_neg,
+            "discrimination_ready": False,
+        }
+
+    ranked = sorted(observations, key=lambda item: item[0])
+    rank = 1
+    sum_positive_ranks = 0.0
+    index = 0
+    while index < len(ranked):
+        end = index + 1
+        while end < len(ranked) and ranked[end][0] == ranked[index][0]:
+            end += 1
+        count = end - index
+        average_rank = (rank + (rank + count - 1)) / 2.0
+        for _, outcome in ranked[index:end]:
+            if outcome == 1:
+                sum_positive_ranks += average_rank
+        rank += count
+        index = end
+
+    auc = (
+        sum_positive_ranks - (n_pos * (n_pos + 1) / 2.0)
+    ) / (n_pos * n_neg)
+    q1 = auc / (2.0 - auc) if auc < 2.0 else 0.0
+    q2 = (2.0 * auc * auc) / (1.0 + auc) if auc > -1.0 else 0.0
+    variance = (
+        auc * (1.0 - auc)
+        + (n_pos - 1) * (q1 - auc * auc)
+        + (n_neg - 1) * (q2 - auc * auc)
+    ) / (n_pos * n_neg)
+    standard_error = math.sqrt(max(variance, 0.0))
+    lower_95 = max(0.0, auc - 1.96 * standard_error)
+    return {
+        "auc": round(auc, 8),
+        "auc_standard_error": round(standard_error, 8),
+        "auc_lower_95": round(lower_95, 8),
+        "positive_count": n_pos,
+        "negative_count": n_neg,
+        "discrimination_ready": lower_95 > 0.50,
+    }
+
+
+def class_discrimination(rows: list[dict[str, Any]], prob_key: str) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for index, label in enumerate(LABELS):
+        observations = [
+            (float(row[prob_key][index]), 1 if row["actual"] == label else 0)
+            for row in rows
+        ]
+        out[label] = auc_discrimination(observations)
+    return out
+
+
 def metrics(rows: list[dict[str, Any]], prob_key: str) -> dict[str, Any]:
     n = len(rows)
     if not n:
@@ -112,6 +176,7 @@ def metrics(rows: list[dict[str, Any]], prob_key: str) -> dict[str, Any]:
         "predicted_counts": dict(counts),
         "mean_draw_probability": round(draw_forecast / n, 4),
         "observed_draw_rate": round(draw_actual / n, 4),
+        "class_discrimination": class_discrimination(rows, prob_key),
     }
 
 
@@ -198,13 +263,36 @@ def main() -> None:
 
     baseline = metrics(evaluated, "baseline")
     challenger = metrics(evaluated, "challenger")
+    class_improvement: dict[str, Any] = {}
+    for label in LABELS:
+        baseline_class = (baseline.get("class_discrimination") or {}).get(label) or {}
+        challenger_class = (challenger.get("class_discrimination") or {}).get(label) or {}
+        base_auc = fnum(baseline_class.get("auc"))
+        chal_auc = fnum(challenger_class.get("auc"))
+        base_l95 = fnum(baseline_class.get("auc_lower_95"))
+        chal_l95 = fnum(challenger_class.get("auc_lower_95"))
+        class_improvement[label] = {
+            "baseline_auc": base_auc,
+            "challenger_auc": chal_auc,
+            "auc_delta": round(chal_auc - base_auc, 8) if base_auc is not None and chal_auc is not None else None,
+            "baseline_auc_lower_95": base_l95,
+            "challenger_auc_lower_95": chal_l95,
+            "auc_lower_95_delta": round(chal_l95 - base_l95, 8) if base_l95 is not None and chal_l95 is not None else None,
+            "challenger_discrimination_ready": challenger_class.get("discrimination_ready") is True,
+            "positive_count": int(challenger_class.get("positive_count") or 0),
+            "negative_count": int(challenger_class.get("negative_count") or 0),
+        }
+
     improvement = {
         "accuracy_delta_pp": round((challenger["accuracy"] - baseline["accuracy"]) * 100, 2) if evaluated else None,
         "brier_delta": round(challenger["brier"] - baseline["brier"], 4) if evaluated else None,
         "log_loss_delta": round(challenger["log_loss"] - baseline["log_loss"], 4) if evaluated else None,
         "draw_probability_delta_pp": round((challenger["mean_draw_probability"] - baseline["mean_draw_probability"]) * 100, 2) if evaluated else None,
+        "class_discrimination": class_improvement,
     }
     wins_quality = bool(evaluated and challenger["brier"] < baseline["brier"] and challenger["log_loss"] < baseline["log_loss"])
+    draw_discrimination = class_improvement.get("D") or {}
+    draw_ready = draw_discrimination.get("challenger_discrimination_ready") is True
     result = {
         "schema_version": "1.0.0",
         "timezone_basis": "America/Mexico_City",
@@ -230,13 +318,18 @@ def main() -> None:
             "quality_metrics_better": wins_quality,
             "minimum_evaluation_n": 100,
             "sample_gate_met": len(evaluated) >= 100,
+            "same_fixture_class_discrimination_available": bool(evaluated),
+            "draw_discrimination_ready": draw_ready,
+            "draw_auc_lower_95": draw_discrimination.get("challenger_auc_lower_95"),
+            "draw_auc_lower_95_delta_vs_baseline": draw_discrimination.get("auc_lower_95_delta"),
             "decision": "KEEP_RESEARCH_ONLY",
-            "reason": "Never promotes 1X2 automatically. Requires larger out-of-sample sample plus stable Brier/log-loss and draw calibration.",
+            "reason": "Never promotes 1X2 automatically. Requires same-fixture Brier/log-loss improvement plus Draw AUC lower-95 above 0.50 and downstream CLV/settlement evidence.",
         },
         "notes": [
             "Baseline probabilities are the exact stored pre-kickoff Soccer Edge 1X2 probabilities.",
             "Dixon-Coles changes only low-score dependence using the stored home/away goal rates; it does not fabricate xG or team-strength inputs.",
             "Negative rho typically increases 0-0/1-1 mass and can improve draw calibration, but rho is selected walk-forward rather than hard-coded.",
+            "H/D/A discrimination is measured on the exact same walk-forward cohort with the same AUC lower-95 > 0.50 research gate used by Phase16.",
             "This report cannot upgrade any backend BET/LEAN classification."
         ],
     }
