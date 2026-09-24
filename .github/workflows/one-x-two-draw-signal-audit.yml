@@ -60,3 +60,61 @@ jobs:
           }
           print("DRAW_SIGNAL_AUDIT=" + json.dumps(compact, sort_keys=True))
           PY
+
+      - name: Inventory pre-kickoff feature namespaces
+        working-directory: code
+        run: |
+          python - <<'PY'
+          import json
+          from collections import Counter, defaultdict
+          from datetime import datetime
+
+          ledger = "../state/soccer_edge_state/analysis/signal_ledger.jsonl"
+          rows = []
+          with open(ledger, "r", encoding="utf-8") as fh:
+              for line in fh:
+                  line = line.strip()
+                  if line:
+                      rows.append(json.loads(line))
+
+          finals = set()
+          for row in rows:
+              result = row.get("result")
+              if isinstance(result, dict) and result:
+                  fid = row.get("fixture_id")
+                  if fid is not None:
+                      finals.add(str(fid))
+
+          top = Counter()
+          nested = defaultdict(Counter)
+          prekickoff = 0
+          for row in rows:
+              if str(row.get("fixture_id")) not in finals:
+                  continue
+              try:
+                  ts = datetime.fromisoformat(str(row.get("generated_at_local")).replace("Z", "+00:00"))
+                  ko = datetime.fromisoformat(str(row.get("kickoff_local")).replace("Z", "+00:00"))
+              except Exception:
+                  continue
+              if ts >= ko:
+                  continue
+              prekickoff += 1
+              for key, value in row.items():
+                  if value is not None:
+                      top[key] += 1
+                  if isinstance(value, dict):
+                      for subkey, subvalue in value.items():
+                          if subvalue is not None:
+                              nested[key][subkey] += 1
+
+          inventory = {
+              "prekickoff_rows": prekickoff,
+              "top_level": top.most_common(),
+              "nested": {
+                  key: counts.most_common()
+                  for key, counts in sorted(nested.items())
+                  if counts
+              },
+          }
+          print("PREKICKOFF_FEATURE_INVENTORY=" + json.dumps(inventory, sort_keys=True))
+          PY
