@@ -199,6 +199,9 @@ def load_history(history_dir: str) -> dict[int, dict[str, Any]]:
 
 def chosen_formations(rec: dict[str, Any]) -> tuple[str | None, str | None]:
     obs = [x for x in rec.get("lineup_obs") or [] if x[0] is not None]
+    kickoff = parse_dt(rec.get("kickoff_local"))
+    if kickoff is not None:
+        obs = [x for x in obs if x[0] <= kickoff]
     if not obs:
         return None, None
     obs.sort(key=lambda x: x[0])
