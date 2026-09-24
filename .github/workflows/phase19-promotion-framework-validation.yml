@@ -70,7 +70,7 @@ jobs:
             status,
             model_version,
             source_model_version,
-            raw_match_table_rows_loaded,
+            raw_phase16_candidates_loaded,
             promotion_evaluable,
             provider_requests_added,
             error,
@@ -79,7 +79,7 @@ jobs:
           test "$HTTP_CODE" = "200"
           jq -e '
             .schema_version == "1.0.0"
-            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.0.0"
+            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.1.0"
             and (.promotion_evaluable | type == "object")
             and (.rows | type == "array")
             and (.provider_requests_added == 0)
