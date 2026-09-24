@@ -7,7 +7,7 @@ import os
 from typing import Any
 
 SCHEMA_VERSION = "1.2.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.2.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.3.0"
 
 STATES = (
     "DORMANT",
@@ -150,12 +150,24 @@ def _shadow_for_family(shadow_performance: dict[str, Any], aliases: tuple[str, .
         sample_status = "DIRECTIONAL_SHADOW"
     else:
         sample_status = "DATA_BLOCKED"
+    negative_stages = sorted({
+        stage
+        for value in matches
+        for stage in (value.get("negative_directional_stages") or [])
+    })
+    positive_stages = sorted({
+        stage
+        for value in matches
+        for stage in (value.get("positive_directional_stages") or [])
+    })
     return {
         "rows": rows,
         "settled": settled,
         "shadow_roi_hypothetical_units": round(roi_units, 6),
         "shadow_roi_per_settled_unit": round(roi_units / settled, 6) if settled else None,
         "sample_status": sample_status,
+        "negative_directional_stages": negative_stages,
+        "positive_directional_stages": positive_stages,
     }
 
 
@@ -230,6 +242,7 @@ def review_market(
     shadow_settled: int = 0,
     shadow_roi_per_settled_unit: float | None = None,
     shadow_sample_status: str = "MISSING",
+    shadow_negative_directional_stages: list[str] | None = None,
     validation_blockers: list[str] | None = None,
     current_state: str = "RESEARCH",
     manual_approval: bool = False,
@@ -238,6 +251,7 @@ def review_market(
     if current not in STATES:
         current = "RESEARCH"
     validation_blockers = list(validation_blockers or [])
+    shadow_negative_directional_stages = sorted(set(shadow_negative_directional_stages or []))
 
     blockers: list[str] = []
     warnings: list[str] = []
@@ -266,6 +280,8 @@ def review_market(
         blockers.append("SHADOW_ROI_MISSING")
     elif shadow_roi_per_settled_unit <= 0:
         blockers.append("SHADOW_ROI_NOT_POSITIVE")
+    if shadow_negative_directional_stages:
+        blockers.append("SHADOW_NEGATIVE_DIRECTIONAL_STAGES:" + ",".join(shadow_negative_directional_stages))
     blockers.extend(f"VALIDATION:{value}" for value in validation_blockers)
 
     tier_review_eligibility = {
@@ -276,6 +292,7 @@ def review_market(
         "model_weight_change_review": unique_fixtures >= MODEL_WEIGHT_CHANGE_MIN,
         "shadow_directional_read": shadow_settled >= DIRECTIONAL_READ_MIN,
         "shadow_review": shadow_settled >= TIER_B_REVIEW_MIN and shadow_roi_per_settled_unit is not None and shadow_roi_per_settled_unit > 0,
+        "shadow_stage_stability": not shadow_negative_directional_stages,
     }
 
     collapse = (
@@ -325,6 +342,7 @@ def review_market(
         "shadow_settled": shadow_settled,
         "shadow_roi_per_settled_unit": shadow_roi_per_settled_unit,
         "shadow_sample_status": shadow_sample_status,
+        "shadow_negative_directional_stages": shadow_negative_directional_stages,
         "validation_blockers": validation_blockers,
         "tier_review_eligibility": tier_review_eligibility,
         "manual_approval_present": bool(manual_approval),
@@ -379,6 +397,7 @@ def build_report(
             shadow_settled=int(shadow.get("settled") or 0),
             shadow_roi_per_settled_unit=_num(shadow.get("shadow_roi_per_settled_unit")),
             shadow_sample_status=str(shadow.get("sample_status") or "MISSING"),
+            shadow_negative_directional_stages=list(shadow.get("negative_directional_stages") or []),
             validation_blockers=blockers,
             current_state=current_states.get(family, "RESEARCH"),
             manual_approval=bool(manual_approvals.get(family, False)),
@@ -425,7 +444,7 @@ def build_report(
         "notes": [
             "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
             "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
-            "WATCH shadow evidence is separate from real settlements; at least 20 shadow settlements and positive hypothetical ROI are required before LEAN_ELIGIBLE can be considered.",
+            "WATCH shadow evidence is separate from real settlements; at least 20 shadow settlements, positive hypothetical ROI, and no negative directional shadow stage are required before LEAN_ELIGIBLE can be considered.",
             "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
             "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV.",
         ],
