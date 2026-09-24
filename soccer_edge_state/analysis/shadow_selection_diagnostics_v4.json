@@ -769,12 +769,13 @@
     }
   },
   "market_family": "FT_1X2",
-  "model_version": "SOCCER_1X2_SHADOW_SELECTION_DIAGNOSTICS_V4_1.1.0",
+  "model_version": "SOCCER_1X2_SHADOW_SELECTION_DIAGNOSTICS_V4_1.2.0",
   "notes": [
     "Diagnostics use the same latest pre-kickoff WATCH per fixture/market-family selector as the shadow settlement ledger.",
     "Price, edge, and EV bands are descriptive only and do not create runtime filters.",
     "Segments below 20 settled rows are not treated as directional evidence.",
-    "WATCH quality buckets separate raw-vs-market discrepancy rechecks, tier caps, and availability/XI gates so intentionally blocked candidates are not mistaken for promotion-quality shadow evidence."
+    "WATCH quality buckets separate raw-vs-market discrepancy rechecks, tier caps, and availability/XI gates so intentionally blocked candidates are not mistaken for promotion-quality shadow evidence.",
+    "Only clean ADVANCED_TIER_CAP WATCH rows are promotion-evaluable shadow evidence; discrepancy rechecks and gate failures remain WATCH_ALERT research rows."
   ],
   "overall": {
     "hit_rate_ex_push": 0.258824,
@@ -788,14 +789,40 @@
     "win": 44
   },
   "production_promotion_allowed": false,
+  "promotion_evaluable": {
+    "hit_rate_ex_push": null,
+    "loss": 0,
+    "policy": "ADVANCED_TIER_CAP_ONLY_WITHOUT_DISCREPANCY_OR_OBSERVED_AVAILABILITY_XI_GATE",
+    "push": 0,
+    "roi_per_settled_unit": null,
+    "roi_units": 0.0,
+    "rows": 0,
+    "sample_status": "DATA_BLOCKED",
+    "settled": 0,
+    "unique_fixtures": 0,
+    "win": 0
+  },
   "provider_requests_added": 0,
   "rows": 170,
   "runtime_logic_changed": false,
   "sample_policy": {
     "directional_minimum": 20,
+    "promotion_evidence_requires_quality_bucket": "ADVANCED_TIER_CAP",
     "review_minimum": 50
   },
   "schema_version": "1.0.0",
   "status": "SHADOW_SELECTION_DIAGNOSTICS_ACTIVE",
-  "unique_fixtures": 170
+  "unique_fixtures": 170,
+  "watch_alert": {
+    "hit_rate_ex_push": 0.258824,
+    "loss": 126,
+    "push": 0,
+    "roi_per_settled_unit": -0.166176,
+    "roi_units": -28.25,
+    "rows": 170,
+    "sample_status": "SHADOW_REVIEW_READY",
+    "settled": 170,
+    "unique_fixtures": 170,
+    "win": 44
+  }
 }
