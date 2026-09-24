@@ -20,9 +20,8 @@ def _corner_eval(league_id, actual, base_lam, challenger_lam, prior_matchup_n=8)
 def test_corners_baseline_materializes_review_sized_league_lift():
     rows = []
     for league_id in (100, 200):
-        for i in range(20):
-            actual = 9.0 if i % 2 == 0 else 11.0
-            rows.append(_corner_eval(league_id, actual, 13.0, actual))
+        for _ in range(20):
+            rows.append(_corner_eval(league_id, 12.0, 6.0, 12.0))
 
     report = baseline_v.formation_lift_by_league(rows)
     assert report["formation_adjusted_evaluations"] == 40
