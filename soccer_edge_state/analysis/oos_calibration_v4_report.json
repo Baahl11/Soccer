@@ -7,13 +7,13 @@
     "prediction_timestamp_before_kickoff_required": true
   },
   "canonical_bet_logic_changed": false,
-  "fixture_rows": 567,
+  "fixture_rows": 568,
   "historical_fixture_rows": 500,
   "latest_pre_kickoff_prediction_per_fixture": true,
   "minimum_rows_per_target": 200,
   "model_version": "SOCCER_OOS_HISTORY_MERGE_V4_1.0.0",
   "model_version_counts": {
-    "SOCCER EDGE ENGINE v1.0": 150,
+    "SOCCER EDGE ENGINE v1.0": 151,
     "SOCCER EDGE ENGINE v1.1": 7,
     "SOCCER EDGE ENGINE v1.2": 1,
     "SOCCER EDGE ENGINE v1.5": 1,
@@ -26,12 +26,12 @@
     "Postgres-native rows and historical rows are merged by fixture; the latest valid pre-kickoff timestamp wins.",
     "Calibration remains research-only and does not alter runtime prediction weights."
   ],
-  "postgres_fixture_rows": 73,
+  "postgres_fixture_rows": 74,
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
   "ready_target_count": 5,
   "run_type_counts": {
-    "CLOSE": 113,
+    "CLOSE": 114,
     "EARLY_RESEARCH": 30,
     "T-10": 320,
     "T-20": 45,
@@ -44,74 +44,74 @@
   "schema_version": "1.0.0",
   "source_counts": {
     "HISTORICAL_SIGNAL_LEDGER": 494,
-    "POSTGRES_NATIVE": 73
+    "POSTGRES_NATIVE": 74
   },
   "status": "OOS_CALIBRATION_MATERIALIZED",
   "targets": {
     "away_win": {
-      "brier_delta": -0.00582739,
+      "brier_delta": -0.00579087,
       "calibrated_metrics": {
         "bins": [
           {
-            "absolute_gap": 0.06226864,
+            "absolute_gap": 0.06287026,
             "bin_index": 1,
             "lower": 0.1,
-            "mean_prediction": 0.1758266,
+            "mean_prediction": 0.17522498,
             "n": 21,
             "observed_rate": 0.23809524,
             "upper": 0.2
           },
           {
-            "absolute_gap": 0.01253566,
+            "absolute_gap": 0.01191168,
             "bin_index": 2,
             "lower": 0.2,
-            "mean_prediction": 0.26534465,
+            "mean_prediction": 0.26472067,
             "n": 178,
             "observed_rate": 0.25280899,
             "upper": 0.3
           },
           {
-            "absolute_gap": 0.01822663,
+            "absolute_gap": 0.01970966,
             "bin_index": 3,
             "lower": 0.3,
-            "mean_prediction": 0.34540973,
-            "n": 253,
-            "observed_rate": 0.36363636,
+            "mean_prediction": 0.34499622,
+            "n": 255,
+            "observed_rate": 0.36470588,
             "upper": 0.4
           },
           {
-            "absolute_gap": 0.03627682,
+            "absolute_gap": 0.04259756,
             "bin_index": 4,
             "lower": 0.4,
-            "mean_prediction": 0.43627682,
-            "n": 95,
-            "observed_rate": 0.4,
+            "mean_prediction": 0.43621459,
+            "n": 94,
+            "observed_rate": 0.39361702,
             "upper": 0.5
           },
           {
-            "absolute_gap": 0.2395838,
+            "absolute_gap": 0.23930741,
             "bin_index": 5,
             "lower": 0.5,
-            "mean_prediction": 0.53370144,
+            "mean_prediction": 0.53342505,
             "n": 17,
             "observed_rate": 0.29411765,
             "upper": 0.6
           },
           {
-            "absolute_gap": 0.35807676,
+            "absolute_gap": 0.3581443,
             "bin_index": 6,
             "lower": 0.6,
-            "mean_prediction": 0.64192324,
+            "mean_prediction": 0.6418557,
             "n": 3,
             "observed_rate": 1.0,
             "upper": 0.7
           }
         ],
-        "brier": 0.21721737,
-        "ece": 0.02953048,
-        "log_loss": 0.62508603,
-        "mce": 0.35807676,
-        "row_count": 567,
+        "brier": 0.21702379,
+        "ece": 0.03100941,
+        "log_loss": 0.62468607,
+        "mce": 0.3581443,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
@@ -124,8 +124,8 @@
         "method": "PLATT_LOGIT",
         "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
         "parameters": {
-          "intercept": -0.2741091514,
-          "slope": 0.5226649857
+          "intercept": -0.2759690921,
+          "slope": 0.523620877
         },
         "production_promotion_allowed": false,
         "readiness": {
@@ -133,17 +133,17 @@
           "minimum_negatives": 25,
           "minimum_oos_rows": 200,
           "minimum_positives": 25,
-          "negative_count": 379,
+          "negative_count": 380,
           "positive_count": 188,
           "ready": true,
-          "row_count": 567,
+          "row_count": 568,
           "validation_errors": []
         },
         "runtime_prediction_weight": 0.0,
         "schema_version": "1.0.0",
         "status": "RESEARCH_CALIBRATOR_FITTED"
       },
-      "log_loss_delta": -0.0152089,
+      "log_loss_delta": -0.01511935,
       "production_promotion_allowed": false,
       "raw_metrics": {
         "bins": [
@@ -175,12 +175,12 @@
             "upper": 0.3
           },
           {
-            "absolute_gap": 0.0403435,
+            "absolute_gap": 0.03781235,
             "bin_index": 3,
             "lower": 0.3,
-            "mean_prediction": 0.34484168,
-            "n": 135,
-            "observed_rate": 0.38518519,
+            "mean_prediction": 0.3445406,
+            "n": 136,
+            "observed_rate": 0.38235294,
             "upper": 0.4
           },
           {
@@ -229,54 +229,54 @@
             "upper": 0.9
           }
         ],
-        "brier": 0.22304476,
-        "ece": 0.06242677,
-        "log_loss": 0.64029493,
+        "brier": 0.22281466,
+        "ece": 0.06178184,
+        "log_loss": 0.63980542,
         "mce": 0.35227125,
-        "row_count": 567,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
-      "rows": 567,
+      "rows": 568,
       "status": "RESEARCH_CALIBRATION_AVAILABLE"
     },
     "btts": {
-      "brier_delta": -0.03105184,
+      "brier_delta": -0.0310191,
       "calibrated_metrics": {
         "bins": [
           {
-            "absolute_gap": 0.50187687,
+            "absolute_gap": 0.50063029,
             "bin_index": 4,
             "lower": 0.4,
-            "mean_prediction": 0.49812313,
+            "mean_prediction": 0.49936971,
             "n": 1,
             "observed_rate": 1.0,
             "upper": 0.5
           },
           {
-            "absolute_gap": 0.0030046,
+            "absolute_gap": 0.00573807,
             "bin_index": 5,
             "lower": 0.5,
-            "mean_prediction": 0.57415844,
-            "n": 520,
-            "observed_rate": 0.57115385,
+            "mean_prediction": 0.5736626,
+            "n": 530,
+            "observed_rate": 0.56792453,
             "upper": 0.6
           },
           {
-            "absolute_gap": 0.02476871,
+            "absolute_gap": 0.0707315,
             "bin_index": 6,
             "lower": 0.6,
-            "mean_prediction": 0.60566608,
-            "n": 46,
-            "observed_rate": 0.63043478,
+            "mean_prediction": 0.60494417,
+            "n": 37,
+            "observed_rate": 0.67567568,
             "upper": 0.7
           }
         ],
-        "brier": 0.2437908,
-        "ece": 0.00565014,
-        "log_loss": 0.68064557,
-        "mce": 0.50187687,
-        "row_count": 567,
+        "brier": 0.24396647,
+        "ece": 0.01084309,
+        "log_loss": 0.68100204,
+        "mce": 0.50063029,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
@@ -289,8 +289,8 @@
         "method": "PLATT_LOGIT",
         "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
         "parameters": {
-          "intercept": 0.3192341015,
-          "slope": 0.0931583455
+          "intercept": 0.3146903,
+          "slope": 0.0904411667
         },
         "production_promotion_allowed": false,
         "readiness": {
@@ -298,17 +298,17 @@
           "minimum_negatives": 25,
           "minimum_oos_rows": 200,
           "minimum_positives": 25,
-          "negative_count": 240,
+          "negative_count": 241,
           "positive_count": 327,
           "ready": true,
-          "row_count": 567,
+          "row_count": 568,
           "validation_errors": []
         },
         "runtime_prediction_weight": 0.0,
         "schema_version": "1.0.0",
         "status": "RESEARCH_CALIBRATOR_FITTED"
       },
-      "log_loss_delta": -0.0905969,
+      "log_loss_delta": -0.09048123,
       "production_promotion_allowed": false,
       "raw_metrics": {
         "bins": [
@@ -358,12 +358,12 @@
             "upper": 0.5
           },
           {
-            "absolute_gap": 0.05362534,
+            "absolute_gap": 0.04920152,
             "bin_index": 5,
             "lower": 0.5,
-            "mean_prediction": 0.54911439,
-            "n": 146,
-            "observed_rate": 0.60273973,
+            "mean_prediction": 0.54943794,
+            "n": 147,
+            "observed_rate": 0.59863946,
             "upper": 0.6
           },
           {
@@ -394,63 +394,63 @@
             "upper": 0.9
           }
         ],
-        "brier": 0.27484264,
-        "ece": 0.12322061,
-        "log_loss": 0.77124247,
+        "brier": 0.27498557,
+        "ece": 0.12195319,
+        "log_loss": 0.77148327,
         "mce": 0.6093864,
-        "row_count": 567,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
-      "rows": 567,
+      "rows": 568,
       "status": "RESEARCH_CALIBRATION_AVAILABLE"
     },
     "draw": {
-      "brier_delta": -0.00885752,
+      "brier_delta": -0.00884283,
       "calibrated_metrics": {
         "bins": [
           {
-            "absolute_gap": 0.03788943,
+            "absolute_gap": 0.02947671,
             "bin_index": 1,
             "lower": 0.1,
-            "mean_prediction": 0.18305072,
-            "n": 62,
-            "observed_rate": 0.14516129,
+            "mean_prediction": 0.18332286,
+            "n": 65,
+            "observed_rate": 0.15384615,
             "upper": 0.2
           },
           {
-            "absolute_gap": 0.00889316,
+            "absolute_gap": 0.00796514,
             "bin_index": 2,
             "lower": 0.2,
-            "mean_prediction": 0.23560023,
-            "n": 454,
-            "observed_rate": 0.24449339,
+            "mean_prediction": 0.23539769,
+            "n": 452,
+            "observed_rate": 0.24336283,
             "upper": 0.3
           },
           {
-            "absolute_gap": 0.09587617,
+            "absolute_gap": 0.09581366,
             "bin_index": 3,
             "lower": 0.3,
-            "mean_prediction": 0.35301902,
+            "mean_prediction": 0.35295652,
             "n": 35,
             "observed_rate": 0.25714286,
             "upper": 0.4
           },
           {
-            "absolute_gap": 0.35956667,
+            "absolute_gap": 0.35975477,
             "bin_index": 4,
             "lower": 0.4,
-            "mean_prediction": 0.42206667,
+            "mean_prediction": 0.42225477,
             "n": 16,
             "observed_rate": 0.0625,
             "upper": 0.5
           }
         ],
-        "brier": 0.18043771,
-        "ece": 0.0273287,
-        "log_loss": 0.54658738,
-        "mce": 0.35956667,
-        "row_count": 567,
+        "brier": 0.1802197,
+        "ece": 0.02574962,
+        "log_loss": 0.54610072,
+        "mce": 0.35975477,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
@@ -463,8 +463,8 @@
         "method": "PLATT_LOGIT",
         "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
         "parameters": {
-          "intercept": -0.5641798407,
-          "slope": 0.5702588554
+          "intercept": -0.5643125148,
+          "slope": 0.5723211153
         },
         "production_promotion_allowed": false,
         "readiness": {
@@ -472,17 +472,17 @@
           "minimum_negatives": 25,
           "minimum_oos_rows": 200,
           "minimum_positives": 25,
-          "negative_count": 437,
+          "negative_count": 438,
           "positive_count": 130,
           "ready": true,
-          "row_count": 567,
+          "row_count": 568,
           "validation_errors": []
         },
         "runtime_prediction_weight": 0.0,
         "schema_version": "1.0.0",
         "status": "RESEARCH_CALIBRATOR_FITTED"
       },
-      "log_loss_delta": -0.01819275,
+      "log_loss_delta": -0.01816594,
       "production_promotion_allowed": false,
       "raw_metrics": {
         "bins": [
@@ -505,12 +505,12 @@
             "upper": 0.2
           },
           {
-            "absolute_gap": 0.00173415,
+            "absolute_gap": 0.00239324,
             "bin_index": 2,
             "lower": 0.2,
-            "mean_prediction": 0.2468595,
-            "n": 359,
-            "observed_rate": 0.24512535,
+            "mean_prediction": 0.24683768,
+            "n": 360,
+            "observed_rate": 0.24444444,
             "upper": 0.3
           },
           {
@@ -559,81 +559,81 @@
             "upper": 0.8
           }
         ],
-        "brier": 0.18929523,
-        "ece": 0.05202481,
-        "log_loss": 0.56478013,
+        "brier": 0.18906253,
+        "ece": 0.052354,
+        "log_loss": 0.56426666,
         "mce": 0.705024,
-        "row_count": 567,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
-      "rows": 567,
+      "rows": 568,
       "status": "RESEARCH_CALIBRATION_AVAILABLE"
     },
     "home_win": {
-      "brier_delta": -0.00606312,
+      "brier_delta": -0.00606685,
       "calibrated_metrics": {
         "bins": [
           {
-            "absolute_gap": 0.16018247,
+            "absolute_gap": 0.16002868,
             "bin_index": 1,
             "lower": 0.1,
-            "mean_prediction": 0.16018247,
+            "mean_prediction": 0.16002868,
             "n": 2,
             "observed_rate": 0.0,
             "upper": 0.2
           },
           {
-            "absolute_gap": 0.22446975,
+            "absolute_gap": 0.22421837,
             "bin_index": 2,
             "lower": 0.2,
-            "mean_prediction": 0.27553025,
+            "mean_prediction": 0.27578163,
             "n": 26,
             "observed_rate": 0.5,
             "upper": 0.3
           },
           {
-            "absolute_gap": 0.00812723,
+            "absolute_gap": 0.00609864,
             "bin_index": 3,
             "lower": 0.3,
-            "mean_prediction": 0.35828498,
-            "n": 131,
-            "observed_rate": 0.36641221,
+            "mean_prediction": 0.35824244,
+            "n": 129,
+            "observed_rate": 0.36434109,
             "upper": 0.4
           },
           {
-            "absolute_gap": 0.06302564,
+            "absolute_gap": 0.06128338,
             "bin_index": 4,
             "lower": 0.4,
-            "mean_prediction": 0.45134179,
-            "n": 291,
-            "observed_rate": 0.38831615,
+            "mean_prediction": 0.45169434,
+            "n": 292,
+            "observed_rate": 0.39041096,
             "upper": 0.5
           },
           {
-            "absolute_gap": 0.11300113,
+            "absolute_gap": 0.11640347,
             "bin_index": 5,
             "lower": 0.5,
-            "mean_prediction": 0.5374843,
-            "n": 103,
-            "observed_rate": 0.65048544,
+            "mean_prediction": 0.53744269,
+            "n": 104,
+            "observed_rate": 0.65384615,
             "upper": 0.6
           },
           {
-            "absolute_gap": 0.05719573,
+            "absolute_gap": 0.09487135,
             "bin_index": 6,
             "lower": 0.6,
-            "mean_prediction": 0.6286243,
-            "n": 14,
-            "observed_rate": 0.57142857,
+            "mean_prediction": 0.62820469,
+            "n": 15,
+            "observed_rate": 0.53333333,
             "upper": 0.7
           }
         ],
-        "brier": 0.2404482,
-        "ece": 0.06702216,
-        "log_loss": 0.67409615,
-        "mce": 0.22446975,
-        "row_count": 567,
+        "brier": 0.24052938,
+        "ece": 0.06753563,
+        "log_loss": 0.67425725,
+        "mce": 0.22421837,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
@@ -646,8 +646,8 @@
         "method": "PLATT_LOGIT",
         "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
         "parameters": {
-          "intercept": -0.0498682505,
-          "slope": 0.4610832792
+          "intercept": -0.0453730113,
+          "slope": 0.4627127304
         },
         "production_promotion_allowed": false,
         "readiness": {
@@ -656,16 +656,16 @@
           "minimum_oos_rows": 200,
           "minimum_positives": 25,
           "negative_count": 318,
-          "positive_count": 249,
+          "positive_count": 250,
           "ready": true,
-          "row_count": 567,
+          "row_count": 568,
           "validation_errors": []
         },
         "runtime_prediction_weight": 0.0,
         "schema_version": "1.0.0",
         "status": "RESEARCH_CALIBRATOR_FITTED"
       },
-      "log_loss_delta": -0.02014098,
+      "log_loss_delta": -0.02013589,
       "production_promotion_allowed": false,
       "raw_metrics": {
         "bins": [
@@ -706,12 +706,12 @@
             "upper": 0.4
           },
           {
-            "absolute_gap": 0.02015861,
+            "absolute_gap": 0.01616528,
             "bin_index": 4,
             "lower": 0.4,
-            "mean_prediction": 0.44873004,
-            "n": 140,
-            "observed_rate": 0.42857143,
+            "mean_prediction": 0.4487894,
+            "n": 141,
+            "observed_rate": 0.43262411,
             "upper": 0.5
           },
           {
@@ -751,36 +751,36 @@
             "upper": 0.9
           }
         ],
-        "brier": 0.24651132,
-        "ece": 0.06637787,
-        "log_loss": 0.69423713,
+        "brier": 0.24659623,
+        "ece": 0.0653052,
+        "log_loss": 0.69439314,
         "mce": 0.27710204,
-        "row_count": 567,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
-      "rows": 567,
+      "rows": 568,
       "status": "RESEARCH_CALIBRATION_AVAILABLE"
     },
     "over_2_5": {
-      "brier_delta": -0.04284358,
+      "brier_delta": -0.04277766,
       "calibrated_metrics": {
         "bins": [
           {
-            "absolute_gap": 0.00025112,
+            "absolute_gap": 0.00024582,
             "bin_index": 5,
             "lower": 0.5,
-            "mean_prediction": 0.57117745,
-            "n": 567,
-            "observed_rate": 0.57142857,
+            "mean_prediction": 0.57017672,
+            "n": 568,
+            "observed_rate": 0.57042254,
             "upper": 0.6
           }
         ],
-        "brier": 0.24488996,
-        "ece": 0.00025112,
-        "log_loss": 0.68289009,
-        "mce": 0.00025112,
-        "row_count": 567,
+        "brier": 0.24503506,
+        "ece": 0.00024582,
+        "log_loss": 0.6831827,
+        "mce": 0.00024582,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
@@ -793,8 +793,8 @@
         "method": "PLATT_LOGIT",
         "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
         "parameters": {
-          "intercept": 0.2894632192,
-          "slope": 0.0138828083
+          "intercept": 0.2850489904,
+          "slope": 0.0123164404
         },
         "production_promotion_allowed": false,
         "readiness": {
@@ -802,17 +802,17 @@
           "minimum_negatives": 25,
           "minimum_oos_rows": 200,
           "minimum_positives": 25,
-          "negative_count": 243,
+          "negative_count": 244,
           "positive_count": 324,
           "ready": true,
-          "row_count": 567,
+          "row_count": 568,
           "validation_errors": []
         },
         "runtime_prediction_weight": 0.0,
         "schema_version": "1.0.0",
         "status": "RESEARCH_CALIBRATOR_FITTED"
       },
-      "log_loss_delta": -0.15888967,
+      "log_loss_delta": -0.15862902,
       "production_promotion_allowed": false,
       "raw_metrics": {
         "bins": [
@@ -862,12 +862,12 @@
             "upper": 0.5
           },
           {
-            "absolute_gap": 0.03136981,
+            "absolute_gap": 0.02650438,
             "bin_index": 5,
             "lower": 0.5,
-            "mean_prediction": 0.54927535,
-            "n": 124,
-            "observed_rate": 0.58064516,
+            "mean_prediction": 0.54949562,
+            "n": 125,
+            "observed_rate": 0.576,
             "upper": 0.6
           },
           {
@@ -907,15 +907,15 @@
             "upper": 1.0
           }
         ],
-        "brier": 0.28773354,
-        "ece": 0.143882,
-        "log_loss": 0.84177976,
+        "brier": 0.28781272,
+        "ece": 0.14261318,
+        "log_loss": 0.84181172,
         "mce": 0.61971607,
-        "row_count": 567,
+        "row_count": 568,
         "status": "OK",
         "validation_errors": []
       },
-      "rows": 567,
+      "rows": 568,
       "status": "RESEARCH_CALIBRATION_AVAILABLE"
     }
   },
