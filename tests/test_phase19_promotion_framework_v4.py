@@ -33,6 +33,9 @@ def test_phase19_never_auto_promotes_without_manual_approval():
         clv_rows=160,
         avg_clv_pp=1.0,
         stability_status="STABILITY_REVIEW_READY",
+        shadow_settled=80,
+        shadow_roi_per_settled_unit=0.05,
+        shadow_sample_status="SHADOW_REVIEW_READY",
         validation_blockers=[],
         manual_approval=False,
     )
@@ -49,6 +52,9 @@ def test_phase19_manual_approval_can_recommend_tier_by_unique_fixture_and_settle
         clv_rows=240,
         avg_clv_pp=0.5,
         stability_status="STABILITY_REVIEW_READY",
+        shadow_settled=120,
+        shadow_roi_per_settled_unit=0.04,
+        shadow_sample_status="SHADOW_REVIEW_READY",
         validation_blockers=[],
         manual_approval=True,
     )
@@ -109,3 +115,36 @@ def test_build_report_uses_g5_unique_fixtures():
     assert reviews["1X2"]["recommended_state"] == "RESEARCH"
     assert report["automatic_promotion_allowed"] is False
     assert report["runtime_state_mutation_enabled"] is False
+
+
+def test_negative_shadow_roi_blocks_lean_eligibility():
+    review = v.review_market(
+        market_family="1X2",
+        unique_fixtures=80,
+        settled=80,
+        roi_per_settled_unit=0.10,
+        clv_rows=100,
+        avg_clv_pp=0.4,
+        stability_status="STABILITY_REVIEW_READY",
+        shadow_settled=170,
+        shadow_roi_per_settled_unit=-0.16,
+        shadow_sample_status="SHADOW_REVIEW_READY",
+        validation_blockers=[],
+    )
+    assert review["recommended_state"] == "SHADOW"
+    assert "SHADOW_ROI_NOT_POSITIVE" in review["blockers"]
+
+
+def test_combined_family_performance_aggregates_aliases():
+    perf = v._performance_for_family(
+        {
+            "by_market_family": {
+                "2H_BTTS": {"n": 1, "settled": 1, "roi_units": -0.36},
+                "2H_TOTALS": {"n": 2, "settled": 2, "roi_units": -0.72},
+            }
+        },
+        ("2H", "2H_TOTALS", "2H_BTTS"),
+    )
+    assert perf["n"] == 3
+    assert perf["settled"] == 3
+    assert perf["roi_units"] == -1.08
