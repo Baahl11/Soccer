@@ -254,6 +254,9 @@ def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for raw in rows:
         row = dict(zip(columns, raw))
+        provider_update = row.get("provider_update")
+        if isinstance(provider_update, datetime):
+            row["provider_update"] = provider_update.isoformat()
         key = (row.get("bookmaker_id"), row.get("market_id"), str(row.get("values")))
         if key in seen:
             continue
