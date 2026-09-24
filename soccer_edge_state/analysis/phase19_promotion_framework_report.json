@@ -15,6 +15,7 @@
         "SETTLED_15_LT_TIER_B_REVIEW_50",
         "FAMILY_TRUE_CLV_NEGATIVE",
         "STABILITY_DATA_BLOCKED",
+        "SHADOW_ROI_NOT_POSITIVE",
         "VALIDATION:SETTLED_15_LT_DIRECTIONAL_20",
         "VALIDATION:SETTLED_15_LT_ACTIONABLE_REVIEW_50",
         "VALIDATION:FT_TOTALS_TRUE_CLV_27_LT_50"
@@ -23,12 +24,17 @@
       "manual_approval_present": false,
       "market_family": "FT_TOTALS",
       "recommended_state": "RESEARCH",
-      "roi_per_settled_unit": 0.223,
+      "roi_per_settled_unit": 0.222987,
       "settled": 15,
+      "shadow_roi_per_settled_unit": -0.052547,
+      "shadow_sample_status": "SHADOW_REVIEW_READY",
+      "shadow_settled": 212,
       "stability_status": "DATA_BLOCKED",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": true,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -49,7 +55,8 @@
       "avg_true_clv_probability_pp": 0.134929,
       "blockers": [
         "SETTLED_10_LT_DIRECTIONAL_20",
-        "SETTLED_10_LT_TIER_B_REVIEW_50"
+        "SETTLED_10_LT_TIER_B_REVIEW_50",
+        "SHADOW_ROI_NOT_POSITIVE"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -57,10 +64,15 @@
       "recommended_state": "SHADOW",
       "roi_per_settled_unit": 1.12,
       "settled": 10,
+      "shadow_roi_per_settled_unit": -0.166176,
+      "shadow_sample_status": "SHADOW_REVIEW_READY",
+      "shadow_settled": 170,
       "stability_status": "STABILITY_REVIEW_READY",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": true,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -82,6 +94,7 @@
         "SETTLED_0_LT_TIER_B_REVIEW_50",
         "ROI_MISSING",
         "STABILITY_DATA_BLOCKED",
+        "SHADOW_SETTLED_16_LT_DIRECTIONAL_20",
         "VALIDATION:BTTS_TRUE_CLV_20_LT_50"
       ],
       "current_state": "RESEARCH",
@@ -90,10 +103,15 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
+      "shadow_roi_per_settled_unit": -0.10625,
+      "shadow_sample_status": "DATA_BLOCKED",
+      "shadow_settled": 16,
       "stability_status": "DATA_BLOCKED",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": false,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -118,6 +136,7 @@
         "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
         "STABILITY_MISSING",
+        "SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:TEAM_TOTALS_TRUE_CLV_0_LT_50",
         "VALIDATION:SOURCE_TEAM_TOTALS_PROMOTION_GATE_DISABLED"
       ],
@@ -127,10 +146,15 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
+      "shadow_roi_per_settled_unit": null,
+      "shadow_sample_status": "MISSING",
+      "shadow_settled": 0,
       "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": false,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -156,6 +180,7 @@
         "FAMILY_TRUE_CLV_NEGATIVE",
         "ROI_NOT_POSITIVE",
         "STABILITY_DATA_BLOCKED",
+        "SHADOW_SETTLED_3_LT_DIRECTIONAL_20",
         "VALIDATION:CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
         "VALIDATION:CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
         "VALIDATION:SOURCE_1H_PROMOTION_GATE_DISABLED"
@@ -166,10 +191,15 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": 0.0,
       "settled": 0,
+      "shadow_roi_per_settled_unit": 0.083333,
+      "shadow_sample_status": "DATA_BLOCKED",
+      "shadow_settled": 3,
       "stability_status": "DATA_BLOCKED",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": false,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -191,11 +221,12 @@
       "blockers": [
         "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
         "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
-        "SETTLED_1_LT_DIRECTIONAL_20",
-        "SETTLED_1_LT_TIER_B_REVIEW_50",
+        "SETTLED_3_LT_DIRECTIONAL_20",
+        "SETTLED_3_LT_TIER_B_REVIEW_50",
         "FAMILY_TRUE_CLV_MISSING",
         "ROI_NOT_POSITIVE",
         "STABILITY_MISSING",
+        "SHADOW_SETTLED_7_LT_DIRECTIONAL_20",
         "VALIDATION:HALFTIME_CONDITIONED_CHALLENGER_DOES_NOT_BEAT_BASELINE",
         "VALIDATION:2H_TRUE_CLV_0_LT_50",
         "VALIDATION:SOURCE_2H_PROMOTION_GATE_DISABLED",
@@ -206,11 +237,16 @@
       "market_family": "2H",
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": -0.36,
-      "settled": 1,
+      "settled": 3,
+      "shadow_roi_per_settled_unit": -0.428571,
+      "shadow_sample_status": "DATA_BLOCKED",
+      "shadow_settled": 7,
       "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": false,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -237,6 +273,7 @@
         "SETTLED_0_LT_TIER_B_REVIEW_50",
         "ROI_MISSING",
         "STABILITY_DATA_BLOCKED",
+        "SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:FORMATION_ADJUSTED_39_LT_100",
         "VALIDATION:SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED",
         "VALIDATION:SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED"
@@ -247,10 +284,15 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
+      "shadow_roi_per_settled_unit": null,
+      "shadow_sample_status": "MISSING",
+      "shadow_settled": 0,
       "stability_status": "DATA_BLOCKED",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": false,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -277,6 +319,7 @@
         "FAMILY_TRUE_CLV_NEGATIVE",
         "ROI_MISSING",
         "STABILITY_DATA_BLOCKED",
+        "SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:FORMATION_ADJUSTED_39_LT_100",
         "VALIDATION:SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED",
         "VALIDATION:SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED"
@@ -287,10 +330,15 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
+      "shadow_roi_per_settled_unit": null,
+      "shadow_sample_status": "MISSING",
+      "shadow_settled": 0,
       "stability_status": "DATA_BLOCKED",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": false,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -317,6 +365,7 @@
         "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
         "STABILITY_MISSING",
+        "SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:YELLOW_REFEREE_ADJUSTED_0_LT_100",
         "VALIDATION:YELLOW_CARDS_PROMOTION_GATE_DISABLED",
         "VALIDATION:RED_CARD_OOS_184_LT_MARKET_REVIEW_500",
@@ -332,10 +381,15 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
+      "shadow_roi_per_settled_unit": null,
+      "shadow_sample_status": "MISSING",
+      "shadow_settled": 0,
       "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": false,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -367,6 +421,7 @@
         "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
         "STABILITY_MISSING",
+        "SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:SHOTS_OOS_VALIDATION_INCOMPLETE",
         "VALIDATION:SOT_OOS_VALIDATION_INCOMPLETE",
         "VALIDATION:GOALSCORER_OOS_VALIDATION_INCOMPLETE",
@@ -386,10 +441,15 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
+      "shadow_roi_per_settled_unit": null,
+      "shadow_sample_status": "MISSING",
+      "shadow_settled": 0,
       "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
+        "shadow_directional_read": false,
+        "shadow_review": false,
         "tier_a_review": false,
         "tier_b_review": false,
         "tier_s_review": false
@@ -415,11 +475,12 @@
       "warnings": []
     }
   ],
-  "model_version": "SOCCER_PROMOTION_FRAMEWORK_V4_1.1.0",
+  "model_version": "SOCCER_PROMOTION_FRAMEWORK_V4_1.2.0",
   "model_weights_changed": false,
   "notes": [
     "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
     "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
+    "WATCH shadow evidence is separate from real settlements; at least 20 shadow settlements and positive hypothetical ROI are required before LEAN_ELIGIBLE can be considered.",
     "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
     "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV."
   ],
@@ -436,11 +497,14 @@
     "model_weight_change": 200,
     "primary_sample_unit": "UNIQUE_FIXTURES",
     "settlements_required_in_parallel": true,
+    "shadow_directional_minimum": 20,
+    "shadow_review_minimum": 50,
+    "shadow_roi_must_be_positive_for_lean_eligibility": true,
     "tier_a_review": 100,
     "tier_b_review_preferred": 50,
     "tier_s_review": 200
   },
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "states": [
     "DORMANT",
     "RESEARCH",
