@@ -49,6 +49,7 @@
     "baseline_mae_total_corners": 2.612748,
     "challenger_mae_total_corners": 2.581188,
     "formation_adjusted_evaluations": 39,
+    "formation_lift_by_league": {},
     "line_improvements": [
       {
         "baseline_brier": 0.253428,
@@ -95,7 +96,7 @@
     "walk_forward_evaluations": 244
   },
   "manual_review_required": true,
-  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.2.0",
+  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.3.0",
   "model_weights_changed": false,
   "notes": [
     "Corners OOS is evaluated separately from goals markets because market microstructure and variance differ.",
@@ -104,7 +105,7 @@
     "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals.",
     "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only.",
     "Historical source promotion_gate.enabled flags are descriptive metadata only; V4-022 blockers now name the missing evidence explicitly.",
-    "FT Corners requires materialized formation lift by league before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability."
+    "FT Corners requires formation lift to be materialized and stable across at least two review-sized leagues before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability."
   ],
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
