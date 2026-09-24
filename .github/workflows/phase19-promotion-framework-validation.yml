@@ -82,7 +82,7 @@ jobs:
           test "$HTTP_CODE" = "200"
           jq -e '
             .schema_version == "1.3.0"
-            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.3.0"
+            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.5.0"
             and (.promotion_evaluable | type == "object")
             and (.rows | type == "array")
             and (.provider_requests_added == 0)
@@ -100,9 +100,15 @@ jobs:
         run: |
           set -euo pipefail
           jq -e '.phase == "FASE_19_PROMOTION_FRAMEWORK"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '.model_version == "SOCCER_PROMOTION_FRAMEWORK_V4_1.8.0"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.automatic_promotion_allowed == false' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.manual_approval_required == true' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.runtime_state_mutation_enabled == false' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '.promotion_readiness.status == "PROMOTION_READINESS_VISIBLE"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '.promotion_readiness.thresholds.directional == 20' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '.promotion_readiness.thresholds.tier_b == 50' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '.promotion_readiness.thresholds.tier_a == 100' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '.promotion_readiness.thresholds.tier_s == 200' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
 
       - name: Persist report to state branch
         working-directory: state
