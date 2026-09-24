@@ -11,9 +11,9 @@ from typing import Any
 
 import httpx
 
-from mcp_gateway import persistence
+from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.0.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.1.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -30,6 +30,15 @@ FRESHNESS_MINUTES = {
 }
 
 ELIGIBLE_STATUSES = {"WAIT_PRICE", "WAIT_FRESH_QUOTE", "STALE_QUOTE"}
+
+CALIBRATION_STATE_TTL_SECONDS = int(os.getenv("SOCCER_PRICE_CALIBRATION_STATE_TTL_SECONDS", "900"))
+CALIBRATION_STATE_URLS = {
+    "binary": "https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-state/soccer_edge_state/analysis/oos_stage_diagnostics_v4.json",
+    "multiclass_1x2": "https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-state/soccer_edge_state/analysis/one_x_two_multiclass_oos_v4.json",
+}
+_CALIBRATION_STATE_CACHE: dict[str, Any] | None = None
+_CALIBRATION_STATE_FETCHED_AT: datetime | None = None
+
 
 
 def _num(value: Any) -> float | None:
@@ -155,14 +164,163 @@ def _desired_offer(row: dict[str, Any], event: dict[str, Any]) -> tuple[str | No
 
     if family in {"FT_1X2_RESEARCH", "1X2", "FT_1X2"}:
         home = _num(raw.get("raw_home_win_prob"))
+        draw = _num(raw.get("raw_draw_prob"))
         away = _num(raw.get("raw_away_win_prob"))
-        if home is None and away is None:
+        exact = {"home": ("Home", home), "draw": ("Draw", draw), "x": ("Draw", draw), "away": ("Away", away)}
+        if selection in exact and exact[selection][1] is not None:
+            chosen, probability = exact[selection]
+            return "1X2", chosen, None, probability
+        candidates = [("Home", home), ("Draw", draw), ("Away", away)]
+        usable = [(side, probability) for side, probability in candidates if probability is not None]
+        if not usable:
             return None, None, None, None
-        if (home or 0.0) >= (away or 0.0):
-            return "1X2", "Home", None, home
-        return "1X2", "Away", None, away
+        side, probability = max(usable, key=lambda item: float(item[1]))
+        return "1X2", side, None, probability
 
     return None, None, None, None
+
+
+
+
+async def _load_research_calibration_state(client: httpx.AsyncClient) -> tuple[dict[str, Any], str]:
+    global _CALIBRATION_STATE_CACHE, _CALIBRATION_STATE_FETCHED_AT
+    now = datetime.now(timezone.utc)
+    if (
+        isinstance(_CALIBRATION_STATE_CACHE, dict)
+        and _CALIBRATION_STATE_FETCHED_AT is not None
+        and (now - _CALIBRATION_STATE_FETCHED_AT).total_seconds() < CALIBRATION_STATE_TTL_SECONDS
+    ):
+        return _CALIBRATION_STATE_CACHE, "MEMORY_CACHE"
+
+    try:
+        responses = await asyncio.gather(
+            client.get(CALIBRATION_STATE_URLS["binary"]),
+            client.get(CALIBRATION_STATE_URLS["multiclass_1x2"]),
+        )
+        for response in responses:
+            response.raise_for_status()
+        binary = responses[0].json()
+        multiclass = responses[1].json()
+        if not isinstance(binary, dict) or not isinstance(multiclass, dict):
+            raise ValueError("invalid calibration state payload")
+        state = {"binary": binary, "multiclass_1x2": multiclass}
+        _CALIBRATION_STATE_CACHE = state
+        _CALIBRATION_STATE_FETCHED_AT = now
+        return state, "SOCCER_EDGE_STATE_RAW"
+    except Exception:
+        return {}, "UNAVAILABLE"
+
+
+def _binary_calibrated_probability(
+    raw_probability: float | None,
+    *,
+    target: str,
+    calibration_state: dict[str, Any],
+    model_version: str | None,
+) -> float | None:
+    if raw_probability is None:
+        return None
+    report = calibration_state.get("binary") if isinstance(calibration_state.get("binary"), dict) else {}
+    if str(report.get("current_source_model_version") or "") != str(model_version or ""):
+        return None
+    targets = report.get("current_model_deployment_calibrators")
+    target_report = targets.get(target) if isinstance(targets, dict) and isinstance(targets.get(target), dict) else {}
+    if target_report.get("eligible_for_phase16_research") is not True:
+        return None
+    calibrator = target_report.get("calibrator") if isinstance(target_report.get("calibrator"), dict) else {}
+    if calibrator.get("status") != "RESEARCH_CALIBRATOR_FITTED":
+        return None
+    return calibration_v4.calibrate_probability(raw_probability, calibrator)
+
+
+def _multiclass_calibrated_probabilities(
+    event: dict[str, Any],
+    *,
+    calibration_state: dict[str, Any],
+    model_version: str | None,
+) -> dict[str, float]:
+    raw = _event_projection(event)
+    probs = [
+        _num(raw.get("raw_home_win_prob")),
+        _num(raw.get("raw_draw_prob")),
+        _num(raw.get("raw_away_win_prob")),
+    ]
+    if any(value is None or value < 0 for value in probs):
+        return {}
+    total = sum(float(value) for value in probs)
+    if total <= 0:
+        return {}
+    normalized = tuple(float(value) / total for value in probs)
+
+    report = calibration_state.get("multiclass_1x2") if isinstance(calibration_state.get("multiclass_1x2"), dict) else {}
+    if str(report.get("source_model_version") or "") != str(model_version or ""):
+        return {}
+    deployment = report.get("research_deployment_calibrator")
+    if not isinstance(deployment, dict) or deployment.get("status") != "RESEARCH_DEPLOYMENT_CALIBRATOR_FITTED":
+        return {}
+    temperature = _num(deployment.get("temperature"))
+    if temperature is None or temperature <= 0:
+        return {}
+    scaled = one_x_two_multiclass_oos_v4.temperature_scale(normalized, temperature)
+    return {"Home": scaled[0], "Draw": scaled[1], "Away": scaled[2]}
+
+
+def _apply_phase16_calibration(
+    row: dict[str, Any],
+    event: dict[str, Any],
+    *,
+    family: str,
+    selection: str,
+    p_raw: float | None,
+    calibration_state: dict[str, Any],
+    model_version: str | None,
+) -> float | None:
+    calibrated: float | None = None
+    source: str | None = None
+
+    if family == "BTTS":
+        raw_yes = _num(_event_projection(event).get("raw_btts_yes_prob"))
+        calibrated_yes = _binary_calibrated_probability(
+            raw_yes,
+            target="btts",
+            calibration_state=calibration_state,
+            model_version=model_version,
+        )
+        if calibrated_yes is not None:
+            calibrated = calibrated_yes if _norm(selection) == "yes" else 1.0 - calibrated_yes
+            source = "CURRENT_MODEL_OOS_PLATT:BTTS"
+
+    elif family == "FT_TOTALS":
+        raw_over = _num(_event_projection(event).get("raw_over_2_5_prob"))
+        calibrated_over = _binary_calibrated_probability(
+            raw_over,
+            target="over_2_5",
+            calibration_state=calibration_state,
+            model_version=model_version,
+        )
+        if calibrated_over is not None:
+            calibrated = calibrated_over if _norm(selection) == "over" else 1.0 - calibrated_over
+            source = "CURRENT_MODEL_OOS_PLATT:OVER_2_5"
+
+    elif family == "1X2":
+        scaled = _multiclass_calibrated_probabilities(
+            event,
+            calibration_state=calibration_state,
+            model_version=model_version,
+        )
+        calibrated = scaled.get(selection.title())
+        if calibrated is not None:
+            source = "CURRENT_MODEL_OOS_TEMPERATURE:1X2"
+
+    if calibrated is None:
+        row["phase16_calibration_status"] = "CALIBRATION_NOT_AVAILABLE_FOR_CURRENT_MODEL"
+        return None
+
+    row["p_model_calibrated"] = round(float(calibrated), 8)
+    row["phase16_calibration_status"] = "RESEARCH_CALIBRATION_APPLIED"
+    row["phase16_calibration_source"] = source
+    row["price_resolution_calibrated_probability_added"] = True
+    return calibrated
 
 
 def _selection_matches(value: dict[str, Any], desired_selection: str, desired_line: float | None) -> bool:
@@ -333,7 +491,15 @@ def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]]
     }
 
 
-def _enrich_row(row: dict[str, Any], event: dict[str, Any], markets: list[dict[str, Any]], source_status: str) -> str:
+def _enrich_row(
+    row: dict[str, Any],
+    event: dict[str, Any],
+    markets: list[dict[str, Any]],
+    source_status: str,
+    *,
+    calibration_state: dict[str, Any] | None = None,
+    model_version: str | None = None,
+) -> str:
     family, selection, line, p_raw = _desired_offer(row, event)
     if family is None or selection is None:
         row["price_resolution_status"] = "PRICE_API_NO_EXACT_MARKET_MAPPING"
@@ -383,10 +549,24 @@ def _enrich_row(row: dict[str, Any], event: dict[str, Any], markets: list[dict[s
     row["price_resolution_bookmaker_count"] = offer.get("bookmaker_count")
     row["price_resolution_reference_policy"] = offer.get("reference_policy")
     row["price_resolution_calibrated_probability_added"] = False
+    _apply_phase16_calibration(
+        row,
+        event,
+        family=family,
+        selection=selection,
+        p_raw=p_raw,
+        calibration_state=calibration_state or {},
+        model_version=model_version,
+    )
     return source_status
 
 
-async def resolve_payload(payload: dict[str, Any], *, max_api_calls: int | None = None) -> dict[str, Any]:
+async def resolve_payload(
+    payload: dict[str, Any],
+    *,
+    max_api_calls: int | None = None,
+    calibration_state: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     rows = payload.get("match_table_rows") if isinstance(payload.get("match_table_rows"), list) else []
     events = payload.get("events") if isinstance(payload.get("events"), list) else []
     api_key = os.getenv("API_FOOTBALL_KEY", "").strip()
@@ -404,7 +584,10 @@ async def resolve_payload(payload: dict[str, Any], *, max_api_calls: int | None 
         and row.get("fixture_id") is not None
     ]
 
+    calibration_source = "INJECTED"
     async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SECONDS, follow_redirects=True) as client:
+        if calibration_state is None:
+            calibration_state, calibration_source = await _load_research_calibration_state(client)
         for row in targets:
             fixture_id = int(row["fixture_id"])
             event_index = row.get("row_index")
@@ -441,13 +624,25 @@ async def resolve_payload(payload: dict[str, Any], *, max_api_calls: int | None 
             markets, status = fixture_cache[fixture_id]
             if markets:
                 _attach_market_to_event(event, markets, status)
-                resolved_status = _enrich_row(row, event, markets, status)
+                resolved_status = _enrich_row(
+                    row,
+                    event,
+                    markets,
+                    status,
+                    calibration_state=calibration_state or {},
+                    model_version=str(payload.get("model_version") or ""),
+                )
             else:
                 row["price_resolution_status"] = status
                 resolved_status = status
             counts[resolved_status] += 1
 
     _apply_quota_accounting(payload, calls, provider_daily_remaining)
+
+    calibrated_rows_added = sum(
+        1 for row in targets
+        if row.get("price_resolution_calibrated_probability_added") is True
+    )
 
     payload["price_resolution_v4"] = {
         "schema_version": "1.0.0",
@@ -463,6 +658,9 @@ async def resolve_payload(payload: dict[str, Any], *, max_api_calls: int | None 
         "catalog_policy": "/odds/bookmakers and /odds/bets are metadata catalogs; fixture /odds response is authoritative for prices.",
         "simulated_odds_allowed": False,
         "calibrated_probability_fabricated": False,
+        "calibration_state_source": calibration_source,
+        "calibration_state_loaded": bool(calibration_state),
+        "calibrated_rows_added": calibrated_rows_added,
         "provider_requests_added": calls,
         "provider_daily_remaining_observed": provider_daily_remaining,
         "quota_accounting_included_in_api_calls_this_tick": True,
