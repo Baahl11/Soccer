@@ -269,6 +269,14 @@ This supersedes the historical v3 resume sequence above for the active Soccer Ed
 4. Keep 1X2 Draw in research hold until new non-circular predictive information exists; market price may remain an external reference/shrinkage input but must not be reused as supposedly independent model discrimination evidence.
 
 
+### FT Totals settlement audit — 2026-09-24
+- **Settlement count verified:** FT_TOTALS has 15 unique latest actionable decisions in the settlement ledger.
+- **Coverage audit:** 20 FT_TOTALS source snapshots with final result/market were found; **15 are IN_SETTLEMENT_LEDGER and 5 are DUPLICATE_OLDER_SNAPSHOT**.
+- **Conclusion:** there are no missing finalized eligible FT_TOTALS decisions to backfill. The current 15-settlement count is correct under latest-snapshot dedupe.
+- **Current evidence:** 35 unique true-CLV fixtures, 78 true-CLV rows, 15 settled decisions, hit rate ex-push 0.7333, ROI +3.3448 units / +0.223 per settled.
+- **Immediate gates:** directional settlement gate needs 5 more (15→20); Tier-B review needs 35 more settlements and 15 more unique fixtures (35→50).
+- **Action:** do not manufacture/replay duplicate settlements; allow natural accumulation. No threshold, tier, weight, stake or canonical bet logic changed.
+
 ### Team Totals exact-price / true-CLV enablement — 2026-09-24
 - **Root cause confirmed:** Team Totals research intelligence ran before `price_resolver_v4`. Real fixture odds could therefore be attached after Team Totals had already built, leaving `observed_exact_market_rows` empty even though the CLV pipeline already supported derivative Team Totals.
 - **Commit `efd7398`:** Team Totals is rebuilt after price resolution using the exact markets already fetched/loaded by the resolver. This adds zero provider requests.
