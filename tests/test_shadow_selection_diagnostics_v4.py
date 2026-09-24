@@ -53,3 +53,15 @@ def test_selection_diagnostics_is_research_only():
     assert report["provider_requests_added"] == 0
     assert report["production_promotion_allowed"] is False
     assert report["runtime_logic_changed"] is False
+
+
+def test_discrepancy_recheck_bucket_uses_raw_market_gap():
+    row = _watch(1, "T-10", "home", 3.5, edge=5.0, ev=8.0)
+    row["best_market"]["p_raw"] = 0.45
+    row["best_market"]["p_market_fair"] = 0.25
+    rows = [row, _final(1)]
+    report = v.build(rows)
+    stage = report["by_stage"]["T-10"]
+    assert stage["discrepancy_recheck_rows"] == 1
+    assert stage["by_watch_quality_bucket"]["DISCREPANCY_RECHECK"]["settled"] == 1
+    assert stage["by_raw_market_gap_band"]["GE_20PP_RECHECK"]["settled"] == 1
