@@ -1,4 +1,4 @@
-# Settlement freshness audit trigger: 2026-09-24-immediate-checkpoint
+# Settlement freshness audit trigger: 2026-09-24-legacy-postgres-union
 name: Soccer Edge Settlement Review
 
 on:
@@ -28,7 +28,7 @@ jobs:
         with: {ref: soccer-edge-mcp-v1, path: engine, fetch-depth: 1}
 
       - name: Compile settlement review modules
-        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py engine/mcp_gateway/shadow_settlement_v4.py engine/mcp_gateway/shadow_selection_diagnostics_v4.py engine/mcp_gateway/promotion_shadow_ledger_v4.py engine/mcp_gateway/settlement_postgres_v4.py
+        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py engine/mcp_gateway/shadow_settlement_v4.py engine/mcp_gateway/shadow_selection_diagnostics_v4.py engine/mcp_gateway/promotion_shadow_ledger_v4.py engine/mcp_gateway/settlement_postgres_v4.py engine/mcp_gateway/settlement_merge_v4.py
 
       - name: Build historical signal ledger
         run: python engine/mcp_gateway/build_signal_ledger.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/signal_ledger.jsonl --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
@@ -87,20 +87,30 @@ jobs:
             and (.runtime_logic_changed == false)
           ' /tmp/settlement_v4.json >/dev/null
 
-          # Always persist the read-only Postgres diagnostic, even if we retain
-          # the legacy canonical ledger due to a coverage regression.
+          # Persist the Postgres diagnostic and merge it with the legacy ledger.
+          # Git history remains the canonical source for the pre-compact period;
+          # Postgres extends that history after detailed events moved out of Git.
           jq 'del(.rows)' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/settlement_postgres_v4.json
 
-          NEW_TOTAL=$(jq -r '.market_performance_summary.settlement_decisions // 0' /tmp/settlement_v4.json)
-          NEW_FT=$(jq -r '.market_performance_summary.by_market_family.FT_TOTALS.settled // 0' /tmp/settlement_v4.json)
-          echo "Settlement coverage legacy_total=$LEGACY_TOTAL postgres_total=$NEW_TOTAL legacy_ft=$LEGACY_FT postgres_ft=$NEW_FT"
+          PYTHONPATH=engine python -m mcp_gateway.settlement_merge_v4 \
+            --legacy-ledger state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
+            --postgres-report /tmp/settlement_v4.json \
+            --output-ledger /tmp/bet_settlement_ledger_merged.jsonl \
+            --output-summary /tmp/market_performance_summary_merged.json \
+            --output-report state/soccer_edge_state/analysis/settlement_merge_v4.json
 
-          if [ "$NEW_TOTAL" -lt "$LEGACY_TOTAL" ] || [ "$NEW_FT" -lt "$LEGACY_FT" ]; then
-            echo "::warning::Postgres settlement coverage is below legacy coverage; preserving legacy canonical ledger while persisting diagnostics"
+          MERGED_TOTAL=$(jq -r '.settlement_decisions // 0' /tmp/market_performance_summary_merged.json)
+          MERGED_FT=$(jq -r '.by_market_family.FT_TOTALS.settled // 0' /tmp/market_performance_summary_merged.json)
+          POSTGRES_TOTAL=$(jq -r '.market_performance_summary.settlement_decisions // 0' /tmp/settlement_v4.json)
+          POSTGRES_FT=$(jq -r '.market_performance_summary.by_market_family.FT_TOTALS.settled // 0' /tmp/settlement_v4.json)
+          echo "Settlement coverage legacy_total=$LEGACY_TOTAL postgres_total=$POSTGRES_TOTAL merged_total=$MERGED_TOTAL legacy_ft=$LEGACY_FT postgres_ft=$POSTGRES_FT merged_ft=$MERGED_FT"
+
+          if [ "$MERGED_TOTAL" -lt "$LEGACY_TOTAL" ] || [ "$MERGED_FT" -lt "$LEGACY_FT" ]; then
+            echo "::warning::Merged settlement coverage regressed unexpectedly; preserving legacy canonical ledger while persisting diagnostics"
             echo "POSTGRES_SETTLEMENT_ACCEPTED=false" >> "$GITHUB_ENV"
           else
-            jq -c '.rows[]' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl
-            jq '.market_performance_summary' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/market_performance_summary.json
+            mv /tmp/bet_settlement_ledger_merged.jsonl state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl
+            mv /tmp/market_performance_summary_merged.json state/soccer_edge_state/analysis/market_performance_summary.json
             echo "POSTGRES_SETTLEMENT_ACCEPTED=true" >> "$GITHUB_ENV"
           fi
 
@@ -110,7 +120,8 @@ jobs:
           set -euo pipefail
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
-          git add -f soccer_edge_state/analysis/settlement_postgres_v4.json
+          git add -f soccer_edge_state/analysis/settlement_postgres_v4.json \
+            soccer_edge_state/analysis/settlement_merge_v4.json
           if [ "${POSTGRES_SETTLEMENT_ACCEPTED:-false}" = "true" ]; then
             git add -f soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
               soccer_edge_state/analysis/market_performance_summary.json
@@ -168,7 +179,8 @@ jobs:
             soccer_edge_state/analysis/settlement_backlog.jsonl \
             soccer_edge_state/analysis/postgame_final_backfill_queue.jsonl \
             soccer_edge_state/analysis/postgame_final_backfill_queue_summary.json \
-            soccer_edge_state/analysis/settlement_postgres_v4.json
+            soccer_edge_state/analysis/settlement_postgres_v4.json \
+            soccer_edge_state/analysis/settlement_merge_v4.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Soccer Edge settlement review"
           for attempt in 1 2 3; do
