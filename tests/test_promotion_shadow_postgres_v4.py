@@ -149,3 +149,11 @@ def test_legacy_candidate_without_current_policy_is_excluded():
     assert report["excluded_without_current_calibration_policy"] == 1
     assert report["promotion_evaluable"]["rows"] == 0
     assert report["families"]["FT_TOTALS"]["promotion_evaluable"]["rows"] == 0
+
+
+def test_pre_discrimination_candidates_are_excluded():
+    row = _row(99, "2026-09-20T17:40:00", "T-20", "home", 2.0, 0.60, 0.50)
+    row["phase16_candidate"].pop("evidence_regime", None)
+    report = v.build_report_from_rows([row])
+    assert report["promotion_evaluable"]["rows"] == 0
+    assert report["required_evidence_regime"] == "PHASE16_DISCRIMINATION_GATED_V2"
