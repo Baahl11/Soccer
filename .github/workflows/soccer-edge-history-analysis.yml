@@ -121,7 +121,20 @@ jobs:
         env: {PYTHONPATH: engine}
         run: python engine/mcp_gateway/build_corners_rate_registry.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/corners_rate_registry.json
       - name: Validate Team Corners research model
-        run: python engine/mcp_gateway/analyze_team_corners.py --baseline-report state/soccer_edge_state/analysis/corners_baseline.json --output state/soccer_edge_state/analysis/team_corners_validation.json
+        run: |
+          python engine/mcp_gateway/analyze_team_corners.py --baseline-report state/soccer_edge_state/analysis/corners_baseline.json --output state/soccer_edge_state/analysis/team_corners_validation.json
+          python - <<'PY'
+          import json
+          p="state/soccer_edge_state/analysis/team_corners_validation.json"
+          d=json.load(open(p, encoding="utf-8"))
+          stability=d.get("league_venue_stability")
+          assert isinstance(stability, dict)
+          print("TEAM_CORNERS_LEAGUE_VENUE_STABILITY=" + json.dumps({
+              "review_ready": stability.get("review_ready"),
+              "review_eligible_segments": stability.get("review_eligible_segments"),
+              "segment_count": stability.get("segment_count"),
+          }, sort_keys=True))
+          PY
       - name: Evaluate yellow-card baseline
         run: python engine/mcp_gateway/analyze_cards_baseline.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/cards_baseline.json
       - name: Build live yellow-card rate registry
