@@ -229,3 +229,25 @@ Natural validation is asynchronous and non-blocking. A module is not called full
 
 ## Next engineering target
 #44 Galaxy SGP correlation remains the active roadmap item: extend joint models beyond score-matrix families only when defensible. In parallel, validate v3.57 #45 odds-catalog audit naturally so internal SGP fair price and executable sportsbook quote remain explicitly separate.
+
+## V4 continuity checkpoint — 2026-09-24
+
+This supersedes the historical v3 resume sequence above for the active Soccer Edge v4 workstream.
+
+### Phase16 → G6 discrimination evidence hardening
+- **Baseline reconciled:** branch `soccer-edge-mcp-v1` had already advanced through Phase16 rankability diagnostics, multimarket promotion shadow settlement, current-model calibration policy gating and OOS discrimination gating.
+- **Commit `8ffadc7`:** Phase16 preserves specific calibration gate reasons such as `SELECTION_DISCRIMINATION_NOT_READY` instead of collapsing them into generic missing-calibration diagnostics.
+- **Commit `77357fc`:** 1X2 candidates now carry Home/Draw/Away discrimination readiness through price resolver → Phase16 → persisted Postgres promotion shadow → Phase19/G6.
+- **Family safety rule:** valid Home/Away evidence may continue accumulating, but 1X2 cannot advance beyond SHADOW while any of HOME_WIN / DRAW / AWAY_WIN remains without current-model discrimination readiness.
+- **Current known blocker example:** when DRAW is not ready, G6 reports `PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW`.
+- **Regression validation:** Soccer Edge V4 Runtime Tests passed **139/139** on `77357fc`.
+- **Provider calls changed:** 0.
+- **Model weights changed:** no.
+- **Canonical bet logic changed:** no.
+- **Automatic promotion:** still prohibited; manual approval remains mandatory after every evidence gate passes.
+- **Deploy state at checkpoint write:** GitHub code/tests complete; Render deployment of the new HEAD must be observed before marking this block LIVE.
+
+### Next
+1. Confirm Render reaches the current branch HEAD and observe a natural `/internal/tick` on that deployed version.
+2. Inspect the resulting Phase16/G6 diagnostics and confirm 1X2 exposes the class-readiness blocker naturally.
+3. Continue accumulating settlement + true CLV + OOS evidence by market family; do not lower gates to manufacture rankable candidates.
