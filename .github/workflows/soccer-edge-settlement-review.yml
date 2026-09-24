@@ -1,4 +1,4 @@
-# Settlement freshness audit trigger: 2026-09-24-atomic-source-merge
+# Settlement freshness audit trigger: 2026-09-24-autostash-checkpoints
 name: Soccer Edge Settlement Review
 
 on:
@@ -105,7 +105,7 @@ jobs:
           git commit -m "Update Postgres settlement source diagnostic"
           for attempt in 1 2 3; do
             git fetch origin soccer-edge-state
-            git rebase origin/soccer-edge-state
+            git rebase --autostash origin/soccer-edge-state
             if git push origin HEAD:soccer-edge-state; then exit 0; fi
             sleep $((attempt * 2))
           done
@@ -153,7 +153,7 @@ jobs:
           git commit -m "Update merged settlement checkpoint"
           for attempt in 1 2 3; do
             git fetch origin soccer-edge-state
-            git rebase origin/soccer-edge-state
+            git rebase --autostash origin/soccer-edge-state
             if git push origin HEAD:soccer-edge-state; then exit 0; fi
             sleep $((attempt * 2))
           done
