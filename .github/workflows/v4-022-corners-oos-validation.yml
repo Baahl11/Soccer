@@ -2,6 +2,9 @@ name: V4-022 Corners OOS Validation
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Soccer Edge Formation Intelligence"]
+    types: [completed]
   push:
     branches: [main]
     paths: [".github/workflows/v4-022-corners-oos-validation.yml"]
@@ -11,6 +14,7 @@ permissions:
 
 jobs:
   validate:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -55,10 +59,11 @@ jobs:
         run: |
           set -euo pipefail
           jq -e '.ticket == "V4-022"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
-          jq -e '.model_version == "SOCCER_CORNERS_OOS_VALIDATION_V4_1.2.0"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
+          jq -e '.model_version == "SOCCER_CORNERS_OOS_VALIDATION_V4_1.3.0"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '.family_views.FT_CORNERS.true_clv.family_specific == true' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '.family_views.TEAM_CORNERS.true_clv.family_specific == true' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
+          jq -e '(.ft_corners.formation_lift_by_league | type) == "object"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '(.family_views.FT_CORNERS.blockers | type) == "array"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '(.family_views.TEAM_CORNERS.blockers | type) == "array"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '(.family_views.FT_CORNERS.blockers | index("SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED")) == null' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
