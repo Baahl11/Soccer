@@ -209,25 +209,27 @@ def formation_eligibility_audit(
         rec = fixtures.get(fid) or {}
         audit = rec.get("lineup_audit") or {}
 
+        obs = [x for x in rec.get("lineup_obs") or [] if x[0] is not None]
+        kickoff_ts = formation_v2.base.parse_dt(rec.get("kickoff_local"))
+        pre_obs = [x for x in obs if kickoff_ts is not None and x[0] <= kickoff_ts]
+        post_obs = [x for x in obs if kickoff_ts is not None and x[0] > kickoff_ts]
+
         if row.get("matchup"):
             timing_integrity["matchup_present_rows"] += 1
-            if int(audit.get("valid_both_prekickoff") or 0) > 0:
+            if pre_obs:
                 timing_integrity["matchup_present_with_any_valid_prekickoff"] += 1
-            elif int(audit.get("valid_both_postkickoff") or 0) > 0:
+            elif post_obs:
                 timing_integrity["matchup_present_only_postkickoff"] += 1
 
-            obs = [x for x in rec.get("lineup_obs") or [] if x[0] is not None]
             if obs:
                 obs.sort(key=lambda x: x[0])
                 selected_ts = obs[-1][0]
-                kickoff_ts = formation_v2.base.parse_dt(rec.get("kickoff_local"))
                 if kickoff_ts is None:
                     timing_integrity["selected_formation_missing_timestamp"] += 1
                 elif selected_ts <= kickoff_ts:
                     timing_integrity["selected_formation_prekickoff_or_at_kickoff"] += 1
                 else:
                     timing_integrity["selected_formation_postkickoff"] += 1
-                    pre_obs = [x for x in obs if x[0] <= kickoff_ts]
                     latest_pre = pre_obs[-1] if pre_obs else None
                     timing_integrity["selected_postkickoff_rows"].append({
                         "fixture_id": fid,
@@ -255,8 +257,8 @@ def formation_eligibility_audit(
             reason = "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8"
             recoverable = False
         else:
-            valid_pre = int(audit.get("valid_both_prekickoff") or 0)
-            valid_post = int(audit.get("valid_both_postkickoff") or 0)
+            valid_pre = len(pre_obs)
+            valid_post = len(post_obs)
             valid_no_ts = int(audit.get("valid_both_missing_timestamp") or 0)
             one_team = int(audit.get("confirmed_one_team_only") or 0)
             unrecognized = int(audit.get("confirmed_unrecognized_mapping") or 0)
