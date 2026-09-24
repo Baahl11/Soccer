@@ -3,7 +3,9 @@ name: V4 Market Validation Refresh
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["Phase 17 Postgres CLV Validation - Canonical Refresh"]
+    workflows:
+      - "Phase 17 Postgres CLV Validation - Canonical Refresh"
+      - "Phase 13 OOS Calibration Validation"
     types: [completed]
   push:
     branches: [main]
@@ -42,9 +44,15 @@ jobs:
         run: |
           set -euo pipefail
           CLV="../state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl"
+          OOS="../state/soccer_edge_state/analysis/oos_calibration_v4_report.json"
           test -f "$CLV"
 
-          PYTHONPATH=. python -m mcp_gateway.ft_totals_validation_v4             --ft-validation ../state/soccer_edge_state/analysis/ft_totals_validation.json             --market-summary ../state/soccer_edge_state/analysis/market_performance_summary.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
+          OOS_FLAG=""
+          if [ -f "$OOS" ] && jq -e '.status == "OOS_CALIBRATION_MATERIALIZED"' "$OOS" >/dev/null; then
+            OOS_FLAG="--v4-oos-calibration-available"
+          fi
+
+          PYTHONPATH=. python -m mcp_gateway.ft_totals_validation_v4             --ft-validation ../state/soccer_edge_state/analysis/ft_totals_validation.json             --market-summary ../state/soccer_edge_state/analysis/market_performance_summary.json             --true-clv-tracking "$CLV"             $OOS_FLAG             --output ../state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
 
           PYTHONPATH=. python -m mcp_gateway.one_x_two_validation_v4             --calibration ../state/soccer_edge_state/analysis/one_x_two_calibration.json             --prior-calibration ../state/soccer_edge_state/analysis/one_x_two_prior_calibration.json             --market-summary ../state/soccer_edge_state/analysis/market_performance_summary.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/v4_017_1x2_calibration_validation.json
 
