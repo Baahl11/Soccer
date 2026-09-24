@@ -8,8 +8,8 @@ from typing import Any, Iterable
 
 from mcp_gateway import persistence
 
-SCHEMA_VERSION = "1.2.0"
-MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.2.0"
+SCHEMA_VERSION = "1.3.0"
+MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.3.0"
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
 SUPPORTED_FAMILIES = {"1X2", "FT_TOTALS", "BTTS"}
 DIRECTIONAL_MIN = 20
@@ -150,6 +150,8 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
         candidate = row.get("phase16_candidate")
         if not isinstance(candidate, dict) or candidate.get("rankable") is not True:
             continue
+        if candidate.get("promotion_shadow_eligible") is not True:
+            continue
         family = str(candidate.get("market_family") or "").upper()
         if family not in SUPPORTED_FAMILIES:
             continue
@@ -206,6 +208,9 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
             "settlement_status": "SETTLED" if outcome in {"WIN", "LOSS", "PUSH"} else outcome,
             "roi_units": _roi(outcome, candidate.get("price")),
             "rankable": True,
+            "promotion_shadow_eligible": True,
+            "phase16_calibration_source": candidate.get("phase16_calibration_source"),
+            "phase16_calibration_policy": candidate.get("phase16_calibration_policy"),
             "signal_source": "PERSISTED_PHASE16_MARKET_MISMATCH",
         })
 
@@ -275,7 +280,18 @@ def _family_report(family: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
-    rows = normalize_rows(raw_rows)
+    raw_list = [row for row in raw_rows if isinstance(row, dict)]
+    supported_rankable_rows = [
+        row for row in raw_list
+        if isinstance(row.get("phase16_candidate"), dict)
+        and row["phase16_candidate"].get("rankable") is True
+        and str(row["phase16_candidate"].get("market_family") or "").upper() in SUPPORTED_FAMILIES
+    ]
+    excluded_without_current_calibration_policy = sum(
+        1 for row in supported_rankable_rows
+        if row["phase16_candidate"].get("promotion_shadow_eligible") is not True
+    )
+    rows = normalize_rows(raw_list)
     by_family_raw: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         by_family_raw[str(row.get("market_family") or "UNKNOWN")].append(row)
@@ -290,6 +306,8 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
         "status": "PROMOTION_SHADOW_POSTGRES_ACTIVE",
         "supported_market_families": sorted(SUPPORTED_FAMILIES),
         "source_regime": _current_source_regime(rows),
+        "phase16_rankable_supported_rows_seen": len(supported_rankable_rows),
+        "excluded_without_current_calibration_policy": excluded_without_current_calibration_policy,
         "promotion_evaluable": aggregate,
         "families": families,
         "rows": rows,
@@ -299,6 +317,7 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
         "notes": [
             "Reads persisted Phase16 market_mismatch_rows directly; legacy WATCH best_market and research-visibility rows are excluded.",
             "Candidates enter the ledger immediately as PENDING and settle automatically after soccer_results receives final goals.",
+            "Only Phase16 candidates explicitly marked promotion_shadow_eligible under the current calibration policy are admitted; legacy candidates are excluded.",
             "At most the latest pre-kickoff primary rankable candidate per fixture and market family is retained.",
             "Supported settlement families are 1X2, FT_TOTALS and BTTS; PUSH is supported for integer totals.",
             "The latest available versioned source regime is used to avoid mixing old model regimes.",
