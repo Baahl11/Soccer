@@ -1,66 +1,88 @@
 {
   "canonical_merge_version": "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.0.0",
-  "comparable_true_clv_rows": 1568,
-  "derivative_event_rows_loaded": 31,
-  "derivative_market_rows_loaded": 1448,
+  "comparable_true_clv_rows": 1712,
+  "derivative_event_rows_loaded": 27,
+  "derivative_family_counts": {
+    "1H": 837,
+    "FT_CORNERS": 541,
+    "TEAM_CORNERS": 153
+  },
+  "derivative_family_counts_raw": {
+    "1H": 1110,
+    "2H": 196,
+    "FT_CORNERS": 541,
+    "TEAM_CORNERS": 153
+  },
+  "derivative_market_rows_loaded": 1531,
   "derivative_market_rows_loaded_raw": 2000,
-  "derivative_period_team_total_rows_excluded": 552,
+  "derivative_period_team_total_rows_excluded": 469,
+  "derivative_source_counts": {
+    "DERIVATIVE_INTELLIGENCE:corners_intelligence": 694,
+    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 837
+  },
+  "derivative_source_counts_raw": {
+    "DERIVATIVE_INTELLIGENCE:corners_intelligence": 694,
+    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 837,
+    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 469
+  },
   "family_counts": {
-    "1H": 976,
-    "1X2": 72,
+    "1H": 837,
+    "1X2": 82,
     "BTTS": 21,
-    "FT_CORNERS": 297,
-    "FT_TOTALS": 27,
-    "TEAM_CORNERS": 175
+    "FT_CORNERS": 541,
+    "FT_TOTALS": 78,
+    "TEAM_CORNERS": 153
   },
   "historical_backfill_rows_added": 56,
   "historical_backfill_unique_fixtures": 56,
-  "legacy_signal_rows_loaded": 140,
+  "legacy_signal_rows_loaded": 209,
   "lookback_days": 60,
   "minimum_true_close_rows": 50,
-  "model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.4",
+  "model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.6",
   "notes": [
     "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; period-specific team totals are excluded from generic 1H/2H and FT team-total CLV until they have dedicated families; capped source reads prioritize recent pre-kickoff signals, close lookup reads only the latest pre-kickoff snapshot per bookmaker/market in bounded fixture batches, and legacy event best_market rows are fallback-only.",
+    "Pipeline and legacy SQL select only CLV-required event metadata instead of duplicating full refresh payload JSON per signal; source collections are released before snapshot matching to stay within the runtime memory envelope without reducing the signal cap.",
     "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
+    "Derivative source/family counts are reported before and after period-team-total exclusion so missing Team Totals can be localized to generation versus close matching.",
     "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
     "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
     "Line movement may still be recorded when the selected side survives but the sportsbook line changes.",
     "Same-book close is preferred; otherwise the latest cross-book snapshot at the latest pre-kickoff timestamp is used.",
     "Historical dedicated-close backfill adds at most one latest pre-kickoff row per fixture/family and is skipped whenever Postgres already covers that fixture/family."
   ],
-  "pipeline_market_rows_loaded": 141,
+  "pipeline_market_rows_loaded": 210,
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
   "schema_version": "1.0.0",
-  "signal_rows_considered": 1589,
+  "signal_rows_considered": 1741,
   "signal_source_counts": {
-    "DERIVATIVE_INTELLIGENCE:corners_intelligence": 472,
-    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 976,
+    "DERIVATIVE_INTELLIGENCE:corners_intelligence": 694,
+    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 837,
     "HISTORICAL_DEDICATED_CLOSE": 56,
-    "PIPELINE_MATCH_TABLE": 64
+    "PIPELINE_MATCH_TABLE": 125
   },
   "skip_reason_market_counts": {
     "INVALID_ENTRY_PRICE": {
-      "FT_BTTS_RESEARCH | Both Teams To Score": 12,
+      "FT_BTTS_RESEARCH | Both Teams To Score": 14,
       "FT_TOTALS_RESEARCH | Goals Over/Under": 42
     },
     "UNMAPPED_MARKET_FAMILY": {
-      "SPORTING_SCREEN | Research screen": 23
+      "SPORTING_SCREEN | Research screen": 29
     }
   },
   "skip_reasons": {
-    "INVALID_ENTRY_PRICE": 54,
-    "UNMAPPED_MARKET_FAMILY": 23
+    "INVALID_ENTRY_PRICE": 56,
+    "UNMAPPED_MARKET_FAMILY": 29
   },
   "snapshot_fixture_batch_size": 50,
   "status": "ACTIVE_TRUE_CLV_SAMPLE",
-  "tracked_rows": 1568,
+  "tracked_rows": 1712,
   "unique_fixtures_by_family": {
-    "1H": 18,
-    "1X2": 61,
+    "1H": 12,
+    "1X2": 67,
     "BTTS": 16,
-    "FT_CORNERS": 13,
-    "FT_TOTALS": 14,
-    "TEAM_CORNERS": 7
+    "FT_CORNERS": 11,
+    "FT_TOTALS": 35,
+    "TEAM_CORNERS": 10
   }
 }
