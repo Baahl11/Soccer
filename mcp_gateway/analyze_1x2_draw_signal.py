@@ -51,16 +51,15 @@ def extract_same_cohort(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, 
     clean = [row for row in rows if isinstance(row, dict)]
     finals: dict[int, str] = {}
     for row in clean:
-        fixture_id = row.get("fixture_id")
-        outcome = _final_outcome(row.get("result"))
         try:
-            fixture_id = int(fixture_id)
+            fixture_id = int(row.get("fixture_id"))
         except (TypeError, ValueError):
             continue
+        outcome = _final_outcome(row.get("result"))
         if outcome:
             finals[fixture_id] = outcome
 
-    latest: dict[int, dict[str, Any]] = {}
+    grouped: dict[int, list[tuple[datetime, dict[str, Any]]]] = {}
     for row in clean:
         try:
             fixture_id = int(row.get("fixture_id"))
@@ -68,55 +67,61 @@ def extract_same_cohort(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, 
             continue
         if fixture_id not in finals:
             continue
-        raw = row.get("raw_projection") if isinstance(row.get("raw_projection"), dict) else {}
-        home_lambda = _num(raw.get("raw_home_goal_rate"))
-        away_lambda = _num(raw.get("raw_away_goal_rate"))
-        probabilities = [
-            _num(raw.get("raw_home_win_prob")),
-            _num(raw.get("raw_draw_prob")),
-            _num(raw.get("raw_away_win_prob")),
-        ]
         generated_at = _parse_dt(row.get("generated_at_local"))
         kickoff = _parse_dt(row.get("kickoff_local"))
-        if (
-            home_lambda is None
-            or away_lambda is None
-            or any(value is None or value < 0.0 for value in probabilities)
-            or generated_at is None
-            or kickoff is None
-            or generated_at >= kickoff
-        ):
+        if generated_at is None or kickoff is None or generated_at >= kickoff:
             continue
-        total = sum(float(value) for value in probabilities)
-        if total <= 0:
+        grouped.setdefault(fixture_id, []).append((generated_at, row))
+
+    latest: dict[int, dict[str, Any]] = {}
+    for fixture_id, fixture_rows in grouped.items():
+        fixture_rows.sort(key=lambda item: item[0])
+        raw_state: dict[str, Any] | None = None
+        safe_feature_state: dict[str, float] = {}
+        latest_timestamp: datetime | None = None
+
+        for generated_at, row in fixture_rows:
+            latest_timestamp = generated_at
+            safe_feature_state.update(_source_safe_feature_values(row))
+
+            raw = row.get("raw_projection") if isinstance(row.get("raw_projection"), dict) else {}
+            home_lambda = _num(raw.get("raw_home_goal_rate"))
+            away_lambda = _num(raw.get("raw_away_goal_rate"))
+            probabilities = [
+                _num(raw.get("raw_home_win_prob")),
+                _num(raw.get("raw_draw_prob")),
+                _num(raw.get("raw_away_win_prob")),
+            ]
+            if (
+                home_lambda is None
+                or away_lambda is None
+                or any(value is None or value < 0.0 for value in probabilities)
+            ):
+                continue
+            total = sum(float(value) for value in probabilities)
+            if total <= 0:
+                continue
+            normalized = [float(value) / total for value in probabilities]
+            raw_state = {
+                "home_lambda": home_lambda,
+                "away_lambda": away_lambda,
+                "home_probability": normalized[0],
+                "draw_probability": normalized[1],
+                "away_probability": normalized[2],
+            }
+
+        if raw_state is None or latest_timestamp is None:
             continue
-        normalized = [float(value) / total for value in probabilities]
-        candidate = {
+        latest[fixture_id] = {
             "fixture_id": fixture_id,
-            "timestamp": row.get("generated_at_local"),
-            "home_lambda": home_lambda,
-            "away_lambda": away_lambda,
-            "home_probability": normalized[0],
-            "draw_probability": normalized[1],
-            "away_probability": normalized[2],
-            "availability_confidence": _num(row.get("availability_confidence")),
-            "safe_context": {
-                "raw_projection.sample": raw.get("sample"),
-                "raw_projection.screen_scores": raw.get("screen_scores"),
-                "raw_projection.relative_strength_shadow": raw.get("relative_strength_shadow"),
-                "sporting_shortlist": row.get("sporting_shortlist"),
-                "sporting_screen_initial": row.get("sporting_screen_initial"),
-                "sporting_screen_refined": row.get("sporting_screen_refined"),
-            },
+            "timestamp": latest_timestamp.isoformat(),
+            **raw_state,
+            "safe_feature_values": dict(safe_feature_state),
             "actual": finals[fixture_id],
         }
-        prior = latest.get(fixture_id)
-        if prior is None or str(candidate["timestamp"]) > str(prior["timestamp"]):
-            latest[fixture_id] = candidate
 
     ordered = sorted(latest.values(), key=lambda row: str(row["timestamp"]))
     return ordered[SAME_COHORT_WARMUP:], len(ordered)
-
 
 def _entropy(probabilities: tuple[float, float, float]) -> float:
     return -sum(value * math.log(max(value, 1e-15)) for value in probabilities)
@@ -158,8 +163,8 @@ def _flatten_numeric(prefix: str, value: Any, out: dict[str, float]) -> None:
         return
     numeric = _num(value)
     if numeric is not None and not isinstance(value, (dict, list, tuple)):
-        path_tokens = {token.lower() for token in prefix.replace("[", ".").replace("]", "").split(".") if token}
-        if not (path_tokens & SAFE_FEATURE_EXCLUDED_TOKENS):
+        path_lower = prefix.lower()
+        if not any(token in path_lower for token in SAFE_FEATURE_EXCLUDED_TOKENS):
             out[prefix] = numeric
         return
     if not isinstance(value, dict):
@@ -169,16 +174,36 @@ def _flatten_numeric(prefix: str, value: Any, out: dict[str, float]) -> None:
         _flatten_numeric(child, nested, out)
 
 
-def safe_persisted_feature_values(row: dict[str, Any]) -> dict[str, float]:
+def _source_safe_feature_values(row: dict[str, Any]) -> dict[str, float]:
     out: dict[str, float] = {}
     availability = _num(row.get("availability_confidence"))
     if availability is not None:
         out["availability_confidence"] = availability
-    safe_context = row.get("safe_context") if isinstance(row.get("safe_context"), dict) else {}
-    for namespace, value in safe_context.items():
+
+    raw = row.get("raw_projection") if isinstance(row.get("raw_projection"), dict) else {}
+    namespaces = {
+        "raw_projection.sample": raw.get("sample"),
+        "raw_projection.screen_scores": raw.get("screen_scores"),
+        "raw_projection.relative_strength_shadow": raw.get("relative_strength_shadow"),
+        "sporting_shortlist": row.get("sporting_shortlist"),
+        "sporting_screen_initial": row.get("sporting_screen_initial"),
+        "sporting_screen_refined": row.get("sporting_screen_refined"),
+    }
+    for namespace, value in namespaces.items():
         if isinstance(value, dict):
-            _flatten_numeric(str(namespace), value, out)
+            _flatten_numeric(namespace, value, out)
     return out
+
+
+def safe_persisted_feature_values(row: dict[str, Any]) -> dict[str, float]:
+    values = row.get("safe_feature_values")
+    if isinstance(values, dict):
+        return {
+            str(key): float(value)
+            for key, value in values.items()
+            if _num(value) is not None
+        }
+    return _source_safe_feature_values(row)
 
 
 def _two_sided_feature_discrimination(observations: list[tuple[float, int]]) -> dict[str, Any]:
@@ -353,6 +378,8 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "recommendation": (
             "BUILD_WALK_FORWARD_DRAW_CHALLENGER_FROM_PERSISTED_FEATURE_CANDIDATES"
             if persisted_candidates
+            else "BUILD_DRAW_CHALLENGER_FROM_VERIFIED_SIGNAL"
+            if ready_signals
             else "CURRENT_PERSISTED_SAFE_FEATURES_DO_NOT_SHOW_STABLE_UNIVARIATE_DRAW_SIGNAL"
         ),
         "provider_requests_added": 0,
@@ -360,7 +387,8 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "model_weights_changed": False,
         "canonical_bet_logic_changed": False,
         "notes": [
-            "Uses the same latest pre-kickoff fixture cohort convention as the Dixon-Coles audit and drops the same first 30 fixtures for matched comparison.",
+            "Uses the same pre-kickoff fixture cohort as the Dixon-Coles audit and drops the same first 30 fixtures for matched comparison.",
+            "Safe context uses point-in-time carry-forward: for each fixture, the last known approved pre-kickoff feature value is carried to the latest pre-kickoff snapshot, never across kickoff.",
             "Signal direction is authored so larger scores should indicate higher draw propensity.",
             "This audit is diagnostic only and does not fit or select a production model.",
             "Persisted feature screening is restricted to approved pre-kickoff non-market namespaces and excludes price/odds/market/result paths.",

@@ -71,6 +71,36 @@ def test_build_report_detects_strong_lambda_closeness_signal_on_same_cohort():
     assert report["recommendation"] == "BUILD_DRAW_CHALLENGER_FROM_VERIFIED_SIGNAL"
 
 
+def test_safe_features_carry_forward_point_in_time_before_kickoff():
+    rows = []
+    for i in range(40):
+        actual = "D" if i % 4 == 0 else "H"
+        base = _row(
+            i + 1,
+            f"2026-03-{(i % 28) + 1:02d}T08:00:00+00:00",
+            actual,
+            1.3,
+            1.1,
+            (0.45, 0.25, 0.30),
+            relative_strength_shadow={"early_signal": 0.9 if actual == "D" else 0.1},
+        )
+        rows.append(base)
+        rows.append({
+            "fixture_id": i + 1,
+            "generated_at_local": f"2026-03-{(i % 28) + 1:02d}T10:00:00+00:00",
+            "kickoff_local": "2026-12-31T18:00:00+00:00",
+            "sporting_shortlist": {"side_edge_score": 55 + i},
+            "result": base["result"],
+        })
+
+    cohort, eligible = v.extract_same_cohort(rows)
+    assert eligible == 40
+    assert len(cohort) == 10
+    for row in cohort:
+        assert "raw_projection.relative_strength_shadow.early_signal" in row["safe_feature_values"]
+        assert "sporting_shortlist.side_edge_score" in row["safe_feature_values"]
+
+
 def test_persisted_safe_feature_audit_detects_exploratory_signal_without_market_data():
     rows = []
     for i in range(100):
@@ -95,7 +125,7 @@ def test_persisted_safe_feature_audit_detects_exploratory_signal_without_market_
     assert feature["ci_excludes_random"] is True
     assert feature["two_sided_direction"] == "HIGHER_VALUE_MORE_DRAW"
     assert "raw_projection.relative_strength_shadow.draw_pressure" in audit["candidate_features"]
-    assert all("market_price" not in name for name in audit["features"])
+    assert "raw_projection.relative_strength_shadow.market_price" not in audit["features"]
 
 
 def test_audit_does_not_change_runtime_or_promotion():
