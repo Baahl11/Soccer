@@ -153,3 +153,22 @@ def test_auc_discrimination_gate_allows_clear_signal(monkeypatch):
     assert calibrators["btts"]["discrimination"]["auc_lower_95"] > 0.5
     assert calibrators["btts"]["discrimination"]["discrimination_ready"] is True
     assert calibrators["btts"]["eligible_for_phase16_research"] is True
+
+
+def test_phase16_discrimination_gate_blocks_near_chance_binary_target():
+    observations = []
+    for i in range(200):
+        observations.append({"probability": 0.51 if i % 2 == 0 else 0.49, "outcome": i % 2})
+    result = v._auc_discrimination(observations)
+    assert result["passes_phase16_gate"] is False
+    assert result["lower_95"] <= 0.50
+
+
+def test_phase16_discrimination_gate_accepts_clear_signal():
+    observations = []
+    for i in range(100):
+        observations.append({"probability": 0.8, "outcome": 1})
+        observations.append({"probability": 0.2, "outcome": 0})
+    result = v._auc_discrimination(observations)
+    assert result["auc"] == 1.0
+    assert result["passes_phase16_gate"] is True
