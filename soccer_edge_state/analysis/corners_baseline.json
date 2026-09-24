@@ -3276,8 +3276,8 @@
       "formation_scale": 1.0,
       "kickoff_local": "2026-09-19T19:50:00-06:00",
       "league_id": 254,
-      "matchup": "4-3-3 vs 4-2-3-1",
-      "prior_matchup_n": 3,
+      "matchup": null,
+      "prior_matchup_n": 0,
       "prior_pool_n": 177
     },
     {
@@ -3299,7 +3299,7 @@
       "kickoff_local": "2026-09-19T20:30:00-06:00",
       "league_id": 253,
       "matchup": "4-3-3 vs 4-2-3-1",
-      "prior_matchup_n": 4,
+      "prior_matchup_n": 3,
       "prior_pool_n": 178
     },
     {
@@ -4839,7 +4839,7 @@
       "kickoff_local": "2026-09-21T09:00:00-06:00",
       "league_id": 283,
       "matchup": "4-3-3 vs 4-2-3-1",
-      "prior_matchup_n": 5,
+      "prior_matchup_n": 4,
       "prior_pool_n": 248
     },
     {
@@ -5420,14 +5420,15 @@
   "formation_eligibility_audit": {
     "excluded_from_formation_adjustment": 205,
     "formation_adjusted_evaluations": 39,
-    "formation_present_but_prior_matchup_lt_8": 151,
-    "missing_matchup_rows": 54,
+    "formation_present_but_prior_matchup_lt_8": 150,
+    "missing_matchup_rows": 55,
     "oos_evaluations": 244,
     "policy": "AUDIT_ONLY; NO_SYNTHETIC_FORMATIONS; PREKICKOFF_SNAPSHOT_REQUIRED; POSTKICKOFF_FORMATIONS_NEVER_BACKFILLED_INTO_OOS",
     "prediction_point_definition": "fixture kickoff timestamp; formation evidence must exist at or before kickoff",
     "reason_counts": {
       "CONFIRMED_XI_WITHOUT_FORMATION_VALUE": 7,
-      "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8": 151,
+      "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8": 150,
+      "FORMATION_TIMESTAMP_POSTERIOR_TO_PREDICTION_POINT": 1,
       "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP": 14,
       "LINEUP_NOT_CONFIRMED_AT_SNAPSHOT": 33
     },
@@ -8356,9 +8357,9 @@
           "valid_both_postkickoff": 0,
           "valid_both_prekickoff": 1
         },
-        "matchup": "4-3-3 vs 4-2-3-1",
-        "prior_matchup_n": 3,
-        "reason": "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8",
+        "matchup": null,
+        "prior_matchup_n": 0,
+        "reason": "FORMATION_TIMESTAMP_POSTERIOR_TO_PREDICTION_POINT",
         "recoverable_by_reconciliation": false
       },
       {
@@ -8381,7 +8382,7 @@
           "valid_both_prekickoff": 1
         },
         "matchup": "4-3-3 vs 4-2-3-1",
-        "prior_matchup_n": 4,
+        "prior_matchup_n": 3,
         "reason": "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8",
         "recoverable_by_reconciliation": false
       },
@@ -9821,7 +9822,7 @@
           "valid_both_prekickoff": 2
         },
         "matchup": "4-3-3 vs 4-2-3-1",
-        "prior_matchup_n": 5,
+        "prior_matchup_n": 4,
         "reason": "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8",
         "recoverable_by_reconciliation": false
       },
@@ -10356,24 +10357,12 @@
     ],
     "timing_integrity": {
       "matchup_present_only_postkickoff": 0,
-      "matchup_present_rows": 190,
-      "matchup_present_with_any_valid_prekickoff": 190,
+      "matchup_present_rows": 189,
+      "matchup_present_with_any_valid_prekickoff": 189,
       "selected_formation_missing_timestamp": 0,
-      "selected_formation_postkickoff": 1,
+      "selected_formation_postkickoff": 0,
       "selected_formation_prekickoff_or_at_kickoff": 189,
-      "selected_postkickoff_rows": [
-        {
-          "fixture_id": 1508551,
-          "kickoff_local": "2026-09-19T19:50:00-06:00",
-          "latest_prekickoff_matchup": null,
-          "latest_prekickoff_timestamp": null,
-          "league_id": 254,
-          "prior_matchup_n": 3,
-          "reported_matchup": "4-3-3 vs 4-2-3-1",
-          "selected_matchup": "4-3-3 vs 4-2-3-1",
-          "selected_timestamp": "2026-09-19T19:56:08.150952-06:00"
-        }
-      ]
+      "selected_postkickoff_rows": []
     }
   },
   "formation_lift_by_league": {
