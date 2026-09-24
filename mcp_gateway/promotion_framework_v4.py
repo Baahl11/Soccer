@@ -8,7 +8,7 @@ import re
 from typing import Any
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.8.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.9.0"
 
 STATES = (
     "DORMANT",
@@ -316,6 +316,51 @@ def _stability_for_family(stability_report: dict[str, Any], keys: tuple[str, ...
     }
 
 
+def _one_x_two_discrimination_fallback(oos_stage_diagnostics: dict[str, Any] | None) -> dict[str, Any]:
+    report = oos_stage_diagnostics if isinstance(oos_stage_diagnostics, dict) else {}
+    targets = report.get("current_model_deployment_calibrators")
+    targets = targets if isinstance(targets, dict) else {}
+    class_names = ("home_win", "draw", "away_win")
+
+    diagnostics: dict[str, Any] = {}
+    not_ready: list[str] = []
+    for target in class_names:
+        target_report = targets.get(target) if isinstance(targets.get(target), dict) else {}
+        discrimination = (
+            target_report.get("discrimination")
+            if isinstance(target_report.get("discrimination"), dict)
+            else {}
+        )
+        ready = target_report.get("eligible_for_phase16_research") is True
+        diagnostics[target] = {
+            "rows": int(target_report.get("rows") or 0),
+            "positive_count": int(discrimination.get("positive_count") or 0),
+            "negative_count": int(discrimination.get("negative_count") or 0),
+            "auc": _num(discrimination.get("auc")),
+            "auc_lower_95": _num(discrimination.get("auc_lower_95")),
+            "brier_delta": _num(target_report.get("brier_delta")),
+            "log_loss_delta": _num(target_report.get("log_loss_delta")),
+            "ready": ready,
+            "source": "OOS_STAGE_DIAGNOSTICS_CURRENT_MODEL",
+        }
+        if not ready:
+            not_ready.append(target.upper())
+
+    has_any = any(
+        row.get("rows", 0) > 0
+        or row.get("auc") is not None
+        or row.get("auc_lower_95") is not None
+        for row in diagnostics.values()
+    )
+    return {
+        "available": has_any,
+        "family_discrimination_ready": has_any and not not_ready,
+        "not_ready_classes": not_ready if has_any else [],
+        "class_discrimination_diagnostics": diagnostics if has_any else {},
+        "source": "OOS_STAGE_DIAGNOSTICS_CURRENT_MODEL" if has_any else None,
+    }
+
+
 def review_market(
     *,
     market_family: str,
@@ -607,6 +652,7 @@ def build_report(
     shadow_performance: dict[str, Any] | None = None,
     shadow_selection_diagnostics: dict[str, Any] | None = None,
     promotion_shadow_report: dict[str, Any] | None = None,
+    oos_stage_diagnostics: dict[str, Any] | None = None,
     *,
     current_states: dict[str, str] | None = None,
     manual_approvals: dict[str, bool] | None = None,
@@ -624,6 +670,12 @@ def build_report(
         if isinstance(promotion_shadow_report, dict)
         else {}
     )
+    oos_stage_diagnostics = (
+        oos_stage_diagnostics
+        if isinstance(oos_stage_diagnostics, dict)
+        else {}
+    )
+    one_x_two_fallback = _one_x_two_discrimination_fallback(oos_stage_diagnostics)
 
     reviews: list[dict[str, Any]] = []
     for family, spec in FAMILY_SPECS.items():
@@ -640,6 +692,25 @@ def build_report(
             shadow_selection_diagnostics,
             promotion_shadow_report,
         )
+        if (
+            family == "1X2"
+            and promotion_shadow.get("family_discrimination_ready") is not True
+            and not list(promotion_shadow.get("not_ready_classes") or [])
+            and not dict(promotion_shadow.get("class_discrimination_diagnostics") or {})
+            and one_x_two_fallback.get("available") is True
+        ):
+            promotion_shadow = {
+                **promotion_shadow,
+                "family_discrimination_ready": one_x_two_fallback.get("family_discrimination_ready"),
+                "not_ready_classes": list(one_x_two_fallback.get("not_ready_classes") or []),
+                "class_discrimination_diagnostics": dict(
+                    one_x_two_fallback.get("class_discrimination_diagnostics") or {}
+                ),
+                "evidence_source": (
+                    str(promotion_shadow.get("evidence_source") or "NO_PROMOTION_SHADOW_EVIDENCE")
+                    + "+OOS_STAGE_DIAGNOSTICS_FALLBACK"
+                ),
+            }
         settled = int(perf.get("settled") or 0)
         roi_per = _num(perf.get("roi_per_decision_units"))
         roi_units = _num(perf.get("roi_units"))
@@ -723,6 +794,7 @@ def build_report(
             "WATCH shadow observations remain research diagnostics and do not count toward promotion unless a market-specific quality diagnostic marks them promotion-evaluable.",
             "For 1X2, FT_TOTALS and BTTS, persisted Phase16 primary rankable candidates replayed from Postgres are the preferred promotion-shadow source; pending rows become settled automatically when final results arrive.",
             "1X2 promotion review additionally requires current family-level Home/Draw/Away discrimination readiness; partial class readiness remains SHADOW even if settled ROI and CLV are otherwise sufficient.",
+            "When promotion-shadow has no current-policy 1X2 rows yet, current-model OOS stage diagnostics may supply class-level blocker identity only; this fallback cannot create settlements, ROI, rankable candidates or promotion eligibility.",
             "Promotion readiness reports actual/required/remaining sample counts, family true-CLV gaps, numeric validator deficits and qualitative blockers without lowering any gate.",
             "Legacy WATCH diagnostics remain fallback-only for 1X2 and never count when clean Phase16 replay evidence exists.",
             "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
@@ -746,6 +818,7 @@ def main() -> None:
     parser.add_argument("--shadow-performance")
     parser.add_argument("--shadow-selection-diagnostics")
     parser.add_argument("--promotion-shadow-report")
+    parser.add_argument("--oos-stage-diagnostics")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
@@ -756,6 +829,7 @@ def main() -> None:
         _load_json(args.shadow_performance) if args.shadow_performance else {},
         _load_json(args.shadow_selection_diagnostics) if args.shadow_selection_diagnostics else {},
         _load_json(args.promotion_shadow_report) if args.promotion_shadow_report else {},
+        _load_json(args.oos_stage_diagnostics) if args.oos_stage_diagnostics else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:

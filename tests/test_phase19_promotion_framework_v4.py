@@ -393,6 +393,91 @@ def test_promotion_readiness_exposes_exact_remaining_counts_and_validator_defici
     assert readiness["validation"]["qualitative_blockers"] == ["SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED"]
 
 
+def test_1x2_zero_shadow_rows_use_oos_class_diagnostics_for_blocker_identity_only():
+    report = v.build_report(
+        {"by_market_family": {"FT_1X2": {"n": 10, "settled": 10, "roi_units": 2.0}}},
+        {
+            "families": {
+                "1X2": {
+                    "status": "STABILITY_REVIEW_READY",
+                    "overall": {
+                        "rows": 72,
+                        "unique_fixtures": 61,
+                        "fixture_weighted_avg_probability_clv_pp": 0.1,
+                    },
+                }
+            }
+        },
+        {"1X2": {"status": "CALIBRATION_REVIEW_ELIGIBLE", "blockers": []}},
+        {},
+        {},
+        {
+            "families": {
+                "1X2": {
+                    "promotion_evaluable": {
+                        "rows": 0,
+                        "settled": 0,
+                        "pending": 0,
+                        "roi_per_settled_unit": None,
+                        "sample_status": "DATA_BLOCKED",
+                        "negative_directional_stages": [],
+                    }
+                }
+            }
+        },
+        {
+            "current_model_deployment_calibrators": {
+                "home_win": {
+                    "rows": 407,
+                    "eligible_for_phase16_research": True,
+                    "brier_delta": -0.01,
+                    "log_loss_delta": -0.02,
+                    "discrimination": {
+                        "auc": 0.61,
+                        "auc_lower_95": 0.55,
+                        "positive_count": 176,
+                        "negative_count": 231,
+                    },
+                },
+                "draw": {
+                    "rows": 407,
+                    "eligible_for_phase16_research": False,
+                    "brier_delta": -0.007,
+                    "log_loss_delta": -0.015,
+                    "discrimination": {
+                        "auc": 0.499,
+                        "auc_lower_95": 0.433,
+                        "positive_count": 96,
+                        "negative_count": 311,
+                    },
+                },
+                "away_win": {
+                    "rows": 407,
+                    "eligible_for_phase16_research": True,
+                    "brier_delta": -0.008,
+                    "log_loss_delta": -0.01,
+                    "discrimination": {
+                        "auc": 0.614,
+                        "auc_lower_95": 0.554,
+                        "positive_count": 135,
+                        "negative_count": 272,
+                    },
+                },
+            }
+        },
+    )
+    review = next(row for row in report["market_family_reviews"] if row["market_family"] == "1X2")
+    readiness = report["promotion_readiness"]["families"]["1X2"]
+
+    assert "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW" in review["blockers"]
+    assert review["promotion_shadow_settled"] == 0
+    assert review["promotion_shadow_roi_per_settled_unit"] is None
+    assert review["promotion_shadow_not_ready_classes"] == ["DRAW"]
+    assert "OOS_STAGE_DIAGNOSTICS_FALLBACK" in review["promotion_shadow_evidence_source"]
+    assert readiness["class_discrimination"]["classes"]["draw"]["auc_lower_95"] == 0.433
+    assert readiness["class_discrimination"]["classes"]["draw"]["ready"] is False
+
+
 def test_multimarket_postgres_shadow_is_used_for_totals_and_btts():
     promotion_shadow = {
         "families": {
