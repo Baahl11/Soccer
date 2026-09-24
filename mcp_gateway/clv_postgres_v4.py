@@ -9,7 +9,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.1"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
@@ -205,7 +205,7 @@ def _load_legacy_signals(conn, *, lookback_days: int, max_rows: int) -> list[dic
               AND e.stage = ANY(%s)
               AND e.classification = ANY(%s)
               AND e.generated_at < f.kickoff
-            ORDER BY e.generated_at ASC
+            ORDER BY e.generated_at DESC
             LIMIT %s
             """,
             (cutoff, list(SIGNAL_STAGES), list(SIGNAL_CLASSES), max(1, int(max_rows))),
@@ -278,7 +278,7 @@ def _load_derivative_signals(conn, *, lookback_days: int, max_rows: int) -> list
             WHERE e.generated_at >= %s
               AND e.stage = ANY(%s)
               AND e.generated_at < f.kickoff
-            ORDER BY e.generated_at ASC
+            ORDER BY e.generated_at DESC
             LIMIT %s
             """,
             (cutoff, list(SIGNAL_STAGES), max(1, int(max_rows))),
@@ -682,7 +682,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "notes": [
-            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; legacy event best_market rows are fallback-only.",
+            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; capped source reads prioritize the most recent pre-kickoff signals and legacy event best_market rows are fallback-only.",
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
