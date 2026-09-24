@@ -72,14 +72,15 @@ jobs:
             source_model_version,
             raw_phase16_candidates_loaded,
             promotion_evaluable,
+            families,
             provider_requests_added,
             error,
             detail
           }'
           test "$HTTP_CODE" = "200"
           jq -e '
-            .schema_version == "1.1.0"
-            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.1.0"
+            .schema_version == "1.2.0"
+            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.2.0"
             and (.promotion_evaluable | type == "object")
             and (.rows | type == "array")
             and (.provider_requests_added == 0)
