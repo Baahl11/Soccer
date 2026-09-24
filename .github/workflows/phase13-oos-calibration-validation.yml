@@ -89,6 +89,16 @@ jobs:
           }' /tmp/oos_calibration_v4.json
           jq -e '.schema_version == "1.0.0" and (.rows | type == "array") and (.targets | type == "object") and (.provider_requests_added == 0)' /tmp/oos_calibration_v4.json >/dev/null
 
+      - name: Build 1X2 multiclass walk-forward calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p soccer_edge_state/analysis
+          PYTHONPATH=runtime python -m mcp_gateway.one_x_two_multiclass_oos_v4 \
+            --oos-report /tmp/oos_calibration_v4.json \
+            --output soccer_edge_state/analysis/one_x_two_multiclass_oos_v4.json
+          jq '{model_version,status,source_model_version,source_rows_current_model,evaluated_rows,walk_forward_folds,brier_delta,log_loss_delta,improves_brier_and_log_loss,provider_requests_added}' soccer_edge_state/analysis/one_x_two_multiclass_oos_v4.json
+
       - name: Persist OOS calibration report and ledger
         shell: bash
         run: |
@@ -102,6 +112,7 @@ jobs:
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add -f soccer_edge_state/analysis/oos_calibration_v4_report.json
           git add -f soccer_edge_state/analysis/oos_prediction_ledger_v4.jsonl
+          git add -f soccer_edge_state/analysis/one_x_two_multiclass_oos_v4.json
 
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update OOS calibration v4 ledger"
