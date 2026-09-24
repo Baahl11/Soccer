@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.0.0"
+MODEL_VERSION = "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.1.0"
 MIN_CALIBRATION_SAMPLE = 300
 MIN_TRUE_CLV_ROWS = 50
 
@@ -47,6 +47,7 @@ def build_report(
     prior_calibration: dict[str, Any],
     market_summary: dict[str, Any],
     true_clv_rows: Iterable[dict[str, Any]],
+    multiclass_oos: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     sample = int(calibration.get("sample_fixtures") or 0)
     top1 = _num(calibration.get("top1_accuracy"))
@@ -60,12 +61,30 @@ def build_report(
     brier_delta = _num(improvement.get("brier_delta"))
     log_loss_delta = _num(improvement.get("log_loss_delta"))
     accuracy_delta_pp = _num(improvement.get("accuracy_delta_pp"))
-    challenger_better = (
+    legacy_challenger_better = (
         brier_delta is not None
         and log_loss_delta is not None
         and brier_delta < 0
         and log_loss_delta < 0
     )
+
+    multiclass_oos = multiclass_oos if isinstance(multiclass_oos, dict) else {}
+    canonical_source_rows = int(multiclass_oos.get("source_rows_current_model") or 0)
+    canonical_eval_rows = int(multiclass_oos.get("evaluated_rows") or 0)
+    canonical_brier_delta = _num(multiclass_oos.get("brier_delta"))
+    canonical_log_loss_delta = _num(multiclass_oos.get("log_loss_delta"))
+    canonical_ready = (
+        multiclass_oos.get("status") == "RESEARCH_MULTICLASS_CALIBRATION_AVAILABLE"
+        and canonical_source_rows >= MIN_CALIBRATION_SAMPLE
+        and canonical_eval_rows >= 100
+        and multiclass_oos.get("improves_brier_and_log_loss") is True
+        and canonical_brier_delta is not None
+        and canonical_log_loss_delta is not None
+        and canonical_brier_delta < 0
+        and canonical_log_loss_delta < 0
+    )
+    challenger_better = canonical_ready if multiclass_oos else legacy_challenger_better
+    effective_sample = canonical_source_rows if multiclass_oos else sample
 
     clv = summarize_true_clv(true_clv_rows)
     family = (
@@ -77,12 +96,16 @@ def build_report(
 
     blockers: list[str] = []
     warnings: list[str] = []
-    if sample < MIN_CALIBRATION_SAMPLE:
-        blockers.append(f"CALIBRATION_SAMPLE_{sample}_LT_{MIN_CALIBRATION_SAMPLE}")
+    if effective_sample < MIN_CALIBRATION_SAMPLE:
+        blockers.append(f"CALIBRATION_SAMPLE_{effective_sample}_LT_{MIN_CALIBRATION_SAMPLE}")
     if clv["rows"] < MIN_TRUE_CLV_ROWS:
         blockers.append(f"1X2_TRUE_CLV_{clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
     if not challenger_better:
-        blockers.append("CALIBRATION_CHALLENGER_DOES_NOT_IMPROVE_BRIER_AND_LOG_LOSS")
+        blockers.append(
+            "MULTICLASS_OOS_CHALLENGER_NOT_READY"
+            if multiclass_oos
+            else "CALIBRATION_CHALLENGER_DOES_NOT_IMPROVE_BRIER_AND_LOG_LOSS"
+        )
     if int(family.get("settled") or 0) < 20:
         warnings.append("ACTIONABLE_SETTLEMENT_SAMPLE_LT_20")
     draw_bins = (
@@ -106,11 +129,25 @@ def build_report(
         "model_weights_changed": False,
         "canonical_bet_logic_changed": False,
         "calibration_sample": {
-            "n": sample,
+            "n": effective_sample,
+            "legacy_diagnostic_n": sample,
             "minimum_required": MIN_CALIBRATION_SAMPLE,
             "top1_accuracy": top1,
             "multiclass_brier": brier,
             "multiclass_log_loss": log_loss,
+        },
+        "canonical_multiclass_oos": {
+            "available": canonical_ready,
+            "model_version": multiclass_oos.get("model_version"),
+            "source_model_version": multiclass_oos.get("source_model_version"),
+            "source_rows_current_model": canonical_source_rows,
+            "evaluated_rows": canonical_eval_rows,
+            "walk_forward_folds": int(multiclass_oos.get("walk_forward_folds") or 0),
+            "baseline": multiclass_oos.get("baseline"),
+            "temperature_scaled": multiclass_oos.get("temperature_scaled"),
+            "brier_delta": canonical_brier_delta,
+            "log_loss_delta": canonical_log_loss_delta,
+            "improves_brier_and_log_loss": multiclass_oos.get("improves_brier_and_log_loss") is True,
         },
         "prior_calibration_challenger": {
             "baseline": baseline,
@@ -131,7 +168,8 @@ def build_report(
         "blockers": blockers,
         "warnings": warnings,
         "notes": [
-            "The current class-prior challenger is not promoted unless both multiclass Brier and log loss improve.",
+            "Canonical 1X2 calibration evidence uses current-model chronological walk-forward temperature scaling and must improve both multiclass Brier and log loss.",
+            "The historical class-prior challenger is retained only as descriptive legacy context when canonical multiclass OOS is supplied.",
             "True CLV is counted only from canonical 1X2/Match Winner observations.",
             "This gate validates calibration evidence; it does not alter runtime probabilities or bet classification.",
         ],
@@ -170,6 +208,7 @@ def main() -> None:
     parser.add_argument("--prior-calibration", required=True)
     parser.add_argument("--market-summary", required=True)
     parser.add_argument("--true-clv-tracking", required=True)
+    parser.add_argument("--multiclass-oos-report")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     report = build_report(
@@ -177,6 +216,7 @@ def main() -> None:
         _load_json(args.prior_calibration),
         _load_json(args.market_summary),
         _load_jsonl(args.true_clv_tracking),
+        _load_json(args.multiclass_oos_report) if args.multiclass_oos_report else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
