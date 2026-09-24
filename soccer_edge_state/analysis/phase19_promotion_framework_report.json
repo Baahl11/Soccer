@@ -71,7 +71,7 @@
       "current_state": "RESEARCH",
       "manual_approval_present": false,
       "market_family": "1X2",
-      "promotion_shadow_evidence_source": "SHADOW_SELECTION_DIAGNOSTICS:PROMOTION_EVALUABLE",
+      "promotion_shadow_evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE",
       "promotion_shadow_negative_directional_stages": [],
       "promotion_shadow_roi_per_settled_unit": null,
       "promotion_shadow_sample_status": "DATA_BLOCKED",
@@ -550,13 +550,13 @@
       "watch_shadow_settled": 0
     }
   ],
-  "model_version": "SOCCER_PROMOTION_FRAMEWORK_V4_1.4.0",
+  "model_version": "SOCCER_PROMOTION_FRAMEWORK_V4_1.5.0",
   "model_weights_changed": false,
   "notes": [
     "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
     "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
     "WATCH shadow observations remain research diagnostics and do not count toward promotion unless a market-specific quality diagnostic marks them promotion-evaluable.",
-    "For 1X2, only clean ADVANCED_TIER_CAP rows without discrepancy or observed availability/XI gates count as promotion shadow evidence.",
+    "For 1X2, persisted Phase16 primary rankable candidates replayed from Postgres are the preferred promotion-shadow source; legacy WATCH diagnostics remain fallback-only.",
     "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
     "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV."
   ],
