@@ -15,7 +15,7 @@ def test_v4_018_blocks_when_true_clv_is_too_small():
     )
     assert report["status"] == "RESEARCH_HOLD"
     assert "BTTS_TRUE_CLV_25_LT_50" in report["blockers"]
-    assert "SOURCE_BTTS_PROMOTION_GATE_DISABLED" in report["blockers"]
+    assert "BTTS_CANONICAL_OOS_CALIBRATION_NOT_READY" in report["blockers"]
     assert report["production_promotion_allowed"] is False
 
 
@@ -37,3 +37,32 @@ def test_v4_018_calibration_error_is_weighted():
     assert metrics["n"] == 150
     assert metrics["ece"] == 0.1
     assert metrics["mce"] == 0.1
+
+
+def test_v4_018_accepts_canonical_oos_calibration_layer_without_bypassing_clv():
+    report = v.build_report(
+        {
+            "overall": {"n": 500, "brier": 0.276102, "log_loss": 0.771148},
+            "by_probability_bucket": {},
+            "promotion_gate": {"enabled": False},
+        },
+        [{"market": "Both Teams Score", "fixture_id": i, "clv_probability_pp": 0.01} for i in range(5)],
+        {
+            "model_version": "SOCCER_OOS_HISTORY_MERGE_V4_1.0.0",
+            "targets": {
+                "btts": {
+                    "rows": 567,
+                    "status": "RESEARCH_CALIBRATION_AVAILABLE",
+                    "calibrator": {"status": "RESEARCH_CALIBRATOR_FITTED"},
+                    "brier_delta": -0.03,
+                    "log_loss_delta": -0.09,
+                    "calibration_improves_brier_and_log_loss": True,
+                }
+            },
+        },
+    )
+    assert report["canonical_oos_calibration"]["available"] is True
+    assert "BTTS_CANONICAL_OOS_CALIBRATION_NOT_READY" not in report["blockers"]
+    assert "BTTS_TRUE_CLV_5_LT_50" in report["blockers"]
+    assert report["status"] == "RESEARCH_HOLD"
+    assert report["production_promotion_allowed"] is False
