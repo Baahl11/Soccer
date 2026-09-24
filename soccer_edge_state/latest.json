@@ -4,8 +4,8 @@
   "service": "soccer-edge-automation",
   "version": "4.31.0-price-resolver-v4",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-24T05:30:23.842134+00:00",
-  "generated_at_local": "2026-09-23T23:30:23.842134-06:00",
+  "generated_at_utc": "2026-09-24T05:35:07.023524+00:00",
+  "generated_at_local": "2026-09-23T23:35:07.023524-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 304,
   "due_fixture_count": 49,
@@ -15,7 +15,7 @@
   "api_calls_this_tick": 71,
   "max_api_calls_per_tick": 70,
   "effective_max_api_calls_per_tick": 70,
-  "last_daily_remaining": 6598,
+  "last_daily_remaining": 6527,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -74,7 +74,7 @@
       "p_raw": 0.973286,
       "price_resolution_status": "PRICE_CACHE_HIT",
       "price_resolution_source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
-      "price_resolution_provider_update": "2026-09-24T00:04:15+00:00",
+      "price_resolution_provider_update": "2026-09-24T04:03:16+00:00",
       "price_resolution_bookmaker_count": 8,
       "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
       "price_resolution_calibrated_probability_added": true,
@@ -1020,7 +1020,7 @@
     "calibration_state_loaded": true,
     "calibrated_rows_added": 12,
     "provider_requests_added": 1,
-    "provider_daily_remaining_observed": 6598,
+    "provider_daily_remaining_observed": 6527,
     "quota_accounting_included_in_api_calls_this_tick": true
   },
   "price_resolution_checkpoint": {
@@ -1067,7 +1067,7 @@
   "elastic_deep_dive_cap_reason": "GT_6000",
   "elastic_request_cap": 70,
   "elastic_request_cap_reason": "GT_6000",
-  "elastic_quota_remaining_basis": 6647,
+  "elastic_quota_remaining_basis": 6528,
   "fair_scheduler": {
     "schema_version": "1.0.0",
     "policy": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY",
@@ -1588,6 +1588,23 @@
     "rows_analyzed": 15,
     "fixtures_analyzed": 15,
     "rankable_rows": 4,
+    "non_rankable_rows": 11,
+    "non_rankable_reason_counts": {
+      "CALIBRATED_EDGE_NOT_POSITIVE": 8,
+      "CALIBRATED_MODEL_PROBABILITY_MISSING": 3,
+      "PRICE_OR_FAIR_PROBABILITY_MISSING": 3
+    },
+    "non_rankable_reason_counts_by_family": {
+      "BTTS": {
+        "CALIBRATED_MODEL_PROBABILITY_MISSING": 1,
+        "PRICE_OR_FAIR_PROBABILITY_MISSING": 1
+      },
+      "FT_TOTALS": {
+        "CALIBRATED_EDGE_NOT_POSITIVE": 8,
+        "CALIBRATED_MODEL_PROBABILITY_MISSING": 2,
+        "PRICE_OR_FAIR_PROBABILITY_MISSING": 2
+      }
+    },
     "market_family_coverage": {
       "BTTS": 2,
       "FT_TOTALS": 13
@@ -1938,7 +1955,7 @@
           "p_raw": 0.973286,
           "price_resolution_status": "PRICE_CACHE_HIT",
           "price_resolution_source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
-          "price_resolution_provider_update": "2026-09-24T00:04:15+00:00",
+          "price_resolution_provider_update": "2026-09-24T04:03:16+00:00",
           "price_resolution_bookmaker_count": 8,
           "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
           "price_resolution_calibrated_probability_added": true,
@@ -2876,7 +2893,7 @@
           "p_raw": 0.973286,
           "price_resolution_status": "PRICE_CACHE_HIT",
           "price_resolution_source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
-          "price_resolution_provider_update": "2026-09-24T00:04:15+00:00",
+          "price_resolution_provider_update": "2026-09-24T04:03:16+00:00",
           "price_resolution_bookmaker_count": 8,
           "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
           "price_resolution_calibrated_probability_added": true,
@@ -3572,7 +3589,7 @@
       "database_persisted": false,
       "api_calls_this_tick": 70,
       "max_api_calls_per_tick": 70,
-      "last_daily_remaining": 6647,
+      "last_daily_remaining": 6528,
       "fixture_scan_count": 304,
       "due_fixture_count": 49,
       "deferred_due_to_budget": 1,
