@@ -222,6 +222,22 @@ def build_report(
     else:
         status = "RESEARCH_MULTICLASS_CHALLENGER_NOT_BETTER"
 
+    deployment_temperature = fit_temperature(samples) if len(samples) >= min_train_rows else None
+    deployment_calibrator = {
+        "method": "TEMPERATURE_SCALING",
+        "temperature": deployment_temperature,
+        "training_rows": len(samples),
+        "source_model_version": current_version,
+        "status": (
+            "RESEARCH_DEPLOYMENT_CALIBRATOR_FITTED"
+            if deployment_temperature is not None and status == "RESEARCH_MULTICLASS_CALIBRATION_AVAILABLE"
+            else "RESEARCH_DEPLOYMENT_CALIBRATOR_BLOCKED"
+        ),
+        "production_promotion_allowed": False,
+        "runtime_prediction_weight": 0.0,
+        "market_fields_used": False,
+    }
+
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
@@ -236,6 +252,7 @@ def build_report(
         "evaluated_rows": evaluated_rows,
         "baseline": baseline,
         "temperature_scaled": calibrated,
+        "research_deployment_calibrator": deployment_calibrator,
         "brier_delta": brier_delta,
         "log_loss_delta": log_loss_delta,
         "improves_brier_and_log_loss": improves_both,
@@ -256,6 +273,7 @@ def build_report(
             "Only the latest observed model_version is evaluated to avoid mixing calibration regimes across runtime versions.",
             "Each fold fits temperature only on earlier rows and evaluates on later rows.",
             "This report is research-only and cannot change production probabilities by itself.",
+            "A full-current-OOS temperature is persisted only as a research deployment calibrator for downstream Phase16 ranking; walk-forward metrics remain the validation evidence.",
         ],
     }
 
