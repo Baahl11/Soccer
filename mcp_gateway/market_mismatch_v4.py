@@ -6,7 +6,7 @@ from collections import defaultdict
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_MARKET_MISMATCH_V4_1.1.0"
+MODEL_VERSION = "SOCCER_MARKET_MISMATCH_V4_1.2.0"
 EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
 
 SPORT_WEIGHT = 0.30
@@ -164,9 +164,16 @@ def analyze_row(row: dict[str, Any]) -> dict[str, Any] | None:
         calibrated_edge_pp = (calibrated_probability - p_market) * 100.0
 
     raw_edge_pp = _num(row.get("prob_edge_pp"))
+    calibration_status = str(row.get("phase16_calibration_status") or "").strip().upper()
+    calibration_missing_reason = (
+        calibration_status
+        if calibration_status and calibration_status != "RESEARCH_CALIBRATION_APPLIED"
+        else "CALIBRATED_MODEL_PROBABILITY_MISSING"
+    )
+
     blockers: list[str] = []
     if calibrated_probability is None:
-        blockers.append("CALIBRATED_MODEL_PROBABILITY_MISSING")
+        blockers.append(calibration_missing_reason)
     if p_market is None:
         blockers.append("MARKET_FAIR_PROBABILITY_MISSING")
     if price_score <= 0:
@@ -176,7 +183,7 @@ def analyze_row(row: dict[str, Any]) -> dict[str, Any] | None:
 
     rankability_reasons: list[str] = []
     if calibrated_probability is None:
-        rankability_reasons.append("CALIBRATED_MODEL_PROBABILITY_MISSING")
+        rankability_reasons.append(calibration_missing_reason)
     elif p_market is None:
         rankability_reasons.append("MARKET_FAIR_PROBABILITY_MISSING")
     elif calibrated_edge_pp is None:
@@ -227,6 +234,7 @@ def analyze_row(row: dict[str, Any]) -> dict[str, Any] | None:
         "calibrated_probability_source": calibrated_source,
         "phase16_calibration_source": row.get("phase16_calibration_source"),
         "phase16_calibration_policy": row.get("phase16_calibration_policy"),
+        "phase16_calibration_status": row.get("phase16_calibration_status"),
         "promotion_shadow_eligible": row.get("phase16_calibration_promotion_shadow_eligible") is True,
         "market_fair_probability": p_market,
         "calibrated_edge_pp": round(calibrated_edge_pp, 4) if calibrated_edge_pp is not None else None,

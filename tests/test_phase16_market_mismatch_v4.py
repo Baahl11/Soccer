@@ -41,6 +41,26 @@ def test_phase16_requires_calibrated_probability_for_rank():
     assert analyzed["rankability_reasons"] == ["CALIBRATED_MODEL_PROBABILITY_MISSING"]
 
 
+def test_phase16_preserves_specific_calibration_gate_reason():
+    row = _row(
+        market_family="1X2",
+        market="Match Winner",
+        selection="Draw",
+        line=None,
+        p_model_calibrated=None,
+        phase16_calibration_status="SELECTION_DISCRIMINATION_NOT_READY",
+    )
+    analyzed = v.analyze_row(row)
+    assert analyzed["rankable"] is False
+    assert analyzed["phase16_calibration_status"] == "SELECTION_DISCRIMINATION_NOT_READY"
+    assert analyzed["rankability_reasons"] == ["SELECTION_DISCRIMINATION_NOT_READY"]
+    assert "SELECTION_DISCRIMINATION_NOT_READY" in analyzed["blockers"]
+
+    result = v.find_mismatches([row])
+    assert result["non_rankable_reason_counts"]["SELECTION_DISCRIMINATION_NOT_READY"] == 1
+    assert result["non_rankable_reason_counts_by_family"]["1X2"]["SELECTION_DISCRIMINATION_NOT_READY"] == 1
+
+
 def test_phase16_ranks_positive_calibrated_edge():
     result = v.find_mismatches([_row()])
     assert result["rankable_rows"] == 1
