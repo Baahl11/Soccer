@@ -99,6 +99,29 @@ jobs:
             --output soccer_edge_state/analysis/one_x_two_multiclass_oos_v4.json
           jq '{model_version,status,source_model_version,source_rows_current_model,evaluated_rows,walk_forward_folds,brier_delta,log_loss_delta,improves_brier_and_log_loss,provider_requests_added}' soccer_edge_state/analysis/one_x_two_multiclass_oos_v4.json
 
+      - name: Build OOS stage diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python -m mcp_gateway.oos_stage_diagnostics_v4 \
+            --oos-report /tmp/oos_calibration_v4.json \
+            --output /tmp/oos_stage_diagnostics_v4.json
+          jq '{
+            model_version,
+            status,
+            current_source_model_version,
+            all_model_rows,
+            current_model_rows,
+            stage_counts_current_model,
+            provider_requests_added
+          }' /tmp/oos_stage_diagnostics_v4.json
+          jq -e '
+            .schema_version == "1.0.0"
+            and .model_version == "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.0.0"
+            and (.current_model_by_stage | type == "object")
+            and (.provider_requests_added == 0)
+          ' /tmp/oos_stage_diagnostics_v4.json >/dev/null
+
       - name: Persist OOS calibration report and ledger
         shell: bash
         run: |
