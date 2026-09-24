@@ -8,9 +8,10 @@ from typing import Any, Iterable
 
 from mcp_gateway import persistence
 
-SCHEMA_VERSION = "1.1.0"
-MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.1.0"
+SCHEMA_VERSION = "1.2.0"
+MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.2.0"
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
+SUPPORTED_FAMILIES = {"1X2", "FT_TOTALS", "BTTS"}
 DIRECTIONAL_MIN = 20
 REVIEW_MIN = 50
 
@@ -57,11 +58,7 @@ def _current_source_regime(rows: Iterable[dict[str, Any]]) -> str | None:
     regimes = sorted({_source_regime(row) for row in rows if _source_regime(row)})
     if not regimes:
         return None
-    semantic = [
-        (parsed, regime)
-        for regime in regimes
-        if (parsed := _semantic_version(regime)) is not None
-    ]
+    semantic = [(parsed, regime) for regime in regimes if (parsed := _semantic_version(regime)) is not None]
     if semantic:
         return max(semantic, key=lambda item: item[0])[1]
     return regimes[-1]
@@ -89,12 +86,59 @@ def _grade_1x2(selection: Any, home_team: Any, away_team: Any, home_goals: int, 
     return "WIN" if picked == actual else "LOSS"
 
 
+def _grade_totals(selection: Any, line: Any, home_goals: int, away_goals: int) -> str | None:
+    side = _norm(selection)
+    threshold = _num(line)
+    if threshold is None or side not in {"over", "under"}:
+        return None
+    total = home_goals + away_goals
+    if abs(total - threshold) < 1e-9:
+        return "PUSH"
+    if side == "over":
+        return "WIN" if total > threshold else "LOSS"
+    return "WIN" if total < threshold else "LOSS"
+
+
+def _grade_btts(selection: Any, home_goals: int, away_goals: int) -> str | None:
+    side = _norm(selection)
+    if side not in {"yes", "no"}:
+        return None
+    happened = home_goals > 0 and away_goals > 0
+    picked_yes = side == "yes"
+    return "WIN" if happened == picked_yes else "LOSS"
+
+
+def _grade_candidate(
+    family: str,
+    candidate: dict[str, Any],
+    home_team: Any,
+    away_team: Any,
+    home_goals: Any,
+    away_goals: Any,
+) -> str:
+    try:
+        hg = int(home_goals)
+        ag = int(away_goals)
+    except (TypeError, ValueError):
+        return "PENDING"
+
+    if family == "1X2":
+        return _grade_1x2(candidate.get("selection"), home_team, away_team, hg, ag) or "UNGRADABLE"
+    if family == "FT_TOTALS":
+        return _grade_totals(candidate.get("selection"), candidate.get("line"), hg, ag) or "UNGRADABLE"
+    if family == "BTTS":
+        return _grade_btts(candidate.get("selection"), hg, ag) or "UNGRADABLE"
+    return "UNGRADABLE"
+
+
 def _roi(outcome: str | None, price: Any) -> float | None:
     p = _num(price)
     if outcome == "WIN" and p is not None and p > 1.0:
         return p - 1.0
     if outcome == "LOSS":
         return -1.0
+    if outcome == "PUSH":
+        return 0.0
     return None
 
 
@@ -104,14 +148,13 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
         if not isinstance(row, dict):
             continue
         candidate = row.get("phase16_candidate")
-        if not isinstance(candidate, dict):
+        if not isinstance(candidate, dict) or candidate.get("rankable") is not True:
             continue
-        if candidate.get("market_family") != "1X2" or candidate.get("rankable") is not True:
+        family = str(candidate.get("market_family") or "").upper()
+        if family not in SUPPORTED_FAMILIES:
             continue
         try:
             fixture_id = int(row.get("fixture_id"))
-            home_goals = int(row.get("home_goals"))
-            away_goals = int(row.get("away_goals"))
         except (TypeError, ValueError):
             continue
 
@@ -123,15 +166,14 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
         if stage not in PREGAME_STAGES:
             continue
 
-        outcome = _grade_1x2(
-            candidate.get("selection"),
+        outcome = _grade_candidate(
+            family,
+            candidate,
             row.get("home_team"),
             row.get("away_team"),
-            home_goals,
-            away_goals,
+            row.get("home_goals"),
+            row.get("away_goals"),
         )
-        if outcome is None:
-            continue
 
         candidates.append({
             "fixture_id": fixture_id,
@@ -141,14 +183,15 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
             "league": row.get("league"),
             "home_team": row.get("home_team"),
             "away_team": row.get("away_team"),
-            "home_goals": home_goals,
-            "away_goals": away_goals,
+            "home_goals": row.get("home_goals"),
+            "away_goals": row.get("away_goals"),
             "source_model_version": row.get("source_model_version"),
             "automation_version": row.get("automation_version"),
             "source_regime": _source_regime(row),
-            "market_family": "1X2",
+            "market_family": family,
             "market": candidate.get("market"),
             "selection": candidate.get("selection"),
+            "line": _num(candidate.get("line")),
             "decimal_price": _num(candidate.get("price")),
             "bookmaker": candidate.get("bookmaker"),
             "calibrated_probability": _num(candidate.get("calibrated_probability")),
@@ -160,6 +203,7 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
             "price_quality_score": _num(candidate.get("price_quality_score")),
             "uncertainty": _num(candidate.get("uncertainty")),
             "outcome": outcome,
+            "settlement_status": "SETTLED" if outcome in {"WIN", "LOSS", "PUSH"} else outcome,
             "roi_units": _roi(outcome, candidate.get("price")),
             "rankable": True,
             "signal_source": "PERSISTED_PHASE16_MARKET_MISMATCH",
@@ -169,40 +213,45 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     if current_regime:
         candidates = [row for row in candidates if row.get("source_regime") == current_regime]
 
-    latest: dict[int, tuple[datetime, dict[str, Any]]] = {}
+    latest: dict[tuple[int, str], tuple[datetime, dict[str, Any]]] = {}
     for row in candidates:
         generated_at = _parse_dt(row.get("generated_at"))
         if generated_at is None:
             continue
-        fid = int(row["fixture_id"])
-        prior = latest.get(fid)
+        key = (int(row["fixture_id"]), str(row["market_family"]))
+        prior = latest.get(key)
         if prior is None or generated_at > prior[0]:
-            latest[fid] = (generated_at, row)
+            latest[key] = (generated_at, row)
 
-    return [value[1] for _, value in sorted(latest.items())]
+    return [value[1] for _, value in sorted(latest.items(), key=lambda item: item[0])]
 
 
 def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    settled = [row for row in rows if row.get("outcome") in {"WIN", "LOSS"}]
+    settled = [row for row in rows if row.get("outcome") in {"WIN", "LOSS", "PUSH"}]
     wins = sum(1 for row in settled if row.get("outcome") == "WIN")
     losses = sum(1 for row in settled if row.get("outcome") == "LOSS")
+    pushes = sum(1 for row in settled if row.get("outcome") == "PUSH")
+    pending = sum(1 for row in rows if row.get("outcome") == "PENDING")
+    ungradable = sum(1 for row in rows if row.get("outcome") == "UNGRADABLE")
     roi_values = [float(row["roi_units"]) for row in settled if row.get("roi_units") is not None]
     n = len(settled)
     return {
         "rows": len(rows),
         "unique_fixtures": len({row["fixture_id"] for row in rows}),
         "settled": n,
+        "pending": pending,
+        "ungradable": ungradable,
         "win": wins,
         "loss": losses,
-        "hit_rate": round(wins / n, 6) if n else None,
+        "push": pushes,
+        "hit_rate": round(wins / (wins + losses), 6) if (wins + losses) else None,
         "roi_units": round(sum(roi_values), 6) if roi_values else 0.0,
-        "roi_per_settled_unit": round(sum(roi_values) / n, 6) if roi_values and n else None,
+        "roi_per_settled_unit": round(sum(roi_values) / n, 6) if n else None,
         "sample_status": _sample_status(n),
     }
 
 
-def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
-    rows = normalize_rows(raw_rows)
+def _family_report(family: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
     by_stage_raw: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         by_stage_raw[str(row.get("stage") or "UNKNOWN").upper()].append(row)
@@ -215,26 +264,45 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
     )
     overall = _summary(rows)
     return {
-        "schema_version": SCHEMA_VERSION,
-        "model_version": MODEL_VERSION,
-        "status": "PROMOTION_SHADOW_POSTGRES_ACTIVE",
-        "market_family": "1X2",
-        "source_regime": _current_source_regime(rows),
+        "market_family": family,
         "promotion_evaluable": {
             **overall,
             "negative_directional_stages": negative_directional_stages,
-            "evidence_policy": "LATEST_PREKICKOFF_PERSISTED_PHASE16_PRIMARY_RANKABLE_1X2_PER_FIXTURE_LATEST_VERSIONED_REGIME",
+            "evidence_policy": f"LATEST_PREKICKOFF_PERSISTED_PHASE16_PRIMARY_RANKABLE_{family}_PER_FIXTURE_LATEST_VERSIONED_REGIME",
         },
         "by_stage": by_stage,
+    }
+
+
+def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
+    rows = normalize_rows(raw_rows)
+    by_family_raw: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        by_family_raw[str(row.get("market_family") or "UNKNOWN")].append(row)
+    families = {family: _family_report(family, group) for family, group in sorted(by_family_raw.items())}
+    for family in sorted(SUPPORTED_FAMILIES):
+        families.setdefault(family, _family_report(family, []))
+
+    aggregate = _summary(rows)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "model_version": MODEL_VERSION,
+        "status": "PROMOTION_SHADOW_POSTGRES_ACTIVE",
+        "supported_market_families": sorted(SUPPORTED_FAMILIES),
+        "source_regime": _current_source_regime(rows),
+        "promotion_evaluable": aggregate,
+        "families": families,
         "rows": rows,
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "runtime_logic_changed": False,
         "notes": [
             "Reads persisted Phase16 market_mismatch_rows directly; legacy WATCH best_market and research-visibility rows are excluded.",
-            "At most the latest pre-kickoff primary rankable 1X2 candidate per fixture is retained.",
-            "The latest available versioned source regime (model_version or automation_version) is used when version metadata exists.",
-            "Results are joined after kickoff from soccer_results and never feed candidate generation.",
+            "Candidates enter the ledger immediately as PENDING and settle automatically after soccer_results receives final goals.",
+            "At most the latest pre-kickoff primary rankable candidate per fixture and market family is retained.",
+            "Supported settlement families are 1X2, FT_TOTALS and BTTS; PUSH is supported for integer totals.",
+            "The latest available versioned source regime is used to avoid mixing old model regimes.",
+            "Results are joined only for settlement and never feed candidate generation.",
         ],
     }
 
@@ -263,16 +331,14 @@ def _load_rows(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any
             ) AS mm(row)
             JOIN soccer_fixtures f
               ON f.fixture_id = (mm.row ->> 'fixture_id')::BIGINT
-            JOIN soccer_results r
+            LEFT JOIN soccer_results r
               ON r.fixture_id = f.fixture_id
             LEFT JOIN soccer_refresh_events e
               ON e.fixture_id = f.fixture_id
              AND e.generated_at = p.generated_at_utc
             WHERE p.generated_at_utc >= %s
               AND p.generated_at_utc < f.kickoff
-              AND r.home_goals IS NOT NULL
-              AND r.away_goals IS NOT NULL
-              AND mm.row ->> 'market_family' = '1X2'
+              AND mm.row ->> 'market_family' IN ('1X2', 'FT_TOTALS', 'BTTS')
               AND COALESCE((mm.row ->> 'rankable')::boolean, false) = true
             ORDER BY p.generated_at_utc ASC
             LIMIT %s
