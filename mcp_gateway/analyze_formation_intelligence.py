@@ -108,24 +108,83 @@ def load_history(history_dir: str) -> dict[int, dict[str, Any]]:
                         "projection_obs": [],
                         "result": None,
                         "tactical_stats": None,
+                        "lineup_audit": {
+                            "events_total": 0,
+                            "prekickoff_events": 0,
+                            "postkickoff_events": 0,
+                            "lineup_payloads": 0,
+                            "prekickoff_lineup_payloads": 0,
+                            "postkickoff_lineup_payloads": 0,
+                            "unconfirmed_prekickoff": 0,
+                            "confirmed_one_team_only": 0,
+                            "confirmed_unrecognized_mapping": 0,
+                            "confirmed_no_formation": 0,
+                            "valid_both_prekickoff": 0,
+                            "valid_both_postkickoff": 0,
+                            "valid_both_missing_timestamp": 0,
+                        },
                     })
                     if fx.get("kickoff"):
                         rec["kickoff_local"] = fx.get("kickoff")
                     lineup = event.get("lineups")
-                    if isinstance(lineup, dict) and lineup.get("both_xi_confirmed"):
+                    audit = rec["lineup_audit"]
+                    audit["events_total"] += 1
+                    kickoff_dt = parse_dt(rec.get("kickoff_local"))
+                    is_pre = generated is not None and kickoff_dt is not None and generated <= kickoff_dt
+                    is_post = generated is not None and kickoff_dt is not None and generated > kickoff_dt
+                    if is_pre:
+                        audit["prekickoff_events"] += 1
+                    elif is_post:
+                        audit["postkickoff_events"] += 1
+
+                    if isinstance(lineup, dict):
+                        audit["lineup_payloads"] += 1
+                        if is_pre:
+                            audit["prekickoff_lineup_payloads"] += 1
+                        elif is_post:
+                            audit["postkickoff_lineup_payloads"] += 1
+
                         teams = lineup.get("teams") or []
+                        raw_forms: dict[int, Any] = {}
                         forms: dict[int, str] = {}
                         for t in teams:
                             if not isinstance(t, dict):
                                 continue
                             tid = t.get("team_id")
+                            if tid is None:
+                                continue
+                            raw_forms[int(tid)] = t.get("formation")
                             form = norm_formation(t.get("formation"))
-                            if tid is not None and form:
+                            if form:
                                 forms[int(tid)] = form
-                        hf = forms.get(int(rec.get("home_team_id") or -1))
-                        af = forms.get(int(rec.get("away_team_id") or -1))
-                        if hf and af:
-                            rec["lineup_obs"].append((generated, hf, af, event.get("stage")))
+
+                        hid = int(rec.get("home_team_id") or -1)
+                        aid = int(rec.get("away_team_id") or -1)
+                        hf = forms.get(hid)
+                        af = forms.get(aid)
+                        raw_hf = raw_forms.get(hid)
+                        raw_af = raw_forms.get(aid)
+
+                        if lineup.get("both_xi_confirmed"):
+                            if hf and af:
+                                if is_pre:
+                                    audit["valid_both_prekickoff"] += 1
+                                elif is_post:
+                                    audit["valid_both_postkickoff"] += 1
+                                else:
+                                    audit["valid_both_missing_timestamp"] += 1
+                                rec["lineup_obs"].append((generated, hf, af, event.get("stage")))
+                            elif bool(hf) ^ bool(af):
+                                audit["confirmed_one_team_only"] += 1
+                            elif (
+                                (raw_hf not in (None, "") and not hf)
+                                or (raw_af not in (None, "") and not af)
+                            ):
+                                audit["confirmed_unrecognized_mapping"] += 1
+                            else:
+                                audit["confirmed_no_formation"] += 1
+                        elif is_pre:
+                            audit["unconfirmed_prekickoff"] += 1
                     raw = event.get("raw_projection")
                     if isinstance(raw, dict):
                         lam = fnum(raw.get("raw_total_goals"))
