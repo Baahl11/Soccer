@@ -157,7 +157,11 @@ def formation_lift_by_league(evals: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def build_rows(history_dir: str) -> list[dict[str, Any]]:
+def build_rows(
+    history_dir: str,
+    *,
+    return_fixtures: bool = False,
+) -> list[dict[str, Any]] | tuple[list[dict[str, Any]], dict[int, dict[str, Any]]]:
     fixtures = formation_v2._enhanced_load_history(history_dir)
     rows: list[dict[str, Any]] = []
     for rec in fixtures.values():
@@ -179,7 +183,108 @@ def build_rows(history_dir: str) -> list[dict[str, Any]]:
             "total_corners": float(tc),
         })
     rows.sort(key=lambda x: (x["kickoff_local"], int(x["fixture_id"] or 0)))
+    if return_fixtures:
+        return rows, fixtures
     return rows
+
+
+def formation_eligibility_audit(
+    fixtures: dict[int, dict[str, Any]],
+    evals: list[dict[str, Any]],
+) -> dict[str, Any]:
+    reason_counts: dict[str, int] = defaultdict(int)
+    detail: list[dict[str, Any]] = []
+
+    for row in evals:
+        prior_n = int(row.get("prior_matchup_n") or 0)
+        if prior_n >= 8:
+            continue
+
+        fid = int(row.get("fixture_id") or 0)
+        rec = fixtures.get(fid) or {}
+        audit = rec.get("lineup_audit") or {}
+
+        if row.get("matchup"):
+            reason = "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8"
+            recoverable = False
+        else:
+            valid_pre = int(audit.get("valid_both_prekickoff") or 0)
+            valid_post = int(audit.get("valid_both_postkickoff") or 0)
+            valid_no_ts = int(audit.get("valid_both_missing_timestamp") or 0)
+            one_team = int(audit.get("confirmed_one_team_only") or 0)
+            unrecognized = int(audit.get("confirmed_unrecognized_mapping") or 0)
+            unconfirmed_pre = int(audit.get("unconfirmed_prekickoff") or 0)
+            pre_events = int(audit.get("prekickoff_events") or 0)
+            lineup_payloads = int(audit.get("lineup_payloads") or 0)
+            pre_lineups = int(audit.get("prekickoff_lineup_payloads") or 0)
+
+            if valid_pre > 0:
+                reason = "FORMATION_NOT_PERSISTED_OR_RECONCILED"
+                recoverable = True
+            elif valid_post > 0:
+                reason = "FORMATION_TIMESTAMP_POSTERIOR_TO_PREDICTION_POINT"
+                recoverable = False
+            elif valid_no_ts > 0:
+                reason = "FORMATION_PRESENT_WITHOUT_USABLE_TIMESTAMP"
+                recoverable = False
+            elif one_team > 0:
+                reason = "FORMATION_ONE_TEAM_ONLY"
+                recoverable = False
+            elif unrecognized > 0:
+                reason = "FORMATION_MAPPING_UNRECOGNIZED"
+                recoverable = True
+            elif pre_lineups > 0 and unconfirmed_pre > 0:
+                reason = "LINEUP_NOT_CONFIRMED_AT_SNAPSHOT"
+                recoverable = False
+            elif pre_events == 0:
+                reason = "LEGITIMATELY_NO_PREKICKOFF_SNAPSHOT"
+                recoverable = False
+            elif lineup_payloads == 0:
+                reason = "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP"
+                recoverable = False
+            else:
+                reason = "LEGITIMATELY_NO_VERIFIABLE_FORMATION"
+                recoverable = False
+
+        reason_counts[reason] += 1
+        detail.append({
+            "fixture_id": fid,
+            "kickoff_local": row.get("kickoff_local"),
+            "league_id": row.get("league_id"),
+            "matchup": row.get("matchup"),
+            "prior_matchup_n": prior_n,
+            "reason": reason,
+            "recoverable_by_reconciliation": recoverable,
+            "lineup_audit": audit,
+        })
+
+    missing_matchup = [x for x in detail if not x.get("matchup")]
+    recoverable_missing = [
+        x for x in missing_matchup if x.get("recoverable_by_reconciliation")
+    ]
+    present_low_history = [
+        x for x in detail if x.get("reason") == "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8"
+    ]
+
+    return {
+        "policy": (
+            "AUDIT_ONLY; NO_SYNTHETIC_FORMATIONS; PREKICKOFF_SNAPSHOT_REQUIRED; "
+            "POSTKICKOFF_FORMATIONS_NEVER_BACKFILLED_INTO_OOS"
+        ),
+        "prediction_point_definition": (
+            "fixture kickoff timestamp; formation evidence must exist at or before kickoff"
+        ),
+        "oos_evaluations": len(evals),
+        "formation_adjusted_evaluations": sum(
+            1 for x in evals if int(x.get("prior_matchup_n") or 0) >= 8
+        ),
+        "excluded_from_formation_adjustment": len(detail),
+        "formation_present_but_prior_matchup_lt_8": len(present_low_history),
+        "missing_matchup_rows": len(missing_matchup),
+        "recoverable_missing_matchup_rows": len(recoverable_missing),
+        "reason_counts": dict(sorted(reason_counts.items())),
+        "rows": detail,
+    }
 
 
 def main() -> None:
@@ -188,7 +293,7 @@ def main() -> None:
     ap.add_argument("--output", required=True)
     args = ap.parse_args()
 
-    rows = build_rows(args.history_dir)
+    rows, fixtures = build_rows(args.history_dir, return_fixtures=True)
     league_hist: dict[Any, list[dict[str, Any]]] = defaultdict(list)
     global_hist: list[dict[str, Any]] = []
     matchup_residuals: dict[str, list[float]] = defaultdict(list)
@@ -257,6 +362,7 @@ def main() -> None:
         "baseline": bm,
         "formation_challenger": cm,
         "formation_lift_by_league": formation_lift_by_league(evals),
+        "formation_eligibility_audit": formation_eligibility_audit(fixtures, evals),
         "promotion_gate": {
             "enabled": False,
             "minimum_oos_evaluations": 150,
