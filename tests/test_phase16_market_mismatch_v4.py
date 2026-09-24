@@ -1,4 +1,5 @@
 from mcp_gateway import market_mismatch_v4 as v
+from mcp_gateway import automation_v112
 
 
 def _row(**overrides):
@@ -111,3 +112,18 @@ def test_phase16_summary_counts_non_rankable_reasons_by_family():
     assert result["non_rankable_reason_counts"]["CALIBRATED_EDGE_NOT_POSITIVE"] == 1
     assert result["non_rankable_reason_counts"]["CALIBRATED_MODEL_PROBABILITY_MISSING"] >= 1
     assert result["non_rankable_reason_counts_by_family"]["FT_TOTALS"]["CALIBRATED_EDGE_NOT_POSITIVE"] == 1
+
+
+def test_phase16_annotation_persists_non_rankable_diagnostics():
+    payload = {
+        "match_table_rows": [
+            _row(p_model_calibrated=0.40, p_market_fair=0.55),
+            _row(fixture_id=2),
+        ]
+    }
+    automation_v112._annotate_phase16(payload)
+    summary = payload["phase16_market_mismatch_finder"]
+    assert summary["rankable_rows"] == 1
+    assert summary["non_rankable_rows"] == 1
+    assert summary["non_rankable_reason_counts"]["CALIBRATED_EDGE_NOT_POSITIVE"] == 1
+    assert summary["non_rankable_reason_counts_by_family"]["FT_TOTALS"]["CALIBRATED_EDGE_NOT_POSITIVE"] == 1
