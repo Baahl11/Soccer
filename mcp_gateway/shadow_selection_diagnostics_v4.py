@@ -11,7 +11,7 @@ from mcp_gateway import evaluate_postgame as ep
 from mcp_gateway import shadow_settlement_v4 as shadow
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_1X2_SHADOW_SELECTION_DIAGNOSTICS_V4_1.1.0"
+MODEL_VERSION = "SOCCER_1X2_SHADOW_SELECTION_DIAGNOSTICS_V4_1.2.0"
 DIRECTIONAL_MIN = 20
 REVIEW_MIN = 50
 
@@ -238,6 +238,15 @@ def build(signal_rows: list[dict[str, Any]]) -> dict[str, Any]:
             ) if any(row.get("ev_pct") is not None for row in group) else None,
         }
 
+    promotion_evaluable = [
+        row for row in rows
+        if row.get("watch_quality_bucket") == "ADVANCED_TIER_CAP"
+    ]
+    watch_alert = [
+        row for row in rows
+        if row.get("watch_quality_bucket") != "ADVANCED_TIER_CAP"
+    ]
+
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
@@ -246,10 +255,20 @@ def build(signal_rows: list[dict[str, Any]]) -> dict[str, Any]:
         "rows": len(rows),
         "unique_fixtures": len({row["fixture_id"] for row in rows}),
         "overall": _summary(rows),
+        "promotion_evaluable": {
+            **_summary(promotion_evaluable),
+            "unique_fixtures": len({row["fixture_id"] for row in promotion_evaluable}),
+            "policy": "ADVANCED_TIER_CAP_ONLY_WITHOUT_DISCREPANCY_OR_OBSERVED_AVAILABILITY_XI_GATE",
+        },
+        "watch_alert": {
+            **_summary(watch_alert),
+            "unique_fixtures": len({row["fixture_id"] for row in watch_alert}),
+        },
         "by_stage": by_stage,
         "sample_policy": {
             "directional_minimum": DIRECTIONAL_MIN,
             "review_minimum": REVIEW_MIN,
+            "promotion_evidence_requires_quality_bucket": "ADVANCED_TIER_CAP",
         },
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
@@ -259,6 +278,7 @@ def build(signal_rows: list[dict[str, Any]]) -> dict[str, Any]:
             "Price, edge, and EV bands are descriptive only and do not create runtime filters.",
             "Segments below 20 settled rows are not treated as directional evidence.",
             "WATCH quality buckets separate raw-vs-market discrepancy rechecks, tier caps, and availability/XI gates so intentionally blocked candidates are not mistaken for promotion-quality shadow evidence.",
+            "Only clean ADVANCED_TIER_CAP WATCH rows are promotion-evaluable shadow evidence; discrepancy rechecks and gate failures remain WATCH_ALERT research rows.",
         ],
     }
 
