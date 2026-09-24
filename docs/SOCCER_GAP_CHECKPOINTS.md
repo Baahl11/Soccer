@@ -247,7 +247,23 @@ This supersedes the historical v3 resume sequence above for the active Soccer Ed
 - **Automatic promotion:** still prohibited; manual approval remains mandatory after every evidence gate passes.
 - **Deploy state at checkpoint write:** GitHub code/tests complete; Render deployment of the new HEAD must be observed before marking this block LIVE.
 
+### Evidence coverage / promotion readiness hardening — 2026-09-24
+- **Commit `62083c2` LIVE on Render:** Phase19 now exposes quantitative promotion-readiness gaps by family: actual/required/remaining for directional 20, Tier B 50, Tier A 100 and Tier S 200; promotion-shadow 20/50; true-CLV gaps; numeric validator deficits; qualitative blockers.
+- **1X2 class diagnostics propagated end-to-end:** Phase16 candidates can now retain Home/Draw/Away rows, positives/negatives, AUC, AUC lower-95, calibration deltas and readiness into Postgres promotion-shadow and Phase19 readiness.
+- **Runtime regression at readiness checkpoint:** 140/140 passed before deployment.
+- **Current state snapshot at that checkpoint:** 1X2 had 61 unique true-CLV fixtures, 10 canonical settlements and 0 current-policy promotion-shadow settlements. Home/Away discrimination were ready; Draw was not.
+- **Current-model OOS discrimination snapshot:** HOME_WIN AUC/L95 0.60744/0.55183; DRAW 0.49946/0.43333; AWAY_WIN 0.61364/0.55442. BTTS and O2.5 also remained below the conservative discrimination gate.
+- **Dixon-Coles same-cohort audit:** 470 walk-forward fixtures. Brier improved 0.6487→0.6483 and log-loss 1.0779→1.0770, but Draw discrimination did not improve: baseline Draw AUC/L95 0.49770/0.43624 vs challenger 0.49740/0.43595. It is therefore explicitly `DRAW_DISCRIMINATION_NOT_READY` and remains research-only.
+- **Persisted Draw feature audit:** same 470-fixture cohort, 111 draws / 359 non-draws. Lambda closeness, total lambda, 1X2 balance, entropy, weak-favorite and approved persisted pre-kickoff context all failed to produce a stable AUC CI excluding 0.50. No exploratory feature candidate survived the gate.
+- **Point-in-time carry-forward correction:** approved safe pre-kickoff context is carried from earlier fixture snapshots to the latest pre-kickoff row without crossing kickoff. Market/odds/bookmaker/result paths are excluded from this research feature audit.
+- **Regression after carry-forward correction:** 149/149 passed on `83a8e95`.
+- **Decision:** do not integrate Dixon-Coles into runtime, do not train a Draw model on the currently audited feature set, and do not lower discrimination/sample gates. Draw requires genuinely new predictive information or a separately justified model architecture.
+- **Provider calls changed:** 0.
+- **Canonical probabilities/weights/tier/stake logic changed:** no.
+- **Automatic promotion:** still prohibited.
+
 ### Next
-1. Confirm Render reaches the current branch HEAD and observe a natural `/internal/tick` on that deployed version.
-2. Inspect the resulting Phase16/G6 diagnostics and confirm 1X2 exposes the class-readiness blocker naturally.
-3. Continue accumulating settlement + true CLV + OOS evidence by market family; do not lower gates to manufacture rankable candidates.
+1. Observe the next natural persisted state after Render commit `62083c2` and confirm `promotion_readiness` plus 1X2 class diagnostics are materialized naturally; do not trigger a manual tick.
+2. Continue promotion evidence accumulation: settlements, exact family true CLV and current-policy promotion-shadow rows.
+3. Prioritize bottlenecks that can actually advance with existing data: FT Totals settlement/CLV sample, BTTS settlement/CLV sample, Corners formation-adjusted sample, then TEAM_TOTALS exact-price/CLV enablement.
+4. Keep 1X2 Draw in research hold until new non-circular predictive information exists; market price may remain an external reference/shrinkage input but must not be reused as supposedly independent model discrimination evidence.
