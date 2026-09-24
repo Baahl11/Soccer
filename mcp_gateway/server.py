@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
-from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, oos_prediction_ledger_v4, persistence as persistence_base, product_dashboard_v4, product_views_v4, promotion_shadow_postgres_v4, training_dataset_v4
+from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, formation_postgres_audit, oos_prediction_ledger_v4, persistence as persistence_base, product_dashboard_v4, product_views_v4, promotion_shadow_postgres_v4, training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -397,6 +397,37 @@ async def dashboard(request: Request) -> Response:
     return HTMLResponse(product_dashboard_v4.render_dashboard(product))
 
 
+
+
+@mcp.custom_route("/internal/formation-postgres-audit", methods=["POST"])
+async def internal_formation_postgres_audit(request: Request) -> Response:
+    try:
+        _github_oidc_claims(
+            request,
+            {".github/workflows/soccer-edge-formation-postgres-audit.yml"},
+        )
+    except Exception as exc:
+        return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    targets = body.get("targets") or []
+    if not isinstance(targets, list):
+        return JSONResponse({"error": "invalid_targets"}, status_code=400)
+    targets = targets[:500]
+
+    try:
+        result = await asyncio.to_thread(formation_postgres_audit.audit_targets, targets)
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse(
+            {"error": "formation_postgres_audit_failed", "detail": str(exc)[:500]},
+            status_code=500,
+        )
 
 
 @mcp.custom_route("/health", methods=["GET"])
