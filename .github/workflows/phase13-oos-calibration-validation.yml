@@ -23,6 +23,17 @@ jobs:
           ref: soccer-edge-state
           fetch-depth: 1
 
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Warm Render
         run: |
           curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors \
@@ -50,6 +61,32 @@ jobs:
 
           cat /tmp/oos_calibration_v4.json | jq '{status,fixture_rows,minimum_rows_per_target,ready_target_count,targets_improving_brier_and_log_loss,model_version_counts,run_type_counts,error,detail}'
           test "$HTTP_CODE" = "200"
+          jq -e '.schema_version == "1.0.0" and (.rows | type == "array") and (.targets | type == "object") and (.provider_requests_added == 0)' /tmp/oos_calibration_v4.json >/dev/null
+
+      - name: Merge strict historical OOS backfill
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python -m mcp_gateway.oos_history_backfill_v4 \
+            --signal-ledger soccer_edge_state/analysis/signal_ledger.jsonl \
+            --postgres-report /tmp/oos_calibration_v4.json \
+            --output /tmp/oos_calibration_v4_merged.json
+          mv /tmp/oos_calibration_v4_merged.json /tmp/oos_calibration_v4.json
+
+          jq '{
+            model_version,
+            status,
+            fixture_rows,
+            postgres_fixture_rows,
+            historical_fixture_rows,
+            minimum_rows_per_target,
+            ready_target_count,
+            targets_improving_brier_and_log_loss,
+            source_counts,
+            model_version_counts,
+            run_type_counts,
+            provider_requests_added
+          }' /tmp/oos_calibration_v4.json
           jq -e '.schema_version == "1.0.0" and (.rows | type == "array") and (.targets | type == "object") and (.provider_requests_added == 0)' /tmp/oos_calibration_v4.json >/dev/null
 
       - name: Persist OOS calibration report and ledger
