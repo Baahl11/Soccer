@@ -71,6 +71,8 @@ jobs:
             model_version,
             source_model_version,
             raw_phase16_candidates_loaded,
+            phase16_rankable_supported_rows_seen,
+            excluded_without_current_calibration_policy,
             promotion_evaluable,
             families,
             provider_requests_added,
@@ -79,8 +81,8 @@ jobs:
           }'
           test "$HTTP_CODE" = "200"
           jq -e '
-            .schema_version == "1.2.0"
-            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.2.0"
+            .schema_version == "1.3.0"
+            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.3.0"
             and (.promotion_evaluable | type == "object")
             and (.rows | type == "array")
             and (.provider_requests_added == 0)
