@@ -10,8 +10,9 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.6"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.7"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
+TEAM_TOTALS_RESEARCH_STAGES = ("EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
 DERIVATIVE_MARKET_SOURCES = (
@@ -286,12 +287,23 @@ def _load_derivative_signals(conn, *, lookback_days: int, max_rows: int) -> list
                 ) AS tc(row_value)
             ) AS d
             WHERE e.generated_at >= %s
-              AND e.stage = ANY(%s)
+              AND (
+                    e.stage = ANY(%s)
+                    OR (
+                        d.signal_source = 'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'
+                        AND e.stage = ANY(%s)
+                    )
+                  )
               AND e.generated_at < f.kickoff
             ORDER BY e.generated_at DESC
             LIMIT %s
             """,
-            (cutoff, list(SIGNAL_STAGES), max(1, int(max_rows))),
+            (
+                cutoff,
+                list(SIGNAL_STAGES),
+                list(TEAM_TOTALS_RESEARCH_STAGES),
+                max(1, int(max_rows)),
+            ),
         )
         columns = [desc.name for desc in cur.description]
         return [dict(zip(columns, row)) for row in cur.fetchall()]
@@ -796,6 +808,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             "Pipeline and legacy SQL select only CLV-required event metadata instead of duplicating full refresh payload JSON per signal; source collections are released before snapshot matching to stay within the runtime memory envelope without reducing the signal cap.",
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
             "Derivative source/family counts are reported before and after period-team-total exclusion so missing Team Totals can be localized to generation versus close matching.",
+            "Team Totals may enter CLV collection from any explicitly pre-kickoff research stage, including EARLY_RESEARCH/T-90/T-60/T-30/CLOSE, while other derivative families retain the narrower T-40/T-20/T-10 stage policy.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
             "Line movement may still be recorded when the selected side survives but the sportsbook line changes.",

@@ -287,6 +287,17 @@ def test_derivative_sql_loader_includes_team_totals_observed_exact_rows():
     assert "DERIVATIVE_INTELLIGENCE:team_totals_intelligence" in query
 
 
+def test_derivative_sql_allows_early_research_only_for_team_totals():
+    conn = _FakeConn()
+    rows = v._load_derivative_market_signals(conn, lookback_days=30, max_rows=10)
+    query = conn.cursor_instance.query
+
+    assert rows == []
+    assert "d.signal_source = 'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'" in query
+    assert "e.stage = ANY(%s)" in query
+    assert "TEAM_TOTALS_RESEARCH_STAGES" not in query
+
+
 def test_legacy_loader_keeps_only_best_market_and_sport_metadata():
     conn = _FakeConn()
     rows = v._load_legacy_signals(conn, lookback_days=30, max_rows=10)
