@@ -47,7 +47,7 @@ jobs:
         working-directory: runtime
         run: |
           set -euo pipefail
-          PYTHONPATH=. python -m mcp_gateway.promotion_framework_v4             --analysis-dir ../state/soccer_edge_state/analysis             --market-performance ../state/soccer_edge_state/analysis/market_performance_summary.json             --stability-report ../state/soccer_edge_state/analysis/league_stage_stability_v4.json             --shadow-performance ../state/soccer_edge_state/analysis/shadow_performance_summary_v4.json             --output ../state/soccer_edge_state/analysis/phase19_promotion_framework_report.json
+          PYTHONPATH=. python -m mcp_gateway.promotion_framework_v4             --analysis-dir ../state/soccer_edge_state/analysis             --market-performance ../state/soccer_edge_state/analysis/market_performance_summary.json             --stability-report ../state/soccer_edge_state/analysis/league_stage_stability_v4.json             --shadow-performance ../state/soccer_edge_state/analysis/shadow_performance_summary_v4.json             --shadow-selection-diagnostics ../state/soccer_edge_state/analysis/shadow_selection_diagnostics_v4.json             --output ../state/soccer_edge_state/analysis/phase19_promotion_framework_report.json
 
       - name: Validate safety gates
         run: |
