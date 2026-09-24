@@ -27,6 +27,12 @@ jobs:
           ref: soccer-edge-state
           path: state
           fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/corners_baseline.json
+            soccer_edge_state/analysis/team_corners_validation.json
+            soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl
+            soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-python@v5
         with:
