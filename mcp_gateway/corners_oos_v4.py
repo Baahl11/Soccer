@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.2.0"
+MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.3.0"
 MIN_FT_OOS = 150
 MIN_FORMATION_ADJUSTED = 100
 MIN_TEAM_ROWS = 400
@@ -149,6 +149,8 @@ def build_report(
     league_lift = baseline_report.get("formation_lift_by_league")
     if not isinstance(league_lift, dict) or not league_lift:
         ft_blockers.append("FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED")
+    elif league_lift.get("review_ready") is not True:
+        ft_blockers.append("FT_CORNERS_LEAGUE_LIFT_NOT_STABLE")
 
     if team_rows < MIN_TEAM_ROWS:
         team_blockers.append(f"TEAM_CORNERS_ROWS_{team_rows}_LT_{MIN_TEAM_ROWS}")
@@ -161,6 +163,7 @@ def build_report(
         and mae_improves
         and ft_clv["rows"] >= MIN_TRUE_CLV_ROWS
         and "FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED" not in ft_blockers
+        and "FT_CORNERS_LEAGUE_LIFT_NOT_STABLE" not in ft_blockers
     )
     if not parent_ft_review_ready:
         team_blockers.append("PARENT_FT_CORNERS_NOT_REVIEW_READY")
@@ -189,6 +192,7 @@ def build_report(
             "minimum_oos": MIN_FT_OOS,
             "formation_adjusted_evaluations": formation_n,
             "minimum_formation_adjusted": MIN_FORMATION_ADJUSTED,
+            "formation_lift_by_league": league_lift if isinstance(league_lift, dict) else {},
             "baseline_mae_total_corners": mae_b,
             "challenger_mae_total_corners": mae_c,
             "mae_improves": mae_improves,
@@ -244,7 +248,7 @@ def build_report(
             "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals.",
             "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only.",
             "Historical source promotion_gate.enabled flags are descriptive metadata only; V4-022 blockers now name the missing evidence explicitly.",
-            "FT Corners requires materialized formation lift by league before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability.",
+            "FT Corners requires formation lift to be materialized and stable across at least two review-sized leagues before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability.",
         ],
     }
 
