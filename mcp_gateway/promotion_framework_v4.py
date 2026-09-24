@@ -6,8 +6,8 @@ import math
 import os
 from typing import Any
 
-SCHEMA_VERSION = "1.1.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.1.0"
+SCHEMA_VERSION = "1.2.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.2.0"
 
 STATES = (
     "DORMANT",
@@ -113,10 +113,50 @@ def _performance_for_family(market_performance: dict[str, Any], aliases: tuple[s
     if not isinstance(by_family, dict):
         return {}
     wanted = {_norm(value) for value in aliases}
-    for key, value in by_family.items():
-        if _norm(key) in wanted and isinstance(value, dict):
-            return value
-    return {}
+    matches = [
+        value for key, value in by_family.items()
+        if _norm(key) in wanted and isinstance(value, dict)
+    ]
+    if not matches:
+        return {}
+    n = sum(int(value.get("n") or 0) for value in matches)
+    settled = sum(int(value.get("settled") or 0) for value in matches)
+    roi_units = sum(float(value.get("roi_units") or 0.0) for value in matches)
+    return {
+        "n": n,
+        "settled": settled,
+        "roi_units": round(roi_units, 6),
+        "roi_per_decision_units": round(roi_units / n, 6) if n else None,
+    }
+
+
+def _shadow_for_family(shadow_performance: dict[str, Any], aliases: tuple[str, ...]) -> dict[str, Any]:
+    by_family = shadow_performance.get("by_market_family")
+    if not isinstance(by_family, dict):
+        return {}
+    wanted = {_norm(value) for value in aliases}
+    matches = [
+        value for key, value in by_family.items()
+        if _norm(key) in wanted and isinstance(value, dict)
+    ]
+    if not matches:
+        return {}
+    rows = sum(int(value.get("rows") or 0) for value in matches)
+    settled = sum(int(value.get("settled") or 0) for value in matches)
+    roi_units = sum(float(value.get("shadow_roi_hypothetical_units") or 0.0) for value in matches)
+    if settled >= TIER_B_REVIEW_MIN:
+        sample_status = "SHADOW_REVIEW_READY"
+    elif settled >= DIRECTIONAL_READ_MIN:
+        sample_status = "DIRECTIONAL_SHADOW"
+    else:
+        sample_status = "DATA_BLOCKED"
+    return {
+        "rows": rows,
+        "settled": settled,
+        "shadow_roi_hypothetical_units": round(roi_units, 6),
+        "shadow_roi_per_settled_unit": round(roi_units / settled, 6) if settled else None,
+        "sample_status": sample_status,
+    }
 
 
 def _stability_for_family(stability_report: dict[str, Any], keys: tuple[str, ...]) -> dict[str, Any]:
@@ -187,6 +227,9 @@ def review_market(
     clv_rows: int,
     avg_clv_pp: float | None,
     stability_status: str,
+    shadow_settled: int = 0,
+    shadow_roi_per_settled_unit: float | None = None,
+    shadow_sample_status: str = "MISSING",
     validation_blockers: list[str] | None = None,
     current_state: str = "RESEARCH",
     manual_approval: bool = False,
@@ -217,6 +260,12 @@ def review_market(
         blockers.append("ROI_NOT_POSITIVE")
     if stability_status != "STABILITY_REVIEW_READY":
         blockers.append(f"STABILITY_{stability_status or 'MISSING'}")
+    if shadow_settled < DIRECTIONAL_READ_MIN:
+        blockers.append(f"SHADOW_SETTLED_{shadow_settled}_LT_DIRECTIONAL_{DIRECTIONAL_READ_MIN}")
+    elif shadow_roi_per_settled_unit is None:
+        blockers.append("SHADOW_ROI_MISSING")
+    elif shadow_roi_per_settled_unit <= 0:
+        blockers.append("SHADOW_ROI_NOT_POSITIVE")
     blockers.extend(f"VALIDATION:{value}" for value in validation_blockers)
 
     tier_review_eligibility = {
@@ -225,6 +274,8 @@ def review_market(
         "tier_a_review": unique_fixtures >= TIER_A_REVIEW_MIN and settled >= TIER_A_REVIEW_MIN,
         "tier_s_review": unique_fixtures >= TIER_S_REVIEW_MIN and settled >= TIER_S_REVIEW_MIN,
         "model_weight_change_review": unique_fixtures >= MODEL_WEIGHT_CHANGE_MIN,
+        "shadow_directional_read": shadow_settled >= DIRECTIONAL_READ_MIN,
+        "shadow_review": shadow_settled >= TIER_B_REVIEW_MIN and shadow_roi_per_settled_unit is not None and shadow_roi_per_settled_unit > 0,
     }
 
     collapse = (
@@ -271,6 +322,9 @@ def review_market(
         "true_clv_rows": clv_rows,
         "avg_true_clv_probability_pp": avg_clv_pp,
         "stability_status": stability_status or "MISSING",
+        "shadow_settled": shadow_settled,
+        "shadow_roi_per_settled_unit": shadow_roi_per_settled_unit,
+        "shadow_sample_status": shadow_sample_status,
         "validation_blockers": validation_blockers,
         "tier_review_eligibility": tier_review_eligibility,
         "manual_approval_present": bool(manual_approval),
@@ -284,12 +338,14 @@ def build_report(
     market_performance: dict[str, Any],
     stability_report: dict[str, Any],
     validation_reports: dict[str, dict[str, Any]],
+    shadow_performance: dict[str, Any] | None = None,
     *,
     current_states: dict[str, str] | None = None,
     manual_approvals: dict[str, bool] | None = None,
 ) -> dict[str, Any]:
     current_states = current_states or {}
     manual_approvals = manual_approvals or {}
+    shadow_performance = shadow_performance if isinstance(shadow_performance, dict) else {}
 
     reviews: list[dict[str, Any]] = []
     for family, spec in FAMILY_SPECS.items():
@@ -300,6 +356,7 @@ def build_report(
         avg_clv = _num(overall.get("fixture_weighted_avg_probability_clv_pp"))
 
         perf = _performance_for_family(market_performance, tuple(spec["performance_aliases"]))
+        shadow = _shadow_for_family(shadow_performance, tuple(spec["performance_aliases"]))
         settled = int(perf.get("settled") or 0)
         roi_per = _num(perf.get("roi_per_decision_units"))
         roi_units = _num(perf.get("roi_units"))
@@ -319,6 +376,9 @@ def build_report(
             clv_rows=clv_rows,
             avg_clv_pp=avg_clv,
             stability_status=str(stability.get("status") or "MISSING"),
+            shadow_settled=int(shadow.get("settled") or 0),
+            shadow_roi_per_settled_unit=_num(shadow.get("shadow_roi_per_settled_unit")),
+            shadow_sample_status=str(shadow.get("sample_status") or "MISSING"),
             validation_blockers=blockers,
             current_state=current_states.get(family, "RESEARCH"),
             manual_approval=bool(manual_approvals.get(family, False)),
@@ -347,6 +407,9 @@ def build_report(
             "tier_s_review": TIER_S_REVIEW_MIN,
             "model_weight_change": MODEL_WEIGHT_CHANGE_MIN,
             "settlements_required_in_parallel": True,
+            "shadow_directional_minimum": DIRECTIONAL_READ_MIN,
+            "shadow_review_minimum": TIER_B_REVIEW_MIN,
+            "shadow_roi_must_be_positive_for_lean_eligibility": True,
         },
         "automatic_report": True,
         "manual_approval_required": True,
@@ -362,6 +425,7 @@ def build_report(
         "notes": [
             "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
             "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
+            "WATCH shadow evidence is separate from real settlements; at least 20 shadow settlements and positive hypothetical ROI are required before LEAN_ELIGIBLE can be considered.",
             "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
             "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV.",
         ],
@@ -380,6 +444,7 @@ def main() -> None:
     parser.add_argument("--analysis-dir", required=True)
     parser.add_argument("--market-performance", required=True)
     parser.add_argument("--stability-report", required=True)
+    parser.add_argument("--shadow-performance")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
@@ -387,6 +452,7 @@ def main() -> None:
         _load_json(args.market_performance),
         _load_json(args.stability_report),
         _load_validation_reports(args.analysis_dir),
+        _load_json(args.shadow_performance) if args.shadow_performance else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
