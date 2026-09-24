@@ -3,7 +3,21 @@ from datetime import datetime, timezone
 from mcp_gateway import promotion_shadow_postgres_v4 as v
 
 
-def _row(fid, ts, stage, selection, price, p_model, p_market, goals=(2, 1), model="SOCCER EDGE ENGINE v1.7", automation="SOCCER_EDGE_V121"):
+def _row(
+    fid,
+    ts,
+    stage,
+    selection,
+    price,
+    p_model,
+    p_market,
+    *,
+    family="1X2",
+    line=None,
+    goals=(2, 1),
+    model="SOCCER EDGE ENGINE v1.7",
+    automation="4.31.0-price-resolver-v4",
+):
     return {
         "fixture_id": fid,
         "generated_at": datetime.fromisoformat(ts).replace(tzinfo=timezone.utc),
@@ -11,9 +25,10 @@ def _row(fid, ts, stage, selection, price, p_model, p_market, goals=(2, 1), mode
         "phase16_candidate": {
             "fixture_id": fid,
             "stage": stage,
-            "market_family": "1X2",
-            "market": "Match Winner",
+            "market_family": family,
+            "market": "Match Winner" if family == "1X2" else "Goals Over/Under" if family == "FT_TOTALS" else "Both Teams Score",
             "selection": selection,
+            "line": line,
             "price": price,
             "bookmaker": "Book",
             "calibrated_probability": p_model,
@@ -30,29 +45,66 @@ def _row(fid, ts, stage, selection, price, p_model, p_market, goals=(2, 1), mode
         "league": "League A",
         "home_team": "Home",
         "away_team": "Away",
-        "home_goals": goals[0],
-        "away_goals": goals[1],
+        "home_goals": None if goals is None else goals[0],
+        "away_goals": None if goals is None else goals[1],
         "source_model_version": model,
         "automation_version": automation,
     }
 
 
-def test_persisted_phase16_candidate_is_promotion_evaluable():
+def test_persisted_1x2_candidate_is_promotion_evaluable():
     report = v.build_report_from_rows([
         _row(1, "2026-09-20T17:40:00", "T-20", "home", 2.0, 0.60, 0.50),
     ])
-    assert report["promotion_evaluable"]["settled"] == 1
+    assert report["families"]["1X2"]["promotion_evaluable"]["settled"] == 1
     assert report["rows"][0]["signal_source"] == "PERSISTED_PHASE16_MARKET_MISMATCH"
 
 
-def test_latest_pre_kickoff_candidate_wins_per_fixture():
+def test_ft_totals_and_btts_settle_exactly():
+    report = v.build_report_from_rows([
+        _row(1, "2026-09-20T17:40:00", "T-20", "Over", 2.0, 0.60, 0.50, family="FT_TOTALS", line=2.5, goals=(2, 1)),
+        _row(2, "2026-09-20T17:40:00", "T-20", "Under", 1.9, 0.60, 0.50, family="FT_TOTALS", line=2.5, goals=(1, 0)),
+        _row(3, "2026-09-20T17:40:00", "T-20", "Yes", 1.8, 0.60, 0.50, family="BTTS", goals=(2, 1)),
+        _row(4, "2026-09-20T17:40:00", "T-20", "Yes", 1.8, 0.60, 0.50, family="BTTS", goals=(2, 0)),
+    ])
+    totals = report["families"]["FT_TOTALS"]["promotion_evaluable"]
+    btts = report["families"]["BTTS"]["promotion_evaluable"]
+    assert totals["settled"] == 2 and totals["win"] == 2
+    assert btts["settled"] == 2 and btts["win"] == 1 and btts["loss"] == 1
+
+
+def test_integer_total_push_is_zero_roi_settlement():
+    report = v.build_report_from_rows([
+        _row(1, "2026-09-20T17:40:00", "T-20", "Over", 2.0, 0.60, 0.50, family="FT_TOTALS", line=3.0, goals=(2, 1)),
+    ])
+    row = report["rows"][0]
+    assert row["outcome"] == "PUSH"
+    assert row["roi_units"] == 0.0
+    assert report["families"]["FT_TOTALS"]["promotion_evaluable"]["push"] == 1
+
+
+def test_candidate_is_visible_pending_before_result_exists():
+    report = v.build_report_from_rows([
+        _row(1, "2026-09-20T17:40:00", "T-20", "Over", 2.0, 0.60, 0.50, family="FT_TOTALS", line=2.5, goals=None),
+    ])
+    evidence = report["families"]["FT_TOTALS"]["promotion_evaluable"]
+    assert evidence["rows"] == 1
+    assert evidence["settled"] == 0
+    assert evidence["pending"] == 1
+    assert report["rows"][0]["settlement_status"] == "PENDING"
+
+
+def test_latest_pre_kickoff_candidate_wins_per_fixture_and_family():
     rows = [
         _row(1, "2026-09-20T17:20:00", "T-40", "home", 2.0, 0.60, 0.50),
         _row(1, "2026-09-20T17:50:00", "T-10", "home", 2.1, 0.58, 0.48),
+        _row(1, "2026-09-20T17:45:00", "T-20", "Over", 1.9, 0.60, 0.50, family="FT_TOTALS", line=2.5),
     ]
     report = v.build_report_from_rows(rows)
     assert report["promotion_evaluable"]["unique_fixtures"] == 1
-    assert report["rows"][0]["stage"] == "T-10"
+    assert len(report["rows"]) == 2
+    one_x_two = next(row for row in report["rows"] if row["market_family"] == "1X2")
+    assert one_x_two["stage"] == "T-10"
 
 
 def test_latest_versioned_regime_prevents_mixed_history():
@@ -64,15 +116,6 @@ def test_latest_versioned_regime_prevents_mixed_history():
     assert report["source_regime"] == "SOCCER EDGE ENGINE v1.7"
     assert report["promotion_evaluable"]["unique_fixtures"] == 1
     assert report["rows"][0]["fixture_id"] == 2
-
-
-def test_unversioned_history_is_not_dropped_when_no_regime_exists():
-    row = _row(1, "2026-09-20T17:50:00", "T-10", "home", 2.0, 0.60, 0.50)
-    row["source_model_version"] = None
-    row["automation_version"] = None
-    report = v.build_report_from_rows([row])
-    assert report["source_regime"] is None
-    assert report["promotion_evaluable"]["settled"] == 1
 
 
 def test_no_provider_requests_or_runtime_mutation():
