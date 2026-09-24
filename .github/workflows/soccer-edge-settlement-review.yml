@@ -10,7 +10,9 @@ on:
       - ".github/workflows/soccer-edge-settlement-review.yml"
   workflow_dispatch:
 
-permissions: {contents: write}
+permissions:
+  contents: write
+  id-token: write
 
 jobs:
   settlement-review:
@@ -26,13 +28,81 @@ jobs:
         with: {ref: soccer-edge-mcp-v1, path: engine, fetch-depth: 1}
 
       - name: Compile settlement review modules
-        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py engine/mcp_gateway/shadow_settlement_v4.py engine/mcp_gateway/shadow_selection_diagnostics_v4.py engine/mcp_gateway/promotion_shadow_ledger_v4.py
+        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py engine/mcp_gateway/shadow_settlement_v4.py engine/mcp_gateway/shadow_selection_diagnostics_v4.py engine/mcp_gateway/promotion_shadow_ledger_v4.py engine/mcp_gateway/settlement_postgres_v4.py
 
       - name: Build historical signal ledger
         run: python engine/mcp_gateway/build_signal_ledger.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/signal_ledger.jsonl --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
 
       - name: Evaluate postgame outcomes and settlement ledger
         run: python engine/mcp_gateway/evaluate_postgame.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/postgame_evaluation.jsonl --summary-output state/soccer_edge_state/analysis/postgame_summary.json --settlement-output state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl --market-summary-output state/soccer_edge_state/analysis/market_performance_summary.json
+
+      - name: Refresh canonical settlement ledger from Postgres
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          LEGACY_TOTAL=$(jq -r '.settlement_decisions // 0' state/soccer_edge_state/analysis/market_performance_summary.json)
+          LEGACY_FT=$(jq -r '.by_market_family.FT_TOTALS.settled // 0' state/soccer_edge_state/analysis/market_performance_summary.json)
+
+          curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors \
+            https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS \
+              -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          READY=0
+          for attempt in 1 2 3 4 5; do
+            TOKEN=$(get_oidc_token)
+            echo "::add-mask::$TOKEN"
+            HTTP_CODE=$(curl -sS --max-time 180 -o /tmp/settlement_v4.json -w "%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{"lookback_days":180,"max_rows":50000}' \
+              https://soccer-edge-api.onrender.com/internal/settlement-v4/build)
+
+            MODEL_VERSION=$(jq -r '.model_version // empty' /tmp/settlement_v4.json 2>/dev/null || true)
+            if [ "$HTTP_CODE" = "200" ] && [ "$MODEL_VERSION" = "SOCCER_SETTLEMENT_POSTGRES_V4_1.0.0" ]; then
+              READY=1
+              break
+            fi
+            echo "::notice::Settlement runtime not fresh yet (attempt $attempt/5, http=$HTTP_CODE, model=$MODEL_VERSION)"
+            if [ "$attempt" -lt 5 ]; then sleep 20; fi
+          done
+
+          test "$READY" = "1"
+          jq -e '
+            .schema_version == "1.0.0"
+            and .model_version == "SOCCER_SETTLEMENT_POSTGRES_V4_1.0.0"
+            and (.rows | type == "array")
+            and (.market_performance_summary | type == "object")
+            and (.provider_requests_added == 0)
+            and (.runtime_logic_changed == false)
+          ' /tmp/settlement_v4.json >/dev/null
+
+          NEW_TOTAL=$(jq -r '.market_performance_summary.settlement_decisions // 0' /tmp/settlement_v4.json)
+          NEW_FT=$(jq -r '.market_performance_summary.by_market_family.FT_TOTALS.settled // 0' /tmp/settlement_v4.json)
+          echo "Settlement coverage legacy_total=$LEGACY_TOTAL postgres_total=$NEW_TOTAL legacy_ft=$LEGACY_FT postgres_ft=$NEW_FT"
+
+          if [ "$NEW_TOTAL" -lt "$LEGACY_TOTAL" ]; then
+            echo "::error::Postgres settlement coverage regressed below legacy total"
+            exit 1
+          fi
+          if [ "$NEW_FT" -lt "$LEGACY_FT" ]; then
+            echo "::error::Postgres FT Totals settlement coverage regressed below legacy total"
+            exit 1
+          fi
+
+          jq -c '.rows[]' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl
+          jq '.market_performance_summary' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/market_performance_summary.json
+          jq 'del(.rows)' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/settlement_postgres_v4.json
 
       - name: Build WATCH shadow settlement ledger
         run: PYTHONPATH=engine python -m mcp_gateway.shadow_settlement_v4 --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl --summary-output state/soccer_edge_state/analysis/shadow_performance_summary_v4.json
@@ -76,7 +146,8 @@ jobs:
             soccer_edge_state/analysis/settlement_coverage_report.json \
             soccer_edge_state/analysis/settlement_backlog.jsonl \
             soccer_edge_state/analysis/postgame_final_backfill_queue.jsonl \
-            soccer_edge_state/analysis/postgame_final_backfill_queue_summary.json
+            soccer_edge_state/analysis/postgame_final_backfill_queue_summary.json \
+            soccer_edge_state/analysis/settlement_postgres_v4.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Soccer Edge settlement review"
           for attempt in 1 2 3; do
