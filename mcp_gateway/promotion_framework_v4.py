@@ -7,7 +7,7 @@ import os
 from typing import Any
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.5.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.6.0"
 
 STATES = (
     "DORMANT",
@@ -177,6 +177,21 @@ def _promotion_shadow_for_family(
     promotion_shadow_report: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     promotion_shadow_report = promotion_shadow_report if isinstance(promotion_shadow_report, dict) else {}
+
+    families = promotion_shadow_report.get("families")
+    family_report = families.get(family) if isinstance(families, dict) and isinstance(families.get(family), dict) else {}
+    evidence = family_report.get("promotion_evaluable") if isinstance(family_report.get("promotion_evaluable"), dict) else {}
+    if evidence:
+        return {
+            "settled": int(evidence.get("settled") or 0),
+            "pending": int(evidence.get("pending") or 0),
+            "shadow_roi_per_settled_unit": _num(evidence.get("roi_per_settled_unit")),
+            "sample_status": str(evidence.get("sample_status") or "DATA_BLOCKED"),
+            "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
+            "evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE",
+        }
+
+    # Backward-compatible read for the earlier 1X2-only report shape.
     if (
         family == "1X2"
         and _norm(promotion_shadow_report.get("market_family")) == "1X2"
@@ -185,6 +200,7 @@ def _promotion_shadow_for_family(
         evidence = promotion_shadow_report["promotion_evaluable"]
         return {
             "settled": int(evidence.get("settled") or 0),
+            "pending": int(evidence.get("pending") or 0),
             "shadow_roi_per_settled_unit": _num(evidence.get("roi_per_settled_unit")),
             "sample_status": str(evidence.get("sample_status") or "DATA_BLOCKED"),
             "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
@@ -194,6 +210,7 @@ def _promotion_shadow_for_family(
     if family != "1X2":
         return {
             "settled": 0,
+            "pending": 0,
             "shadow_roi_per_settled_unit": None,
             "sample_status": "QUALITY_DIAGNOSTICS_NOT_IMPLEMENTED",
             "negative_directional_stages": [],
@@ -203,6 +220,7 @@ def _promotion_shadow_for_family(
     if _norm(shadow_selection_diagnostics.get("market_family")) != "FT_1X2":
         return {
             "settled": 0,
+            "pending": 0,
             "shadow_roi_per_settled_unit": None,
             "sample_status": "QUALITY_DIAGNOSTICS_MISSING",
             "negative_directional_stages": [],
@@ -216,12 +234,12 @@ def _promotion_shadow_for_family(
     )
     return {
         "settled": int(evidence.get("settled") or 0),
+        "pending": int(evidence.get("pending") or 0),
         "shadow_roi_per_settled_unit": _num(evidence.get("roi_per_settled_unit")),
         "sample_status": str(evidence.get("sample_status") or "DATA_BLOCKED"),
         "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
         "evidence_source": "SHADOW_SELECTION_DIAGNOSTICS:PROMOTION_EVALUABLE",
     }
-
 
 def _stability_for_family(stability_report: dict[str, Any], keys: tuple[str, ...]) -> dict[str, Any]:
     families = stability_report.get("families")
@@ -474,6 +492,7 @@ def build_report(
         review["validation_status"] = validation.get("status")
         review["validation_model_version"] = validation.get("model_version")
         review["promotion_shadow_evidence_source"] = promotion_shadow.get("evidence_source")
+        review["promotion_shadow_pending"] = int(promotion_shadow.get("pending") or 0)
         review["watch_shadow_settled"] = int(watch_shadow.get("settled") or 0)
         review["watch_shadow_roi_per_settled_unit"] = _num(watch_shadow.get("shadow_roi_per_settled_unit"))
         review["watch_shadow_sample_status"] = str(watch_shadow.get("sample_status") or "MISSING")
@@ -520,7 +539,8 @@ def build_report(
             "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
             "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
             "WATCH shadow observations remain research diagnostics and do not count toward promotion unless a market-specific quality diagnostic marks them promotion-evaluable.",
-            "For 1X2, persisted Phase16 primary rankable candidates replayed from Postgres are the preferred promotion-shadow source; legacy WATCH diagnostics remain fallback-only.",
+            "For 1X2, FT_TOTALS and BTTS, persisted Phase16 primary rankable candidates replayed from Postgres are the preferred promotion-shadow source; pending rows become settled automatically when final results arrive.",
+            "Legacy WATCH diagnostics remain fallback-only for 1X2 and never count when clean Phase16 replay evidence exists.",
             "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
             "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV.",
         ],
