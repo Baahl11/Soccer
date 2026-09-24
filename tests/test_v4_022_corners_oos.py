@@ -1,4 +1,42 @@
+from mcp_gateway import analyze_corners_baseline as baseline_v
 from mcp_gateway import corners_oos_v4 as v
+
+
+def _corner_eval(league_id, actual, base_lam, challenger_lam, prior_matchup_n=8):
+    row = {
+        "league_id": league_id,
+        "prior_matchup_n": prior_matchup_n,
+        "baseline_total_lambda": base_lam,
+        "challenger_total_lambda": challenger_lam,
+        "actual_total_corners": actual,
+    }
+    for line in baseline_v.REQUIRED_LINES:
+        key = str(line).replace(".", "_")
+        row[f"base_over_{key}"] = baseline_v.pois_over(base_lam, line)
+        row[f"challenger_over_{key}"] = baseline_v.pois_over(challenger_lam, line)
+    return row
+
+
+def test_corners_baseline_materializes_review_sized_league_lift():
+    rows = []
+    for league_id in (100, 200):
+        for i in range(20):
+            actual = 9.0 if i % 2 == 0 else 11.0
+            rows.append(_corner_eval(league_id, actual, 13.0, actual))
+
+    report = baseline_v.formation_lift_by_league(rows)
+    assert report["formation_adjusted_evaluations"] == 40
+    assert report["review_eligible_leagues"] == ["100", "200"]
+    assert report["stable_lift_leagues"] == ["100", "200"]
+    assert report["negative_lift_leagues"] == []
+    assert report["review_ready"] is True
+
+
+def test_corners_baseline_does_not_call_thin_league_stable():
+    rows = [_corner_eval(100, 10.0, 12.0, 10.0) for _ in range(19)]
+    report = baseline_v.formation_lift_by_league(rows)
+    assert report["review_eligible_leagues"] == []
+    assert report["review_ready"] is False
 
 
 def test_v4_022_blocks_current_small_formation_sample_and_no_clv():
@@ -178,3 +216,60 @@ def test_v4_022_replaces_historical_disabled_flags_with_explicit_evidence_blocke
     assert "FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED" in ft_blockers
     assert "PARENT_FT_CORNERS_NOT_REVIEW_READY" in team_blockers
     assert "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED" in team_blockers
+
+
+def test_v4_022_uses_materialized_league_lift_without_removing_sample_gate():
+    report = v.build_report(
+        {
+            "walk_forward_evaluations": 244,
+            "formation_adjusted_evaluations": 39,
+            "baseline": {
+                "mae_total_corners": 2.6,
+                "lines": {
+                    "8.5": {"brier": 0.25, "log_loss": 0.70},
+                    "9.5": {"brier": 0.25, "log_loss": 0.70},
+                    "10.5": {"brier": 0.22, "log_loss": 0.63},
+                },
+            },
+            "formation_challenger": {
+                "mae_total_corners": 2.5,
+                "lines": {
+                    "8.5": {"brier": 0.24, "log_loss": 0.69},
+                    "9.5": {"brier": 0.24, "log_loss": 0.69},
+                    "10.5": {"brier": 0.21, "log_loss": 0.62},
+                },
+            },
+            "formation_lift_by_league": {
+                "review_ready": True,
+                "review_eligible_leagues": ["100", "200"],
+                "stable_lift_leagues": ["100", "200"],
+                "negative_lift_leagues": [],
+            },
+        },
+        {
+            "evaluated_fixtures": 244,
+            "evaluated_rows": 1464,
+            "by_role_line": {
+                "HOME|3.5": {"n": 244},
+                "HOME|4.5": {"n": 244},
+                "HOME|5.5": {"n": 244},
+                "AWAY|3.5": {"n": 244},
+                "AWAY|4.5": {"n": 244},
+                "AWAY|5.5": {"n": 244},
+            },
+        },
+        [
+            *[
+                {"market_family": "FT_CORNERS", "market": "Corners Over/Under", "fixture_id": i, "clv_probability_pp": 0.1}
+                for i in range(60)
+            ],
+            *[
+                {"market_family": "TEAM_CORNERS", "market": "Home Team Corners", "fixture_id": i, "clv_probability_pp": 0.1}
+                for i in range(60)
+            ],
+        ],
+    )
+    ft_blockers = report["family_views"]["FT_CORNERS"]["blockers"]
+    assert "FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED" not in ft_blockers
+    assert "FT_CORNERS_LEAGUE_LIFT_NOT_STABLE" not in ft_blockers
+    assert "FORMATION_ADJUSTED_39_LT_100" in ft_blockers
