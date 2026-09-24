@@ -6,7 +6,8 @@ from collections import defaultdict
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_MARKET_MISMATCH_V4_1.0.0"
+MODEL_VERSION = "SOCCER_MARKET_MISMATCH_V4_1.1.0"
+EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
 
 SPORT_WEIGHT = 0.30
 EDGE_WEIGHT = 0.30
@@ -236,6 +237,7 @@ def analyze_row(row: dict[str, Any]) -> dict[str, Any] | None:
         "uncertainty_source": uncertainty_source,
         "rankable": rankable,
         "rankability_reasons": sorted(set(rankability_reasons)),
+        "evidence_regime": EVIDENCE_REGIME,
         "mismatch_score": round(research_score, 4) if rankable else None,
         "raw_diagnostic_score": round(raw_diagnostic_score, 4) if raw_diagnostic_score is not None else None,
         "blockers": sorted(set(blockers)),
@@ -285,6 +287,7 @@ def find_mismatches(rows: Iterable[dict[str, Any]], *, top_n: int = 20) -> dict[
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
+        "evidence_regime": EVIDENCE_REGIME,
         "status": "RESEARCH_MISMATCH_SCAN",
         "rows_analyzed": len(analyzed),
         "fixtures_analyzed": len(by_fixture),
