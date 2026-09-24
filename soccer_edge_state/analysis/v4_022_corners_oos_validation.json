@@ -1,15 +1,16 @@
 {
   "blockers": [
     "FORMATION_ADJUSTED_39_LT_100",
-    "SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED",
-    "SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED"
+    "FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED",
+    "PARENT_FT_CORNERS_NOT_REVIEW_READY",
+    "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED"
   ],
   "canonical_bet_logic_changed": false,
   "family_views": {
     "FT_CORNERS": {
       "blockers": [
         "FORMATION_ADJUSTED_39_LT_100",
-        "SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED"
+        "FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED"
       ],
       "status": "RESEARCH_HOLD",
       "true_clv": {
@@ -26,7 +27,8 @@
     },
     "TEAM_CORNERS": {
       "blockers": [
-        "SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED"
+        "PARENT_FT_CORNERS_NOT_REVIEW_READY",
+        "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED"
       ],
       "status": "RESEARCH_HOLD",
       "true_clv": {
@@ -93,14 +95,16 @@
     "walk_forward_evaluations": 244
   },
   "manual_review_required": true,
-  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.1.0",
+  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.2.0",
   "model_weights_changed": false,
   "notes": [
     "Corners OOS is evaluated separately from goals markets because market microstructure and variance differ.",
     "Formation adjustment currently improves FT corners Brier/log-loss on 8.5/9.5/10.5 and total-corners MAE, but its adjusted sample remains too small.",
     "Verified exact corners prices and family-specific true CLV are mandatory before any production promotion.",
     "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals.",
-    "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only."
+    "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only.",
+    "Historical source promotion_gate.enabled flags are descriptive metadata only; V4-022 blockers now name the missing evidence explicitly.",
+    "FT Corners requires materialized formation lift by league before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability."
   ],
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
