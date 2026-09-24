@@ -4,8 +4,8 @@
   "service": "soccer-edge-automation",
   "version": "4.31.0-price-resolver-v4",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-24T05:06:47.820251+00:00",
-  "generated_at_local": "2026-09-23T23:06:47.820251-06:00",
+  "generated_at_utc": "2026-09-24T05:10:24.243326+00:00",
+  "generated_at_local": "2026-09-23T23:10:24.243326-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 304,
   "due_fixture_count": 48,
@@ -15,7 +15,7 @@
   "api_calls_this_tick": 71,
   "max_api_calls_per_tick": 70,
   "effective_max_api_calls_per_tick": 70,
-  "last_daily_remaining": 6883,
+  "last_daily_remaining": 6812,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -132,7 +132,10 @@
       "price_resolution_provider_update": "2026-09-24T03:08:13+00:00",
       "price_resolution_bookmaker_count": 15,
       "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
-      "price_resolution_calibrated_probability_added": false
+      "price_resolution_calibrated_probability_added": true,
+      "p_model_calibrated": 0.58910905,
+      "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+      "phase16_calibration_source": "CURRENT_MODEL_OOS_PLATT:OVER_2_5"
     },
     {
       "row_type": "research_visibility",
@@ -943,7 +946,7 @@
   },
   "price_resolution_v4": {
     "schema_version": "1.0.0",
-    "model_version": "SOCCER_PRICE_RESOLVER_V4_1.0.0",
+    "model_version": "SOCCER_PRICE_RESOLVER_V4_1.1.0",
     "status": "ACTIVE_PRICE_RESOLVER",
     "candidate_rows": 13,
     "unique_candidate_fixtures": 13,
@@ -960,14 +963,17 @@
     "catalog_policy": "/odds/bookmakers and /odds/bets are metadata catalogs; fixture /odds response is authoritative for prices.",
     "simulated_odds_allowed": false,
     "calibrated_probability_fabricated": false,
+    "calibration_state_source": "SOCCER_EDGE_STATE_RAW",
+    "calibration_state_loaded": true,
+    "calibrated_rows_added": 1,
     "provider_requests_added": 1,
-    "provider_daily_remaining_observed": 6883,
+    "provider_daily_remaining_observed": 6812,
     "quota_accounting_included_in_api_calls_this_tick": true
   },
   "price_resolution_checkpoint": {
     "schema_version": "1.0.0",
     "status": "ACTIVE_PRICE_RESOLVER",
-    "model_version": "SOCCER_PRICE_RESOLVER_V4_1.0.0",
+    "model_version": "SOCCER_PRICE_RESOLVER_V4_1.1.0",
     "candidate_rows": 13,
     "unique_candidate_fixtures": 13,
     "api_calls_added": 1,
@@ -1006,7 +1012,7 @@
   "elastic_deep_dive_cap_reason": "GT_6000",
   "elastic_request_cap": 70,
   "elastic_request_cap_reason": "GT_6000",
-  "elastic_quota_remaining_basis": 6900,
+  "elastic_quota_remaining_basis": 6859,
   "fair_scheduler": {
     "schema_version": "1.0.0",
     "policy": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY",
@@ -1525,13 +1531,15 @@
     "model_version": "SOCCER_MARKET_MISMATCH_V4_1.0.0",
     "rows_analyzed": 15,
     "fixtures_analyzed": 15,
-    "rankable_rows": 0,
+    "rankable_rows": 1,
     "market_family_coverage": {
       "2H": 1,
       "BTTS": 3,
       "FT_TOTALS": 11
     },
-    "rankable_market_family_coverage": {},
+    "rankable_market_family_coverage": {
+      "2H": 1
+    },
     "ranking_weights": {
       "sport_confidence": 0.3,
       "calibrated_edge": 0.3,
@@ -1542,7 +1550,7 @@
     "calibrated_probability_required_for_ranking": true,
     "raw_legacy_edge_used_for_diagnostic_only": true,
     "correlation_suppression_enabled": true,
-    "primary_candidate_count": 0,
+    "primary_candidate_count": 1,
     "correlated_candidate_count": 0,
     "provider_requests_added": 0,
     "production_promotion_allowed": false,
@@ -1932,7 +1940,10 @@
           "price_resolution_provider_update": "2026-09-24T03:08:13+00:00",
           "price_resolution_bookmaker_count": 15,
           "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
-          "price_resolution_calibrated_probability_added": false
+          "price_resolution_calibrated_probability_added": true,
+          "p_model_calibrated": 0.58910905,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_PLATT:OVER_2_5"
         },
         {
           "row_type": "research_visibility",
@@ -2574,7 +2585,10 @@
           "price_resolution_provider_update": "2026-09-24T03:08:13+00:00",
           "price_resolution_bookmaker_count": 15,
           "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
-          "price_resolution_calibrated_probability_added": false
+          "price_resolution_calibrated_probability_added": true,
+          "p_model_calibrated": 0.58910905,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_PLATT:OVER_2_5"
         },
         {
           "row_type": "research_visibility",
@@ -2856,7 +2870,10 @@
           "price_resolution_provider_update": "2026-09-24T03:08:13+00:00",
           "price_resolution_bookmaker_count": 15,
           "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
-          "price_resolution_calibrated_probability_added": false
+          "price_resolution_calibrated_probability_added": true,
+          "p_model_calibrated": 0.58910905,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_PLATT:OVER_2_5"
         },
         {
           "row_type": "research_visibility",
@@ -3438,7 +3455,7 @@
       "database_persisted": false,
       "api_calls_this_tick": 70,
       "max_api_calls_per_tick": 70,
-      "last_daily_remaining": 6900,
+      "last_daily_remaining": 6859,
       "fixture_scan_count": 304,
       "due_fixture_count": 48,
       "deferred_due_to_budget": 1,
@@ -3446,7 +3463,38 @@
     }
   },
   "phase21_alert_audit_rows": [],
-  "market_mismatch_rows": [],
+  "market_mismatch_rows": [
+    {
+      "fixture_id": 1629897,
+      "league": "Cup",
+      "home": "Elva",
+      "away": "Tallinna Kalev",
+      "stage": "EARLY_RESEARCH",
+      "market_family": "2H",
+      "correlation_group": "PERIOD_GOALS",
+      "market": "Goals Over/Under - Second Half",
+      "selection": "Over",
+      "line": 2.5,
+      "price": 4.6,
+      "bookmaker": "1xBet",
+      "sport_confidence_score": 100.0,
+      "calibrated_probability": 0.58910905,
+      "calibrated_probability_source": "p_model_calibrated",
+      "market_fair_probability": 0.197208,
+      "calibrated_edge_pp": 39.1901,
+      "raw_legacy_edge_pp": 65.4039,
+      "data_quality_score": 80.0,
+      "price_quality_score": 100.0,
+      "uncertainty": 0.5,
+      "uncertainty_source": "MISSING_NEUTRAL_RESEARCH_ONLY",
+      "rankable": true,
+      "mismatch_score": 92.0,
+      "raw_diagnostic_score": 92.0,
+      "blockers": [],
+      "production_promotion_allowed": false,
+      "bet_eligible": false
+    }
+  ],
   "market_mismatch_correlated_suppressed": [],
   "latest_payload_policy": "COMPACT_OPERATIONAL_VIEW_FULL_TICK_IN_POSTGRES_COMPACT_HISTORY_IN_GIT"
 }
