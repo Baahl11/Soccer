@@ -27,6 +27,13 @@ jobs:
           ref: soccer-edge-state
           fetch-depth: 1
 
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
       - name: Warm Render
         run: |
           curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors \
@@ -93,6 +100,34 @@ jobs:
             and (.rows | type == "array")
             and (.pipeline_market_rows_loaded | type == "number")
             and (.signal_source_counts | type == "object")
+            and (.provider_requests_added == 0)
+          ' /tmp/clv_v4.json >/dev/null
+
+      - name: Merge strict historical true CLV
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python -m mcp_gateway.clv_history_merge_v4 \
+            --postgres-report /tmp/clv_v4.json \
+            --history-true-clv soccer_edge_state/analysis/true_clv_tracking.jsonl \
+            --output /tmp/clv_v4_merged.json
+          mv /tmp/clv_v4_merged.json /tmp/clv_v4.json
+
+          jq '{
+            canonical_merge_version,
+            tracked_rows,
+            comparable_true_clv_rows,
+            historical_backfill_rows_added,
+            historical_backfill_unique_fixtures,
+            unique_fixtures_by_family,
+            family_counts,
+            signal_source_counts,
+            provider_requests_added
+          }' /tmp/clv_v4.json
+          jq -e '
+            .schema_version == "1.0.0"
+            and .canonical_merge_version == "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.0.0"
+            and (.rows | type == "array")
             and (.provider_requests_added == 0)
           ' /tmp/clv_v4.json >/dev/null
 
