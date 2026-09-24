@@ -1,585 +1,923 @@
 {
-  "schema_version": "1.0.0",
-  "model_version": "SOCCER_OOS_PREDICTION_LEDGER_V4_1.0.0",
-  "status": "COLLECTING_OOS_PREDICTIONS",
-  "lookback_days": 180,
-  "fixture_rows": 37,
-  "minimum_rows_per_target": 200,
-  "latest_pre_kickoff_prediction_per_fixture": true,
   "anti_leakage": {
-    "prediction_timestamp_before_kickoff_required": true,
-    "final_result_joined_after_prediction": true,
+    "final_result_from_postgame_or_final_status_only": true,
+    "historical_predictions_recomputed": false,
+    "market_fields_used": false,
     "one_latest_pre_kickoff_prediction_per_fixture": true,
-    "market_fields_used": false
+    "prediction_timestamp_before_kickoff_required": true
   },
+  "canonical_bet_logic_changed": false,
+  "fixture_rows": 567,
+  "historical_fixture_rows": 500,
+  "latest_pre_kickoff_prediction_per_fixture": true,
+  "minimum_rows_per_target": 200,
+  "model_version": "SOCCER_OOS_HISTORY_MERGE_V4_1.0.0",
   "model_version_counts": {
-    "SOCCER EDGE ENGINE v1.0": 37
+    "SOCCER EDGE ENGINE v1.0": 150,
+    "SOCCER EDGE ENGINE v1.1": 7,
+    "SOCCER EDGE ENGINE v1.2": 1,
+    "SOCCER EDGE ENGINE v1.5": 1,
+    "SOCCER EDGE ENGINE v1.6": 1,
+    "SOCCER EDGE ENGINE v1.7": 407
   },
+  "notes": [
+    "Historical rows come only from predictions already persisted in signal_ledger.jsonl; no model is rerun or backcast.",
+    "For each fixture the latest prediction strictly before kickoff is selected, then joined to a postgame/final result.",
+    "Postgres-native rows and historical rows are merged by fixture; the latest valid pre-kickoff timestamp wins.",
+    "Calibration remains research-only and does not alter runtime prediction weights."
+  ],
+  "postgres_fixture_rows": 73,
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "ready_target_count": 5,
   "run_type_counts": {
-    "CLOSE": 6,
-    "EARLY_RESEARCH": 2,
-    "T-10": 25,
-    "T-20": 2,
-    "T-40": 2
+    "CLOSE": 113,
+    "EARLY_RESEARCH": 30,
+    "T-10": 320,
+    "T-20": 45,
+    "T-30": 13,
+    "T-40": 27,
+    "T-60": 4,
+    "T-90": 15
   },
+  "runtime_prediction_weight": 0.0,
+  "schema_version": "1.0.0",
+  "source_counts": {
+    "HISTORICAL_SIGNAL_LEDGER": 494,
+    "POSTGRES_NATIVE": 73
+  },
+  "status": "OOS_CALIBRATION_MATERIALIZED",
   "targets": {
-    "home_win": {
-      "rows": 37,
-      "status": "DATA_BLOCKED",
-      "raw_metrics": {
-        "status": "OK",
-        "row_count": 37,
-        "brier": 0.30026427,
-        "log_loss": 0.81441566,
-        "ece": 0.1738757,
-        "mce": 0.876913,
-        "bins": [
-          {
-            "bin_index": 1,
-            "lower": 0.1,
-            "upper": 0.2,
-            "n": 1,
-            "mean_prediction": 0.123087,
-            "observed_rate": 1.0,
-            "absolute_gap": 0.876913
-          },
-          {
-            "bin_index": 2,
-            "lower": 0.2,
-            "upper": 0.3,
-            "n": 8,
-            "mean_prediction": 0.24585737,
-            "observed_rate": 0.25,
-            "absolute_gap": 0.00414263
-          },
-          {
-            "bin_index": 3,
-            "lower": 0.3,
-            "upper": 0.4,
-            "n": 7,
-            "mean_prediction": 0.350256,
-            "observed_rate": 0.57142857,
-            "absolute_gap": 0.22117257
-          },
-          {
-            "bin_index": 4,
-            "lower": 0.4,
-            "upper": 0.5,
-            "n": 7,
-            "mean_prediction": 0.46151086,
-            "observed_rate": 0.57142857,
-            "absolute_gap": 0.10991771
-          },
-          {
-            "bin_index": 5,
-            "lower": 0.5,
-            "upper": 0.6,
-            "n": 7,
-            "mean_prediction": 0.54883857,
-            "observed_rate": 0.57142857,
-            "absolute_gap": 0.02259
-          },
-          {
-            "bin_index": 6,
-            "lower": 0.6,
-            "upper": 0.7,
-            "n": 3,
-            "mean_prediction": 0.65814433,
-            "observed_rate": 0.66666667,
-            "absolute_gap": 0.00852233
-          },
-          {
-            "bin_index": 7,
-            "lower": 0.7,
-            "upper": 0.8,
-            "n": 3,
-            "mean_prediction": 0.73015133,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.73015133
-          },
-          {
-            "bin_index": 8,
-            "lower": 0.8,
-            "upper": 0.9,
-            "n": 1,
-            "mean_prediction": 0.831564,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.831564
-          }
-        ],
-        "validation_errors": []
-      },
-      "calibrator": {
-        "schema_version": "1.0.0",
-        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
-        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
-        "readiness": {
-          "ready": false,
-          "row_count": 37,
-          "positive_count": 17,
-          "negative_count": 20,
-          "minimum_oos_rows": 200,
-          "minimum_positives": 25,
-          "minimum_negatives": 25,
-          "blockers": [
-            "OOS_ROWS_37_LT_200",
-            "POSITIVES_17_LT_25",
-            "NEGATIVES_20_LT_25"
-          ],
-          "validation_errors": []
-        },
-        "method": "PLATT_LOGIT",
-        "parameters": null,
-        "production_promotion_allowed": false
-      },
-      "calibrated_metrics": null,
-      "brier_delta": null,
-      "log_loss_delta": null,
-      "calibration_improves_brier_and_log_loss": false,
-      "production_promotion_allowed": false
-    },
-    "draw": {
-      "rows": 37,
-      "status": "DATA_BLOCKED",
-      "raw_metrics": {
-        "status": "OK",
-        "row_count": 37,
-        "brier": 0.13807228,
-        "log_loss": 0.44852683,
-        "ece": 0.1619277,
-        "mce": 0.601867,
-        "bins": [
-          {
-            "bin_index": 1,
-            "lower": 0.1,
-            "upper": 0.2,
-            "n": 8,
-            "mean_prediction": 0.16257225,
-            "observed_rate": 0.125,
-            "absolute_gap": 0.03757225
-          },
-          {
-            "bin_index": 2,
-            "lower": 0.2,
-            "upper": 0.3,
-            "n": 19,
-            "mean_prediction": 0.24934963,
-            "observed_rate": 0.15789474,
-            "absolute_gap": 0.09145489
-          },
-          {
-            "bin_index": 3,
-            "lower": 0.3,
-            "upper": 0.4,
-            "n": 6,
-            "mean_prediction": 0.33006683,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.33006683
-          },
-          {
-            "bin_index": 4,
-            "lower": 0.4,
-            "upper": 0.5,
-            "n": 2,
-            "mean_prediction": 0.4279125,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.4279125
-          },
-          {
-            "bin_index": 5,
-            "lower": 0.5,
-            "upper": 0.6,
-            "n": 1,
-            "mean_prediction": 0.515011,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.515011
-          },
-          {
-            "bin_index": 6,
-            "lower": 0.6,
-            "upper": 0.7,
-            "n": 1,
-            "mean_prediction": 0.601867,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.601867
-          }
-        ],
-        "validation_errors": []
-      },
-      "calibrator": {
-        "schema_version": "1.0.0",
-        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
-        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
-        "readiness": {
-          "ready": false,
-          "row_count": 37,
-          "positive_count": 4,
-          "negative_count": 33,
-          "minimum_oos_rows": 200,
-          "minimum_positives": 25,
-          "minimum_negatives": 25,
-          "blockers": [
-            "OOS_ROWS_37_LT_200",
-            "POSITIVES_4_LT_25"
-          ],
-          "validation_errors": []
-        },
-        "method": "PLATT_LOGIT",
-        "parameters": null,
-        "production_promotion_allowed": false
-      },
-      "calibrated_metrics": null,
-      "brier_delta": null,
-      "log_loss_delta": null,
-      "calibration_improves_brier_and_log_loss": false,
-      "production_promotion_allowed": false
-    },
     "away_win": {
-      "rows": 37,
-      "status": "DATA_BLOCKED",
-      "raw_metrics": {
-        "status": "OK",
-        "row_count": 37,
-        "brier": 0.32630343,
-        "log_loss": 0.90104641,
-        "ece": 0.31398335,
-        "mce": 0.732346,
+      "brier_delta": -0.00582739,
+      "calibrated_metrics": {
         "bins": [
           {
+            "absolute_gap": 0.06226864,
+            "bin_index": 1,
+            "lower": 0.1,
+            "mean_prediction": 0.1758266,
+            "n": 21,
+            "observed_rate": 0.23809524,
+            "upper": 0.2
+          },
+          {
+            "absolute_gap": 0.01253566,
+            "bin_index": 2,
+            "lower": 0.2,
+            "mean_prediction": 0.26534465,
+            "n": 178,
+            "observed_rate": 0.25280899,
+            "upper": 0.3
+          },
+          {
+            "absolute_gap": 0.01822663,
+            "bin_index": 3,
+            "lower": 0.3,
+            "mean_prediction": 0.34540973,
+            "n": 253,
+            "observed_rate": 0.36363636,
+            "upper": 0.4
+          },
+          {
+            "absolute_gap": 0.03627682,
+            "bin_index": 4,
+            "lower": 0.4,
+            "mean_prediction": 0.43627682,
+            "n": 95,
+            "observed_rate": 0.4,
+            "upper": 0.5
+          },
+          {
+            "absolute_gap": 0.2395838,
+            "bin_index": 5,
+            "lower": 0.5,
+            "mean_prediction": 0.53370144,
+            "n": 17,
+            "observed_rate": 0.29411765,
+            "upper": 0.6
+          },
+          {
+            "absolute_gap": 0.35807676,
+            "bin_index": 6,
+            "lower": 0.6,
+            "mean_prediction": 0.64192324,
+            "n": 3,
+            "observed_rate": 1.0,
+            "upper": 0.7
+          }
+        ],
+        "brier": 0.21721737,
+        "ece": 0.02953048,
+        "log_loss": 0.62508603,
+        "mce": 0.35807676,
+        "row_count": 567,
+        "status": "OK",
+        "validation_errors": []
+      },
+      "calibration_improves_brier_and_log_loss": true,
+      "calibrator": {
+        "iterations": 600,
+        "l2": 0.001,
+        "learning_rate": 0.05,
+        "market_fields_used": false,
+        "method": "PLATT_LOGIT",
+        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
+        "parameters": {
+          "intercept": -0.2741091514,
+          "slope": 0.5226649857
+        },
+        "production_promotion_allowed": false,
+        "readiness": {
+          "blockers": [],
+          "minimum_negatives": 25,
+          "minimum_oos_rows": 200,
+          "minimum_positives": 25,
+          "negative_count": 379,
+          "positive_count": 188,
+          "ready": true,
+          "row_count": 567,
+          "validation_errors": []
+        },
+        "runtime_prediction_weight": 0.0,
+        "schema_version": "1.0.0",
+        "status": "RESEARCH_CALIBRATOR_FITTED"
+      },
+      "log_loss_delta": -0.0152089,
+      "production_promotion_allowed": false,
+      "raw_metrics": {
+        "bins": [
+          {
+            "absolute_gap": 0.09908976,
             "bin_index": 0,
             "lower": 0.0,
-            "upper": 0.1,
-            "n": 3,
-            "mean_prediction": 0.08285533,
-            "observed_rate": 0.66666667,
-            "absolute_gap": 0.58381133
+            "mean_prediction": 0.07738082,
+            "n": 17,
+            "observed_rate": 0.17647059,
+            "upper": 0.1
           },
           {
+            "absolute_gap": 0.06984698,
             "bin_index": 1,
             "lower": 0.1,
-            "upper": 0.2,
-            "n": 8,
-            "mean_prediction": 0.15367712,
-            "observed_rate": 0.5,
-            "absolute_gap": 0.34632288
+            "mean_prediction": 0.16092225,
+            "n": 91,
+            "observed_rate": 0.23076923,
+            "upper": 0.2
           },
           {
+            "absolute_gap": 0.03616432,
             "bin_index": 2,
             "lower": 0.2,
-            "upper": 0.3,
-            "n": 12,
-            "mean_prediction": 0.24261392,
-            "observed_rate": 0.41666667,
-            "absolute_gap": 0.17405275
+            "mean_prediction": 0.251192,
+            "n": 174,
+            "observed_rate": 0.28735632,
+            "upper": 0.3
           },
           {
+            "absolute_gap": 0.0403435,
             "bin_index": 3,
             "lower": 0.3,
-            "upper": 0.4,
-            "n": 6,
-            "mean_prediction": 0.33349683,
-            "observed_rate": 0.66666667,
-            "absolute_gap": 0.33316983
+            "mean_prediction": 0.34484168,
+            "n": 135,
+            "observed_rate": 0.38518519,
+            "upper": 0.4
           },
           {
+            "absolute_gap": 0.0642697,
             "bin_index": 4,
             "lower": 0.4,
-            "upper": 0.5,
-            "n": 7,
-            "mean_prediction": 0.46790986,
-            "observed_rate": 0.14285714,
-            "absolute_gap": 0.32505271
+            "mean_prediction": 0.44888509,
+            "n": 91,
+            "observed_rate": 0.38461538,
+            "upper": 0.5
           },
           {
+            "absolute_gap": 0.053432,
+            "bin_index": 5,
+            "lower": 0.5,
+            "mean_prediction": 0.553432,
+            "n": 32,
+            "observed_rate": 0.5,
+            "upper": 0.6
+          },
+          {
+            "absolute_gap": 0.29132353,
+            "bin_index": 6,
+            "lower": 0.6,
+            "mean_prediction": 0.64426471,
+            "n": 17,
+            "observed_rate": 0.35294118,
+            "upper": 0.7
+          },
+          {
+            "absolute_gap": 0.35227125,
             "bin_index": 7,
             "lower": 0.7,
-            "upper": 0.8,
-            "n": 1,
-            "mean_prediction": 0.732346,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.732346
+            "mean_prediction": 0.72727125,
+            "n": 8,
+            "observed_rate": 0.375,
+            "upper": 0.8
+          },
+          {
+            "absolute_gap": 0.1436885,
+            "bin_index": 8,
+            "lower": 0.8,
+            "mean_prediction": 0.8563115,
+            "n": 2,
+            "observed_rate": 1.0,
+            "upper": 0.9
           }
         ],
+        "brier": 0.22304476,
+        "ece": 0.06242677,
+        "log_loss": 0.64029493,
+        "mce": 0.35227125,
+        "row_count": 567,
+        "status": "OK",
         "validation_errors": []
       },
-      "calibrator": {
-        "schema_version": "1.0.0",
-        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
-        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
-        "readiness": {
-          "ready": false,
-          "row_count": 37,
-          "positive_count": 16,
-          "negative_count": 21,
-          "minimum_oos_rows": 200,
-          "minimum_positives": 25,
-          "minimum_negatives": 25,
-          "blockers": [
-            "OOS_ROWS_37_LT_200",
-            "POSITIVES_16_LT_25",
-            "NEGATIVES_21_LT_25"
-          ],
-          "validation_errors": []
-        },
-        "method": "PLATT_LOGIT",
-        "parameters": null,
-        "production_promotion_allowed": false
-      },
-      "calibrated_metrics": null,
-      "brier_delta": null,
-      "log_loss_delta": null,
-      "calibration_improves_brier_and_log_loss": false,
-      "production_promotion_allowed": false
+      "rows": 567,
+      "status": "RESEARCH_CALIBRATION_AVAILABLE"
     },
     "btts": {
-      "rows": 37,
-      "status": "DATA_BLOCKED",
-      "raw_metrics": {
-        "status": "OK",
-        "row_count": 37,
-        "brier": 0.21546837,
-        "log_loss": 0.61543485,
-        "ece": 0.20250968,
-        "mce": 0.41432833,
+      "brier_delta": -0.03105184,
+      "calibrated_metrics": {
         "bins": [
           {
-            "bin_index": 0,
-            "lower": 0.0,
-            "upper": 0.1,
-            "n": 1,
-            "mean_prediction": 0.065797,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.065797
-          },
-          {
-            "bin_index": 1,
-            "lower": 0.1,
-            "upper": 0.2,
-            "n": 3,
-            "mean_prediction": 0.146696,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.146696
-          },
-          {
-            "bin_index": 2,
-            "lower": 0.2,
-            "upper": 0.3,
-            "n": 2,
-            "mean_prediction": 0.245192,
-            "observed_rate": 0.5,
-            "absolute_gap": 0.254808
-          },
-          {
-            "bin_index": 3,
-            "lower": 0.3,
-            "upper": 0.4,
-            "n": 7,
-            "mean_prediction": 0.34785129,
-            "observed_rate": 0.0,
-            "absolute_gap": 0.34785129
-          },
-          {
+            "absolute_gap": 0.50187687,
             "bin_index": 4,
             "lower": 0.4,
-            "upper": 0.5,
-            "n": 7,
-            "mean_prediction": 0.44637814,
-            "observed_rate": 0.28571429,
-            "absolute_gap": 0.16066386
+            "mean_prediction": 0.49812313,
+            "n": 1,
+            "observed_rate": 1.0,
+            "upper": 0.5
           },
           {
+            "absolute_gap": 0.0030046,
             "bin_index": 5,
             "lower": 0.5,
-            "upper": 0.6,
-            "n": 7,
-            "mean_prediction": 0.54232286,
-            "observed_rate": 0.57142857,
-            "absolute_gap": 0.02910571
+            "mean_prediction": 0.57415844,
+            "n": 520,
+            "observed_rate": 0.57115385,
+            "upper": 0.6
           },
           {
+            "absolute_gap": 0.02476871,
             "bin_index": 6,
             "lower": 0.6,
-            "upper": 0.7,
-            "n": 7,
-            "mean_prediction": 0.638718,
-            "observed_rate": 0.42857143,
-            "absolute_gap": 0.21014657
-          },
-          {
-            "bin_index": 7,
-            "lower": 0.7,
-            "upper": 0.8,
-            "n": 3,
-            "mean_prediction": 0.74766167,
-            "observed_rate": 0.33333333,
-            "absolute_gap": 0.41432833
+            "mean_prediction": 0.60566608,
+            "n": 46,
+            "observed_rate": 0.63043478,
+            "upper": 0.7
           }
         ],
+        "brier": 0.2437908,
+        "ece": 0.00565014,
+        "log_loss": 0.68064557,
+        "mce": 0.50187687,
+        "row_count": 567,
+        "status": "OK",
         "validation_errors": []
       },
+      "calibration_improves_brier_and_log_loss": true,
       "calibrator": {
-        "schema_version": "1.0.0",
+        "iterations": 600,
+        "l2": 0.001,
+        "learning_rate": 0.05,
+        "market_fields_used": false,
+        "method": "PLATT_LOGIT",
         "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
-        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
+        "parameters": {
+          "intercept": 0.3192341015,
+          "slope": 0.0931583455
+        },
+        "production_promotion_allowed": false,
         "readiness": {
-          "ready": false,
-          "row_count": 37,
-          "positive_count": 11,
-          "negative_count": 26,
+          "blockers": [],
+          "minimum_negatives": 25,
           "minimum_oos_rows": 200,
           "minimum_positives": 25,
-          "minimum_negatives": 25,
-          "blockers": [
-            "OOS_ROWS_37_LT_200",
-            "POSITIVES_11_LT_25"
-          ],
+          "negative_count": 240,
+          "positive_count": 327,
+          "ready": true,
+          "row_count": 567,
           "validation_errors": []
         },
-        "method": "PLATT_LOGIT",
-        "parameters": null,
-        "production_promotion_allowed": false
+        "runtime_prediction_weight": 0.0,
+        "schema_version": "1.0.0",
+        "status": "RESEARCH_CALIBRATOR_FITTED"
       },
-      "calibrated_metrics": null,
-      "brier_delta": null,
-      "log_loss_delta": null,
-      "calibration_improves_brier_and_log_loss": false,
-      "production_promotion_allowed": false
-    },
-    "over_2_5": {
-      "rows": 37,
-      "status": "DATA_BLOCKED",
+      "log_loss_delta": -0.0905969,
+      "production_promotion_allowed": false,
       "raw_metrics": {
-        "status": "OK",
-        "row_count": 37,
-        "brier": 0.25333526,
-        "log_loss": 0.74714645,
-        "ece": 0.22036216,
-        "mce": 0.364938,
         "bins": [
           {
+            "absolute_gap": 0.6093864,
             "bin_index": 0,
             "lower": 0.0,
-            "upper": 0.1,
-            "n": 3,
-            "mean_prediction": 0.05439167,
-            "observed_rate": 0.33333333,
-            "absolute_gap": 0.27894167
+            "mean_prediction": 0.0706136,
+            "n": 25,
+            "observed_rate": 0.68,
+            "upper": 0.1
           },
           {
+            "absolute_gap": 0.38529597,
             "bin_index": 1,
             "lower": 0.1,
-            "upper": 0.2,
-            "n": 2,
-            "mean_prediction": 0.135062,
-            "observed_rate": 0.5,
-            "absolute_gap": 0.364938
+            "mean_prediction": 0.14595403,
+            "n": 32,
+            "observed_rate": 0.53125,
+            "upper": 0.2
           },
           {
+            "absolute_gap": 0.19688136,
             "bin_index": 2,
             "lower": 0.2,
-            "upper": 0.3,
-            "n": 4,
-            "mean_prediction": 0.252691,
-            "observed_rate": 0.25,
-            "absolute_gap": 0.002691
+            "mean_prediction": 0.25766409,
+            "n": 22,
+            "observed_rate": 0.45454545,
+            "upper": 0.3
           },
           {
+            "absolute_gap": 0.09587457,
             "bin_index": 3,
             "lower": 0.3,
-            "upper": 0.4,
-            "n": 6,
-            "mean_prediction": 0.33149217,
-            "observed_rate": 0.5,
-            "absolute_gap": 0.16850783
+            "mean_prediction": 0.35412543,
+            "n": 60,
+            "observed_rate": 0.45,
+            "upper": 0.4
           },
           {
+            "absolute_gap": 0.11491351,
             "bin_index": 4,
             "lower": 0.4,
-            "upper": 0.5,
-            "n": 5,
-            "mean_prediction": 0.445563,
-            "observed_rate": 0.2,
-            "absolute_gap": 0.245563
+            "mean_prediction": 0.45326831,
+            "n": 132,
+            "observed_rate": 0.56818182,
+            "upper": 0.5
           },
           {
+            "absolute_gap": 0.05362534,
             "bin_index": 5,
             "lower": 0.5,
-            "upper": 0.6,
-            "n": 7,
-            "mean_prediction": 0.56325557,
-            "observed_rate": 0.85714286,
-            "absolute_gap": 0.29388729
+            "mean_prediction": 0.54911439,
+            "n": 146,
+            "observed_rate": 0.60273973,
+            "upper": 0.6
           },
           {
+            "absolute_gap": 0.00488798,
             "bin_index": 6,
             "lower": 0.6,
-            "upper": 0.7,
-            "n": 3,
-            "mean_prediction": 0.63455733,
-            "observed_rate": 0.66666667,
-            "absolute_gap": 0.03210933
+            "mean_prediction": 0.64030465,
+            "n": 96,
+            "observed_rate": 0.63541667,
+            "upper": 0.7
           },
           {
+            "absolute_gap": 0.19490305,
             "bin_index": 7,
             "lower": 0.7,
-            "upper": 0.8,
-            "n": 5,
-            "mean_prediction": 0.7637674,
-            "observed_rate": 0.4,
-            "absolute_gap": 0.3637674
+            "mean_prediction": 0.74035759,
+            "n": 44,
+            "observed_rate": 0.54545455,
+            "upper": 0.8
           },
           {
+            "absolute_gap": 0.0175231,
             "bin_index": 8,
             "lower": 0.8,
-            "upper": 0.9,
-            "n": 2,
-            "mean_prediction": 0.8176515,
-            "observed_rate": 1.0,
-            "absolute_gap": 0.1823485
+            "mean_prediction": 0.8175231,
+            "n": 10,
+            "observed_rate": 0.8,
+            "upper": 0.9
           }
         ],
+        "brier": 0.27484264,
+        "ece": 0.12322061,
+        "log_loss": 0.77124247,
+        "mce": 0.6093864,
+        "row_count": 567,
+        "status": "OK",
         "validation_errors": []
       },
+      "rows": 567,
+      "status": "RESEARCH_CALIBRATION_AVAILABLE"
+    },
+    "draw": {
+      "brier_delta": -0.00885752,
+      "calibrated_metrics": {
+        "bins": [
+          {
+            "absolute_gap": 0.03788943,
+            "bin_index": 1,
+            "lower": 0.1,
+            "mean_prediction": 0.18305072,
+            "n": 62,
+            "observed_rate": 0.14516129,
+            "upper": 0.2
+          },
+          {
+            "absolute_gap": 0.00889316,
+            "bin_index": 2,
+            "lower": 0.2,
+            "mean_prediction": 0.23560023,
+            "n": 454,
+            "observed_rate": 0.24449339,
+            "upper": 0.3
+          },
+          {
+            "absolute_gap": 0.09587617,
+            "bin_index": 3,
+            "lower": 0.3,
+            "mean_prediction": 0.35301902,
+            "n": 35,
+            "observed_rate": 0.25714286,
+            "upper": 0.4
+          },
+          {
+            "absolute_gap": 0.35956667,
+            "bin_index": 4,
+            "lower": 0.4,
+            "mean_prediction": 0.42206667,
+            "n": 16,
+            "observed_rate": 0.0625,
+            "upper": 0.5
+          }
+        ],
+        "brier": 0.18043771,
+        "ece": 0.0273287,
+        "log_loss": 0.54658738,
+        "mce": 0.35956667,
+        "row_count": 567,
+        "status": "OK",
+        "validation_errors": []
+      },
+      "calibration_improves_brier_and_log_loss": true,
       "calibrator": {
-        "schema_version": "1.0.0",
+        "iterations": 600,
+        "l2": 0.001,
+        "learning_rate": 0.05,
+        "market_fields_used": false,
+        "method": "PLATT_LOGIT",
         "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
-        "status": "INSUFFICIENT_OOS_FOR_CALIBRATION",
+        "parameters": {
+          "intercept": -0.5641798407,
+          "slope": 0.5702588554
+        },
+        "production_promotion_allowed": false,
         "readiness": {
-          "ready": false,
-          "row_count": 37,
-          "positive_count": 19,
-          "negative_count": 18,
+          "blockers": [],
+          "minimum_negatives": 25,
           "minimum_oos_rows": 200,
           "minimum_positives": 25,
-          "minimum_negatives": 25,
-          "blockers": [
-            "OOS_ROWS_37_LT_200",
-            "POSITIVES_19_LT_25",
-            "NEGATIVES_18_LT_25"
-          ],
+          "negative_count": 437,
+          "positive_count": 130,
+          "ready": true,
+          "row_count": 567,
           "validation_errors": []
         },
-        "method": "PLATT_LOGIT",
-        "parameters": null,
-        "production_promotion_allowed": false
+        "runtime_prediction_weight": 0.0,
+        "schema_version": "1.0.0",
+        "status": "RESEARCH_CALIBRATOR_FITTED"
       },
-      "calibrated_metrics": null,
-      "brier_delta": null,
-      "log_loss_delta": null,
-      "calibration_improves_brier_and_log_loss": false,
-      "production_promotion_allowed": false
+      "log_loss_delta": -0.01819275,
+      "production_promotion_allowed": false,
+      "raw_metrics": {
+        "bins": [
+          {
+            "absolute_gap": 0.08642,
+            "bin_index": 0,
+            "lower": 0.0,
+            "mean_prediction": 0.08642,
+            "n": 1,
+            "observed_rate": 0.0,
+            "upper": 0.1
+          },
+          {
+            "absolute_gap": 0.03865037,
+            "bin_index": 1,
+            "lower": 0.1,
+            "mean_prediction": 0.17483278,
+            "n": 89,
+            "observed_rate": 0.21348315,
+            "upper": 0.2
+          },
+          {
+            "absolute_gap": 0.00173415,
+            "bin_index": 2,
+            "lower": 0.2,
+            "mean_prediction": 0.2468595,
+            "n": 359,
+            "observed_rate": 0.24512535,
+            "upper": 0.3
+          },
+          {
+            "absolute_gap": 0.13206808,
+            "bin_index": 3,
+            "lower": 0.3,
+            "mean_prediction": 0.32925118,
+            "n": 71,
+            "observed_rate": 0.1971831,
+            "upper": 0.4
+          },
+          {
+            "absolute_gap": 0.16160094,
+            "bin_index": 4,
+            "lower": 0.4,
+            "mean_prediction": 0.45571859,
+            "n": 17,
+            "observed_rate": 0.29411765,
+            "upper": 0.5
+          },
+          {
+            "absolute_gap": 0.39064796,
+            "bin_index": 5,
+            "lower": 0.5,
+            "mean_prediction": 0.55731462,
+            "n": 24,
+            "observed_rate": 0.16666667,
+            "upper": 0.6
+          },
+          {
+            "absolute_gap": 0.6289158,
+            "bin_index": 6,
+            "lower": 0.6,
+            "mean_prediction": 0.6289158,
+            "n": 5,
+            "observed_rate": 0.0,
+            "upper": 0.7
+          },
+          {
+            "absolute_gap": 0.705024,
+            "bin_index": 7,
+            "lower": 0.7,
+            "mean_prediction": 0.705024,
+            "n": 1,
+            "observed_rate": 0.0,
+            "upper": 0.8
+          }
+        ],
+        "brier": 0.18929523,
+        "ece": 0.05202481,
+        "log_loss": 0.56478013,
+        "mce": 0.705024,
+        "row_count": 567,
+        "status": "OK",
+        "validation_errors": []
+      },
+      "rows": 567,
+      "status": "RESEARCH_CALIBRATION_AVAILABLE"
+    },
+    "home_win": {
+      "brier_delta": -0.00606312,
+      "calibrated_metrics": {
+        "bins": [
+          {
+            "absolute_gap": 0.16018247,
+            "bin_index": 1,
+            "lower": 0.1,
+            "mean_prediction": 0.16018247,
+            "n": 2,
+            "observed_rate": 0.0,
+            "upper": 0.2
+          },
+          {
+            "absolute_gap": 0.22446975,
+            "bin_index": 2,
+            "lower": 0.2,
+            "mean_prediction": 0.27553025,
+            "n": 26,
+            "observed_rate": 0.5,
+            "upper": 0.3
+          },
+          {
+            "absolute_gap": 0.00812723,
+            "bin_index": 3,
+            "lower": 0.3,
+            "mean_prediction": 0.35828498,
+            "n": 131,
+            "observed_rate": 0.36641221,
+            "upper": 0.4
+          },
+          {
+            "absolute_gap": 0.06302564,
+            "bin_index": 4,
+            "lower": 0.4,
+            "mean_prediction": 0.45134179,
+            "n": 291,
+            "observed_rate": 0.38831615,
+            "upper": 0.5
+          },
+          {
+            "absolute_gap": 0.11300113,
+            "bin_index": 5,
+            "lower": 0.5,
+            "mean_prediction": 0.5374843,
+            "n": 103,
+            "observed_rate": 0.65048544,
+            "upper": 0.6
+          },
+          {
+            "absolute_gap": 0.05719573,
+            "bin_index": 6,
+            "lower": 0.6,
+            "mean_prediction": 0.6286243,
+            "n": 14,
+            "observed_rate": 0.57142857,
+            "upper": 0.7
+          }
+        ],
+        "brier": 0.2404482,
+        "ece": 0.06702216,
+        "log_loss": 0.67409615,
+        "mce": 0.22446975,
+        "row_count": 567,
+        "status": "OK",
+        "validation_errors": []
+      },
+      "calibration_improves_brier_and_log_loss": true,
+      "calibrator": {
+        "iterations": 600,
+        "l2": 0.001,
+        "learning_rate": 0.05,
+        "market_fields_used": false,
+        "method": "PLATT_LOGIT",
+        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
+        "parameters": {
+          "intercept": -0.0498682505,
+          "slope": 0.4610832792
+        },
+        "production_promotion_allowed": false,
+        "readiness": {
+          "blockers": [],
+          "minimum_negatives": 25,
+          "minimum_oos_rows": 200,
+          "minimum_positives": 25,
+          "negative_count": 318,
+          "positive_count": 249,
+          "ready": true,
+          "row_count": 567,
+          "validation_errors": []
+        },
+        "runtime_prediction_weight": 0.0,
+        "schema_version": "1.0.0",
+        "status": "RESEARCH_CALIBRATOR_FITTED"
+      },
+      "log_loss_delta": -0.02014098,
+      "production_promotion_allowed": false,
+      "raw_metrics": {
+        "bins": [
+          {
+            "absolute_gap": 0.0645768,
+            "bin_index": 0,
+            "lower": 0.0,
+            "mean_prediction": 0.0645768,
+            "n": 5,
+            "observed_rate": 0.0,
+            "upper": 0.1
+          },
+          {
+            "absolute_gap": 0.27710204,
+            "bin_index": 1,
+            "lower": 0.1,
+            "mean_prediction": 0.15427051,
+            "n": 51,
+            "observed_rate": 0.43137255,
+            "upper": 0.2
+          },
+          {
+            "absolute_gap": 0.11467743,
+            "bin_index": 2,
+            "lower": 0.2,
+            "mean_prediction": 0.25198923,
+            "n": 90,
+            "observed_rate": 0.36666667,
+            "upper": 0.3
+          },
+          {
+            "absolute_gap": 0.0170657,
+            "bin_index": 3,
+            "lower": 0.3,
+            "mean_prediction": 0.3530657,
+            "n": 125,
+            "observed_rate": 0.336,
+            "upper": 0.4
+          },
+          {
+            "absolute_gap": 0.02015861,
+            "bin_index": 4,
+            "lower": 0.4,
+            "mean_prediction": 0.44873004,
+            "n": 140,
+            "observed_rate": 0.42857143,
+            "upper": 0.5
+          },
+          {
+            "absolute_gap": 0.00806866,
+            "bin_index": 5,
+            "lower": 0.5,
+            "mean_prediction": 0.54140199,
+            "n": 90,
+            "observed_rate": 0.53333333,
+            "upper": 0.6
+          },
+          {
+            "absolute_gap": 0.0734478,
+            "bin_index": 6,
+            "lower": 0.6,
+            "mean_prediction": 0.63766331,
+            "n": 45,
+            "observed_rate": 0.71111111,
+            "upper": 0.7
+          },
+          {
+            "absolute_gap": 0.213224,
+            "bin_index": 7,
+            "lower": 0.7,
+            "mean_prediction": 0.74263576,
+            "n": 17,
+            "observed_rate": 0.52941176,
+            "upper": 0.8
+          },
+          {
+            "absolute_gap": 0.06216075,
+            "bin_index": 8,
+            "lower": 0.8,
+            "mean_prediction": 0.81216075,
+            "n": 4,
+            "observed_rate": 0.75,
+            "upper": 0.9
+          }
+        ],
+        "brier": 0.24651132,
+        "ece": 0.06637787,
+        "log_loss": 0.69423713,
+        "mce": 0.27710204,
+        "row_count": 567,
+        "status": "OK",
+        "validation_errors": []
+      },
+      "rows": 567,
+      "status": "RESEARCH_CALIBRATION_AVAILABLE"
+    },
+    "over_2_5": {
+      "brier_delta": -0.04284358,
+      "calibrated_metrics": {
+        "bins": [
+          {
+            "absolute_gap": 0.00025112,
+            "bin_index": 5,
+            "lower": 0.5,
+            "mean_prediction": 0.57117745,
+            "n": 567,
+            "observed_rate": 0.57142857,
+            "upper": 0.6
+          }
+        ],
+        "brier": 0.24488996,
+        "ece": 0.00025112,
+        "log_loss": 0.68289009,
+        "mce": 0.00025112,
+        "row_count": 567,
+        "status": "OK",
+        "validation_errors": []
+      },
+      "calibration_improves_brier_and_log_loss": true,
+      "calibrator": {
+        "iterations": 600,
+        "l2": 0.001,
+        "learning_rate": 0.05,
+        "market_fields_used": false,
+        "method": "PLATT_LOGIT",
+        "model_version": "SOCCER_CALIBRATION_V4_1.0.0",
+        "parameters": {
+          "intercept": 0.2894632192,
+          "slope": 0.0138828083
+        },
+        "production_promotion_allowed": false,
+        "readiness": {
+          "blockers": [],
+          "minimum_negatives": 25,
+          "minimum_oos_rows": 200,
+          "minimum_positives": 25,
+          "negative_count": 243,
+          "positive_count": 324,
+          "ready": true,
+          "row_count": 567,
+          "validation_errors": []
+        },
+        "runtime_prediction_weight": 0.0,
+        "schema_version": "1.0.0",
+        "status": "RESEARCH_CALIBRATOR_FITTED"
+      },
+      "log_loss_delta": -0.15888967,
+      "production_promotion_allowed": false,
+      "raw_metrics": {
+        "bins": [
+          {
+            "absolute_gap": 0.61971607,
+            "bin_index": 0,
+            "lower": 0.0,
+            "mean_prediction": 0.0469506,
+            "n": 45,
+            "observed_rate": 0.66666667,
+            "upper": 0.1
+          },
+          {
+            "absolute_gap": 0.49677686,
+            "bin_index": 1,
+            "lower": 0.1,
+            "mean_prediction": 0.14608029,
+            "n": 14,
+            "observed_rate": 0.64285714,
+            "upper": 0.2
+          },
+          {
+            "absolute_gap": 0.16473442,
+            "bin_index": 2,
+            "lower": 0.2,
+            "mean_prediction": 0.25193225,
+            "n": 48,
+            "observed_rate": 0.41666667,
+            "upper": 0.3
+          },
+          {
+            "absolute_gap": 0.13597299,
+            "bin_index": 3,
+            "lower": 0.3,
+            "mean_prediction": 0.35736035,
+            "n": 75,
+            "observed_rate": 0.49333333,
+            "upper": 0.4
+          },
+          {
+            "absolute_gap": 0.10704728,
+            "bin_index": 4,
+            "lower": 0.4,
+            "mean_prediction": 0.45485749,
+            "n": 105,
+            "observed_rate": 0.56190476,
+            "upper": 0.5
+          },
+          {
+            "absolute_gap": 0.03136981,
+            "bin_index": 5,
+            "lower": 0.5,
+            "mean_prediction": 0.54927535,
+            "n": 124,
+            "observed_rate": 0.58064516,
+            "upper": 0.6
+          },
+          {
+            "absolute_gap": 0.04341196,
+            "bin_index": 6,
+            "lower": 0.6,
+            "mean_prediction": 0.64341196,
+            "n": 80,
+            "observed_rate": 0.6,
+            "upper": 0.7
+          },
+          {
+            "absolute_gap": 0.07622511,
+            "bin_index": 7,
+            "lower": 0.7,
+            "mean_prediction": 0.74895238,
+            "n": 55,
+            "observed_rate": 0.67272727,
+            "upper": 0.8
+          },
+          {
+            "absolute_gap": 0.262409,
+            "bin_index": 8,
+            "lower": 0.8,
+            "mean_prediction": 0.84135637,
+            "n": 19,
+            "observed_rate": 0.57894737,
+            "upper": 0.9
+          },
+          {
+            "absolute_gap": 0.426419,
+            "bin_index": 9,
+            "lower": 0.9,
+            "mean_prediction": 0.926419,
+            "n": 2,
+            "observed_rate": 0.5,
+            "upper": 1.0
+          }
+        ],
+        "brier": 0.28773354,
+        "ece": 0.143882,
+        "log_loss": 0.84177976,
+        "mce": 0.61971607,
+        "row_count": 567,
+        "status": "OK",
+        "validation_errors": []
+      },
+      "rows": 567,
+      "status": "RESEARCH_CALIBRATION_AVAILABLE"
     }
   },
-  "ready_target_count": 0,
-  "targets_improving_brier_and_log_loss": 0,
-  "provider_requests_added": 0,
-  "production_promotion_allowed": false,
-  "runtime_prediction_weight": 0.0,
-  "canonical_bet_logic_changed": false,
-  "notes": [
-    "The ledger uses the latest stored pre-kickoff model run per settled fixture.",
-    "Outcomes are joined only after the prediction timestamp and never feed the prediction features.",
-    "Calibration remains research-only; a fitted calibrator is not automatically promoted.",
-    "Current rows can contain multiple historical runtime model versions, which are reported explicitly."
-  ]
+  "targets_improving_brier_and_log_loss": 5
 }
