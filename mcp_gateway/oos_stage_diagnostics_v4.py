@@ -12,7 +12,7 @@ from mcp_gateway import calibration_v4
 from mcp_gateway import one_x_two_multiclass_oos_v4 as multiclass
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.0.0"
+MODEL_VERSION = "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.1.0"
 DIRECTIONAL_MIN = 20
 REVIEW_MIN = 50
 TARGET_KEYS = ("home_win", "draw", "away_win", "btts", "over_2_5")
@@ -126,6 +126,43 @@ def _stage_report(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return out
 
 
+
+
+def _current_model_deployment_calibrators(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for target in TARGET_KEYS:
+        observations = []
+        for row in rows:
+            predictions = row.get("predictions") if isinstance(row.get("predictions"), dict) else {}
+            outcomes = row.get("outcomes") if isinstance(row.get("outcomes"), dict) else {}
+            probability = _num(predictions.get(target))
+            outcome = outcomes.get(target)
+            if probability is None or not 0.0 <= probability <= 1.0 or outcome not in (0, 1):
+                continue
+            observations.append({"probability": probability, "outcome": int(outcome)})
+        report = calibration_v4.calibration_report(observations)
+        calibrator = report.get("calibrator") if isinstance(report.get("calibrator"), dict) else {}
+        brier_delta = report.get("brier_delta")
+        log_loss_delta = report.get("log_loss_delta")
+        eligible = (
+            calibrator.get("status") == "RESEARCH_CALIBRATOR_FITTED"
+            and isinstance(brier_delta, (int, float))
+            and isinstance(log_loss_delta, (int, float))
+            and brier_delta < 0
+            and log_loss_delta < 0
+        )
+        out[target] = {
+            "rows": len(observations),
+            "eligible_for_phase16_research": eligible,
+            "brier_delta": brier_delta,
+            "log_loss_delta": log_loss_delta,
+            "calibrator": calibrator,
+            "production_promotion_allowed": False,
+            "runtime_prediction_weight": 0.0,
+        }
+    return out
+
+
 def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     clean = [row for row in rows if isinstance(row, dict)]
     current_version = _current_model_version(clean)
@@ -136,6 +173,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
 
     all_stages = _stage_report(clean)
     current_stages = _stage_report(current_rows)
+    current_model_deployment_calibrators = _current_model_deployment_calibrators(current_rows)
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -152,6 +190,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         ).items())),
         "all_models_by_stage": all_stages,
         "current_model_by_stage": current_stages,
+        "current_model_deployment_calibrators": current_model_deployment_calibrators,
         "sample_policy": {
             "directional_minimum": DIRECTIONAL_MIN,
             "review_minimum": REVIEW_MIN,
@@ -161,6 +200,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
             "uses_canonical_oos_rows_only": True,
             "market_fields_used": False,
             "stage_calibrators_fitted": False,
+            "current_model_full_oos_research_calibrators_fitted": True,
             "runtime_weights_changed": False,
         },
         "provider_requests_added": 0,
@@ -169,6 +209,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
             "Stage metrics are diagnostics only; no stage-specific calibrator is fitted or applied.",
             "Current-model stage metrics are reported separately to avoid mixing historical runtime model versions.",
             "Multiclass 1X2 metrics use the same normalized probability simplex as the canonical multiclass OOS validator.",
+            "Current-model full-OOS binary calibrators are persisted only for downstream Phase16 research ranking; stage metrics remain diagnostic and production prediction weights remain unchanged.",
         ],
     }
 
