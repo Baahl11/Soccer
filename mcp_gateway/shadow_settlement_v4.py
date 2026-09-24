@@ -11,7 +11,7 @@ from typing import Any
 from mcp_gateway import evaluate_postgame as ep
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_SHADOW_SETTLEMENT_V4_1.0.0"
+MODEL_VERSION = "SOCCER_SHADOW_SETTLEMENT_V4_1.1.0"
 DIRECTIONAL_MIN = 20
 REVIEW_MIN = 50
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
@@ -87,6 +87,39 @@ def _latest_watch_by_fixture_family(rows: list[dict[str, Any]]) -> list[dict[str
     return [row for _, row in sorted(chosen.values(), key=lambda item: item[0])]
 
 
+
+def _segment_summary(group: list[dict[str, Any]]) -> dict[str, Any]:
+    statuses = Counter(str(row.get("shadow_settlement_status") or "UNKNOWN") for row in group)
+    settled_rows = [row for row in group if row.get("shadow_settled")]
+    decided = statuses["WIN"] + statuses["LOSS"]
+    roi_values = [
+        float(row["shadow_roi_hypothetical_units"])
+        for row in settled_rows
+        if row.get("shadow_roi_hypothetical_units") is not None
+    ]
+    n = len(group)
+    settled = len(settled_rows)
+    if settled >= REVIEW_MIN:
+        sample_status = "SHADOW_REVIEW_READY"
+    elif settled >= DIRECTIONAL_MIN:
+        sample_status = "DIRECTIONAL_SHADOW"
+    else:
+        sample_status = "DATA_BLOCKED"
+    roi_units = sum(roi_values) if roi_values else 0.0
+    return {
+        "rows": n,
+        "unique_fixtures": len({row["fixture_id"] for row in group}),
+        "settled": settled,
+        "win": statuses["WIN"],
+        "loss": statuses["LOSS"],
+        "push": statuses["PUSH"],
+        "ungraded": n - settled,
+        "hit_rate_ex_push": round(statuses["WIN"] / decided, 6) if decided else None,
+        "shadow_roi_hypothetical_units": round(roi_units, 6),
+        "shadow_roi_per_settled_unit": round(roi_units / settled, 6) if settled else None,
+        "sample_status": sample_status,
+    }
+
 def build(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     finals: dict[int, dict[str, Any]] = {}
     for row in rows:
@@ -146,38 +179,58 @@ def build(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, A
 
     summaries: dict[str, Any] = {}
     for family, group in sorted(by_family.items()):
-        statuses = Counter(str(row.get("shadow_settlement_status") or "UNKNOWN") for row in group)
-        settled_rows = [row for row in group if row.get("shadow_settled")]
-        decided = statuses["WIN"] + statuses["LOSS"]
-        roi_values = [
-            float(row["shadow_roi_hypothetical_units"])
-            for row in settled_rows
-            if row.get("shadow_roi_hypothetical_units") is not None
-        ]
-        n = len(group)
-        settled = len(settled_rows)
-        if settled >= REVIEW_MIN:
-            sample_status = "SHADOW_REVIEW_READY"
-        elif settled >= DIRECTIONAL_MIN:
-            sample_status = "DIRECTIONAL_SHADOW"
-        else:
-            sample_status = "DATA_BLOCKED"
+        base = _segment_summary(group)
 
-        summaries[family] = {
-            "rows": n,
-            "unique_fixtures": len({row["fixture_id"] for row in group}),
-            "settled": settled,
-            "win": statuses["WIN"],
-            "loss": statuses["LOSS"],
-            "push": statuses["PUSH"],
-            "ungraded": n - settled,
-            "hit_rate_ex_push": round(statuses["WIN"] / decided, 6) if decided else None,
-            "shadow_roi_hypothetical_units": round(sum(roi_values), 6) if roi_values else 0.0,
-            "shadow_roi_per_settled_unit": round(sum(roi_values) / settled, 6) if roi_values and settled else None,
-            "sample_status": sample_status,
+        by_stage_raw: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        by_league_raw: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for row in group:
+            by_stage_raw[str(row.get("stage") or "UNKNOWN")].append(row)
+            by_league_raw[str(row.get("league") or "UNKNOWN")].append(row)
+
+        by_stage = {key: _segment_summary(rows) for key, rows in sorted(by_stage_raw.items())}
+        by_league = {key: _segment_summary(rows) for key, rows in sorted(by_league_raw.items())}
+
+        directional_stages = sorted(
+            key for key, value in by_stage.items()
+            if int(value.get("settled") or 0) >= DIRECTIONAL_MIN
+        )
+        positive_directional_stages = sorted(
+            key for key in directional_stages
+            if (by_stage[key].get("shadow_roi_per_settled_unit") or 0) > 0
+        )
+        negative_directional_stages = sorted(
+            key for key in directional_stages
+            if by_stage[key].get("shadow_roi_per_settled_unit") is not None
+            and float(by_stage[key]["shadow_roi_per_settled_unit"]) <= 0
+        )
+
+        directional_leagues = sorted(
+            key for key, value in by_league.items()
+            if int(value.get("settled") or 0) >= DIRECTIONAL_MIN
+        )
+        positive_directional_leagues = sorted(
+            key for key in directional_leagues
+            if (by_league[key].get("shadow_roi_per_settled_unit") or 0) > 0
+        )
+        negative_directional_leagues = sorted(
+            key for key in directional_leagues
+            if by_league[key].get("shadow_roi_per_settled_unit") is not None
+            and float(by_league[key]["shadow_roi_per_settled_unit"]) <= 0
+        )
+
+        base.update({
             "stage_counts": dict(sorted(Counter(str(row.get("stage") or "UNKNOWN") for row in group).items())),
-            "league_count": len({str(row.get("league") or "UNKNOWN") for row in group}),
-        }
+            "league_count": len(by_league),
+            "by_stage": by_stage,
+            "by_league": by_league,
+            "directional_stages": directional_stages,
+            "positive_directional_stages": positive_directional_stages,
+            "negative_directional_stages": negative_directional_stages,
+            "directional_leagues": directional_leagues,
+            "positive_directional_leagues": positive_directional_leagues,
+            "negative_directional_leagues": negative_directional_leagues,
+        })
+        summaries[family] = base
 
     summary = {
         "schema_version": SCHEMA_VERSION,
@@ -203,6 +256,7 @@ def build(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, A
             "WATCH decisions are graded as shadow observations only and are never merged into the real bet settlement ledger.",
             "Hypothetical ROI uses the observed signal price at one unit solely for research comparison.",
             "Only the latest pre-kickoff WATCH decision per fixture and market family is retained to reduce correlated snapshot duplication.",
+            "Stage and league shadow segments are reported separately; segments require at least 20 settled shadow decisions before directional interpretation.",
         ],
     }
     return ledger, summary
