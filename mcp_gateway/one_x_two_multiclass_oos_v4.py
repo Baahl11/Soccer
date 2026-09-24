@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_1X2_MULTICLASS_OOS_V4_1.0.2"
+MODEL_VERSION = "SOCCER_1X2_MULTICLASS_OOS_V4_1.0.3"
 MIN_TRAIN_ROWS = 200
 MIN_EVAL_ROWS = 100
 BATCH_SIZE = 50
@@ -116,7 +116,7 @@ def fit_temperature(train: list[tuple[tuple[float, float, float], int]]) -> floa
 
 
 def _semantic_version(value: str) -> tuple[int, ...] | None:
-    match = re.search(r"\\bv(\\d+(?:\\.\\d+)*)\\b", str(value), re.I)
+    match = re.search(r"v([0-9]+(?:[.][0-9]+)*)", str(value), re.I)
     if not match:
         return None
     try:
