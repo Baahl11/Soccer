@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.1.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.2.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -299,6 +299,8 @@ def _apply_phase16_calibration(
 ) -> float | None:
     calibrated: float | None = None
     source: str | None = None
+    policy: str | None = None
+    row["phase16_calibration_promotion_shadow_eligible"] = False
 
     if family == "BTTS":
         raw_yes = _num(_event_projection(event).get("raw_btts_yes_prob"))
@@ -311,6 +313,7 @@ def _apply_phase16_calibration(
         if calibrated_yes is not None:
             calibrated = calibrated_yes if _norm(selection) == "yes" else 1.0 - calibrated_yes
             source = "CURRENT_MODEL_OOS_PLATT:BTTS"
+            policy = "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
 
     elif family == "FT_TOTALS":
         raw_over = _num(_event_projection(event).get("raw_over_2_5_prob"))
@@ -323,6 +326,7 @@ def _apply_phase16_calibration(
         if calibrated_over is not None:
             calibrated = calibrated_over if _norm(selection) == "over" else 1.0 - calibrated_over
             source = "CURRENT_MODEL_OOS_PLATT:OVER_2_5"
+            policy = "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
 
     elif family == "1X2":
         scaled = _multiclass_calibrated_probabilities(
@@ -333,6 +337,7 @@ def _apply_phase16_calibration(
         calibrated = scaled.get(selection.title())
         if calibrated is not None:
             source = "CURRENT_MODEL_OOS_TEMPERATURE:1X2"
+            policy = "MULTICLASS_TEMPERATURE_CURRENT_OOS"
 
     if calibrated is None:
         row["phase16_calibration_status"] = "CALIBRATION_NOT_AVAILABLE_FOR_CURRENT_MODEL"
@@ -341,6 +346,8 @@ def _apply_phase16_calibration(
     row["p_model_calibrated"] = round(float(calibrated), 8)
     row["phase16_calibration_status"] = "RESEARCH_CALIBRATION_APPLIED"
     row["phase16_calibration_source"] = source
+    row["phase16_calibration_policy"] = policy
+    row["phase16_calibration_promotion_shadow_eligible"] = True
     row["price_resolution_calibrated_probability_added"] = True
     return calibrated
 
