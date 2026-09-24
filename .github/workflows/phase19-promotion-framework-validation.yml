@@ -32,6 +32,24 @@ jobs:
           ref: soccer-edge-state
           path: state
           fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/market_performance_summary.json
+            soccer_edge_state/analysis/league_stage_stability_v4.json
+            soccer_edge_state/analysis/shadow_performance_summary_v4.json
+            soccer_edge_state/analysis/shadow_selection_diagnostics_v4.json
+            soccer_edge_state/analysis/promotion_shadow_postgres_v4.json
+            soccer_edge_state/analysis/oos_stage_diagnostics_v4.json
+            soccer_edge_state/analysis/phase19_promotion_framework_report.json
+            soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
+            soccer_edge_state/analysis/v4_017_1x2_calibration_validation.json
+            soccer_edge_state/analysis/v4_018_btts_calibration_validation.json
+            soccer_edge_state/analysis/v4_019_team_totals_oos_validation.json
+            soccer_edge_state/analysis/v4_020_1h_oos_validation.json
+            soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+            soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+            soccer_edge_state/analysis/phase14_cards_referee_validation.json
+            soccer_edge_state/analysis/phase15_player_props_validation.json
+          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-python@v5
         with:
