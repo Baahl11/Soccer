@@ -18,6 +18,18 @@ def _calibration_state(model_version="SOCCER EDGE ENGINE v1.7"):
                     "eligible_for_phase16_research": True,
                     "calibrator": identity,
                 },
+                "home_win": {
+                    "eligible_for_phase16_research": True,
+                    "calibrator": identity,
+                },
+                "draw": {
+                    "eligible_for_phase16_research": False,
+                    "calibrator": identity,
+                },
+                "away_win": {
+                    "eligible_for_phase16_research": True,
+                    "calibrator": identity,
+                },
             },
         },
         "multiclass_1x2": {
@@ -218,7 +230,7 @@ def test_current_model_calibration_is_not_applied_on_version_mismatch():
     assert "p_model_calibrated" not in row
 
 
-def test_1x2_research_can_select_draw_and_apply_temperature_calibration():
+def test_1x2_draw_is_blocked_when_class_discrimination_is_not_ready():
     event = {
         "raw_projection": {
             "raw_home_win_prob": 0.30,
@@ -251,9 +263,9 @@ def test_1x2_research_can_select_draw_and_apply_temperature_calibration():
         model_version="SOCCER EDGE ENGINE v1.7",
     )
     assert row["selection"] == "Draw"
-    assert row["price_resolution_calibrated_probability_added"] is True
-    assert 0 < row["p_model_calibrated"] < 1
-    assert row["phase16_calibration_source"] == "CURRENT_MODEL_OOS_TEMPERATURE:1X2"
+    assert row["price_resolution_calibrated_probability_added"] is False
+    assert "p_model_calibrated" not in row
+    assert row["phase16_calibration_status"] == "SELECTION_DISCRIMINATION_NOT_READY"
 
 
 def test_legacy_cached_value_odd_rows_are_normalized():
@@ -284,3 +296,36 @@ def test_handicap_field_can_supply_total_line():
     parsed = v._normalize_market_values("Goals Over/Under", values)
     assert {x["line"] for x in parsed} == {2.5}
     assert {x["selection"] for x in parsed} == {"Over", "Under"}
+
+
+def test_1x2_home_is_allowed_when_class_discrimination_is_ready():
+    event = {
+        "raw_projection": {
+            "raw_home_win_prob": 0.55,
+            "raw_draw_prob": 0.20,
+            "raw_away_win_prob": 0.25,
+        }
+    }
+    row = {"market_family": "FT_1X2_RESEARCH", "selection": "Side research"}
+    markets = [{
+        "market": "Match Winner",
+        "bookmaker": "Book",
+        "values": [
+            {"selection": "Home", "line": None, "decimal_price": 2.1, "fair_probability": 0.45},
+            {"selection": "Draw", "line": None, "decimal_price": 3.2, "fair_probability": 0.30},
+            {"selection": "Away", "line": None, "decimal_price": 3.8, "fair_probability": 0.25},
+        ],
+    }]
+    v._enrich_row(
+        row,
+        event,
+        markets,
+        "PRICE_API_RESOLVED",
+        calibration_state=_calibration_state(),
+        model_version="SOCCER EDGE ENGINE v1.7",
+    )
+    assert row["selection"] == "Home"
+    assert row["price_resolution_calibrated_probability_added"] is True
+    assert 0 < row["p_model_calibrated"] < 1
+    assert row["phase16_calibration_source"] == "CURRENT_MODEL_OOS_TEMPERATURE:1X2"
+    assert row["phase16_calibration_policy"] == "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50"
