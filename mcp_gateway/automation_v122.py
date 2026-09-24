@@ -6,9 +6,10 @@ from mcp_gateway import automation_v121 as v121
 from mcp_gateway import automation_v92 as v92
 from mcp_gateway import automation_v112 as v112
 from mcp_gateway import price_resolver_v4
+from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.31.0-price-resolver-v4"
+AUTOMATION_VERSION = "4.31.1-price-resolver-team-totals-refresh"
 
 
 def _annotate_checkpoint(payload: dict[str, Any]) -> None:
@@ -24,13 +25,17 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "simulated_odds_allowed": False,
         "calibrated_probability_fabricated": False,
         "phase16_recomputed_after_price_resolution": True,
+        "team_totals_recomputed_after_price_resolution": True,
+        "team_totals_post_resolution": dict(payload.get("team_totals_post_resolution") or {}),
         "canonical_bet_logic_changed": False,
         "model_weights_changed": False,
         "production_promotion_allowed": False,
         "note": (
             "Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
-            "Resolved rows are re-evaluated by execution-status separation and Phase16, but no calibrated "
-            "probability is fabricated and no BET/tier/stake/model threshold is changed."
+            "Resolved rows are re-evaluated by Team Totals research intelligence, execution-status separation "
+            "and Phase16. Team Totals reuses the already-fetched market payload to persist exact HOME/AWAY "
+            "team-total price rows for CLV with zero additional provider calls; no calibrated probability is "
+            "fabricated and no BET/tier/stake/model threshold is changed."
         ),
     }
 
@@ -39,6 +44,13 @@ async def run_tick() -> dict[str, Any]:
     payload = await v121.run_tick()
 
     await price_resolver_v4.resolve_payload(payload)
+
+    # Team Totals is built earlier in the automation chain, before the price
+    # resolver may attach real fixture /odds markets. Rebuild only this
+    # research-only derivative after price enrichment so exact HOME/AWAY team
+    # total rows can be persisted for CLV. This reuses already-resolved markets
+    # and adds zero provider requests.
+    payload["team_totals_post_resolution"] = team_totals_intelligence.attach(payload)
 
     # Price enrichment changes exact market/selection/price/fair probability on
     # research visibility rows. Recompute readiness and Phase16 against that
