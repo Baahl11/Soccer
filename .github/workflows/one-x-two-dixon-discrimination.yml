@@ -1,0 +1,59 @@
+name: 1X2 Dixon-Coles Same-Cohort Diagnostics
+
+on:
+  push:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - "mcp_gateway/analyze_1x2_dixon_coles.py"
+      - "mcp_gateway/analyze_1x2_model_selection.py"
+      - ".github/workflows/one-x-two-dixon-discrimination.yml"
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: code
+
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+
+      - name: Run same-cohort Dixon-Coles diagnostics
+        working-directory: code
+        run: |
+          PYTHONPATH=. python mcp_gateway/analyze_1x2_dixon_coles.py \
+            --ledger ../state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --output /tmp/one_x_two_dixon_coles.json
+          PYTHONPATH=. python - <<'PY'
+          import json
+          from mcp_gateway.analyze_1x2_model_selection import challenger_row
+
+          with open("/tmp/one_x_two_dixon_coles.json", "r", encoding="utf-8") as fh:
+              report = json.load(fh)
+
+          compact = {
+              "walk_forward_evaluated": report.get("walk_forward_evaluated"),
+              "baseline": {
+                  "brier": (report.get("baseline") or {}).get("brier"),
+                  "log_loss": (report.get("baseline") or {}).get("log_loss"),
+                  "class_discrimination": (report.get("baseline") or {}).get("class_discrimination"),
+              },
+              "challenger": {
+                  "brier": (report.get("challenger") or {}).get("brier"),
+                  "log_loss": (report.get("challenger") or {}).get("log_loss"),
+                  "class_discrimination": (report.get("challenger") or {}).get("class_discrimination"),
+              },
+              "improvement": report.get("improvement"),
+              "promotion_gate": report.get("promotion_gate"),
+              "selection_row": challenger_row("DIXON_COLES", report),
+          }
+          print("DIXON_CLASS_DIAGNOSTICS=" + json.dumps(compact, sort_keys=True))
+          PY
