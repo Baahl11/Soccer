@@ -282,3 +282,35 @@ def test_postgres_phase16_shadow_replay_has_priority():
     assert review["recommended_state"] == "LEAN_ELIGIBLE"
     assert review["promotion_shadow_settled"] == 60
     assert review["promotion_shadow_evidence_source"] == "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE"
+
+
+def test_multimarket_postgres_shadow_is_used_for_totals_and_btts():
+    promotion_shadow = {
+        "families": {
+            "FT_TOTALS": {
+                "promotion_evaluable": {
+                    "settled": 25,
+                    "pending": 4,
+                    "roi_per_settled_unit": 0.06,
+                    "sample_status": "DIRECTIONAL_SHADOW",
+                    "negative_directional_stages": [],
+                }
+            },
+            "BTTS": {
+                "promotion_evaluable": {
+                    "settled": 21,
+                    "pending": 2,
+                    "roi_per_settled_unit": 0.03,
+                    "sample_status": "DIRECTIONAL_SHADOW",
+                    "negative_directional_stages": [],
+                }
+            },
+        }
+    }
+    totals = v._promotion_shadow_for_family("FT_TOTALS", {}, promotion_shadow)
+    btts = v._promotion_shadow_for_family("BTTS", {}, promotion_shadow)
+    assert totals["settled"] == 25
+    assert totals["pending"] == 4
+    assert totals["evidence_source"] == "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE"
+    assert btts["settled"] == 21
+    assert btts["pending"] == 2
