@@ -22,6 +22,27 @@ def _same_cohort_rows():
     return rows
 
 
+def test_optimized_walk_forward_matches_reference_fit_rho():
+    ordered = []
+    outcomes = ["H", "D", "A", "H", "D"]
+    for i in range(45):
+        ordered.append({
+            "fixture_id": i + 1,
+            "timestamp": f"2026-01-{(i % 28) + 1:02d}T12:00:00+00:00",
+            "lh": 0.9 + (i % 7) * 0.12,
+            "la": 0.8 + (i % 5) * 0.11,
+            "baseline": [0.4, 0.3, 0.3],
+            "actual": outcomes[i % len(outcomes)],
+        })
+
+    expected_rhos = [dc.fit_rho(ordered[:i]) for i in range(dc.MIN_TRAIN, len(ordered))]
+    evaluated, optimized_rhos = dc.walk_forward_evaluate(ordered)
+
+    assert optimized_rhos == expected_rhos
+    assert len(evaluated) == len(expected_rhos)
+    assert [row["rho"] for row in evaluated] == expected_rhos
+
+
 def test_same_cohort_draw_auc_detects_real_discrimination():
     rows = _same_cohort_rows()
     baseline = dc.metrics(rows, "baseline")

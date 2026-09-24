@@ -198,6 +198,56 @@ def fit_rho(train: list[dict[str, Any]]) -> float:
     return best_rho
 
 
+def walk_forward_evaluate(ordered: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[float]]:
+    if len(ordered) <= MIN_TRAIN:
+        return [], []
+
+    probability_grid: dict[float, list[list[float] | None]] = {
+        rho: [dc_probs(row["lh"], row["la"], rho) for row in ordered]
+        for rho in RHO_GRID
+    }
+    cumulative_log_loss = {rho: 0.0 for rho in RHO_GRID}
+    rho_valid = {rho: True for rho in RHO_GRID}
+
+    def add_training_row(index: int) -> None:
+        actual_index = LABELS.index(ordered[index]["actual"])
+        for rho in RHO_GRID:
+            if not rho_valid[rho]:
+                continue
+            probs = probability_grid[rho][index]
+            if probs is None:
+                rho_valid[rho] = False
+                cumulative_log_loss[rho] = float("inf")
+                continue
+            cumulative_log_loss[rho] += -math.log(max(1e-12, probs[actual_index]))
+
+    for index in range(MIN_TRAIN):
+        add_training_row(index)
+
+    evaluated: list[dict[str, Any]] = []
+    rho_history: list[float] = []
+    for index in range(MIN_TRAIN, len(ordered)):
+        best_rho = RHO_GRID[0]
+        best_loss = float("inf")
+        for rho in RHO_GRID:
+            loss = cumulative_log_loss[rho] if rho_valid[rho] else float("inf")
+            if loss < best_loss:
+                best_loss = loss
+                best_rho = rho
+
+        prediction = probability_grid[best_rho][index]
+        if prediction is not None and math.isfinite(best_loss):
+            rec = dict(ordered[index])
+            rec["challenger"] = prediction
+            rec["rho"] = best_rho
+            evaluated.append(rec)
+            rho_history.append(best_rho)
+
+        add_training_row(index)
+
+    return evaluated, rho_history
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Walk-forward Dixon-Coles challenger for Soccer Edge 1X2 research.")
     ap.add_argument("--ledger", default="soccer_edge_state/analysis/signal_ledger.jsonl")
@@ -247,19 +297,7 @@ def main() -> None:
             latest[int(fid)] = rec
 
     ordered = sorted(latest.values(), key=lambda x: str(x["timestamp"]))
-    evaluated: list[dict[str, Any]] = []
-    rho_history: list[float] = []
-    for i in range(MIN_TRAIN, len(ordered)):
-        train = ordered[:i]
-        rho = fit_rho(train)
-        p = dc_probs(ordered[i]["lh"], ordered[i]["la"], rho)
-        if p is None:
-            continue
-        rec = dict(ordered[i])
-        rec["challenger"] = p
-        rec["rho"] = rho
-        evaluated.append(rec)
-        rho_history.append(rho)
+    evaluated, rho_history = walk_forward_evaluate(ordered)
 
     baseline = metrics(evaluated, "baseline")
     challenger = metrics(evaluated, "challenger")
