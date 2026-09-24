@@ -61,6 +61,25 @@ def test_phase16_preserves_specific_calibration_gate_reason():
     assert result["non_rankable_reason_counts_by_family"]["1X2"]["SELECTION_DISCRIMINATION_NOT_READY"] == 1
 
 
+def test_phase16_carries_1x2_family_discrimination_snapshot():
+    analyzed = v.analyze_row(_row(
+        market_family="1X2",
+        market="Match Winner",
+        selection="Home",
+        line=None,
+        phase16_1x2_class_discrimination_ready={
+            "home_win": True,
+            "draw": False,
+            "away_win": True,
+        },
+        phase16_1x2_family_discrimination_ready=False,
+        phase16_1x2_not_ready_classes=["DRAW"],
+    ))
+    assert analyzed["phase16_1x2_family_discrimination_ready"] is False
+    assert analyzed["phase16_1x2_not_ready_classes"] == ["DRAW"]
+    assert analyzed["phase16_1x2_class_discrimination_ready"]["draw"] is False
+
+
 def test_phase16_ranks_positive_calibrated_edge():
     result = v.find_mismatches([_row()])
     assert result["rankable_rows"] == 1

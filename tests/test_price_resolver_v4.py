@@ -266,6 +266,11 @@ def test_1x2_draw_is_blocked_when_class_discrimination_is_not_ready():
     assert row["price_resolution_calibrated_probability_added"] is False
     assert "p_model_calibrated" not in row
     assert row["phase16_calibration_status"] == "SELECTION_DISCRIMINATION_NOT_READY"
+    assert row["phase16_1x2_family_discrimination_ready"] is False
+    assert row["phase16_1x2_not_ready_classes"] == ["DRAW"]
+    assert row["phase16_1x2_class_discrimination_ready"]["home_win"] is True
+    assert row["phase16_1x2_class_discrimination_ready"]["draw"] is False
+    assert row["phase16_1x2_class_discrimination_ready"]["away_win"] is True
 
 
 def test_legacy_cached_value_odd_rows_are_normalized():
@@ -329,3 +334,5 @@ def test_1x2_home_is_allowed_when_class_discrimination_is_ready():
     assert 0 < row["p_model_calibrated"] < 1
     assert row["phase16_calibration_source"] == "CURRENT_MODEL_OOS_TEMPERATURE:1X2"
     assert row["phase16_calibration_policy"] == "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50"
+    assert row["phase16_1x2_family_discrimination_ready"] is False
+    assert row["phase16_1x2_not_ready_classes"] == ["DRAW"]

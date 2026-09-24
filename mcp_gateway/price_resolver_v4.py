@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.2.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.3.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -257,6 +257,26 @@ def _binary_calibrated_probability(
 
 
 
+def _one_x_two_class_discrimination_state(
+    *,
+    calibration_state: dict[str, Any],
+    model_version: str | None,
+) -> dict[str, bool]:
+    target_names = ("home_win", "draw", "away_win")
+    report = calibration_state.get("binary") if isinstance(calibration_state.get("binary"), dict) else {}
+    if str(report.get("current_source_model_version") or "") != str(model_version or ""):
+        return {target: False for target in target_names}
+    targets = report.get("current_model_deployment_calibrators")
+    targets = targets if isinstance(targets, dict) else {}
+    return {
+        target: (
+            isinstance(targets.get(target), dict)
+            and targets[target].get("eligible_for_phase16_research") is True
+        )
+        for target in target_names
+    }
+
+
 def _one_x_two_selection_discrimination_ready(
     selection: str,
     *,
@@ -267,12 +287,11 @@ def _one_x_two_selection_discrimination_ready(
     target = target_map.get(selection.title())
     if target is None:
         return False
-    report = calibration_state.get("binary") if isinstance(calibration_state.get("binary"), dict) else {}
-    if str(report.get("current_source_model_version") or "") != str(model_version or ""):
-        return False
-    targets = report.get("current_model_deployment_calibrators")
-    target_report = targets.get(target) if isinstance(targets, dict) and isinstance(targets.get(target), dict) else {}
-    return target_report.get("eligible_for_phase16_research") is True
+    state = _one_x_two_class_discrimination_state(
+        calibration_state=calibration_state,
+        model_version=model_version,
+    )
+    return state.get(target) is True
 
 
 def _multiclass_calibrated_probabilities(
@@ -349,6 +368,17 @@ def _apply_phase16_calibration(
             policy = "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
 
     elif family == "1X2":
+        class_state = _one_x_two_class_discrimination_state(
+            calibration_state=calibration_state,
+            model_version=model_version,
+        )
+        not_ready_classes = sorted(
+            target.upper() for target, ready in class_state.items() if not ready
+        )
+        row["phase16_1x2_class_discrimination_ready"] = dict(class_state)
+        row["phase16_1x2_family_discrimination_ready"] = not not_ready_classes
+        row["phase16_1x2_not_ready_classes"] = not_ready_classes
+
         if not _one_x_two_selection_discrimination_ready(
             selection,
             calibration_state=calibration_state,

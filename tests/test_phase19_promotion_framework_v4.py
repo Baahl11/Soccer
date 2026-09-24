@@ -235,6 +235,8 @@ def test_clean_promotion_shadow_can_support_lean_eligibility():
                 "settled": 60,
                 "roi_per_settled_unit": 0.08,
                 "sample_status": "SHADOW_REVIEW_READY",
+                "family_discrimination_ready": True,
+                "not_ready_classes": [],
             },
         },
     )
@@ -275,6 +277,8 @@ def test_postgres_phase16_shadow_replay_has_priority():
                 "roi_per_settled_unit": 0.08,
                 "sample_status": "SHADOW_REVIEW_READY",
                 "negative_directional_stages": [],
+                "family_discrimination_ready": True,
+                "not_ready_classes": [],
             },
         },
     )
@@ -282,6 +286,48 @@ def test_postgres_phase16_shadow_replay_has_priority():
     assert review["recommended_state"] == "LEAN_ELIGIBLE"
     assert review["promotion_shadow_settled"] == 60
     assert review["promotion_shadow_evidence_source"] == "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE"
+
+
+def test_1x2_partial_class_readiness_blocks_family_advancement():
+    report = v.build_report(
+        {"by_market_family": {"FT_1X2": {"n": 80, "settled": 80, "roi_units": 8.0}}},
+        {
+            "families": {
+                "1X2": {
+                    "status": "STABILITY_REVIEW_READY",
+                    "overall": {
+                        "rows": 100,
+                        "unique_fixtures": 80,
+                        "fixture_weighted_avg_probability_clv_pp": 0.4,
+                    },
+                }
+            }
+        },
+        {"1X2": {"status": "CALIBRATION_REVIEW_ELIGIBLE", "blockers": []}},
+        {},
+        {},
+        {
+            "families": {
+                "1X2": {
+                    "promotion_evaluable": {
+                        "settled": 60,
+                        "pending": 0,
+                        "roi_per_settled_unit": 0.08,
+                        "sample_status": "SHADOW_REVIEW_READY",
+                        "negative_directional_stages": [],
+                        "family_discrimination_ready": False,
+                        "not_ready_classes": ["DRAW"],
+                    }
+                }
+            }
+        },
+    )
+    review = next(row for row in report["market_family_reviews"] if row["market_family"] == "1X2")
+    assert review["recommended_state"] == "SHADOW"
+    assert "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW" in review["blockers"]
+    assert review["promotion_shadow_family_discrimination_ready"] is False
+    assert review["promotion_shadow_not_ready_classes"] == ["DRAW"]
+    assert review["tier_review_eligibility"]["promotion_shadow_family_discrimination"] is False
 
 
 def test_multimarket_postgres_shadow_is_used_for_totals_and_btts():

@@ -7,7 +7,7 @@ import os
 from typing import Any
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.6.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.7.0"
 
 STATES = (
     "DORMANT",
@@ -188,6 +188,8 @@ def _promotion_shadow_for_family(
             "shadow_roi_per_settled_unit": _num(evidence.get("roi_per_settled_unit")),
             "sample_status": str(evidence.get("sample_status") or "DATA_BLOCKED"),
             "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
+            "family_discrimination_ready": evidence.get("family_discrimination_ready"),
+            "not_ready_classes": list(evidence.get("not_ready_classes") or []),
             "evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE",
         }
 
@@ -204,6 +206,8 @@ def _promotion_shadow_for_family(
             "shadow_roi_per_settled_unit": _num(evidence.get("roi_per_settled_unit")),
             "sample_status": str(evidence.get("sample_status") or "DATA_BLOCKED"),
             "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
+            "family_discrimination_ready": evidence.get("family_discrimination_ready"),
+            "not_ready_classes": list(evidence.get("not_ready_classes") or []),
             "evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE",
         }
 
@@ -214,6 +218,8 @@ def _promotion_shadow_for_family(
             "shadow_roi_per_settled_unit": None,
             "sample_status": "QUALITY_DIAGNOSTICS_NOT_IMPLEMENTED",
             "negative_directional_stages": [],
+            "family_discrimination_ready": None,
+            "not_ready_classes": [],
             "evidence_source": None,
         }
 
@@ -224,6 +230,8 @@ def _promotion_shadow_for_family(
             "shadow_roi_per_settled_unit": None,
             "sample_status": "QUALITY_DIAGNOSTICS_MISSING",
             "negative_directional_stages": [],
+            "family_discrimination_ready": None,
+            "not_ready_classes": [],
             "evidence_source": None,
         }
 
@@ -238,6 +246,8 @@ def _promotion_shadow_for_family(
         "shadow_roi_per_settled_unit": _num(evidence.get("roi_per_settled_unit")),
         "sample_status": str(evidence.get("sample_status") or "DATA_BLOCKED"),
         "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
+        "family_discrimination_ready": evidence.get("family_discrimination_ready"),
+        "not_ready_classes": list(evidence.get("not_ready_classes") or []),
         "evidence_source": "SHADOW_SELECTION_DIAGNOSTICS:PROMOTION_EVALUABLE",
     }
 
@@ -313,6 +323,8 @@ def review_market(
     shadow_roi_per_settled_unit: float | None = None,
     shadow_sample_status: str = "MISSING",
     shadow_negative_directional_stages: list[str] | None = None,
+    shadow_family_discrimination_ready: bool | None = None,
+    shadow_not_ready_classes: list[str] | None = None,
     validation_blockers: list[str] | None = None,
     current_state: str = "RESEARCH",
     manual_approval: bool = False,
@@ -322,6 +334,7 @@ def review_market(
         current = "RESEARCH"
     validation_blockers = list(validation_blockers or [])
     shadow_negative_directional_stages = sorted(set(shadow_negative_directional_stages or []))
+    shadow_not_ready_classes = sorted(set(str(value) for value in (shadow_not_ready_classes or []) if value))
 
     blockers: list[str] = []
     warnings: list[str] = []
@@ -352,6 +365,9 @@ def review_market(
         blockers.append("PROMOTION_SHADOW_ROI_NOT_POSITIVE")
     if shadow_negative_directional_stages:
         blockers.append("PROMOTION_SHADOW_NEGATIVE_DIRECTIONAL_STAGES:" + ",".join(shadow_negative_directional_stages))
+    if market_family == "1X2" and shadow_family_discrimination_ready is not True:
+        detail = ",".join(shadow_not_ready_classes or ["UNKNOWN"])
+        blockers.append(f"PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:{detail}")
     blockers.extend(f"VALIDATION:{value}" for value in validation_blockers)
 
     tier_review_eligibility = {
@@ -363,6 +379,7 @@ def review_market(
         "promotion_shadow_directional_read": shadow_settled >= DIRECTIONAL_READ_MIN,
         "promotion_shadow_review": shadow_settled >= TIER_B_REVIEW_MIN and shadow_roi_per_settled_unit is not None and shadow_roi_per_settled_unit > 0,
         "promotion_shadow_stage_stability": not shadow_negative_directional_stages,
+        "promotion_shadow_family_discrimination": market_family != "1X2" or shadow_family_discrimination_ready is True,
     }
 
     collapse = (
@@ -413,6 +430,8 @@ def review_market(
         "promotion_shadow_roi_per_settled_unit": shadow_roi_per_settled_unit,
         "promotion_shadow_sample_status": shadow_sample_status,
         "promotion_shadow_negative_directional_stages": shadow_negative_directional_stages,
+        "promotion_shadow_family_discrimination_ready": shadow_family_discrimination_ready,
+        "promotion_shadow_not_ready_classes": shadow_not_ready_classes,
         "validation_blockers": validation_blockers,
         "tier_review_eligibility": tier_review_eligibility,
         "manual_approval_present": bool(manual_approval),
@@ -485,6 +504,8 @@ def build_report(
             shadow_roi_per_settled_unit=_num(promotion_shadow.get("shadow_roi_per_settled_unit")),
             shadow_sample_status=str(promotion_shadow.get("sample_status") or "MISSING"),
             shadow_negative_directional_stages=list(promotion_shadow.get("negative_directional_stages") or []),
+            shadow_family_discrimination_ready=promotion_shadow.get("family_discrimination_ready"),
+            shadow_not_ready_classes=list(promotion_shadow.get("not_ready_classes") or []),
             validation_blockers=blockers,
             current_state=current_states.get(family, "RESEARCH"),
             manual_approval=bool(manual_approvals.get(family, False)),
@@ -540,6 +561,7 @@ def build_report(
             "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
             "WATCH shadow observations remain research diagnostics and do not count toward promotion unless a market-specific quality diagnostic marks them promotion-evaluable.",
             "For 1X2, FT_TOTALS and BTTS, persisted Phase16 primary rankable candidates replayed from Postgres are the preferred promotion-shadow source; pending rows become settled automatically when final results arrive.",
+            "1X2 promotion review additionally requires current family-level Home/Draw/Away discrimination readiness; partial class readiness remains SHADOW even if settled ROI and CLV are otherwise sufficient.",
             "Legacy WATCH diagnostics remain fallback-only for 1X2 and never count when clean Phase16 replay evidence exists.",
             "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
             "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV.",

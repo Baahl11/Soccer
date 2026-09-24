@@ -9,7 +9,7 @@ from typing import Any, Iterable
 from mcp_gateway import persistence
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.3.0"
+MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.4.0"
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
 SUPPORTED_FAMILIES = {"1X2", "FT_TOTALS", "BTTS"}
 REQUIRED_EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
@@ -214,6 +214,8 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
             "promotion_shadow_eligible": True,
             "phase16_calibration_source": candidate.get("phase16_calibration_source"),
             "phase16_calibration_policy": candidate.get("phase16_calibration_policy"),
+            "phase16_1x2_family_discrimination_ready": candidate.get("phase16_1x2_family_discrimination_ready"),
+            "phase16_1x2_not_ready_classes": list(candidate.get("phase16_1x2_not_ready_classes") or []),
             "signal_source": "PERSISTED_PHASE16_MARKET_MISMATCH",
         })
 
@@ -271,13 +273,30 @@ def _family_report(family: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
         and float(value["roi_per_settled_unit"]) <= 0
     )
     overall = _summary(rows)
+    promotion_evaluable = {
+        **overall,
+        "negative_directional_stages": negative_directional_stages,
+        "evidence_policy": f"LATEST_PREKICKOFF_PERSISTED_PHASE16_PRIMARY_RANKABLE_{family}_PER_FIXTURE_LATEST_VERSIONED_REGIME",
+    }
+    if family == "1X2":
+        latest = max(
+            rows,
+            key=lambda row: _parse_dt(row.get("generated_at")) or datetime.min.replace(tzinfo=timezone.utc),
+            default=None,
+        )
+        promotion_evaluable["family_discrimination_ready"] = (
+            latest.get("phase16_1x2_family_discrimination_ready")
+            if isinstance(latest, dict)
+            else None
+        )
+        promotion_evaluable["not_ready_classes"] = (
+            list(latest.get("phase16_1x2_not_ready_classes") or [])
+            if isinstance(latest, dict)
+            else []
+        )
     return {
         "market_family": family,
-        "promotion_evaluable": {
-            **overall,
-            "negative_directional_stages": negative_directional_stages,
-            "evidence_policy": f"LATEST_PREKICKOFF_PERSISTED_PHASE16_PRIMARY_RANKABLE_{family}_PER_FIXTURE_LATEST_VERSIONED_REGIME",
-        },
+        "promotion_evaluable": promotion_evaluable,
         "by_stage": by_stage,
     }
 
@@ -324,6 +343,7 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
             "Candidates enter the ledger immediately as PENDING and settle automatically after soccer_results receives final goals.",
             "Only Phase16 candidates explicitly marked promotion_shadow_eligible under the current calibration policy are admitted; legacy candidates are excluded.",
             "At most the latest pre-kickoff primary rankable candidate per fixture and market family is retained.",
+            "For 1X2, the latest replayed candidate also carries family-level Home/Draw/Away discrimination readiness so G6 cannot treat partial class readiness as full-family readiness.",
             "Supported settlement families are 1X2, FT_TOTALS and BTTS; PUSH is supported for integer totals.",
             "The latest available versioned source regime is used to avoid mixing old model regimes.",
             "Results are joined only for settlement and never feed candidate generation.",
