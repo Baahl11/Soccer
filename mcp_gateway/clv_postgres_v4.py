@@ -9,7 +9,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.2"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.3"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
@@ -312,13 +312,19 @@ def _derivative_signals_from_events(events: list[dict[str, Any]]) -> list[dict[s
                 signals.append(out)
     return signals
 
-def _load_market_snapshots(conn, fixture_ids: list[int], *, cutoff: datetime) -> list[dict[str, Any]]:
-    if not fixture_ids:
+def _load_market_snapshots(
+    conn,
+    fixture_ids: list[int],
+    *,
+    cutoff: datetime,
+    market_names: list[str],
+) -> list[dict[str, Any]]:
+    if not fixture_ids or not market_names:
         return []
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT
+            SELECT DISTINCT ON (m.fixture_id, m.market_id, m.bookmaker_id)
                 m.fixture_id,
                 m.captured_at,
                 m.stage,
@@ -332,11 +338,16 @@ def _load_market_snapshots(conn, fixture_ids: list[int], *, cutoff: datetime) ->
             FROM soccer_market_snapshots m
             JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
             WHERE m.fixture_id = ANY(%s)
+              AND m.market = ANY(%s)
               AND m.captured_at >= %s
               AND m.captured_at < f.kickoff
-            ORDER BY m.fixture_id, m.captured_at ASC
+            ORDER BY
+                m.fixture_id,
+                m.market_id,
+                m.bookmaker_id,
+                m.captured_at DESC
             """,
-            (fixture_ids, cutoff),
+            (fixture_ids, market_names, cutoff),
         )
         columns = [desc.name for desc in cur.description]
         return [dict(zip(columns, row)) for row in cur.fetchall()]
@@ -508,19 +519,30 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
     snapshot_fixture_batch_size = 50
     for batch_start in range(0, len(fixture_ids), snapshot_fixture_batch_size):
         batch_fixture_ids = fixture_ids[batch_start:batch_start + snapshot_fixture_batch_size]
-        with persistence._connect() as snapshot_conn:
-            snapshots = _load_market_snapshots(snapshot_conn, batch_fixture_ids, cutoff=cutoff)
-
-        snapshots_by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
-        for snapshot in snapshots:
-            if snapshot.get("fixture_id") is not None:
-                snapshots_by_fixture[int(snapshot["fixture_id"])].append(snapshot)
-
         batch_signals = [
             signal
             for fixture_id in batch_fixture_ids
             for signal in signals_by_fixture.get(fixture_id, [])
         ]
+        batch_market_names = sorted({
+            str(candidate.get("market"))
+            for signal in batch_signals
+            for candidate in [signal.get("market_candidate")]
+            if isinstance(candidate, dict) and candidate.get("market")
+        })
+
+        with persistence._connect() as snapshot_conn:
+            snapshots = _load_market_snapshots(
+                snapshot_conn,
+                batch_fixture_ids,
+                cutoff=cutoff,
+                market_names=batch_market_names,
+            )
+
+        snapshots_by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        for snapshot in snapshots:
+            if snapshot.get("fixture_id") is not None:
+                snapshots_by_fixture[int(snapshot["fixture_id"])].append(snapshot)
         for signal in batch_signals:
             candidate = signal.get("market_candidate")
             if not isinstance(candidate, dict):
@@ -700,7 +722,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "notes": [
-            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; capped source reads prioritize the most recent pre-kickoff signals, market snapshots are processed in bounded fixture batches, and legacy event best_market rows are fallback-only.",
+            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; capped source reads prioritize recent pre-kickoff signals, close lookup reads only the latest pre-kickoff snapshot per bookmaker/market in bounded fixture batches, and legacy event best_market rows are fallback-only.",
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
