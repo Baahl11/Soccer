@@ -254,6 +254,90 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
     }
 
 
+def _load_diagnostics(conn, *, lookback_days: int) -> dict[str, Any]:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                COUNT(*) AS refresh_events,
+                COUNT(*) FILTER (WHERE e.generated_at < f.kickoff) AS prekickoff_events,
+                COUNT(*) FILTER (WHERE r.fixture_id IS NOT NULL) AS events_with_result_fixture,
+                COUNT(*) FILTER (
+                    WHERE e.generated_at < f.kickoff
+                      AND r.fixture_id IS NOT NULL
+                ) AS prekickoff_events_with_result,
+                COUNT(*) FILTER (
+                    WHERE jsonb_typeof(e.payload -> 'best_market') = 'object'
+                      AND e.payload -> 'best_market' <> '{}'::jsonb
+                ) AS events_with_best_market,
+                COUNT(*) FILTER (
+                    WHERE e.generated_at < f.kickoff
+                      AND jsonb_typeof(e.payload -> 'best_market') = 'object'
+                      AND e.payload -> 'best_market' <> '{}'::jsonb
+                ) AS prekickoff_events_with_best_market,
+                COUNT(*) FILTER (
+                    WHERE UPPER(COALESCE(e.classification, '')) IN ('BET','LEAN')
+                ) AS actionable_classification_events,
+                COUNT(*) FILTER (
+                    WHERE e.generated_at < f.kickoff
+                      AND UPPER(COALESCE(e.classification, '')) IN ('BET','LEAN')
+                ) AS prekickoff_actionable_events,
+                COUNT(*) FILTER (
+                    WHERE e.generated_at < f.kickoff
+                      AND r.fixture_id IS NOT NULL
+                      AND UPPER(COALESCE(e.classification, '')) IN ('BET','LEAN')
+                      AND jsonb_typeof(e.payload -> 'best_market') = 'object'
+                      AND e.payload -> 'best_market' <> '{}'::jsonb
+                ) AS fully_eligible_rows
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            LEFT JOIN soccer_results r ON r.fixture_id = e.fixture_id
+            WHERE e.generated_at >= %s
+            """,
+            (cutoff,),
+        )
+        row = cur.fetchone()
+        columns = [desc.name for desc in cur.description]
+        totals = dict(zip(columns, row)) if row else {}
+
+        cur.execute(
+            """
+            SELECT COALESCE(NULLIF(e.classification, ''), '(NULL)') AS classification, COUNT(*) AS n
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            WHERE e.generated_at >= %s
+              AND e.generated_at < f.kickoff
+            GROUP BY 1
+            ORDER BY n DESC, classification ASC
+            LIMIT 25
+            """,
+            (cutoff,),
+        )
+        classification_counts = {str(row[0]): int(row[1]) for row in cur.fetchall()}
+
+        cur.execute(
+            """
+            SELECT COALESCE(NULLIF(e.event_type, ''), '(NULL)') AS event_type, COUNT(*) AS n
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            WHERE e.generated_at >= %s
+              AND e.generated_at < f.kickoff
+            GROUP BY 1
+            ORDER BY n DESC, event_type ASC
+            LIMIT 25
+            """,
+            (cutoff,),
+        )
+        event_type_counts = {str(row[0]): int(row[1]) for row in cur.fetchall()}
+
+    return {
+        **{key: int(value or 0) for key, value in totals.items()},
+        "prekickoff_classification_counts": classification_counts,
+        "prekickoff_event_type_counts": event_type_counts,
+    }
+
+
 def _load_rows(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
     with conn.cursor() as cur:
@@ -286,7 +370,7 @@ def _load_rows(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any
               ON r.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.generated_at < f.kickoff
-              AND e.classification = ANY(%s)
+              AND UPPER(COALESCE(e.classification, '')) = ANY(%s)
               AND jsonb_typeof(e.payload -> 'best_market') = 'object'
               AND e.payload -> 'best_market' <> '{}'::jsonb
             ORDER BY e.generated_at ASC
@@ -301,7 +385,9 @@ def _load_rows(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any
 def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> dict[str, Any]:
     persistence.ensure_schema()
     with persistence._connect() as conn:
+        diagnostics = _load_diagnostics(conn, lookback_days=lookback_days)
         raw_rows = _load_rows(conn, lookback_days=lookback_days, max_rows=max_rows)
     report = build_report_from_rows(raw_rows)
     report["lookback_days"] = int(lookback_days)
+    report["source_diagnostics"] = diagnostics
     return report
