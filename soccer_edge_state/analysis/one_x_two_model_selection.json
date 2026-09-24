@@ -15,6 +15,11 @@
       "candidate": "RELATIVE_STRENGTH",
       "challenger_brier": 0.648,
       "challenger_log_loss": 1.0307,
+      "class_discrimination": {},
+      "class_discrimination_available": false,
+      "draw_auc_lower_95": null,
+      "draw_auc_lower_95_delta_vs_baseline": null,
+      "draw_discrimination_ready": false,
       "log_loss_delta": -0.2683,
       "minimum_same_method_sample_gate_met": false,
       "quality_better_on_matched_report": true,
@@ -29,10 +34,49 @@
       "candidate": "DIXON_COLES",
       "challenger_brier": 0.6483,
       "challenger_log_loss": 1.077,
+      "class_discrimination": {
+        "A": {
+          "auc_delta": -4.07e-05,
+          "auc_lower_95_delta": -4.156e-05,
+          "baseline_auc": 0.61809894,
+          "baseline_auc_lower_95": 0.56320524,
+          "challenger_auc": 0.61805824,
+          "challenger_auc_lower_95": 0.56316368,
+          "challenger_discrimination_ready": true,
+          "negative_count": 313,
+          "positive_count": 157
+        },
+        "D": {
+          "auc_delta": -0.00030113,
+          "auc_lower_95_delta": -0.0002944,
+          "baseline_auc": 0.49770383,
+          "baseline_auc_lower_95": 0.43624118,
+          "challenger_auc": 0.4974027,
+          "challenger_auc_lower_95": 0.43594678,
+          "challenger_discrimination_ready": false,
+          "negative_count": 359,
+          "positive_count": 111
+        },
+        "H": {
+          "auc_delta": -0.00016624,
+          "auc_lower_95_delta": -0.00017035,
+          "baseline_auc": 0.61218043,
+          "baseline_auc_lower_95": 0.56049638,
+          "challenger_auc": 0.61201419,
+          "challenger_auc_lower_95": 0.56032603,
+          "challenger_discrimination_ready": true,
+          "negative_count": 268,
+          "positive_count": 202
+        }
+      },
+      "class_discrimination_available": true,
+      "draw_auc_lower_95": 0.43594678,
+      "draw_auc_lower_95_delta_vs_baseline": -0.0002944,
+      "draw_discrimination_ready": false,
       "log_loss_delta": -0.0009,
       "minimum_same_method_sample_gate_met": true,
       "quality_better_on_matched_report": true,
-      "status": "PROMOTION_REVIEW_ELIGIBLE_RESEARCH_ONLY",
+      "status": "DRAW_DISCRIMINATION_NOT_READY",
       "walk_forward_evaluated": 470
     },
     {
@@ -43,6 +87,11 @@
       "candidate": "CLASS_PRIOR_CALIBRATION",
       "challenger_brier": 0.6499,
       "challenger_log_loss": 1.0801,
+      "class_discrimination": {},
+      "class_discrimination_available": false,
+      "draw_auc_lower_95": null,
+      "draw_auc_lower_95_delta_vs_baseline": null,
+      "draw_discrimination_ready": false,
       "log_loss_delta": 0.0022,
       "minimum_same_method_sample_gate_met": true,
       "quality_better_on_matched_report": false,
@@ -65,16 +114,15 @@
     "requires": [
       "same-fixture head-to-head comparison for shortlisted challengers",
       "Brier and log-loss both improve versus canonical on the same cohort",
+      "same-cohort H/D/A class discrimination is measured and Draw AUC lower-95 exceeds 0.50",
       "H/D/A calibration stable by probability bucket and competition",
       "verified historical 1X2 prices and true CLV evidence",
       "validated market shrinkage after final model selection",
       "manual/versioned promotion; never automatic weight changes"
     ]
   },
-  "recommendation": "RUN_SAME_FIXTURE_HEAD_TO_HEAD_BEFORE_ANY_PROMOTION:DIXON_COLES",
-  "review_eligible_challengers": [
-    "DIXON_COLES"
-  ],
+  "recommendation": "KEEP_CANONICAL_RESEARCH_BASELINE; NO_CHALLENGER_READY_FOR_FORMAL_REVIEW",
+  "review_eligible_challengers": [],
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY_MODEL_SELECTION"
 }

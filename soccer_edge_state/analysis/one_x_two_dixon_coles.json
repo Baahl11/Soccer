@@ -3,6 +3,32 @@
   "baseline": {
     "accuracy": 0.4574,
     "brier": 0.6487,
+    "class_discrimination": {
+      "A": {
+        "auc": 0.61809894,
+        "auc_lower_95": 0.56320524,
+        "auc_standard_error": 0.02800699,
+        "discrimination_ready": true,
+        "negative_count": 313,
+        "positive_count": 157
+      },
+      "D": {
+        "auc": 0.49770383,
+        "auc_lower_95": 0.43624118,
+        "auc_standard_error": 0.03135849,
+        "discrimination_ready": false,
+        "negative_count": 359,
+        "positive_count": 111
+      },
+      "H": {
+        "auc": 0.61218043,
+        "auc_lower_95": 0.56049638,
+        "auc_standard_error": 0.02636941,
+        "discrimination_ready": true,
+        "negative_count": 268,
+        "positive_count": 202
+      }
+    },
     "log_loss": 1.0779,
     "mean_draw_probability": 0.2651,
     "n": 470,
@@ -28,6 +54,32 @@
   "challenger": {
     "accuracy": 0.4574,
     "brier": 0.6483,
+    "class_discrimination": {
+      "A": {
+        "auc": 0.61805824,
+        "auc_lower_95": 0.56316368,
+        "auc_standard_error": 0.02800743,
+        "discrimination_ready": true,
+        "negative_count": 313,
+        "positive_count": 157
+      },
+      "D": {
+        "auc": 0.4974027,
+        "auc_lower_95": 0.43594678,
+        "auc_standard_error": 0.03135506,
+        "discrimination_ready": false,
+        "negative_count": 359,
+        "positive_count": 111
+      },
+      "H": {
+        "auc": 0.61201419,
+        "auc_lower_95": 0.56032603,
+        "auc_standard_error": 0.02637151,
+        "discrimination_ready": true,
+        "negative_count": 268,
+        "positive_count": 202
+      }
+    },
     "log_loss": 1.077,
     "mean_draw_probability": 0.2569,
     "n": 470,
@@ -42,6 +94,41 @@
   "improvement": {
     "accuracy_delta_pp": 0.0,
     "brier_delta": -0.0004,
+    "class_discrimination": {
+      "A": {
+        "auc_delta": -4.07e-05,
+        "auc_lower_95_delta": -4.156e-05,
+        "baseline_auc": 0.61809894,
+        "baseline_auc_lower_95": 0.56320524,
+        "challenger_auc": 0.61805824,
+        "challenger_auc_lower_95": 0.56316368,
+        "challenger_discrimination_ready": true,
+        "negative_count": 313,
+        "positive_count": 157
+      },
+      "D": {
+        "auc_delta": -0.00030113,
+        "auc_lower_95_delta": -0.0002944,
+        "baseline_auc": 0.49770383,
+        "baseline_auc_lower_95": 0.43624118,
+        "challenger_auc": 0.4974027,
+        "challenger_auc_lower_95": 0.43594678,
+        "challenger_discrimination_ready": false,
+        "negative_count": 359,
+        "positive_count": 111
+      },
+      "H": {
+        "auc_delta": -0.00016624,
+        "auc_lower_95_delta": -0.00017035,
+        "baseline_auc": 0.61218043,
+        "baseline_auc_lower_95": 0.56049638,
+        "challenger_auc": 0.61201419,
+        "challenger_auc_lower_95": 0.56032603,
+        "challenger_discrimination_ready": true,
+        "negative_count": 268,
+        "positive_count": 202
+      }
+    },
     "draw_probability_delta_pp": -0.82,
     "log_loss_delta": -0.0009
   },
@@ -51,14 +138,19 @@
     "Baseline probabilities are the exact stored pre-kickoff Soccer Edge 1X2 probabilities.",
     "Dixon-Coles changes only low-score dependence using the stored home/away goal rates; it does not fabricate xG or team-strength inputs.",
     "Negative rho typically increases 0-0/1-1 mass and can improve draw calibration, but rho is selected walk-forward rather than hard-coded.",
+    "H/D/A discrimination is measured on the exact same walk-forward cohort with the same AUC lower-95 > 0.50 research gate used by Phase16.",
     "This report cannot upgrade any backend BET/LEAN classification."
   ],
   "promotion_gate": {
     "decision": "KEEP_RESEARCH_ONLY",
+    "draw_auc_lower_95": 0.43594678,
+    "draw_auc_lower_95_delta_vs_baseline": -0.0002944,
+    "draw_discrimination_ready": false,
     "enabled": false,
     "minimum_evaluation_n": 100,
     "quality_metrics_better": true,
-    "reason": "Never promotes 1X2 automatically. Requires larger out-of-sample sample plus stable Brier/log-loss and draw calibration.",
+    "reason": "Never promotes 1X2 automatically. Requires same-fixture Brier/log-loss improvement plus Draw AUC lower-95 above 0.50 and downstream CLV/settlement evidence.",
+    "same_fixture_class_discrimination_available": true,
     "sample_gate_met": true
   },
   "rho_history_summary": {
