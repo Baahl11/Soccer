@@ -6,6 +6,7 @@ on:
       - soccer-edge-mcp-v1
     paths:
       - "mcp_gateway/analyze_1x2_draw_signal.py"
+      - "mcp_gateway/analyze_1x2_draw_history_signal.py"
       - ".github/workflows/one-x-two-draw-signal-audit.yml"
 
 jobs:
@@ -61,6 +62,29 @@ jobs:
               },
           }
           print("DRAW_SIGNAL_AUDIT=" + json.dumps(compact, sort_keys=True))
+          PY
+
+      - name: Run historical Draw propensity audit
+        working-directory: code
+        run: |
+          PYTHONPATH=. python mcp_gateway/analyze_1x2_draw_history_signal.py \
+            --ledger ../state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --output /tmp/one_x_two_draw_history_signal.json
+          python - <<'PY'
+          import json
+          with open("/tmp/one_x_two_draw_history_signal.json", "r", encoding="utf-8") as fh:
+              report = json.load(fh)
+          compact = {
+              "evaluated_fixtures": report.get("evaluated_fixtures"),
+              "draws": report.get("draws"),
+              "non_draws": report.get("non_draws"),
+              "history_coverage": report.get("history_coverage"),
+              "discrimination_candidates": report.get("discrimination_candidates"),
+              "formal_challenger_candidates": report.get("formal_challenger_candidates"),
+              "recommendation": report.get("recommendation"),
+              "signals": report.get("signals"),
+          }
+          print("DRAW_HISTORY_SIGNAL_AUDIT=" + json.dumps(compact, sort_keys=True))
           PY
 
       - name: Inventory pre-kickoff feature namespaces
