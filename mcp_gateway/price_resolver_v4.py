@@ -73,6 +73,54 @@ def _fair_probs(prices: list[float]) -> list[float | None]:
     return [(p / total) if p is not None else None for p in implied]
 
 
+def _normalize_market_values(market_name: str, values: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    parsed: list[dict[str, Any]] = []
+    for item in values or []:
+        if not isinstance(item, dict):
+            continue
+        raw_selection = item.get("selection")
+        if raw_selection is None:
+            raw_selection = item.get("value")
+        selection, parsed_line = _parse_value(raw_selection)
+        explicit_line = _num(item.get("line"))
+        if explicit_line is None:
+            explicit_line = _num(item.get("handicap"))
+        line = explicit_line if explicit_line is not None else parsed_line
+        price = _num(item.get("decimal_price"))
+        if price is None:
+            price = _num(item.get("odd"))
+        if price is None:
+            price = _num(item.get("price"))
+        if price is None or price <= 1.0:
+            continue
+        parsed.append({
+            "selection": selection,
+            "line": line,
+            "decimal_price": price,
+            "fair_probability": _num(item.get("fair_probability")),
+        })
+
+    # Recalculate de-vig probabilities from the full observed mutually-exclusive
+    # group whenever possible; this also upgrades legacy cached value/odd rows.
+    market_low = _norm(market_name)
+    if market_low in {"match winner", "both teams score", "both teams to score"}:
+        fairs = _fair_probs([float(v["decimal_price"]) for v in parsed])
+        for value, fair in zip(parsed, fairs):
+            value["fair_probability"] = fair
+    elif market_low in {"goals over/under", "over/under"}:
+        by_line: dict[float, list[dict[str, Any]]] = defaultdict(list)
+        for value in parsed:
+            if value.get("line") is not None:
+                by_line[float(value["line"])].append(value)
+        for group in by_line.values():
+            if len(group) < 2:
+                continue
+            fairs = _fair_probs([float(v["decimal_price"]) for v in group])
+            for value, fair in zip(group, fairs):
+                value["fair_probability"] = fair
+    return parsed
+
+
 def normalize_api_response(payload: dict[str, Any]) -> list[dict[str, Any]]:
     normalized: list[dict[str, Any]] = []
     for response_row in payload.get("response") or []:
@@ -85,36 +133,7 @@ def normalize_api_response(payload: dict[str, Any]) -> list[dict[str, Any]]:
             for bet in bookmaker.get("bets") or []:
                 market_id = bet.get("id")
                 market_name = str(bet.get("name") or "")
-                values = bet.get("values") or []
-                parsed: list[dict[str, Any]] = []
-                for item in values:
-                    selection, line = _parse_value(item.get("value"))
-                    price = _num(item.get("odd"))
-                    if price is None or price <= 1.0:
-                        continue
-                    parsed.append({
-                        "selection": selection,
-                        "line": line,
-                        "decimal_price": price,
-                    })
-
-                # De-vig complete mutually-exclusive groups only.
-                if market_name.lower() in {"match winner", "both teams score", "both teams to score"}:
-                    fairs = _fair_probs([float(v["decimal_price"]) for v in parsed])
-                    for value, fair in zip(parsed, fairs):
-                        value["fair_probability"] = fair
-                elif "goals over/under" in market_name.lower() or market_name.lower() in {"goals over/under", "over/under"}:
-                    by_line: dict[float, list[dict[str, Any]]] = defaultdict(list)
-                    for value in parsed:
-                        if value.get("line") is not None:
-                            by_line[float(value["line"])].append(value)
-                    for _, group in by_line.items():
-                        if len(group) < 2:
-                            continue
-                        fairs = _fair_probs([float(v["decimal_price"]) for v in group])
-                        for value, fair in zip(group, fairs):
-                            value["fair_probability"] = fair
-
+                parsed = _normalize_market_values(market_name, bet.get("values") or [])
                 if parsed:
                     normalized.append({
                         "fixture_id": fixture_id,
@@ -131,11 +150,14 @@ def normalize_api_response(payload: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _market_kind(market: str) -> str | None:
     name = _norm(market)
+    # Never let period/team derivative markets masquerade as full-time families.
+    if any(token in name for token in ("first half", "1st half", "second half", "2nd half", "home team", "away team")):
+        return None
     if name == "match winner":
         return "1X2"
-    if name in {"both teams score", "both teams to score"} or "both teams" in name:
+    if name in {"both teams score", "both teams to score"}:
         return "BTTS"
-    if "goals over/under" in name or name == "over/under":
+    if name in {"goals over/under", "over/under"}:
         return "FT_TOTALS"
     return None
 
@@ -415,6 +437,7 @@ def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
         provider_update = row.get("provider_update")
         if isinstance(provider_update, datetime):
             row["provider_update"] = provider_update.isoformat()
+        row["values"] = _normalize_market_values(str(row.get("market") or ""), row.get("values") or [])
         key = (row.get("bookmaker_id"), row.get("market_id"), str(row.get("values")))
         if key in seen:
             continue
