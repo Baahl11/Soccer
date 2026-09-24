@@ -76,6 +76,7 @@ jobs:
                       'recoverable_missing_matchup_rows': audit.get('recoverable_missing_matchup_rows'),
                       'confirmed_xi_without_formation_value': (audit.get('reason_counts') or {}).get('CONFIRMED_XI_WITHOUT_FORMATION_VALUE'),
                       'reason_counts': audit.get('reason_counts'),
+                      'timing_integrity': audit.get('timing_integrity'),
                   }
               print(p, json.dumps(summary, indent=2))
           PY
