@@ -266,18 +266,41 @@ def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
     return out
 
 
+def _header_int(response: httpx.Response, name: str) -> int | None:
+    value = response.headers.get(name)
+    try:
+        return int(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _apply_quota_accounting(payload: dict[str, Any], calls: int, daily_remaining: int | None) -> None:
+    payload["api_calls_this_tick"] = int(payload.get("api_calls_this_tick") or 0) + int(calls or 0)
+    if daily_remaining is not None:
+        current = payload.get("last_daily_remaining")
+        try:
+            current_int = int(current) if current is not None else None
+        except (TypeError, ValueError):
+            current_int = None
+        payload["last_daily_remaining"] = daily_remaining if current_int is None else min(current_int, daily_remaining)
+        quota = payload.get("quota")
+        if isinstance(quota, dict):
+            quota["daily_remaining"] = payload["last_daily_remaining"]
+
+
 async def _fetch_fixture_odds(
     client: httpx.AsyncClient,
     fixture_id: int,
     *,
     api_key: str,
     remaining_calls: int,
-) -> tuple[list[dict[str, Any]], int, str]:
+) -> tuple[list[dict[str, Any]], int, str, int | None]:
     if remaining_calls <= 0:
-        return [], 0, "PRICE_BUDGET_EXHAUSTED"
+        return [], 0, "PRICE_BUDGET_EXHAUSTED", None
     markets: list[dict[str, Any]] = []
     page = 1
     calls = 0
+    daily_remaining: int | None = None
     while calls < remaining_calls:
         response = await client.get(
             f"{API_BASE_URL}/odds",
@@ -286,6 +309,9 @@ async def _fetch_fixture_odds(
         )
         calls += 1
         response.raise_for_status()
+        observed_remaining = _header_int(response, "x-ratelimit-requests-remaining")
+        if observed_remaining is not None:
+            daily_remaining = observed_remaining if daily_remaining is None else min(daily_remaining, observed_remaining)
         payload = response.json()
         markets.extend(normalize_api_response(payload))
         paging = payload.get("paging") or {}
@@ -294,7 +320,7 @@ async def _fetch_fixture_odds(
         if current >= total:
             break
         page = current + 1
-    return markets, calls, "PRICE_API_RESOLVED" if markets else "PRICE_API_NO_FIXTURE_OR_MARKET"
+    return markets, calls, "PRICE_API_RESOLVED" if markets else "PRICE_API_NO_FIXTURE_OR_MARKET", daily_remaining
 
 
 def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]], source_status: str) -> None:
@@ -315,11 +341,32 @@ def _enrich_row(row: dict[str, Any], event: dict[str, Any], markets: list[dict[s
 
     offer = choose_reference_offer(markets, family=family, selection=selection, line=line)
     if offer is None:
-        row["price_resolution_status"] = "PRICE_API_NO_MARKET"
+        family_markets = [market for market in markets if _market_kind(str(market.get("market") or "")) == family]
+        available_selection_rows = [
+            value
+            for market in family_markets
+            for value in (market.get("values") or [])
+            if _selection_matches(value, selection, None)
+        ]
+        available_lines = sorted({
+            float(value["line"])
+            for value in available_selection_rows
+            if _num(value.get("line")) is not None
+        })
+        if not family_markets:
+            status = "PRICE_API_NO_MARKET"
+        elif not available_selection_rows:
+            status = "PRICE_API_NO_SELECTION"
+        elif line is not None and available_lines:
+            status = "PRICE_API_NO_EXACT_LINE"
+        else:
+            status = "PRICE_API_NO_MARKET"
+        row["price_resolution_status"] = status
         row["price_resolution_family"] = family
         row["price_resolution_selection"] = selection
         row["price_resolution_line"] = line
-        return "PRICE_API_NO_MARKET"
+        row["price_resolution_available_lines"] = available_lines[:20]
+        return status
 
     row["market_family"] = family
     row["market"] = offer.get("market")
@@ -345,6 +392,7 @@ async def resolve_payload(payload: dict[str, Any], *, max_api_calls: int | None 
     api_key = os.getenv("API_FOOTBALL_KEY", "").strip()
     budget = max(0, int(DEFAULT_MAX_API_CALLS if max_api_calls is None else max_api_calls))
     calls = 0
+    provider_daily_remaining: int | None = None
     counts: dict[str, int] = defaultdict(int)
     fixture_cache: dict[int, tuple[list[dict[str, Any]], str]] = {}
 
@@ -372,13 +420,19 @@ async def resolve_payload(payload: dict[str, Any], *, max_api_calls: int | None 
                     fixture_cache[fixture_id] = ([], "PRICE_BUDGET_EXHAUSTED")
                 else:
                     try:
-                        markets, used, status = await _fetch_fixture_odds(
+                        markets, used, status, observed_remaining = await _fetch_fixture_odds(
                             client,
                             fixture_id,
                             api_key=api_key,
                             remaining_calls=budget - calls,
                         )
                         calls += used
+                        if observed_remaining is not None:
+                            provider_daily_remaining = (
+                                observed_remaining
+                                if provider_daily_remaining is None
+                                else min(provider_daily_remaining, observed_remaining)
+                            )
                         fixture_cache[fixture_id] = (markets, status)
                     except Exception as exc:
                         fixture_cache[fixture_id] = ([], "PRICE_API_ERROR")
@@ -392,6 +446,8 @@ async def resolve_payload(payload: dict[str, Any], *, max_api_calls: int | None 
                 row["price_resolution_status"] = status
                 resolved_status = status
             counts[resolved_status] += 1
+
+    _apply_quota_accounting(payload, calls, provider_daily_remaining)
 
     payload["price_resolution_v4"] = {
         "schema_version": "1.0.0",
@@ -408,6 +464,8 @@ async def resolve_payload(payload: dict[str, Any], *, max_api_calls: int | None 
         "simulated_odds_allowed": False,
         "calibrated_probability_fabricated": False,
         "provider_requests_added": calls,
+        "provider_daily_remaining_observed": provider_daily_remaining,
+        "quota_accounting_included_in_api_calls_this_tick": True,
     }
     payload["price_resolution_provider_requests_added"] = calls
     return payload["price_resolution_v4"]
