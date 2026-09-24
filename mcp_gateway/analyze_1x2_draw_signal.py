@@ -10,8 +10,9 @@ from typing import Any, Iterable
 from mcp_gateway.analyze_1x2_dixon_coles import auc_discrimination
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_1X2_DRAW_SIGNAL_AUDIT_V4_1.0.0"
+MODEL_VERSION = "SOCCER_1X2_DRAW_SIGNAL_AUDIT_V4_1.1.0"
 SAME_COHORT_WARMUP = 30
+SAFE_FEATURE_MIN_COVERAGE = 0.80
 
 
 def _num(value: Any) -> float | None:
@@ -98,6 +99,15 @@ def extract_same_cohort(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, 
             "home_probability": normalized[0],
             "draw_probability": normalized[1],
             "away_probability": normalized[2],
+            "availability_confidence": _num(row.get("availability_confidence")),
+            "safe_context": {
+                "raw_projection.sample": raw.get("sample"),
+                "raw_projection.screen_scores": raw.get("screen_scores"),
+                "raw_projection.relative_strength_shadow": raw.get("relative_strength_shadow"),
+                "sporting_shortlist": row.get("sporting_shortlist"),
+                "sporting_screen_initial": row.get("sporting_screen_initial"),
+                "sporting_screen_refined": row.get("sporting_screen_refined"),
+            },
             "actual": finals[fixture_id],
         }
         prior = latest.get(fixture_id)
@@ -126,6 +136,80 @@ def signal_values(row: dict[str, Any]) -> dict[str, float]:
         "weak_favorite": -max(home_probability, away_probability),
         "one_x_two_entropy": _entropy((home_probability, draw_probability, away_probability)),
         "draw_relative_to_favorite": draw_probability - max(home_probability, away_probability),
+    }
+
+
+SAFE_FEATURE_EXCLUDED_TOKENS = {
+    "price",
+    "odds",
+    "market",
+    "bookmaker",
+    "result",
+    "outcome",
+    "final",
+    "stake",
+    "profit",
+    "roi",
+}
+
+
+def _flatten_numeric(prefix: str, value: Any, out: dict[str, float]) -> None:
+    if isinstance(value, bool):
+        return
+    numeric = _num(value)
+    if numeric is not None and not isinstance(value, (dict, list, tuple)):
+        path_tokens = {token.lower() for token in prefix.replace("[", ".").replace("]", "").split(".") if token}
+        if not (path_tokens & SAFE_FEATURE_EXCLUDED_TOKENS):
+            out[prefix] = numeric
+        return
+    if not isinstance(value, dict):
+        return
+    for key, nested in value.items():
+        child = f"{prefix}.{key}" if prefix else str(key)
+        _flatten_numeric(child, nested, out)
+
+
+def safe_persisted_feature_values(row: dict[str, Any]) -> dict[str, float]:
+    out: dict[str, float] = {}
+    availability = _num(row.get("availability_confidence"))
+    if availability is not None:
+        out["availability_confidence"] = availability
+    safe_context = row.get("safe_context") if isinstance(row.get("safe_context"), dict) else {}
+    for namespace, value in safe_context.items():
+        if isinstance(value, dict):
+            _flatten_numeric(str(namespace), value, out)
+    return out
+
+
+def _two_sided_feature_discrimination(observations: list[tuple[float, int]]) -> dict[str, Any]:
+    report = auc_discrimination(observations)
+    auc = _num(report.get("auc"))
+    standard_error = _num(report.get("auc_standard_error"))
+    lower = _num(report.get("auc_lower_95"))
+    upper = (
+        min(1.0, auc + 1.96 * standard_error)
+        if auc is not None and standard_error is not None
+        else None
+    )
+    if lower is not None and lower > 0.50:
+        direction = "HIGHER_VALUE_MORE_DRAW"
+        oriented_auc = auc
+        oriented_lower = lower
+    elif upper is not None and upper < 0.50:
+        direction = "LOWER_VALUE_MORE_DRAW"
+        oriented_auc = 1.0 - auc if auc is not None else None
+        oriented_lower = 1.0 - upper
+    else:
+        direction = "NO_STABLE_DIRECTION"
+        oriented_auc = max(auc, 1.0 - auc) if auc is not None else None
+        oriented_lower = None
+    return {
+        **report,
+        "auc_upper_95": round(upper, 8) if upper is not None else None,
+        "two_sided_direction": direction,
+        "ci_excludes_random": direction != "NO_STABLE_DIRECTION",
+        "oriented_auc": round(oriented_auc, 8) if oriented_auc is not None else None,
+        "oriented_auc_lower_95": round(oriented_lower, 8) if oriented_lower is not None else None,
     }
 
 
@@ -158,10 +242,13 @@ def _quantile_bins(observations: list[tuple[float, int]], *, bins: int = 5) -> l
 def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     cohort, eligible_fixtures = extract_same_cohort(rows)
     by_signal: dict[str, list[tuple[float, int]]] = {}
+    by_persisted_feature: dict[str, list[tuple[float, int]]] = {}
     for row in cohort:
         outcome = 1 if row.get("actual") == "D" else 0
         for name, score in signal_values(row).items():
             by_signal.setdefault(name, []).append((float(score), outcome))
+        for name, value in safe_persisted_feature_values(row).items():
+            by_persisted_feature.setdefault(name, []).append((float(value), outcome))
 
     signals: dict[str, Any] = {}
     for name, observations in sorted(by_signal.items()):
@@ -192,6 +279,36 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         if report.get("discrimination_ready") is True
     ]
 
+    persisted_features: dict[str, Any] = {}
+    minimum_feature_rows = math.ceil(len(cohort) * SAFE_FEATURE_MIN_COVERAGE) if cohort else 0
+    for name, observations in sorted(by_persisted_feature.items()):
+        discrimination = _two_sided_feature_discrimination(observations)
+        coverage = len(observations) / len(cohort) if cohort else 0.0
+        persisted_features[name] = {
+            **discrimination,
+            "rows": len(observations),
+            "coverage": round(coverage, 6),
+            "coverage_gate": SAFE_FEATURE_MIN_COVERAGE,
+            "coverage_ready": len(observations) >= minimum_feature_rows,
+            "quintiles": _quantile_bins(observations),
+        }
+
+    persisted_ranked = sorted(
+        persisted_features.items(),
+        key=lambda item: (
+            float(item[1].get("oriented_auc_lower_95") or -1.0),
+            float(item[1].get("oriented_auc") or -1.0),
+            float(item[1].get("coverage") or 0.0),
+        ),
+        reverse=True,
+    )
+    persisted_candidates = [
+        name
+        for name, report in persisted_ranked
+        if report.get("coverage_ready") is True
+        and report.get("ci_excludes_random") is True
+    ]
+
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
@@ -211,10 +328,32 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
             "discrimination_ready": strongest.get("discrimination_ready") is True,
         },
         "ready_nonbaseline_signals": ready_signals,
+        "persisted_safe_feature_audit": {
+            "minimum_coverage": SAFE_FEATURE_MIN_COVERAGE,
+            "minimum_rows": minimum_feature_rows,
+            "features": persisted_features,
+            "candidate_features": persisted_candidates,
+            "top_features": [
+                {
+                    "name": name,
+                    "rows": report.get("rows"),
+                    "coverage": report.get("coverage"),
+                    "auc": report.get("auc"),
+                    "auc_lower_95": report.get("auc_lower_95"),
+                    "auc_upper_95": report.get("auc_upper_95"),
+                    "two_sided_direction": report.get("two_sided_direction"),
+                    "oriented_auc": report.get("oriented_auc"),
+                    "oriented_auc_lower_95": report.get("oriented_auc_lower_95"),
+                    "ci_excludes_random": report.get("ci_excludes_random"),
+                }
+                for name, report in persisted_ranked[:15]
+            ],
+            "exploratory_multiple_testing_warning": True,
+        },
         "recommendation": (
-            "BUILD_DRAW_CHALLENGER_FROM_VERIFIED_SIGNAL"
-            if ready_signals
-            else "CURRENT_LAMBDA_AND_BASE_PROBABILITY_FEATURES_DO_NOT_CLEAR_DRAW_DISCRIMINATION_GATE"
+            "BUILD_WALK_FORWARD_DRAW_CHALLENGER_FROM_PERSISTED_FEATURE_CANDIDATES"
+            if persisted_candidates
+            else "CURRENT_PERSISTED_SAFE_FEATURES_DO_NOT_SHOW_STABLE_UNIVARIATE_DRAW_SIGNAL"
         ),
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
@@ -224,6 +363,8 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
             "Uses the same latest pre-kickoff fixture cohort convention as the Dixon-Coles audit and drops the same first 30 fixtures for matched comparison.",
             "Signal direction is authored so larger scores should indicate higher draw propensity.",
             "This audit is diagnostic only and does not fit or select a production model.",
+            "Persisted feature screening is restricted to approved pre-kickoff non-market namespaces and excludes price/odds/market/result paths.",
+            "Persisted feature candidates are exploratory because multiple features are screened on the same cohort; any candidate must be re-tested inside a nested walk-forward challenger before it can count as evidence.",
             "A signal clearing the conservative AUC lower-95 > 0.50 gate only justifies building a walk-forward challenger; it does not justify runtime promotion.",
         ],
     }

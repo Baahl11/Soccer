@@ -46,6 +46,8 @@ jobs:
               "strongest_nonbaseline_signal": report.get("strongest_nonbaseline_signal"),
               "ready_nonbaseline_signals": report.get("ready_nonbaseline_signals"),
               "recommendation": report.get("recommendation"),
+              "persisted_safe_feature_candidates": (report.get("persisted_safe_feature_audit") or {}).get("candidate_features"),
+              "persisted_safe_feature_top": (report.get("persisted_safe_feature_audit") or {}).get("top_features"),
               "signals": {
                   name: {
                       "auc": row.get("auc"),
