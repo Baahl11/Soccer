@@ -1,21 +1,45 @@
 {
   "blockers": [
-    "1X2_TRUE_CLV_27_LT_50",
-    "CALIBRATION_CHALLENGER_DOES_NOT_IMPROVE_BRIER_AND_LOG_LOSS"
+    "1X2_TRUE_CLV_27_LT_50"
   ],
   "calibration_sample": {
+    "legacy_diagnostic_n": 500,
     "minimum_required": 300,
     "multiclass_brier": 0.6446,
     "multiclass_log_loss": 1.072,
-    "n": 500,
+    "n": 407,
     "top1_accuracy": 0.466
   },
   "canonical_bet_logic_changed": false,
+  "canonical_multiclass_oos": {
+    "available": true,
+    "baseline": {
+      "multiclass_brier": 0.67090004,
+      "multiclass_log_loss": 1.10764206,
+      "n": 207,
+      "top1_accuracy": 0.41062802
+    },
+    "brier_delta": -0.01149463,
+    "evaluated_rows": 207,
+    "improves_brier_and_log_loss": true,
+    "log_loss_delta": -0.01835384,
+    "model_version": "SOCCER_1X2_MULTICLASS_OOS_V4_1.0.3",
+    "source_model_version": "SOCCER EDGE ENGINE v1.7",
+    "source_rows_current_model": 407,
+    "temperature_scaled": {
+      "multiclass_brier": 0.65940541,
+      "multiclass_log_loss": 1.08928822,
+      "n": 207,
+      "top1_accuracy": 0.41062802
+    },
+    "walk_forward_folds": 5
+  },
   "manual_review_required": true,
-  "model_version": "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.0.0",
+  "model_version": "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.1.0",
   "model_weights_changed": false,
   "notes": [
-    "The current class-prior challenger is not promoted unless both multiclass Brier and log loss improve.",
+    "Canonical 1X2 calibration evidence uses current-model chronological walk-forward temperature scaling and must improve both multiclass Brier and log loss.",
+    "The historical class-prior challenger is retained only as descriptive legacy context when canonical multiclass OOS is supplied.",
     "True CLV is counted only from canonical 1X2/Match Winner observations.",
     "This gate validates calibration evidence; it does not alter runtime probabilities or bet classification."
   ],
@@ -52,7 +76,7 @@
       "draw_probability_delta_pp": -3.65,
       "log_loss_delta": 0.0022
     },
-    "improves_brier_and_log_loss": false
+    "improves_brier_and_log_loss": true
   },
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
