@@ -1,0 +1,155 @@
+{
+  "bankroll_impact": 0.0,
+  "by_market_family": {
+    "1H_TOTALS": {
+      "hit_rate_ex_push": 0.333333,
+      "league_count": 3,
+      "loss": 2,
+      "push": 0,
+      "rows": 3,
+      "sample_status": "DATA_BLOCKED",
+      "settled": 3,
+      "shadow_roi_hypothetical_units": 0.25,
+      "shadow_roi_per_settled_unit": 0.083333,
+      "stage_counts": {
+        "T-40": 3
+      },
+      "ungraded": 0,
+      "unique_fixtures": 3,
+      "win": 1
+    },
+    "2H_BTTS": {
+      "hit_rate_ex_push": 0.0,
+      "league_count": 1,
+      "loss": 1,
+      "push": 0,
+      "rows": 1,
+      "sample_status": "DATA_BLOCKED",
+      "settled": 1,
+      "shadow_roi_hypothetical_units": -1.0,
+      "shadow_roi_per_settled_unit": -1.0,
+      "stage_counts": {
+        "T-20": 1
+      },
+      "ungraded": 0,
+      "unique_fixtures": 1,
+      "win": 0
+    },
+    "2H_TOTALS": {
+      "hit_rate_ex_push": 0.166667,
+      "league_count": 6,
+      "loss": 5,
+      "push": 0,
+      "rows": 6,
+      "sample_status": "DATA_BLOCKED",
+      "settled": 6,
+      "shadow_roi_hypothetical_units": -2.0,
+      "shadow_roi_per_settled_unit": -0.333333,
+      "stage_counts": {
+        "T-20": 2,
+        "T-40": 4
+      },
+      "ungraded": 0,
+      "unique_fixtures": 6,
+      "win": 1
+    },
+    "FT_1X2": {
+      "hit_rate_ex_push": 0.258824,
+      "league_count": 62,
+      "loss": 126,
+      "push": 0,
+      "rows": 170,
+      "sample_status": "SHADOW_REVIEW_READY",
+      "settled": 170,
+      "shadow_roi_hypothetical_units": -28.25,
+      "shadow_roi_per_settled_unit": -0.166176,
+      "stage_counts": {
+        "T-10": 126,
+        "T-20": 24,
+        "T-40": 20
+      },
+      "ungraded": 0,
+      "unique_fixtures": 170,
+      "win": 44
+    },
+    "FT_BTTS": {
+      "hit_rate_ex_push": 0.4375,
+      "league_count": 11,
+      "loss": 9,
+      "push": 0,
+      "rows": 16,
+      "sample_status": "DATA_BLOCKED",
+      "settled": 16,
+      "shadow_roi_hypothetical_units": -1.7,
+      "shadow_roi_per_settled_unit": -0.10625,
+      "stage_counts": {
+        "T-10": 9,
+        "T-20": 6,
+        "T-40": 1
+      },
+      "ungraded": 0,
+      "unique_fixtures": 16,
+      "win": 7
+    },
+    "FT_OTHER": {
+      "hit_rate_ex_push": null,
+      "league_count": 20,
+      "loss": 0,
+      "push": 0,
+      "rows": 32,
+      "sample_status": "DATA_BLOCKED",
+      "settled": 0,
+      "shadow_roi_hypothetical_units": 0.0,
+      "shadow_roi_per_settled_unit": null,
+      "stage_counts": {
+        "T-10": 28,
+        "T-20": 3,
+        "T-40": 1
+      },
+      "ungraded": 32,
+      "unique_fixtures": 32,
+      "win": 0
+    },
+    "FT_TOTALS": {
+      "hit_rate_ex_push": 0.509434,
+      "league_count": 82,
+      "loss": 104,
+      "push": 0,
+      "rows": 212,
+      "sample_status": "SHADOW_REVIEW_READY",
+      "settled": 212,
+      "shadow_roi_hypothetical_units": -11.14,
+      "shadow_roi_per_settled_unit": -0.052547,
+      "stage_counts": {
+        "T-10": 153,
+        "T-20": 20,
+        "T-40": 39
+      },
+      "ungraded": 0,
+      "unique_fixtures": 212,
+      "win": 108
+    }
+  },
+  "decision_policy": "LATEST_PREKICKOFF_WATCH_PER_FIXTURE_AND_MARKET_FAMILY",
+  "family_count": 7,
+  "model_version": "SOCCER_SHADOW_SETTLEMENT_V4_1.0.0",
+  "notes": [
+    "WATCH decisions are graded as shadow observations only and are never merged into the real bet settlement ledger.",
+    "Hypothetical ROI uses the observed signal price at one unit solely for research comparison.",
+    "Only the latest pre-kickoff WATCH decision per fixture and market family is retained to reduce correlated snapshot duplication."
+  ],
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "real_wagers_assumed": false,
+  "sample_policy": {
+    "directional_minimum": 20,
+    "primary_unit": "UNIQUE_FIXTURE_MARKET_FAMILY",
+    "review_minimum": 50
+  },
+  "schema_version": "1.0.0",
+  "shadow_rows": 440,
+  "shadow_settled_rows": 408,
+  "source_classification": "WATCH",
+  "status": "SHADOW_PERFORMANCE_ACTIVE",
+  "unique_fixtures": 421
+}
