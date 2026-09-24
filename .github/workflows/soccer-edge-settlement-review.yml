@@ -1,4 +1,4 @@
-# Settlement freshness audit trigger: 2026-09-24-persist-diagnostic
+# Settlement freshness audit trigger: 2026-09-24-immediate-checkpoint
 name: Soccer Edge Settlement Review
 
 on:
@@ -103,6 +103,27 @@ jobs:
             jq '.market_performance_summary' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/market_performance_summary.json
             echo "POSTGRES_SETTLEMENT_ACCEPTED=true" >> "$GITHUB_ENV"
           fi
+
+      - name: Persist Postgres settlement checkpoint
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name "soccer-edge-bot"
+          git config user.email "soccer-edge-bot@users.noreply.github.com"
+          git add -f soccer_edge_state/analysis/settlement_postgres_v4.json
+          if [ "${POSTGRES_SETTLEMENT_ACCEPTED:-false}" = "true" ]; then
+            git add -f soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
+              soccer_edge_state/analysis/market_performance_summary.json
+          fi
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update Postgres settlement checkpoint"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
 
       - name: Build WATCH shadow settlement ledger
         run: PYTHONPATH=engine python -m mcp_gateway.shadow_settlement_v4 --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl --summary-output state/soccer_edge_state/analysis/shadow_performance_summary_v4.json
