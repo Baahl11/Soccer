@@ -12,7 +12,7 @@ from mcp_gateway import calibration_v4
 from mcp_gateway import one_x_two_multiclass_oos_v4 as multiclass
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.1.0"
+MODEL_VERSION = "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.2.0"
 DIRECTIONAL_MIN = 20
 REVIEW_MIN = 50
 TARGET_KEYS = ("home_win", "draw", "away_win", "btts", "over_2_5")
@@ -128,6 +128,71 @@ def _stage_report(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 
+
+def _auc_discrimination(observations: list[dict[str, Any]]) -> dict[str, Any]:
+    positives = [row for row in observations if row.get("outcome") == 1]
+    negatives = [row for row in observations if row.get("outcome") == 0]
+    n_pos = len(positives)
+    n_neg = len(negatives)
+    if n_pos == 0 or n_neg == 0:
+        return {
+            "auc": None,
+            "auc_standard_error": None,
+            "auc_lower_95": None,
+            "positive_count": n_pos,
+            "negative_count": n_neg,
+            "discrimination_ready": False,
+        }
+
+    ranked = sorted(
+        (
+            (float(row["probability"]), int(row["outcome"]))
+            for row in observations
+        ),
+        key=lambda item: item[0],
+    )
+    rank = 1
+    sum_positive_ranks = 0.0
+    index = 0
+    while index < len(ranked):
+        end = index + 1
+        while end < len(ranked) and ranked[end][0] == ranked[index][0]:
+            end += 1
+        count = end - index
+        average_rank = (rank + (rank + count - 1)) / 2.0
+        for _, outcome in ranked[index:end]:
+            if outcome == 1:
+                sum_positive_ranks += average_rank
+        rank += count
+        index = end
+
+    auc = (
+        sum_positive_ranks - (n_pos * (n_pos + 1) / 2.0)
+    ) / (n_pos * n_neg)
+
+    # Hanley-McNeil large-sample AUC standard error. We use the lower
+    # confidence bound as a conservative research gate so calibration that
+    # merely collapses to the base rate cannot create fixture-level edges.
+    q1 = auc / (2.0 - auc) if auc < 2.0 else 0.0
+    q2 = (2.0 * auc * auc) / (1.0 + auc) if auc > -1.0 else 0.0
+    variance = (
+        auc * (1.0 - auc)
+        + (n_pos - 1) * (q1 - auc * auc)
+        + (n_neg - 1) * (q2 - auc * auc)
+    ) / (n_pos * n_neg)
+    standard_error = math.sqrt(max(variance, 0.0))
+    lower_95 = max(0.0, auc - 1.96 * standard_error)
+
+    return {
+        "auc": round(auc, 8),
+        "auc_standard_error": round(standard_error, 8),
+        "auc_lower_95": round(lower_95, 8),
+        "positive_count": n_pos,
+        "negative_count": n_neg,
+        "discrimination_ready": lower_95 > 0.5,
+    }
+
+
 def _current_model_deployment_calibrators(rows: list[dict[str, Any]]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for target in TARGET_KEYS:
@@ -144,18 +209,21 @@ def _current_model_deployment_calibrators(rows: list[dict[str, Any]]) -> dict[st
         calibrator = report.get("calibrator") if isinstance(report.get("calibrator"), dict) else {}
         brier_delta = report.get("brier_delta")
         log_loss_delta = report.get("log_loss_delta")
+        discrimination = _auc_discrimination(observations)
         eligible = (
             calibrator.get("status") == "RESEARCH_CALIBRATOR_FITTED"
             and isinstance(brier_delta, (int, float))
             and isinstance(log_loss_delta, (int, float))
             and brier_delta < 0
             and log_loss_delta < 0
+            and discrimination.get("discrimination_ready") is True
         )
         out[target] = {
             "rows": len(observations),
             "eligible_for_phase16_research": eligible,
             "brier_delta": brier_delta,
             "log_loss_delta": log_loss_delta,
+            "discrimination": discrimination,
             "calibrator": calibrator,
             "production_promotion_allowed": False,
             "runtime_prediction_weight": 0.0,
@@ -210,6 +278,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
             "Current-model stage metrics are reported separately to avoid mixing historical runtime model versions.",
             "Multiclass 1X2 metrics use the same normalized probability simplex as the canonical multiclass OOS validator.",
             "Current-model full-OOS binary calibrators are persisted only for downstream Phase16 research ranking; stage metrics remain diagnostic and production prediction weights remain unchanged.",
+            "Phase16 binary calibration eligibility requires Brier and Log Loss improvement plus a conservative discrimination gate: AUC 95% lower bound must exceed 0.50.",
         ],
     }
 
