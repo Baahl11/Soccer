@@ -112,15 +112,26 @@
     "Temperature scaling preserves the 1X2 simplex and class ranking while adjusting confidence.",
     "Only the latest observed model_version is evaluated to avoid mixing calibration regimes across runtime versions.",
     "Each fold fits temperature only on earlier rows and evaluates on later rows.",
-    "This report is research-only and cannot change production probabilities by itself."
+    "This report is research-only and cannot change production probabilities by itself.",
+    "A full-current-OOS temperature is persisted only as a research deployment calibrator for downstream Phase16 ranking; walk-forward metrics remain the validation evidence."
   ],
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
+  "research_deployment_calibrator": {
+    "market_fields_used": false,
+    "method": "TEMPERATURE_SCALING",
+    "production_promotion_allowed": false,
+    "runtime_prediction_weight": 0.0,
+    "source_model_version": "SOCCER EDGE ENGINE v1.7",
+    "status": "RESEARCH_DEPLOYMENT_CALIBRATOR_FITTED",
+    "temperature": 1.69,
+    "training_rows": 407
+  },
   "runtime_prediction_weight": 0.0,
   "schema_version": "1.0.0",
   "source_model_version": "SOCCER EDGE ENGINE v1.7",
   "source_model_version_counts": {
-    "SOCCER EDGE ENGINE v1.0": 151,
+    "SOCCER EDGE ENGINE v1.0": 153,
     "SOCCER EDGE ENGINE v1.1": 7,
     "SOCCER EDGE ENGINE v1.2": 1,
     "SOCCER EDGE ENGINE v1.5": 1,
