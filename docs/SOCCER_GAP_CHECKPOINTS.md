@@ -267,3 +267,17 @@ This supersedes the historical v3 resume sequence above for the active Soccer Ed
 2. Continue promotion evidence accumulation: settlements, exact family true CLV and current-policy promotion-shadow rows.
 3. Prioritize bottlenecks that can actually advance with existing data: FT Totals settlement/CLV sample, BTTS settlement/CLV sample, Corners formation-adjusted sample, then TEAM_TOTALS exact-price/CLV enablement.
 4. Keep 1X2 Draw in research hold until new non-circular predictive information exists; market price may remain an external reference/shrinkage input but must not be reused as supposedly independent model discrimination evidence.
+
+
+### Team Totals exact-price / true-CLV enablement — 2026-09-24
+- **Root cause confirmed:** Team Totals research intelligence ran before `price_resolver_v4`. Real fixture odds could therefore be attached after Team Totals had already built, leaving `observed_exact_market_rows` empty even though the CLV pipeline already supported derivative Team Totals.
+- **Commit `efd7398`:** Team Totals is rebuilt after price resolution using the exact markets already fetched/loaded by the resolver. This adds zero provider requests.
+- **Commit `bc31365`:** V4-019 no longer blocks on the historical hardcoded `promotion_gate.enabled=false`. Review eligibility is evidence-driven: >=200 OOS fixtures, 0.5/1.5/2.5 coverage, >=50 family-specific true-CLV rows and role/line calibration max gap <0.10. Production promotion remains disabled and manual review remains mandatory.
+- **Commit `e84618e`:** CLV Postgres v1.1.5 exposes derivative source/family counts before and after period-Team-Total exclusion plus per-market skip diagnostics, so generation and close-matching failures are distinguishable.
+- **Commit `6ca312b`:** resolver adds a second cache-only research hydration pass for pregame soccer events with team lambdas. It reuses fresh Postgres market snapshots and cannot spend API budget.
+- **CI:** 154/154 V4 runtime tests passed on `6ca312b`.
+- **LIVE:** Render deployed `6ca312b`.
+- **Natural validation:** `soccer_edge_state/latest.json` at 2026-09-24T19:15:58Z reports `SOCCER_PRICE_RESOLVER_V4_1.5.0`, 2 price candidates resolved from `PRICE_CACHE_HIT`, 0 API calls added, Team Totals rebuilt for 2 events, **48 exact Team Totals market rows** and 25 unsupported rows explicitly retained as unsupported.
+- **No canonical change:** Team Totals remains research-only, decision_weight=0, no BET/LEAN/tier/stake/model-weight change.
+- **Phase17 contract:** main workflow now expects CLV Postgres v1.1.5 and persists derivative diagnostics. State checkout is sparse to avoid repeatedly cloning unrelated state artifacts.
+- **Remaining blocker:** canonical CLV refresh must show how many of the new HOME_TT/AWAY_TT signal rows find an exact pre-kickoff close. Until >=50 comparable Team Totals true-CLV rows exist, V4-019 stays RESEARCH_HOLD.
