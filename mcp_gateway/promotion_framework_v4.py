@@ -7,7 +7,7 @@ import os
 from typing import Any
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.7.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.8.0"
 
 STATES = (
     "DORMANT",
@@ -190,6 +190,7 @@ def _promotion_shadow_for_family(
             "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
             "family_discrimination_ready": evidence.get("family_discrimination_ready"),
             "not_ready_classes": list(evidence.get("not_ready_classes") or []),
+            "class_discrimination_diagnostics": dict(evidence.get("class_discrimination_diagnostics") or {}),
             "evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE",
         }
 
@@ -208,6 +209,7 @@ def _promotion_shadow_for_family(
             "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
             "family_discrimination_ready": evidence.get("family_discrimination_ready"),
             "not_ready_classes": list(evidence.get("not_ready_classes") or []),
+            "class_discrimination_diagnostics": dict(evidence.get("class_discrimination_diagnostics") or {}),
             "evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE",
         }
 
@@ -220,6 +222,7 @@ def _promotion_shadow_for_family(
             "negative_directional_stages": [],
             "family_discrimination_ready": None,
             "not_ready_classes": [],
+            "class_discrimination_diagnostics": {},
             "evidence_source": None,
         }
 
@@ -232,6 +235,7 @@ def _promotion_shadow_for_family(
             "negative_directional_stages": [],
             "family_discrimination_ready": None,
             "not_ready_classes": [],
+            "class_discrimination_diagnostics": {},
             "evidence_source": None,
         }
 
@@ -248,6 +252,7 @@ def _promotion_shadow_for_family(
         "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
         "family_discrimination_ready": evidence.get("family_discrimination_ready"),
         "not_ready_classes": list(evidence.get("not_ready_classes") or []),
+        "class_discrimination_diagnostics": dict(evidence.get("class_discrimination_diagnostics") or {}),
         "evidence_source": "SHADOW_SELECTION_DIAGNOSTICS:PROMOTION_EVALUABLE",
     }
 
@@ -325,6 +330,7 @@ def review_market(
     shadow_negative_directional_stages: list[str] | None = None,
     shadow_family_discrimination_ready: bool | None = None,
     shadow_not_ready_classes: list[str] | None = None,
+    shadow_class_discrimination_diagnostics: dict[str, Any] | None = None,
     validation_blockers: list[str] | None = None,
     current_state: str = "RESEARCH",
     manual_approval: bool = False,
@@ -335,6 +341,11 @@ def review_market(
     validation_blockers = list(validation_blockers or [])
     shadow_negative_directional_stages = sorted(set(shadow_negative_directional_stages or []))
     shadow_not_ready_classes = sorted(set(str(value) for value in (shadow_not_ready_classes or []) if value))
+    shadow_class_discrimination_diagnostics = (
+        dict(shadow_class_discrimination_diagnostics)
+        if isinstance(shadow_class_discrimination_diagnostics, dict)
+        else {}
+    )
 
     blockers: list[str] = []
     warnings: list[str] = []
@@ -432,12 +443,159 @@ def review_market(
         "promotion_shadow_negative_directional_stages": shadow_negative_directional_stages,
         "promotion_shadow_family_discrimination_ready": shadow_family_discrimination_ready,
         "promotion_shadow_not_ready_classes": shadow_not_ready_classes,
+        "promotion_shadow_class_discrimination_diagnostics": shadow_class_discrimination_diagnostics,
         "validation_blockers": validation_blockers,
         "tier_review_eligibility": tier_review_eligibility,
         "manual_approval_present": bool(manual_approval),
         "automatic_demotion_candidate": automatic_demotion_candidate,
         "blockers": blockers,
         "warnings": warnings,
+    }
+
+
+def _remaining(current: int, required: int) -> int:
+    return max(int(required) - int(current), 0)
+
+
+def _tier_sample_progress(review: dict[str, Any]) -> dict[str, Any]:
+    unique_fixtures = int(review.get("unique_fixtures") or 0)
+    settled = int(review.get("settled") or 0)
+    thresholds = {
+        "directional": DIRECTIONAL_READ_MIN,
+        "tier_b": TIER_B_REVIEW_MIN,
+        "tier_a": TIER_A_REVIEW_MIN,
+        "tier_s": TIER_S_REVIEW_MIN,
+    }
+    return {
+        name: {
+            "required_unique_fixtures": required,
+            "unique_fixtures": unique_fixtures,
+            "unique_fixtures_remaining": _remaining(unique_fixtures, required),
+            "required_settled": required,
+            "settled": settled,
+            "settled_remaining": _remaining(settled, required),
+            "sample_ready": unique_fixtures >= required and settled >= required,
+        }
+        for name, required in thresholds.items()
+    }
+
+
+def _numeric_validation_deficits(blockers: list[str]) -> list[dict[str, Any]]:
+    deficits: list[dict[str, Any]] = []
+    for blocker in blockers:
+        text = str(blocker or "")
+        if "_LT_" not in text:
+            continue
+        left, right = text.split("_LT_", 1)
+        left_numbers = re.findall(r"\d+(?:\.\d+)?", left)
+        right_numbers = re.findall(r"\d+(?:\.\d+)?", right)
+        if not left_numbers or not right_numbers:
+            continue
+        actual = float(left_numbers[-1])
+        required = float(right_numbers[-1])
+        deficits.append({
+            "gate": text,
+            "actual": int(actual) if actual.is_integer() else actual,
+            "required": int(required) if required.is_integer() else required,
+            "remaining": max(required - actual, 0.0),
+        })
+    return deficits
+
+
+def _true_clv_progress(validation: dict[str, Any], review: dict[str, Any]) -> dict[str, Any]:
+    true_clv = validation.get("true_clv") if isinstance(validation.get("true_clv"), dict) else {}
+    rows = int(true_clv.get("rows") or 0)
+    minimum = true_clv.get("minimum_rows")
+    minimum_rows = int(minimum) if isinstance(minimum, (int, float)) else None
+    if minimum_rows is None:
+        return {
+            "rows": rows,
+            "minimum_rows": None,
+            "rows_remaining": None,
+            "sample_ready": False,
+            "avg_probability_clv_pp": true_clv.get("avg_probability_clv_pp"),
+            "status": "MINIMUM_NOT_MATERIALIZED",
+        }
+    return {
+        "rows": rows,
+        "minimum_rows": minimum_rows,
+        "rows_remaining": _remaining(rows, minimum_rows),
+        "sample_ready": rows >= minimum_rows,
+        "avg_probability_clv_pp": true_clv.get("avg_probability_clv_pp"),
+        "status": "READY" if rows >= minimum_rows else "COLLECTING",
+    }
+
+
+def _promotion_readiness(
+    reviews: list[dict[str, Any]],
+    validation_reports: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    families: dict[str, Any] = {}
+    for review in reviews:
+        family = str(review.get("market_family") or "UNKNOWN")
+        validation = validation_reports.get(family) or {}
+        validation_blockers = [str(value) for value in (validation.get("blockers") or []) if value]
+        numeric_deficits = _numeric_validation_deficits(validation_blockers)
+        numeric_gates = {item["gate"] for item in numeric_deficits}
+        qualitative_blockers = [value for value in validation_blockers if value not in numeric_gates]
+
+        shadow_settled = int(review.get("promotion_shadow_settled") or 0)
+        shadow = {
+            "settled": shadow_settled,
+            "directional_required": DIRECTIONAL_READ_MIN,
+            "directional_remaining": _remaining(shadow_settled, DIRECTIONAL_READ_MIN),
+            "review_required": TIER_B_REVIEW_MIN,
+            "review_remaining": _remaining(shadow_settled, TIER_B_REVIEW_MIN),
+            "roi_per_settled_unit": review.get("promotion_shadow_roi_per_settled_unit"),
+            "sample_status": review.get("promotion_shadow_sample_status"),
+            "negative_directional_stages": list(review.get("promotion_shadow_negative_directional_stages") or []),
+        }
+
+        readiness = {
+            "current_state": review.get("current_state"),
+            "recommended_state": review.get("recommended_state"),
+            "tier_samples": _tier_sample_progress(review),
+            "true_clv": _true_clv_progress(validation, review),
+            "promotion_shadow": shadow,
+            "stability": {
+                "status": review.get("stability_status"),
+                "ready": review.get("stability_status") == "STABILITY_REVIEW_READY",
+            },
+            "validation": {
+                "status": validation.get("status"),
+                "numeric_deficits": numeric_deficits,
+                "qualitative_blockers": qualitative_blockers,
+            },
+            "all_current_blockers": list(review.get("blockers") or []),
+        }
+
+        if family == "1X2":
+            class_diagnostics = dict(review.get("promotion_shadow_class_discrimination_diagnostics") or {})
+            readiness["class_discrimination"] = {
+                "family_ready": review.get("promotion_shadow_family_discrimination_ready") is True,
+                "not_ready_classes": list(review.get("promotion_shadow_not_ready_classes") or []),
+                "classes": class_diagnostics,
+                "gate": "AUC_LOWER_95_GT_0_50 + BRIER_LOGLOSS_IMPROVEMENT + FITTED_CALIBRATOR",
+            }
+
+        families[family] = readiness
+
+    return {
+        "status": "PROMOTION_READINESS_VISIBLE",
+        "thresholds": {
+            "directional": DIRECTIONAL_READ_MIN,
+            "tier_b": TIER_B_REVIEW_MIN,
+            "tier_a": TIER_A_REVIEW_MIN,
+            "tier_s": TIER_S_REVIEW_MIN,
+            "model_weight_change": MODEL_WEIGHT_CHANGE_MIN,
+            "promotion_shadow_directional": DIRECTIONAL_READ_MIN,
+            "promotion_shadow_review": TIER_B_REVIEW_MIN,
+        },
+        "families": families,
+        "provider_requests_added": 0,
+        "production_promotion_allowed": False,
+        "model_weights_changed": False,
+        "canonical_bet_logic_changed": False,
     }
 
 
@@ -506,6 +664,7 @@ def build_report(
             shadow_negative_directional_stages=list(promotion_shadow.get("negative_directional_stages") or []),
             shadow_family_discrimination_ready=promotion_shadow.get("family_discrimination_ready"),
             shadow_not_ready_classes=list(promotion_shadow.get("not_ready_classes") or []),
+            shadow_class_discrimination_diagnostics=dict(promotion_shadow.get("class_discrimination_diagnostics") or {}),
             validation_blockers=blockers,
             current_state=current_states.get(family, "RESEARCH"),
             manual_approval=bool(manual_approvals.get(family, False)),
@@ -556,12 +715,14 @@ def build_report(
         "canonical_bet_logic_changed": False,
         "market_family_reviews": reviews,
         "recommended_state_counts": counts,
+        "promotion_readiness": _promotion_readiness(reviews, validation_reports),
         "notes": [
             "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
             "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
             "WATCH shadow observations remain research diagnostics and do not count toward promotion unless a market-specific quality diagnostic marks them promotion-evaluable.",
             "For 1X2, FT_TOTALS and BTTS, persisted Phase16 primary rankable candidates replayed from Postgres are the preferred promotion-shadow source; pending rows become settled automatically when final results arrive.",
             "1X2 promotion review additionally requires current family-level Home/Draw/Away discrimination readiness; partial class readiness remains SHADOW even if settled ROI and CLV are otherwise sufficient.",
+            "Promotion readiness reports actual/required/remaining sample counts, family true-CLV gaps, numeric validator deficits and qualitative blockers without lowering any gate.",
             "Legacy WATCH diagnostics remain fallback-only for 1X2 and never count when clean Phase16 replay evidence exists.",
             "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
             "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV.",

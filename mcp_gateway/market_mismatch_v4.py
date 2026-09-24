@@ -6,7 +6,7 @@ from collections import defaultdict
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_MARKET_MISMATCH_V4_1.3.0"
+MODEL_VERSION = "SOCCER_MARKET_MISMATCH_V4_1.4.0"
 EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
 
 SPORT_WEIGHT = 0.30
@@ -236,6 +236,7 @@ def analyze_row(row: dict[str, Any]) -> dict[str, Any] | None:
         "phase16_calibration_policy": row.get("phase16_calibration_policy"),
         "phase16_calibration_status": row.get("phase16_calibration_status"),
         "phase16_1x2_class_discrimination_ready": row.get("phase16_1x2_class_discrimination_ready"),
+        "phase16_1x2_class_discrimination_diagnostics": row.get("phase16_1x2_class_discrimination_diagnostics"),
         "phase16_1x2_family_discrimination_ready": row.get("phase16_1x2_family_discrimination_ready"),
         "phase16_1x2_not_ready_classes": list(row.get("phase16_1x2_not_ready_classes") or []),
         "promotion_shadow_eligible": row.get("phase16_calibration_promotion_shadow_eligible") is True,

@@ -20,14 +20,41 @@ def _calibration_state(model_version="SOCCER EDGE ENGINE v1.7"):
                 },
                 "home_win": {
                     "eligible_for_phase16_research": True,
+                    "rows": 400,
+                    "brier_delta": -0.01,
+                    "log_loss_delta": -0.02,
+                    "discrimination": {
+                        "auc": 0.64,
+                        "auc_lower_95": 0.56,
+                        "positive_count": 160,
+                        "negative_count": 240,
+                    },
                     "calibrator": identity,
                 },
                 "draw": {
                     "eligible_for_phase16_research": False,
+                    "rows": 400,
+                    "brier_delta": -0.004,
+                    "log_loss_delta": -0.006,
+                    "discrimination": {
+                        "auc": 0.54,
+                        "auc_lower_95": 0.48,
+                        "positive_count": 100,
+                        "negative_count": 300,
+                    },
                     "calibrator": identity,
                 },
                 "away_win": {
                     "eligible_for_phase16_research": True,
+                    "rows": 400,
+                    "brier_delta": -0.008,
+                    "log_loss_delta": -0.012,
+                    "discrimination": {
+                        "auc": 0.62,
+                        "auc_lower_95": 0.55,
+                        "positive_count": 140,
+                        "negative_count": 260,
+                    },
                     "calibrator": identity,
                 },
             },
@@ -271,6 +298,13 @@ def test_1x2_draw_is_blocked_when_class_discrimination_is_not_ready():
     assert row["phase16_1x2_class_discrimination_ready"]["home_win"] is True
     assert row["phase16_1x2_class_discrimination_ready"]["draw"] is False
     assert row["phase16_1x2_class_discrimination_ready"]["away_win"] is True
+    diagnostics = row["phase16_1x2_class_discrimination_diagnostics"]
+    assert diagnostics["draw"]["rows"] == 400
+    assert diagnostics["draw"]["positive_count"] == 100
+    assert diagnostics["draw"]["negative_count"] == 300
+    assert diagnostics["draw"]["auc_lower_95"] == 0.48
+    assert diagnostics["draw"]["auc_lower_95_gap_to_gate"] == -0.02
+    assert diagnostics["draw"]["ready"] is False
 
 
 def test_legacy_cached_value_odd_rows_are_normalized():

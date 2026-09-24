@@ -317,6 +317,11 @@ def test_1x2_partial_class_readiness_blocks_family_advancement():
                         "negative_directional_stages": [],
                         "family_discrimination_ready": False,
                         "not_ready_classes": ["DRAW"],
+                        "class_discrimination_diagnostics": {
+                            "home_win": {"rows": 400, "auc_lower_95": 0.56, "ready": True},
+                            "draw": {"rows": 400, "auc_lower_95": 0.48, "ready": False},
+                            "away_win": {"rows": 400, "auc_lower_95": 0.55, "ready": True},
+                        },
                     }
                 }
             }
@@ -328,6 +333,64 @@ def test_1x2_partial_class_readiness_blocks_family_advancement():
     assert review["promotion_shadow_family_discrimination_ready"] is False
     assert review["promotion_shadow_not_ready_classes"] == ["DRAW"]
     assert review["tier_review_eligibility"]["promotion_shadow_family_discrimination"] is False
+    readiness = report["promotion_readiness"]["families"]["1X2"]
+    assert readiness["class_discrimination"]["family_ready"] is False
+    assert readiness["class_discrimination"]["classes"]["draw"]["rows"] == 400
+    assert readiness["class_discrimination"]["classes"]["draw"]["auc_lower_95"] == 0.48
+
+
+def test_promotion_readiness_exposes_exact_remaining_counts_and_validator_deficits():
+    report = v.build_report(
+        {"by_market_family": {"FT_CORNERS": {"n": 35, "settled": 35, "roi_units": 2.1}}},
+        {
+            "families": {
+                "FT_CORNERS": {
+                    "status": "STABILITY_REVIEW_READY",
+                    "overall": {
+                        "rows": 60,
+                        "unique_fixtures": 60,
+                        "fixture_weighted_avg_probability_clv_pp": 0.3,
+                    },
+                }
+            }
+        },
+        {
+            "FT_CORNERS": {
+                "status": "RESEARCH_HOLD",
+                "true_clv": {"rows": 12, "minimum_rows": 50, "avg_probability_clv_pp": 0.2},
+                "blockers": [
+                    "FORMATION_ADJUSTED_39_LT_100",
+                    "SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED",
+                ],
+            }
+        },
+        {},
+        {},
+        {
+            "families": {
+                "FT_CORNERS": {
+                    "promotion_evaluable": {
+                        "settled": 18,
+                        "pending": 3,
+                        "roi_per_settled_unit": 0.04,
+                        "sample_status": "DATA_BLOCKED",
+                        "negative_directional_stages": [],
+                    }
+                }
+            }
+        },
+    )
+    readiness = report["promotion_readiness"]["families"]["FT_CORNERS"]
+    assert readiness["tier_samples"]["directional"]["sample_ready"] is True
+    assert readiness["tier_samples"]["tier_b"]["settled_remaining"] == 15
+    assert readiness["tier_samples"]["tier_a"]["unique_fixtures_remaining"] == 40
+    assert readiness["tier_samples"]["tier_s"]["settled_remaining"] == 165
+    assert readiness["promotion_shadow"]["directional_remaining"] == 2
+    assert readiness["promotion_shadow"]["review_remaining"] == 32
+    assert readiness["true_clv"]["rows_remaining"] == 38
+    assert readiness["validation"]["numeric_deficits"][0]["gate"] == "FORMATION_ADJUSTED_39_LT_100"
+    assert readiness["validation"]["numeric_deficits"][0]["remaining"] == 61.0
+    assert readiness["validation"]["qualitative_blockers"] == ["SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED"]
 
 
 def test_multimarket_postgres_shadow_is_used_for_totals_and_btts():

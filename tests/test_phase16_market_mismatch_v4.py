@@ -72,12 +72,18 @@ def test_phase16_carries_1x2_family_discrimination_snapshot():
             "draw": False,
             "away_win": True,
         },
+        phase16_1x2_class_discrimination_diagnostics={
+            "home_win": {"rows": 400, "auc_lower_95": 0.56, "ready": True},
+            "draw": {"rows": 400, "auc_lower_95": 0.48, "ready": False},
+            "away_win": {"rows": 400, "auc_lower_95": 0.55, "ready": True},
+        },
         phase16_1x2_family_discrimination_ready=False,
         phase16_1x2_not_ready_classes=["DRAW"],
     ))
     assert analyzed["phase16_1x2_family_discrimination_ready"] is False
     assert analyzed["phase16_1x2_not_ready_classes"] == ["DRAW"]
     assert analyzed["phase16_1x2_class_discrimination_ready"]["draw"] is False
+    assert analyzed["phase16_1x2_class_discrimination_diagnostics"]["draw"]["auc_lower_95"] == 0.48
 
 
 def test_phase16_ranks_positive_calibrated_edge():

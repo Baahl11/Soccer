@@ -19,6 +19,7 @@ def _row(
     automation="4.31.0-price-resolver-v4",
     family_discrimination_ready=True,
     not_ready_classes=None,
+    class_diagnostics=None,
 ):
     return {
         "fixture_id": fid,
@@ -46,6 +47,7 @@ def _row(
             "phase16_calibration_source": "CURRENT_MODEL_OOS_TEST",
             "phase16_calibration_policy": "TEST_CURRENT_POLICY",
             "phase16_1x2_family_discrimination_ready": family_discrimination_ready if family == "1X2" else None,
+            "phase16_1x2_class_discrimination_diagnostics": dict(class_diagnostics or {}),
             "phase16_1x2_not_ready_classes": list(not_ready_classes or []),
             "evidence_regime": "PHASE16_DISCRIMINATION_GATED_V2",
         },
@@ -80,11 +82,18 @@ def test_1x2_family_discrimination_snapshot_is_exposed_for_g6():
             0.50,
             family_discrimination_ready=False,
             not_ready_classes=["DRAW"],
+            class_diagnostics={
+                "home_win": {"rows": 400, "auc_lower_95": 0.56, "ready": True},
+                "draw": {"rows": 400, "auc_lower_95": 0.48, "ready": False},
+                "away_win": {"rows": 400, "auc_lower_95": 0.55, "ready": True},
+            },
         ),
     ])
     evidence = report["families"]["1X2"]["promotion_evaluable"]
     assert evidence["family_discrimination_ready"] is False
     assert evidence["not_ready_classes"] == ["DRAW"]
+    assert evidence["class_discrimination_diagnostics"]["draw"]["rows"] == 400
+    assert evidence["class_discrimination_diagnostics"]["draw"]["auc_lower_95"] == 0.48
 
 
 def test_ft_totals_and_btts_settle_exactly():

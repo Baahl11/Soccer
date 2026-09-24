@@ -9,7 +9,7 @@ from typing import Any, Iterable
 from mcp_gateway import persistence
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.4.0"
+MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.5.0"
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
 SUPPORTED_FAMILIES = {"1X2", "FT_TOTALS", "BTTS"}
 REQUIRED_EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
@@ -215,6 +215,7 @@ def normalize_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
             "phase16_calibration_source": candidate.get("phase16_calibration_source"),
             "phase16_calibration_policy": candidate.get("phase16_calibration_policy"),
             "phase16_1x2_family_discrimination_ready": candidate.get("phase16_1x2_family_discrimination_ready"),
+            "phase16_1x2_class_discrimination_diagnostics": candidate.get("phase16_1x2_class_discrimination_diagnostics"),
             "phase16_1x2_not_ready_classes": list(candidate.get("phase16_1x2_not_ready_classes") or []),
             "signal_source": "PERSISTED_PHASE16_MARKET_MISMATCH",
         })
@@ -293,6 +294,11 @@ def _family_report(family: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
             list(latest.get("phase16_1x2_not_ready_classes") or [])
             if isinstance(latest, dict)
             else []
+        )
+        promotion_evaluable["class_discrimination_diagnostics"] = (
+            dict(latest.get("phase16_1x2_class_discrimination_diagnostics") or {})
+            if isinstance(latest, dict)
+            else {}
         )
     return {
         "market_family": family,
