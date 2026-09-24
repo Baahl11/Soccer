@@ -150,7 +150,7 @@ def test_negative_shadow_roi_blocks_lean_eligibility():
         validation_blockers=[],
     )
     assert review["recommended_state"] == "SHADOW"
-    assert "SHADOW_ROI_NOT_POSITIVE" in review["blockers"]
+    assert "PROMOTION_SHADOW_ROI_NOT_POSITIVE" in review["blockers"]
 
 
 def test_combined_family_performance_aggregates_aliases():
@@ -166,3 +166,78 @@ def test_combined_family_performance_aggregates_aliases():
     assert perf["n"] == 3
     assert perf["settled"] == 3
     assert perf["roi_units"] == -1.08
+
+
+def test_watch_alert_roi_does_not_count_as_promotion_shadow():
+    report = v.build_report(
+        {"by_market_family": {"FT_1X2": {"n": 80, "settled": 80, "roi_units": 8.0}}},
+        {
+            "families": {
+                "1X2": {
+                    "status": "STABILITY_REVIEW_READY",
+                    "overall": {
+                        "rows": 100,
+                        "unique_fixtures": 80,
+                        "fixture_weighted_avg_probability_clv_pp": 0.4,
+                    },
+                }
+            }
+        },
+        {"1X2": {"status": "CALIBRATION_REVIEW_ELIGIBLE", "blockers": []}},
+        {
+            "by_market_family": {
+                "FT_1X2": {
+                    "rows": 170,
+                    "settled": 170,
+                    "shadow_roi_hypothetical_units": -28.22,
+                    "shadow_roi_per_settled_unit": -0.166,
+                    "sample_status": "SHADOW_REVIEW_READY",
+                }
+            }
+        },
+        {
+            "market_family": "FT_1X2",
+            "promotion_evaluable": {
+                "settled": 0,
+                "roi_per_settled_unit": None,
+                "sample_status": "DATA_BLOCKED",
+            },
+        },
+    )
+    review = next(row for row in report["market_family_reviews"] if row["market_family"] == "1X2")
+    assert review["recommended_state"] == "SHADOW"
+    assert "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20" in review["blockers"]
+    assert "PROMOTION_SHADOW_ROI_NOT_POSITIVE" not in review["blockers"]
+    assert review["watch_shadow_settled"] == 170
+    assert review["watch_shadow_roi_per_settled_unit"] == -0.166
+
+
+def test_clean_promotion_shadow_can_support_lean_eligibility():
+    report = v.build_report(
+        {"by_market_family": {"FT_1X2": {"n": 80, "settled": 80, "roi_units": 8.0}}},
+        {
+            "families": {
+                "1X2": {
+                    "status": "STABILITY_REVIEW_READY",
+                    "overall": {
+                        "rows": 100,
+                        "unique_fixtures": 80,
+                        "fixture_weighted_avg_probability_clv_pp": 0.4,
+                    },
+                }
+            }
+        },
+        {"1X2": {"status": "CALIBRATION_REVIEW_ELIGIBLE", "blockers": []}},
+        {},
+        {
+            "market_family": "FT_1X2",
+            "promotion_evaluable": {
+                "settled": 60,
+                "roi_per_settled_unit": 0.08,
+                "sample_status": "SHADOW_REVIEW_READY",
+            },
+        },
+    )
+    review = next(row for row in report["market_family_reviews"] if row["market_family"] == "1X2")
+    assert review["recommended_state"] == "LEAN_ELIGIBLE"
+    assert review["promotion_shadow_settled"] == 60
