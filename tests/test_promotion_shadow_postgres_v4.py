@@ -43,6 +43,7 @@ def _row(
             "promotion_shadow_eligible": True,
             "phase16_calibration_source": "CURRENT_MODEL_OOS_TEST",
             "phase16_calibration_policy": "TEST_CURRENT_POLICY",
+            "evidence_regime": "PHASE16_DISCRIMINATION_GATED_V2",
         },
         "kickoff": datetime(2026, 9, 20, 18, 0, tzinfo=timezone.utc),
         "league": "League A",
