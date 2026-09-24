@@ -49,7 +49,10 @@ jobs:
         run: |
           set -euo pipefail
           jq -e '.ticket == "V4-022"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
+          jq -e '.model_version == "SOCCER_CORNERS_OOS_VALIDATION_V4_1.1.0"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
+          jq -e '.family_views.FT_CORNERS.true_clv.family_specific == true' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
+          jq -e '.family_views.TEAM_CORNERS.true_clv.family_specific == true' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
 
       - name: Persist validation report to state branch
         working-directory: state
