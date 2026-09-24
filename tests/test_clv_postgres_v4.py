@@ -203,3 +203,35 @@ def test_period_team_totals_do_not_contaminate_generic_half_families():
     assert v._is_period_team_total_signal(first_half) is True
     assert v._is_period_team_total_signal(full_time) is False
     assert v._family(full_time["market_candidate"]) == "HOME_TT"
+
+
+def test_derivative_team_totals_keep_home_and_away_family_identity():
+    events = [{
+        "fixture_id": 101,
+        "generated_at": "2026-09-24T10:00:00+00:00",
+        "event_payload": {
+            "team_totals_intelligence": {
+                "observed_exact_market_rows": [
+                    {
+                        "market": "Home Team Total Goals",
+                        "selection": "OVER",
+                        "line": 1.5,
+                        "decimal_price": 1.95,
+                    },
+                    {
+                        "market": "Away Team Total Goals",
+                        "selection": "UNDER",
+                        "line": 1.5,
+                        "decimal_price": 1.90,
+                    },
+                ]
+            }
+        },
+    }]
+    rows = v._derivative_signals_from_events(events)
+    assert len(rows) == 2
+    assert [row["signal_source"] for row in rows] == [
+        "DERIVATIVE_INTELLIGENCE:team_totals_intelligence",
+        "DERIVATIVE_INTELLIGENCE:team_totals_intelligence",
+    ]
+    assert {v._family(row["market_candidate"]) for row in rows} == {"HOME_TT", "AWAY_TT"}

@@ -9,7 +9,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.4"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.5"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
@@ -502,11 +502,27 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         derivative_period_team_total_rows_excluded = sum(
             1 for signal in derivative_signals_raw if _is_period_team_total_signal(signal)
         )
+        derivative_source_counts_raw = Counter(
+            str(signal.get("signal_source") or "UNKNOWN")
+            for signal in derivative_signals_raw
+        )
+        derivative_family_counts_raw = Counter(
+            str(_family(signal.get("market_candidate") or {}) or "UNMAPPED")
+            for signal in derivative_signals_raw
+        )
         derivative_signals = [
             signal
             for signal in derivative_signals_raw
             if not _is_period_team_total_signal(signal)
         ]
+        derivative_source_counts = Counter(
+            str(signal.get("signal_source") or "UNKNOWN")
+            for signal in derivative_signals
+        )
+        derivative_family_counts = Counter(
+            str(_family(signal.get("market_candidate") or {}) or "UNMAPPED")
+            for signal in derivative_signals
+        )
         legacy_signals = _load_legacy_signals(
             conn,
             lookback_days=lookback_days,
@@ -595,6 +611,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             kickoff = signal.get("kickoff")
             if generated_at is None or kickoff is None:
                 reasons["MISSING_TIMESTAMPS"] += 1
+                skip_reason_market_counts["MISSING_TIMESTAMPS"][_candidate_label(candidate)] += 1
                 continue
 
             candidates = [
@@ -606,6 +623,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             ]
             if not candidates:
                 reasons["NO_PREKICKOFF_MARKET_SNAPSHOT"] += 1
+                skip_reason_market_counts["NO_PREKICKOFF_MARKET_SNAPSHOT"][_candidate_label(candidate)] += 1
                 continue
 
             same_book = [
@@ -640,6 +658,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
 
             if not price_values and not fair_values and not close_line_values:
                 reasons["NO_SELECTION_MATCH_AT_CLOSE"] += 1
+                skip_reason_market_counts["NO_SELECTION_MATCH_AT_CLOSE"][_candidate_label(candidate)] += 1
                 continue
 
             closing_price = sorted(price_values)[len(price_values) // 2] if price_values else None
@@ -725,6 +744,10 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "derivative_market_rows_loaded_raw": len(derivative_signals_raw),
         "derivative_period_team_total_rows_excluded": derivative_period_team_total_rows_excluded,
         "derivative_market_rows_loaded": len(derivative_signals),
+        "derivative_source_counts_raw": dict(sorted(derivative_source_counts_raw.items())),
+        "derivative_family_counts_raw": dict(sorted(derivative_family_counts_raw.items())),
+        "derivative_source_counts": dict(sorted(derivative_source_counts.items())),
+        "derivative_family_counts": dict(sorted(derivative_family_counts.items())),
         "legacy_signal_rows_loaded": len(legacy_signals),
         "tracked_rows": len(tracked),
         "comparable_true_clv_rows": len(comparable),
@@ -743,6 +766,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "notes": [
             "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; period-specific team totals are excluded from generic 1H/2H and FT team-total CLV until they have dedicated families; capped source reads prioritize recent pre-kickoff signals, close lookup reads only the latest pre-kickoff snapshot per bookmaker/market in bounded fixture batches, and legacy event best_market rows are fallback-only.",
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
+            "Derivative source/family counts are reported before and after period-team-total exclusion so missing Team Totals can be localized to generation versus close matching.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
             "Line movement may still be recorded when the selected side survives but the sportsbook line changes.",
