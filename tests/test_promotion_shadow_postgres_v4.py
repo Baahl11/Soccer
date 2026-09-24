@@ -40,6 +40,9 @@ def _row(
             "price_quality_score": 80,
             "uncertainty": 0.2,
             "rankable": True,
+            "promotion_shadow_eligible": True,
+            "phase16_calibration_source": "CURRENT_MODEL_OOS_TEST",
+            "phase16_calibration_policy": "TEST_CURRENT_POLICY",
         },
         "kickoff": datetime(2026, 9, 20, 18, 0, tzinfo=timezone.utc),
         "league": "League A",
@@ -125,3 +128,24 @@ def test_no_provider_requests_or_runtime_mutation():
     assert report["provider_requests_added"] == 0
     assert report["production_promotion_allowed"] is False
     assert report["runtime_logic_changed"] is False
+
+
+def test_legacy_candidate_without_current_policy_is_excluded():
+    row = _row(
+        1,
+        "2026-09-20T17:40:00",
+        "T-20",
+        "Over",
+        2.0,
+        0.60,
+        0.50,
+        family="FT_TOTALS",
+        line=2.5,
+        goals=None,
+    )
+    row["phase16_candidate"].pop("promotion_shadow_eligible", None)
+    report = v.build_report_from_rows([row])
+    assert report["phase16_rankable_supported_rows_seen"] == 1
+    assert report["excluded_without_current_calibration_policy"] == 1
+    assert report["promotion_evaluable"]["rows"] == 0
+    assert report["families"]["FT_TOTALS"]["promotion_evaluable"]["rows"] == 0
