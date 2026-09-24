@@ -29,6 +29,9 @@ jobs:
             soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl
           sparse-checkout-cone-mode: false
 
+      - name: Install test dependency
+        run: python -m pip install pytest
+
       - name: Run unit test
         working-directory: code
         run: PYTHONPATH=. python -m pytest -q tests/test_corners_clv_concentration.py
