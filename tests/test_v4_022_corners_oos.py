@@ -43,7 +43,8 @@ def test_v4_022_blocks_current_small_formation_sample_and_no_clv():
     assert report["ft_corners"]["all_required_lines_improve_brier_and_log_loss"] is True
     assert report["ft_corners"]["mae_improves"] is True
     assert "FORMATION_ADJUSTED_39_LT_100" in report["blockers"]
-    assert "CORNERS_TRUE_CLV_0_LT_50" in report["blockers"]
+    assert "FT_CORNERS_TRUE_CLV_0_LT_50" in report["blockers"]
+    assert "TEAM_CORNERS_TRUE_CLV_0_LT_50" in report["blockers"]
     assert report["production_promotion_allowed"] is False
 
 
