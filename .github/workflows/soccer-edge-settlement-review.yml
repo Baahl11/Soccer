@@ -34,7 +34,7 @@ jobs:
         run: python engine/mcp_gateway/evaluate_postgame.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/postgame_evaluation.jsonl --summary-output state/soccer_edge_state/analysis/postgame_summary.json --settlement-output state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl --market-summary-output state/soccer_edge_state/analysis/market_performance_summary.json
 
       - name: Build WATCH shadow settlement ledger
-        run: python engine/mcp_gateway/shadow_settlement_v4.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl --summary-output state/soccer_edge_state/analysis/shadow_performance_summary_v4.json
+        run: PYTHONPATH=engine python -m mcp_gateway.shadow_settlement_v4 --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl --summary-output state/soccer_edge_state/analysis/shadow_performance_summary_v4.json
 
       - name: Segment settlement performance
         run: python engine/mcp_gateway/analyze_settlement_segments.py --settlement-ledger state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl --output state/soccer_edge_state/analysis/settlement_segments_summary.json
