@@ -1,0 +1,62 @@
+name: 1X2 Draw Signal Audit
+
+on:
+  push:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - "mcp_gateway/analyze_1x2_draw_signal.py"
+      - ".github/workflows/one-x-two-draw-signal-audit.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: code
+
+      - name: Checkout state ledger
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          sparse-checkout: |
+            soccer_edge_state/analysis/signal_ledger.jsonl
+          sparse-checkout-cone-mode: false
+
+      - name: Run Draw signal audit
+        working-directory: code
+        run: |
+          PYTHONPATH=. python mcp_gateway/analyze_1x2_draw_signal.py \
+            --ledger ../state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --output /tmp/one_x_two_draw_signal_audit.json
+          python - <<'PY'
+          import json
+          with open("/tmp/one_x_two_draw_signal_audit.json", "r", encoding="utf-8") as fh:
+              report = json.load(fh)
+          compact = {
+              "evaluated_fixtures": report.get("evaluated_fixtures"),
+              "draws": report.get("draws"),
+              "non_draws": report.get("non_draws"),
+              "gate": report.get("gate"),
+              "strongest_nonbaseline_signal": report.get("strongest_nonbaseline_signal"),
+              "ready_nonbaseline_signals": report.get("ready_nonbaseline_signals"),
+              "recommendation": report.get("recommendation"),
+              "signals": {
+                  name: {
+                      "auc": row.get("auc"),
+                      "auc_lower_95": row.get("auc_lower_95"),
+                      "positive_count": row.get("positive_count"),
+                      "negative_count": row.get("negative_count"),
+                      "discrimination_ready": row.get("discrimination_ready"),
+                      "quintiles": row.get("quintiles"),
+                  }
+                  for name, row in (report.get("signals") or {}).items()
+              },
+          }
+          print("DRAW_SIGNAL_AUDIT=" + json.dumps(compact, sort_keys=True))
+          PY
