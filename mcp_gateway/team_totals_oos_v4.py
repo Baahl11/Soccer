@@ -8,10 +8,11 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TEAM_TOTALS_OOS_V4_1.0.0"
+MODEL_VERSION = "SOCCER_TEAM_TOTALS_OOS_V4_1.1.0"
 MIN_RESEARCH_FIXTURES = 100
 MIN_ACTIONABLE_REVIEW_FIXTURES = 200
 MIN_TRUE_CLV_ROWS = 50
+MAX_ROLE_LINE_CALIBRATION_GAP = 0.10
 REQUIRED_LINES = (0.5, 1.5, 2.5)
 
 
@@ -101,14 +102,16 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
         blockers.append(f"OOS_FIXTURES_{fixtures}_LT_ACTIONABLE_{MIN_ACTIONABLE_REVIEW_FIXTURES}")
     if clv["rows"] < MIN_TRUE_CLV_ROWS:
         blockers.append(f"TEAM_TOTALS_TRUE_CLV_{clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
-    if gate.get("enabled") is not True:
-        blockers.append("SOURCE_TEAM_TOTALS_PROMOTION_GATE_DISABLED")
     if missing_lines:
         blockers.append("REQUIRED_HALF_GOAL_LINE_COVERAGE_INCOMPLETE")
 
     max_gap = _num(calibration.get("max_absolute_calibration_gap"))
-    if max_gap is not None and max_gap >= 0.10:
-        warnings.append("ROLE_LINE_CALIBRATION_MAX_GAP_GE_0_10")
+    if max_gap is None:
+        blockers.append("ROLE_LINE_CALIBRATION_NOT_AVAILABLE")
+    elif max_gap >= MAX_ROLE_LINE_CALIBRATION_GAP:
+        blockers.append(
+            f"ROLE_LINE_CALIBRATION_MAX_GAP_{max_gap:.6f}_GE_{MAX_ROLE_LINE_CALIBRATION_GAP:.2f}"
+        )
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -139,12 +142,26 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
             "family_specific": True,
         },
         "source_promotion_gate": gate,
+        "review_gate": {
+            "oos_research_sample_ready": fixtures >= MIN_RESEARCH_FIXTURES,
+            "oos_actionable_review_sample_ready": fixtures >= MIN_ACTIONABLE_REVIEW_FIXTURES,
+            "required_half_goal_lines_ready": not missing_lines,
+            "true_clv_sample_ready": clv["rows"] >= MIN_TRUE_CLV_ROWS,
+            "role_line_calibration_ready": (
+                max_gap is not None and max_gap < MAX_ROLE_LINE_CALIBRATION_GAP
+            ),
+            "maximum_role_line_calibration_gap": MAX_ROLE_LINE_CALIBRATION_GAP,
+            "review_eligible": not blockers,
+            "production_promotion_allowed": False,
+            "manual_review_required": True,
+        },
         "blockers": blockers,
         "warnings": warnings,
         "notes": [
-            "The current OOS probability sample is large enough for research/actionable review counts, but market evidence remains a separate gate.",
+            "The source validation report intentionally remains research-only; its historical promotion_gate.enabled flag is not treated as a promotion blocker.",
+            "V4-019 review eligibility is derived here from explicit OOS sample, exact half-goal line coverage, family-specific true CLV and role/line calibration gates.",
             "Team-total true CLV must come from exact team-total line/price history; FT totals/1X2/BTTS closes cannot satisfy this requirement.",
-            "No production promotion occurs from probability calibration alone.",
+            "OOS review eligibility is not production promotion. Production remains disabled and manual approval remains mandatory.",
         ],
     }
 

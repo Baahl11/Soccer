@@ -45,3 +45,68 @@ def test_v4_019_role_line_calibration_summary():
     assert metrics["n"] == 200
     assert metrics["weighted_absolute_calibration_gap"] == 0.075
     assert metrics["max_absolute_calibration_gap"] == 0.1
+
+
+def test_v4_019_becomes_review_eligible_only_with_real_clv_and_calibration():
+    validation = {
+        "evaluated_fixtures": 500,
+        "evaluated_probability_rows": 6000,
+        "by_line": {
+            "0.5": {"n": 2000},
+            "1.5": {"n": 2000},
+            "2.5": {"n": 2000},
+        },
+        "by_role_line_selection": {
+            "HOME:0.5:OVER": {"n": 500, "mean_probability": 0.72, "observed_rate": 0.80},
+            "AWAY:0.5:OVER": {"n": 500, "mean_probability": 0.67, "observed_rate": 0.74},
+            "HOME:1.5:OVER": {"n": 500, "mean_probability": 0.48, "observed_rate": 0.53},
+            "AWAY:1.5:OVER": {"n": 500, "mean_probability": 0.42, "observed_rate": 0.47},
+        },
+        "promotion_gate": {"enabled": False},
+    }
+    clv_rows = [
+        {
+            "market": "Home Team Total Goals" if i % 2 == 0 else "Away Team Total Goals",
+            "fixture_id": i,
+            "clv_probability_pp": 0.01,
+        }
+        for i in range(50)
+    ]
+
+    report = v.build_report(validation, clv_rows)
+
+    assert report["status"] == "OOS_REVIEW_ELIGIBLE"
+    assert report["blockers"] == []
+    assert report["review_gate"]["review_eligible"] is True
+    assert report["review_gate"]["true_clv_sample_ready"] is True
+    assert report["review_gate"]["role_line_calibration_ready"] is True
+    assert report["source_promotion_gate"]["enabled"] is False
+    assert report["production_promotion_allowed"] is False
+    assert report["manual_review_required"] is True
+
+
+def test_v4_019_blocks_calibration_gap_at_or_above_ten_points():
+    validation = {
+        "evaluated_fixtures": 500,
+        "evaluated_probability_rows": 6000,
+        "by_line": {
+            "0.5": {"n": 2000},
+            "1.5": {"n": 2000},
+            "2.5": {"n": 2000},
+        },
+        "by_role_line_selection": {
+            "HOME:0.5:OVER": {"n": 500, "mean_probability": 0.70, "observed_rate": 0.81},
+        },
+        "promotion_gate": {"enabled": False},
+    }
+    clv_rows = [
+        {"market": "Home Team Total Goals", "fixture_id": i, "clv_probability_pp": 0.01}
+        for i in range(50)
+    ]
+
+    report = v.build_report(validation, clv_rows)
+
+    assert report["status"] == "RESEARCH_HOLD"
+    assert any(blocker.startswith("ROLE_LINE_CALIBRATION_MAX_GAP_") for blocker in report["blockers"])
+    assert report["review_gate"]["role_line_calibration_ready"] is False
+    assert report["production_promotion_allowed"] is False
