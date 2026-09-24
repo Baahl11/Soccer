@@ -74,6 +74,7 @@ jobs:
                       'formation_present_but_prior_matchup_lt_8': audit.get('formation_present_but_prior_matchup_lt_8'),
                       'missing_matchup_rows': audit.get('missing_matchup_rows'),
                       'recoverable_missing_matchup_rows': audit.get('recoverable_missing_matchup_rows'),
+                      'confirmed_xi_without_formation_value': (audit.get('reason_counts') or {}).get('CONFIRMED_XI_WITHOUT_FORMATION_VALUE'),
                       'reason_counts': audit.get('reason_counts'),
                   }
               print(p, json.dumps(summary, indent=2))
