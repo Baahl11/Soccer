@@ -9,7 +9,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.1"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.2"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
@@ -492,12 +492,6 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         )
         fixture_ids = sorted({int(row["fixture_id"]) for row in signals if row.get("fixture_id") is not None})
         cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
-        snapshots = _load_market_snapshots(conn, fixture_ids, cutoff=cutoff)
-
-    snapshots_by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
-    for row in snapshots:
-        if row.get("fixture_id") is not None:
-            snapshots_by_fixture[int(row["fixture_id"])].append(row)
 
     tracked: list[dict[str, Any]] = []
     reasons: Counter[str] = Counter()
@@ -505,154 +499,177 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
     signal_source_counts: Counter[str] = Counter()
     skip_reason_market_counts: dict[str, Counter[str]] = defaultdict(Counter)
 
+    signals_by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
     for signal in signals:
-        candidate = signal.get("market_candidate")
-        if not isinstance(candidate, dict):
-            reasons["NO_MARKET_CANDIDATE"] += 1
-            continue
+        fixture_id = signal.get("fixture_id")
+        if fixture_id is not None:
+            signals_by_fixture[int(fixture_id)].append(signal)
 
-        family = _family(candidate)
-        if family is None:
-            reasons["UNMAPPED_MARKET_FAMILY"] += 1
-            skip_reason_market_counts["UNMAPPED_MARKET_FAMILY"][_candidate_label(candidate)] += 1
-            continue
+    snapshot_fixture_batch_size = 50
+    for batch_start in range(0, len(fixture_ids), snapshot_fixture_batch_size):
+        batch_fixture_ids = fixture_ids[batch_start:batch_start + snapshot_fixture_batch_size]
+        with persistence._connect() as snapshot_conn:
+            snapshots = _load_market_snapshots(snapshot_conn, batch_fixture_ids, cutoff=cutoff)
 
-        entry_price = _num(candidate.get("decimal_price"))
-        if entry_price is None:
-            entry_price = _num(candidate.get("price"))
-        if entry_price is None or entry_price <= 1.0:
-            reasons["INVALID_ENTRY_PRICE"] += 1
-            skip_reason_market_counts["INVALID_ENTRY_PRICE"][_candidate_label(candidate)] += 1
-            continue
+        snapshots_by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        for snapshot in snapshots:
+            if snapshot.get("fixture_id") is not None:
+                snapshots_by_fixture[int(snapshot["fixture_id"])].append(snapshot)
 
-        entry_line = _num(candidate.get("line"))
-        if entry_line is None:
-            entry_line = _line_from_selection(candidate.get("selection"))
-
-        entry_fair = _num(candidate.get("p_market_fair"))
-        if entry_fair is None:
-            entry_fair = _num(candidate.get("market_fair_probability"))
-        if entry_fair is None:
-            entry_fair = 1.0 / entry_price
-
-        fixture_id = int(signal["fixture_id"])
-        generated_at = signal.get("generated_at")
-        kickoff = signal.get("kickoff")
-        if generated_at is None or kickoff is None:
-            reasons["MISSING_TIMESTAMPS"] += 1
-            continue
-
-        candidates = [
-            snap
-            for snap in snapshots_by_fixture.get(fixture_id, [])
-            if snap.get("captured_at") is not None
-            and generated_at <= snap["captured_at"] < kickoff
-            and _norm(snap.get("market")) == _norm(candidate.get("market"))
+        batch_signals = [
+            signal
+            for fixture_id in batch_fixture_ids
+            for signal in signals_by_fixture.get(fixture_id, [])
         ]
-        if not candidates:
-            reasons["NO_PREKICKOFF_MARKET_SNAPSHOT"] += 1
-            continue
-
-        same_book = [
-            snap for snap in candidates
-            if _norm(snap.get("bookmaker")) == _norm(candidate.get("bookmaker"))
-        ]
-        pool = same_book or candidates
-        close_at = max(snap["captured_at"] for snap in pool)
-        close_groups = [snap for snap in pool if snap["captured_at"] == close_at]
-
-        fair_values: list[float] = []
-        price_values: list[float] = []
-        close_line_values: list[float] = []
-        exact_comparable = False
-
-        for snap in close_groups:
-            values = snap.get("values") if isinstance(snap.get("values"), list) else []
-            fair, price = _group_fair_probability(values, candidate.get("selection"), entry_line)
-            if fair is not None:
-                fair_values.append(fair)
-                exact_comparable = True
-                if price is not None:
-                    price_values.append(price)
-                if entry_line is not None:
-                    close_line_values.append(entry_line)
+        for signal in batch_signals:
+            candidate = signal.get("market_candidate")
+            if not isinstance(candidate, dict):
+                reasons["NO_MARKET_CANDIDATE"] += 1
                 continue
-            close_line, close_price = _closing_line_candidate(values, candidate.get("selection"))
-            if close_line is not None:
-                close_line_values.append(close_line)
-            if close_price is not None:
-                price_values.append(close_price)
 
-        if not price_values and not fair_values and not close_line_values:
-            reasons["NO_SELECTION_MATCH_AT_CLOSE"] += 1
-            continue
+            family = _family(candidate)
+            if family is None:
+                reasons["UNMAPPED_MARKET_FAMILY"] += 1
+                skip_reason_market_counts["UNMAPPED_MARKET_FAMILY"][_candidate_label(candidate)] += 1
+                continue
 
-        closing_price = sorted(price_values)[len(price_values) // 2] if price_values else None
-        closing_fair = sorted(fair_values)[len(fair_values) // 2] if fair_values else None
-        closing_line = sorted(close_line_values)[len(close_line_values) // 2] if close_line_values else None
+            entry_price = _num(candidate.get("decimal_price"))
+            if entry_price is None:
+                entry_price = _num(candidate.get("price"))
+            if entry_price is None or entry_price <= 1.0:
+                reasons["INVALID_ENTRY_PRICE"] += 1
+                skip_reason_market_counts["INVALID_ENTRY_PRICE"][_candidate_label(candidate)] += 1
+                continue
 
-        probability_clv = (
-            round((closing_fair - entry_fair) * 100.0, 6)
-            if exact_comparable and closing_fair is not None and entry_fair is not None
-            else None
-        )
-        price_clv = (
-            round((entry_price / closing_price - 1.0) * 100.0, 6)
-            if exact_comparable and closing_price is not None and closing_price > 1.0
-            else None
-        )
-        line_movement = (
-            round(closing_line - entry_line, 6)
-            if closing_line is not None and entry_line is not None
-            else None
-        )
+            entry_line = _num(candidate.get("line"))
+            if entry_line is None:
+                entry_line = _line_from_selection(candidate.get("selection"))
 
-        source = str(signal.get("signal_source") or "UNKNOWN")
-        family_counts[family] += 1
-        signal_source_counts[source] += 1
-        event_payload = signal.get("event_payload")
-        tracked.append({
-            "schema_version": SCHEMA_VERSION,
-            "fixture_id": fixture_id,
-            "league": signal.get("league"),
-            "home_team": signal.get("home_team"),
-            "away_team": signal.get("away_team"),
-            "kickoff": kickoff.isoformat() if hasattr(kickoff, "isoformat") else str(kickoff),
-            "stage": signal.get("stage"),
-            "classification": signal.get("classification"),
-            "market_family": family,
-            "market": candidate.get("market"),
-            "selection": candidate.get("selection"),
-            "tier": candidate.get("tier") or (event_payload.get("tier") if isinstance(event_payload, dict) else None),
-            "confidence": _model_signal_from_candidate(candidate, event_payload),
-            "model_version": signal.get("model_version") or signal.get("automation_version"),
-            "bookmaker": candidate.get("bookmaker"),
-            "signal_source": source,
-            "entry_timestamp": generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at),
-            "entry_line": entry_line,
-            "line": entry_line,
-            "entry_price": round(entry_price, 6),
-            "signal_price": round(entry_price, 6),
-            "entry_fair_probability": round(entry_fair, 8) if entry_fair is not None else None,
-            "signal_fair_probability": round(entry_fair, 8) if entry_fair is not None else None,
-            "closing_timestamp": close_at.isoformat() if hasattr(close_at, "isoformat") else str(close_at),
-            "closing_line": closing_line,
-            "closing_price": round(closing_price, 6) if closing_price is not None else None,
-            "close_price": round(closing_price, 6) if closing_price is not None else None,
-            "closing_fair_probability": round(closing_fair, 8) if closing_fair is not None else None,
-            "close_fair_probability": round(closing_fair, 8) if closing_fair is not None else None,
-            "probability_clv": probability_clv,
-            "clv_probability_pp": probability_clv,
-            "price_clv": price_clv,
-            "clv_price_pct": price_clv,
-            "line_movement": line_movement,
-            "bookmaker_at_signal": candidate.get("bookmaker"),
-            "is_true_closing_line": True,
-            "closing_line_status": "POSTGRES_LATEST_PREKICKOFF_MARKET_SNAPSHOT",
-            "probability_comparable_same_line": exact_comparable,
-            "closing_source": "POSTGRES_LATEST_PREKICKOFF_MARKET_SNAPSHOT",
-            "same_book_preferred": bool(same_book),
-        })
+            entry_fair = _num(candidate.get("p_market_fair"))
+            if entry_fair is None:
+                entry_fair = _num(candidate.get("market_fair_probability"))
+            if entry_fair is None:
+                entry_fair = 1.0 / entry_price
+
+            fixture_id = int(signal["fixture_id"])
+            generated_at = signal.get("generated_at")
+            kickoff = signal.get("kickoff")
+            if generated_at is None or kickoff is None:
+                reasons["MISSING_TIMESTAMPS"] += 1
+                continue
+
+            candidates = [
+                snap
+                for snap in snapshots_by_fixture.get(fixture_id, [])
+                if snap.get("captured_at") is not None
+                and generated_at <= snap["captured_at"] < kickoff
+                and _norm(snap.get("market")) == _norm(candidate.get("market"))
+            ]
+            if not candidates:
+                reasons["NO_PREKICKOFF_MARKET_SNAPSHOT"] += 1
+                continue
+
+            same_book = [
+                snap for snap in candidates
+                if _norm(snap.get("bookmaker")) == _norm(candidate.get("bookmaker"))
+            ]
+            pool = same_book or candidates
+            close_at = max(snap["captured_at"] for snap in pool)
+            close_groups = [snap for snap in pool if snap["captured_at"] == close_at]
+
+            fair_values: list[float] = []
+            price_values: list[float] = []
+            close_line_values: list[float] = []
+            exact_comparable = False
+
+            for snap in close_groups:
+                values = snap.get("values") if isinstance(snap.get("values"), list) else []
+                fair, price = _group_fair_probability(values, candidate.get("selection"), entry_line)
+                if fair is not None:
+                    fair_values.append(fair)
+                    exact_comparable = True
+                    if price is not None:
+                        price_values.append(price)
+                    if entry_line is not None:
+                        close_line_values.append(entry_line)
+                    continue
+                close_line, close_price = _closing_line_candidate(values, candidate.get("selection"))
+                if close_line is not None:
+                    close_line_values.append(close_line)
+                if close_price is not None:
+                    price_values.append(close_price)
+
+            if not price_values and not fair_values and not close_line_values:
+                reasons["NO_SELECTION_MATCH_AT_CLOSE"] += 1
+                continue
+
+            closing_price = sorted(price_values)[len(price_values) // 2] if price_values else None
+            closing_fair = sorted(fair_values)[len(fair_values) // 2] if fair_values else None
+            closing_line = sorted(close_line_values)[len(close_line_values) // 2] if close_line_values else None
+
+            probability_clv = (
+                round((closing_fair - entry_fair) * 100.0, 6)
+                if exact_comparable and closing_fair is not None and entry_fair is not None
+                else None
+            )
+            price_clv = (
+                round((entry_price / closing_price - 1.0) * 100.0, 6)
+                if exact_comparable and closing_price is not None and closing_price > 1.0
+                else None
+            )
+            line_movement = (
+                round(closing_line - entry_line, 6)
+                if closing_line is not None and entry_line is not None
+                else None
+            )
+
+            source = str(signal.get("signal_source") or "UNKNOWN")
+            family_counts[family] += 1
+            signal_source_counts[source] += 1
+            event_payload = signal.get("event_payload")
+            tracked.append({
+                "schema_version": SCHEMA_VERSION,
+                "fixture_id": fixture_id,
+                "league": signal.get("league"),
+                "home_team": signal.get("home_team"),
+                "away_team": signal.get("away_team"),
+                "kickoff": kickoff.isoformat() if hasattr(kickoff, "isoformat") else str(kickoff),
+                "stage": signal.get("stage"),
+                "classification": signal.get("classification"),
+                "market_family": family,
+                "market": candidate.get("market"),
+                "selection": candidate.get("selection"),
+                "tier": candidate.get("tier") or (event_payload.get("tier") if isinstance(event_payload, dict) else None),
+                "confidence": _model_signal_from_candidate(candidate, event_payload),
+                "model_version": signal.get("model_version") or signal.get("automation_version"),
+                "bookmaker": candidate.get("bookmaker"),
+                "signal_source": source,
+                "entry_timestamp": generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at),
+                "entry_line": entry_line,
+                "line": entry_line,
+                "entry_price": round(entry_price, 6),
+                "signal_price": round(entry_price, 6),
+                "entry_fair_probability": round(entry_fair, 8) if entry_fair is not None else None,
+                "signal_fair_probability": round(entry_fair, 8) if entry_fair is not None else None,
+                "closing_timestamp": close_at.isoformat() if hasattr(close_at, "isoformat") else str(close_at),
+                "closing_line": closing_line,
+                "closing_price": round(closing_price, 6) if closing_price is not None else None,
+                "close_price": round(closing_price, 6) if closing_price is not None else None,
+                "closing_fair_probability": round(closing_fair, 8) if closing_fair is not None else None,
+                "close_fair_probability": round(closing_fair, 8) if closing_fair is not None else None,
+                "probability_clv": probability_clv,
+                "clv_probability_pp": probability_clv,
+                "price_clv": price_clv,
+                "clv_price_pct": price_clv,
+                "line_movement": line_movement,
+                "bookmaker_at_signal": candidate.get("bookmaker"),
+                "is_true_closing_line": True,
+                "closing_line_status": "POSTGRES_LATEST_PREKICKOFF_MARKET_SNAPSHOT",
+                "probability_comparable_same_line": exact_comparable,
+                "closing_source": "POSTGRES_LATEST_PREKICKOFF_MARKET_SNAPSHOT",
+                "same_book_preferred": bool(same_book),
+            })
+
 
     comparable = [row for row in tracked if row.get("probability_comparable_same_line")]
     return {
@@ -671,6 +688,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "tracked_rows": len(tracked),
         "comparable_true_clv_rows": len(comparable),
         "minimum_true_close_rows": MIN_TRUE_CLOSE_ROWS,
+        "snapshot_fixture_batch_size": snapshot_fixture_batch_size,
         "family_counts": dict(sorted(family_counts.items())),
         "signal_source_counts": dict(sorted(signal_source_counts.items())),
         "skip_reasons": dict(sorted(reasons.items())),
@@ -682,7 +700,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "notes": [
-            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; capped source reads prioritize the most recent pre-kickoff signals and legacy event best_market rows are fallback-only.",
+            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; capped source reads prioritize the most recent pre-kickoff signals, market snapshots are processed in bounded fixture batches, and legacy event best_market rows are fallback-only.",
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
