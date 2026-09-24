@@ -3,7 +3,7 @@
     "FORMATION_ADJUSTED_39_LT_100",
     "FT_CORNERS_LEAGUE_LIFT_NOT_STABLE",
     "PARENT_FT_CORNERS_NOT_REVIEW_READY",
-    "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED"
+    "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
   ],
   "canonical_bet_logic_changed": false,
   "family_views": {
@@ -28,7 +28,7 @@
     "TEAM_CORNERS": {
       "blockers": [
         "PARENT_FT_CORNERS_NOT_REVIEW_READY",
-        "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED"
+        "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
       ],
       "status": "RESEARCH_HOLD",
       "true_clv": {
@@ -2229,7 +2229,4495 @@
   "team_corners": {
     "evaluated_fixtures": 244,
     "evaluated_rows": 1464,
-    "league_venue_stability": {},
+    "league_venue_stability": {
+      "minimum_review_segments": 2,
+      "minimum_unique_fixtures_per_segment": 20,
+      "review_eligible_segments": [],
+      "review_ready": false,
+      "segment_count": 128,
+      "segments": {
+        "103|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.161052,
+              "log_loss": 0.513014,
+              "mean_probability": 0.598691,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.355222,
+              "log_loss": 0.906357,
+              "mean_probability": 0.403998,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.575034,
+              "log_loss": 1.420114,
+              "mean_probability": 0.241692,
+              "n": 2,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.363769,
+            "log_loss": 0.946495,
+            "mean_probability": 0.414794,
+            "n": 6,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "103|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.31716,
+              "log_loss": 0.848445,
+              "mean_probability": 0.785159,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.246607,
+              "log_loss": 0.684932,
+              "mean_probability": 0.624815,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.231881,
+              "log_loss": 0.656543,
+              "mean_probability": 0.452079,
+              "n": 2,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.265216,
+            "log_loss": 0.729973,
+            "mean_probability": 0.620684,
+            "n": 6,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "106|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.293668,
+              "log_loss": 0.781212,
+              "mean_probability": 0.586327,
+              "n": 8,
+              "observed_rate": 0.25
+            },
+            "4.5": {
+              "brier": 0.17592,
+              "log_loss": 0.542433,
+              "mean_probability": 0.391319,
+              "n": 8,
+              "observed_rate": 0.125
+            },
+            "5.5": {
+              "brier": 0.117032,
+              "log_loss": 0.402937,
+              "mean_probability": 0.23129,
+              "n": 8,
+              "observed_rate": 0.125
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.19554,
+            "log_loss": 0.575527,
+            "mean_probability": 0.402978,
+            "n": 24,
+            "observed_rate": 0.166667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 8
+        },
+        "106|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.262706,
+              "log_loss": 0.735014,
+              "mean_probability": 0.791841,
+              "n": 8,
+              "observed_rate": 0.625
+            },
+            "4.5": {
+              "brier": 0.30365,
+              "log_loss": 0.803953,
+              "mean_probability": 0.634211,
+              "n": 8,
+              "observed_rate": 0.375
+            },
+            "5.5": {
+              "brier": 0.228249,
+              "log_loss": 0.64952,
+              "mean_probability": 0.462652,
+              "n": 8,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.264868,
+            "log_loss": 0.729496,
+            "mean_probability": 0.629568,
+            "n": 24,
+            "observed_rate": 0.416667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 8
+        },
+        "1104|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.264872,
+              "log_loss": 0.723609,
+              "mean_probability": 0.585139,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.211142,
+              "log_loss": 0.614572,
+              "mean_probability": 0.39006,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.191186,
+              "log_loss": 0.572663,
+              "mean_probability": 0.230224,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.2224,
+            "log_loss": 0.636948,
+            "mean_probability": 0.401807,
+            "n": 12,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "1104|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.196295,
+              "log_loss": 0.591285,
+              "mean_probability": 0.830066,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.194898,
+              "log_loss": 0.579949,
+              "mean_probability": 0.687339,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "5.5": {
+              "brier": 0.254165,
+              "log_loss": 0.701494,
+              "mean_probability": 0.521769,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.215119,
+            "log_loss": 0.624243,
+            "mean_probability": 0.679725,
+            "n": 12,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "113|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.158927,
+              "log_loss": 0.508588,
+              "mean_probability": 0.601344,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.165458,
+              "log_loss": 0.522165,
+              "mean_probability": 0.406765,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.059536,
+              "log_loss": 0.279715,
+              "mean_probability": 0.244001,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.127974,
+            "log_loss": 0.436823,
+            "mean_probability": 0.41737,
+            "n": 3,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "113|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.039206,
+              "log_loss": 0.220652,
+              "mean_probability": 0.801996,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.124201,
+              "log_loss": 0.434516,
+              "mean_probability": 0.647578,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.227246,
+              "log_loss": 0.647606,
+              "mean_probability": 0.476703,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.130218,
+            "log_loss": 0.434258,
+            "mean_probability": 0.642092,
+            "n": 3,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "114|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.389234,
+              "log_loss": 0.977863,
+              "mean_probability": 0.623886,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.185486,
+              "log_loss": 0.563314,
+              "mean_probability": 0.430681,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.069854,
+              "log_loss": 0.306933,
+              "mean_probability": 0.2643,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.214858,
+            "log_loss": 0.616037,
+            "mean_probability": 0.439622,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "114|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.037937,
+              "log_loss": 0.216632,
+              "mean_probability": 0.805226,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.42518,
+              "log_loss": 1.055719,
+              "mean_probability": 0.652058,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.23201,
+              "log_loss": 0.657151,
+              "mean_probability": 0.481674,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.231709,
+            "log_loss": 0.643168,
+            "mean_probability": 0.646319,
+            "n": 3,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "116|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.190293,
+              "log_loss": 0.573102,
+              "mean_probability": 0.563774,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.398903,
+              "log_loss": 0.998553,
+              "mean_probability": 0.368412,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.04523,
+              "log_loss": 0.239112,
+              "mean_probability": 0.212673,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.211475,
+            "log_loss": 0.603589,
+            "mean_probability": 0.38162,
+            "n": 3,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "116|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.689423,
+              "log_loss": 1.773812,
+              "mean_probability": 0.830315,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.472909,
+              "log_loss": 1.16374,
+              "mean_probability": 0.687684,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.272643,
+              "log_loss": 0.738463,
+              "mean_probability": 0.522152,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.478325,
+            "log_loss": 1.225338,
+            "mean_probability": 0.68005,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "119|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.249293,
+              "log_loss": 0.692257,
+              "mean_probability": 0.591141,
+              "n": 5,
+              "observed_rate": 0.6
+            },
+            "4.5": {
+              "brier": 0.196037,
+              "log_loss": 0.583527,
+              "mean_probability": 0.396279,
+              "n": 5,
+              "observed_rate": 0.2
+            },
+            "5.5": {
+              "brier": 0.055527,
+              "log_loss": 0.268481,
+              "mean_probability": 0.235379,
+              "n": 5,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.166952,
+            "log_loss": 0.514755,
+            "mean_probability": 0.4076,
+            "n": 15,
+            "observed_rate": 0.266667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "119|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.270262,
+              "log_loss": 0.747419,
+              "mean_probability": 0.788452,
+              "n": 5,
+              "observed_rate": 0.6
+            },
+            "4.5": {
+              "brier": 0.27268,
+              "log_loss": 0.737717,
+              "mean_probability": 0.629599,
+              "n": 5,
+              "observed_rate": 0.4
+            },
+            "5.5": {
+              "brier": 0.201605,
+              "log_loss": 0.595906,
+              "mean_probability": 0.457632,
+              "n": 5,
+              "observed_rate": 0.2
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.248182,
+            "log_loss": 0.693681,
+            "mean_probability": 0.625227,
+            "n": 15,
+            "observed_rate": 0.4
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "128|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.344545,
+              "log_loss": 0.88432,
+              "mean_probability": 0.586917,
+              "n": 4,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.153636,
+              "log_loss": 0.497464,
+              "mean_probability": 0.391866,
+              "n": 4,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.053733,
+              "log_loss": 0.263607,
+              "mean_probability": 0.231691,
+              "n": 4,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.183971,
+            "log_loss": 0.548464,
+            "mean_probability": 0.403491,
+            "n": 12,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "128|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.044842,
+              "log_loss": 0.237939,
+              "mean_probability": 0.788254,
+              "n": 4,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.330749,
+              "log_loss": 0.858747,
+              "mean_probability": 0.628784,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.208075,
+              "log_loss": 0.609083,
+              "mean_probability": 0.45614,
+              "n": 4,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.194555,
+            "log_loss": 0.56859,
+            "mean_probability": 0.624393,
+            "n": 12,
+            "observed_rate": 0.416667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "134|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.223557,
+              "log_loss": 0.640419,
+              "mean_probability": 0.593977,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.322808,
+              "log_loss": 0.841587,
+              "mean_probability": 0.39922,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "5.5": {
+              "brier": 0.324632,
+              "log_loss": 0.870053,
+              "mean_probability": 0.23782,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.290332,
+            "log_loss": 0.78402,
+            "mean_probability": 0.410339,
+            "n": 12,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "134|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.043669,
+              "log_loss": 0.23423,
+              "mean_probability": 0.791233,
+              "n": 4,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.197851,
+              "log_loss": 0.58626,
+              "mean_probability": 0.632912,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "5.5": {
+              "brier": 0.243892,
+              "log_loss": 0.680881,
+              "mean_probability": 0.460715,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.161804,
+            "log_loss": 0.500457,
+            "mean_probability": 0.628286,
+            "n": 12,
+            "observed_rate": 0.75
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "135|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.359143,
+              "log_loss": 0.914505,
+              "mean_probability": 0.599285,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.163713,
+              "log_loss": 0.518547,
+              "mean_probability": 0.404615,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.058663,
+              "log_loss": 0.277341,
+              "mean_probability": 0.242204,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.19384,
+            "log_loss": 0.570131,
+            "mean_probability": 0.415368,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "135|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.038765,
+              "log_loss": 0.219262,
+              "mean_probability": 0.803111,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.421358,
+              "log_loss": 1.047314,
+              "mean_probability": 0.649121,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.228879,
+              "log_loss": 0.650879,
+              "mean_probability": 0.478413,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.229667,
+            "log_loss": 0.639152,
+            "mean_probability": 0.643548,
+            "n": 3,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "136|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.268058,
+              "log_loss": 0.730054,
+              "mean_probability": 0.585558,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.272794,
+              "log_loss": 0.740812,
+              "mean_probability": 0.390747,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.053695,
+              "log_loss": 0.262938,
+              "mean_probability": 0.230994,
+              "n": 4,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.198182,
+            "log_loss": 0.577935,
+            "mean_probability": 0.402433,
+            "n": 12,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "136|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.180344,
+              "log_loss": 0.540215,
+              "mean_probability": 0.784359,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.266868,
+              "log_loss": 0.727614,
+              "mean_probability": 0.624314,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.204982,
+              "log_loss": 0.60232,
+              "mean_probability": 0.452159,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.217398,
+            "log_loss": 0.623383,
+            "mean_probability": 0.620277,
+            "n": 12,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "140|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.305299,
+              "log_loss": 0.805206,
+              "mean_probability": 0.600397,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "4.5": {
+              "brier": 0.164851,
+              "log_loss": 0.52082,
+              "mean_probability": 0.405856,
+              "n": 4,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.059291,
+              "log_loss": 0.27888,
+              "mean_probability": 0.243308,
+              "n": 4,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.17648,
+            "log_loss": 0.534969,
+            "mean_probability": 0.416521,
+            "n": 12,
+            "observed_rate": 0.083333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "140|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.334532,
+              "log_loss": 0.899437,
+              "mean_probability": 0.800285,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.340287,
+              "log_loss": 0.879404,
+              "mean_probability": 0.645269,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.224986,
+              "log_loss": 0.643053,
+              "mean_probability": 0.474211,
+              "n": 4,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.299935,
+            "log_loss": 0.807298,
+            "mean_probability": 0.639922,
+            "n": 12,
+            "observed_rate": 0.25
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "141|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.269776,
+              "log_loss": 0.732953,
+              "mean_probability": 0.589121,
+              "n": 5,
+              "observed_rate": 0.4
+            },
+            "4.5": {
+              "brier": 0.194764,
+              "log_loss": 0.580951,
+              "mean_probability": 0.394113,
+              "n": 5,
+              "observed_rate": 0.2
+            },
+            "5.5": {
+              "brier": 0.054566,
+              "log_loss": 0.26598,
+              "mean_probability": 0.233524,
+              "n": 5,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.173035,
+            "log_loss": 0.526628,
+            "mean_probability": 0.405586,
+            "n": 15,
+            "observed_rate": 0.2
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "141|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.265715,
+              "log_loss": 0.734722,
+              "mean_probability": 0.782613,
+              "n": 5,
+              "observed_rate": 0.6
+            },
+            "4.5": {
+              "brier": 0.299262,
+              "log_loss": 0.79578,
+              "mean_probability": 0.621595,
+              "n": 5,
+              "observed_rate": 0.4
+            },
+            "5.5": {
+              "brier": 0.2329,
+              "log_loss": 0.658856,
+              "mean_probability": 0.448841,
+              "n": 5,
+              "observed_rate": 0.2
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.265959,
+            "log_loss": 0.729786,
+            "mean_probability": 0.617683,
+            "n": 15,
+            "observed_rate": 0.4
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "144|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.355698,
+              "log_loss": 0.907341,
+              "mean_probability": 0.596404,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.161295,
+              "log_loss": 0.513523,
+              "mean_probability": 0.401616,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.057459,
+              "log_loss": 0.274051,
+              "mean_probability": 0.239707,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.191484,
+            "log_loss": 0.564972,
+            "mean_probability": 0.412576,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "144|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.643029,
+              "log_loss": 1.618938,
+              "mean_probability": 0.801891,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.419168,
+              "log_loss": 1.042512,
+              "mean_probability": 0.647432,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.227093,
+              "log_loss": 0.6473,
+              "mean_probability": 0.476543,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.429764,
+            "log_loss": 1.102917,
+            "mean_probability": 0.641955,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "145|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.25472,
+              "log_loss": 0.702585,
+              "mean_probability": 0.597264,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.254572,
+              "log_loss": 0.702276,
+              "mean_probability": 0.402525,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.057845,
+              "log_loss": 0.275077,
+              "mean_probability": 0.240476,
+              "n": 2,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.189046,
+            "log_loss": 0.559979,
+            "mean_probability": 0.413422,
+            "n": 6,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "145|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.052105,
+              "log_loss": 0.259104,
+              "mean_probability": 0.771746,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.154673,
+              "log_loss": 0.499689,
+              "mean_probability": 0.606726,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.251514,
+              "log_loss": 0.696147,
+              "mean_probability": 0.432559,
+              "n": 2,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.152764,
+            "log_loss": 0.48498,
+            "mean_probability": 0.603677,
+            "n": 6,
+            "observed_rate": 0.833333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "169|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.187896,
+              "log_loss": 0.568225,
+              "mean_probability": 0.56653,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.395436,
+              "log_loss": 0.991114,
+              "mean_probability": 0.371163,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.616429,
+              "log_loss": 1.537722,
+              "mean_probability": 0.21487,
+              "n": 1,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.39992,
+            "log_loss": 1.032354,
+            "mean_probability": 0.384188,
+            "n": 3,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "169|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.02811,
+              "log_loss": 0.183513,
+              "mean_probability": 0.832341,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.476967,
+              "log_loss": 1.173211,
+              "mean_probability": 0.690628,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.276229,
+              "log_loss": 0.745652,
+              "mean_probability": 0.525575,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.260435,
+            "log_loss": 0.700792,
+            "mean_probability": 0.682848,
+            "n": 3,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "172|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.229432,
+              "log_loss": 0.65213,
+              "mean_probability": 0.578861,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.260009,
+              "log_loss": 0.713217,
+              "mean_probability": 0.383879,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.322731,
+              "log_loss": 0.864555,
+              "mean_probability": 0.225358,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.270724,
+            "log_loss": 0.743301,
+            "mean_probability": 0.396033,
+            "n": 12,
+            "observed_rate": 0.583333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "172|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.494722,
+              "log_loss": 1.30007,
+              "mean_probability": 0.81158,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "4.5": {
+              "brier": 0.349121,
+              "log_loss": 0.907865,
+              "mean_probability": 0.663359,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.240004,
+              "log_loss": 0.673519,
+              "mean_probability": 0.497105,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.361282,
+            "log_loss": 0.960485,
+            "mean_probability": 0.657348,
+            "n": 12,
+            "observed_rate": 0.25
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "179|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.176252,
+              "log_loss": 0.544391,
+              "mean_probability": 0.580243,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.255674,
+              "log_loss": 0.704389,
+              "mean_probability": 0.385034,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.318874,
+              "log_loss": 0.854069,
+              "mean_probability": 0.226094,
+              "n": 2,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.250266,
+            "log_loss": 0.70095,
+            "mean_probability": 0.397124,
+            "n": 6,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "179|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.328666,
+              "log_loss": 0.882071,
+              "mean_probability": 0.780026,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.264193,
+              "log_loss": 0.72237,
+              "mean_probability": 0.617715,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.25347,
+              "log_loss": 0.700135,
+              "mean_probability": 0.444226,
+              "n": 2,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.28211,
+            "log_loss": 0.768192,
+            "mean_probability": 0.613989,
+            "n": 6,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "197|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.258942,
+              "log_loss": 0.711355,
+              "mean_probability": 0.599144,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.258201,
+              "log_loss": 0.70982,
+              "mean_probability": 0.404469,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.315749,
+              "log_loss": 0.845724,
+              "mean_probability": 0.242083,
+              "n": 2,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.27763,
+            "log_loss": 0.755633,
+            "mean_probability": 0.415232,
+            "n": 6,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "197|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.325048,
+              "log_loss": 0.87158,
+              "mean_probability": 0.768918,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.264201,
+              "log_loss": 0.722334,
+              "mean_probability": 0.603006,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.183749,
+              "log_loss": 0.559764,
+              "mean_probability": 0.428643,
+              "n": 2,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.257666,
+            "log_loss": 0.717893,
+            "mean_probability": 0.600189,
+            "n": 6,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "203|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.165496,
+              "log_loss": 0.522242,
+              "mean_probability": 0.593192,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.362062,
+              "log_loss": 0.920592,
+              "mean_probability": 0.398288,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.320764,
+              "log_loss": 0.859512,
+              "mean_probability": 0.236948,
+              "n": 2,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.282774,
+            "log_loss": 0.767449,
+            "mean_probability": 0.409476,
+            "n": 6,
+            "observed_rate": 0.833333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "203|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.628949,
+              "log_loss": 1.575349,
+              "mean_probability": 0.793063,
+              "n": 2,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.403621,
+              "log_loss": 1.008715,
+              "mean_probability": 0.635311,
+              "n": 2,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.214581,
+              "log_loss": 0.622184,
+              "mean_probability": 0.463227,
+              "n": 2,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.415717,
+            "log_loss": 1.068749,
+            "mean_probability": 0.630533,
+            "n": 6,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "204|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.294624,
+              "log_loss": 0.783192,
+              "mean_probability": 0.58516,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "4.5": {
+              "brier": 0.201797,
+              "log_loss": 0.594937,
+              "mean_probability": 0.390098,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.183504,
+              "log_loss": 0.55104,
+              "mean_probability": 0.230266,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.226642,
+            "log_loss": 0.643056,
+            "mean_probability": 0.401842,
+            "n": 12,
+            "observed_rate": 0.25
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "204|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.038772,
+              "log_loss": 0.217324,
+              "mean_probability": 0.805176,
+              "n": 4,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.217718,
+              "log_loss": 0.629763,
+              "mean_probability": 0.652917,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "5.5": {
+              "brier": 0.281767,
+              "log_loss": 0.757006,
+              "mean_probability": 0.483665,
+              "n": 4,
+              "observed_rate": 0.75
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.179419,
+            "log_loss": 0.534698,
+            "mean_probability": 0.647253,
+            "n": 12,
+            "observed_rate": 0.833333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "207|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.176324,
+              "log_loss": 0.544162,
+              "mean_probability": 0.580915,
+              "n": 5,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.37756,
+              "log_loss": 0.953966,
+              "mean_probability": 0.386136,
+              "n": 5,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.483451,
+              "log_loss": 1.226808,
+              "mean_probability": 0.227337,
+              "n": 5,
+              "observed_rate": 0.8
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.345778,
+            "log_loss": 0.908312,
+            "mean_probability": 0.398129,
+            "n": 15,
+            "observed_rate": 0.933333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "207|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.410417,
+              "log_loss": 1.098244,
+              "mean_probability": 0.80814,
+              "n": 5,
+              "observed_rate": 0.4
+            },
+            "4.5": {
+              "brier": 0.313017,
+              "log_loss": 0.828642,
+              "mean_probability": 0.658675,
+              "n": 5,
+              "observed_rate": 0.4
+            },
+            "5.5": {
+              "brier": 0.218165,
+              "log_loss": 0.629183,
+              "mean_probability": 0.491983,
+              "n": 5,
+              "observed_rate": 0.2
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.313866,
+            "log_loss": 0.852023,
+            "mean_probability": 0.652933,
+            "n": 15,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "210|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.205798,
+              "log_loss": 0.60345,
+              "mean_probability": 0.599494,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.210624,
+              "log_loss": 0.613469,
+              "mean_probability": 0.404854,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.186846,
+              "log_loss": 0.560513,
+              "mean_probability": 0.242422,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.201089,
+            "log_loss": 0.592478,
+            "mean_probability": 0.41559,
+            "n": 12,
+            "observed_rate": 0.416667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "210|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.323345,
+              "log_loss": 0.864921,
+              "mean_probability": 0.790042,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.252595,
+              "log_loss": 0.696302,
+              "mean_probability": 0.632141,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.25277,
+              "log_loss": 0.698793,
+              "mean_probability": 0.460828,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.276237,
+            "log_loss": 0.753339,
+            "mean_probability": 0.62767,
+            "n": 12,
+            "observed_rate": 0.416667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "218|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.238737,
+              "log_loss": 0.670964,
+              "mean_probability": 0.588354,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.307642,
+              "log_loss": 0.811089,
+              "mean_probability": 0.393376,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.419177,
+              "log_loss": 1.084534,
+              "mean_probability": 0.23296,
+              "n": 3,
+              "observed_rate": 0.666667
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.321852,
+            "log_loss": 0.855529,
+            "mean_probability": 0.404897,
+            "n": 9,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "218|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.414131,
+              "log_loss": 1.067687,
+              "mean_probability": 0.79929,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "4.5": {
+              "brier": 0.284299,
+              "log_loss": 0.759818,
+              "mean_probability": 0.64471,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.203246,
+              "log_loss": 0.59931,
+              "mean_probability": 0.474513,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.300558,
+            "log_loss": 0.808938,
+            "mean_probability": 0.639505,
+            "n": 9,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "233|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.296879,
+              "log_loss": 0.787854,
+              "mean_probability": 0.571615,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "4.5": {
+              "brier": 0.209475,
+              "log_loss": 0.611161,
+              "mean_probability": 0.376384,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.193271,
+              "log_loss": 0.579068,
+              "mean_probability": 0.219157,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.233208,
+            "log_loss": 0.659361,
+            "mean_probability": 0.389052,
+            "n": 12,
+            "observed_rate": 0.25
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "233|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.368119,
+              "log_loss": 1.012966,
+              "mean_probability": 0.846586,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.291946,
+              "log_loss": 0.784432,
+              "mean_probability": 0.712122,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.248813,
+              "log_loss": 0.690421,
+              "mean_probability": 0.551527,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.302959,
+            "log_loss": 0.829273,
+            "mean_probability": 0.703412,
+            "n": 12,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "236|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.244583,
+              "log_loss": 0.6822,
+              "mean_probability": 0.569752,
+              "n": 7,
+              "observed_rate": 0.571429
+            },
+            "4.5": {
+              "brier": 0.218541,
+              "log_loss": 0.629802,
+              "mean_probability": 0.374488,
+              "n": 7,
+              "observed_rate": 0.285714
+            },
+            "5.5": {
+              "brier": 0.21397,
+              "log_loss": 0.626578,
+              "mean_probability": 0.217614,
+              "n": 7,
+              "observed_rate": 0.285714
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.225698,
+            "log_loss": 0.646193,
+            "mean_probability": 0.387285,
+            "n": 21,
+            "observed_rate": 0.380952
+          },
+          "review_eligible": false,
+          "unique_fixtures": 7
+        },
+        "236|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.120995,
+              "log_loss": 0.40428,
+              "mean_probability": 0.834325,
+              "n": 7,
+              "observed_rate": 0.857143
+            },
+            "4.5": {
+              "brier": 0.199112,
+              "log_loss": 0.585875,
+              "mean_probability": 0.693899,
+              "n": 7,
+              "observed_rate": 0.714286
+            },
+            "5.5": {
+              "brier": 0.245197,
+              "log_loss": 0.68321,
+              "mean_probability": 0.52985,
+              "n": 7,
+              "observed_rate": 0.285714
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.188435,
+            "log_loss": 0.557788,
+            "mean_probability": 0.686025,
+            "n": 21,
+            "observed_rate": 0.619048
+          },
+          "review_eligible": false,
+          "unique_fixtures": 7
+        },
+        "239|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.335321,
+              "log_loss": 0.865286,
+              "mean_probability": 0.579069,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.147305,
+              "log_loss": 0.484189,
+              "mean_probability": 0.383803,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.050653,
+              "log_loss": 0.254974,
+              "mean_probability": 0.225063,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.17776,
+            "log_loss": 0.534816,
+            "mean_probability": 0.395978,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "239|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.045791,
+              "log_loss": 0.240784,
+              "mean_probability": 0.786011,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.140065,
+              "log_loss": 0.468808,
+              "mean_probability": 0.625748,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.205074,
+              "log_loss": 0.603034,
+              "mean_probability": 0.452851,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.13031,
+            "log_loss": 0.437542,
+            "mean_probability": 0.621537,
+            "n": 3,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "242|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.266224,
+              "log_loss": 0.726591,
+              "mean_probability": 0.606632,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.262792,
+              "log_loss": 0.719307,
+              "mean_probability": 0.412333,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.31745,
+              "log_loss": 0.850292,
+              "mean_probability": 0.248691,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.282155,
+            "log_loss": 0.765397,
+            "mean_probability": 0.422552,
+            "n": 12,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "242|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.183356,
+              "log_loss": 0.549782,
+              "mean_probability": 0.77756,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.247131,
+              "log_loss": 0.686062,
+              "mean_probability": 0.61481,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.236147,
+              "log_loss": 0.665168,
+              "mean_probability": 0.441545,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.222211,
+            "log_loss": 0.633671,
+            "mean_probability": 0.611305,
+            "n": 12,
+            "observed_rate": 0.583333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "244|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.372428,
+              "log_loss": 0.942299,
+              "mean_probability": 0.610269,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.173182,
+              "log_loss": 0.538113,
+              "mean_probability": 0.416151,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.063452,
+              "log_loss": 0.290215,
+              "mean_probability": 0.251897,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.203021,
+            "log_loss": 0.590209,
+            "mean_probability": 0.426106,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "244|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.037956,
+              "log_loss": 0.216692,
+              "mean_probability": 0.805178,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.121111,
+              "log_loss": 0.427726,
+              "mean_probability": 0.65199,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.26874,
+              "log_loss": 0.730643,
+              "mean_probability": 0.481599,
+              "n": 1,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.142602,
+            "log_loss": 0.458354,
+            "mean_probability": 0.646256,
+            "n": 3,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "252|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.166644,
+              "log_loss": 0.524531,
+              "mean_probability": 0.59195,
+              "n": 3,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.363646,
+              "log_loss": 0.924053,
+              "mean_probability": 0.397094,
+              "n": 3,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.583745,
+              "log_loss": 1.444686,
+              "mean_probability": 0.236036,
+              "n": 3,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.371345,
+            "log_loss": 0.964423,
+            "mean_probability": 0.40836,
+            "n": 9,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "252|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.25178,
+              "log_loss": 0.721844,
+              "mean_probability": 0.798862,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.239457,
+              "log_loss": 0.673685,
+              "mean_probability": 0.643854,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.227327,
+              "log_loss": 0.647451,
+              "mean_probability": 0.473241,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.239521,
+            "log_loss": 0.680993,
+            "mean_probability": 0.638653,
+            "n": 9,
+            "observed_rate": 0.555556
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "253|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.292907,
+              "log_loss": 0.779651,
+              "mean_probability": 0.573528,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "4.5": {
+              "brier": 0.204677,
+              "log_loss": 0.601012,
+              "mean_probability": 0.378195,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.188968,
+              "log_loss": 0.566531,
+              "mean_probability": 0.220522,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.228851,
+            "log_loss": 0.649065,
+            "mean_probability": 0.390748,
+            "n": 12,
+            "observed_rate": 0.25
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "253|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.044276,
+              "log_loss": 0.236241,
+              "mean_probability": 0.789594,
+              "n": 4,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.136467,
+              "log_loss": 0.461098,
+              "mean_probability": 0.630599,
+              "n": 4,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.233648,
+              "log_loss": 0.660399,
+              "mean_probability": 0.458107,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.138131,
+            "log_loss": 0.452579,
+            "mean_probability": 0.6261,
+            "n": 12,
+            "observed_rate": 0.75
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "254|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.257694,
+              "log_loss": 0.708561,
+              "mean_probability": 0.590385,
+              "n": 9,
+              "observed_rate": 0.444444
+            },
+            "4.5": {
+              "brier": 0.195029,
+              "log_loss": 0.580928,
+              "mean_probability": 0.395772,
+              "n": 9,
+              "observed_rate": 0.222222
+            },
+            "5.5": {
+              "brier": 0.166412,
+              "log_loss": 0.511515,
+              "mean_probability": 0.235176,
+              "n": 9,
+              "observed_rate": 0.222222
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.206378,
+            "log_loss": 0.600335,
+            "mean_probability": 0.407111,
+            "n": 27,
+            "observed_rate": 0.296296
+          },
+          "review_eligible": false,
+          "unique_fixtures": 9
+        },
+        "254|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.162362,
+              "log_loss": 0.498194,
+              "mean_probability": 0.79054,
+              "n": 9,
+              "observed_rate": 0.777778
+            },
+            "4.5": {
+              "brier": 0.215362,
+              "log_loss": 0.621625,
+              "mean_probability": 0.632483,
+              "n": 9,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.233749,
+              "log_loss": 0.66037,
+              "mean_probability": 0.460814,
+              "n": 9,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.203824,
+            "log_loss": 0.593396,
+            "mean_probability": 0.627946,
+            "n": 27,
+            "observed_rate": 0.592593
+          },
+          "review_eligible": false,
+          "unique_fixtures": 9
+        },
+        "262|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.181593,
+              "log_loss": 0.55536,
+              "mean_probability": 0.573873,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.386213,
+              "log_loss": 0.971447,
+              "mean_probability": 0.378547,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.607144,
+              "log_loss": 1.510516,
+              "mean_probability": 0.220809,
+              "n": 2,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.39165,
+            "log_loss": 1.012441,
+            "mean_probability": 0.391077,
+            "n": 6,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "262|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.045423,
+              "log_loss": 0.239673,
+              "mean_probability": 0.78689,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.269797,
+              "log_loss": 0.734338,
+              "mean_probability": 0.626941,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.256082,
+              "log_loss": 0.705397,
+              "mean_probability": 0.454148,
+              "n": 2,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.190434,
+            "log_loss": 0.559803,
+            "mean_probability": 0.622659,
+            "n": 6,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "271|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.159684,
+              "log_loss": 0.510163,
+              "mean_probability": 0.600404,
+              "n": 3,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.287591,
+              "log_loss": 0.769212,
+              "mean_probability": 0.405788,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.229033,
+              "log_loss": 0.653492,
+              "mean_probability": 0.243188,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.225436,
+            "log_loss": 0.644289,
+            "mean_probability": 0.41646,
+            "n": 9,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "271|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.224527,
+              "log_loss": 0.637659,
+              "mean_probability": 0.790408,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.272839,
+              "log_loss": 0.736005,
+              "mean_probability": 0.632787,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.195646,
+              "log_loss": 0.583809,
+              "mean_probability": 0.461691,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.231004,
+            "log_loss": 0.652491,
+            "mean_probability": 0.628295,
+            "n": 9,
+            "observed_rate": 0.444444
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "281|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.270871,
+              "log_loss": 0.736131,
+              "mean_probability": 0.594695,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.272361,
+              "log_loss": 0.739343,
+              "mean_probability": 0.399933,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.056931,
+              "log_loss": 0.272404,
+              "mean_probability": 0.238387,
+              "n": 2,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.200054,
+            "log_loss": 0.582626,
+            "mean_probability": 0.411005,
+            "n": 6,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "281|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.051078,
+              "log_loss": 0.256052,
+              "mean_probability": 0.774145,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.152249,
+              "log_loss": 0.494519,
+              "mean_probability": 0.609961,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.318176,
+              "log_loss": 0.830355,
+              "mean_probability": 0.436047,
+              "n": 2,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.173834,
+            "log_loss": 0.526975,
+            "mean_probability": 0.606718,
+            "n": 6,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "283|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.209544,
+              "log_loss": 0.611615,
+              "mean_probability": 0.59526,
+              "n": 5,
+              "observed_rate": 0.8
+            },
+            "4.5": {
+              "brier": 0.193278,
+              "log_loss": 0.577763,
+              "mean_probability": 0.400667,
+              "n": 5,
+              "observed_rate": 0.2
+            },
+            "5.5": {
+              "brier": 0.15568,
+              "log_loss": 0.488559,
+              "mean_probability": 0.239116,
+              "n": 5,
+              "observed_rate": 0.2
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.186168,
+            "log_loss": 0.559312,
+            "mean_probability": 0.411681,
+            "n": 15,
+            "observed_rate": 0.4
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "283|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.155271,
+              "log_loss": 0.486032,
+              "mean_probability": 0.780453,
+              "n": 5,
+              "observed_rate": 0.8
+            },
+            "4.5": {
+              "brier": 0.186137,
+              "log_loss": 0.562095,
+              "mean_probability": 0.618763,
+              "n": 5,
+              "observed_rate": 0.8
+            },
+            "5.5": {
+              "brier": 0.249257,
+              "log_loss": 0.691649,
+              "mean_probability": 0.445873,
+              "n": 5,
+              "observed_rate": 0.6
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.196888,
+            "log_loss": 0.579925,
+            "mean_probability": 0.61503,
+            "n": 15,
+            "observed_rate": 0.733333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "286|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.303845,
+              "log_loss": 0.802753,
+              "mean_probability": 0.588067,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "4.5": {
+              "brier": 0.242881,
+              "log_loss": 0.680158,
+              "mean_probability": 0.393199,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.246195,
+              "log_loss": 0.70218,
+              "mean_probability": 0.23291,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.264307,
+            "log_loss": 0.728364,
+            "mean_probability": 0.404725,
+            "n": 9,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "286|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.044666,
+              "log_loss": 0.23507,
+              "mean_probability": 0.791171,
+              "n": 3,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.26778,
+              "log_loss": 0.736916,
+              "mean_probability": 0.633907,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.313342,
+              "log_loss": 0.820625,
+              "mean_probability": 0.463007,
+              "n": 3,
+              "observed_rate": 0.666667
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.208596,
+            "log_loss": 0.597537,
+            "mean_probability": 0.629361,
+            "n": 9,
+            "observed_rate": 0.777778
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "288|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.241692,
+              "log_loss": 0.675905,
+              "mean_probability": 0.581754,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.247556,
+              "log_loss": 0.68733,
+              "mean_probability": 0.386688,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.051933,
+              "log_loss": 0.258304,
+              "mean_probability": 0.227536,
+              "n": 2,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.180394,
+            "log_loss": 0.540513,
+            "mean_probability": 0.398659,
+            "n": 6,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "288|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.042116,
+              "log_loss": 0.22737,
+              "mean_probability": 0.797261,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.228396,
+              "log_loss": 0.644714,
+              "mean_probability": 0.64217,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.204986,
+              "log_loss": 0.60258,
+              "mean_probability": 0.471966,
+              "n": 2,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.158499,
+            "log_loss": 0.491555,
+            "mean_probability": 0.637132,
+            "n": 6,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "292|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.291593,
+              "log_loss": 0.776964,
+              "mean_probability": 0.573179,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "4.5": {
+              "brier": 0.142767,
+              "log_loss": 0.474564,
+              "mean_probability": 0.377842,
+              "n": 4,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.048506,
+              "log_loss": 0.248766,
+              "mean_probability": 0.220237,
+              "n": 4,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.160955,
+            "log_loss": 0.500098,
+            "mean_probability": 0.390419,
+            "n": 12,
+            "observed_rate": 0.083333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "292|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.330327,
+              "log_loss": 0.886925,
+              "mean_probability": 0.786886,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.263446,
+              "log_loss": 0.720762,
+              "mean_probability": 0.626933,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.249225,
+              "log_loss": 0.691567,
+              "mean_probability": 0.454136,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.280999,
+            "log_loss": 0.766418,
+            "mean_probability": 0.622652,
+            "n": 12,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "327|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.184994,
+              "log_loss": 0.56231,
+              "mean_probability": 0.569891,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.140273,
+              "log_loss": 0.469254,
+              "mean_probability": 0.374531,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.047337,
+              "log_loss": 0.245351,
+              "mean_probability": 0.21757,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.124201,
+            "log_loss": 0.425638,
+            "mean_probability": 0.387331,
+            "n": 3,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "327|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.026877,
+              "log_loss": 0.179058,
+              "mean_probability": 0.836057,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.484495,
+              "log_loss": 1.190915,
+              "mean_probability": 0.696057,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.282938,
+              "log_loss": 0.759114,
+              "mean_probability": 0.531919,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.26477,
+            "log_loss": 0.709696,
+            "mean_probability": 0.688011,
+            "n": 3,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "344|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.203283,
+              "log_loss": 0.598829,
+              "mean_probability": 0.579294,
+              "n": 6,
+              "observed_rate": 0.833333
+            },
+            "4.5": {
+              "brier": 0.273749,
+              "log_loss": 0.742733,
+              "mean_probability": 0.384197,
+              "n": 6,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.333671,
+              "log_loss": 0.897005,
+              "mean_probability": 0.225516,
+              "n": 6,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.270234,
+            "log_loss": 0.746189,
+            "mean_probability": 0.396336,
+            "n": 18,
+            "observed_rate": 0.611111
+          },
+          "review_eligible": false,
+          "unique_fixtures": 6
+        },
+        "344|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.269896,
+              "log_loss": 0.79824,
+              "mean_probability": 0.836275,
+              "n": 6,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.251871,
+              "log_loss": 0.709749,
+              "mean_probability": 0.697098,
+              "n": 6,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.280301,
+              "log_loss": 0.754737,
+              "mean_probability": 0.534021,
+              "n": 6,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.267356,
+            "log_loss": 0.754242,
+            "mean_probability": 0.689131,
+            "n": 18,
+            "observed_rate": 0.611111
+          },
+          "review_eligible": false,
+          "unique_fixtures": 6
+        },
+        "345|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.226139,
+              "log_loss": 0.644886,
+              "mean_probability": 0.592593,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.228742,
+              "log_loss": 0.650308,
+              "mean_probability": 0.397677,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.233576,
+              "log_loss": 0.665973,
+              "mean_probability": 0.23645,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.229486,
+            "log_loss": 0.653722,
+            "mean_probability": 0.408906,
+            "n": 9,
+            "observed_rate": 0.444444
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "345|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.237115,
+              "log_loss": 0.676137,
+              "mean_probability": 0.772661,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.23051,
+              "log_loss": 0.654035,
+              "mean_probability": 0.607967,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.281516,
+              "log_loss": 0.756725,
+              "mean_probability": 0.433905,
+              "n": 3,
+              "observed_rate": 0.666667
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.249714,
+            "log_loss": 0.695633,
+            "mean_probability": 0.604844,
+            "n": 9,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "383|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.3306,
+              "log_loss": 0.855614,
+              "mean_probability": 0.574978,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.144139,
+              "log_loss": 0.477483,
+              "mean_probability": 0.379657,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.049152,
+              "log_loss": 0.250646,
+              "mean_probability": 0.221702,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.17463,
+            "log_loss": 0.527914,
+            "mean_probability": 0.392112,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "383|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.028985,
+              "log_loss": 0.18663,
+              "mean_probability": 0.829751,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.098052,
+              "log_loss": 0.375615,
+              "mean_probability": 0.686867,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.229245,
+              "log_loss": 0.651612,
+              "mean_probability": 0.521205,
+              "n": 1,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.118761,
+            "log_loss": 0.404619,
+            "mean_probability": 0.679274,
+            "n": 3,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "39|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.278079,
+              "log_loss": 0.752395,
+              "mean_probability": 0.611483,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.218685,
+              "log_loss": 0.629618,
+              "mean_probability": 0.418006,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.190169,
+              "log_loss": 0.568181,
+              "mean_probability": 0.253963,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.228977,
+            "log_loss": 0.650065,
+            "mean_probability": 0.427818,
+            "n": 12,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "39|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.03992,
+              "log_loss": 0.222664,
+              "mean_probability": 0.800445,
+              "n": 4,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.282635,
+              "log_loss": 0.762456,
+              "mean_probability": 0.645544,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.263277,
+              "log_loss": 0.719796,
+              "mean_probability": 0.474574,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.195277,
+            "log_loss": 0.568305,
+            "mean_probability": 0.640188,
+            "n": 12,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "40|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.269993,
+              "log_loss": 0.734378,
+              "mean_probability": 0.595855,
+              "n": 6,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.270988,
+              "log_loss": 0.736497,
+              "mean_probability": 0.40125,
+              "n": 6,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.235379,
+              "log_loss": 0.671044,
+              "mean_probability": 0.239572,
+              "n": 6,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.258787,
+            "log_loss": 0.713973,
+            "mean_probability": 0.412226,
+            "n": 18,
+            "observed_rate": 0.444444
+          },
+          "review_eligible": false,
+          "unique_fixtures": 6
+        },
+        "40|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.261001,
+              "log_loss": 0.75707,
+              "mean_probability": 0.806389,
+              "n": 6,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.287193,
+              "log_loss": 0.775313,
+              "mean_probability": 0.654486,
+              "n": 6,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.265962,
+              "log_loss": 0.725201,
+              "mean_probability": 0.485306,
+              "n": 6,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.271385,
+            "log_loss": 0.752528,
+            "mean_probability": 0.648727,
+            "n": 18,
+            "observed_rate": 0.555556
+          },
+          "review_eligible": false,
+          "unique_fixtures": 6
+        },
+        "41|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.187896,
+              "log_loss": 0.568225,
+              "mean_probability": 0.56653,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.395436,
+              "log_loss": 0.991114,
+              "mean_probability": 0.371163,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.616429,
+              "log_loss": 1.537722,
+              "mean_probability": 0.21487,
+              "n": 1,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.39992,
+            "log_loss": 1.032354,
+            "mean_probability": 0.384188,
+            "n": 3,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "41|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.029406,
+              "log_loss": 0.188118,
+              "mean_probability": 0.828517,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.099174,
+              "log_loss": 0.378218,
+              "mean_probability": 0.685081,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.269502,
+              "log_loss": 0.732171,
+              "mean_probability": 0.519136,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.132694,
+            "log_loss": 0.432836,
+            "mean_probability": 0.677578,
+            "n": 3,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "42|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.152237,
+              "log_loss": 0.494583,
+              "mean_probability": 0.609825,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.341429,
+              "log_loss": 0.877837,
+              "mean_probability": 0.415681,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.560254,
+              "log_loss": 1.380316,
+              "mean_probability": 0.251499,
+              "n": 1,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.351306,
+            "log_loss": 0.917579,
+            "mean_probability": 0.425668,
+            "n": 3,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "42|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.660309,
+              "log_loss": 1.674478,
+              "mean_probability": 0.812594,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.438726,
+              "log_loss": 1.085787,
+              "mean_probability": 0.662364,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.243255,
+              "log_loss": 0.679657,
+              "mean_probability": 0.493209,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.44743,
+            "log_loss": 1.14664,
+            "mean_probability": 0.656056,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "46|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.280028,
+              "log_loss": 0.754199,
+              "mean_probability": 0.60618,
+              "n": 15,
+              "observed_rate": 0.4
+            },
+            "4.5": {
+              "brier": 0.226216,
+              "log_loss": 0.645037,
+              "mean_probability": 0.4119,
+              "n": 15,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.193843,
+              "log_loss": 0.575317,
+              "mean_probability": 0.248361,
+              "n": 15,
+              "observed_rate": 0.266667
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.233362,
+            "log_loss": 0.658184,
+            "mean_probability": 0.422147,
+            "n": 45,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 15
+        },
+        "46|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.265787,
+              "log_loss": 0.735907,
+              "mean_probability": 0.758777,
+              "n": 15,
+              "observed_rate": 0.6
+            },
+            "4.5": {
+              "brier": 0.252973,
+              "log_loss": 0.699198,
+              "mean_probability": 0.589924,
+              "n": 15,
+              "observed_rate": 0.533333
+            },
+            "5.5": {
+              "brier": 0.234946,
+              "log_loss": 0.662497,
+              "mean_probability": 0.415139,
+              "n": 15,
+              "observed_rate": 0.4
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.251235,
+            "log_loss": 0.699201,
+            "mean_probability": 0.587947,
+            "n": 45,
+            "observed_rate": 0.511111
+          },
+          "review_eligible": false,
+          "unique_fixtures": 15
+        },
+        "479|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.1673,
+              "log_loss": 0.525822,
+              "mean_probability": 0.591282,
+              "n": 3,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.298944,
+              "log_loss": 0.793136,
+              "mean_probability": 0.396476,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.411006,
+              "log_loss": 1.062628,
+              "mean_probability": 0.235583,
+              "n": 3,
+              "observed_rate": 0.666667
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.292417,
+            "log_loss": 0.793862,
+            "mean_probability": 0.40778,
+            "n": 9,
+            "observed_rate": 0.777778
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "479|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.230408,
+              "log_loss": 0.656813,
+              "mean_probability": 0.775398,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.220417,
+              "log_loss": 0.632719,
+              "mean_probability": 0.611669,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.269381,
+              "log_loss": 0.732122,
+              "mean_probability": 0.437911,
+              "n": 3,
+              "observed_rate": 0.666667
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.240068,
+            "log_loss": 0.673885,
+            "mean_probability": 0.608326,
+            "n": 9,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "48|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.258817,
+              "log_loss": 0.711032,
+              "mean_probability": 0.561921,
+              "n": 8,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.272724,
+              "log_loss": 0.740755,
+              "mean_probability": 0.366725,
+              "n": 8,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.261614,
+              "log_loss": 0.732781,
+              "mean_probability": 0.211454,
+              "n": 8,
+              "observed_rate": 0.375
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.264385,
+            "log_loss": 0.728189,
+            "mean_probability": 0.380033,
+            "n": 24,
+            "observed_rate": 0.458333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 8
+        },
+        "48|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.287346,
+              "log_loss": 0.828564,
+              "mean_probability": 0.858285,
+              "n": 8,
+              "observed_rate": 0.625
+            },
+            "4.5": {
+              "brier": 0.343574,
+              "log_loss": 0.897681,
+              "mean_probability": 0.730348,
+              "n": 8,
+              "observed_rate": 0.375
+            },
+            "5.5": {
+              "brier": 0.318724,
+              "log_loss": 0.833908,
+              "mean_probability": 0.57428,
+              "n": 8,
+              "observed_rate": 0.125
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.316548,
+            "log_loss": 0.853384,
+            "mean_probability": 0.720971,
+            "n": 24,
+            "observed_rate": 0.375
+          },
+          "review_eligible": false,
+          "unique_fixtures": 8
+        },
+        "525|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.281824,
+              "log_loss": 0.757921,
+              "mean_probability": 0.605284,
+              "n": 5,
+              "observed_rate": 0.4
+            },
+            "4.5": {
+              "brier": 0.20163,
+              "log_loss": 0.595316,
+              "mean_probability": 0.410919,
+              "n": 5,
+              "observed_rate": 0.2
+            },
+            "5.5": {
+              "brier": 0.061286,
+              "log_loss": 0.284384,
+              "mean_probability": 0.247504,
+              "n": 5,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.18158,
+            "log_loss": 0.545873,
+            "mean_probability": 0.421235,
+            "n": 15,
+            "observed_rate": 0.2
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "525|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.1617,
+              "log_loss": 0.505255,
+              "mean_probability": 0.764154,
+              "n": 5,
+              "observed_rate": 0.8
+            },
+            "4.5": {
+              "brier": 0.239977,
+              "log_loss": 0.672965,
+              "mean_probability": 0.596763,
+              "n": 5,
+              "observed_rate": 0.6
+            },
+            "5.5": {
+              "brier": 0.271614,
+              "log_loss": 0.73678,
+              "mean_probability": 0.4221,
+              "n": 5,
+              "observed_rate": 0.6
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.22443,
+            "log_loss": 0.638333,
+            "mean_probability": 0.594339,
+            "n": 15,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 5
+        },
+        "549|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.167689,
+              "log_loss": 0.526644,
+              "mean_probability": 0.590764,
+              "n": 3,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.230628,
+              "log_loss": 0.654126,
+              "mean_probability": 0.395919,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.235609,
+              "log_loss": 0.671419,
+              "mean_probability": 0.235107,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.211309,
+            "log_loss": 0.617397,
+            "mean_probability": 0.407263,
+            "n": 9,
+            "observed_rate": 0.555556
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "549|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.042161,
+              "log_loss": 0.228688,
+              "mean_probability": 0.795886,
+              "n": 3,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.130754,
+              "log_loss": 0.447867,
+              "mean_probability": 0.639723,
+              "n": 3,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.283485,
+              "log_loss": 0.760465,
+              "mean_probability": 0.468668,
+              "n": 3,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.152133,
+            "log_loss": 0.479007,
+            "mean_probability": 0.634759,
+            "n": 9,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "61|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.367196,
+              "log_loss": 0.931321,
+              "mean_probability": 0.605967,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.169425,
+              "log_loss": 0.53037,
+              "mean_probability": 0.411613,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.061538,
+              "log_loss": 0.285109,
+              "mean_probability": 0.248068,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.199386,
+            "log_loss": 0.582267,
+            "mean_probability": 0.421883,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "61|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.648563,
+              "log_loss": 1.63647,
+              "mean_probability": 0.805334,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.425375,
+              "log_loss": 1.056151,
+              "mean_probability": 0.652208,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.232171,
+              "log_loss": 0.657473,
+              "mean_probability": 0.481841,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.43537,
+            "log_loss": 1.116698,
+            "mean_probability": 0.646461,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "62|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.295389,
+              "log_loss": 0.785443,
+              "mean_probability": 0.596495,
+              "n": 6,
+              "observed_rate": 0.333333
+            },
+            "4.5": {
+              "brier": 0.161475,
+              "log_loss": 0.51385,
+              "mean_probability": 0.401753,
+              "n": 6,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.05758,
+              "log_loss": 0.274291,
+              "mean_probability": 0.239857,
+              "n": 6,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.171481,
+            "log_loss": 0.524528,
+            "mean_probability": 0.412701,
+            "n": 18,
+            "observed_rate": 0.111111
+          },
+          "review_eligible": false,
+          "unique_fixtures": 6
+        },
+        "62|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.032456,
+              "log_loss": 0.198562,
+              "mean_probability": 0.819927,
+              "n": 6,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.159034,
+              "log_loss": 0.503772,
+              "mean_probability": 0.672785,
+              "n": 6,
+              "observed_rate": 0.833333
+            },
+            "5.5": {
+              "brier": 0.249735,
+              "log_loss": 0.692617,
+              "mean_probability": 0.505054,
+              "n": 6,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.147075,
+            "log_loss": 0.464983,
+            "mean_probability": 0.665922,
+            "n": 18,
+            "observed_rate": 0.722222
+          },
+          "review_eligible": false,
+          "unique_fixtures": 6
+        },
+        "71|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.255866,
+              "log_loss": 0.70506,
+              "mean_probability": 0.58255,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.150125,
+              "log_loss": 0.490095,
+              "mean_probability": 0.387385,
+              "n": 4,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.052028,
+              "log_loss": 0.258818,
+              "mean_probability": 0.228011,
+              "n": 4,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.152673,
+            "log_loss": 0.484658,
+            "mean_probability": 0.399315,
+            "n": 12,
+            "observed_rate": 0.166667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "71|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.332868,
+              "log_loss": 0.894577,
+              "mean_probability": 0.786051,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.267255,
+              "log_loss": 0.728929,
+              "mean_probability": 0.625816,
+              "n": 4,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.229452,
+              "log_loss": 0.651937,
+              "mean_probability": 0.45294,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.276525,
+            "log_loss": 0.758481,
+            "mean_probability": 0.621602,
+            "n": 12,
+            "observed_rate": 0.416667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "72|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.251241,
+              "log_loss": 0.695196,
+              "mean_probability": 0.586173,
+              "n": 11,
+              "observed_rate": 0.454545
+            },
+            "4.5": {
+              "brier": 0.222726,
+              "log_loss": 0.637172,
+              "mean_probability": 0.39126,
+              "n": 11,
+              "observed_rate": 0.363636
+            },
+            "5.5": {
+              "brier": 0.194145,
+              "log_loss": 0.573872,
+              "mean_probability": 0.23132,
+              "n": 11,
+              "observed_rate": 0.272727
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.222704,
+            "log_loss": 0.635413,
+            "mean_probability": 0.402918,
+            "n": 33,
+            "observed_rate": 0.363636
+          },
+          "review_eligible": false,
+          "unique_fixtures": 11
+        },
+        "72|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.252522,
+              "log_loss": 0.705872,
+              "mean_probability": 0.813439,
+              "n": 11,
+              "observed_rate": 0.636364
+            },
+            "4.5": {
+              "brier": 0.266022,
+              "log_loss": 0.729084,
+              "mean_probability": 0.665804,
+              "n": 11,
+              "observed_rate": 0.545455
+            },
+            "5.5": {
+              "brier": 0.272678,
+              "log_loss": 0.739356,
+              "mean_probability": 0.49971,
+              "n": 11,
+              "observed_rate": 0.363636
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.263741,
+            "log_loss": 0.724771,
+            "mean_probability": 0.659651,
+            "n": 33,
+            "observed_rate": 0.515152
+          },
+          "review_eligible": false,
+          "unique_fixtures": 11
+        },
+        "78|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.251716,
+              "log_loss": 0.69635,
+              "mean_probability": 0.597001,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.251553,
+              "log_loss": 0.696002,
+              "mean_probability": 0.402276,
+              "n": 2,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.057784,
+              "log_loss": 0.274857,
+              "mean_probability": 0.240289,
+              "n": 2,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.187018,
+            "log_loss": 0.555736,
+            "mean_probability": 0.413189,
+            "n": 6,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "78|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.04724,
+              "log_loss": 0.244579,
+              "mean_probability": 0.78318,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.143163,
+              "log_loss": 0.475064,
+              "mean_probability": 0.622177,
+              "n": 2,
+              "observed_rate": 1.0
+            },
+            "5.5": {
+              "brier": 0.303788,
+              "log_loss": 0.801329,
+              "mean_probability": 0.449263,
+              "n": 2,
+              "observed_rate": 1.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.16473,
+            "log_loss": 0.506991,
+            "mean_probability": 0.618206,
+            "n": 6,
+            "observed_rate": 1.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 2
+        },
+        "79|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.240759,
+              "log_loss": 0.675166,
+              "mean_probability": 0.581806,
+              "n": 6,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.312304,
+              "log_loss": 0.820954,
+              "mean_probability": 0.386792,
+              "n": 6,
+              "observed_rate": 0.666667
+            },
+            "5.5": {
+              "brier": 0.144619,
+              "log_loss": 0.467235,
+              "mean_probability": 0.227666,
+              "n": 6,
+              "observed_rate": 0.166667
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.232561,
+            "log_loss": 0.654452,
+            "mean_probability": 0.398755,
+            "n": 18,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 6
+        },
+        "79|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.150049,
+              "log_loss": 0.486982,
+              "mean_probability": 0.803554,
+              "n": 6,
+              "observed_rate": 0.833333
+            },
+            "4.5": {
+              "brier": 0.187086,
+              "log_loss": 0.566103,
+              "mean_probability": 0.650228,
+              "n": 6,
+              "observed_rate": 0.833333
+            },
+            "5.5": {
+              "brier": 0.263911,
+              "log_loss": 0.72104,
+              "mean_probability": 0.480194,
+              "n": 6,
+              "observed_rate": 0.666667
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.200349,
+            "log_loss": 0.591375,
+            "mean_probability": 0.644658,
+            "n": 18,
+            "observed_rate": 0.777778
+          },
+          "review_eligible": false,
+          "unique_fixtures": 6
+        },
+        "80|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.232565,
+              "log_loss": 0.658084,
+              "mean_probability": 0.59165,
+              "n": 3,
+              "observed_rate": 0.666667
+            },
+            "4.5": {
+              "brier": 0.21704,
+              "log_loss": 0.62582,
+              "mean_probability": 0.396835,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.224084,
+              "log_loss": 0.639708,
+              "mean_probability": 0.235862,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.224563,
+            "log_loss": 0.641204,
+            "mean_probability": 0.408115,
+            "n": 9,
+            "observed_rate": 0.444444
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "80|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.453401,
+              "log_loss": 1.206917,
+              "mean_probability": 0.820565,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "4.5": {
+              "brier": 0.332323,
+              "log_loss": 0.871899,
+              "mean_probability": 0.675448,
+              "n": 3,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.247168,
+              "log_loss": 0.687629,
+              "mean_probability": 0.510072,
+              "n": 3,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.344297,
+            "log_loss": 0.922148,
+            "mean_probability": 0.668695,
+            "n": 9,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 3
+        },
+        "82|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.223249,
+              "log_loss": 0.639716,
+              "mean_probability": 0.593677,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.322537,
+              "log_loss": 0.841136,
+              "mean_probability": 0.398954,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "5.5": {
+              "brier": 0.459826,
+              "log_loss": 1.173096,
+              "mean_probability": 0.237635,
+              "n": 4,
+              "observed_rate": 0.75
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.335204,
+            "log_loss": 0.884649,
+            "mean_probability": 0.410089,
+            "n": 12,
+            "observed_rate": 0.75
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "82|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.207923,
+              "log_loss": 0.626792,
+              "mean_probability": 0.79808,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.22442,
+              "log_loss": 0.644112,
+              "mean_probability": 0.643302,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "5.5": {
+              "brier": 0.301326,
+              "log_loss": 0.796451,
+              "mean_probability": 0.473225,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.244556,
+            "log_loss": 0.689119,
+            "mean_probability": 0.638202,
+            "n": 12,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "88|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.308761,
+              "log_loss": 0.812384,
+              "mean_probability": 0.593236,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "4.5": {
+              "brier": 0.213099,
+              "log_loss": 0.618626,
+              "mean_probability": 0.398377,
+              "n": 4,
+              "observed_rate": 0.25
+            },
+            "5.5": {
+              "brier": 0.19063,
+              "log_loss": 0.570952,
+              "mean_probability": 0.237059,
+              "n": 4,
+              "observed_rate": 0.25
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.237497,
+            "log_loss": 0.667321,
+            "mean_probability": 0.409558,
+            "n": 12,
+            "observed_rate": 0.25
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "88|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.191615,
+              "log_loss": 0.57456,
+              "mean_probability": 0.79455,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "4.5": {
+              "brier": 0.203097,
+              "log_loss": 0.597611,
+              "mean_probability": 0.637405,
+              "n": 4,
+              "observed_rate": 0.75
+            },
+            "5.5": {
+              "brier": 0.250351,
+              "log_loss": 0.693871,
+              "mean_probability": 0.465585,
+              "n": 4,
+              "observed_rate": 0.5
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.215021,
+            "log_loss": 0.622014,
+            "mean_probability": 0.632513,
+            "n": 12,
+            "observed_rate": 0.666667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 4
+        },
+        "89|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.274983,
+              "log_loss": 0.744185,
+              "mean_probability": 0.603689,
+              "n": 9,
+              "observed_rate": 0.444444
+            },
+            "4.5": {
+              "brier": 0.229751,
+              "log_loss": 0.652363,
+              "mean_probability": 0.409239,
+              "n": 9,
+              "observed_rate": 0.333333
+            },
+            "5.5": {
+              "brier": 0.231314,
+              "log_loss": 0.65967,
+              "mean_probability": 0.246089,
+              "n": 9,
+              "observed_rate": 0.333333
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.245349,
+            "log_loss": 0.685406,
+            "mean_probability": 0.419672,
+            "n": 27,
+            "observed_rate": 0.37037
+          },
+          "review_eligible": false,
+          "unique_fixtures": 9
+        },
+        "89|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.313627,
+              "log_loss": 0.864665,
+              "mean_probability": 0.824064,
+              "n": 9,
+              "observed_rate": 0.555556
+            },
+            "4.5": {
+              "brier": 0.255031,
+              "log_loss": 0.705014,
+              "mean_probability": 0.679083,
+              "n": 9,
+              "observed_rate": 0.555556
+            },
+            "5.5": {
+              "brier": 0.261492,
+              "log_loss": 0.716085,
+              "mean_probability": 0.51268,
+              "n": 9,
+              "observed_rate": 0.111111
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.276717,
+            "log_loss": 0.761921,
+            "mean_probability": 0.671942,
+            "n": 27,
+            "observed_rate": 0.407407
+          },
+          "review_eligible": false,
+          "unique_fixtures": 9
+        },
+        "94|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.342909,
+              "log_loss": 0.880885,
+              "mean_probability": 0.585584,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "4.5": {
+              "brier": 0.152453,
+              "log_loss": 0.495038,
+              "mean_probability": 0.390452,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.053126,
+              "log_loss": 0.262003,
+              "mean_probability": 0.230491,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.182829,
+            "log_loss": 0.545975,
+            "mean_probability": 0.402176,
+            "n": 3,
+            "observed_rate": 0.0
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "94|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.047014,
+              "log_loss": 0.2444,
+              "mean_probability": 0.783174,
+              "n": 1,
+              "observed_rate": 1.0
+            },
+            "4.5": {
+              "brier": 0.386797,
+              "log_loss": 0.972676,
+              "mean_probability": 0.62193,
+              "n": 1,
+              "observed_rate": 0.0
+            },
+            "5.5": {
+              "brier": 0.201369,
+              "log_loss": 0.595552,
+              "mean_probability": 0.448742,
+              "n": 1,
+              "observed_rate": 0.0
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.211727,
+            "log_loss": 0.60421,
+            "mean_probability": 0.617949,
+            "n": 3,
+            "observed_rate": 0.333333
+          },
+          "review_eligible": false,
+          "unique_fixtures": 1
+        },
+        "98|AWAY": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.248482,
+              "log_loss": 0.691048,
+              "mean_probability": 0.610069,
+              "n": 8,
+              "observed_rate": 0.625
+            },
+            "4.5": {
+              "brier": 0.274999,
+              "log_loss": 0.744782,
+              "mean_probability": 0.41633,
+              "n": 8,
+              "observed_rate": 0.5
+            },
+            "5.5": {
+              "brier": 0.267127,
+              "log_loss": 0.746713,
+              "mean_probability": 0.252372,
+              "n": 8,
+              "observed_rate": 0.375
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.263536,
+            "log_loss": 0.727514,
+            "mean_probability": 0.426257,
+            "n": 24,
+            "observed_rate": 0.5
+          },
+          "review_eligible": false,
+          "unique_fixtures": 8
+        },
+        "98|HOME": {
+          "by_line": {
+            "3.5": {
+              "brier": 0.342469,
+              "log_loss": 0.924335,
+              "mean_probability": 0.80269,
+              "n": 8,
+              "observed_rate": 0.5
+            },
+            "4.5": {
+              "brier": 0.306111,
+              "log_loss": 0.809325,
+              "mean_probability": 0.648606,
+              "n": 8,
+              "observed_rate": 0.375
+            },
+            "5.5": {
+              "brier": 0.24156,
+              "log_loss": 0.676224,
+              "mean_probability": 0.477916,
+              "n": 8,
+              "observed_rate": 0.375
+            }
+          },
+          "minimum_unique_fixtures": 20,
+          "overall": {
+            "brier": 0.296713,
+            "log_loss": 0.803294,
+            "mean_probability": 0.643071,
+            "n": 24,
+            "observed_rate": 0.416667
+          },
+          "review_eligible": false,
+          "unique_fixtures": 8
+        }
+      }
+    },
     "minimum_team_rows": 400,
     "missing_required_lines": [],
     "observed_lines": [
