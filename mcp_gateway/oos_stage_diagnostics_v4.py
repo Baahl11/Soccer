@@ -278,6 +278,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
             "Current-model stage metrics are reported separately to avoid mixing historical runtime model versions.",
             "Multiclass 1X2 metrics use the same normalized probability simplex as the canonical multiclass OOS validator.",
             "Current-model full-OOS binary calibrators are persisted only for downstream Phase16 research ranking; stage metrics remain diagnostic and production prediction weights remain unchanged.",
+            "Phase16 binary calibration eligibility additionally requires AUC 95% lower confidence bound above 0.50, preventing base-rate-only calibration from creating fixture-level research edges.",
             "Phase16 binary calibration eligibility requires Brier and Log Loss improvement plus a conservative discrimination gate: AUC 95% lower bound must exceed 0.50.",
         ],
     }
