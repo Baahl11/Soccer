@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.1.0"
+MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.2.0"
 MIN_FT_OOS = 150
 MIN_FORMATION_ADJUSTED = 100
 MIN_TEAM_ROWS = 400
@@ -146,15 +146,29 @@ def build_report(
         ft_blockers.append("FORMATION_CHALLENGER_MAE_NOT_BETTER")
     if ft_clv["rows"] < MIN_TRUE_CLV_ROWS:
         ft_blockers.append(f"FT_CORNERS_TRUE_CLV_{ft_clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
-    if ft_gate.get("enabled") is not True:
-        ft_blockers.append("SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED")
+    league_lift = baseline_report.get("formation_lift_by_league")
+    if not isinstance(league_lift, dict) or not league_lift:
+        ft_blockers.append("FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED")
 
     if team_rows < MIN_TEAM_ROWS:
         team_blockers.append(f"TEAM_CORNERS_ROWS_{team_rows}_LT_{MIN_TEAM_ROWS}")
     if team_clv["rows"] < MIN_TRUE_CLV_ROWS:
         team_blockers.append(f"TEAM_CORNERS_TRUE_CLV_{team_clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
-    if team_gate.get("enabled") is not True:
-        team_blockers.append("SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED")
+    parent_ft_review_ready = (
+        ft_n >= MIN_FT_OOS
+        and formation_n >= MIN_FORMATION_ADJUSTED
+        and all_ft_lines_improve
+        and mae_improves
+        and ft_clv["rows"] >= MIN_TRUE_CLV_ROWS
+        and "FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED" not in ft_blockers
+    )
+    if not parent_ft_review_ready:
+        team_blockers.append("PARENT_FT_CORNERS_NOT_REVIEW_READY")
+
+    league_rows = team_report.get("by_league") if isinstance(team_report.get("by_league"), dict) else {}
+    venue_stability = team_report.get("league_venue_stability")
+    if not league_rows or not isinstance(venue_stability, dict) or not venue_stability:
+        team_blockers.append("TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED")
     if missing_team_lines:
         warnings.append("TEAM_CORNERS_LINE_COVERAGE_INCOMPLETE")
 
@@ -229,6 +243,8 @@ def build_report(
             "Verified exact corners prices and family-specific true CLV are mandatory before any production promotion.",
             "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals.",
             "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only.",
+            "Historical source promotion_gate.enabled flags are descriptive metadata only; V4-022 blockers now name the missing evidence explicitly.",
+            "FT Corners requires materialized formation lift by league before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability.",
         ],
     }
 

@@ -119,3 +119,62 @@ def test_v4_022_family_views_do_not_share_ft_and_team_clv():
     assert report["family_views"]["TEAM_CORNERS"]["true_clv"]["rows"] == 10
     assert "FT_CORNERS_TRUE_CLV_60_LT_50" not in report["family_views"]["FT_CORNERS"]["blockers"]
     assert "TEAM_CORNERS_TRUE_CLV_10_LT_50" in report["family_views"]["TEAM_CORNERS"]["blockers"]
+
+
+def test_v4_022_replaces_historical_disabled_flags_with_explicit_evidence_blockers():
+    report = v.build_report(
+        {
+            "walk_forward_evaluations": 244,
+            "formation_adjusted_evaluations": 39,
+            "baseline": {
+                "mae_total_corners": 2.6,
+                "lines": {
+                    "8.5": {"brier": 0.25, "log_loss": 0.70},
+                    "9.5": {"brier": 0.25, "log_loss": 0.70},
+                    "10.5": {"brier": 0.22, "log_loss": 0.63},
+                },
+            },
+            "formation_challenger": {
+                "mae_total_corners": 2.5,
+                "lines": {
+                    "8.5": {"brier": 0.24, "log_loss": 0.69},
+                    "9.5": {"brier": 0.24, "log_loss": 0.69},
+                    "10.5": {"brier": 0.21, "log_loss": 0.62},
+                },
+            },
+            "promotion_gate": {"enabled": False},
+        },
+        {
+            "evaluated_fixtures": 244,
+            "evaluated_rows": 1464,
+            "by_role_line": {
+                "HOME|3.5": {"n": 244},
+                "HOME|4.5": {"n": 244},
+                "HOME|5.5": {"n": 244},
+                "AWAY|3.5": {"n": 244},
+                "AWAY|4.5": {"n": 244},
+                "AWAY|5.5": {"n": 244},
+            },
+            "by_league": {"46": {"n": 90}},
+            "promotion_gate": {"enabled": False},
+        },
+        [
+            *[
+                {"market_family": "FT_CORNERS", "market": "Corners Over/Under", "fixture_id": i, "clv_probability_pp": 0.1}
+                for i in range(60)
+            ],
+            *[
+                {"market_family": "TEAM_CORNERS", "market": "Home Team Corners", "fixture_id": i, "clv_probability_pp": 0.1}
+                for i in range(60)
+            ],
+        ],
+    )
+
+    ft_blockers = report["family_views"]["FT_CORNERS"]["blockers"]
+    team_blockers = report["family_views"]["TEAM_CORNERS"]["blockers"]
+    assert "SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED" not in ft_blockers
+    assert "SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED" not in team_blockers
+    assert "FORMATION_ADJUSTED_39_LT_100" in ft_blockers
+    assert "FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED" in ft_blockers
+    assert "PARENT_FT_CORNERS_NOT_REVIEW_READY" in team_blockers
+    assert "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED" in team_blockers
