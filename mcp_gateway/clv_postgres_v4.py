@@ -9,7 +9,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.3"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.4"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
@@ -459,6 +459,15 @@ def _model_signal_from_event(payload: Any) -> str | None:
     return "WEAK"
 
 
+def _is_period_team_total_signal(signal: dict[str, Any]) -> bool:
+    if str(signal.get("signal_source") or "") != "DERIVATIVE_INTELLIGENCE:team_totals_intelligence":
+        return False
+    candidate = signal.get("market_candidate")
+    if not isinstance(candidate, dict):
+        return False
+    return _family(candidate) in {"1H", "2H"}
+
+
 def _model_signal_from_candidate(candidate: dict[str, Any], event_payload: Any) -> str | None:
     direct = candidate.get("model_signal")
     if direct:
@@ -485,11 +494,19 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             lookback_days=lookback_days,
             max_rows=max_signals,
         )
-        derivative_signals = _load_derivative_signals(
+        derivative_signals_raw = _load_derivative_signals(
             conn,
             lookback_days=lookback_days,
             max_rows=max_signals,
         )
+        derivative_period_team_total_rows_excluded = sum(
+            1 for signal in derivative_signals_raw if _is_period_team_total_signal(signal)
+        )
+        derivative_signals = [
+            signal
+            for signal in derivative_signals_raw
+            if not _is_period_team_total_signal(signal)
+        ]
         legacy_signals = _load_legacy_signals(
             conn,
             lookback_days=lookback_days,
@@ -705,6 +722,8 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             (row.get("fixture_id"), row.get("generated_at"))
             for row in derivative_signals
         }),
+        "derivative_market_rows_loaded_raw": len(derivative_signals_raw),
+        "derivative_period_team_total_rows_excluded": derivative_period_team_total_rows_excluded,
         "derivative_market_rows_loaded": len(derivative_signals),
         "legacy_signal_rows_loaded": len(legacy_signals),
         "tracked_rows": len(tracked),
@@ -722,7 +741,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "notes": [
-            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; capped source reads prioritize recent pre-kickoff signals, close lookup reads only the latest pre-kickoff snapshot per bookmaker/market in bounded fixture batches, and legacy event best_market rows are fallback-only.",
+            "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; period-specific team totals are excluded from generic 1H/2H and FT team-total CLV until they have dedicated families; capped source reads prioritize recent pre-kickoff signals, close lookup reads only the latest pre-kickoff snapshot per bookmaker/market in bounded fixture batches, and legacy event best_market rows are fallback-only.",
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
