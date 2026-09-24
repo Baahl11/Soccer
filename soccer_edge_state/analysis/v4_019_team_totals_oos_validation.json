@@ -1,7 +1,6 @@
 {
   "blockers": [
-    "TEAM_TOTALS_TRUE_CLV_0_LT_50",
-    "SOURCE_TEAM_TOTALS_PROMOTION_GATE_DISABLED"
+    "TEAM_TOTALS_TRUE_CLV_0_LT_50"
   ],
   "by_line": {
     "0.5": {
@@ -45,12 +44,13 @@
   "canonical_bet_logic_changed": false,
   "manual_review_required": true,
   "missing_required_lines": [],
-  "model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.0.0",
+  "model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.1.0",
   "model_weights_changed": false,
   "notes": [
-    "The current OOS probability sample is large enough for research/actionable review counts, but market evidence remains a separate gate.",
+    "The source validation report intentionally remains research-only; its historical promotion_gate.enabled flag is not treated as a promotion blocker.",
+    "V4-019 review eligibility is derived here from explicit OOS sample, exact half-goal line coverage, family-specific true CLV and role/line calibration gates.",
     "Team-total true CLV must come from exact team-total line/price history; FT totals/1X2/BTTS closes cannot satisfy this requirement.",
-    "No production promotion occurs from probability calibration alone."
+    "OOS review eligibility is not production promotion. Production remains disabled and manual approval remains mandatory."
   ],
   "observed_lines": [
     0.5,
@@ -77,6 +77,17 @@
     1.5,
     2.5
   ],
+  "review_gate": {
+    "manual_review_required": true,
+    "maximum_role_line_calibration_gap": 0.1,
+    "oos_actionable_review_sample_ready": true,
+    "oos_research_sample_ready": true,
+    "production_promotion_allowed": false,
+    "required_half_goal_lines_ready": true,
+    "review_eligible": false,
+    "role_line_calibration_ready": true,
+    "true_clv_sample_ready": false
+  },
   "role_line_calibration": {
     "max_absolute_calibration_gap": 0.087565,
     "n": 6000,
