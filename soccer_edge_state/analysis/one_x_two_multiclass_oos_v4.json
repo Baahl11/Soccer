@@ -1,0 +1,53 @@
+{
+  "anti_leakage": {
+    "chronological_order_required": true,
+    "current_model_version_only": true,
+    "evaluation_rows_never_used_to_fit_their_fold": true,
+    "market_fields_used": false,
+    "temperature_fit_uses_prior_rows_only": true
+  },
+  "baseline": {
+    "multiclass_brier": null,
+    "multiclass_log_loss": null,
+    "n": 0,
+    "top1_accuracy": null
+  },
+  "batch_size": 50,
+  "brier_delta": null,
+  "canonical_bet_logic_changed": false,
+  "evaluated_rows": 0,
+  "folds": [],
+  "improves_brier_and_log_loss": false,
+  "log_loss_delta": null,
+  "minimum_eval_rows": 100,
+  "minimum_train_rows": 200,
+  "model_version": "SOCCER_1X2_MULTICLASS_OOS_V4_1.0.0",
+  "notes": [
+    "Temperature scaling preserves the 1X2 simplex and class ranking while adjusting confidence.",
+    "Only the latest observed model_version is evaluated to avoid mixing calibration regimes across runtime versions.",
+    "Each fold fits temperature only on earlier rows and evaluates on later rows.",
+    "This report is research-only and cannot change production probabilities by itself."
+  ],
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "runtime_prediction_weight": 0.0,
+  "schema_version": "1.0.0",
+  "source_model_version": "SOCCER EDGE ENGINE v1.0",
+  "source_model_version_counts": {
+    "SOCCER EDGE ENGINE v1.0": 150,
+    "SOCCER EDGE ENGINE v1.1": 7,
+    "SOCCER EDGE ENGINE v1.2": 1,
+    "SOCCER EDGE ENGINE v1.5": 1,
+    "SOCCER EDGE ENGINE v1.6": 1,
+    "SOCCER EDGE ENGINE v1.7": 407
+  },
+  "source_rows_current_model": 150,
+  "status": "DATA_BLOCKED",
+  "temperature_scaled": {
+    "multiclass_brier": null,
+    "multiclass_log_loss": null,
+    "n": 0,
+    "top1_accuracy": null
+  },
+  "walk_forward_folds": 0
+}
