@@ -26,6 +26,9 @@ jobs:
         with:
           ref: soccer-edge-state
           fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/true_clv_tracking.jsonl
+          sparse-checkout-cone-mode: false
 
       - name: Checkout runtime
         uses: actions/checkout@v4
