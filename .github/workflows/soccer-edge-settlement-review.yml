@@ -1,4 +1,4 @@
-# Settlement freshness audit trigger: 2026-09-24-rerun-postgres-live
+# Settlement freshness audit trigger: 2026-09-24-persist-diagnostic
 name: Soccer Edge Settlement Review
 
 on:
@@ -87,22 +87,22 @@ jobs:
             and (.runtime_logic_changed == false)
           ' /tmp/settlement_v4.json >/dev/null
 
+          # Always persist the read-only Postgres diagnostic, even if we retain
+          # the legacy canonical ledger due to a coverage regression.
+          jq 'del(.rows)' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/settlement_postgres_v4.json
+
           NEW_TOTAL=$(jq -r '.market_performance_summary.settlement_decisions // 0' /tmp/settlement_v4.json)
           NEW_FT=$(jq -r '.market_performance_summary.by_market_family.FT_TOTALS.settled // 0' /tmp/settlement_v4.json)
           echo "Settlement coverage legacy_total=$LEGACY_TOTAL postgres_total=$NEW_TOTAL legacy_ft=$LEGACY_FT postgres_ft=$NEW_FT"
 
-          if [ "$NEW_TOTAL" -lt "$LEGACY_TOTAL" ]; then
-            echo "::error::Postgres settlement coverage regressed below legacy total"
-            exit 1
+          if [ "$NEW_TOTAL" -lt "$LEGACY_TOTAL" ] || [ "$NEW_FT" -lt "$LEGACY_FT" ]; then
+            echo "::warning::Postgres settlement coverage is below legacy coverage; preserving legacy canonical ledger while persisting diagnostics"
+            echo "POSTGRES_SETTLEMENT_ACCEPTED=false" >> "$GITHUB_ENV"
+          else
+            jq -c '.rows[]' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl
+            jq '.market_performance_summary' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/market_performance_summary.json
+            echo "POSTGRES_SETTLEMENT_ACCEPTED=true" >> "$GITHUB_ENV"
           fi
-          if [ "$NEW_FT" -lt "$LEGACY_FT" ]; then
-            echo "::error::Postgres FT Totals settlement coverage regressed below legacy total"
-            exit 1
-          fi
-
-          jq -c '.rows[]' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl
-          jq '.market_performance_summary' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/market_performance_summary.json
-          jq 'del(.rows)' /tmp/settlement_v4.json > state/soccer_edge_state/analysis/settlement_postgres_v4.json
 
       - name: Build WATCH shadow settlement ledger
         run: PYTHONPATH=engine python -m mcp_gateway.shadow_settlement_v4 --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl --summary-output state/soccer_edge_state/analysis/shadow_performance_summary_v4.json
