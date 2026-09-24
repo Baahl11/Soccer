@@ -1,14 +1,14 @@
 from mcp_gateway import shadow_settlement_v4 as v
 
 
-def _watch(fid, ts, kickoff, market="Match Winner", selection="home", price=2.0):
+def _watch(fid, ts, kickoff, market="Match Winner", selection="home", price=2.0, stage="T-10", league="League A"):
     return {
         "fixture_id": fid,
         "generated_at_local": ts,
         "kickoff_local": kickoff,
-        "stage": "T-10",
+        "stage": stage,
         "classification": "WATCH",
-        "league": "League A",
+        "league": league,
         "home_team": "Home",
         "away_team": "Away",
         "best_market": {
@@ -68,3 +68,36 @@ def test_shadow_sample_status_uses_independent_fixture_family_decisions():
     assert family["settled"] == 20
     assert family["sample_status"] == "DIRECTIONAL_SHADOW"
     assert summary["production_promotion_allowed"] is False
+
+
+def test_shadow_stage_segmentation_flags_negative_directional_stage():
+    rows = []
+    for fid in range(1, 21):
+        rows.append(_watch(
+            fid,
+            "2026-09-20T17:50:00+00:00",
+            "2026-09-20T18:00:00+00:00",
+            selection="home",
+            price=2.0,
+            stage="T-10",
+        ))
+        rows.append(_final(fid, home=2, away=1))
+    for fid in range(21, 41):
+        rows.append(_watch(
+            fid,
+            "2026-09-20T17:40:00+00:00",
+            "2026-09-20T18:00:00+00:00",
+            selection="away",
+            price=2.0,
+            stage="T-20",
+        ))
+        rows.append(_final(fid, home=2, away=1))
+
+    _, summary = v.build(rows)
+    family = summary["by_market_family"]["FT_1X2"]
+
+    assert family["directional_stages"] == ["T-10", "T-20"]
+    assert family["positive_directional_stages"] == ["T-10"]
+    assert family["negative_directional_stages"] == ["T-20"]
+    assert family["by_stage"]["T-10"]["shadow_roi_per_settled_unit"] == 1.0
+    assert family["by_stage"]["T-20"]["shadow_roi_per_settled_unit"] == -1.0
