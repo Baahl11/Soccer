@@ -68,7 +68,7 @@ jobs:
                   }
                   audit=d.get('formation_eligibility_audit') or {}
                   summary['formation_eligibility_audit']={
-                      'audit_schema': 'formation_eligibility_v2',
+                      'audit_schema': 'formation_eligibility_v2_1',
                       'oos_evaluations': audit.get('oos_evaluations'),
                       'formation_adjusted_evaluations': audit.get('formation_adjusted_evaluations'),
                       'excluded_from_formation_adjustment': audit.get('excluded_from_formation_adjustment'),
