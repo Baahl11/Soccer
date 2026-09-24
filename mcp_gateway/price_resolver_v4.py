@@ -255,6 +255,26 @@ def _binary_calibrated_probability(
     return calibration_v4.calibrate_probability(raw_probability, calibrator)
 
 
+
+
+def _one_x_two_selection_discrimination_ready(
+    selection: str,
+    *,
+    calibration_state: dict[str, Any],
+    model_version: str | None,
+) -> bool:
+    target_map = {"Home": "home_win", "Draw": "draw", "Away": "away_win"}
+    target = target_map.get(selection.title())
+    if target is None:
+        return False
+    report = calibration_state.get("binary") if isinstance(calibration_state.get("binary"), dict) else {}
+    if str(report.get("current_source_model_version") or "") != str(model_version or ""):
+        return False
+    targets = report.get("current_model_deployment_calibrators")
+    target_report = targets.get(target) if isinstance(targets, dict) and isinstance(targets.get(target), dict) else {}
+    return target_report.get("eligible_for_phase16_research") is True
+
+
 def _multiclass_calibrated_probabilities(
     event: dict[str, Any],
     *,
@@ -329,6 +349,14 @@ def _apply_phase16_calibration(
             policy = "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
 
     elif family == "1X2":
+        if not _one_x_two_selection_discrimination_ready(
+            selection,
+            calibration_state=calibration_state,
+            model_version=model_version,
+        ):
+            row["phase16_calibration_status"] = "SELECTION_DISCRIMINATION_NOT_READY"
+            row["phase16_calibration_policy"] = "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50"
+            return None
         scaled = _multiclass_calibrated_probabilities(
             event,
             calibration_state=calibration_state,
@@ -337,7 +365,7 @@ def _apply_phase16_calibration(
         calibrated = scaled.get(selection.title())
         if calibrated is not None:
             source = "CURRENT_MODEL_OOS_TEMPERATURE:1X2"
-            policy = "MULTICLASS_TEMPERATURE_CURRENT_OOS"
+            policy = "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50"
 
     if calibrated is None:
         row["phase16_calibration_status"] = "CALIBRATION_NOT_AVAILABLE_FOR_CURRENT_MODEL"
