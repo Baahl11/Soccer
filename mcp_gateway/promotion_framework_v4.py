@@ -6,8 +6,8 @@ import math
 import os
 from typing import Any
 
-SCHEMA_VERSION = "1.2.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.3.0"
+SCHEMA_VERSION = "1.3.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.4.0"
 
 STATES = (
     "DORMANT",
@@ -171,6 +171,42 @@ def _shadow_for_family(shadow_performance: dict[str, Any], aliases: tuple[str, .
     }
 
 
+def _promotion_shadow_for_family(
+    family: str,
+    shadow_selection_diagnostics: dict[str, Any],
+) -> dict[str, Any]:
+    if family != "1X2":
+        return {
+            "settled": 0,
+            "shadow_roi_per_settled_unit": None,
+            "sample_status": "QUALITY_DIAGNOSTICS_NOT_IMPLEMENTED",
+            "negative_directional_stages": [],
+            "evidence_source": None,
+        }
+
+    if _norm(shadow_selection_diagnostics.get("market_family")) != "FT_1X2":
+        return {
+            "settled": 0,
+            "shadow_roi_per_settled_unit": None,
+            "sample_status": "QUALITY_DIAGNOSTICS_MISSING",
+            "negative_directional_stages": [],
+            "evidence_source": None,
+        }
+
+    evidence = (
+        shadow_selection_diagnostics.get("promotion_evaluable")
+        if isinstance(shadow_selection_diagnostics.get("promotion_evaluable"), dict)
+        else {}
+    )
+    return {
+        "settled": int(evidence.get("settled") or 0),
+        "shadow_roi_per_settled_unit": _num(evidence.get("roi_per_settled_unit")),
+        "sample_status": str(evidence.get("sample_status") or "DATA_BLOCKED"),
+        "negative_directional_stages": list(evidence.get("negative_directional_stages") or []),
+        "evidence_source": "SHADOW_SELECTION_DIAGNOSTICS:PROMOTION_EVALUABLE",
+    }
+
+
 def _stability_for_family(stability_report: dict[str, Any], keys: tuple[str, ...]) -> dict[str, Any]:
     families = stability_report.get("families")
     if not isinstance(families, dict):
@@ -275,13 +311,13 @@ def review_market(
     if stability_status != "STABILITY_REVIEW_READY":
         blockers.append(f"STABILITY_{stability_status or 'MISSING'}")
     if shadow_settled < DIRECTIONAL_READ_MIN:
-        blockers.append(f"SHADOW_SETTLED_{shadow_settled}_LT_DIRECTIONAL_{DIRECTIONAL_READ_MIN}")
+        blockers.append(f"PROMOTION_SHADOW_SETTLED_{shadow_settled}_LT_DIRECTIONAL_{DIRECTIONAL_READ_MIN}")
     elif shadow_roi_per_settled_unit is None:
-        blockers.append("SHADOW_ROI_MISSING")
+        blockers.append("PROMOTION_SHADOW_ROI_MISSING")
     elif shadow_roi_per_settled_unit <= 0:
-        blockers.append("SHADOW_ROI_NOT_POSITIVE")
+        blockers.append("PROMOTION_SHADOW_ROI_NOT_POSITIVE")
     if shadow_negative_directional_stages:
-        blockers.append("SHADOW_NEGATIVE_DIRECTIONAL_STAGES:" + ",".join(shadow_negative_directional_stages))
+        blockers.append("PROMOTION_SHADOW_NEGATIVE_DIRECTIONAL_STAGES:" + ",".join(shadow_negative_directional_stages))
     blockers.extend(f"VALIDATION:{value}" for value in validation_blockers)
 
     tier_review_eligibility = {
@@ -290,9 +326,9 @@ def review_market(
         "tier_a_review": unique_fixtures >= TIER_A_REVIEW_MIN and settled >= TIER_A_REVIEW_MIN,
         "tier_s_review": unique_fixtures >= TIER_S_REVIEW_MIN and settled >= TIER_S_REVIEW_MIN,
         "model_weight_change_review": unique_fixtures >= MODEL_WEIGHT_CHANGE_MIN,
-        "shadow_directional_read": shadow_settled >= DIRECTIONAL_READ_MIN,
-        "shadow_review": shadow_settled >= TIER_B_REVIEW_MIN and shadow_roi_per_settled_unit is not None and shadow_roi_per_settled_unit > 0,
-        "shadow_stage_stability": not shadow_negative_directional_stages,
+        "promotion_shadow_directional_read": shadow_settled >= DIRECTIONAL_READ_MIN,
+        "promotion_shadow_review": shadow_settled >= TIER_B_REVIEW_MIN and shadow_roi_per_settled_unit is not None and shadow_roi_per_settled_unit > 0,
+        "promotion_shadow_stage_stability": not shadow_negative_directional_stages,
     }
 
     collapse = (
@@ -339,10 +375,10 @@ def review_market(
         "true_clv_rows": clv_rows,
         "avg_true_clv_probability_pp": avg_clv_pp,
         "stability_status": stability_status or "MISSING",
-        "shadow_settled": shadow_settled,
-        "shadow_roi_per_settled_unit": shadow_roi_per_settled_unit,
-        "shadow_sample_status": shadow_sample_status,
-        "shadow_negative_directional_stages": shadow_negative_directional_stages,
+        "promotion_shadow_settled": shadow_settled,
+        "promotion_shadow_roi_per_settled_unit": shadow_roi_per_settled_unit,
+        "promotion_shadow_sample_status": shadow_sample_status,
+        "promotion_shadow_negative_directional_stages": shadow_negative_directional_stages,
         "validation_blockers": validation_blockers,
         "tier_review_eligibility": tier_review_eligibility,
         "manual_approval_present": bool(manual_approval),
@@ -357,6 +393,7 @@ def build_report(
     stability_report: dict[str, Any],
     validation_reports: dict[str, dict[str, Any]],
     shadow_performance: dict[str, Any] | None = None,
+    shadow_selection_diagnostics: dict[str, Any] | None = None,
     *,
     current_states: dict[str, str] | None = None,
     manual_approvals: dict[str, bool] | None = None,
@@ -364,6 +401,11 @@ def build_report(
     current_states = current_states or {}
     manual_approvals = manual_approvals or {}
     shadow_performance = shadow_performance if isinstance(shadow_performance, dict) else {}
+    shadow_selection_diagnostics = (
+        shadow_selection_diagnostics
+        if isinstance(shadow_selection_diagnostics, dict)
+        else {}
+    )
 
     reviews: list[dict[str, Any]] = []
     for family, spec in FAMILY_SPECS.items():
@@ -374,7 +416,8 @@ def build_report(
         avg_clv = _num(overall.get("fixture_weighted_avg_probability_clv_pp"))
 
         perf = _performance_for_family(market_performance, tuple(spec["performance_aliases"]))
-        shadow = _shadow_for_family(shadow_performance, tuple(spec["performance_aliases"]))
+        watch_shadow = _shadow_for_family(shadow_performance, tuple(spec["performance_aliases"]))
+        promotion_shadow = _promotion_shadow_for_family(family, shadow_selection_diagnostics)
         settled = int(perf.get("settled") or 0)
         roi_per = _num(perf.get("roi_per_decision_units"))
         roi_units = _num(perf.get("roi_units"))
@@ -394,16 +437,21 @@ def build_report(
             clv_rows=clv_rows,
             avg_clv_pp=avg_clv,
             stability_status=str(stability.get("status") or "MISSING"),
-            shadow_settled=int(shadow.get("settled") or 0),
-            shadow_roi_per_settled_unit=_num(shadow.get("shadow_roi_per_settled_unit")),
-            shadow_sample_status=str(shadow.get("sample_status") or "MISSING"),
-            shadow_negative_directional_stages=list(shadow.get("negative_directional_stages") or []),
+            shadow_settled=int(promotion_shadow.get("settled") or 0),
+            shadow_roi_per_settled_unit=_num(promotion_shadow.get("shadow_roi_per_settled_unit")),
+            shadow_sample_status=str(promotion_shadow.get("sample_status") or "MISSING"),
+            shadow_negative_directional_stages=list(promotion_shadow.get("negative_directional_stages") or []),
             validation_blockers=blockers,
             current_state=current_states.get(family, "RESEARCH"),
             manual_approval=bool(manual_approvals.get(family, False)),
         )
         review["validation_status"] = validation.get("status")
         review["validation_model_version"] = validation.get("model_version")
+        review["promotion_shadow_evidence_source"] = promotion_shadow.get("evidence_source")
+        review["watch_shadow_settled"] = int(watch_shadow.get("settled") or 0)
+        review["watch_shadow_roi_per_settled_unit"] = _num(watch_shadow.get("shadow_roi_per_settled_unit"))
+        review["watch_shadow_sample_status"] = str(watch_shadow.get("sample_status") or "MISSING")
+        review["watch_shadow_negative_directional_stages"] = list(watch_shadow.get("negative_directional_stages") or [])
         reviews.append(review)
 
     counts: dict[str, int] = {}
@@ -426,9 +474,10 @@ def build_report(
             "tier_s_review": TIER_S_REVIEW_MIN,
             "model_weight_change": MODEL_WEIGHT_CHANGE_MIN,
             "settlements_required_in_parallel": True,
-            "shadow_directional_minimum": DIRECTIONAL_READ_MIN,
-            "shadow_review_minimum": TIER_B_REVIEW_MIN,
-            "shadow_roi_must_be_positive_for_lean_eligibility": True,
+            "promotion_shadow_directional_minimum": DIRECTIONAL_READ_MIN,
+            "promotion_shadow_review_minimum": TIER_B_REVIEW_MIN,
+            "promotion_shadow_roi_must_be_positive_for_lean_eligibility": True,
+            "watch_alert_rows_do_not_count_toward_promotion": True,
         },
         "automatic_report": True,
         "manual_approval_required": True,
@@ -444,7 +493,8 @@ def build_report(
         "notes": [
             "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
             "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
-            "WATCH shadow evidence is separate from real settlements; at least 20 shadow settlements, positive hypothetical ROI, and no negative directional shadow stage are required before LEAN_ELIGIBLE can be considered.",
+            "WATCH shadow observations remain research diagnostics and do not count toward promotion unless a market-specific quality diagnostic marks them promotion-evaluable.",
+            "For 1X2, only clean ADVANCED_TIER_CAP rows without discrepancy or observed availability/XI gates count as promotion shadow evidence.",
             "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
             "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV.",
         ],
@@ -464,6 +514,7 @@ def main() -> None:
     parser.add_argument("--market-performance", required=True)
     parser.add_argument("--stability-report", required=True)
     parser.add_argument("--shadow-performance")
+    parser.add_argument("--shadow-selection-diagnostics")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
@@ -472,6 +523,7 @@ def main() -> None:
         _load_json(args.stability_report),
         _load_validation_reports(args.analysis_dir),
         _load_json(args.shadow_performance) if args.shadow_performance else {},
+        _load_json(args.shadow_selection_diagnostics) if args.shadow_selection_diagnostics else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
