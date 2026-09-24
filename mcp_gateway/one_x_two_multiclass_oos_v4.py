@@ -4,6 +4,7 @@ import argparse
 import json
 import math
 import os
+import re
 from collections import Counter
 from datetime import datetime
 from typing import Any, Iterable
@@ -114,9 +115,20 @@ def fit_temperature(train: list[tuple[tuple[float, float, float], int]]) -> floa
     return round(min(fine, key=lambda temp: (loss(temp), abs(temp - 1.0))), 6)
 
 
+def _semantic_version(value: str) -> tuple[int, ...] | None:
+    match = re.search(r"\\bv(\\d+(?:\\.\\d+)*)\\b", str(value), re.I)
+    if not match:
+        return None
+    try:
+        return tuple(int(part) for part in match.group(1).split("."))
+    except ValueError:
+        return None
+
+
 def _current_model_rows(rows: Iterable[dict[str, Any]]) -> tuple[str | None, list[dict[str, Any]], dict[str, int]]:
     valid = []
     version_counts: Counter[str] = Counter()
+    latest_timestamp_by_version: dict[str, datetime] = {}
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -126,14 +138,29 @@ def _current_model_rows(rows: Iterable[dict[str, Any]]) -> tuple[str | None, lis
             continue
         version = str(row.get("model_version") or "UNKNOWN")
         version_counts[version] += 1
+        prior = latest_timestamp_by_version.get(version)
+        if prior is None or timestamp > prior:
+            latest_timestamp_by_version[version] = timestamp
         valid.append((timestamp, version, row))
 
-    valid.sort(key=lambda item: item[0])
     if not valid:
         return None, [], dict(version_counts)
 
-    current_version = valid[-1][1]
+    semantic_versions = [
+        (parsed, version)
+        for version in version_counts
+        if (parsed := _semantic_version(version)) is not None
+    ]
+    if semantic_versions:
+        current_version = max(semantic_versions, key=lambda item: item[0])[1]
+    else:
+        current_version = max(
+            latest_timestamp_by_version,
+            key=lambda version: latest_timestamp_by_version[version],
+        )
+
     selected = [row for _, version, row in valid if version == current_version]
+    selected.sort(key=lambda row: _parse_dt(row.get("run_timestamp")) or datetime.min)
     return current_version, selected, dict(sorted(version_counts.items()))
 
 
