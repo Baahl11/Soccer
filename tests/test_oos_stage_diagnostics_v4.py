@@ -73,3 +73,83 @@ def test_current_model_deployment_calibrators_are_research_only():
     assert calibrators["home_win"]["runtime_prediction_weight"] == 0.0
     assert calibrators["home_win"]["rows"] == 260
     assert calibrators["btts"]["rows"] == 260
+
+
+def test_auc_discrimination_gate_blocks_prior_only_calibration(monkeypatch):
+    rows = []
+    for fid in range(1, 301):
+        outcome = 1 if fid % 2 == 0 else 0
+        rows.append({
+            "fixture_id": fid,
+            "run_type": "T-10",
+            "model_version": "SOCCER EDGE ENGINE v1.7",
+            "predictions": {
+                "home_win": 0.5,
+                "draw": 0.25,
+                "away_win": 0.25,
+                "btts": 0.5,
+                "over_2_5": 0.5,
+            },
+            "outcomes": {
+                "home_win": outcome,
+                "draw": 1 - outcome,
+                "away_win": 0,
+                "btts": outcome,
+                "over_2_5": outcome,
+            },
+        })
+
+    monkeypatch.setattr(
+        v.calibration_v4,
+        "calibration_report",
+        lambda observations: {
+            "calibrator": {"status": "RESEARCH_CALIBRATOR_FITTED"},
+            "brier_delta": -0.01,
+            "log_loss_delta": -0.01,
+        },
+    )
+    calibrators = v._current_model_deployment_calibrators(rows)
+    assert calibrators["btts"]["discrimination"]["auc"] == 0.5
+    assert calibrators["btts"]["discrimination"]["discrimination_ready"] is False
+    assert calibrators["btts"]["eligible_for_phase16_research"] is False
+
+
+def test_auc_discrimination_gate_allows_clear_signal(monkeypatch):
+    rows = []
+    for fid in range(1, 301):
+        outcome = 1 if fid % 2 == 0 else 0
+        p = 0.8 if outcome else 0.2
+        rows.append({
+            "fixture_id": fid,
+            "run_type": "T-10",
+            "model_version": "SOCCER EDGE ENGINE v1.7",
+            "predictions": {
+                "home_win": p,
+                "draw": 0.1,
+                "away_win": 0.9 - p,
+                "btts": p,
+                "over_2_5": p,
+            },
+            "outcomes": {
+                "home_win": outcome,
+                "draw": 0,
+                "away_win": 1 - outcome,
+                "btts": outcome,
+                "over_2_5": outcome,
+            },
+        })
+
+    monkeypatch.setattr(
+        v.calibration_v4,
+        "calibration_report",
+        lambda observations: {
+            "calibrator": {"status": "RESEARCH_CALIBRATOR_FITTED"},
+            "brier_delta": -0.01,
+            "log_loss_delta": -0.01,
+        },
+    )
+    calibrators = v._current_model_deployment_calibrators(rows)
+    assert calibrators["btts"]["discrimination"]["auc"] == 1.0
+    assert calibrators["btts"]["discrimination"]["auc_lower_95"] > 0.5
+    assert calibrators["btts"]["discrimination"]["discrimination_ready"] is True
+    assert calibrators["btts"]["eligible_for_phase16_research"] is True
