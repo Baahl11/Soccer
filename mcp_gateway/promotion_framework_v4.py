@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
-import re
 from typing import Any
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.1.0"
 
 STATES = (
     "DORMANT",
@@ -25,236 +25,72 @@ TIER_B_REVIEW_MIN = 50
 TIER_A_REVIEW_MIN = 100
 TIER_S_REVIEW_MIN = 200
 MODEL_WEIGHT_CHANGE_MIN = 200
-
 PRODUCTION_STATES = {"TIER_B", "TIER_A", "TIER_S"}
+
+FAMILY_SPECS = {
+    "FT_TOTALS": {
+        "validation_file": "v4_016_ft_totals_production_validation.json",
+        "stability_keys": ("FT_TOTALS",),
+        "performance_aliases": ("FT_TOTALS",),
+    },
+    "1X2": {
+        "validation_file": "v4_017_1x2_calibration_validation.json",
+        "stability_keys": ("1X2", "FT_1X2"),
+        "performance_aliases": ("FT_1X2", "1X2"),
+    },
+    "BTTS": {
+        "validation_file": "v4_018_btts_calibration_validation.json",
+        "stability_keys": ("BTTS",),
+        "performance_aliases": ("BTTS", "FT_BTTS"),
+    },
+    "TEAM_TOTALS": {
+        "validation_file": "v4_019_team_totals_oos_validation.json",
+        "stability_keys": ("TEAM_TOTALS", "HOME_TT", "AWAY_TT"),
+        "performance_aliases": ("TEAM_TOTALS", "HOME_TT", "AWAY_TT"),
+    },
+    "1H": {
+        "validation_file": "v4_020_1h_oos_validation.json",
+        "stability_keys": ("1H",),
+        "performance_aliases": ("1H", "1H_TOTALS", "1H_OTHER"),
+    },
+    "2H": {
+        "validation_file": "v4_021_2h_oos_validation.json",
+        "stability_keys": ("2H",),
+        "performance_aliases": ("2H", "2H_TOTALS", "2H_BTTS"),
+    },
+    "FT_CORNERS": {
+        "validation_file": "v4_022_corners_oos_validation.json",
+        "stability_keys": ("FT_CORNERS",),
+        "performance_aliases": ("FT_CORNERS", "CORNERS"),
+    },
+    "TEAM_CORNERS": {
+        "validation_file": "v4_022_corners_oos_validation.json",
+        "stability_keys": ("TEAM_CORNERS",),
+        "performance_aliases": ("TEAM_CORNERS",),
+    },
+    "CARDS": {
+        "validation_file": "phase14_cards_referee_validation.json",
+        "stability_keys": ("CARDS",),
+        "performance_aliases": ("CARDS", "YELLOW_CARDS", "RED_CARDS"),
+    },
+    "PLAYER_PROPS": {
+        "validation_file": "phase15_player_props_validation.json",
+        "stability_keys": ("PLAYER_PROPS", "PROPS"),
+        "performance_aliases": ("PLAYER_PROPS", "PROPS"),
+    },
+}
 
 
 def _num(value: Any) -> float | None:
     try:
-        return float(value)
+        out = float(value)
+        return out if math.isfinite(out) else None
     except (TypeError, ValueError):
         return None
 
 
 def _norm(value: Any) -> str:
-    return re.sub(r"\s+", " ", str(value or "").strip()).upper()
-
-
-def canonical_clv_family(market_name: str) -> str | None:
-    value = _norm(market_name)
-    if "MATCH WINNER" in value or value == "WINNER":
-        return "FT_1X2"
-    if "BOTH TEAMS" in value or "BTTS" in value:
-        return "BTTS"
-    if any(token in value for token in ("FIRST HALF", "1ST HALF", "1H")):
-        return "1H"
-    if any(token in value for token in ("SECOND HALF", "2ND HALF", "2H")):
-        return "2H"
-    if "CORNER" in value:
-        return "CORNERS"
-    if "CARD" in value or "BOOKING" in value:
-        return "CARDS"
-    if "PLAYER" in value or "SHOTS ON TARGET" in value or "GOALKEEPER SAVES" in value:
-        return "PROPS"
-    if "TEAM TOTAL" in value or "TEAM GOALS" in value:
-        return "TEAM_TOTALS"
-    if "GOALS OVER/UNDER" in value or "OVER/UNDER" in value:
-        return "FT_TOTALS"
-    return None
-
-
-def family_clv_from_phase17(clv_report: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    raw = clv_report.get("by_market") if isinstance(clv_report.get("by_market"), dict) else {}
-    accum: dict[str, dict[str, float]] = {}
-    for market_name, metrics in raw.items():
-        if not isinstance(metrics, dict):
-            continue
-        family = canonical_clv_family(str(market_name))
-        if family is None:
-            continue
-        rows = int(metrics.get("rows") or 0)
-        avg = _num(metrics.get("avg_probability_clv_pp"))
-        if family not in accum:
-            accum[family] = {"rows": 0.0, "weighted": 0.0, "known_rows": 0.0}
-        accum[family]["rows"] += rows
-        if avg is not None and rows > 0:
-            accum[family]["weighted"] += avg * rows
-            accum[family]["known_rows"] += rows
-
-    out: dict[str, dict[str, Any]] = {}
-    for family, values in accum.items():
-        known_rows = int(values["known_rows"])
-        out[family] = {
-            "rows": int(values["rows"]),
-            "avg_probability_clv_pp": round(values["weighted"] / known_rows, 6) if known_rows else None,
-        }
-    return out
-
-
-def review_market(
-    *,
-    market_family: str,
-    settled: int,
-    roi_per_settled_unit: float | None,
-    clv_rows: int,
-    avg_clv_pp: float | None,
-    oos_framework_ready: bool,
-    current_state: str = "RESEARCH",
-    manual_approval: bool = False,
-) -> dict[str, Any]:
-    current = _norm(current_state)
-    if current not in STATES:
-        current = "RESEARCH"
-
-    blockers: list[str] = []
-    warnings: list[str] = []
-
-    if settled < DIRECTIONAL_READ_MIN:
-        blockers.append(f"SETTLED_{settled}_LT_DIRECTIONAL_{DIRECTIONAL_READ_MIN}")
-    if settled < TIER_B_REVIEW_MIN:
-        blockers.append(f"SETTLED_{settled}_LT_TIER_B_REVIEW_{TIER_B_REVIEW_MIN}")
-    if clv_rows < TIER_B_REVIEW_MIN:
-        blockers.append(f"TRUE_CLV_{clv_rows}_LT_DIRECTIONAL_{TIER_B_REVIEW_MIN}")
-    if roi_per_settled_unit is None:
-        blockers.append("ROI_MISSING")
-    elif roi_per_settled_unit <= 0:
-        blockers.append("ROI_NOT_POSITIVE")
-    if avg_clv_pp is None:
-        blockers.append("FAMILY_CLV_MISSING")
-    elif avg_clv_pp < 0:
-        blockers.append("FAMILY_CLV_NEGATIVE")
-    if not oos_framework_ready:
-        blockers.append("OOS_FRAMEWORK_NOT_READY")
-
-    tier_review_eligibility = {
-        "directional_read": settled >= DIRECTIONAL_READ_MIN,
-        "tier_b_review": settled >= TIER_B_REVIEW_MIN,
-        "tier_a_review": settled >= TIER_A_REVIEW_MIN,
-        "tier_s_review": settled >= TIER_S_REVIEW_MIN,
-        "model_weight_change_review": settled >= MODEL_WEIGHT_CHANGE_MIN,
-    }
-
-    collapse = (
-        current in PRODUCTION_STATES
-        and settled >= TIER_B_REVIEW_MIN
-        and roi_per_settled_unit is not None
-        and roi_per_settled_unit < 0
-        and avg_clv_pp is not None
-        and avg_clv_pp < 0
-    )
-
-    if collapse:
-        recommended_state = "DEMOTED"
-        automatic_demotion_candidate = True
-    elif settled < DIRECTIONAL_READ_MIN:
-        recommended_state = "RESEARCH"
-        automatic_demotion_candidate = False
-    elif blockers:
-        recommended_state = "SHADOW"
-        automatic_demotion_candidate = False
-    elif not manual_approval:
-        recommended_state = "LEAN_ELIGIBLE"
-        automatic_demotion_candidate = False
-        warnings.append("MANUAL_APPROVAL_REQUIRED_FOR_PRODUCTION_TIER")
-    else:
-        if settled >= TIER_S_REVIEW_MIN:
-            recommended_state = "TIER_S"
-        elif settled >= TIER_A_REVIEW_MIN:
-            recommended_state = "TIER_A"
-        elif settled >= TIER_B_REVIEW_MIN:
-            recommended_state = "TIER_B"
-        else:
-            recommended_state = "LEAN_ELIGIBLE"
-        automatic_demotion_candidate = False
-
-    return {
-        "market_family": market_family,
-        "current_state": current,
-        "recommended_state": recommended_state,
-        "settled": settled,
-        "roi_per_settled_unit": roi_per_settled_unit,
-        "true_clv_rows": clv_rows,
-        "avg_true_clv_probability_pp": avg_clv_pp,
-        "oos_framework_ready": oos_framework_ready,
-        "tier_review_eligibility": tier_review_eligibility,
-        "manual_approval_present": bool(manual_approval),
-        "automatic_demotion_candidate": automatic_demotion_candidate,
-        "blockers": blockers,
-        "warnings": warnings,
-    }
-
-
-def build_report(
-    market_performance: dict[str, Any],
-    clv_report: dict[str, Any],
-    oos_report: dict[str, Any],
-    *,
-    current_states: dict[str, str] | None = None,
-    manual_approvals: dict[str, bool] | None = None,
-) -> dict[str, Any]:
-    current_states = current_states or {}
-    manual_approvals = manual_approvals or {}
-    by_family = market_performance.get("by_market_family") if isinstance(market_performance.get("by_market_family"), dict) else {}
-    clv_by_family = family_clv_from_phase17(clv_report)
-    oos_ready = oos_report.get("status") == "OOS_FRAMEWORK_READY_FOR_MODEL_PREDICTIONS"
-
-    reviews: list[dict[str, Any]] = []
-    for family, perf in sorted(by_family.items()):
-        if not isinstance(perf, dict):
-            continue
-        settled = int(perf.get("settled") or 0)
-        roi_units = _num(perf.get("roi_units"))
-        roi_per = _num(perf.get("roi_per_decision_units"))
-        if roi_per is None and roi_units is not None and settled > 0:
-            roi_per = roi_units / settled
-        clv = clv_by_family.get(family, {"rows": 0, "avg_probability_clv_pp": None})
-        reviews.append(review_market(
-            market_family=family,
-            settled=settled,
-            roi_per_settled_unit=roi_per,
-            clv_rows=int(clv.get("rows") or 0),
-            avg_clv_pp=_num(clv.get("avg_probability_clv_pp")),
-            oos_framework_ready=oos_ready,
-            current_state=current_states.get(family, "RESEARCH"),
-            manual_approval=bool(manual_approvals.get(family, False)),
-        ))
-
-    counts: dict[str, int] = {}
-    for review in reviews:
-        state = review["recommended_state"]
-        counts[state] = counts.get(state, 0) + 1
-
-    return {
-        "schema_version": SCHEMA_VERSION,
-        "model_version": MODEL_VERSION,
-        "phase": "FASE_19_PROMOTION_FRAMEWORK",
-        "status": "PROMOTION_REVIEW_FRAMEWORK_ACTIVE",
-        "states": list(STATES),
-        "sample_policy": {
-            "directional_read": DIRECTIONAL_READ_MIN,
-            "tier_b_review_preferred": TIER_B_REVIEW_MIN,
-            "tier_a_review": TIER_A_REVIEW_MIN,
-            "tier_s_review": TIER_S_REVIEW_MIN,
-            "model_weight_change": MODEL_WEIGHT_CHANGE_MIN,
-        },
-        "automatic_report": True,
-        "manual_approval_required": True,
-        "automatic_promotion_allowed": False,
-        "automatic_demotion_allowed_under_safety_policy": True,
-        "runtime_state_mutation_enabled": False,
-        "production_promotion_allowed": False,
-        "provider_requests_added": 0,
-        "model_weights_changed": False,
-        "canonical_bet_logic_changed": False,
-        "oos_framework_ready": oos_ready,
-        "market_family_reviews": reviews,
-        "recommended_state_counts": counts,
-        "notes": [
-            "No market is automatically promoted. Tier B/A/S requires explicit manual approval after evidence gates pass.",
-            "Automatic demotion may be flagged only for an already-production market with >=50 settled decisions and both negative ROI and negative family-specific CLV.",
-            "Sample thresholds follow the V4 master roadmap: 20 directional, 50 Tier B review, 100 Tier A, 200 Tier S/model-weight review.",
-        ],
-    }
+    return " ".join(str(value or "").strip().upper().split())
 
 
 def _load_json(path: str) -> dict[str, Any]:
@@ -265,23 +101,304 @@ def _load_json(path: str) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
+def _validation_blockers(report: dict[str, Any]) -> list[str]:
+    blockers = report.get("blockers")
+    if not isinstance(blockers, list):
+        return []
+    return [str(value) for value in blockers if value]
+
+
+def _performance_for_family(market_performance: dict[str, Any], aliases: tuple[str, ...]) -> dict[str, Any]:
+    by_family = market_performance.get("by_market_family")
+    if not isinstance(by_family, dict):
+        return {}
+    wanted = {_norm(value) for value in aliases}
+    for key, value in by_family.items():
+        if _norm(key) in wanted and isinstance(value, dict):
+            return value
+    return {}
+
+
+def _stability_for_family(stability_report: dict[str, Any], keys: tuple[str, ...]) -> dict[str, Any]:
+    families = stability_report.get("families")
+    if not isinstance(families, dict):
+        return {}
+
+    matches = [families[key] for key in keys if isinstance(families.get(key), dict)]
+    if not matches:
+        return {}
+    if len(matches) == 1:
+        return matches[0]
+
+    overalls = [value.get("overall") for value in matches if isinstance(value.get("overall"), dict)]
+    rows = sum(int(value.get("rows") or 0) for value in overalls)
+    # Conservative for combined home/away families: do not sum unique fixtures,
+    # because the same fixture can contribute to both sides.
+    unique_fixtures = max((int(value.get("unique_fixtures") or 0) for value in overalls), default=0)
+    weighted_parts = []
+    for value in overalls:
+        n = int(value.get("rows") or 0)
+        clv = _num(value.get("fixture_weighted_avg_probability_clv_pp"))
+        if n > 0 and clv is not None:
+            weighted_parts.append((n, clv))
+    avg_clv = (
+        sum(n * clv for n, clv in weighted_parts) / sum(n for n, _ in weighted_parts)
+        if weighted_parts else None
+    )
+
+    negative_leagues = sorted({
+        item
+        for value in matches
+        for item in (value.get("negative_directional_leagues") or [])
+    })
+    negative_stages = sorted({
+        item
+        for value in matches
+        for item in (value.get("negative_directional_stages") or [])
+    })
+
+    if unique_fixtures < DIRECTIONAL_READ_MIN:
+        status = "DATA_BLOCKED"
+    elif unique_fixtures < TIER_B_REVIEW_MIN:
+        status = "DIRECTIONAL_ONLY"
+    elif negative_leagues or negative_stages:
+        status = "SEGMENT_REVIEW"
+    else:
+        status = "STABILITY_REVIEW_READY"
+
+    return {
+        "status": status,
+        "overall": {
+            "rows": rows,
+            "unique_fixtures": unique_fixtures,
+            "fixture_weighted_avg_probability_clv_pp": round(avg_clv, 6) if avg_clv is not None else None,
+        },
+        "negative_directional_leagues": negative_leagues,
+        "negative_directional_stages": negative_stages,
+    }
+
+
+def review_market(
+    *,
+    market_family: str,
+    unique_fixtures: int,
+    settled: int,
+    roi_per_settled_unit: float | None,
+    clv_rows: int,
+    avg_clv_pp: float | None,
+    stability_status: str,
+    validation_blockers: list[str] | None = None,
+    current_state: str = "RESEARCH",
+    manual_approval: bool = False,
+) -> dict[str, Any]:
+    current = _norm(current_state)
+    if current not in STATES:
+        current = "RESEARCH"
+    validation_blockers = list(validation_blockers or [])
+
+    blockers: list[str] = []
+    warnings: list[str] = []
+
+    if unique_fixtures < DIRECTIONAL_READ_MIN:
+        blockers.append(f"UNIQUE_FIXTURES_{unique_fixtures}_LT_DIRECTIONAL_{DIRECTIONAL_READ_MIN}")
+    if unique_fixtures < TIER_B_REVIEW_MIN:
+        blockers.append(f"UNIQUE_FIXTURES_{unique_fixtures}_LT_TIER_B_REVIEW_{TIER_B_REVIEW_MIN}")
+    if settled < DIRECTIONAL_READ_MIN:
+        blockers.append(f"SETTLED_{settled}_LT_DIRECTIONAL_{DIRECTIONAL_READ_MIN}")
+    if settled < TIER_B_REVIEW_MIN:
+        blockers.append(f"SETTLED_{settled}_LT_TIER_B_REVIEW_{TIER_B_REVIEW_MIN}")
+    if clv_rows <= 0 or avg_clv_pp is None:
+        blockers.append("FAMILY_TRUE_CLV_MISSING")
+    elif avg_clv_pp < 0:
+        blockers.append("FAMILY_TRUE_CLV_NEGATIVE")
+    if roi_per_settled_unit is None:
+        blockers.append("ROI_MISSING")
+    elif roi_per_settled_unit <= 0:
+        blockers.append("ROI_NOT_POSITIVE")
+    if stability_status != "STABILITY_REVIEW_READY":
+        blockers.append(f"STABILITY_{stability_status or 'MISSING'}")
+    blockers.extend(f"VALIDATION:{value}" for value in validation_blockers)
+
+    tier_review_eligibility = {
+        "directional_read": unique_fixtures >= DIRECTIONAL_READ_MIN and settled >= DIRECTIONAL_READ_MIN,
+        "tier_b_review": unique_fixtures >= TIER_B_REVIEW_MIN and settled >= TIER_B_REVIEW_MIN,
+        "tier_a_review": unique_fixtures >= TIER_A_REVIEW_MIN and settled >= TIER_A_REVIEW_MIN,
+        "tier_s_review": unique_fixtures >= TIER_S_REVIEW_MIN and settled >= TIER_S_REVIEW_MIN,
+        "model_weight_change_review": unique_fixtures >= MODEL_WEIGHT_CHANGE_MIN,
+    }
+
+    collapse = (
+        current in PRODUCTION_STATES
+        and unique_fixtures >= TIER_B_REVIEW_MIN
+        and settled >= TIER_B_REVIEW_MIN
+        and roi_per_settled_unit is not None
+        and roi_per_settled_unit < 0
+        and avg_clv_pp is not None
+        and avg_clv_pp < 0
+    )
+
+    if collapse:
+        recommended_state = "DEMOTED"
+        automatic_demotion_candidate = True
+    elif unique_fixtures < DIRECTIONAL_READ_MIN:
+        recommended_state = "RESEARCH"
+        automatic_demotion_candidate = False
+    elif blockers:
+        recommended_state = "SHADOW"
+        automatic_demotion_candidate = False
+    elif not manual_approval:
+        recommended_state = "LEAN_ELIGIBLE"
+        automatic_demotion_candidate = False
+        warnings.append("MANUAL_APPROVAL_REQUIRED_FOR_PRODUCTION_TIER")
+    else:
+        if unique_fixtures >= TIER_S_REVIEW_MIN and settled >= TIER_S_REVIEW_MIN:
+            recommended_state = "TIER_S"
+        elif unique_fixtures >= TIER_A_REVIEW_MIN and settled >= TIER_A_REVIEW_MIN:
+            recommended_state = "TIER_A"
+        elif unique_fixtures >= TIER_B_REVIEW_MIN and settled >= TIER_B_REVIEW_MIN:
+            recommended_state = "TIER_B"
+        else:
+            recommended_state = "LEAN_ELIGIBLE"
+        automatic_demotion_candidate = False
+
+    return {
+        "market_family": market_family,
+        "current_state": current,
+        "recommended_state": recommended_state,
+        "unique_fixtures": unique_fixtures,
+        "settled": settled,
+        "roi_per_settled_unit": roi_per_settled_unit,
+        "true_clv_rows": clv_rows,
+        "avg_true_clv_probability_pp": avg_clv_pp,
+        "stability_status": stability_status or "MISSING",
+        "validation_blockers": validation_blockers,
+        "tier_review_eligibility": tier_review_eligibility,
+        "manual_approval_present": bool(manual_approval),
+        "automatic_demotion_candidate": automatic_demotion_candidate,
+        "blockers": blockers,
+        "warnings": warnings,
+    }
+
+
+def build_report(
+    market_performance: dict[str, Any],
+    stability_report: dict[str, Any],
+    validation_reports: dict[str, dict[str, Any]],
+    *,
+    current_states: dict[str, str] | None = None,
+    manual_approvals: dict[str, bool] | None = None,
+) -> dict[str, Any]:
+    current_states = current_states or {}
+    manual_approvals = manual_approvals or {}
+
+    reviews: list[dict[str, Any]] = []
+    for family, spec in FAMILY_SPECS.items():
+        stability = _stability_for_family(stability_report, tuple(spec["stability_keys"]))
+        overall = stability.get("overall") if isinstance(stability.get("overall"), dict) else {}
+        unique_fixtures = int(overall.get("unique_fixtures") or 0)
+        clv_rows = int(overall.get("rows") or 0)
+        avg_clv = _num(overall.get("fixture_weighted_avg_probability_clv_pp"))
+
+        perf = _performance_for_family(market_performance, tuple(spec["performance_aliases"]))
+        settled = int(perf.get("settled") or 0)
+        roi_per = _num(perf.get("roi_per_decision_units"))
+        roi_units = _num(perf.get("roi_units"))
+        if roi_per is None and roi_units is not None and settled > 0:
+            roi_per = roi_units / settled
+
+        validation = validation_reports.get(family) or {}
+        blockers = _validation_blockers(validation)
+        if not validation:
+            blockers.append("VALIDATION_REPORT_MISSING")
+
+        review = review_market(
+            market_family=family,
+            unique_fixtures=unique_fixtures,
+            settled=settled,
+            roi_per_settled_unit=roi_per,
+            clv_rows=clv_rows,
+            avg_clv_pp=avg_clv,
+            stability_status=str(stability.get("status") or "MISSING"),
+            validation_blockers=blockers,
+            current_state=current_states.get(family, "RESEARCH"),
+            manual_approval=bool(manual_approvals.get(family, False)),
+        )
+        review["validation_status"] = validation.get("status")
+        review["validation_model_version"] = validation.get("model_version")
+        reviews.append(review)
+
+    counts: dict[str, int] = {}
+    for review in reviews:
+        state = review["recommended_state"]
+        counts[state] = counts.get(state, 0) + 1
+
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "model_version": MODEL_VERSION,
+        "phase": "FASE_19_PROMOTION_FRAMEWORK",
+        "validation_block": "G6_PROMOTION_REPORTS",
+        "status": "PROMOTION_REVIEW_FRAMEWORK_ACTIVE",
+        "states": list(STATES),
+        "sample_policy": {
+            "primary_sample_unit": "UNIQUE_FIXTURES",
+            "directional_read": DIRECTIONAL_READ_MIN,
+            "tier_b_review_preferred": TIER_B_REVIEW_MIN,
+            "tier_a_review": TIER_A_REVIEW_MIN,
+            "tier_s_review": TIER_S_REVIEW_MIN,
+            "model_weight_change": MODEL_WEIGHT_CHANGE_MIN,
+            "settlements_required_in_parallel": True,
+        },
+        "automatic_report": True,
+        "manual_approval_required": True,
+        "automatic_promotion_allowed": False,
+        "automatic_demotion_allowed_under_safety_policy": True,
+        "runtime_state_mutation_enabled": False,
+        "production_promotion_allowed": False,
+        "provider_requests_added": 0,
+        "model_weights_changed": False,
+        "canonical_bet_logic_changed": False,
+        "market_family_reviews": reviews,
+        "recommended_state_counts": counts,
+        "notes": [
+            "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
+            "Settled decisions and ROI are required in parallel with OOS/calibration/CLV/stability evidence.",
+            "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
+            "Automatic demotion can only be flagged for an already-production market with sufficient unique fixtures and settlements plus negative ROI and negative family CLV.",
+        ],
+    }
+
+
+def _load_validation_reports(analysis_dir: str) -> dict[str, dict[str, Any]]:
+    reports: dict[str, dict[str, Any]] = {}
+    for family, spec in FAMILY_SPECS.items():
+        reports[family] = _load_json(os.path.join(analysis_dir, str(spec["validation_file"])))
+    return reports
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Phase 19 promotion framework report.")
+    parser = argparse.ArgumentParser(description="G6 / Phase 19 family-aware promotion framework report.")
+    parser.add_argument("--analysis-dir", required=True)
     parser.add_argument("--market-performance", required=True)
-    parser.add_argument("--clv-report", required=True)
-    parser.add_argument("--oos-report", required=True)
+    parser.add_argument("--stability-report", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
+
     report = build_report(
         _load_json(args.market_performance),
-        _load_json(args.clv_report),
-        _load_json(args.oos_report),
+        _load_json(args.stability_report),
+        _load_validation_reports(args.analysis_dir),
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2, sort_keys=True)
         handle.write("\n")
-    print(json.dumps(report, indent=2, sort_keys=True))
+    print(json.dumps({
+        "model_version": report["model_version"],
+        "status": report["status"],
+        "recommended_state_counts": report["recommended_state_counts"],
+        "automatic_promotion_allowed": report["automatic_promotion_allowed"],
+        "provider_requests_added": report["provider_requests_added"],
+    }, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
