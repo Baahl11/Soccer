@@ -264,8 +264,9 @@
       "status": "RESEARCH_ONLY_SAMPLE_TOO_SMALL"
     }
   },
-  "safety_note": "Corners and explicit yellow/red card markets are settled only when postgame tactical stats exist. Generic card markets remain unsupported because sportsbook card-point rules vary.",
+  "safety_note": "Postgres-native settlement is read-only. It reuses the canonical evaluate_postgame grading logic and never changes runtime classifications, tiers, stakes, model weights, or historical decisions.",
   "schema_version": "1.2.0",
   "settlement_decisions": 29,
-  "timezone_basis": "America/Mexico_City"
+  "source": "POSTGRES_SOCCER_REFRESH_EVENTS_AND_RESULTS",
+  "timezone_basis": "UTC_TIMESTAMPTZ; FIXTURE_LOCAL_LABELS_PRESERVED_IN_PAYLOAD"
 }
