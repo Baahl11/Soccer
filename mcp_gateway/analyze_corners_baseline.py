@@ -201,6 +201,7 @@ def formation_eligibility_audit(
         "selected_formation_missing_timestamp": 0,
         "matchup_present_with_any_valid_prekickoff": 0,
         "matchup_present_only_postkickoff": 0,
+        "selected_postkickoff_rows": [],
     }
 
     for row in evals:
@@ -226,6 +227,23 @@ def formation_eligibility_audit(
                     timing_integrity["selected_formation_prekickoff_or_at_kickoff"] += 1
                 else:
                     timing_integrity["selected_formation_postkickoff"] += 1
+                    pre_obs = [x for x in obs if x[0] <= kickoff_ts]
+                    latest_pre = pre_obs[-1] if pre_obs else None
+                    timing_integrity["selected_postkickoff_rows"].append({
+                        "fixture_id": fid,
+                        "league_id": row.get("league_id"),
+                        "kickoff_local": row.get("kickoff_local"),
+                        "prior_matchup_n": int(row.get("prior_matchup_n") or 0),
+                        "reported_matchup": row.get("matchup"),
+                        "selected_timestamp": selected_ts.isoformat(),
+                        "selected_matchup": f"{obs[-1][1]} vs {obs[-1][2]}",
+                        "latest_prekickoff_timestamp": (
+                            latest_pre[0].isoformat() if latest_pre else None
+                        ),
+                        "latest_prekickoff_matchup": (
+                            f"{latest_pre[1]} vs {latest_pre[2]}" if latest_pre else None
+                        ),
+                    })
             else:
                 timing_integrity["selected_formation_missing_timestamp"] += 1
 
