@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+import gc
 from datetime import datetime, timedelta, timezone
 import math
 import re
@@ -9,7 +10,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.5"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.6"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
 MIN_TRUE_CLOSE_ROWS = 50
@@ -148,7 +149,11 @@ def _load_pipeline_market_signals(conn, *, lookback_days: int, max_rows: int) ->
                 COALESCE(NULLIF(mr.row ->> 'stage', ''), e.stage) AS stage,
                 COALESCE(NULLIF(mr.row ->> 'classification', ''), e.classification) AS classification,
                 mr.row AS market_candidate,
-                e.payload AS event_payload,
+                jsonb_build_object(
+                    'tier', e.payload -> 'tier',
+                    'model_signal', e.payload -> 'model_signal',
+                    'sporting_shortlist', e.payload -> 'sporting_shortlist'
+                ) AS event_payload,
                 f.kickoff,
                 f.league,
                 f.home_team,
@@ -190,7 +195,12 @@ def _load_legacy_signals(conn, *, lookback_days: int, max_rows: int) -> list[dic
                 e.generated_at,
                 e.stage,
                 e.classification,
-                e.payload AS event_payload,
+                jsonb_build_object(
+                    'best_market', e.payload -> 'best_market',
+                    'tier', e.payload -> 'tier',
+                    'model_signal', e.payload -> 'model_signal',
+                    'sporting_shortlist', e.payload -> 'sporting_shortlist'
+                ) AS event_payload,
                 f.kickoff,
                 f.league,
                 f.home_team,
@@ -528,14 +538,33 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             lookback_days=lookback_days,
             max_rows=max_signals,
         )
+        pipeline_market_rows_loaded = len(pipeline_signals)
+        derivative_market_rows_loaded_raw = len(derivative_signals_raw)
+        derivative_market_rows_loaded = len(derivative_signals)
+        derivative_event_rows_loaded = len({
+            (row.get("fixture_id"), row.get("generated_at"))
+            for row in derivative_signals
+        })
+        legacy_signal_rows_loaded = len(legacy_signals)
+
         signals = _merge_signals(
             pipeline_signals,
             derivative_signals,
             legacy_signals,
             max_rows=max(1, int(max_signals)),
         )
+        signal_rows_considered = len(signals)
         fixture_ids = sorted({int(row["fixture_id"]) for row in signals if row.get("fixture_id") is not None})
         cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
+
+        # These source collections can each contain up to max_signals rows.
+        # All information needed below is now represented by the bounded merged
+        # signal list plus scalar/counter diagnostics.
+        del pipeline_signals
+        del derivative_signals_raw
+        del derivative_signals
+        del legacy_signals
+        gc.collect()
 
     tracked: list[dict[str, Any]] = []
     reasons: Counter[str] = Counter()
@@ -548,6 +577,8 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         fixture_id = signal.get("fixture_id")
         if fixture_id is not None:
             signals_by_fixture[int(fixture_id)].append(signal)
+    del signals
+    gc.collect()
 
     snapshot_fixture_batch_size = 50
     for batch_start in range(0, len(fixture_ids), snapshot_fixture_batch_size):
@@ -735,20 +766,17 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "model_version": MODEL_VERSION,
         "status": "ACTIVE_TRUE_CLV_SAMPLE" if len(comparable) >= MIN_TRUE_CLOSE_ROWS else "COLLECTING_TRUE_CLV",
         "lookback_days": int(lookback_days),
-        "signal_rows_considered": len(signals),
-        "pipeline_market_rows_loaded": len(pipeline_signals),
-        "derivative_event_rows_loaded": len({
-            (row.get("fixture_id"), row.get("generated_at"))
-            for row in derivative_signals
-        }),
-        "derivative_market_rows_loaded_raw": len(derivative_signals_raw),
+        "signal_rows_considered": signal_rows_considered,
+        "pipeline_market_rows_loaded": pipeline_market_rows_loaded,
+        "derivative_event_rows_loaded": derivative_event_rows_loaded,
+        "derivative_market_rows_loaded_raw": derivative_market_rows_loaded_raw,
         "derivative_period_team_total_rows_excluded": derivative_period_team_total_rows_excluded,
-        "derivative_market_rows_loaded": len(derivative_signals),
+        "derivative_market_rows_loaded": derivative_market_rows_loaded,
         "derivative_source_counts_raw": dict(sorted(derivative_source_counts_raw.items())),
         "derivative_family_counts_raw": dict(sorted(derivative_family_counts_raw.items())),
         "derivative_source_counts": dict(sorted(derivative_source_counts.items())),
         "derivative_family_counts": dict(sorted(derivative_family_counts.items())),
-        "legacy_signal_rows_loaded": len(legacy_signals),
+        "legacy_signal_rows_loaded": legacy_signal_rows_loaded,
         "tracked_rows": len(tracked),
         "comparable_true_clv_rows": len(comparable),
         "minimum_true_close_rows": MIN_TRUE_CLOSE_ROWS,
@@ -765,6 +793,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "production_promotion_allowed": False,
         "notes": [
             "Primary signal sources are Postgres match_table_rows plus persisted derivative intelligence observed-market rows; period-specific team totals are excluded from generic 1H/2H and FT team-total CLV until they have dedicated families; capped source reads prioritize recent pre-kickoff signals, close lookup reads only the latest pre-kickoff snapshot per bookmaker/market in bounded fixture batches, and legacy event best_market rows are fallback-only.",
+            "Pipeline and legacy SQL select only CLV-required event metadata instead of duplicating full refresh payload JSON per signal; source collections are released before snapshot matching to stay within the runtime memory envelope without reducing the signal cap.",
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
             "Derivative source/family counts are reported before and after period-team-total exclusion so missing Team Totals can be localized to generation versus close matching.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",

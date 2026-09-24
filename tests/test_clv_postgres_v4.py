@@ -235,3 +235,77 @@ def test_derivative_team_totals_keep_home_and_away_family_identity():
         "DERIVATIVE_INTELLIGENCE:team_totals_intelligence",
     ]
     assert {v._family(row["market_candidate"]) for row in rows} == {"HOME_TT", "AWAY_TT"}
+
+
+class _FakeCursor:
+    def __init__(self):
+        self.query = ""
+        self.description = []
+
+    def execute(self, query, params):
+        self.query = query
+
+    def fetchall(self):
+        return []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+class _FakeConn:
+    def __init__(self):
+        self.cursor_instance = _FakeCursor()
+
+    def cursor(self):
+        return self.cursor_instance
+
+
+def test_pipeline_loader_does_not_duplicate_full_event_payload():
+    conn = _FakeConn()
+    rows = v._load_pipeline_market_signals(conn, lookback_days=30, max_rows=10)
+    query = conn.cursor_instance.query
+
+    assert rows == []
+    assert "e.payload AS event_payload" not in query
+    assert "jsonb_build_object" in query
+    assert "'sporting_shortlist'" in query
+    assert "'model_signal'" in query
+
+
+def test_legacy_loader_keeps_only_best_market_and_sport_metadata():
+    conn = _FakeConn()
+    rows = v._load_legacy_signals(conn, lookback_days=30, max_rows=10)
+    query = conn.cursor_instance.query
+
+    assert rows == []
+    assert "e.payload AS event_payload" not in query
+    assert "'best_market'" in query
+    assert "'sporting_shortlist'" in query
+    assert "'model_signal'" in query
+
+
+def test_minimal_legacy_payload_preserves_candidate_and_confidence():
+    signal = {
+        "event_payload": {
+            "best_market": {
+                "family": "TOTAL",
+                "market": "Goals Over/Under",
+                "selection": "Over",
+                "line": 2.5,
+                "price": 2.0,
+            },
+            "sporting_shortlist": {
+                "side_edge_score": 78,
+                "goal_environment_score": 66,
+                "two_way_scoring_score": 70,
+            },
+        }
+    }
+    converted = v._legacy_to_signal(signal)
+
+    assert converted is not None
+    assert converted["market_candidate"]["market"] == "Goals Over/Under"
+    assert v._model_signal_from_candidate(converted["market_candidate"], signal["event_payload"]) == "STRONG"
