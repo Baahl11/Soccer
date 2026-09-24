@@ -1,7 +1,6 @@
 {
   "blockers": [
-    "BTTS_TRUE_CLV_5_LT_50",
-    "SOURCE_BTTS_PROMOTION_GATE_DISABLED"
+    "BTTS_TRUE_CLV_5_LT_50"
   ],
   "calibration_sample": {
     "brier": 0.276102,
@@ -15,13 +14,24 @@
     "usable_buckets": 9
   },
   "canonical_bet_logic_changed": false,
+  "canonical_oos_calibration": {
+    "available": true,
+    "brier_delta": -0.03105184,
+    "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+    "improves_brier_and_log_loss": true,
+    "log_loss_delta": -0.0905969,
+    "rows": 567,
+    "source_model_version": "SOCCER_OOS_HISTORY_MERGE_V4_1.0.0",
+    "target_status": "RESEARCH_CALIBRATION_AVAILABLE"
+  },
   "manual_review_required": true,
-  "model_version": "SOCCER_BTTS_CALIBRATION_VALIDATION_V4_1.0.0",
+  "model_version": "SOCCER_BTTS_CALIBRATION_VALIDATION_V4_1.1.0",
   "model_weights_changed": false,
   "notes": [
     "BTTS calibration is evaluated independently from FT totals and 1X2.",
     "True CLV counts only canonical BTTS rows; other market families cannot satisfy this gate.",
-    "Existing 500-fixture model diagnostics remain research evidence, not automatic production promotion."
+    "Existing legacy calibration diagnostics remain descriptive; canonical OOS calibration can satisfy the calibration layer only when its BTTS target is fitted and improves both Brier and log loss.",
+    "Canonical OOS calibration does not substitute for family-specific true CLV, settlements, or manual promotion review."
   ],
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
