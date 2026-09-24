@@ -275,6 +275,18 @@ def test_pipeline_loader_does_not_duplicate_full_event_payload():
     assert "'model_signal'" in query
 
 
+def test_derivative_sql_loader_includes_team_totals_observed_exact_rows():
+    conn = _FakeConn()
+    rows = v._load_derivative_market_signals(conn, lookback_days=30, max_rows=10)
+    query = conn.cursor_instance.query
+
+    assert rows == []
+    assert "team_totals_intelligence" in query
+    assert "observed_exact_market_rows" in query
+    assert "TEAM_TOTALS" in query
+    assert "DERIVATIVE_INTELLIGENCE:team_totals_intelligence" in query
+
+
 def test_legacy_loader_keeps_only_best_market_and_sport_metadata():
     conn = _FakeConn()
     rows = v._load_legacy_signals(conn, lookback_days=30, max_rows=10)
