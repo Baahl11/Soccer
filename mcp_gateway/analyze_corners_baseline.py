@@ -233,6 +233,9 @@ def formation_eligibility_audit(
             elif unrecognized > 0:
                 reason = "FORMATION_MAPPING_UNRECOGNIZED"
                 recoverable = True
+            elif int(audit.get("confirmed_no_formation") or 0) > 0:
+                reason = "CONFIRMED_XI_WITHOUT_FORMATION_VALUE"
+                recoverable = False
             elif pre_lineups > 0 and unconfirmed_pre > 0:
                 reason = "LINEUP_NOT_CONFIRMED_AT_SNAPSHOT"
                 recoverable = False
