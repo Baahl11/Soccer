@@ -204,6 +204,10 @@ def formation_eligibility_audit(
     }
 
     for row in evals:
+        fid = int(row.get("fixture_id") or 0)
+        rec = fixtures.get(fid) or {}
+        audit = rec.get("lineup_audit") or {}
+
         if row.get("matchup"):
             timing_integrity["matchup_present_rows"] += 1
             if int(audit.get("valid_both_prekickoff") or 0) > 0:
@@ -226,13 +230,8 @@ def formation_eligibility_audit(
                 timing_integrity["selected_formation_missing_timestamp"] += 1
 
         prior_n = int(row.get("prior_matchup_n") or 0)
-        prior_n = int(row.get("prior_matchup_n") or 0)
         if prior_n >= 8:
             continue
-
-        fid = int(row.get("fixture_id") or 0)
-        rec = fixtures.get(fid) or {}
-        audit = rec.get("lineup_audit") or {}
 
         if row.get("matchup"):
             reason = "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8"
