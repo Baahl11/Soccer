@@ -7,21 +7,107 @@
     "temperature_fit_uses_prior_rows_only": true
   },
   "baseline": {
-    "multiclass_brier": null,
-    "multiclass_log_loss": null,
-    "n": 0,
-    "top1_accuracy": null
+    "multiclass_brier": 0.67090004,
+    "multiclass_log_loss": 1.10764206,
+    "n": 207,
+    "top1_accuracy": 0.41062802
   },
   "batch_size": 50,
-  "brier_delta": null,
+  "brier_delta": -0.01149463,
   "canonical_bet_logic_changed": false,
-  "evaluated_rows": 0,
-  "folds": [],
-  "improves_brier_and_log_loss": false,
-  "log_loss_delta": null,
+  "evaluated_rows": 207,
+  "folds": [
+    {
+      "baseline": {
+        "multiclass_brier": 0.66645878,
+        "multiclass_log_loss": 1.0947332,
+        "n": 50,
+        "top1_accuracy": 0.42
+      },
+      "calibrated": {
+        "multiclass_brier": 0.65563095,
+        "multiclass_log_loss": 1.08076369,
+        "n": 50,
+        "top1_accuracy": 0.42
+      },
+      "eval_rows": 50,
+      "temperature": 1.365,
+      "train_rows": 200
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.74827331,
+        "multiclass_log_loss": 1.21542574,
+        "n": 50,
+        "top1_accuracy": 0.32
+      },
+      "calibrated": {
+        "multiclass_brier": 0.71015163,
+        "multiclass_log_loss": 1.1595891,
+        "n": 50,
+        "top1_accuracy": 0.32
+      },
+      "eval_rows": 50,
+      "temperature": 1.435,
+      "train_rows": 250
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.5611855,
+        "multiclass_log_loss": 0.95710947,
+        "n": 50,
+        "top1_accuracy": 0.54
+      },
+      "calibrated": {
+        "multiclass_brier": 0.58983753,
+        "multiclass_log_loss": 0.99358258,
+        "n": 50,
+        "top1_accuracy": 0.54
+      },
+      "eval_rows": 50,
+      "temperature": 1.79,
+      "train_rows": 300
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.6653013,
+        "multiclass_log_loss": 1.09821234,
+        "n": 50,
+        "top1_accuracy": 0.42
+      },
+      "calibrated": {
+        "multiclass_brier": 0.65498968,
+        "multiclass_log_loss": 1.08263087,
+        "n": 50,
+        "top1_accuracy": 0.42
+      },
+      "eval_rows": 50,
+      "temperature": 1.53,
+      "train_rows": 350
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.97362341,
+        "multiclass_log_loss": 1.57255267,
+        "n": 7,
+        "top1_accuracy": 0.0
+      },
+      "calibrated": {
+        "multiclass_brier": 0.85234713,
+        "multiclass_log_loss": 1.37919281,
+        "n": 7,
+        "top1_accuracy": 0.0
+      },
+      "eval_rows": 7,
+      "temperature": 1.565,
+      "train_rows": 400
+    }
+  ],
+  "improves_brier_and_log_loss": true,
+  "log_loss_delta": -0.01835384,
   "minimum_eval_rows": 100,
   "minimum_train_rows": 200,
-  "model_version": "SOCCER_1X2_MULTICLASS_OOS_V4_1.0.1",
+  "model_version": "SOCCER_1X2_MULTICLASS_OOS_V4_1.0.3",
   "notes": [
     "Temperature scaling preserves the 1X2 simplex and class ranking while adjusting confidence.",
     "Only the latest observed model_version is evaluated to avoid mixing calibration regimes across runtime versions.",
@@ -32,7 +118,7 @@
   "provider_requests_added": 0,
   "runtime_prediction_weight": 0.0,
   "schema_version": "1.0.0",
-  "source_model_version": "SOCCER EDGE ENGINE v1.0",
+  "source_model_version": "SOCCER EDGE ENGINE v1.7",
   "source_model_version_counts": {
     "SOCCER EDGE ENGINE v1.0": 150,
     "SOCCER EDGE ENGINE v1.1": 7,
@@ -41,13 +127,13 @@
     "SOCCER EDGE ENGINE v1.6": 1,
     "SOCCER EDGE ENGINE v1.7": 407
   },
-  "source_rows_current_model": 150,
-  "status": "DATA_BLOCKED",
+  "source_rows_current_model": 407,
+  "status": "RESEARCH_MULTICLASS_CALIBRATION_AVAILABLE",
   "temperature_scaled": {
-    "multiclass_brier": null,
-    "multiclass_log_loss": null,
-    "n": 0,
-    "top1_accuracy": null
+    "multiclass_brier": 0.65940541,
+    "multiclass_log_loss": 1.08928822,
+    "n": 207,
+    "top1_accuracy": 0.41062802
   },
-  "walk_forward_folds": 0
+  "walk_forward_folds": 5
 }
