@@ -65,3 +65,26 @@ def test_discrepancy_recheck_bucket_uses_raw_market_gap():
     assert stage["discrepancy_recheck_rows"] == 1
     assert stage["by_watch_quality_bucket"]["DISCREPANCY_RECHECK"]["settled"] == 1
     assert stage["by_raw_market_gap_band"]["GE_20PP_RECHECK"]["settled"] == 1
+
+
+def test_only_clean_advanced_tier_cap_counts_as_promotion_evaluable():
+    clean = _watch(1, "T-10", "home", 2.0, edge=6.0, ev=8.0)
+    clean["availability_confidence"] = 0.90
+    clean["lineups"] = {"both_xi_confirmed": True, "both_goalkeepers_confirmed": True}
+    clean["best_market"]["tier"] = "A"
+    clean["best_market"]["p_raw"] = 0.50
+    clean["best_market"]["p_market_fair"] = 0.45
+
+    recheck = _watch(2, "T-10", "away", 3.0, edge=8.0, ev=10.0)
+    recheck["availability_confidence"] = 0.90
+    recheck["lineups"] = {"both_xi_confirmed": True, "both_goalkeepers_confirmed": True}
+    recheck["best_market"]["tier"] = "A"
+    recheck["best_market"]["p_raw"] = 0.50
+    recheck["best_market"]["p_market_fair"] = 0.30
+
+    report = v.build([clean, _final(1), recheck, _final(2, home=0, away=1)])
+
+    assert report["promotion_evaluable"]["settled"] == 1
+    assert report["promotion_evaluable"]["unique_fixtures"] == 1
+    assert report["watch_alert"]["settled"] == 1
+    assert report["sample_policy"]["promotion_evidence_requires_quality_bucket"] == "ADVANCED_TIER_CAP"
