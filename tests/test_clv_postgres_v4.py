@@ -176,3 +176,30 @@ def test_derivative_signals_extract_observed_research_markets():
         "FT_CORNERS",
     }
     assert all(row["signal_source"].startswith("DERIVATIVE_INTELLIGENCE:") for row in rows)
+
+
+def test_period_team_totals_do_not_contaminate_generic_half_families():
+    first_half = {
+        "signal_source": "DERIVATIVE_INTELLIGENCE:team_totals_intelligence",
+        "market_candidate": {
+            "market_family": "TEAM_TOTALS",
+            "market": "Home Team Total Goals First Half",
+            "selection": "OVER",
+            "line": 0.5,
+            "decimal_price": 1.9,
+        },
+    }
+    full_time = {
+        "signal_source": "DERIVATIVE_INTELLIGENCE:team_totals_intelligence",
+        "market_candidate": {
+            "market_family": "TEAM_TOTALS",
+            "market": "Home Team Total Goals",
+            "selection": "OVER",
+            "line": 1.5,
+            "decimal_price": 1.95,
+        },
+    }
+
+    assert v._is_period_team_total_signal(first_half) is True
+    assert v._is_period_team_total_signal(full_time) is False
+    assert v._family(full_time["market_candidate"]) == "HOME_TT"
