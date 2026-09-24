@@ -1,0 +1,32 @@
+{
+  "bankroll_impact": 0.0,
+  "by_market_family": {},
+  "eligibility_policy": {
+    "availability_or_lineup_gate_failures_excluded": true,
+    "classification": "WATCH",
+    "discrepancy_rechecks_excluded": true,
+    "exactly_one_reason_required": true,
+    "one_latest_candidate_per_fixture_family": true,
+    "required_reason": "Tier A/S blocked until advanced-metric layer is verified",
+    "tiers": [
+      "A",
+      "S"
+    ]
+  },
+  "family_count": 0,
+  "model_version": "SOCCER_PROMOTION_SHADOW_LEDGER_V4_1.0.0",
+  "notes": [
+    "This ledger is separate from WATCH alerts/rechecks and from real bet settlements.",
+    "Only decisions whose sole WATCH reason was the explicit Tier A/S safety cap are promotion-evaluable.",
+    "The latest eligible pre-kickoff decision per fixture and market family is retained to avoid snapshot duplication."
+  ],
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "raw_eligible_decisions_seen": 0,
+  "real_wagers_assumed": false,
+  "rows": 0,
+  "schema_version": "1.0.0",
+  "source": "soccer_edge_state/history/*.jsonl",
+  "status": "PROMOTION_SHADOW_LEDGER_ACTIVE",
+  "unique_fixtures": 0
+}
