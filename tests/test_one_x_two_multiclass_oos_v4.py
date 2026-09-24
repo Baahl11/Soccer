@@ -56,3 +56,21 @@ def test_only_latest_model_version_is_used():
     assert report["evaluated_rows"] == 60
     assert report["status"] == "INSUFFICIENT_WALK_FORWARD_EVAL"
     assert report["anti_leakage"]["current_model_version_only"] is True
+
+
+def test_semantic_version_parser_orders_engine_versions():
+    assert v._semantic_version("SOCCER EDGE ENGINE v1.7") == (1, 7)
+    assert v._semantic_version("SOCCER EDGE ENGINE v1.6") == (1, 6)
+    assert v._semantic_version("SOCCER EDGE ENGINE v1.0") == (1, 0)
+    assert v._semantic_version("SOCCER EDGE ENGINE v1.7") > v._semantic_version("SOCCER EDGE ENGINE v1.0")
+
+
+def test_latest_semantic_engine_version_is_selected_over_timestamp_order():
+    rows = []
+    for i in range(220):
+        rows.append(_row(i, "SOCCER EDGE ENGINE v1.0", (0.6, 0.2, 0.2), i % 3))
+    for i in range(220, 470):
+        rows.append(_row(i, "SOCCER EDGE ENGINE v1.7", (0.65, 0.2, 0.15), i % 3))
+    report = v.build_report(rows, min_train_rows=200, batch_size=25)
+    assert report["source_model_version"] == "SOCCER EDGE ENGINE v1.7"
+    assert report["source_rows_current_model"] == 250
