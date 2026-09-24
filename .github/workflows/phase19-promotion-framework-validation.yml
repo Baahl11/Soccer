@@ -100,7 +100,7 @@ jobs:
         run: |
           set -euo pipefail
           jq -e '.phase == "FASE_19_PROMOTION_FRAMEWORK"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
-          jq -e '.model_version == "SOCCER_PROMOTION_FRAMEWORK_V4_1.9.0"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '.model_version == "SOCCER_PROMOTION_FRAMEWORK_V4_1.10.0"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.automatic_promotion_allowed == false' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.manual_approval_required == true' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.runtime_state_mutation_enabled == false' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
@@ -109,6 +109,8 @@ jobs:
           jq -e '.promotion_readiness.thresholds.tier_b == 50' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.promotion_readiness.thresholds.tier_a == 100' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.promotion_readiness.thresholds.tier_s == 200' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '([.market_family_reviews[] | select(.market_family == "FT_CORNERS")][0].validation_blockers | index("SOURCE_TEAM_CORNERS_PROMOTION_GATE_DISABLED")) == null' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '([.market_family_reviews[] | select(.market_family == "TEAM_CORNERS")][0].validation_blockers | index("SOURCE_FT_CORNERS_PROMOTION_GATE_DISABLED")) == null' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
 
       - name: Persist report to state branch
         working-directory: state
