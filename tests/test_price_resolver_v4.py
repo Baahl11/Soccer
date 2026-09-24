@@ -1,6 +1,35 @@
 from mcp_gateway import price_resolver_v4 as v
 
 
+def _calibration_state(model_version="SOCCER EDGE ENGINE v1.7"):
+    identity = {
+        "status": "RESEARCH_CALIBRATOR_FITTED",
+        "parameters": {"intercept": 0.0, "slope": 1.0},
+    }
+    return {
+        "binary": {
+            "current_source_model_version": model_version,
+            "current_model_deployment_calibrators": {
+                "btts": {
+                    "eligible_for_phase16_research": True,
+                    "calibrator": identity,
+                },
+                "over_2_5": {
+                    "eligible_for_phase16_research": True,
+                    "calibrator": identity,
+                },
+            },
+        },
+        "multiclass_1x2": {
+            "source_model_version": model_version,
+            "research_deployment_calibrator": {
+                "status": "RESEARCH_DEPLOYMENT_CALIBRATOR_FITTED",
+                "temperature": 1.5,
+            },
+        },
+    }
+
+
 def test_normalizes_and_devigs_match_winner():
     payload = {
         "response": [{
@@ -140,3 +169,88 @@ def test_missing_exact_total_line_is_not_misclassified_as_missing_market():
     status = v._enrich_row(row, event, markets, "PRICE_API_RESOLVED")
     assert status == "PRICE_API_NO_EXACT_LINE"
     assert row["price_resolution_available_lines"] == [3.5]
+
+
+def test_current_model_calibration_is_applied_to_totals():
+    event = {"raw_projection": {"raw_over_2_5_prob": 0.62}}
+    row = {"market_family": "FT_TOTALS_RESEARCH", "selection": "Over research"}
+    markets = [{
+        "market": "Goals Over/Under",
+        "bookmaker": "Book",
+        "values": [
+            {"selection": "Over", "line": 2.5, "decimal_price": 2.0, "fair_probability": 0.48},
+            {"selection": "Under", "line": 2.5, "decimal_price": 1.85, "fair_probability": 0.52},
+        ],
+    }]
+    v._enrich_row(
+        row,
+        event,
+        markets,
+        "PRICE_API_RESOLVED",
+        calibration_state=_calibration_state(),
+        model_version="SOCCER EDGE ENGINE v1.7",
+    )
+    assert row["price_resolution_calibrated_probability_added"] is True
+    assert abs(row["p_model_calibrated"] - 0.62) < 1e-8
+    assert row["phase16_calibration_source"] == "CURRENT_MODEL_OOS_PLATT:OVER_2_5"
+
+
+def test_current_model_calibration_is_not_applied_on_version_mismatch():
+    event = {"raw_projection": {"raw_btts_yes_prob": 0.58}}
+    row = {"market_family": "FT_BTTS_RESEARCH", "selection": "BTTS research"}
+    markets = [{
+        "market": "Both Teams To Score",
+        "bookmaker": "Book",
+        "values": [
+            {"selection": "Yes", "line": None, "decimal_price": 1.9, "fair_probability": 0.51},
+            {"selection": "No", "line": None, "decimal_price": 1.95, "fair_probability": 0.49},
+        ],
+    }]
+    v._enrich_row(
+        row,
+        event,
+        markets,
+        "PRICE_API_RESOLVED",
+        calibration_state=_calibration_state("SOCCER EDGE ENGINE v1.6"),
+        model_version="SOCCER EDGE ENGINE v1.7",
+    )
+    assert row["price_resolution_calibrated_probability_added"] is False
+    assert "p_model_calibrated" not in row
+
+
+def test_1x2_research_can_select_draw_and_apply_temperature_calibration():
+    event = {
+        "raw_projection": {
+            "raw_home_win_prob": 0.30,
+            "raw_draw_prob": 0.45,
+            "raw_away_win_prob": 0.25,
+        }
+    }
+    row = {"market_family": "FT_1X2_RESEARCH", "selection": "Side research"}
+    family, selection, line, p_raw = v._desired_offer(row, event)
+    assert family == "1X2"
+    assert selection == "Draw"
+    assert line is None
+    assert p_raw == 0.45
+
+    markets = [{
+        "market": "Match Winner",
+        "bookmaker": "Book",
+        "values": [
+            {"selection": "Home", "line": None, "decimal_price": 2.8, "fair_probability": 0.34},
+            {"selection": "Draw", "line": None, "decimal_price": 3.1, "fair_probability": 0.31},
+            {"selection": "Away", "line": None, "decimal_price": 3.3, "fair_probability": 0.35},
+        ],
+    }]
+    v._enrich_row(
+        row,
+        event,
+        markets,
+        "PRICE_API_RESOLVED",
+        calibration_state=_calibration_state(),
+        model_version="SOCCER EDGE ENGINE v1.7",
+    )
+    assert row["selection"] == "Draw"
+    assert row["price_resolution_calibrated_probability_added"] is True
+    assert 0 < row["p_model_calibrated"] < 1
+    assert row["phase16_calibration_source"] == "CURRENT_MODEL_OOS_TEMPERATURE:1X2"
