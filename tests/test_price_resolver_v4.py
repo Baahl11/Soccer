@@ -254,3 +254,33 @@ def test_1x2_research_can_select_draw_and_apply_temperature_calibration():
     assert row["price_resolution_calibrated_probability_added"] is True
     assert 0 < row["p_model_calibrated"] < 1
     assert row["phase16_calibration_source"] == "CURRENT_MODEL_OOS_TEMPERATURE:1X2"
+
+
+def test_legacy_cached_value_odd_rows_are_normalized():
+    values = [
+        {"value": "Over 2.5", "odd": "1.95"},
+        {"value": "Under 2.5", "odd": "1.90"},
+    ]
+    parsed = v._normalize_market_values("Goals Over/Under", values)
+    assert parsed[0]["selection"] == "Over"
+    assert parsed[0]["line"] == 2.5
+    assert parsed[0]["decimal_price"] == 1.95
+    assert parsed[1]["selection"] == "Under"
+    assert parsed[1]["line"] == 2.5
+    assert abs(sum(x["fair_probability"] for x in parsed) - 1.0) < 1e-9
+
+
+def test_period_totals_never_match_full_time_total_family():
+    assert v._market_kind("Goals Over/Under - Second Half") is None
+    assert v._market_kind("Goals Over/Under - First Half") is None
+    assert v._market_kind("Goals Over/Under") == "FT_TOTALS"
+
+
+def test_handicap_field_can_supply_total_line():
+    values = [
+        {"value": "Over", "handicap": "2.5", "odd": "2.05"},
+        {"value": "Under", "handicap": "2.5", "odd": "1.80"},
+    ]
+    parsed = v._normalize_market_values("Goals Over/Under", values)
+    assert {x["line"] for x in parsed} == {2.5}
+    assert {x["selection"] for x in parsed} == {"Over", "Under"}
