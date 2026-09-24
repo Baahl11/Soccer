@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_BTTS_CALIBRATION_VALIDATION_V4_1.0.0"
+MODEL_VERSION = "SOCCER_BTTS_CALIBRATION_VALIDATION_V4_1.1.0"
 MIN_CALIBRATION_SAMPLE = 300
 MIN_TRUE_CLV_ROWS = 50
 
@@ -69,7 +69,7 @@ def calibration_error(by_bucket: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
+def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, Any]], oos_calibration: dict[str, Any] | None = None) -> dict[str, Any]:
     overall = validation.get("overall") if isinstance(validation.get("overall"), dict) else {}
     sample = int(overall.get("n") or validation.get("evaluated_fixtures") or 0)
     bucket_metrics = calibration_error(
@@ -79,6 +79,20 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
     )
     gate = validation.get("promotion_gate") if isinstance(validation.get("promotion_gate"), dict) else {}
     clv = summarize_true_clv(true_clv_rows)
+    oos_calibration = oos_calibration if isinstance(oos_calibration, dict) else {}
+    oos_target = (
+        oos_calibration.get("targets", {}).get("btts", {})
+        if isinstance(oos_calibration.get("targets"), dict)
+        else {}
+    )
+    oos_calibrator = oos_target.get("calibrator") if isinstance(oos_target.get("calibrator"), dict) else {}
+    canonical_oos_rows = int(oos_target.get("rows") or 0)
+    canonical_oos_ready = (
+        canonical_oos_rows >= MIN_CALIBRATION_SAMPLE
+        and oos_target.get("status") == "RESEARCH_CALIBRATION_AVAILABLE"
+        and oos_calibrator.get("status") == "RESEARCH_CALIBRATOR_FITTED"
+        and oos_target.get("calibration_improves_brier_and_log_loss") is True
+    )
 
     blockers: list[str] = []
     warnings: list[str] = []
@@ -86,8 +100,8 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
         blockers.append(f"CALIBRATION_SAMPLE_{sample}_LT_{MIN_CALIBRATION_SAMPLE}")
     if clv["rows"] < MIN_TRUE_CLV_ROWS:
         blockers.append(f"BTTS_TRUE_CLV_{clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
-    if gate.get("enabled") is not True:
-        blockers.append("SOURCE_BTTS_PROMOTION_GATE_DISABLED")
+    if not canonical_oos_ready:
+        blockers.append("BTTS_CANONICAL_OOS_CALIBRATION_NOT_READY")
     ece = _num(bucket_metrics.get("ece"))
     if ece is not None and ece >= 0.10:
         warnings.append("CALIBRATION_ECE_GE_0_10_REQUIRES_REVIEW")
@@ -112,6 +126,16 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
             **bucket_metrics,
         },
         "source_promotion_gate": gate,
+        "canonical_oos_calibration": {
+            "available": canonical_oos_ready,
+            "rows": canonical_oos_rows,
+            "target_status": oos_target.get("status"),
+            "calibrator_status": oos_calibrator.get("status"),
+            "brier_delta": oos_target.get("brier_delta"),
+            "log_loss_delta": oos_target.get("log_loss_delta"),
+            "improves_brier_and_log_loss": oos_target.get("calibration_improves_brier_and_log_loss") is True,
+            "source_model_version": oos_calibration.get("model_version"),
+        },
         "true_clv": {
             **clv,
             "minimum_rows": MIN_TRUE_CLV_ROWS,
@@ -122,7 +146,8 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
         "notes": [
             "BTTS calibration is evaluated independently from FT totals and 1X2.",
             "True CLV counts only canonical BTTS rows; other market families cannot satisfy this gate.",
-            "Existing 500-fixture model diagnostics remain research evidence, not automatic production promotion.",
+            "Existing legacy calibration diagnostics remain descriptive; canonical OOS calibration can satisfy the calibration layer only when its BTTS target is fitted and improves both Brier and log loss.",
+            "Canonical OOS calibration does not substitute for family-specific true CLV, settlements, or manual promotion review.",
         ],
     }
 
@@ -157,9 +182,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="V4-018 BTTS calibration validation gate.")
     parser.add_argument("--validation", required=True)
     parser.add_argument("--true-clv-tracking", required=True)
+    parser.add_argument("--v4-oos-calibration-report")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
-    report = build_report(_load_json(args.validation), _load_jsonl(args.true_clv_tracking))
+    report = build_report(
+        _load_json(args.validation),
+        _load_jsonl(args.true_clv_tracking),
+        _load_json(args.v4_oos_calibration_report) if args.v4_oos_calibration_report else {},
+    )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2, sort_keys=True)
