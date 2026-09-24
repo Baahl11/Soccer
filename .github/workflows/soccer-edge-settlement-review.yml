@@ -25,7 +25,7 @@ jobs:
         with: {ref: soccer-edge-mcp-v1, path: engine, fetch-depth: 1}
 
       - name: Compile settlement review modules
-        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py engine/mcp_gateway/shadow_settlement_v4.py
+        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py engine/mcp_gateway/shadow_settlement_v4.py engine/mcp_gateway/shadow_selection_diagnostics_v4.py
 
       - name: Build historical signal ledger
         run: python engine/mcp_gateway/build_signal_ledger.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/signal_ledger.jsonl --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
@@ -35,6 +35,9 @@ jobs:
 
       - name: Build WATCH shadow settlement ledger
         run: PYTHONPATH=engine python -m mcp_gateway.shadow_settlement_v4 --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl --summary-output state/soccer_edge_state/analysis/shadow_performance_summary_v4.json
+
+      - name: Build 1X2 shadow selection diagnostics
+        run: PYTHONPATH=engine python -m mcp_gateway.shadow_selection_diagnostics_v4 --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/shadow_selection_diagnostics_v4.json
 
       - name: Segment settlement performance
         run: python engine/mcp_gateway/analyze_settlement_segments.py --settlement-ledger state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl --output state/soccer_edge_state/analysis/settlement_segments_summary.json
@@ -61,6 +64,7 @@ jobs:
             soccer_edge_state/analysis/market_performance_summary.json \
             soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl \
             soccer_edge_state/analysis/shadow_performance_summary_v4.json \
+            soccer_edge_state/analysis/shadow_selection_diagnostics_v4.json \
             soccer_edge_state/analysis/settlement_segments_summary.json \
             soccer_edge_state/analysis/settlement_promotion_review.json \
             soccer_edge_state/analysis/settlement_coverage_report.json \
