@@ -89,7 +89,7 @@ jobs:
           test "$READY" = "1"
           jq -e '
             .schema_version == "1.0.0"
-            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
+            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.3"
             and (.rows | type == "array")
             and (.pipeline_market_rows_loaded | type == "number")
             and (.signal_source_counts | type == "object")
