@@ -41,6 +41,9 @@ def test_walk_forward_temperature_scaling_can_improve_overconfident_current_mode
     assert report["brier_delta"] < 0
     assert report["log_loss_delta"] < 0
     assert report["production_promotion_allowed"] is False
+    assert report["research_deployment_calibrator"]["status"] == "RESEARCH_DEPLOYMENT_CALIBRATOR_FITTED"
+    assert report["research_deployment_calibrator"]["temperature"] is not None
+    assert report["research_deployment_calibrator"]["runtime_prediction_weight"] == 0.0
 
 
 def test_only_latest_model_version_is_used():
