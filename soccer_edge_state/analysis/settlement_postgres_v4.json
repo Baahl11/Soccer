@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "model_version": "SOCCER_SETTLEMENT_POSTGRES_V4_1.0.0",
+  "status": "POSTGRES_SETTLEMENT_ACTIVE",
+  "source": "soccer_refresh_events + soccer_fixtures + soccer_results",
+  "raw_actionable_rows_loaded": 0,
+  "deduped_actionable_decisions": 0,
+  "settled_decisions": 0,
+  "market_performance_summary": {
+    "schema_version": "1.2.0",
+    "source": "POSTGRES_SOCCER_REFRESH_EVENTS_AND_RESULTS",
+    "timezone_basis": "UTC_TIMESTAMPTZ; FIXTURE_LOCAL_LABELS_PRESERVED_IN_PAYLOAD",
+    "settlement_decisions": 0,
+    "by_market_family": {},
+    "by_market_family_and_classification": {},
+    "promotion_gate_review": {},
+    "promotion_gate_by_market_family_and_classification": {},
+    "minimum_sample_policy": {
+      "directional_read": 20,
+      "tier_b_candidate": 20,
+      "tier_a_candidate": 50,
+      "tier_s_candidate": 100
+    },
+    "safety_note": "Postgres-native settlement is read-only. It reuses the canonical evaluate_postgame grading logic and never changes runtime classifications, tiers, stakes, model weights, or historical decisions."
+  },
+  "provider_requests_added": 0,
+  "production_promotion_allowed": false,
+  "runtime_logic_changed": false,
+  "notes": [
+    "Only persisted BET/LEAN refresh events captured strictly before kickoff are eligible.",
+    "The latest snapshot per fixture/classification/market family/market/selection/line is retained, matching legacy settlement dedupe semantics.",
+    "Final results are joined from soccer_results solely for grading; they never feed pre-kickoff candidate generation.",
+    "This source remains complete after Git history switched to compact operational envelopes without events."
+  ],
+  "lookback_days": 180
+}
