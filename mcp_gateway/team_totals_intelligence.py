@@ -107,8 +107,19 @@ def _observed_rows(event: dict[str, Any]) -> tuple[list[dict[str, Any]], list[di
         for value in market_row.get("values") or []:
             if not isinstance(value, dict):
                 continue
-            side, line = _selection(value.get("selection"))
-            price = _decimal(value.get("price"))
+            side, embedded_line = _selection(value.get("selection"))
+            if side is None:
+                selection_text = _norm(value.get("selection"))
+                if selection_text.startswith("over"):
+                    side = "OVER"
+                elif selection_text.startswith("under"):
+                    side = "UNDER"
+            line = _num(value.get("line"))
+            if line is None:
+                line = embedded_line
+            price = _decimal(value.get("decimal_price"))
+            if price is None:
+                price = _decimal(value.get("price"))
             if side is None or line is None or price is None:
                 continue
             parsed[(side, line)] = price
