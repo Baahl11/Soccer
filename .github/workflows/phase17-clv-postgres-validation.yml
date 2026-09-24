@@ -55,7 +55,7 @@ jobs:
           # This contract check intentionally fails if Render is serving a stale runtime.
           # Diagnostics include per-market rejection counts from the live collector.
           # Derivative CLV smoke includes persisted research market rows.
-          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.4"
+          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.5"
           READY=0
           for attempt in 1 2 3 4 5; do
             HTTP_CODE=$(curl -sS --max-time 120 -o /tmp/clv_v4.json -w "%{http_code}" \
@@ -83,7 +83,13 @@ jobs:
             signal_rows_considered,
             pipeline_market_rows_loaded,
             derivative_event_rows_loaded,
+            derivative_market_rows_loaded_raw,
+            derivative_period_team_total_rows_excluded,
             derivative_market_rows_loaded,
+            derivative_source_counts_raw,
+            derivative_family_counts_raw,
+            derivative_source_counts,
+            derivative_family_counts,
             legacy_signal_rows_loaded,
             tracked_rows,
             comparable_true_clv_rows,
@@ -96,10 +102,14 @@ jobs:
           test "$READY" = "1"
           jq -e '
             .schema_version == "1.0.0"
-            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.4"
+            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.5"
             and (.rows | type == "array")
             and (.pipeline_market_rows_loaded | type == "number")
             and (.signal_source_counts | type == "object")
+            and (.derivative_source_counts_raw | type == "object")
+            and (.derivative_family_counts_raw | type == "object")
+            and (.derivative_source_counts | type == "object")
+            and (.derivative_family_counts | type == "object")
             and (.provider_requests_added == 0)
           ' /tmp/clv_v4.json >/dev/null
 
