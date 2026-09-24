@@ -62,6 +62,8 @@ jobs:
 
           PYTHONPATH=. python -m mcp_gateway.player_props_phase15_v4             --shots ../state/soccer_edge_state/analysis/player_shots_model_sanity.json             --sot ../state/soccer_edge_state/analysis/player_sot_model_sanity.json             --goalscorer ../state/soccer_edge_state/analysis/player_goalscorer_model_sanity.json             --assists ../state/soccer_edge_state/analysis/player_assists_model_sanity.json             --cards ../state/soccer_edge_state/analysis/player_cards_model_sanity.json             --gk-saves ../state/soccer_edge_state/analysis/gk_saves_model_sanity.json             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/phase15_player_props_validation.json
 
+          PYTHONPATH=. python -m mcp_gateway.league_stage_stability_v4             --true-clv-tracking "$CLV"             --output ../state/soccer_edge_state/analysis/league_stage_stability_v4.json
+
       - name: Persist synchronized reports
         working-directory: state
         shell: bash
@@ -78,6 +80,7 @@ jobs:
           git add -f soccer_edge_state/analysis/v4_022_corners_oos_validation.json
           git add -f soccer_edge_state/analysis/phase14_cards_referee_validation.json
           git add -f soccer_edge_state/analysis/phase15_player_props_validation.json
+          git add -f soccer_edge_state/analysis/league_stage_stability_v4.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Refresh V4 market validations from canonical CLV"
           for attempt in 1 2 3; do
