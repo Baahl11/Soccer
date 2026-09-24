@@ -72,16 +72,52 @@
         "SETTLED_10_LT_DIRECTIONAL_20",
         "SETTLED_10_LT_TIER_B_REVIEW_50",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-        "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:UNKNOWN"
+        "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
       "market_family": "1X2",
-      "promotion_shadow_class_discrimination_diagnostics": {},
-      "promotion_shadow_evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE",
-      "promotion_shadow_family_discrimination_ready": null,
+      "promotion_shadow_class_discrimination_diagnostics": {
+        "away_win": {
+          "auc": 0.61364379,
+          "auc_lower_95": 0.55442182,
+          "brier_delta": -0.00322122,
+          "log_loss_delta": -0.00790889,
+          "negative_count": 272,
+          "positive_count": 135,
+          "ready": true,
+          "rows": 407,
+          "source": "OOS_STAGE_DIAGNOSTICS_CURRENT_MODEL"
+        },
+        "draw": {
+          "auc": 0.49946409,
+          "auc_lower_95": 0.43333423,
+          "brier_delta": -0.00747142,
+          "log_loss_delta": -0.01533486,
+          "negative_count": 311,
+          "positive_count": 96,
+          "ready": false,
+          "rows": 407,
+          "source": "OOS_STAGE_DIAGNOSTICS_CURRENT_MODEL"
+        },
+        "home_win": {
+          "auc": 0.60743802,
+          "auc_lower_95": 0.55182825,
+          "brier_delta": -0.0037086,
+          "log_loss_delta": -0.0140891,
+          "negative_count": 231,
+          "positive_count": 176,
+          "ready": true,
+          "rows": 407,
+          "source": "OOS_STAGE_DIAGNOSTICS_CURRENT_MODEL"
+        }
+      },
+      "promotion_shadow_evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE+OOS_STAGE_DIAGNOSTICS_FALLBACK",
+      "promotion_shadow_family_discrimination_ready": false,
       "promotion_shadow_negative_directional_stages": [],
-      "promotion_shadow_not_ready_classes": [],
+      "promotion_shadow_not_ready_classes": [
+        "DRAW"
+      ],
       "promotion_shadow_pending": 0,
       "promotion_shadow_roi_per_settled_unit": null,
       "promotion_shadow_sample_status": "DATA_BLOCKED",
@@ -601,7 +637,7 @@
       "watch_shadow_settled": 0
     }
   ],
-  "model_version": "SOCCER_PROMOTION_FRAMEWORK_V4_1.8.0",
+  "model_version": "SOCCER_PROMOTION_FRAMEWORK_V4_1.9.0",
   "model_weights_changed": false,
   "notes": [
     "Promotion sample gates use unique fixtures from G5, not raw CLV row counts.",
@@ -609,6 +645,7 @@
     "WATCH shadow observations remain research diagnostics and do not count toward promotion unless a market-specific quality diagnostic marks them promotion-evaluable.",
     "For 1X2, FT_TOTALS and BTTS, persisted Phase16 primary rankable candidates replayed from Postgres are the preferred promotion-shadow source; pending rows become settled automatically when final results arrive.",
     "1X2 promotion review additionally requires current family-level Home/Draw/Away discrimination readiness; partial class readiness remains SHADOW even if settled ROI and CLV are otherwise sufficient.",
+    "When promotion-shadow has no current-policy 1X2 rows yet, current-model OOS stage diagnostics may supply class-level blocker identity only; this fallback cannot create settlements, ROI, rankable candidates or promotion eligibility.",
     "Promotion readiness reports actual/required/remaining sample counts, family true-CLV gaps, numeric validator deficits and qualitative blockers without lowering any gate.",
     "Legacy WATCH diagnostics remain fallback-only for 1X2 and never count when clean Phase16 replay evidence exists.",
     "No market is automatically promoted. Tier B/A/S requires explicit manual approval after every evidence gate passes.",
@@ -710,13 +747,49 @@
           "SETTLED_10_LT_DIRECTIONAL_20",
           "SETTLED_10_LT_TIER_B_REVIEW_50",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-          "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:UNKNOWN"
+          "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW"
         ],
         "class_discrimination": {
-          "classes": {},
+          "classes": {
+            "away_win": {
+              "auc": 0.61364379,
+              "auc_lower_95": 0.55442182,
+              "brier_delta": -0.00322122,
+              "log_loss_delta": -0.00790889,
+              "negative_count": 272,
+              "positive_count": 135,
+              "ready": true,
+              "rows": 407,
+              "source": "OOS_STAGE_DIAGNOSTICS_CURRENT_MODEL"
+            },
+            "draw": {
+              "auc": 0.49946409,
+              "auc_lower_95": 0.43333423,
+              "brier_delta": -0.00747142,
+              "log_loss_delta": -0.01533486,
+              "negative_count": 311,
+              "positive_count": 96,
+              "ready": false,
+              "rows": 407,
+              "source": "OOS_STAGE_DIAGNOSTICS_CURRENT_MODEL"
+            },
+            "home_win": {
+              "auc": 0.60743802,
+              "auc_lower_95": 0.55182825,
+              "brier_delta": -0.0037086,
+              "log_loss_delta": -0.0140891,
+              "negative_count": 231,
+              "positive_count": 176,
+              "ready": true,
+              "rows": 407,
+              "source": "OOS_STAGE_DIAGNOSTICS_CURRENT_MODEL"
+            }
+          },
           "family_ready": false,
           "gate": "AUC_LOWER_95_GT_0_50 + BRIER_LOGLOSS_IMPROVEMENT + FITTED_CALIBRATOR",
-          "not_ready_classes": []
+          "not_ready_classes": [
+            "DRAW"
+          ]
         },
         "current_state": "RESEARCH",
         "promotion_shadow": {
