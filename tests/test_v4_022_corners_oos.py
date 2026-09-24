@@ -1,4 +1,5 @@
 from mcp_gateway import analyze_corners_baseline as baseline_v
+from mcp_gateway import analyze_team_corners as team_corners_v
 from mcp_gateway import corners_oos_v4 as v
 
 
@@ -36,6 +37,44 @@ def test_corners_baseline_does_not_call_thin_league_stable():
     report = baseline_v.formation_lift_by_league(rows)
     assert report["review_eligible_leagues"] == []
     assert report["review_ready"] is False
+
+
+def test_team_corners_materializes_league_venue_stability_without_inventing_performance_gate():
+    rows=[]
+    for fixture_id in range(1, 21):
+        for line in team_corners_v.LINES:
+            rows.append({
+                "fixture_id":fixture_id,
+                "league_id":39,
+                "team_role":"HOME",
+                "line":line,
+                "p_over":0.55,
+                "actual_over":1 if fixture_id % 2 else 0,
+            })
+    report=team_corners_v.league_venue_stability(rows)
+    segment=report["segments"]["39|HOME"]
+    assert segment["unique_fixtures"] == 20
+    assert segment["review_eligible"] is True
+    assert report["review_eligible_segments"] == ["39|HOME"]
+    assert report["review_ready"] is False
+
+
+def test_team_corners_league_venue_requires_two_review_sized_segments():
+    rows=[]
+    for role in ("HOME","AWAY"):
+        for fixture_id in range(1, 21):
+            for line in team_corners_v.LINES:
+                rows.append({
+                    "fixture_id":fixture_id,
+                    "league_id":39,
+                    "team_role":role,
+                    "line":line,
+                    "p_over":0.55,
+                    "actual_over":1 if fixture_id % 2 else 0,
+                })
+    report=team_corners_v.league_venue_stability(rows)
+    assert report["review_eligible_segments"] == ["39|AWAY","39|HOME"]
+    assert report["review_ready"] is True
 
 
 def test_v4_022_blocks_current_small_formation_sample_and_no_clv():
@@ -272,3 +311,61 @@ def test_v4_022_uses_materialized_league_lift_without_removing_sample_gate():
     assert "FT_CORNERS_LEAGUE_LIFT_NOT_MATERIALIZED" not in ft_blockers
     assert "FT_CORNERS_LEAGUE_LIFT_NOT_STABLE" not in ft_blockers
     assert "FORMATION_ADJUSTED_39_LT_100" in ft_blockers
+
+
+def test_v4_022_distinguishes_materialized_but_not_ready_team_corner_stability():
+    report = v.build_report(
+        {
+            "walk_forward_evaluations":244,
+            "formation_adjusted_evaluations":100,
+            "baseline":{
+                "mae_total_corners":2.6,
+                "lines":{
+                    "8.5":{"brier":0.25,"log_loss":0.70},
+                    "9.5":{"brier":0.25,"log_loss":0.70},
+                    "10.5":{"brier":0.22,"log_loss":0.63},
+                },
+            },
+            "formation_challenger":{
+                "mae_total_corners":2.5,
+                "lines":{
+                    "8.5":{"brier":0.24,"log_loss":0.69},
+                    "9.5":{"brier":0.24,"log_loss":0.69},
+                    "10.5":{"brier":0.21,"log_loss":0.62},
+                },
+            },
+            "formation_lift_by_league":{
+                "review_ready":True,
+                "review_eligible_leagues":["100","200"],
+                "stable_lift_leagues":["100","200"],
+                "negative_lift_leagues":[],
+            },
+        },
+        {
+            "evaluated_fixtures":244,
+            "evaluated_rows":1464,
+            "by_role_line":{
+                "HOME|3.5":{"n":244},
+                "HOME|4.5":{"n":244},
+                "HOME|5.5":{"n":244},
+                "AWAY|3.5":{"n":244},
+                "AWAY|4.5":{"n":244},
+                "AWAY|5.5":{"n":244},
+            },
+            "by_league":{"39":{"n":100}},
+            "league_venue_stability":{
+                "review_ready":False,
+                "review_eligible_segments":[],
+                "segments":{},
+            },
+        },
+        [
+            *[{"market_family":"FT_CORNERS","market":"Corners Over/Under","fixture_id":i,"clv_probability_pp":0.1} for i in range(60)],
+            *[{"market_family":"TEAM_CORNERS","market":"Home Team Corners","fixture_id":i,"clv_probability_pp":0.1} for i in range(60)],
+        ],
+    )
+    blockers=report["family_views"]["TEAM_CORNERS"]["blockers"]
+    assert "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED" not in blockers
+    assert "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY" in blockers
+
+

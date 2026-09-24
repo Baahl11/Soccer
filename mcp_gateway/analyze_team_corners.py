@@ -8,6 +8,8 @@ from collections import defaultdict
 from typing import Any
 
 LINES=(3.5,4.5,5.5)
+MIN_LEAGUE_VENUE_FIXTURES=20
+MIN_REVIEW_SEGMENTS=2
 
 
 def poisson_over(lam: float,line: float)->float:
@@ -22,6 +24,40 @@ def logloss(p:float,y:int)->float:
 def summarize(rows:list[dict[str,Any]])->dict[str,Any]:
     if not rows:return {"n":0,"brier":None,"log_loss":None,"mean_probability":None,"observed_rate":None}
     n=len(rows); return {"n":n,"brier":round(sum((r["p_over"]-r["actual_over"])**2 for r in rows)/n,6),"log_loss":round(sum(logloss(r["p_over"],r["actual_over"]) for r in rows)/n,6),"mean_probability":round(sum(r["p_over"] for r in rows)/n,6),"observed_rate":round(sum(r["actual_over"] for r in rows)/n,6)}
+
+
+def league_venue_stability(rows:list[dict[str,Any]])->dict[str,Any]:
+    grouped:dict[str,list[dict[str,Any]]]=defaultdict(list)
+    for row in rows:
+        key=f"{row.get('league_id') or 'UNKNOWN'}|{row.get('team_role') or 'UNKNOWN'}"
+        grouped[key].append(row)
+
+    segments:dict[str,Any]={}
+    review_eligible:list[str]=[]
+    for key,segment_rows in sorted(grouped.items()):
+        fixture_ids={r.get("fixture_id") for r in segment_rows if r.get("fixture_id") is not None}
+        line_groups:dict[str,list[dict[str,Any]]]=defaultdict(list)
+        for row in segment_rows:
+            line_groups[str(row.get("line"))].append(row)
+        eligible=len(fixture_ids)>=MIN_LEAGUE_VENUE_FIXTURES
+        if eligible:
+            review_eligible.append(key)
+        segments[key]={
+            "unique_fixtures":len(fixture_ids),
+            "minimum_unique_fixtures":MIN_LEAGUE_VENUE_FIXTURES,
+            "review_eligible":eligible,
+            "overall":summarize(segment_rows),
+            "by_line":{line:summarize(group) for line,group in sorted(line_groups.items())},
+        }
+
+    return {
+        "minimum_unique_fixtures_per_segment":MIN_LEAGUE_VENUE_FIXTURES,
+        "minimum_review_segments":MIN_REVIEW_SEGMENTS,
+        "segment_count":len(segments),
+        "review_eligible_segments":review_eligible,
+        "review_ready":len(review_eligible)>=MIN_REVIEW_SEGMENTS,
+        "segments":segments,
+    }
 
 
 def main()->None:
@@ -44,7 +80,7 @@ def main()->None:
     for row in rows:
         by_role_line[f"{row['team_role']}|{row['line']}"] .append(row); by_league[str(row.get("league_id") or "UNKNOWN")].append(row)
     unique_fixtures=len({r["fixture_id"] for r in rows})
-    out={"schema_version":"1.0.0","status":"RESEARCH_ONLY_TEAM_CORNERS_VALIDATION","source":"WALK_FORWARD_BASELINE_HOME_AWAY_CORNER_LAMBDAS","evaluated_fixtures":unique_fixtures,"evaluated_rows":len(rows),"overall":summarize(rows),"by_role_line":{k:summarize(v) for k,v in sorted(by_role_line.items())},"by_league":{k:summarize(v) for k,v in sorted(by_league.items())},"promotion_gate":{"enabled":False,"minimum_oos_team_rows":200,"minimum_oos_team_rows_for_actionable_review":400,"market_comparison_sample_gate_met":len(rows)>=200,"actionable_review_sample_gate_met":len(rows)>=400,"requires":["stable team-line Brier/log-loss","verified historical team-corners prices and true CLV","league/venue stability","parent corners model adequate"]},"notes":["Validation uses walk-forward home/away lambdas already produced by the FT corners baseline.","Diagnostic lines do not claim sportsbook availability; live market comparison requires exact observed lines.","No BET/LEAN/Galaxy promotion is permitted by this report."],"rows":rows[-1200:]}
+    out={"schema_version":"1.1.0","status":"RESEARCH_ONLY_TEAM_CORNERS_VALIDATION","source":"WALK_FORWARD_BASELINE_HOME_AWAY_CORNER_LAMBDAS","evaluated_fixtures":unique_fixtures,"evaluated_rows":len(rows),"overall":summarize(rows),"by_role_line":{k:summarize(v) for k,v in sorted(by_role_line.items())},"by_league":{k:summarize(v) for k,v in sorted(by_league.items())},"league_venue_stability":league_venue_stability(rows),"promotion_gate":{"enabled":False,"minimum_oos_team_rows":200,"minimum_oos_team_rows_for_actionable_review":400,"market_comparison_sample_gate_met":len(rows)>=200,"actionable_review_sample_gate_met":len(rows)>=400,"requires":["stable team-line Brier/log-loss","verified historical team-corners prices and true CLV","league/venue stability","parent corners model adequate"]},"notes":["Validation uses walk-forward home/away lambdas already produced by the FT corners baseline.","League/venue stability is materialized descriptively by league and HOME/AWAY role using unique fixture counts; no new performance threshold is invented here.","Diagnostic lines do not claim sportsbook availability; live market comparison requires exact observed lines.","No BET/LEAN/Galaxy promotion is permitted by this report."],"rows":rows[-1200:]}
     os.makedirs(os.path.dirname(args.output),exist_ok=True)
     with open(args.output,"w",encoding="utf-8") as fh:json.dump(out,fh,ensure_ascii=False,indent=2,sort_keys=True);fh.write("\n")
     print(json.dumps({k:out[k] for k in ("status","evaluated_fixtures","overall","promotion_gate")},indent=2))

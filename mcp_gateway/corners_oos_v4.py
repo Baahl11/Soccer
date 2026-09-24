@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.3.0"
+MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.4.0"
 MIN_FT_OOS = 150
 MIN_FORMATION_ADJUSTED = 100
 MIN_TEAM_ROWS = 400
@@ -172,6 +172,8 @@ def build_report(
     venue_stability = team_report.get("league_venue_stability")
     if not league_rows or not isinstance(venue_stability, dict) or not venue_stability:
         team_blockers.append("TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_MATERIALIZED")
+    elif venue_stability.get("review_ready") is not True:
+        team_blockers.append("TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY")
     if missing_team_lines:
         warnings.append("TEAM_CORNERS_LINE_COVERAGE_INCOMPLETE")
 
@@ -208,6 +210,7 @@ def build_report(
             "observed_lines": observed_team_lines,
             "missing_required_lines": missing_team_lines,
             "overall": team_report.get("overall") if isinstance(team_report.get("overall"), dict) else {},
+            "league_venue_stability": venue_stability if isinstance(venue_stability, dict) else {},
         },
         "true_clv": {
             **clv,
