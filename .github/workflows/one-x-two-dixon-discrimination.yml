@@ -25,6 +25,9 @@ jobs:
         with:
           ref: soccer-edge-state
           path: state
+          sparse-checkout: |
+            soccer_edge_state/analysis/signal_ledger.jsonl
+          sparse-checkout-cone-mode: false
 
       - name: Run same-cohort Dixon-Coles diagnostics
         working-directory: code
