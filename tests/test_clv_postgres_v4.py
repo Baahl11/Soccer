@@ -277,7 +277,7 @@ def test_pipeline_loader_does_not_duplicate_full_event_payload():
 
 def test_derivative_sql_loader_includes_team_totals_observed_exact_rows():
     conn = _FakeConn()
-    rows = v._load_derivative_market_signals(conn, lookback_days=30, max_rows=10)
+    rows = v._load_derivative_signals(conn, lookback_days=30, max_rows=10)
     query = conn.cursor_instance.query
 
     assert rows == []
@@ -289,7 +289,7 @@ def test_derivative_sql_loader_includes_team_totals_observed_exact_rows():
 
 def test_derivative_sql_allows_early_research_only_for_team_totals():
     conn = _FakeConn()
-    rows = v._load_derivative_market_signals(conn, lookback_days=30, max_rows=10)
+    rows = v._load_derivative_signals(conn, lookback_days=30, max_rows=10)
     query = conn.cursor_instance.query
 
     assert rows == []
