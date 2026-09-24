@@ -59,6 +59,8 @@ jobs:
           jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '.family_views.FT_CORNERS.true_clv.family_specific == true' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
           jq -e '.family_views.TEAM_CORNERS.true_clv.family_specific == true' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
+          jq -e '(.family_views.FT_CORNERS.blockers | type) == "array"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
+          jq -e '(.family_views.TEAM_CORNERS.blockers | type) == "array"' state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json >/dev/null
 
       - name: Persist validation report to state branch
         working-directory: state
