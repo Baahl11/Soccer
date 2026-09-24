@@ -109,3 +109,34 @@ def test_no_exact_market_remains_explicitly_unresolved():
     status = v._enrich_row(row, event, [], "PRICE_API_RESOLVED")
     assert status == "PRICE_API_NO_MARKET"
     assert row["price_resolution_status"] == "PRICE_API_NO_MARKET"
+
+
+def test_quota_accounting_adds_price_resolver_calls():
+    payload = {
+        "api_calls_this_tick": 70,
+        "last_daily_remaining": 6957,
+        "quota": {"daily_remaining": 6957},
+    }
+    v._apply_quota_accounting(payload, 3, 6954)
+    assert payload["api_calls_this_tick"] == 73
+    assert payload["last_daily_remaining"] == 6954
+    assert payload["quota"]["daily_remaining"] == 6954
+
+
+def test_missing_exact_total_line_is_not_misclassified_as_missing_market():
+    event = {"raw_projection": {"raw_over_2_5_prob": 0.62}}
+    row = {
+        "market_family": "FT_TOTALS_RESEARCH",
+        "selection": "Over research",
+    }
+    markets = [{
+        "market": "Goals Over/Under",
+        "bookmaker": "Book",
+        "values": [
+            {"selection": "Over", "line": 3.5, "decimal_price": 2.8, "fair_probability": 0.33},
+            {"selection": "Under", "line": 3.5, "decimal_price": 1.42, "fair_probability": 0.67},
+        ],
+    }]
+    status = v._enrich_row(row, event, markets, "PRICE_API_RESOLVED")
+    assert status == "PRICE_API_NO_EXACT_LINE"
+    assert row["price_resolution_available_lines"] == [3.5]
