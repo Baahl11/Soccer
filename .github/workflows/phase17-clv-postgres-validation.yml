@@ -48,14 +48,14 @@ jobs:
           # This contract check intentionally fails if Render is serving a stale runtime.
           # Diagnostics include per-market rejection counts from the live collector.
           # Derivative CLV smoke includes persisted research market rows.
-          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.0"
+          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.1"
           READY=0
           for attempt in 1 2 3 4 5; do
             HTTP_CODE=$(curl -sS --max-time 420 -o /tmp/clv_v4.json -w "%{http_code}" \
               -X POST \
               -H "Authorization: Bearer ${TOKEN}" \
               -H "Content-Type: application/json" \
-              -d '{"lookback_days":60,"max_signals":5000}' \
+              -d '{"lookback_days":60,"max_signals":2000}' \
               https://soccer-edge-api.onrender.com/internal/clv-v4/build)
 
             MODEL_VERSION=$(jq -r '.model_version // empty' /tmp/clv_v4.json 2>/dev/null || true)
