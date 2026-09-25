@@ -1,6 +1,7 @@
 # v125 runtime redeploy trigger
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from mcp_gateway import automation_v121 as v121
@@ -10,7 +11,7 @@ from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.31.7-team-totals-primary-odds-reuse"
+AUTOMATION_VERSION = "4.31.8-team-totals-diversity-catchup"
 # Deployment marker: v126 active-v7 upcoming fixture handoff.
 # Deployment marker: v125 scanned-upcoming FT Team Totals capture.
 
@@ -31,6 +32,59 @@ def _leftover_price_budget(payload: dict[str, Any]) -> int:
         return configured
 
     return max(0, min(configured, cap - used))
+
+
+TEAM_TOTALS_DIVERSITY_CATCHUP_MAX_CALLS = max(
+    0,
+    int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_CATCHUP_MAX_CALLS", "20")),
+)
+TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR = max(
+    0,
+    int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR", "5000")),
+)
+
+
+def _price_budget_plan(payload: dict[str, Any]) -> dict[str, Any]:
+    configured = max(0, int(price_resolver_v4.DEFAULT_MAX_API_CALLS))
+    standard_leftover = _leftover_price_budget(payload)
+
+    try:
+        daily_remaining = int(payload.get("last_daily_remaining"))
+    except (TypeError, ValueError):
+        quota = payload.get("quota") if isinstance(payload.get("quota"), dict) else {}
+        try:
+            daily_remaining = int(quota.get("daily_remaining"))
+        except (TypeError, ValueError):
+            daily_remaining = None
+
+    mode = str(payload.get("daily_budget_mode") or "").upper()
+    catchup = 0
+    if (
+        configured > standard_leftover
+        and TEAM_TOTALS_DIVERSITY_CATCHUP_MAX_CALLS > 0
+        and mode == "NORMAL"
+        and daily_remaining is not None
+        and daily_remaining > TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR
+    ):
+        daily_surplus = max(0, daily_remaining - TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR)
+        catchup = min(
+            TEAM_TOTALS_DIVERSITY_CATCHUP_MAX_CALLS,
+            configured - standard_leftover,
+            daily_surplus,
+        )
+
+    total = standard_leftover + catchup
+    return {
+        "configured_price_cap": configured,
+        "standard_leftover_budget": standard_leftover,
+        "diversity_catchup_overflow_budget": catchup,
+        "total_price_resolver_budget": total,
+        "daily_remaining_before_price_resolver": daily_remaining,
+        "daily_floor": TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR,
+        "daily_budget_mode": mode or None,
+        "catchup_enabled": catchup > 0,
+        "primary_tick_cap_unchanged": True,
+    }
 
 
 def _annotate_checkpoint(payload: dict[str, Any]) -> None:
@@ -72,6 +126,10 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "research_spillover_primary_payload_reuse_fixtures": resolution.get("research_spillover_primary_payload_reuse_fixtures", 0),
         "research_spillover_primary_payload_reuse_market_rows": resolution.get("research_spillover_primary_payload_reuse_market_rows", 0),
         "research_spillover_primary_markets_preempted": resolution.get("research_spillover_primary_markets_preempted", False),
+        "standard_leftover_budget": payload.get("price_resolver_leftover_budget", 0),
+        "diversity_catchup_overflow_budget": payload.get("team_totals_diversity_catchup_overflow_budget", 0),
+        "total_price_resolver_budget": payload.get("price_resolver_total_budget", 0),
+        "price_resolver_budget_plan": dict(payload.get("price_resolver_budget_plan") or {}),
         "note": (
             "Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
             "Resolved rows are re-evaluated by Team Totals research intelligence, execution-status separation "
@@ -91,13 +149,21 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
 async def run_tick() -> dict[str, Any]:
     payload = await v121.run_tick()
 
-    leftover_price_budget = _leftover_price_budget(payload)
-    payload["price_resolver_leftover_budget"] = leftover_price_budget
+    budget_plan = _price_budget_plan(payload)
+    payload["price_resolver_leftover_budget"] = budget_plan["standard_leftover_budget"]
+    payload["team_totals_diversity_catchup_overflow_budget"] = budget_plan["diversity_catchup_overflow_budget"]
+    payload["price_resolver_total_budget"] = budget_plan["total_price_resolver_budget"]
+    payload["price_resolver_budget_plan"] = budget_plan
     payload["price_resolver_budget_policy"] = (
-        "MIN(CONFIGURED_PRICE_CAP, EFFECTIVE_TICK_CAP - CALLS_ALREADY_USED); "
-        "PRIMARY PRICE TARGETS FIRST; TEAM TOTALS SPILLOVER ONLY AFTER PRIMARY"
+        "PRIMARY SCHEDULER KEEPS ITS FULL EFFECTIVE TICK CAP; STANDARD PRICE BUDGET USES ONLY CAP LEFTOVER. "
+        "WHILE STRICT FT TEAM TOTAL DIVERSITY IS CATCHING UP, NORMAL DAILY-BUDGET MODE WITH >5000 REQUESTS "
+        "REMAINING MAY ADD UP TO 20 TEMPORARY RESEARCH-ONLY /ODDS CALLS AFTER PRIMARY WORK. "
+        "PRIMARY PRICE TARGETS STILL RUN BEFORE TEAM TOTALS; OVERFLOW NEVER REDUCES THE PRIMARY CAP."
     )
-    await price_resolver_v4.resolve_payload(payload, max_api_calls=leftover_price_budget)
+    await price_resolver_v4.resolve_payload(
+        payload,
+        max_api_calls=budget_plan["total_price_resolver_budget"],
+    )
 
     # Team Totals is built earlier in the automation chain, before the price
     # resolver may attach real fixture /odds markets. Rebuild this research-only
