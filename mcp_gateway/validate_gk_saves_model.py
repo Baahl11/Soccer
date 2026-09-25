@@ -6,7 +6,7 @@ import math
 import os
 from typing import Any
 
-LINES = (1.5, 2.5, 3.5, 4.5, 5.5)
+LINES = (0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5)
 SAVE_PROXY_PRIOR_SOT = 30.0
 
 
@@ -109,7 +109,7 @@ def main() -> None:
         status = "FAIL"
 
     report = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "status": status,
         "profiles_checked": checked,
         "profiles_valid": valid,
@@ -122,7 +122,7 @@ def main() -> None:
         "data_blocked": checked == 0,
         "data_block_reason": "NO_FINALIZED_GK_SAVES_PLUS_CONCEDED_COUNTS_PERSISTED_YET" if checked == 0 else None,
         "checks": [
-            "save-line probabilities are bounded [0,1]",
+            "save-line probabilities are bounded [0,1] across 0.5-7.5",
             "P(over) is monotone non-increasing as save line rises",
             "P(over)+P(under)=1 for half-lines",
             "at least one GK has explicit saves+conceded counts",
