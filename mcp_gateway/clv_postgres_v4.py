@@ -10,7 +10,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.8"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.9"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 TEAM_TOTALS_RESEARCH_STAGES = ("EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
@@ -371,7 +371,7 @@ def _load_market_snapshots(
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT DISTINCT ON (m.fixture_id, m.market_id, m.bookmaker_id)
+            SELECT DISTINCT ON (m.fixture_id, m.market_id, m.bookmaker_id, m.provider_update)
                 m.fixture_id,
                 m.captured_at,
                 m.stage,
@@ -392,6 +392,7 @@ def _load_market_snapshots(
                 m.fixture_id,
                 m.market_id,
                 m.bookmaker_id,
+                m.provider_update,
                 m.captured_at DESC
             """,
             (fixture_ids, market_names, cutoff),
