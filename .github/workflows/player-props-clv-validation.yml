@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "40 9 * * *"
+  push:
+    branches: [main]
+    paths: [".github/workflows/player-props-clv-validation.yml"]
 
 permissions:
   contents: write
