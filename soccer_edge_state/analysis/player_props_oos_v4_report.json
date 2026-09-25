@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "model_version": "SOCCER_PLAYER_PROPS_OOS_V4_1.0.1",
+  "model_version": "SOCCER_PLAYER_PROPS_OOS_V4_1.1.1",
   "status": "COLLECTING_PLAYER_PROP_OOS",
   "lookback_days": 180,
-  "pregame_event_rows_loaded": 299,
-  "canonical_pregame_fixtures": 144,
-  "postgame_event_rows_loaded": 285,
+  "pregame_event_rows_loaded": 166,
+  "canonical_pregame_fixtures": 166,
+  "postgame_event_rows_loaded": 128,
   "families": {
     "SHOTS": {
       "player_game_rows": 10,
@@ -225,5 +225,5 @@
   "provider_requests_added": 0,
   "decision_weight": 0.0,
   "production_promotion_allowed": false,
-  "policy": "ONE CANONICAL PREGAME SNAPSHOT PER FIXTURE (T-10 > T-20 > T-40); JOIN ONLY FINALIZED POSTGAME PLAYER STATS BY PLAYER_ID; BINARY CALIBRATION + COUNT ERROR + MINUTES ERROR REPORTED BY PROP FAMILY; NO PROVIDER CALLS; REVIEW TARGETS ARE SAMPLE GATES, NOT PRODUCTION PROMOTION"
+  "policy": "POSTGRES-PROJECTED ONE CANONICAL PREGAME SNAPSHOT PER FIXTURE (T-10 > T-20 > T-30 > T-40); JOIN ONLY FINALIZED POSTGAME PLAYER STATS BY PLAYER_ID; BINARY CALIBRATION + COUNT ERROR + MINUTES ERROR REPORTED BY PROP FAMILY; NO PROVIDER CALLS; REVIEW TARGETS ARE SAMPLE GATES, NOT PRODUCTION PROMOTION"
 }
