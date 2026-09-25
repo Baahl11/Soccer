@@ -414,6 +414,24 @@ def _is_ft_team_total_bet(bet: dict[str, Any]) -> bool:
 
 def _player_prop_research_subfamily(bet: dict[str, Any]) -> str | None:
     name = " ".join(str(bet.get("name") or "").strip().lower().split())
+
+    # API-Football exposes some team aggregates with "Player Shots" in the
+    # market name (for example "Away Player Shots Total"). They contain only
+    # team-level Over/Under selections and no player identity, so they must not
+    # enter the individual Player Props research ledger.
+    aggregate_player_markets = (
+        "home player shots total",
+        "away player shots total",
+        "home player shots on target total",
+        "away player shots on target total",
+        "player shots total - home",
+        "player shots total - away",
+        "player shots on target total - home",
+        "player shots on target total - away",
+    )
+    if any(token in name for token in aggregate_player_markets):
+        return None
+
     if "first goal scorer" in name:
         return "GOALSCORER_FIRST"
     if "last goal scorer" in name:
@@ -468,16 +486,40 @@ def _research_value(
 ) -> dict[str, Any]:
     raw = str(value.get("value") or "").strip()
     line = None
+    line_basis = None
+    threshold_count = None
+
     match = re.search(r"\b(?:over|under)\s+([+-]?\d+(?:\.\d+)?)\b", raw, flags=re.IGNORECASE)
     if match:
         try:
             line = float(match.group(1))
+            line_basis = "EXPLICIT_OVER_UNDER"
         except (TypeError, ValueError):
             line = None
+
+    # API-Football also emits individual count props as "Player Name - N",
+    # meaning N+ events. Convert that threshold to the equivalent Over N-0.5
+    # line so it can be compared directly with our Poisson/count line tables.
+    if (
+        line is None
+        and research_subfamily in {"SHOTS", "SOT", "GK_SAVES"}
+    ):
+        threshold_match = re.match(r"^.+?\s+-\s+(\d+)\s*$", raw)
+        if threshold_match:
+            try:
+                threshold_count = int(threshold_match.group(1))
+            except (TypeError, ValueError):
+                threshold_count = None
+            if threshold_count is not None and threshold_count >= 1:
+                line = float(threshold_count) - 0.5
+                line_basis = "PLAYER_THRESHOLD_N_PLUS"
+
     compact = {
         "selection": value.get("value"),
         "price": value.get("odd"),
         "parsed_line": line,
+        "line_basis": line_basis,
+        "threshold_count": threshold_count,
     }
     return _align_research_player_value(
         compact,
