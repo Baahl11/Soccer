@@ -9,6 +9,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 
+def _is_postgame_phase(value: Any) -> bool:
+    return str(value or "").upper().startswith("POSTGAME")
+
+
 def _num(value: Any) -> float | None:
     try:
         return float(value)
@@ -86,6 +90,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--history-dir", default="soccer_edge_state/history")
     parser.add_argument("--output", default="soccer_edge_state/analysis/player_trends.json")
+    parser.add_argument(
+        "--registry-backfill",
+        default="soccer_edge_state/analysis/player_trend_registry_backfill.json",
+    )
     args = parser.parse_args()
 
     seen: dict[int, dict[str, Any]] = {}
@@ -114,7 +122,7 @@ def main() -> None:
                         continue
                     phase = capture.get("capture_phase") or "PREGAME"
                     current = seen.get(int(fid))
-                    if current is not None and current.get("capture_phase") == "POSTGAME" and phase != "POSTGAME":
+                    if current is not None and _is_postgame_phase(current.get("capture_phase")) and not _is_postgame_phase(phase):
                         continue
                     seen[int(fid)] = {
                         "fixture_id": int(fid),
@@ -122,6 +130,28 @@ def main() -> None:
                         "teams": capture.get("teams") or [],
                         "capture_phase": phase,
                     }
+
+    # Registry-only postgame backfills are deliberately kept separate from
+    # historical prediction events. They can improve future player profiles,
+    # but they must never create retroactive pregame signals, markets, or CLV.
+    supplement = _load(args.registry_backfill)
+    for capture in supplement.get("captures") or []:
+        if not isinstance(capture, dict) or capture.get("fixture_id") is None:
+            continue
+        teams = capture.get("teams") if isinstance(capture.get("teams"), list) else []
+        if not teams:
+            continue
+        fid = int(capture["fixture_id"])
+        phase = capture.get("capture_phase") or "POSTGAME_REGISTRY_BACKFILL"
+        current = seen.get(fid)
+        if current is not None and _is_postgame_phase(current.get("capture_phase")) and not _is_postgame_phase(phase):
+            continue
+        seen[fid] = {
+            "fixture_id": fid,
+            "kickoff": capture.get("kickoff"),
+            "teams": teams,
+            "capture_phase": phase,
+        }
 
     rows: dict[Any, list[dict[str, Any]]] = defaultdict(list)
     names: dict[Any, Any] = {}
@@ -157,7 +187,7 @@ def main() -> None:
             "last_known_position": positions.get(pid),
             "team_ids": sorted(team_ids.get(pid) or []),
             "matches_captured": len(player_rows),
-            "postgame_matches_captured": sum(r.get("capture_phase") == "POSTGAME" for r in player_rows),
+            "postgame_matches_captured": sum(_is_postgame_phase(r.get("capture_phase")) for r in player_rows),
             "windows": {},
         }
         for n in (5, 10, 20):
@@ -220,7 +250,7 @@ def main() -> None:
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "decision_weight": 0.0,
         "unique_fixtures_captured": len(seen),
-        "postgame_fixtures_captured": sum(x.get("capture_phase") == "POSTGAME" for x in seen.values()),
+        "postgame_fixtures_captured": sum(_is_postgame_phase(x.get("capture_phase")) for x in seen.values()),
         "unique_players": len(output_players),
         "players_with_5plus_matches": sum(x["matches_captured"] >= 5 for x in output_players),
         "goalkeepers_with_5plus_gk_matches": sum(
