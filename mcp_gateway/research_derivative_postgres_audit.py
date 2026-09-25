@@ -50,6 +50,9 @@ def classify_market(market: Any) -> str | None:
     if any(token in name for token in player_card_tokens):
         return "PLAYER_CARDS"
 
+    if "score or assist" in name or "score/assist" in name:
+        return None
+
     if "first goal scorer" in name:
         return "GOALSCORER_FIRST"
     if "last goal scorer" in name:
