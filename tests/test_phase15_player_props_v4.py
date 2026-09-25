@@ -1,4 +1,5 @@
 from mcp_gateway import player_props_phase15_v4 as v
+from mcp_gateway import player_props_clv_postgres_v4 as prop_clv
 
 
 BASE = {
@@ -136,3 +137,236 @@ def test_phase15_rejects_fixture_level_xi_without_player_level_alignment():
     assert "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING" in report["blockers"]
     assert "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING" in report["blockers"]
     assert report["production_promotion_allowed"] is False
+
+
+def _xi_lineup():
+    return {
+        "both_xi_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Keeper B", "pos": "G"}],
+            },
+        ],
+    }
+
+
+def test_player_prop_true_clv_extracts_xi_aligned_shadow_signal_and_devigs_line():
+    event = {
+        "fixture_id": 9001,
+        "generated_at": "2026-09-25T10:00:00+00:00",
+        "stage": "T-20",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-20",
+            "fixture": {"fixture_id": 9001, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "lineups": _xi_lineup(),
+            "player_shots_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "confirmed_starter": True,
+                    "expected_minutes_if_confirmed_starter": 82.0,
+                    "lines": [{"line": 2.5, "p_over": 0.57, "p_under": 0.43}],
+                }]
+            },
+            "market": {
+                "research_cards_props_markets": [{
+                    "research_family": "PLAYER_PROPS",
+                    "research_subfamily": "SHOTS",
+                    "market": "Player Shots",
+                    "market_id": 801,
+                    "bookmaker_id": 1,
+                    "bookmaker": "Book",
+                    "provider_update": "2026-09-25T09:58:00+00:00",
+                    "values": [
+                        {
+                            "selection": "Player A Over 2.5",
+                            "price": "2.00",
+                            "parsed_line": 2.5,
+                            "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                            "player_id": 501,
+                            "player_name": "Player A",
+                            "team_id": 10,
+                        },
+                        {
+                            "selection": "Player A Under 2.5",
+                            "price": "1.80",
+                            "parsed_line": 2.5,
+                            "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                            "player_id": 501,
+                            "player_name": "Player A",
+                            "team_id": 10,
+                        },
+                    ],
+                }]
+            },
+        },
+    }
+
+    signals = prop_clv.extract_shadow_signals([event])
+
+    assert len(signals) == 2
+    over = next(row for row in signals if row["side"] == "OVER")
+    assert over["market_family"] == "SHOTS"
+    assert over["player_id"] == 501
+    assert over["line"] == 2.5
+    assert over["model_probability"] == 0.57
+    assert over["entry_market_fair_basis"] == "DEVIGGED_TWO_WAY"
+    assert round(over["entry_market_fair_probability"], 6) == round((1/2.0) / ((1/2.0)+(1/1.8)), 6)
+    assert over["decision_weight"] == 0.0
+    assert over["production_promotion_allowed"] is False
+
+
+def test_player_prop_true_clv_pairs_exact_player_line_side_with_strict_later_provider_update():
+    signal = {
+        "fixture_id": 9001,
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "signal_timestamp": "2026-09-25T10:00:00+00:00",
+        "stage": "T-20",
+        "market_family": "SHOTS",
+        "market": "Player Shots",
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "player_id": 501,
+        "player_name": "Player A",
+        "selection": "Player A Over 2.5",
+        "side": "OVER",
+        "line": 2.5,
+        "entry_price": 2.0,
+        "entry_market_fair_probability": (1/2.0) / ((1/2.0)+(1/1.8)),
+        "entry_market_fair_basis": "DEVIGGED_TWO_WAY",
+        "model_probability": 0.57,
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+    }
+    snapshot = {
+        "fixture_id": 9001,
+        "captured_at": "2026-09-25T10:45:00+00:00",
+        "provider_update": "2026-09-25T10:40:00+00:00",
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market": "Player Shots",
+        "confirmed_lineup_payload": _xi_lineup(),
+        "values": [
+            {"selection": "Player A Over 2.5", "price": "1.80", "parsed_line": 2.5},
+            {"selection": "Player A Under 2.5", "price": "2.00", "parsed_line": 2.5},
+        ],
+    }
+
+    rows, skip = prop_clv.pair_signals_to_closes([signal], [snapshot])
+
+    assert skip == {}
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["is_true_closing_line"] is True
+    assert row["strict_later_provider_update"] is True
+    assert row["probability_comparable_same_line"] is True
+    assert row["same_book_preferred"] is True
+    assert row["closing_price"] == 1.8
+    assert row["clv_probability_pp"] is not None
+    assert row["price_clv_pct"] > 0
+    assert row["decision_weight"] == 0.0
+    assert row["production_promotion_allowed"] is False
+
+
+def test_player_prop_true_clv_one_way_market_tracks_price_without_fake_devig():
+    signal = {
+        "fixture_id": 9002,
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "signal_timestamp": "2026-09-25T10:00:00+00:00",
+        "stage": "T-20",
+        "market_family": "GOALSCORER_ANYTIME",
+        "market": "Anytime Goal Scorer",
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "player_id": 501,
+        "player_name": "Player A",
+        "selection": "Player A",
+        "side": "PLAYER_EVENT",
+        "line": None,
+        "entry_price": 3.0,
+        "entry_market_fair_probability": None,
+        "entry_market_fair_basis": "ONE_WAY_OR_UNPAIRED",
+        "model_probability": 0.36,
+    }
+    snapshot = {
+        "fixture_id": 9002,
+        "captured_at": "2026-09-25T10:45:00+00:00",
+        "provider_update": "2026-09-25T10:40:00+00:00",
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market": "Anytime Goal Scorer",
+        "confirmed_lineup_payload": _xi_lineup(),
+        "values": [{"selection": "Player A", "price": "2.70"}],
+    }
+
+    rows, _ = prop_clv.pair_signals_to_closes([signal], [snapshot])
+    assert len(rows) == 1
+    assert rows[0]["is_true_closing_line"] is True
+    assert rows[0]["probability_comparable_same_line"] is False
+    assert rows[0]["clv_probability_pp"] is None
+    assert rows[0]["price_clv_pct"] > 0
+    assert rows[0]["closing_line_status"] == "TRUE_PREKICKOFF_PLAYER_PROP_CLOSE_PRICE_ONLY"
+
+
+def test_player_prop_true_clv_rejects_cache_replay_or_stale_provider_quote():
+    signal = {
+        "fixture_id": 9003,
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "signal_timestamp": "2026-09-25T10:00:00+00:00",
+        "market_family": "SHOTS",
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "player_id": 501,
+        "selection": "Player A Over 2.5",
+        "side": "OVER",
+        "line": 2.5,
+        "entry_price": 2.0,
+        "entry_market_fair_probability": 0.48,
+        "entry_market_fair_basis": "DEVIGGED_TWO_WAY",
+    }
+    stale = {
+        "fixture_id": 9003,
+        "captured_at": "2026-09-25T10:40:00+00:00",
+        "provider_update": "2026-09-25T09:55:00+00:00",
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market": "Player Shots",
+        "confirmed_lineup_payload": _xi_lineup(),
+        "values": [
+            {"selection": "Player A Over 2.5", "price": "1.9", "parsed_line": 2.5},
+            {"selection": "Player A Under 2.5", "price": "1.9", "parsed_line": 2.5},
+        ],
+    }
+
+    rows, skip = prop_clv.pair_signals_to_closes([signal], [stale])
+    assert rows == []
+    assert skip["NO_LATER_STRICT_PLAYER_PROP_CLOSE"] == 1
+
+
+def test_player_prop_true_clv_summary_requires_rows_and_fixture_diversity_per_family():
+    rows = [
+        {
+            "fixture_id": i,
+            "player_id": 1000 + i,
+            "market_family": "SHOTS",
+            "is_true_closing_line": True,
+            "probability_comparable_same_line": True,
+        }
+        for i in range(20)
+    ]
+    summary = prop_clv.summarize_tracking(rows)
+    shots = summary["families"]["SHOTS"]
+    assert shots["true_clv_rows"] == 20
+    assert shots["unique_fixtures"] == 20
+    assert shots["fixture_diversity_target_met"] is True
+    assert shots["row_target_met"] is False
+    assert shots["review_ready"] is False
