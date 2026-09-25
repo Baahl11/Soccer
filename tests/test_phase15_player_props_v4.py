@@ -649,3 +649,65 @@ def test_player_props_oos_metrics_are_family_specific_and_not_promotional():
     assert shots["expected_minutes_mae"] == 10.0
     assert shots["oos_validation_complete"] is False
     assert shots["minimum_player_games_for_review"] == 500
+
+
+def test_phase15_uses_dedicated_oos_report_instead_of_static_sanity_flag():
+    oos = {
+        "families": {
+            family: {
+                "status": "OOS_REVIEW_READY",
+                "player_game_rows": 1200,
+                "binary_probability_rows": 2400,
+                "unique_fixtures": 120,
+                "unique_player_fixtures": 1200,
+                "minimum_player_games_for_review": 500,
+                "sample_target_met": True,
+                "oos_validation_complete": True,
+                "brier_score": 0.20,
+                "log_loss": 0.60,
+                "expected_count_mae": 0.9,
+                "expected_count_rmse": 1.2,
+                "expected_minutes_mae": 8.0,
+                "calibration_ece": 0.04,
+                "calibration_bins": [],
+            }
+            for family in ("SHOTS", "SOT", "GOALSCORER_ANYTIME", "ASSISTS", "PLAYER_CARDS", "GK_SAVES")
+        }
+    }
+    audit = {
+        "families": {
+            family: {
+                "market_snapshot_rows": 10,
+                "priced_value_rows": 20,
+                "exact_line_value_rows": 20,
+                "unique_fixtures": 5,
+                "pre_kickoff_unique_fixtures": 5,
+                "provider_update_unique_fixtures": 5,
+                "confirmed_xi_pre_kickoff_unique_fixtures": 5,
+                "bookmaker_count": 2,
+                "xi_aligned_value_rows": 20,
+                "xi_aligned_priced_value_rows": 20,
+                "xi_aligned_exact_line_value_rows": 20,
+                "confirmed_xi_player_aligned_unique_fixtures": 5,
+                "exact_observed_market_history_materialized": True,
+                "confirmed_xi_overlap_materialized": True,
+                "player_xi_alignment_materialized": True,
+            }
+            for family in ("SHOTS", "SOT", "GOALSCORER_ANYTIME", "ASSISTS", "PLAYER_CARDS", "GK_SAVES")
+        }
+    }
+
+    report = v.build_report(
+        dict(BASE), dict(BASE), dict(BASE), dict(BASE), dict(BASE), dict(BASE),
+        [], audit, oos
+    )
+
+    for prop in v.PROP_KEYS:
+        assert report["prop_families"][prop]["oos_validation_complete"] is True
+        assert report["prop_families"][prop]["oos_evidence"]["status"] == "OOS_REVIEW_READY"
+        assert f"{prop.upper()}_OOS_VALIDATION_INCOMPLETE" not in report["blockers"]
+
+    assert "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED" not in report["blockers"]
+    assert "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED" not in report["blockers"]
+    assert "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED" not in report["blockers"]
+    assert report["production_promotion_allowed"] is False
