@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
-from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, formation_postgres_audit, oos_prediction_ledger_v4, persistence as persistence_base, player_props_clv_postgres_v4, player_props_oos_postgres_v4, player_props_phase15_coverage_audit, product_dashboard_v4, product_views_v4, promotion_shadow_postgres_v4, research_derivative_postgres_audit, settlement_postgres_v4, training_dataset_v4
+from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, formation_postgres_audit, oos_prediction_ledger_v4, persistence as persistence_base, player_props_clv_postgres_v4, player_props_oos_postgres_v4, player_props_phase15_coverage_audit, player_props_postgame_backfill_v4, product_dashboard_v4, product_views_v4, promotion_shadow_postgres_v4, research_derivative_postgres_audit, settlement_postgres_v4, training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -574,6 +574,42 @@ async def internal_player_props_phase15_coverage_audit(request: Request) -> Resp
     except Exception as exc:
         return JSONResponse(
             {"error": "player_props_phase15_coverage_audit_failed", "detail": str(exc)[:500]},
+            status_code=500,
+        )
+
+
+@mcp.custom_route("/internal/player-props-postgame-backfill-v4/run", methods=["POST"])
+async def internal_player_props_postgame_backfill_v4_run(request: Request) -> Response:
+    try:
+        _github_oidc_claims(
+            request,
+            {".github/workflows/player-props-postgame-backfill.yml"},
+        )
+    except Exception as exc:
+        return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    try:
+        lookback_days = max(1, min(int(body.get("lookback_days", 180)), 730))
+        max_fixtures = max(1, min(int(body.get("max_fixtures", 5)), 5))
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "invalid_player_props_backfill_parameters"}, status_code=400)
+
+    try:
+        result = await player_props_postgame_backfill_v4.run_backfill(
+            lookback_days=lookback_days,
+            max_fixtures=max_fixtures,
+        )
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse(
+            {"error": "player_props_postgame_backfill_failed", "detail": str(exc)[:500]},
             status_code=500,
         )
 
