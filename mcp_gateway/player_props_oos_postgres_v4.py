@@ -8,7 +8,7 @@ from typing import Any, Iterable
 from mcp_gateway import persistence as persistence_base
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_OOS_V4_1.1.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_OOS_V4_1.1.1"
 SIGNAL_STAGES = ("T-40", "T-30", "T-20", "T-10")
 STAGE_PRIORITY = {"T-40": 1, "T-30": 2, "T-20": 3, "T-10": 4}
 
@@ -424,13 +424,35 @@ def _load_pregame(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, 
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT e.fixture_id, e.generated_at, e.stage, e.payload AS event_payload, f.kickoff
+            SELECT DISTINCT ON (e.fixture_id)
+                e.fixture_id,
+                e.generated_at,
+                e.stage,
+                jsonb_build_object(
+                    'fixture', e.payload->'fixture',
+                    'player_shots_intelligence', e.payload->'player_shots_intelligence',
+                    'player_sot_intelligence', e.payload->'player_sot_intelligence',
+                    'player_goalscorer_intelligence', e.payload->'player_goalscorer_intelligence',
+                    'player_assists_intelligence', e.payload->'player_assists_intelligence',
+                    'player_cards_intelligence', e.payload->'player_cards_intelligence',
+                    'gk_saves_intelligence', e.payload->'gk_saves_intelligence'
+                ) AS event_payload,
+                f.kickoff
             FROM soccer_refresh_events e
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.generated_at < f.kickoff
               AND e.stage IN ('T-40','T-30','T-20','T-10')
-            ORDER BY e.fixture_id, e.generated_at
+            ORDER BY
+                e.fixture_id,
+                CASE e.stage
+                    WHEN 'T-10' THEN 4
+                    WHEN 'T-20' THEN 3
+                    WHEN 'T-30' THEN 2
+                    WHEN 'T-40' THEN 1
+                    ELSE 0
+                END DESC,
+                e.generated_at DESC
             LIMIT %s
             """,
             (cutoff, max_rows),
@@ -444,13 +466,21 @@ def _load_postgame(conn, *, lookback_days: int, max_rows: int) -> list[dict[str,
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT e.fixture_id, e.generated_at, e.stage, e.payload AS event_payload, f.kickoff
+            SELECT DISTINCT ON (e.fixture_id)
+                e.fixture_id,
+                e.generated_at,
+                e.stage,
+                jsonb_build_object(
+                    'fixture', e.payload->'fixture',
+                    'postgame_player_stats', e.payload->'postgame_player_stats'
+                ) AS event_payload,
+                f.kickoff
             FROM soccer_refresh_events e
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.stage IN ('POSTGAME','POSTGAME_BACKFILL')
               AND e.payload ? 'postgame_player_stats'
-            ORDER BY e.fixture_id, e.generated_at
+            ORDER BY e.fixture_id, e.generated_at DESC
             LIMIT %s
             """,
             (cutoff, max_rows),
@@ -498,7 +528,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "decision_weight": 0.0,
         "production_promotion_allowed": False,
         "policy": (
-            "ONE CANONICAL PREGAME SNAPSHOT PER FIXTURE (T-10 > T-20 > T-30 > T-40); "
+            "POSTGRES-PROJECTED ONE CANONICAL PREGAME SNAPSHOT PER FIXTURE (T-10 > T-20 > T-30 > T-40); "
             "JOIN ONLY FINALIZED POSTGAME PLAYER STATS BY PLAYER_ID; "
             "BINARY CALIBRATION + COUNT ERROR + MINUTES ERROR REPORTED BY PROP FAMILY; "
             "NO PROVIDER CALLS; REVIEW TARGETS ARE SAMPLE GATES, NOT PRODUCTION PROMOTION"
