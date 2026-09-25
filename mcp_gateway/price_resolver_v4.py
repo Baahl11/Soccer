@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.12.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.13.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -23,6 +23,18 @@ TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS = max(1, int(os.getenv("SOCCER_TEAM_TOTALS_D
 TEAM_TOTALS_DIVERSITY_BACKLOG_LIMIT = max(
     TEAM_TOTALS_DIVERSITY_TARGET,
     int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_BACKLOG_LIMIT", "80")),
+)
+TEAM_TOTALS_MATURATION_LOOKAHEAD_MINUTES = max(
+    20,
+    int(os.getenv("SOCCER_TEAM_TOTALS_MATURATION_LOOKAHEAD_MINUTES", "55")),
+)
+TEAM_TOTALS_MATURATION_BACKLOG_LIMIT = max(
+    20,
+    int(os.getenv("SOCCER_TEAM_TOTALS_MATURATION_BACKLOG_LIMIT", "80")),
+)
+TEAM_TOTALS_MATURATION_MAX_CALLS_PER_TICK = max(
+    1,
+    int(os.getenv("SOCCER_TEAM_TOTALS_MATURATION_MAX_CALLS_PER_TICK", "12")),
 )
 TEAM_TOTALS_SPILLOVER_EVENT_TYPE = "TEAM_TOTALS_RESEARCH_SPILLOVER"
 
@@ -856,6 +868,224 @@ def _load_team_totals_diversity_backlog(
         "candidate_events": candidate_events,
         "candidate_count": len(candidate_events),
         "source": "POSTGRES_UPCOMING_MODELED_FIXTURE_BACKLOG",
+    }
+
+
+def _maturation_stage(kickoff: Any, now: datetime) -> str:
+    kickoff_dt = kickoff if isinstance(kickoff, datetime) else None
+    if kickoff_dt is None and kickoff:
+        try:
+            kickoff_dt = datetime.fromisoformat(str(kickoff).replace("Z", "+00:00"))
+        except ValueError:
+            kickoff_dt = None
+    if kickoff_dt is None:
+        return "T-20"
+    if kickoff_dt.tzinfo is None:
+        kickoff_dt = kickoff_dt.replace(tzinfo=timezone.utc)
+    minutes_to = (kickoff_dt.astimezone(timezone.utc) - now).total_seconds() / 60.0
+    if minutes_to <= 7.5:
+        return "CLOSE"
+    if minutes_to <= 15.0:
+        return "T-10"
+    if minutes_to <= 27.5:
+        return "T-20"
+    return "T-40"
+
+
+def _markets_have_provider_update_after(markets: list[dict[str, Any]], signal_generated_at: Any) -> bool:
+    if not signal_generated_at:
+        return False
+    try:
+        signal_at = (
+            signal_generated_at
+            if isinstance(signal_generated_at, datetime)
+            else datetime.fromisoformat(str(signal_generated_at).replace("Z", "+00:00"))
+        )
+    except ValueError:
+        return False
+    if signal_at.tzinfo is None:
+        signal_at = signal_at.replace(tzinfo=timezone.utc)
+    signal_at = signal_at.astimezone(timezone.utc)
+    for market in markets:
+        if not isinstance(market, dict) or not _is_ft_team_total_market(market):
+            continue
+        raw_update = market.get("provider_update")
+        if not raw_update:
+            continue
+        try:
+            update = raw_update if isinstance(raw_update, datetime) else datetime.fromisoformat(str(raw_update).replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if update.tzinfo is None:
+            update = update.replace(tzinfo=timezone.utc)
+        if update.astimezone(timezone.utc) > signal_at:
+            return True
+    return False
+
+
+def _load_team_totals_maturation_backlog(
+    *,
+    lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
+    lookahead_minutes: int = TEAM_TOTALS_MATURATION_LOOKAHEAD_MINUTES,
+    limit: int = TEAM_TOTALS_MATURATION_BACKLOG_LIMIT,
+) -> dict[str, Any]:
+    """Load strict-captured, modeled Team Totals fixtures still missing a later real provider quote.
+
+    Provider-call free. Candidates are bounded to the late pre-kickoff window so
+    leftover /odds budget is spent on CLV maturation rather than extra diversity.
+    """
+    empty = {
+        "candidate_events": [],
+        "candidate_count": 0,
+        "source": "POSTGRES_NOT_CONFIGURED",
+    }
+    if not persistence.persistence_configured():
+        return empty
+
+    persistence.ensure_schema()
+    now = datetime.now(timezone.utc)
+    lookback_cutoff = now - timedelta(days=max(1, int(lookback_days)))
+    lookahead_cutoff = now + timedelta(minutes=max(20, int(lookahead_minutes)))
+
+    with persistence._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH strict_capture AS (
+                    SELECT DISTINCT e.fixture_id
+                    FROM soccer_refresh_events e
+                    JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                    WHERE e.generated_at >= %s
+                      AND e.generated_at < f.kickoff
+                      AND COALESCE(
+                            e.payload -> 'team_totals_diversity_capture' ->> 'qualifies',
+                            'false'
+                          ) = 'true'
+                ),
+                modeled_signal AS (
+                    SELECT
+                        e.fixture_id,
+                        MIN(e.generated_at) AS signal_generated_at
+                    FROM soccer_refresh_events e
+                    JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                    WHERE e.generated_at >= %s
+                      AND e.generated_at < f.kickoff
+                      AND jsonb_typeof(
+                            COALESCE(
+                                e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows',
+                                '[]'::jsonb
+                            )
+                          ) = 'array'
+                      AND jsonb_array_length(
+                            COALESCE(
+                                e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows',
+                                '[]'::jsonb
+                            )
+                          ) > 0
+                    GROUP BY e.fixture_id
+                )
+                SELECT
+                    f.fixture_id,
+                    f.league_id,
+                    f.league,
+                    f.country,
+                    f.season,
+                    f.round,
+                    f.kickoff,
+                    f.status,
+                    f.status_long,
+                    f.home_team_id,
+                    f.home_team,
+                    f.away_team_id,
+                    f.away_team,
+                    f.venue,
+                    f.city,
+                    ms.signal_generated_at
+                FROM strict_capture sc
+                JOIN modeled_signal ms ON ms.fixture_id = sc.fixture_id
+                JOIN soccer_fixtures f ON f.fixture_id = sc.fixture_id
+                WHERE f.kickoff > %s
+                  AND f.kickoff <= %s
+                  AND COALESCE(f.status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM soccer_market_snapshots m
+                      WHERE m.fixture_id = f.fixture_id
+                        AND m.captured_at > ms.signal_generated_at
+                        AND m.provider_update IS NOT NULL
+                        AND m.provider_update > ms.signal_generated_at
+                        AND m.captured_at < f.kickoff
+                        AND (
+                              m.market_id IN (16, 17)
+                              OR LOWER(TRIM(COALESCE(m.market, ''))) IN (
+                                  'total - home',
+                                  'total home',
+                                  'total - away',
+                                  'total away',
+                                  'home team total goals',
+                                  'away team total goals',
+                                  'home team goals over/under',
+                                  'away team goals over/under'
+                              )
+                            )
+                  )
+                ORDER BY f.kickoff ASC, ms.signal_generated_at ASC
+                LIMIT %s
+                """,
+                (
+                    lookback_cutoff,
+                    lookback_cutoff,
+                    now,
+                    lookahead_cutoff,
+                    max(1, int(limit)),
+                ),
+            )
+            rows = cur.fetchall()
+            columns = [desc.name for desc in cur.description]
+
+    candidate_events: list[dict[str, Any]] = []
+    for raw_row in rows:
+        row = dict(zip(columns, raw_row))
+        kickoff = row.get("kickoff")
+        signal_at = row.get("signal_generated_at")
+        fixture = {
+            "fixture_id": row.get("fixture_id"),
+            "league_id": row.get("league_id"),
+            "league": row.get("league"),
+            "country": row.get("country"),
+            "season": row.get("season"),
+            "round": row.get("round"),
+            "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
+            "status": row.get("status"),
+            "status_long": row.get("status_long"),
+            "home_team_id": row.get("home_team_id"),
+            "home_team": row.get("home_team"),
+            "away_team_id": row.get("away_team_id"),
+            "away_team": row.get("away_team"),
+            "venue": row.get("venue"),
+            "city": row.get("city"),
+        }
+        candidate_events.append({
+            "event_type": TEAM_TOTALS_SPILLOVER_EVENT_TYPE,
+            "stage": _maturation_stage(kickoff, now),
+            "fixture": fixture,
+            "classification": "RESEARCH_ONLY",
+            "bet_eligible": False,
+            "research_only": True,
+            "decision_weight": 0.0,
+            "team_totals_clv_maturation": {
+                "candidate_source": "POSTGRES_STRICT_CAPTURE_MODELED_NO_LATER_REAL_QUOTE",
+                "signal_generated_at": signal_at.isoformat() if isinstance(signal_at, datetime) else signal_at,
+                "provider_requests_before_price_resolver": 0,
+                "primary_markets_preempted": False,
+                "requires_provider_update_after_signal": True,
+            },
+        })
+
+    return {
+        "candidate_events": candidate_events,
+        "candidate_count": len(candidate_events),
+        "source": "POSTGRES_TEAM_TOTALS_CLV_MATURATION_BACKLOG",
     }
 
 
