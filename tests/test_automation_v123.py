@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from mcp_gateway import automation as base
 from mcp_gateway import automation_v123 as v
+from mcp_gateway import automation_v5 as v5
 from mcp_gateway import automation_v7 as v7
 
 
@@ -517,3 +518,66 @@ def test_booking_points_are_captured_but_flagged_for_scoring_rule_mapping():
     assert row["research_family"] == "CARDS"
     assert row["bookmaker_scoring_rule_required"] is True
     assert row["values"][0]["parsed_line"] == 35.5
+
+
+
+def test_research_derivative_summary_excludes_cache_replay_from_new_capture():
+    payload = {
+        "events": [
+            {
+                "market": {
+                    "source": "API_FOOTBALL_ODDS_V3",
+                    "resolution_status": "PRICE_API_RESOLVED",
+                    "card_research_market_rows": 2,
+                    "player_prop_research_market_rows": 3,
+                }
+            },
+            {
+                "market": {
+                    "source": "LOCAL_ODDS_CACHE",
+                    "resolution_status": "PRICE_CACHE_HIT_LOCAL",
+                    "card_research_market_rows": 4,
+                    "player_prop_research_market_rows": 5,
+                }
+            },
+        ]
+    }
+    result = v._summarize_research_derivative_sidecars(payload)
+    assert result["events_with_sidecar"] == 2
+    assert result["fresh_provider_events_with_sidecar"] == 1
+    assert result["cache_replay_events_with_sidecar"] == 1
+    assert result["observed_card_market_rows"] == 6
+    assert result["observed_player_prop_market_rows"] == 8
+    assert result["card_market_rows"] == 2
+    assert result["player_prop_market_rows"] == 3
+    assert result["total_market_rows"] == 5
+    assert result["cache_replay_rows_excluded_from_new_evidence"] == 9
+
+
+def test_v5_odds_cache_marks_replay_and_fresh_provider(monkeypatch):
+    now = datetime(2026, 9, 25, 12, 0, tzinfo=timezone.utc)
+    compact = {
+        "markets": [],
+        "card_research_market_rows": 1,
+        "player_prop_research_market_rows": 0,
+    }
+
+    monkeypatch.setattr(v5.base, "_cache_get", lambda *args, **kwargs: dict(compact))
+    cached = asyncio.run(v5._odds_7m(999, now))
+    assert cached["source"] == "LOCAL_ODDS_CACHE"
+    assert cached["resolution_status"] == "PRICE_CACHE_HIT_LOCAL"
+
+    writes = []
+    monkeypatch.setattr(v5.base, "_cache_get", lambda *args, **kwargs: None)
+    monkeypatch.setattr(v5.base, "_cache_set", lambda *args, **kwargs: writes.append(args))
+
+    async def fake_api_get(endpoint, params):
+        assert endpoint == "odds"
+        return {"response": []}
+
+    monkeypatch.setattr(v5.base, "_api_get", fake_api_get)
+    monkeypatch.setattr(v5.base, "_compact_odds", lambda payload: dict(compact))
+    fresh = asyncio.run(v5._odds_7m(999, now))
+    assert fresh["source"] == "API_FOOTBALL_ODDS_V3"
+    assert fresh["resolution_status"] == "PRICE_API_RESOLVED"
+    assert writes
