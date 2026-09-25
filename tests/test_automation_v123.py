@@ -915,3 +915,134 @@ def test_v5_cached_player_props_are_realigned_when_confirmed_xi_arrives(monkeypa
     assert value["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
     assert value["player_id"] == 501
     assert result["research_cards_props_markets"][0]["xi_aligned_value_rows"] == 1
+
+
+def test_v5_research_only_xi_capture_runs_for_t20_shortlist_miss(monkeypatch):
+    now = datetime(2026, 9, 25, 12, 0, tzinfo=timezone.utc)
+    fixture = {
+        "fixture_id": 88001,
+        "league_id": 39,
+        "season": 2026,
+        "kickoff": "2026-09-25T12:20:00+00:00",
+        "home_team_id": 10,
+        "away_team_id": 20,
+        "home_team": "Home",
+        "away_team": "Away",
+    }
+    coverage = {
+        "data_tier": "A",
+        "lineups": True,
+        "odds": True,
+        "injuries": False,
+        "statistics_fixtures": True,
+        "statistics_players": True,
+    }
+    lineup = {
+        "both_xi_confirmed": True,
+        "both_goalkeepers_confirmed": True,
+        "lineup_state": "CONFIRMED_API",
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Keeper B", "pos": "G"}],
+            },
+        ],
+    }
+    market = {
+        "source": "API_FOOTBALL_ODDS_V3",
+        "resolution_status": "PRICE_API_RESOLVED",
+        "markets": [],
+        "research_cards_props_markets": [{
+            "research_family": "PLAYER_PROPS",
+            "research_subfamily": "SHOTS",
+            "market": "Player Shots",
+            "values": [{
+                "selection": "Player A Over 2.5",
+                "price": "1.90",
+                "parsed_line": 2.5,
+                "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                "player_id": 501,
+            }],
+        }],
+    }
+
+    async def fake_cheap(*args, **kwargs):
+        return {"sport_data": "AVAILABLE"}
+
+    def fake_projection(*args, **kwargs):
+        return {
+            "status": "MODELED_LIMITED",
+            "screen_scores": {
+                "side_edge_score": 10.0,
+                "goal_environment_score": 60.0,
+                "two_way_scoring_score": 10.0,
+            },
+        }
+
+    async def fake_lineup(*args, **kwargs):
+        return lineup
+
+    async def fake_odds(fixture_id, when, lineup=None):
+        assert fixture_id == 88001
+        assert lineup is not None and lineup["both_xi_confirmed"] is True
+        return market
+
+    monkeypatch.setattr(v5, "_cheap_sport_bundle", fake_cheap)
+    monkeypatch.setattr(v5, "build_raw_projection", fake_projection)
+    monkeypatch.setattr(v5, "_lineup_cached", fake_lineup)
+    monkeypatch.setattr(v5, "_odds_7m", fake_odds)
+    monkeypatch.setattr(v5, "_shortlist_set", lambda *args, **kwargs: None)
+
+    v5._PLAYER_PROPS_XI_RESEARCH_ATTEMPTS = 0
+    v5._PLAYER_PROPS_XI_RESEARCH_CAPTURED = 0
+
+    event = asyncio.run(v5._priority_event(fixture, "T-20", coverage, now))
+
+    assert event["classification"] == "RESEARCH_ONLY"
+    assert event["bet_eligible"] is False
+    assert event["decision_weight"] == 0.0
+    assert event["market_use"] == "PLAYER_PROPS_XI_RESEARCH_ONLY"
+    assert event["research_player_props_xi_capture"]["status"] == "XI_CONFIRMED_RESEARCH_CAPTURED"
+    assert event["research_player_props_xi_capture"]["player_prop_market_rows"] == 1
+    assert event["research_player_props_xi_capture"]["xi_aligned_value_rows"] == 1
+    assert event["market_skipped_by_sport_screen"] is False
+    assert v5._PLAYER_PROPS_XI_RESEARCH_ATTEMPTS == 1
+    assert v5._PLAYER_PROPS_XI_RESEARCH_CAPTURED == 1
+
+
+def test_v5_research_only_xi_capture_does_not_request_odds_without_confirmed_xi(monkeypatch):
+    now = datetime(2026, 9, 25, 12, 0, tzinfo=timezone.utc)
+    fixture = {"fixture_id": 88002}
+    coverage = {"lineups": True, "odds": True}
+    event = {"notes": []}
+
+    async def fake_lineup(*args, **kwargs):
+        return {
+            "both_xi_confirmed": False,
+            "both_goalkeepers_confirmed": False,
+            "lineup_state": "PENDING",
+            "teams": [],
+        }
+
+    async def forbidden_odds(*args, **kwargs):
+        raise AssertionError("odds must not be requested without confirmed XI")
+
+    monkeypatch.setattr(v5, "_lineup_cached", fake_lineup)
+    monkeypatch.setattr(v5, "_odds_7m", forbidden_odds)
+    v5._PLAYER_PROPS_XI_RESEARCH_ATTEMPTS = 0
+    v5._PLAYER_PROPS_XI_RESEARCH_CAPTURED = 0
+
+    captured = asyncio.run(
+        v5._try_player_props_xi_research(event, fixture, "T-20", coverage, now)
+    )
+
+    assert captured is False
+    assert event["research_player_props_xi_capture"]["status"] == "XI_NOT_CONFIRMED"
+    assert v5._PLAYER_PROPS_XI_RESEARCH_ATTEMPTS == 1
+    assert v5._PLAYER_PROPS_XI_RESEARCH_CAPTURED == 0
