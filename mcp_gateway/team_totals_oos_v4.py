@@ -7,11 +7,12 @@ import os
 import re
 from typing import Any, Iterable
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TEAM_TOTALS_OOS_V4_1.2.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_TEAM_TOTALS_OOS_V4_1.3.0"
 MIN_RESEARCH_FIXTURES = 100
 MIN_ACTIONABLE_REVIEW_FIXTURES = 200
 MIN_TRUE_CLV_ROWS = 50
+MIN_TRUE_CLV_UNIQUE_FIXTURES = 20
 MAX_ROLE_LINE_CALIBRATION_GAP = 0.10
 REQUIRED_LINES = (0.5, 1.5, 2.5)
 
@@ -69,10 +70,15 @@ def is_team_total_market(row: dict[str, Any]) -> bool:
 
 
 def summarize_true_clv(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
-    selected = [row for row in rows if isinstance(row, dict) and is_team_total_market(row)]
+    team_total_rows = [row for row in rows if isinstance(row, dict) and is_team_total_market(row)]
+    selected = [
+        row for row in team_total_rows
+        if _num(row.get("clv_probability_pp")) is not None
+    ]
     values = [_num(row.get("clv_probability_pp")) for row in selected]
     valid = [value for value in values if value is not None]
     return {
+        "raw_team_total_rows_seen": len(team_total_rows),
         "rows": len(selected),
         "unique_fixtures": len({row.get("fixture_id") for row in selected if row.get("fixture_id") is not None}),
         "avg_probability_clv_pp": round(sum(valid) / len(valid), 6) if valid else None,
@@ -137,6 +143,10 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
         blockers.append(f"OOS_FIXTURES_{fixtures}_LT_ACTIONABLE_{MIN_ACTIONABLE_REVIEW_FIXTURES}")
     if clv["rows"] < MIN_TRUE_CLV_ROWS:
         blockers.append(f"TEAM_TOTALS_TRUE_CLV_{clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
+    if clv["unique_fixtures"] < MIN_TRUE_CLV_UNIQUE_FIXTURES:
+        blockers.append(
+            f"TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_{clv['unique_fixtures']}_LT_{MIN_TRUE_CLV_UNIQUE_FIXTURES}"
+        )
     if missing_lines:
         blockers.append("REQUIRED_HALF_GOAL_LINE_COVERAGE_INCOMPLETE")
 
@@ -174,6 +184,7 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
         "true_clv": {
             **clv,
             "minimum_rows": MIN_TRUE_CLV_ROWS,
+            "minimum_unique_fixtures": MIN_TRUE_CLV_UNIQUE_FIXTURES,
             "family_specific": True,
         },
         "source_promotion_gate": gate,
@@ -182,6 +193,9 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
             "oos_actionable_review_sample_ready": fixtures >= MIN_ACTIONABLE_REVIEW_FIXTURES,
             "required_half_goal_lines_ready": not missing_lines,
             "true_clv_sample_ready": clv["rows"] >= MIN_TRUE_CLV_ROWS,
+            "true_clv_unique_fixture_sample_ready": (
+                clv["unique_fixtures"] >= MIN_TRUE_CLV_UNIQUE_FIXTURES
+            ),
             "role_line_calibration_ready": (
                 max_gap is not None and max_gap < MAX_ROLE_LINE_CALIBRATION_GAP
             ),
@@ -196,6 +210,8 @@ def build_report(validation: dict[str, Any], true_clv_rows: Iterable[dict[str, A
             "The source validation report intentionally remains research-only; its historical promotion_gate.enabled flag is not treated as a promotion blocker.",
             "V4-019 review eligibility is derived here from explicit OOS sample, exact half-goal line coverage, family-specific true CLV and role/line calibration gates.",
             "Team-total true CLV must come from exact team-total line/price history; FT totals/1X2/BTTS closes cannot satisfy this requirement.",
+            "True-CLV review requires both 50 comparable Team Totals rows and at least 20 unique fixtures; repeated lines/selections from one match cannot satisfy the directional evidence gate.",
+            "Rows without a numeric comparable CLV probability are diagnostic only and do not count toward the true-CLV row or unique-fixture samples.",
             "OOS review eligibility is not production promotion. Production remains disabled and manual approval remains mandatory.",
         ],
     }
