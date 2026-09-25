@@ -9,7 +9,7 @@ from typing import Any, Iterable
 from mcp_gateway import persistence
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.7.0"
+MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.8.0"
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
 SUPPORTED_FAMILIES = {"1X2", "FT_TOTALS", "BTTS"}
 REQUIRED_EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
@@ -280,6 +280,34 @@ def _family_report(family: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
         "evidence_policy": f"LATEST_PREKICKOFF_PERSISTED_PHASE16_PRIMARY_RANKABLE_{family}_PER_FIXTURE_LATEST_VERSIONED_REGIME",
     }
     if family == "1X2":
+        by_selection_raw: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        selection_aliases = {
+            "home": "HOME",
+            "1": "HOME",
+            "draw": "DRAW",
+            "x": "DRAW",
+            "away": "AWAY",
+            "2": "AWAY",
+        }
+        for row in rows:
+            selection_key = selection_aliases.get(_norm(row.get("selection")))
+            if selection_key:
+                by_selection_raw[selection_key].append(row)
+        promotion_evaluable["by_selection"] = {
+            selection: {
+                **_summary(group),
+                "directional_remaining": max(0, DIRECTIONAL_MIN - int(_summary(group).get("settled") or 0)),
+                "review_remaining": max(0, REVIEW_MIN - int(_summary(group).get("settled") or 0)),
+            }
+            for selection, group in sorted(by_selection_raw.items())
+        }
+        for selection in ("HOME", "DRAW", "AWAY"):
+            promotion_evaluable["by_selection"].setdefault(selection, {
+                **_summary([]),
+                "directional_remaining": DIRECTIONAL_MIN,
+                "review_remaining": REVIEW_MIN,
+            })
+
         latest = max(
             rows,
             key=lambda row: _parse_dt(row.get("generated_at")) or datetime.min.replace(tzinfo=timezone.utc),
