@@ -8,7 +8,7 @@ from typing import Any, Iterable
 from mcp_gateway import persistence as persistence_base
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_OOS_V4_1.0.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_OOS_V4_1.0.1"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 STAGE_PRIORITY = {"T-40": 1, "T-20": 2, "T-10": 3}
 
@@ -265,6 +265,21 @@ def build_oos_rows(
                     else player.get("expected_minutes")
                 )
                 actual_minutes = _num(actual.get("minutes"))
+                binary_rows = _binary_rows_for_prediction(
+                    family=family,
+                    player=player,
+                    actual=actual_count,
+                    fixture_id=fid,
+                    stage=stage,
+                    generated_at=generated_at,
+                )
+
+                # OOS sample size must count actual model predictions only.
+                # Intelligence payloads also retain confirmed starters whose
+                # historical profile was not modelable; those rows have no
+                # probability distribution and must never inflate calibration N.
+                if not binary_rows:
+                    continue
 
                 rows.append({
                     "schema_version": SCHEMA_VERSION,
@@ -288,14 +303,7 @@ def build_oos_rows(
                         actual_minutes - expected_minutes
                         if actual_minutes is not None and expected_minutes is not None else None
                     ),
-                    "binary_rows": _binary_rows_for_prediction(
-                        family=family,
-                        player=player,
-                        actual=actual_count,
-                        fixture_id=fid,
-                        stage=stage,
-                        generated_at=generated_at,
-                    ),
+                    "binary_rows": binary_rows,
                     "decision_weight": 0.0,
                     "production_promotion_allowed": False,
                 })
