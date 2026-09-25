@@ -9,8 +9,9 @@ from datetime import datetime
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MERGE_VERSION = "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.0.0"
+MERGE_VERSION = "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.1.0"
 MIN_TRUE_CLOSE_ROWS = 50
+TEAM_TOTAL_FAMILIES = {"TEAM_TOTALS", "HOME_TT", "AWAY_TT"}
 
 
 def _num(value: Any) -> float | None:
@@ -90,6 +91,17 @@ def normalize_history_rows(
         if signal_ts >= close_ts or close_ts >= kickoff:
             continue
 
+        provider_close_ts = _parse_dt(
+            row.get("closing_provider_update") or row.get("close_provider_update")
+        )
+        if str(family).upper() in TEAM_TOTAL_FAMILIES:
+            if (
+                provider_close_ts is None
+                or provider_close_ts <= signal_ts
+                or provider_close_ts >= kickoff
+            ):
+                continue
+
         clv = _num(row.get("clv_probability_pp"))
         if clv is None:
             clv = _num(row.get("probability_clv"))
@@ -138,6 +150,9 @@ def normalize_history_rows(
             "entry_fair_probability": entry_fair,
             "signal_fair_probability": entry_fair,
             "closing_timestamp": close_ts.isoformat() if close_ts else None,
+            "closing_provider_update": (
+                provider_close_ts.isoformat() if provider_close_ts is not None else None
+            ),
             "closing_line": _num(row.get("line")),
             "closing_price": closing_price,
             "close_price": closing_price,
@@ -196,6 +211,9 @@ def merge_report(
     notes = list(out.get("notes") or [])
     notes.append(
         "Historical dedicated-close backfill adds at most one latest pre-kickoff row per fixture/family and is skipped whenever Postgres already covers that fixture/family."
+    )
+    notes.append(
+        "Historical Team Totals backfill additionally requires a provider close update strictly after the signal and before kickoff; legacy rows without this provenance cannot re-enter canonical true CLV."
     )
     out["notes"] = notes
     return out
