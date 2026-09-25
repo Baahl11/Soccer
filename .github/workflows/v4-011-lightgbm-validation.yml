@@ -1,8 +1,10 @@
-# V4-011 BTTS Poisson ranking audit: 2026-09-24
+# V4-011 BTTS Poisson ranking scheduled audit: 2026-09-24
 name: V4-011 LightGBM Goals Validation
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "15 7,19 * * *"
   push:
     branches: [main]
     paths: [".github/workflows/v4-011-lightgbm-validation.yml"]
@@ -326,7 +328,7 @@ jobs:
           }' /tmp/btts_poisson_ranking_v4.json
 
           jq -e '
-            .model_version == "BTTS_POISSON_RANKING_V4_1.0.0"
+            .model_version == "BTTS_POISSON_RANKING_V4_1.1.0"
             and .market_fields_used == false
             and .post_kickoff_features_used == false
             and .provider_requests_added == 0
