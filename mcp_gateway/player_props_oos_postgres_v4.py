@@ -8,9 +8,9 @@ from typing import Any, Iterable
 from mcp_gateway import persistence as persistence_base
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_OOS_V4_1.0.1"
-SIGNAL_STAGES = ("T-40", "T-20", "T-10")
-STAGE_PRIORITY = {"T-40": 1, "T-20": 2, "T-10": 3}
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_OOS_V4_1.1.0"
+SIGNAL_STAGES = ("T-40", "T-30", "T-20", "T-10")
+STAGE_PRIORITY = {"T-40": 1, "T-30": 2, "T-20": 3, "T-10": 4}
 
 FAMILY_CONFIG = {
     "SHOTS": {
@@ -429,7 +429,7 @@ def _load_pregame(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, 
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.generated_at < f.kickoff
-              AND e.stage IN ('T-40','T-20','T-10')
+              AND e.stage IN ('T-40','T-30','T-20','T-10')
             ORDER BY e.fixture_id, e.generated_at
             LIMIT %s
             """,
@@ -498,7 +498,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "decision_weight": 0.0,
         "production_promotion_allowed": False,
         "policy": (
-            "ONE CANONICAL PREGAME SNAPSHOT PER FIXTURE (T-10 > T-20 > T-40); "
+            "ONE CANONICAL PREGAME SNAPSHOT PER FIXTURE (T-10 > T-20 > T-30 > T-40); "
             "JOIN ONLY FINALIZED POSTGAME PLAYER STATS BY PLAYER_ID; "
             "BINARY CALIBRATION + COUNT ERROR + MINUTES ERROR REPORTED BY PROP FAMILY; "
             "NO PROVIDER CALLS; REVIEW TARGETS ARE SAMPLE GATES, NOT PRODUCTION PROMOTION"
