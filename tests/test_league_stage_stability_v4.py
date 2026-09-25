@@ -50,3 +50,15 @@ def test_review_ready_requires_50_unique_fixtures_and_no_negative_directional_se
     assert family["status"] == "STABILITY_REVIEW_READY"
     assert family["max_league_fixture_share"] == 0.5
     assert report["provider_requests_added"] == 0
+
+
+def test_overall_summary_retains_exact_fixture_ids_only_once():
+    rows = [
+        _row(1, "League A", "T-20", "HOME_TT", 0.2),
+        _row(1, "League A", "T-20", "HOME_TT", 0.4),
+        _row(2, "League A", "T-20", "HOME_TT", 0.3),
+    ]
+    report = v.build_report(rows)
+    overall = report["families"]["HOME_TT"]["overall"]
+    assert overall["unique_fixtures"] == 2
+    assert overall["fixture_ids"] == [1, 2]
