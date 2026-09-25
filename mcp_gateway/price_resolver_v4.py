@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.6.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.7.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -808,6 +808,53 @@ async def resolve_payload(
                 resolved_status = status
             counts[resolved_status] += 1
 
+    # Zero-provider-call calibration hydration for rows that already carried a
+    # real price + de-vigged fair probability into the research table. These
+    # rows do not need price resolution, but Phase16 still needs the current
+    # OOS calibration/discrimination policy applied before ranking.
+    existing_price_calibration_rows_considered = 0
+    existing_price_calibrated_rows_added = 0
+    existing_price_calibration_status_counts: dict[str, int] = defaultdict(int)
+    for row in rows:
+        if not isinstance(row, dict) or str(row.get("stage") or "").upper() == "POSTGAME":
+            continue
+        if _num(row.get("price")) is None or _num(row.get("p_market_fair")) is None:
+            continue
+        if _num(row.get("p_model_calibrated")) is not None:
+            continue
+
+        event_index = row.get("row_index")
+        event = (
+            events[event_index]
+            if isinstance(event_index, int)
+            and 0 <= event_index < len(events)
+            and isinstance(events[event_index], dict)
+            else {}
+        )
+        family, selection, _line, p_raw = _desired_offer(row, event)
+        if family not in {"1X2", "FT_TOTALS", "BTTS"} or selection is None or p_raw is None:
+            continue
+
+        existing_price_calibration_rows_considered += 1
+        before = _num(row.get("p_model_calibrated"))
+        row.setdefault("p_raw", round(float(p_raw), 6))
+        _apply_phase16_calibration(
+            row,
+            event,
+            family=family,
+            selection=selection,
+            p_raw=p_raw,
+            calibration_state=calibration_state or {},
+            model_version=str(payload.get("model_version") or ""),
+        )
+        after = _num(row.get("p_model_calibrated"))
+        status = str(row.get("phase16_calibration_status") or "UNSPECIFIED")
+        existing_price_calibration_status_counts[status] += 1
+        if before is None and after is not None:
+            existing_price_calibrated_rows_added += 1
+            row["price_resolution_existing_price_calibration_added"] = True
+            row["price_resolution_existing_price_calibration_source"] = "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
+
     # Zero-provider-call research hydration for derivative markets such as Team Totals.
     # Phase16 price targets above remain the only path allowed to spend API budget.
     cache_hydrated_research_fixtures = 0
@@ -869,6 +916,10 @@ async def resolve_payload(
         "calibration_state_source": calibration_source,
         "calibration_state_loaded": bool(calibration_state),
         "calibrated_rows_added": calibrated_rows_added,
+        "existing_price_calibration_rows_considered": existing_price_calibration_rows_considered,
+        "existing_price_calibrated_rows_added": existing_price_calibrated_rows_added,
+        "existing_price_calibration_status_counts": dict(sorted(existing_price_calibration_status_counts.items())),
+        "existing_price_calibration_provider_requests_added": 0,
         "provider_requests_added": calls,
         "provider_daily_remaining_observed": provider_daily_remaining,
         "quota_accounting_included_in_api_calls_this_tick": True,
