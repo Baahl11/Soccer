@@ -306,7 +306,9 @@ def attach(payload: dict[str, Any]) -> dict[str, int]:
     unsupported_rows = 0
 
     for event in payload.get("events") or []:
-        if not isinstance(event, dict) or event.get("event_type") != "SOCCER_REFRESH" or event.get("stage") == "POSTGAME":
+        if not isinstance(event, dict) or event.get("stage") == "POSTGAME":
+            continue
+        if event.get("event_type") not in {"SOCCER_REFRESH", "TEAM_TOTALS_RESEARCH_SPILLOVER"}:
             continue
         intelligence = build(event)
         event["team_totals_intelligence"] = intelligence
