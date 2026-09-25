@@ -10,7 +10,7 @@ from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.31.6-team-totals-v7-scan-handoff"
+AUTOMATION_VERSION = "4.31.7-team-totals-primary-odds-reuse"
 # Deployment marker: v126 active-v7 upcoming fixture handoff.
 # Deployment marker: v125 scanned-upcoming FT Team Totals capture.
 
@@ -69,11 +69,14 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "research_spillover_market_capture_only_candidates": resolution.get("research_spillover_market_capture_only_candidates", 0),
         "research_spillover_exact_team_total_fixtures_attached": resolution.get("research_spillover_exact_team_total_fixtures_attached", 0),
         "research_spillover_ft_team_total_market_rows_attached": resolution.get("research_spillover_ft_team_total_market_rows_attached", 0),
+        "research_spillover_primary_payload_reuse_fixtures": resolution.get("research_spillover_primary_payload_reuse_fixtures", 0),
+        "research_spillover_primary_payload_reuse_market_rows": resolution.get("research_spillover_primary_payload_reuse_market_rows", 0),
         "research_spillover_primary_markets_preempted": resolution.get("research_spillover_primary_markets_preempted", False),
         "note": (
             "Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
             "Resolved rows are re-evaluated by Team Totals research intelligence, execution-status separation "
-            "and Phase16. Team Totals is cache-first and may use only provider budget left after every primary "
+            "and Phase16. Team Totals first reuses exact FT Team Totals already present in paid primary /odds "
+            "payloads at zero extra provider cost; cache comes next, and only then may it use provider budget left after every primary "
             "price target; those spillover calls remain research-only and cannot pre-empt FT Totals/BTTS/1X2. "
             "Uncovered fixtures with persisted pre-kickoff team lambdas are prioritized first; then already-scanned "
             "upcoming fixtures may receive market-capture-only /odds hydration until 20 explicit strict FT Team Totals "
