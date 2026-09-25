@@ -70,3 +70,63 @@ def test_real_provider_quote_is_persisted_as_market_snapshot():
     )
     sql = "\n".join(query for query, _ in cur.queries)
     assert "INSERT INTO soccer_market_snapshots" in sql
+
+
+
+def test_real_provider_research_sidecar_is_persisted_without_entering_canonical_markets():
+    cur = RecordingCursor()
+    event = _event("API_FOOTBALL_ODDS_V3", "PRICE_API_RESOLVED")
+    event["market"]["markets"] = []
+    event["market"]["research_cards_props_markets"] = [{
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market_id": 201,
+        "market": "Player Shots",
+        "values": [
+            {"selection": "Player A Over 2.5", "price": "1.95", "parsed_line": 2.5},
+        ],
+        "provider_update": "2026-09-25T02:10:00+00:00",
+        "research_only": True,
+        "research_family": "PLAYER_PROPS",
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+    }]
+
+    persistence._persist_refresh_event(
+        cur,
+        {"generated_at_utc": "2026-09-25T02:20:00+00:00"},
+        event,
+    )
+
+    market_inserts = [
+        params for query, params in cur.queries
+        if "INSERT INTO soccer_market_snapshots" in query
+    ]
+    assert len(market_inserts) == 1
+    assert market_inserts[0][6] == "Player Shots"
+
+
+def test_cache_replay_research_sidecar_is_not_persisted_as_fresh_snapshot():
+    cur = RecordingCursor()
+    event = _event("POSTGRES_MARKET_SNAPSHOT_CACHE", "PRICE_CACHE_HIT")
+    event["market"]["markets"] = []
+    event["market"]["research_cards_props_markets"] = [{
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market_id": 200,
+        "market": "Total Yellow Cards",
+        "values": [{"selection": "Over 4.5", "price": "1.90", "parsed_line": 4.5}],
+        "provider_update": "2026-09-25T02:10:00+00:00",
+        "research_only": True,
+        "research_family": "CARDS",
+    }]
+
+    persistence._persist_refresh_event(
+        cur,
+        {"generated_at_utc": "2026-09-25T02:20:00+00:00"},
+        event,
+    )
+
+    sql = "\n".join(query for query, _ in cur.queries)
+    assert "INSERT INTO soccer_refresh_events" in sql
+    assert "INSERT INTO soccer_market_snapshots" not in sql
