@@ -635,7 +635,7 @@ async def internal_player_trend_registry_backfill_v4_run(request: Request) -> Re
 
     try:
         lookback_days = max(1, min(int(body.get("lookback_days", 180)), 730))
-        max_fixtures = max(1, min(int(body.get("max_fixtures", 8)), 8))
+        max_fixtures = max(1, min(int(body.get("max_fixtures", 16)), 16))
     except (TypeError, ValueError):
         return JSONResponse({"error": "invalid_player_trend_registry_backfill_parameters"}, status_code=400)
 
