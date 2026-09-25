@@ -7,8 +7,8 @@ import os
 import re
 from typing import Any, Iterable
 
-SCHEMA_VERSION = "1.1.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_PHASE15_V4_1.1.0"
+SCHEMA_VERSION = "1.2.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_PHASE15_V4_1.2.0"
 MIN_PROP_TRUE_CLV = 50
 MIN_GK_PROFILES = 100
 
@@ -109,8 +109,13 @@ def _market_evidence(audit: dict[str, Any] | None, family: str) -> dict[str, Any
         "bookmaker_count": int(row.get("bookmaker_count") or 0),
         "priced_value_rows": int(row.get("priced_value_rows") or 0),
         "exact_line_value_rows": int(row.get("exact_line_value_rows") or 0),
+        "xi_aligned_value_rows": int(row.get("xi_aligned_value_rows") or 0),
+        "xi_aligned_priced_value_rows": int(row.get("xi_aligned_priced_value_rows") or 0),
+        "xi_aligned_exact_line_value_rows": int(row.get("xi_aligned_exact_line_value_rows") or 0),
+        "confirmed_xi_player_aligned_unique_fixtures": int(row.get("confirmed_xi_player_aligned_unique_fixtures") or 0),
         "exact_observed_market_history_materialized": bool(row.get("exact_observed_market_history_materialized")),
         "confirmed_xi_overlap_materialized": bool(row.get("confirmed_xi_overlap_materialized")),
+        "player_xi_alignment_materialized": bool(row.get("player_xi_alignment_materialized")),
     }
 
 
@@ -159,8 +164,15 @@ def build_report(
             blockers.append(f"{blocker_prefix}_OBSERVED_MARKET_PRICE_HISTORY_MISSING")
         if evidence["confirmed_xi_pre_kickoff_unique_fixtures"] <= 0:
             blockers.append(f"{blocker_prefix}_CONFIRMED_XI_MARKET_OVERLAP_MISSING")
+        if (
+            evidence["confirmed_xi_player_aligned_unique_fixtures"] <= 0
+            or evidence["xi_aligned_priced_value_rows"] <= 0
+        ):
+            blockers.append(f"{blocker_prefix}_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING")
         if prop_name in LINE_REQUIRED_PROPS and evidence["exact_line_value_rows"] <= 0:
             blockers.append(f"{blocker_prefix}_EXACT_LINE_HISTORY_MISSING")
+        if prop_name in LINE_REQUIRED_PROPS and evidence["xi_aligned_exact_line_value_rows"] <= 0:
+            blockers.append(f"{blocker_prefix}_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING")
 
     blockers.extend([
         "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
@@ -180,6 +192,7 @@ def build_report(
         "prop_families": props,
         "shared_engine_requirements": {
             "confirmed_lineup_required": True,
+            "player_level_xi_alignment_required": True,
             "expected_minutes_required": True,
             "starter_probability_required": True,
             "role_required": True,
@@ -198,7 +211,8 @@ def build_report(
         "warnings": warnings,
         "notes": [
             "All six prop modules currently pass structural sanity, but structural sanity is not OOS performance.",
-            "No player prop may become actionable without confirmed XI/role/minutes and an exact observed sportsbook market price; numeric exact lines are additionally required for line-based props such as shots, SOT and goalkeeper saves.",
+            "No player prop may become actionable without confirmed XI/role/minutes and an exact observed sportsbook market price aligned to the quoted confirmed starter; numeric exact lines are additionally required for line-based props such as shots, SOT and goalkeeper saves.",
+            "Fixture-level XI overlap alone is insufficient: the priced player selection itself must resolve unambiguously to the confirmed XI at or before quote capture.",
             "Goalkeeper saves currently has a much smaller validated profile pool than outfield prop families.",
             "The goalscorer model is an anytime-scorer model; First Goal Scorer and Last Goal Scorer market history are captured separately and cannot satisfy the anytime evidence gate.",
             "Prop-specific calibration and true CLV must be tracked independently by market family.",
