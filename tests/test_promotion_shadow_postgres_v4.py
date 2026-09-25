@@ -190,3 +190,25 @@ def test_pre_discrimination_candidates_are_excluded():
     report = v.build_report_from_rows([row])
     assert report["promotion_evaluable"]["rows"] == 0
     assert report["required_evidence_regime"] == "PHASE16_DISCRIMINATION_GATED_V2"
+
+
+def test_v2_accumulation_diagnostics_are_reported_by_family():
+    legacy = _row(1, "2026-09-20T17:40:00", "T-20", "home", 2.0, 0.60, 0.50)
+    legacy["phase16_candidate"].pop("evidence_regime", None)
+
+    rows = [
+        legacy,
+        _row(2, "2026-09-20T17:40:00", "T-20", "away", 2.5, 0.55, 0.40, goals=(0, 1)),
+        _row(3, "2026-09-20T17:40:00", "T-20", "Over", 2.0, 0.60, 0.50, family="FT_TOTALS", line=2.5),
+        _row(4, "2026-09-20T17:40:00", "T-20", "Yes", 1.9, 0.60, 0.50, family="BTTS"),
+    ]
+    report = v.build_report_from_rows(rows)
+    diag = report["promotion_filter_diagnostics"]
+
+    assert diag["required_evidence_regime_rows_by_family"]["1X2"] == 1
+    assert diag["required_evidence_regime_rows_by_family"]["FT_TOTALS"] == 1
+    assert diag["required_evidence_regime_rows_by_family"]["BTTS"] == 1
+    assert diag["required_evidence_regime_promotion_eligible_unique_fixtures_by_family"]["1X2"] == 1
+    assert diag["missing_evidence_regime_rows_by_family"]["1X2"] == 1
+    assert diag["required_evidence_regime_accumulation_gap_by_family"]["1X2"]["directional_20_gap"] == 19
+    assert diag["required_evidence_regime_accumulation_gap_by_family"]["1X2"]["review_50_gap"] == 49
