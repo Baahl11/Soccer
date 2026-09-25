@@ -1,25 +1,6 @@
 {
-  "_galaxy_candidate_registry_v2_market_backed": {
-    "updated_at": 1790307941.750385,
-    "value": {
-      "schema_version": "1.0.0",
-      "same_game": {},
-      "multi_match": {},
-      "updated_at_utc": "2026-09-25T03:45:41.750385+00:00",
-      "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
-    }
-  },
-  "_galaxy_rolling_leg_pool_v1": {
-    "updated_at": 1790307941.750385,
-    "value": {
-      "schema_version": "1.0.0",
-      "entries": {},
-      "updated_at_utc": "2026-09-25T03:45:41.750385+00:00",
-      "policy": "MARKET_BACKED_CANONICAL_LEGS_ONLY; SAME_FIXTURE_REFRESH_REPLACES_PRIOR_LEGS; PROVIDER_UPDATE_PRICE_FRESHNESS_REQUIRED; CAPTURE_TIME_NEVER_REFRESHES_QUOTE_AGE; KICKOFF_EXPIRES; ZERO_EXTRA_PROVIDER_REQUESTS"
-    }
-  },
   "1641614": {
-    "updated_at": 1790306579.418689,
+    "updated_at": 1790308485.745064,
     "value": {
       "shortlisted": true,
       "rank": 100.0,
@@ -34,8 +15,27 @@
       "reason": "SPORTING_SCREEN_PASS"
     }
   },
+  "_galaxy_candidate_registry_v2_market_backed": {
+    "updated_at": 1790308485.745064,
+    "value": {
+      "schema_version": "1.0.0",
+      "same_game": {},
+      "multi_match": {},
+      "updated_at_utc": "2026-09-25T03:54:45.745064+00:00",
+      "policy": "ROLLING_CANDIDATES_PERSIST_BETWEEN_10_MIN_TICKS_ONLY_WHILE_PROVIDER_UPDATE_IS_FRESH; CURRENT_FIXTURE_REEVALUATION_REPLACES_PRIOR_CANDIDATES; STALE_OR_MISSING_PROVIDER_TIMESTAMP_EXPIRES; KICKOFF_EXPIRES; NO_EXTRA_PROVIDER_REQUESTS"
+    }
+  },
+  "_galaxy_rolling_leg_pool_v1": {
+    "updated_at": 1790308485.745064,
+    "value": {
+      "schema_version": "1.0.0",
+      "entries": {},
+      "updated_at_utc": "2026-09-25T03:54:45.745064+00:00",
+      "policy": "MARKET_BACKED_CANONICAL_LEGS_ONLY; SAME_FIXTURE_REFRESH_REPLACES_PRIOR_LEGS; PROVIDER_UPDATE_PRICE_FRESHNESS_REQUIRED; CAPTURE_TIME_NEVER_REFRESHES_QUOTE_AGE; KICKOFF_EXPIRES; ZERO_EXTRA_PROVIDER_REQUESTS"
+    }
+  },
   "_sport_projection_v1:1641614": {
-    "updated_at": 1790306579.418689,
+    "updated_at": 1790308485.745064,
     "value": {
       "kind": "SPORT_PROJECTION_CONTINUITY",
       "fixture": {
@@ -44,8 +44,8 @@
         "home_team_id": 10963,
         "away_team_id": 10955
       },
-      "captured_at_utc": "2026-09-25T03:22:59.418689+00:00",
-      "source_stage": "T-90",
+      "captured_at_utc": "2026-09-25T03:54:45.745064+00:00",
+      "source_stage": "T-60",
       "raw_projection": {
         "status": "MODELED_LIMITED",
         "model_version": "SOCCER EDGE ENGINE v1.0",
@@ -107,8 +107,8 @@
         ],
         "scoring_path": "FAVORITE-CARRY OVER",
         "screen_scores": {
-          "side_edge_score": 100,
-          "goal_environment_score": 84.4,
+          "side_edge_score": 79.0,
+          "goal_environment_score": 79.0,
           "two_way_scoring_score": 72.8,
           "corners_opportunity_score": "NOT MODELED",
           "score_status": "LIMITED_VERIFIED_INPUTS"
