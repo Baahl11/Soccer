@@ -30,11 +30,11 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "canonical_bet_logic_changed": False,
         "model_weights_changed": False,
         "production_promotion_allowed": False,
-        "research_spillover_candidate_fixtures": price_resolution.get("research_spillover_candidate_fixtures", 0),
-        "research_spillover_cache_hits": price_resolution.get("research_spillover_cache_hits", 0),
-        "research_spillover_api_calls_added": price_resolution.get("research_spillover_api_calls_added", 0),
-        "research_spillover_fixtures_fetched": price_resolution.get("research_spillover_fixtures_fetched", 0),
-        "research_spillover_market_rows_fetched": price_resolution.get("research_spillover_market_rows_fetched", 0),
+        "research_spillover_candidate_fixtures": resolution.get("research_spillover_candidate_fixtures", 0),
+        "research_spillover_cache_hits": resolution.get("research_spillover_cache_hits", 0),
+        "research_spillover_api_calls_added": resolution.get("research_spillover_api_calls_added", 0),
+        "research_spillover_fixtures_fetched": resolution.get("research_spillover_fixtures_fetched", 0),
+        "research_spillover_market_rows_fetched": resolution.get("research_spillover_market_rows_fetched", 0),
         "note": (
             "Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
             "Resolved rows are re-evaluated by Team Totals research intelligence, execution-status separation "
