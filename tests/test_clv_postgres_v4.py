@@ -263,6 +263,20 @@ class _FakeConn:
         return self.cursor_instance
 
 
+def test_market_snapshot_loader_preserves_distinct_provider_quote_states():
+    conn = _FakeConn()
+    rows = v._load_market_snapshots(
+        conn,
+        [123],
+        cutoff=datetime(2026, 9, 24, 0, 0, tzinfo=timezone.utc),
+        market_names=["Total - Home"],
+    )
+    query = " ".join(conn.cursor_instance.query.split())
+
+    assert rows == []
+    assert "DISTINCT ON (m.fixture_id, m.market_id, m.bookmaker_id, m.provider_update)" in query
+    assert "m.provider_update, m.captured_at DESC" in query
+
 def test_pipeline_loader_does_not_duplicate_full_event_payload():
     conn = _FakeConn()
     rows = v._load_pipeline_market_signals(conn, lookback_days=30, max_rows=10)
@@ -368,3 +382,21 @@ def test_strict_later_provider_quote_requires_real_later_update():
         },
         signal_at,
     ) is False
+
+
+def test_team_totals_maturation_funnel_uses_unique_fixture_intersections():
+    funnel = v._build_team_totals_maturation_funnel(
+        {1, 2, 3, 4},
+        {2, 3, 5},
+        {3, 6},
+    )
+    assert funnel["strict_capture_unique_fixtures"] == 4
+    assert funnel["modeled_signal_unique_fixtures"] == 2
+    assert funnel["true_clv_unique_fixtures"] == 1
+    assert funnel["capture_without_modeled_signal"] == 2
+    assert funnel["modeled_signal_without_later_real_close"] == 1
+    assert funnel["true_clv_unique_fixtures_remaining_to_directional"] == 19
+    assert funnel["strict_capture_fixture_ids"] == [1, 2, 3, 4]
+    assert funnel["modeled_signal_fixture_ids"] == [2, 3]
+    assert funnel["true_clv_fixture_ids"] == [3]
+    assert funnel["provider_requests_added"] == 0
