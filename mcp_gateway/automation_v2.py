@@ -108,8 +108,13 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
 
     # Market retrieval occurs only after the raw sporting projection has been built.
     if stage in MARKET_STAGES and coverage.get("odds"):
-        event["market"] = base._compact_odds(await base._api_get("odds", {"fixture": fx["fixture_id"], "page": 1}))
+        event["market"] = base._compact_odds(
+            await base._api_get("odds", {"fixture": fx["fixture_id"], "page": 1}),
+            lineup=event.get("lineups") if isinstance(event.get("lineups"), dict) else None,
+        )
         event["market_use"] = "MARKET_COMPARISON_AFTER_RAW_PROJECTION"
+        if isinstance(event.get("market"), dict):
+            event["market"]["xi_alignment_input_available"] = isinstance(event.get("lineups"), dict)
     elif stage in MARKET_STAGES:
         event["market"] = "NOT VERIFIED"
 
