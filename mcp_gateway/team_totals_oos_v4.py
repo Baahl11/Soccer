@@ -54,6 +54,8 @@ def is_team_total_market(row: dict[str, Any]) -> bool:
         return False
     if any(token in market for token in non_goal_tokens):
         return False
+    if market in {"total - home", "total home", "total - away", "total away"}:
+        return True
     if "goal" not in market:
         return False
     return (
