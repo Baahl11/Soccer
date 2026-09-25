@@ -263,6 +263,21 @@ class _FakeConn:
         return self.cursor_instance
 
 
+def test_market_snapshot_loader_preserves_distinct_provider_quote_states():
+    conn = _FakeConn()
+    rows = v._load_market_snapshots(
+        conn,
+        [123],
+        cutoff=datetime(2026, 9, 24, 0, 0, tzinfo=timezone.utc),
+        market_names=["Total - Home"],
+    )
+    query = " ".join(conn.cursor_instance.query.split())
+
+    assert rows == []
+    assert "DISTINCT ON (m.fixture_id, m.market_id, m.bookmaker_id, m.provider_update)" in query
+    assert "m.provider_update, m.captured_at DESC" in query
+
+
 def test_pipeline_loader_does_not_duplicate_full_event_payload():
     conn = _FakeConn()
     rows = v._load_pipeline_market_signals(conn, lookback_days=30, max_rows=10)
