@@ -1380,6 +1380,28 @@ async def resolve_payload(
     research_spillover_ft_team_total_market_rows_attached = 0
     research_spillover_primary_payload_reuse_fixtures = 0
     research_spillover_primary_payload_reuse_market_rows = 0
+    research_spillover_maturation_candidates = 0
+    research_spillover_maturation_api_calls_added = 0
+    research_spillover_maturation_later_real_quote_refreshes = 0
+    research_spillover_maturation_cache_replays_ignored = 0
+    research_spillover_maturation_unchanged_provider_updates = 0
+    research_spillover_maturation_budget_exhausted = 0
+
+    maturation = await asyncio.to_thread(_load_team_totals_maturation_backlog)
+    maturation_events = [
+        event
+        for event in (maturation.get("candidate_events") or [])
+        if isinstance(event, dict)
+    ]
+    maturation_by_fixture: dict[int, dict[str, Any]] = {}
+    for event in maturation_events:
+        fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
+        try:
+            fixture_id = int(fixture.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        maturation_by_fixture[fixture_id] = event
+    research_spillover_maturation_candidates = len(maturation_by_fixture)
 
     diversity = await asyncio.to_thread(_load_team_totals_diversity_backlog)
     existing_team_total_fixture_ids = {
@@ -1414,11 +1436,24 @@ async def resolve_payload(
         raw = event.get("raw_projection") if isinstance(event.get("raw_projection"), dict) else {}
         if _num(raw.get("raw_home_goal_rate")) is None and _num(raw.get("raw_away_goal_rate")) is None:
             continue
+        maturation_event = maturation_by_fixture.get(fixture_id)
+        if maturation_event is not None:
+            maturation_meta = maturation_event.get("team_totals_clv_maturation")
+            if isinstance(maturation_meta, dict):
+                event["team_totals_clv_maturation"] = dict(maturation_meta)
+            source = "CURRENT_DUE_EVENT_MATURATION"
+            priority = -1
+            signal_generated_at = (maturation_meta or {}).get("signal_generated_at") if isinstance(maturation_meta, dict) else None
+        else:
+            source = "CURRENT_DUE_EVENT"
+            priority = 0 if fixture_id not in existing_team_total_fixture_ids else 3
+            signal_generated_at = None
         current_candidates.append({
             "fixture_id": fixture_id,
             "event": event,
-            "source": "CURRENT_DUE_EVENT",
-            "priority": 0 if fixture_id not in existing_team_total_fixture_ids else 3,
+            "source": source,
+            "priority": priority,
+            "signal_generated_at": signal_generated_at,
         })
         research_spillover_current_event_candidates += 1
 
@@ -1430,6 +1465,28 @@ async def resolve_payload(
             continue
         seen_candidate_fixture_ids.add(fixture_id)
         candidate_records.append(record)
+
+    for event in maturation_events:
+        fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
+        try:
+            fixture_id = int(fixture.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        if fixture_id in seen_candidate_fixture_ids:
+            continue
+        maturation_meta = event.get("team_totals_clv_maturation")
+        seen_candidate_fixture_ids.add(fixture_id)
+        candidate_records.append({
+            "fixture_id": fixture_id,
+            "event": event,
+            "source": "PERSISTED_CLV_MATURATION_BACKLOG",
+            "priority": -1,
+            "signal_generated_at": (
+                maturation_meta.get("signal_generated_at")
+                if isinstance(maturation_meta, dict)
+                else None
+            ),
+        })
 
     for event in persisted_backlog_events:
         fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
@@ -1541,7 +1598,10 @@ async def resolve_payload(
             if isinstance(market, dict) and _is_ft_team_total_market(market)
         ]
 
-        if source == "CURRENT_DUE_EVENT":
+        is_maturation = source in {"CURRENT_DUE_EVENT_MATURATION", "PERSISTED_CLV_MATURATION_BACKLOG"}
+        signal_generated_at = record.get("signal_generated_at")
+
+        if source in {"CURRENT_DUE_EVENT", "CURRENT_DUE_EVENT_MATURATION"}:
             if markets and not isinstance(event.get("market"), dict):
                 _attach_market_to_event(event, markets, status)
             return
@@ -1589,38 +1649,61 @@ async def resolve_payload(
                 research_spillover_primary_payload_reuse_market_rows += sum(
                     1 for market in event_markets if _is_ft_team_total_market(market)
                 )
-                continue
+                if not is_maturation:
+                    continue
+                if _markets_have_provider_update_after(event_markets, signal_generated_at):
+                    research_spillover_maturation_later_real_quote_refreshes += 1
+                    event["team_totals_clv_maturation"]["provider_update_after_signal"] = True
+                    event["team_totals_clv_maturation"]["resolution_source"] = "PRIMARY_ODDS_PAYLOAD_REUSE"
+                    continue
 
         if fixture_id in fixture_cache:
             markets, status = fixture_cache[fixture_id]
             if markets:
-                _attach_spillover_event(record, markets, status)
-                _record_exact_team_total_coverage(
-                    fixture_id,
-                    markets,
-                    event,
-                    candidate_source=str(record.get("source") or ""),
-                    resolution_status=str(status),
-                )
-                if str(status).startswith("PRICE_CACHE"):
-                    research_spillover_cache_hits += 1
-            continue
+                if is_maturation and str(status).startswith("PRICE_CACHE"):
+                    research_spillover_maturation_cache_replays_ignored += 1
+                else:
+                    _attach_spillover_event(record, markets, status)
+                    _record_exact_team_total_coverage(
+                        fixture_id,
+                        markets,
+                        event,
+                        candidate_source=str(record.get("source") or ""),
+                        resolution_status=str(status),
+                    )
+                    if str(status).startswith("PRICE_CACHE"):
+                        research_spillover_cache_hits += 1
+                    if not is_maturation:
+                        continue
+                    if _markets_have_provider_update_after(markets, signal_generated_at):
+                        research_spillover_maturation_later_real_quote_refreshes += 1
+                        event["team_totals_clv_maturation"]["provider_update_after_signal"] = True
+                        event["team_totals_clv_maturation"]["resolution_source"] = str(status)
+                    else:
+                        research_spillover_maturation_unchanged_provider_updates += 1
+                    continue
 
         cached = await asyncio.to_thread(_load_cached_markets, fixture_id, event.get("stage"))
         if cached:
-            fixture_cache[fixture_id] = (cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
-            _attach_spillover_event(record, cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
-            _record_exact_team_total_coverage(
-                fixture_id,
-                cached,
-                event,
-                candidate_source=str(record.get("source") or ""),
-                resolution_status="PRICE_CACHE_HIT_RESEARCH_ONLY",
-            )
-            cache_hydrated_research_fixtures += 1
-            cache_hydrated_research_market_rows += len(cached)
-            research_spillover_cache_hits += 1
-            continue
+            if is_maturation:
+                # A persisted cache row is not new closing evidence. The maturation
+                # loader selected this fixture specifically because no later real
+                # provider update exists yet, so force a fresh /odds attempt below.
+                research_spillover_maturation_cache_replays_ignored += 1
+            else:
+                fixture_cache[fixture_id] = (cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
+                _attach_spillover_event(record, cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
+                _record_exact_team_total_coverage(
+                    fixture_id,
+                    cached,
+                    event,
+                    candidate_source=str(record.get("source") or ""),
+                    resolution_status="PRICE_CACHE_HIT_RESEARCH_ONLY",
+                )
+                cache_hydrated_research_fixtures += 1
+                cache_hydrated_research_market_rows += len(cached)
+                research_spillover_cache_hits += 1
+                continue
 
         unresolved_records.append(record)
 
@@ -1629,22 +1712,29 @@ async def resolve_payload(
     # context manager; reusing that closed client would make cache misses fail.
     if unresolved_records:
         async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SECONDS, follow_redirects=True) as spillover_client:
+            maturation_calls_this_tick = 0
             for record in unresolved_records:
                 fixture_id = int(record["fixture_id"])
                 event = record["event"]
                 source = str(record.get("source") or "")
+                is_maturation = source in {"CURRENT_DUE_EVENT_MATURATION", "PERSISTED_CLV_MATURATION_BACKLOG"}
+                signal_generated_at = record.get("signal_generated_at")
 
                 # Once the accumulated diversity target is satisfied, do not spend
                 # extra calls on synthetic backlog. Current due-event lifecycle
                 # refreshes may still use any budget that remains for future CLV.
                 diversity_progress = len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids)
                 catchup_overflow_active = int(payload.get("team_totals_diversity_catchup_overflow_budget") or 0) > 0
-                if catchup_overflow_active and diversity_progress >= diversity_target:
+                if catchup_overflow_active and diversity_progress >= diversity_target and not is_maturation:
                     # Temporary overflow exists only to close the strict
                     # diversity gap. Once 20 fixtures are reached, never spend
                     # the remaining overflow on lifecycle refreshes.
                     continue
                 if source in {"PERSISTED_MODELED_BACKLOG", "SCANNED_UPCOMING_FIXTURE"} and diversity_progress >= diversity_target:
+                    continue
+
+                if is_maturation and maturation_calls_this_tick >= TEAM_TOTALS_MATURATION_MAX_CALLS_PER_TICK:
+                    research_spillover_maturation_budget_exhausted += 1
                     continue
 
                 if not api_key:
@@ -1664,6 +1754,9 @@ async def resolve_payload(
                     )
                     calls += used
                     research_spillover_api_calls_added += used
+                    if is_maturation:
+                        maturation_calls_this_tick += used
+                        research_spillover_maturation_api_calls_added += used
                     if observed_remaining is not None:
                         provider_daily_remaining = (
                             observed_remaining
@@ -1688,8 +1781,17 @@ async def resolve_payload(
                             "policy": "LEFTOVER_PRICE_RESOLVER_BUDGET_AFTER_PRIMARY_TARGETS",
                             "research_only": True,
                             "diversity_priority": source in {"PERSISTED_MODELED_BACKLOG", "SCANNED_UPCOMING_FIXTURE"},
+                            "clv_maturation_priority": is_maturation,
                             "ft_team_totals_present": _has_ft_team_total_market(markets),
                         }
+                        if is_maturation:
+                            later_real = _markets_have_provider_update_after(markets, signal_generated_at)
+                            event["team_totals_clv_maturation"]["provider_update_after_signal"] = later_real
+                            event["team_totals_clv_maturation"]["resolution_source"] = "API_FOOTBALL_ODDS_V3"
+                            if later_real and _has_ft_team_total_market(markets):
+                                research_spillover_maturation_later_real_quote_refreshes += 1
+                            else:
+                                research_spillover_maturation_unchanged_provider_updates += 1
                 except Exception as exc:
                     research_spillover_api_errors += 1
                     fixture_cache[fixture_id] = ([], "PRICE_API_ERROR_RESEARCH_ONLY")
@@ -1749,6 +1851,14 @@ async def resolve_payload(
         "research_spillover_ft_team_total_market_rows_attached": research_spillover_ft_team_total_market_rows_attached,
         "research_spillover_primary_payload_reuse_fixtures": research_spillover_primary_payload_reuse_fixtures,
         "research_spillover_primary_payload_reuse_market_rows": research_spillover_primary_payload_reuse_market_rows,
+        "research_spillover_maturation_source": maturation.get("source"),
+        "research_spillover_maturation_candidates": research_spillover_maturation_candidates,
+        "research_spillover_maturation_max_calls_per_tick": TEAM_TOTALS_MATURATION_MAX_CALLS_PER_TICK,
+        "research_spillover_maturation_api_calls_added": research_spillover_maturation_api_calls_added,
+        "research_spillover_maturation_later_real_quote_refreshes": research_spillover_maturation_later_real_quote_refreshes,
+        "research_spillover_maturation_cache_replays_ignored": research_spillover_maturation_cache_replays_ignored,
+        "research_spillover_maturation_unchanged_provider_updates": research_spillover_maturation_unchanged_provider_updates,
+        "research_spillover_maturation_budget_exhausted": research_spillover_maturation_budget_exhausted,
         "research_spillover_cache_hits": research_spillover_cache_hits,
         "research_spillover_api_calls_added": research_spillover_api_calls_added,
         "research_spillover_fixtures_fetched": research_spillover_fixtures_fetched,
@@ -1762,7 +1872,8 @@ async def resolve_payload(
         "research_spillover_diversity_catchup_overflow_budget": int(payload.get("team_totals_diversity_catchup_overflow_budget") or 0),
         "research_spillover_total_price_resolver_budget": budget,
         "research_spillover_catchup_stops_at_diversity_target": True,
-        "research_spillover_policy": "PRIMARY_ODDS_PAYLOAD_REUSE_FIRST_ZERO_EXTRA_CALLS;CACHE_SECOND;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;PERSISTED_MODELED_FIXTURES_FIRST;THEN_CURRENT_TICK_SCANNED_UPCOMING_FIXTURES_FOR_MARKET_CAPTURE_ONLY;DIVERSIFY_TO_20_EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_FIXTURES;LEGACY_OBSERVED_ROWS_DO_NOT_SATISFY_GATE;MARKET_CAPTURE_WITHOUT_MODEL_IS_NOT_PHASE19_DIRECTIONAL_EVIDENCE;PHASE19_TRUE_CLV_REMAINS_SEPARATE;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
+        "research_spillover_clv_maturation_continues_after_diversity_target": True,
+        "research_spillover_policy": "PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;TEAM_TOTALS_CLV_MATURATION_USES_ONLY_POST_PRIMARY_LEFTOVER;MATURATION_IGNORES_CACHE_REPLAY_AS_NEW_CLOSE;MATURATION_MAX_12_PROVIDER_CALLS_PER_TICK;PRIMARY_ODDS_PAYLOAD_REUSE_ZERO_EXTRA_CALLS_WHEN_PROVIDER_UPDATE_IS_LATER;DIVERSITY_CAPTURE_STOPS_AT_20;LEGACY_OBSERVED_ROWS_DO_NOT_SATISFY_GATE;MARKET_CAPTURE_WITHOUT_MODEL_IS_NOT_PHASE19_DIRECTIONAL_EVIDENCE;API_FOOTBALL_ODDS_ONLY;RESEARCH_ONLY",
     }
     payload["price_resolution_provider_requests_added"] = calls
     return payload["price_resolution_v4"]
