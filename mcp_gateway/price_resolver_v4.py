@@ -4,6 +4,7 @@ import asyncio
 import json
 import math
 import os
+import re
 import statistics
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -139,7 +140,7 @@ def _normalize_market_values(market_name: str, values: list[dict[str, Any]]) -> 
             continue
         embedded_line = None
         embedded_match = re.search(
-            r"\\b(?:over|under)\\s+([+-]?\\d+(?:\\.\\d+)?)\\b",
+            r"\b(?:over|under)\s+([+-]?\d+(?:\.\d+)?)\b",
             str(raw_selection or ""),
             flags=re.IGNORECASE,
         )
