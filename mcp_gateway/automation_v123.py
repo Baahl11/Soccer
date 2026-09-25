@@ -15,7 +15,7 @@ from mcp_gateway import team_totals_intelligence
 from mcp_gateway import halftime_2h_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.32.8-cards-props-market-sidecar"
+AUTOMATION_VERSION = "4.32.9-hard-budget-reserve"
 PRIMARY_PRICE_RESERVE_CALLS = max(
     0,
     int(os.getenv("SOCCER_PRIMARY_PRICE_RESERVE_CALLS", "20")),
@@ -298,22 +298,18 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
 
 
 async def run_tick() -> dict[str, Any]:
-    # v90 owns the live elastic request ceiling (70/55/45/35/25 from verified
-    # quota). Reserve capacity at THAT layer, not at v6's nominal base cap,
-    # otherwise v90 simply expands the upstream loop again and consumes the
-    # intended pricing reserve.
-    original_elastic_request_cap = v90._elastic_request_cap
-
-    def _reserved_elastic_request_cap(remaining: Any) -> tuple[int, str]:
-        global_cap, reason = original_elastic_request_cap(remaining)
-        upstream_cap, reserve = _reserve_from_elastic_cap(int(global_cap))
-        return upstream_cap, f"{reason}_PRICE_RESERVE_{reserve}"
-
-    v90._elastic_request_cap = _reserved_elastic_request_cap
+    # v90 owns the real paced provider gate. Configure the reserve at that
+    # hard gate so it is enforced before subsequent provider calls rather than
+    # monkeypatching only the cap calculation/reporting function.
+    original_reserve_calls = v90._REQUEST_CAP_RESERVE_CALLS
+    original_min_upstream_calls = v90._REQUEST_CAP_MIN_UPSTREAM_CALLS
+    v90._REQUEST_CAP_RESERVE_CALLS = PRIMARY_PRICE_RESERVE_CALLS
+    v90._REQUEST_CAP_MIN_UPSTREAM_CALLS = MIN_UPSTREAM_API_CALLS
     try:
         payload = await v121.run_tick()
     finally:
-        v90._elastic_request_cap = original_elastic_request_cap
+        v90._REQUEST_CAP_RESERVE_CALLS = original_reserve_calls
+        v90._REQUEST_CAP_MIN_UPSTREAM_CALLS = original_min_upstream_calls
 
     _attach_dedicated_ht_research(payload)
 
@@ -323,7 +319,7 @@ async def run_tick() -> dict[str, Any]:
     except (TypeError, ValueError):
         remaining = None
 
-    global_cap, global_reason = original_elastic_request_cap(remaining)
+    global_cap, global_reason = v90._elastic_request_cap(remaining)
     global_cap = int(global_cap)
     pre_price_cap, reserve_requested = _reserve_from_elastic_cap(global_cap)
     observed_upstream_cap = payload.get("elastic_request_cap")
@@ -351,7 +347,7 @@ async def run_tick() -> dict[str, Any]:
     payload["price_resolver_total_budget"] = budget_plan["total_price_resolver_budget"]
     payload["price_resolver_budget_plan"] = budget_plan
     payload["price_resolver_budget_policy"] = (
-        "SAME_GLOBAL_TICK_CAP_ONLY; UPSTREAM_SPORT_DEEP_DIVE_TEMP_CAP_RESERVES_CAPACITY; "
+        "SAME_GLOBAL_TICK_CAP_ONLY; V90_HARD_PROVIDER_GATE_RESERVES_CAPACITY_BEFORE_NEXT_CALL; "
         "FT_TOTALS_BTTS_1X2_PRICE_TARGETS_RESOLVE_FIRST; TEAM_TOTALS_USES_ONLY_POST_PRIMARY_LEFTOVER; "
         "NO_DIVERSITY_OVERFLOW_ABOVE_GLOBAL_CAP"
     )
