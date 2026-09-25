@@ -81,7 +81,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert out["global_api_cap_after_daily_policy"] == expected_global_cap
     assert out["primary_price_reserve_calls"] == expected_reserve
     assert out["team_totals_diversity_catchup_overflow_budget"] == 0
-    assert out["version"] == "4.32.3-team-totals-clv-integrity-funnel"
+    assert out["version"] == "4.32.4-team-totals-clv-maturation"
 
 
 def test_v123_price_budget_is_global_leftover():
