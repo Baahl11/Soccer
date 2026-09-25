@@ -10,7 +10,7 @@ from mcp_gateway import player_props_oos_postgres_v4 as oos
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PHASE15_COVERAGE_AUDIT_V4_1.0.0"
+MODEL_VERSION = "SOCCER_PHASE15_COVERAGE_AUDIT_V4_1.1.0"
 
 FAMILY_CONFIG = oos.FAMILY_CONFIG
 
@@ -266,7 +266,7 @@ def _load_rows(conn, *, lookback_days: int, max_rows: int) -> tuple[list[dict[st
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.generated_at < f.kickoff
-              AND e.stage IN ('T-40','T-20','T-10')
+              AND e.stage IN ('T-40','T-30','T-20','T-10')
             ORDER BY e.fixture_id, e.generated_at
             LIMIT %s
             """,
