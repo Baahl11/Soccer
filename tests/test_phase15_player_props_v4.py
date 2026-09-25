@@ -1,5 +1,6 @@
 from mcp_gateway import player_props_phase15_v4 as v
 from mcp_gateway import player_props_clv_postgres_v4 as prop_clv
+from mcp_gateway import player_props_oos_postgres_v4 as prop_oos
 
 
 BASE = {
@@ -499,3 +500,152 @@ def test_player_prop_clv_gk_signal_does_not_require_outfield_confirmed_starter_f
     assert {row["market_family"] for row in signals} == {"GK_SAVES"}
     assert all(isinstance(row["provider_update"], str) for row in signals)
     assert next(row for row in signals if row["side"] == "OVER")["model_probability"] == 0.45
+
+
+def test_player_props_oos_chooses_one_latest_priority_pregame_event_per_fixture():
+    rows = [
+        {
+            "fixture_id": 1,
+            "stage": "T-40",
+            "generated_at": "2026-09-25T10:00:00+00:00",
+            "kickoff": "2026-09-25T11:00:00+00:00",
+            "event_payload": {"fixture": {"fixture_id": 1, "kickoff": "2026-09-25T11:00:00+00:00"}},
+        },
+        {
+            "fixture_id": 1,
+            "stage": "T-20",
+            "generated_at": "2026-09-25T10:30:00+00:00",
+            "kickoff": "2026-09-25T11:00:00+00:00",
+            "event_payload": {"fixture": {"fixture_id": 1, "kickoff": "2026-09-25T11:00:00+00:00"}},
+        },
+        {
+            "fixture_id": 1,
+            "stage": "T-10",
+            "generated_at": "2026-09-25T10:50:00+00:00",
+            "kickoff": "2026-09-25T11:00:00+00:00",
+            "event_payload": {"fixture": {"fixture_id": 1, "kickoff": "2026-09-25T11:00:00+00:00"}},
+        },
+    ]
+
+    out = prop_oos.choose_canonical_pregame_events(rows)
+    assert len(out) == 1
+    assert out[0]["stage"] == "T-10"
+
+
+def test_player_props_oos_joins_confirmed_model_prediction_to_final_player_result():
+    pregame = [{
+        "fixture_id": 7001,
+        "stage": "T-10",
+        "generated_at": "2026-09-25T10:50:00+00:00",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-10",
+            "fixture": {"fixture_id": 7001, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "player_shots_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "position": "F",
+                    "confirmed_starter": True,
+                    "expected_minutes_if_confirmed_starter": 82.0,
+                    "expected_shots": 2.8,
+                    "lines": [
+                        {"line": 1.5, "p_over": 0.72, "p_under": 0.28},
+                        {"line": 2.5, "p_over": 0.51, "p_under": 0.49},
+                    ],
+                }]
+            },
+            "player_goalscorer_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "position": "F",
+                    "confirmed_starter": True,
+                    "expected_minutes_if_confirmed_starter": 82.0,
+                    "expected_goals": 0.44,
+                    "p_anytime_goal": 0.36,
+                }]
+            },
+        },
+    }]
+    postgame = [{
+        "fixture_id": 7001,
+        "stage": "POSTGAME",
+        "generated_at": "2026-09-25T13:00:00+00:00",
+        "event_payload": {
+            "fixture": {"fixture_id": 7001},
+            "postgame_player_stats": {
+                "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+                "teams": [{
+                    "team_id": 10,
+                    "team": "Home",
+                    "players": [{
+                        "player_id": 501,
+                        "name": "Player A",
+                        "minutes": 90,
+                        "position": "F",
+                        "shots": 3,
+                        "shots_on_target": 2,
+                        "goals": 1,
+                        "assists": 0,
+                        "yellow_cards": 0,
+                        "saves": 0,
+                    }],
+                }],
+            },
+        },
+    }]
+
+    rows = prop_oos.build_oos_rows(pregame, postgame)
+    assert {row["market_family"] for row in rows} == {"SHOTS", "GOALSCORER_ANYTIME"}
+
+    shots = next(row for row in rows if row["market_family"] == "SHOTS")
+    assert shots["expected_count"] == 2.8
+    assert shots["actual_count"] == 3
+    assert shots["actual_minutes"] == 90
+    assert shots["expected_minutes"] == 82.0
+    assert len(shots["binary_rows"]) == 2
+    assert shots["binary_rows"][0]["outcome"] == 1
+
+    scorer = next(row for row in rows if row["market_family"] == "GOALSCORER_ANYTIME")
+    assert scorer["actual_count"] == 1
+    assert scorer["binary_rows"][0]["probability"] == 0.36
+    assert scorer["binary_rows"][0]["outcome"] == 1
+
+
+def test_player_props_oos_metrics_are_family_specific_and_not_promotional():
+    rows = [
+        {
+            "fixture_id": i,
+            "market_family": "SHOTS",
+            "player_id": 1000 + i,
+            "expected_count": 2.0,
+            "actual_count": 3.0 if i % 2 == 0 else 1.0,
+            "count_error": 1.0 if i % 2 == 0 else -1.0,
+            "expected_minutes": 80.0,
+            "actual_minutes": 90.0,
+            "minutes_error": 10.0,
+            "binary_rows": [{
+                "fixture_id": i,
+                "market_family": "SHOTS",
+                "player_id": 1000 + i,
+                "line": 1.5,
+                "probability": 0.60,
+                "outcome": 1 if i % 2 == 0 else 0,
+            }],
+        }
+        for i in range(20)
+    ]
+
+    report = prop_oos.summarize_oos(rows)
+    shots = report["families"]["SHOTS"]
+    assert shots["unique_fixtures"] == 20
+    assert shots["unique_player_fixtures"] == 20
+    assert shots["brier_score"] is not None
+    assert shots["log_loss"] is not None
+    assert shots["expected_count_mae"] == 1.0
+    assert shots["expected_minutes_mae"] == 10.0
+    assert shots["oos_validation_complete"] is False
+    assert shots["minimum_player_games_for_review"] == 500
