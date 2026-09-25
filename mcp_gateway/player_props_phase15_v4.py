@@ -44,7 +44,9 @@ def is_player_prop_market(row: dict[str, Any]) -> bool:
         "shot on target",
         "shots",
         "goalscorer",
+        "goal scorer",
         "anytime scorer",
+        "anytime goal scorer",
         "assist",
         "goalkeeper saves",
         "gk saves",
@@ -86,7 +88,7 @@ def _prop_summary(payload: dict[str, Any]) -> dict[str, Any]:
 PROP_AUDIT_FAMILY = {
     "shots": "SHOTS",
     "sot": "SOT",
-    "goalscorer": "GOALSCORER",
+    "goalscorer": "GOALSCORER_ANYTIME",
     "assists": "ASSISTS",
     "cards": "PLAYER_CARDS",
     "gk_saves": "GK_SAVES",
@@ -198,6 +200,7 @@ def build_report(
             "All six prop modules currently pass structural sanity, but structural sanity is not OOS performance.",
             "No player prop may become actionable without confirmed XI/role/minutes and an exact observed sportsbook market price; numeric exact lines are additionally required for line-based props such as shots, SOT and goalkeeper saves.",
             "Goalkeeper saves currently has a much smaller validated profile pool than outfield prop families.",
+            "The goalscorer model is an anytime-scorer model; First Goal Scorer and Last Goal Scorer market history are captured separately and cannot satisfy the anytime evidence gate.",
             "Prop-specific calibration and true CLV must be tracked independently by market family.",
         ],
     }
