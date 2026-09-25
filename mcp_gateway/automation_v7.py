@@ -29,6 +29,22 @@ LATE_SHORTLIST_STAGE_PRIORITY = {
 }
 
 
+def _upcoming_market_capture_fixtures(
+    fixtures: list[dict[str, Any]],
+    now_utc: datetime,
+) -> list[dict[str, Any]]:
+    return sorted(
+        [
+            fx
+            for fx in fixtures
+            if fx.get("kickoff")
+            and base._dt(fx["kickoff"]) > now_utc
+            and fx.get("status") not in base.CANCELLED_STATUSES | base.POSTPONED_STATUSES
+        ],
+        key=lambda fx: base._dt(fx["kickoff"]),
+    )[:v5.MAX_UPCOMING_MARKET_CAPTURE_FIXTURES]
+
+
 def _queue_priority(
     fx: dict[str, Any],
     stage: str,
@@ -122,6 +138,8 @@ async def run_tick() -> dict[str, Any]:
                     and fx.get("season")
                 ):
                     fixtures.append(fx)
+
+        upcoming_market_capture_fixtures = _upcoming_market_capture_fixtures(fixtures, now_utc)
 
         events: list[dict[str, Any]] = []
         discovery = await v3._daily_discovery_event(fixtures, now_utc, local_now)
@@ -323,6 +341,8 @@ async def run_tick() -> dict[str, Any]:
             "generated_at_local": local_now.isoformat(),
             "timezone": base.TIMEZONE_NAME,
             "fixture_scan_count": len(fixtures),
+            "upcoming_market_capture_fixture_count": len(upcoming_market_capture_fixtures),
+            "upcoming_market_capture_fixtures": upcoming_market_capture_fixtures,
             "due_fixture_count": len(due),
             "event_count": len(events),
             "actionable_refresh_count": len(actionable),
