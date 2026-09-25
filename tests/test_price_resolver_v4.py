@@ -480,3 +480,56 @@ def test_binary_discrimination_blocker_is_explicit_for_btts_and_totals():
     assert totals_row["phase16_binary_calibration_diagnostics"]["target"] == "over_2_5"
     assert totals_row["phase16_calibration_promotion_shadow_eligible"] is False
     assert "p_model_calibrated" not in totals_row
+
+
+def test_existing_priced_1x2_row_gets_zero_call_calibration(monkeypatch):
+    payload = {
+        "model_version": "SOCCER EDGE ENGINE v1.7",
+        "events": [{
+            "event_type": "SOCCER_REFRESH",
+            "stage": "T-20",
+            "fixture": {"fixture_id": 321},
+            "raw_projection": {
+                "raw_home_win_prob": 0.55,
+                "raw_draw_prob": 0.20,
+                "raw_away_win_prob": 0.25,
+            },
+        }],
+        "match_table_rows": [{
+            "row_index": 0,
+            "fixture_id": 321,
+            "stage": "T-20",
+            "execution_status": "RESEARCH_ONLY",
+            "market_family": "1X2",
+            "market": "Match Winner",
+            "selection": "home",
+            "price": 2.10,
+            "p_market_fair": 0.45,
+        }],
+        "api_calls_this_tick": 5,
+    }
+
+    monkeypatch.setattr(v, "_load_cached_markets", lambda fixture_id, stage: [])
+
+    result = asyncio.run(
+        v.resolve_payload(
+            payload,
+            max_api_calls=0,
+            calibration_state=_calibration_state(),
+        )
+    )
+
+    row = payload["match_table_rows"][0]
+    assert result["candidate_rows"] == 0
+    assert result["api_calls_added"] == 0
+    assert result["existing_price_calibration_provider_requests_added"] == 0
+    assert result["existing_price_calibration_rows_considered"] == 1
+    assert result["existing_price_calibrated_rows_added"] == 1
+    assert row["phase16_calibration_status"] == "RESEARCH_CALIBRATION_APPLIED"
+    assert row["phase16_calibration_promotion_shadow_eligible"] is True
+    assert row["price_resolution_existing_price_calibration_added"] is True
+    assert row["phase16_1x2_class_discrimination_ready"]["home_win"] is True
+    assert row["phase16_1x2_class_discrimination_ready"]["draw"] is False
+    assert row["phase16_1x2_class_discrimination_ready"]["away_win"] is True
+    assert 0 < row["p_model_calibrated"] < 1
+    assert payload["api_calls_this_tick"] == 5
