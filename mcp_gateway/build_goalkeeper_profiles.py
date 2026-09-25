@@ -34,7 +34,13 @@ def main() -> None:
         last20 = windows.get("last_20") if isinstance(windows.get("last_20"), dict) else {}
         gk20 = last20.get("goalkeeper") if isinstance(last20.get("goalkeeper"), dict) else {}
         gk_matches = int(gk20.get("gk_matches") or 0)
-        is_gk = position in {"G", "GK", "GOALKEEPER"} or gk_matches > 0
+        proxy20 = gk20.get("save_result_proxy") if isinstance(gk20.get("save_result_proxy"), dict) else {}
+        gk_evidence = (
+            int(proxy20.get("n") or 0) > 0
+            or (_num(gk20.get("avg_saves")) or 0.0) > 0.0
+            or gk20.get("avg_goals_conceded") is not None
+        )
+        is_gk = position in {"G", "GK", "GOALKEEPER"} or gk_evidence
         if not is_gk:
             continue
 
@@ -75,7 +81,7 @@ def main() -> None:
         }
 
     report = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "status": "RESEARCH_GOALKEEPER_PROFILE_REGISTRY",
         "source_player_trends_schema": source.get("schema_version"),
         "goalkeepers": profiles,
