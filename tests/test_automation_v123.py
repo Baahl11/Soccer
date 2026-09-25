@@ -57,6 +57,15 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
             "research_spillover_api_calls_added": 0,
             "research_spillover_fixtures_fetched": 0,
             "research_spillover_market_rows_fetched": 0,
+            "research_spillover_maturation_source": "TEST_MATURATION",
+            "research_spillover_maturation_candidates": 3,
+            "research_spillover_maturation_max_calls_per_tick": 12,
+            "research_spillover_maturation_api_calls_added": 2,
+            "research_spillover_maturation_later_real_quote_refreshes": 1,
+            "research_spillover_maturation_cache_replays_ignored": 2,
+            "research_spillover_maturation_unchanged_provider_updates": 1,
+            "research_spillover_maturation_budget_exhausted": 0,
+            "research_spillover_clv_maturation_continues_after_diversity_target": True,
         }
         return target["price_resolution_v4"]
 
@@ -70,6 +79,12 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert checkpoint["research_spillover_cache_hits"] == 1
     assert checkpoint["research_spillover_api_calls_added"] == 0
     assert checkpoint["research_spillover_fixtures_fetched"] == 0
+    assert checkpoint["research_spillover_maturation_source"] == "TEST_MATURATION"
+    assert checkpoint["research_spillover_maturation_candidates"] == 3
+    assert checkpoint["research_spillover_maturation_api_calls_added"] == 2
+    assert checkpoint["research_spillover_maturation_later_real_quote_refreshes"] == 1
+    assert checkpoint["research_spillover_maturation_cache_replays_ignored"] == 2
+    assert checkpoint["research_spillover_clv_maturation_continues_after_diversity_target"] is True
     assert out["team_totals_post_resolution"]["observed_exact_market_rows"] == 2
     rows = out["events"][0]["team_totals_intelligence"]["observed_exact_market_rows"]
     assert {row["team_role"] for row in rows} == {"HOME"}
@@ -81,7 +96,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert out["global_api_cap_after_daily_policy"] == expected_global_cap
     assert out["primary_price_reserve_calls"] == expected_reserve
     assert out["team_totals_diversity_catchup_overflow_budget"] == 0
-    assert out["version"] == "4.32.4-team-totals-clv-maturation"
+    assert out["version"] == "4.32.5-elastic-price-reserve"
 
 
 def test_v123_price_budget_is_global_leftover():
@@ -124,20 +139,26 @@ def test_v123_price_budget_plan_never_exceeds_global_tick_leftover():
     assert partial["overflow_above_global_tick_cap_allowed"] is False
 
 
-def test_v123_reserves_capacity_for_primary_prices_without_raising_global_cap(monkeypatch):
+def test_v123_reserves_capacity_inside_live_elastic_cap(monkeypatch):
     seen = {}
-    original_base = v.v6._BASE_MAX_API_CALLS_PER_TICK
-    expected_reserve = min(20, max(0, original_base - 1))
-    expected_pre_cap = original_base - expected_reserve
+    original_elastic = v.v90._elastic_request_cap
+    global_cap, _reason = original_elastic(7000)
+    expected_pre_cap, expected_reserve = v._reserve_from_elastic_cap(global_cap)
+    assert global_cap == 70
+    assert expected_pre_cap == 50
+    assert expected_reserve == 20
 
     async def fake_run_tick():
-        seen["pre_price_cap_during_upstream"] = v.v6._BASE_MAX_API_CALLS_PER_TICK
+        upstream_cap, upstream_reason = v.v90._elastic_request_cap(7000)
+        seen["pre_price_cap_during_upstream"] = upstream_cap
+        seen["pre_price_reason_during_upstream"] = upstream_reason
         return {
             "events": [],
             "match_table_rows": [],
-            "api_calls_this_tick": expected_pre_cap,
-            "max_api_calls_per_tick": expected_pre_cap,
-            "effective_max_api_calls_per_tick": expected_pre_cap,
+            "api_calls_this_tick": upstream_cap,
+            "max_api_calls_per_tick": upstream_cap,
+            "effective_max_api_calls_per_tick": upstream_cap,
+            "elastic_request_cap": upstream_cap,
             "last_daily_remaining": 7000,
             "daily_budget_mode": "NORMAL",
         }
@@ -158,16 +179,29 @@ def test_v123_reserves_capacity_for_primary_prices_without_raising_global_cap(mo
 
     out = asyncio.run(v.run_tick())
 
-    assert seen["pre_price_cap_during_upstream"] == expected_pre_cap
-    assert seen["price_budget"] == expected_reserve
-    assert v.v6._BASE_MAX_API_CALLS_PER_TICK == original_base
-    assert out["api_calls_this_tick"] == expected_pre_cap
-    assert out["pre_price_pipeline_api_cap"] == expected_pre_cap
-    assert out["global_api_cap_after_daily_policy"] == original_base
-    assert out["primary_price_reserve_calls"] == expected_reserve
-    assert out["effective_max_api_calls_per_tick"] == original_base
-    assert out["price_resolver_leftover_budget"] == expected_reserve
+    assert seen["pre_price_cap_during_upstream"] == 50
+    assert "PRICE_RESERVE_20" in seen["pre_price_reason_during_upstream"]
+    assert seen["price_budget"] == 20
+    assert v.v90._elastic_request_cap is original_elastic
+    assert out["api_calls_this_tick"] == 50
+    assert out["pre_price_pipeline_api_cap"] == 50
+    assert out["elastic_request_cap_upstream_observed"] == 50
+    assert out["global_api_cap_after_daily_policy"] == 70
+    assert out["elastic_request_cap"] == 70
+    assert out["primary_price_reserve_calls"] == 20
+    assert out["effective_max_api_calls_per_tick"] == 70
+    assert out["price_resolver_leftover_budget"] == 20
     assert out["team_totals_diversity_catchup_overflow_budget"] == 0
+
+
+def test_v123_reserve_preserves_minimum_upstream_capacity():
+    upstream_cap, reserve = v._reserve_from_elastic_cap(25)
+    assert upstream_cap == 8
+    assert reserve == 17
+
+    upstream_cap, reserve = v._reserve_from_elastic_cap(70)
+    assert upstream_cap == 50
+    assert reserve == 20
 
 
 def test_v7_exposes_only_future_upcoming_market_capture_fixtures():
