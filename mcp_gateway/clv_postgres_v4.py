@@ -10,7 +10,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.8"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.9"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 TEAM_TOTALS_RESEARCH_STAGES = ("EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
@@ -162,6 +162,65 @@ def _candidate_label(market_candidate: dict[str, Any]) -> str:
     raw_family = market_candidate.get("market_family") or market_candidate.get("family") or "(none)"
     market = market_candidate.get("market") or "(none)"
     return f"{raw_family} | {market}"
+
+
+def _load_strict_team_totals_capture_fixture_ids(conn, *, lookback_days: int) -> set[int]:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT DISTINCT e.fixture_id
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            WHERE e.fixture_id IS NOT NULL
+              AND e.generated_at >= %s
+              AND e.generated_at < f.kickoff
+              AND COALESCE(
+                    e.payload -> 'team_totals_diversity_capture' ->> 'qualifies',
+                    'false'
+                  ) = 'true'
+            """,
+            (cutoff,),
+        )
+        return {
+            int(row[0])
+            for row in cur.fetchall()
+            if row and row[0] is not None
+        }
+
+
+def _build_team_totals_maturation_funnel(
+    strict_capture_fixture_ids: set[int],
+    modeled_signal_fixture_ids: set[int],
+    true_clv_fixture_ids: set[int],
+) -> dict[str, Any]:
+    captures = set(strict_capture_fixture_ids)
+    signals = set(modeled_signal_fixture_ids) & captures if captures else set(modeled_signal_fixture_ids)
+    true_clv = set(true_clv_fixture_ids) & (captures | signals) if (captures or signals) else set(true_clv_fixture_ids)
+
+    capture_without_signal = captures - signals
+    signal_without_true_clv = signals - true_clv
+    directional_target = 20
+
+    return {
+        "strict_capture_unique_fixtures": len(captures),
+        "modeled_signal_unique_fixtures": len(signals),
+        "true_clv_unique_fixtures": len(true_clv),
+        "capture_without_modeled_signal": len(capture_without_signal),
+        "modeled_signal_without_later_real_close": len(signal_without_true_clv),
+        "true_clv_directional_target": directional_target,
+        "true_clv_unique_fixtures_remaining_to_directional": max(directional_target - len(true_clv), 0),
+        "strict_capture_fixture_ids": sorted(captures),
+        "modeled_signal_fixture_ids": sorted(signals),
+        "true_clv_fixture_ids": sorted(true_clv),
+        "capture_without_modeled_signal_fixture_ids": sorted(capture_without_signal),
+        "modeled_signal_without_later_real_close_fixture_ids": sorted(signal_without_true_clv),
+        "provider_requests_added": 0,
+        "policy": (
+            "STRICT_CAPTURE_MARKER -> DERIVATIVE_TEAM_TOTALS_MODELED_SIGNAL -> "
+            "STRICTLY_LATER_PROVIDER_QUOTE -> COMPARABLE_TRUE_CLV"
+        ),
+    }
 
 
 def _load_pipeline_market_signals(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
@@ -371,7 +430,7 @@ def _load_market_snapshots(
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT DISTINCT ON (m.fixture_id, m.market_id, m.bookmaker_id)
+            SELECT DISTINCT ON (m.fixture_id, m.market_id, m.bookmaker_id, m.provider_update)
                 m.fixture_id,
                 m.captured_at,
                 m.stage,
@@ -392,6 +451,7 @@ def _load_market_snapshots(
                 m.fixture_id,
                 m.market_id,
                 m.bookmaker_id,
+                m.provider_update,
                 m.captured_at DESC
             """,
             (fixture_ids, market_names, cutoff),
@@ -536,6 +596,10 @@ def _model_signal_from_candidate(candidate: dict[str, Any], event_payload: Any) 
 def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> dict[str, Any]:
     persistence.ensure_schema()
     with persistence._connect() as conn:
+        strict_team_totals_capture_fixture_ids = _load_strict_team_totals_capture_fixture_ids(
+            conn,
+            lookback_days=lookback_days,
+        )
         pipeline_signals = _load_pipeline_market_signals(
             conn,
             lookback_days=lookback_days,
@@ -566,6 +630,12 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             str(signal.get("signal_source") or "UNKNOWN")
             for signal in derivative_signals
         )
+        team_totals_modeled_signal_fixture_ids = {
+            int(signal["fixture_id"])
+            for signal in derivative_signals
+            if str(signal.get("signal_source") or "") == "DERIVATIVE_INTELLIGENCE:team_totals_intelligence"
+            and signal.get("fixture_id") is not None
+        }
         derivative_family_counts = Counter(
             str(_family(signal.get("market_candidate") or {}) or "UNMAPPED")
             for signal in derivative_signals
@@ -815,6 +885,17 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
 
 
     comparable = [row for row in tracked if row.get("probability_comparable_same_line")]
+    team_totals_true_clv_fixture_ids = {
+        int(row["fixture_id"])
+        for row in comparable
+        if row.get("fixture_id") is not None
+        and str(row.get("market_family") or "").upper() in {"TEAM_TOTALS", "HOME_TT", "AWAY_TT"}
+    }
+    team_totals_maturation_funnel = _build_team_totals_maturation_funnel(
+        strict_team_totals_capture_fixture_ids,
+        team_totals_modeled_signal_fixture_ids,
+        team_totals_true_clv_fixture_ids,
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
@@ -837,6 +918,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "snapshot_fixture_batch_size": snapshot_fixture_batch_size,
         "family_counts": dict(sorted(family_counts.items())),
         "signal_source_counts": dict(sorted(signal_source_counts.items())),
+        "team_totals_maturation_funnel": team_totals_maturation_funnel,
         "skip_reasons": dict(sorted(reasons.items())),
         "skip_reason_market_counts": {
             reason: dict(counts.most_common())
@@ -853,6 +935,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             "Team Totals may enter CLV collection from any explicitly pre-kickoff research stage, including EARLY_RESEARCH/T-90/T-60/T-30/CLOSE, while other derivative families retain the narrower T-40/T-20/T-10 stage policy.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "A true close must be a strictly later ingest AND carry a provider_update strictly later than the signal timestamp; cache replays and unchanged provider quotes do not count as new CLV evidence.",
+            "Team Totals maturation is reported as a provider-free funnel from strict market capture to modeled derivative signal to later real close/true CLV, using unique fixture IDs so repeated selections cannot inflate progress.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
             "Line movement may still be recorded when the selected side survives but the sportsbook line changes.",
             "Same-book close is preferred; otherwise the latest cross-book snapshot at the latest pre-kickoff timestamp is used.",
