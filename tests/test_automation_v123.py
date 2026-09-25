@@ -75,7 +75,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert {row["team_role"] for row in rows} == {"HOME"}
     assert {row["market"] for row in rows} == {"Total - Home"}
     assert out["price_resolver_leftover_budget"] == 25
-    assert out["version"] == "4.31.7-team-totals-primary-odds-reuse"
+    assert out["version"] == "4.31.8-team-totals-diversity-catchup"
 
 
 def test_v123_price_budget_is_global_leftover():
@@ -92,6 +92,49 @@ def test_v123_price_budget_is_global_leftover():
     payload = {"api_calls_this_tick": 3, "max_api_calls_per_tick": 70}
     assert v._leftover_price_budget(payload) == 25
 
+
+
+def test_v123_diversity_catchup_adds_only_guarded_daily_surplus():
+    plan = v._price_budget_plan({
+        "api_calls_this_tick": 70,
+        "effective_max_api_calls_per_tick": 70,
+        "last_daily_remaining": 7002,
+        "daily_budget_mode": "NORMAL",
+    })
+    assert plan["standard_leftover_budget"] == 0
+    assert plan["diversity_catchup_overflow_budget"] == 20
+    assert plan["total_price_resolver_budget"] == 20
+    assert plan["primary_tick_cap_unchanged"] is True
+
+    partial = v._price_budget_plan({
+        "api_calls_this_tick": 63,
+        "effective_max_api_calls_per_tick": 70,
+        "last_daily_remaining": 7002,
+        "daily_budget_mode": "NORMAL",
+    })
+    assert partial["standard_leftover_budget"] == 7
+    assert partial["diversity_catchup_overflow_budget"] == 18
+    assert partial["total_price_resolver_budget"] == 25
+
+
+def test_v123_diversity_catchup_is_disabled_outside_normal_budget_mode_or_floor():
+    low_daily = v._price_budget_plan({
+        "api_calls_this_tick": 70,
+        "effective_max_api_calls_per_tick": 70,
+        "last_daily_remaining": 5000,
+        "daily_budget_mode": "NORMAL",
+    })
+    assert low_daily["diversity_catchup_overflow_budget"] == 0
+    assert low_daily["total_price_resolver_budget"] == 0
+
+    reduced = v._price_budget_plan({
+        "api_calls_this_tick": 70,
+        "effective_max_api_calls_per_tick": 70,
+        "last_daily_remaining": 7002,
+        "daily_budget_mode": "REDUCED",
+    })
+    assert reduced["diversity_catchup_overflow_budget"] == 0
+    assert reduced["total_price_resolver_budget"] == 0
 
 
 def test_v7_exposes_only_future_upcoming_market_capture_fixtures():
