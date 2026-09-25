@@ -315,28 +315,69 @@ def _wanted_market(name: str) -> bool:
     return any(k in n for k in keys)
 
 
+def _is_ft_team_total_bet(bet: dict[str, Any]) -> bool:
+    try:
+        market_id = int(bet.get("id")) if bet.get("id") is not None else None
+    except (TypeError, ValueError):
+        market_id = None
+    if market_id in {16, 17}:
+        return True
+    n = " ".join(str(bet.get("name") or "").strip().lower().split())
+    return n in {
+        "total - home",
+        "total home",
+        "total - away",
+        "total away",
+        "home team total goals",
+        "away team total goals",
+        "home team goals over/under",
+        "away team goals over/under",
+    }
+
+
 def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
-    rows = []
+    primary_rows: list[dict[str, Any]] = []
+    team_total_rows: list[dict[str, Any]] = []
     for fixture_row in payload.get("response", []):
         update = fixture_row.get("update")
         for book in fixture_row.get("bookmakers") or []:
             for bet in book.get("bets") or []:
                 name = bet.get("name") or ""
-                if not _wanted_market(name):
+                is_team_total = _is_ft_team_total_bet(bet)
+                if not is_team_total and not _wanted_market(name):
                     continue
                 values = [
                     {"selection": value.get("value"), "price": value.get("odd")}
                     for value in (bet.get("values") or [])
                 ]
-                rows.append({
+                row = {
                     "bookmaker_id": book.get("id"),
                     "bookmaker": book.get("name"),
                     "market_id": bet.get("id"),
                     "market": name,
                     "values": values,
                     "provider_update": update,
-                })
-    return {"markets": rows[:60], "market_count": len(rows), "truncated": len(rows) > 60}
+                }
+                if is_team_total:
+                    team_total_rows.append(row)
+                else:
+                    primary_rows.append(row)
+
+    # Preserve the original primary-market cap while guaranteeing a bounded
+    # Team Totals sidecar from the very same paid /odds response. This costs
+    # zero additional provider requests and cannot evict 1X2/FT totals/BTTS.
+    kept_primary = primary_rows[:60]
+    kept_team_totals = team_total_rows[:20]
+    rows = kept_primary + kept_team_totals
+    total_relevant = len(primary_rows) + len(team_total_rows)
+    return {
+        "markets": rows,
+        "market_count": total_relevant,
+        "truncated": total_relevant > len(rows),
+        "primary_market_rows": len(kept_primary),
+        "ft_team_total_rows": len(kept_team_totals),
+        "ft_team_totals_reused_from_same_provider_response": bool(kept_team_totals),
+    }
 
 
 def _stage_for(minutes_to_kickoff: float, status: str) -> str | None:
