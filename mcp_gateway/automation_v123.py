@@ -9,7 +9,7 @@ from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.31.2-team-totals-leftover-odds"
+AUTOMATION_VERSION = "4.31.3-team-totals-diversity-spillover"
 
 
 def _annotate_checkpoint(payload: dict[str, Any]) -> None:
@@ -35,12 +35,22 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "research_spillover_api_calls_added": resolution.get("research_spillover_api_calls_added", 0),
         "research_spillover_fixtures_fetched": resolution.get("research_spillover_fixtures_fetched", 0),
         "research_spillover_market_rows_fetched": resolution.get("research_spillover_market_rows_fetched", 0),
+        "research_spillover_unique_fixture_target": resolution.get("research_spillover_unique_fixture_target", 20),
+        "research_spillover_existing_unique_fixtures": resolution.get("research_spillover_existing_unique_fixtures", 0),
+        "research_spillover_new_unique_fixtures_this_tick": resolution.get("research_spillover_new_unique_fixtures_this_tick", 0),
+        "research_spillover_projected_unique_fixtures": resolution.get("research_spillover_projected_unique_fixtures", 0),
+        "research_spillover_diversity_gap_remaining": resolution.get("research_spillover_diversity_gap_remaining", 20),
+        "research_spillover_persisted_backlog_candidates": resolution.get("research_spillover_persisted_backlog_candidates", 0),
+        "research_spillover_exact_team_total_fixtures_attached": resolution.get("research_spillover_exact_team_total_fixtures_attached", 0),
+        "research_spillover_primary_markets_preempted": resolution.get("research_spillover_primary_markets_preempted", False),
         "note": (
             "Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
             "Resolved rows are re-evaluated by Team Totals research intelligence, execution-status separation "
             "and Phase16. Team Totals is cache-first and may use only provider budget left after every primary "
             "price target; those spillover calls remain research-only and cannot pre-empt FT Totals/BTTS/1X2. "
-            "No calibrated probability is fabricated and no BET/tier/stake/model threshold is changed."
+            "Uncovered upcoming fixtures with persisted pre-kickoff team lambdas are prioritized until the "
+            "20-fixture diversity gate is reached; exact FT Team Totals markets, not generic /odds payloads, "
+            "count toward diversity. No calibrated probability is fabricated and no BET/tier/stake/model threshold is changed."
         ),
     }
 
