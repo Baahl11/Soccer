@@ -1,4 +1,4 @@
-# Phase19 Draw challenger live audit retry: 2026-09-24
+# Phase19 Draw challenger dependency fix: 2026-09-24
 name: Phase 19 Promotion Framework Validation
 
 on:
@@ -60,7 +60,7 @@ jobs:
         working-directory: runtime
         run: |
           python -m pip install --upgrade pip
-          pip install pytest "lightgbm>=4,<5"
+          pip install pytest "lightgbm>=4,<5" "scikit-learn>=1.5,<2"
           PYTHONPATH=. pytest -q tests/test_phase19_promotion_framework_v4.py tests/test_promotion_shadow_postgres_v4.py tests/test_draw_challenger_v4.py
 
       - name: Build promotion-quality shadow from Postgres
