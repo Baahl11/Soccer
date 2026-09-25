@@ -1341,3 +1341,23 @@ def test_clv_close_diagnostics_count_strict_close():
     assert len(rows) == 1
     assert skip == {}
     assert diagnostics["by_family"]["SHOTS"]["strict_close_rows"] == 1
+
+
+def test_clv_reclassifies_legacy_score_or_assist_row_out_of_goalscorer():
+    event = {
+        "market": {
+            "research_cards_props_markets": [{
+                "research_family": "PLAYER_PROPS",
+                "research_subfamily": "GOALSCORER_ANYTIME",
+                "market": "Player to Score or Assist",
+                "values": [{"selection": "Player A", "price": 2.0}],
+            }]
+        }
+    }
+    assert prop_clv._event_market_rows(event, "GOALSCORER_ANYTIME") == []
+
+
+def test_audit_does_not_classify_score_or_assist_as_anytime_scorer():
+    from mcp_gateway import research_derivative_postgres_audit as derivative_audit
+    assert derivative_audit.classify_market("Player to Score or Assist") is None
+    assert derivative_audit.classify_market("Anytime Goal Scorer") == "GOALSCORER_ANYTIME"
