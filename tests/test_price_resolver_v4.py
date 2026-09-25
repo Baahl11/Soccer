@@ -1730,3 +1730,29 @@ def test_player_props_maturation_does_not_mix_prop_families():
         "values": [{"selection": "Player A - 2", "decimal_price": 1.8}],
     }]
     assert v._player_prop_markets_with_later_provider_quote(markets, signals) == set()
+
+
+def test_score_or_assist_is_not_goalscorer_anytime_market():
+    assert v._research_derivative_subfamily("Player to Score or Assist") is None
+    assert v._research_derivative_subfamily("Player Score/Assist") is None
+    assert v._research_derivative_subfamily("Anytime Goal Scorer") == "GOALSCORER_ANYTIME"
+
+
+def test_player_props_maturation_ignores_legacy_score_or_assist_subfamily():
+    event = {
+        "market": {
+            "research_cards_props_markets": [{
+                "research_family": "PLAYER_PROPS",
+                "research_subfamily": "GOALSCORER_ANYTIME",
+                "market": "Player to Score or Assist",
+                "values": [{"selection": "Player A", "price": 1.8}],
+            }]
+        },
+        "player_goalscorer_intelligence": {
+            "players": [{
+                "player_id": 10,
+                "p_anytime_goal": 0.42,
+            }]
+        },
+    }
+    assert v._player_prop_signal_families(event) == set()
