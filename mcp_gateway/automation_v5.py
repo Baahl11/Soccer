@@ -214,12 +214,22 @@ async def _odds_7m(fixture_id: int, now: datetime) -> dict[str, Any]:
     key = str(fixture_id)
     cached = base._cache_get("odds_compact", key, timedelta(minutes=7), now)
     if isinstance(cached, dict):
-        return cached
+        return {
+            **cached,
+            "source": "LOCAL_ODDS_CACHE",
+            "resolution_status": "PRICE_CACHE_HIT_LOCAL",
+        }
     compact = base._compact_odds(
         await base._api_get("odds", {"fixture": fixture_id, "page": 1})
     )
+    # Persist the provider payload without the transient source marker so a
+    # later cache read cannot masquerade as a fresh provider observation.
     base._cache_set("odds_compact", key, compact, now)
-    return compact
+    return {
+        **compact,
+        "source": "API_FOOTBALL_ODDS_V3",
+        "resolution_status": "PRICE_API_RESOLVED",
+    }
 
 
 async def _cheap_sport_bundle(fx: dict[str, Any], now: datetime) -> dict[str, Any]:
