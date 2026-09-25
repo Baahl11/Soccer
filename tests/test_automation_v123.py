@@ -112,7 +112,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert out["global_api_cap_after_daily_policy"] == expected_global_cap
     assert out["primary_price_reserve_calls"] == expected_reserve
     assert out["team_totals_diversity_catchup_overflow_budget"] == 0
-    assert out["version"] == "4.32.6-primary-clv-maturation"
+    assert out["version"] == "4.32.7-dedicated-ht-research"
 
 
 def test_v123_price_budget_is_global_leftover():
@@ -295,3 +295,92 @@ def test_primary_odds_compactor_preserves_api_football_ft_team_totals_without_di
     assert compact["ft_team_totals_reused_from_same_provider_response"] is True
     assert len(compact["markets"]) == 62
     assert {row["market_id"] for row in compact["markets"][-2:]} == {16, 17}
+
+
+
+def test_v7_halftime_handoff_requires_verified_ht_score():
+    fixtures = [
+        {
+            "fixture_id": 1,
+            "status": "HT",
+            "score": {"halftime": {"home": 1, "away": 0}},
+        },
+        {
+            "fixture_id": 2,
+            "status": "NS",
+            "score": {"halftime": {"home": 0, "away": 0}},
+        },
+        {
+            "fixture_id": 3,
+            "status": "HT",
+            "score": {"halftime": {"home": None, "away": None}},
+        },
+    ]
+    rows = v7._current_halftime_research_fixtures(fixtures)
+    assert [row["fixture_id"] for row in rows] == [1]
+
+
+def test_v123_adds_research_only_ht_event_without_provider_calls(monkeypatch):
+    payload = {
+        "events": [],
+        "current_halftime_research_fixture_count": 1,
+        "current_halftime_research_fixtures": [{
+            "fixture_id": 9501,
+            "status": "HT",
+            "score": {"halftime": {"home": 1, "away": 1}},
+            "league_id": 39,
+            "season": 2026,
+            "home_team_id": 1,
+            "away_team_id": 2,
+        }],
+    }
+
+    monkeypatch.setattr(v.halftime_2h_intelligence, "attach", lambda target: {
+        "halftime_events": 1,
+        "modeled_halftime_events": 1,
+        "halftime_state_registry_loaded": True,
+        "period_rate_registry_loaded": True,
+        "provider_requests_added": 0,
+    })
+
+    result = v._attach_dedicated_ht_research(payload)
+
+    assert result["status"] == "DEDICATED_HT_RESEARCH_STAGE_ACTIVE"
+    assert result["synthetic_ht_events_added"] == 1
+    assert result["provider_requests_added"] == 0
+    assert result["decision_weight"] == 0.0
+    assert result["production_promotion_allowed"] is False
+    assert "current_halftime_research_fixtures" not in payload
+    event = payload["events"][0]
+    assert event["event_type"] == "SOCCER_REFRESH"
+    assert event["stage"] == "HT"
+    assert event["classification"] == "RESEARCH_ONLY"
+    assert event["bet_eligible"] is False
+    assert event["decision_weight"] == 0.0
+
+
+def test_v123_ht_handoff_dedupes_existing_ht_event(monkeypatch):
+    payload = {
+        "events": [{
+            "event_type": "SOCCER_REFRESH",
+            "stage": "HT",
+            "fixture": {
+                "fixture_id": 9502,
+                "status": "HT",
+                "score": {"halftime": {"home": 0, "away": 0}},
+            },
+        }],
+        "current_halftime_research_fixtures": [{
+            "fixture_id": 9502,
+            "status": "HT",
+            "score": {"halftime": {"home": 0, "away": 0}},
+        }],
+    }
+    monkeypatch.setattr(v.halftime_2h_intelligence, "attach", lambda target: {
+        "halftime_events": 1,
+        "modeled_halftime_events": 0,
+        "provider_requests_added": 0,
+    })
+    result = v._attach_dedicated_ht_research(payload)
+    assert result["synthetic_ht_events_added"] == 0
+    assert len(payload["events"]) == 1
