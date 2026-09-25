@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime, timezone
 
+from mcp_gateway import automation as base
 from mcp_gateway import automation_v123 as v
 from mcp_gateway import automation_v7 as v7
 
@@ -74,7 +75,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert {row["team_role"] for row in rows} == {"HOME"}
     assert {row["market"] for row in rows} == {"Total - Home"}
     assert out["price_resolver_leftover_budget"] == 25
-    assert out["version"] == "4.31.6-team-totals-v7-scan-handoff"
+    assert out["version"] == "4.31.7-team-totals-primary-odds-reuse"
 
 
 def test_v123_price_budget_is_global_leftover():
@@ -121,3 +122,50 @@ def test_v7_exposes_only_future_upcoming_market_capture_fixtures():
     rows = v7._upcoming_market_capture_fixtures(fixtures, now)
 
     assert [row["fixture_id"] for row in rows] == [4, 1]
+
+
+
+def test_primary_odds_compactor_preserves_api_football_ft_team_totals_without_displacing_primary():
+    primary_bets = [
+        {
+            "id": 1000 + i,
+            "name": f"Corners Market {i}",
+            "values": [{"value": "Over 8.5", "odd": "1.90"}],
+        }
+        for i in range(70)
+    ]
+    payload = {
+        "response": [{
+            "update": "2026-09-25T04:00:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": primary_bets + [
+                    {
+                        "id": 16,
+                        "name": "Total - Home",
+                        "values": [
+                            {"value": "Over 1.5", "odd": "1.85"},
+                            {"value": "Under 1.5", "odd": "1.95"},
+                        ],
+                    },
+                    {
+                        "id": 17,
+                        "name": "Total - Away",
+                        "values": [
+                            {"value": "Over 0.5", "odd": "1.70"},
+                            {"value": "Under 0.5", "odd": "2.10"},
+                        ],
+                    },
+                ],
+            }],
+        }],
+    }
+
+    compact = base._compact_odds(payload)
+
+    assert compact["primary_market_rows"] == 60
+    assert compact["ft_team_total_rows"] == 2
+    assert compact["ft_team_totals_reused_from_same_provider_response"] is True
+    assert len(compact["markets"]) == 62
+    assert {row["market_id"] for row in compact["markets"][-2:]} == {16, 17}
