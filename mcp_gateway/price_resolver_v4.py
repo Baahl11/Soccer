@@ -14,7 +14,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence, research_derivative_postgres_audit as derivative_audit
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.16.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.16.1"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -1362,9 +1362,7 @@ def _player_prop_signal_families(event: dict[str, Any]) -> set[str]:
         if row.get("research_family") != "PLAYER_PROPS":
             continue
         family = str(
-            row.get("research_subfamily")
-            or _research_derivative_subfamily(str(row.get("market") or ""))
-            or ""
+            _research_derivative_subfamily(str(row.get("market") or "")) or ""
         ).upper()
         if family:
             observed.add(family)
@@ -1735,6 +1733,8 @@ def _research_derivative_subfamily(market_name: str) -> str | None:
         "player shots on target total - away",
     )
     if any(token in name for token in aggregate_player_markets):
+        return None
+    if "score or assist" in name or "score/assist" in name:
         return None
     if "first goal scorer" in name:
         return "GOALSCORER_FIRST"
