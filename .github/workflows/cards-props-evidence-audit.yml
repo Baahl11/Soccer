@@ -1,0 +1,108 @@
+name: Cards Props Evidence Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 9 * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/cards-props-evidence-audit.yml"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: cards-props-evidence-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/research_derivative_market_audit.json
+          sparse-checkout-cone-mode: false
+
+      - name: Warm Render
+        run: |
+          curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors \
+            https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+          cat /tmp/health.json || true
+
+      - name: Run read-only Postgres evidence audit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS \
+              -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          TOKEN=$(get_oidc_token)
+          echo "::add-mask::$TOKEN"
+
+          HTTP_CODE=$(curl -sS --max-time 120 -o /tmp/research_derivative_market_audit.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"lookback_days":180,"max_rows":50000}' \
+            https://soccer-edge-api.onrender.com/internal/research-derivative-market-audit)
+
+          jq '{
+            status,
+            model_version,
+            lookback_days,
+            rows_scanned_from_postgres,
+            market_snapshot_rows,
+            unique_fixtures,
+            confirmed_xi_pre_kickoff_unique_fixtures,
+            exact_line_value_rows,
+            families,
+            provider_requests_added,
+            production_promotion_allowed
+          }' /tmp/research_derivative_market_audit.json
+
+          test "$HTTP_CODE" = "200"
+          jq -e '
+            .status == "RESEARCH_DERIVATIVE_MARKET_AUDIT"
+            and .model_version == "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.0.0"
+            and .provider_requests_added == 0
+            and .production_promotion_allowed == false
+            and (.families | type == "object")
+          ' /tmp/research_derivative_market_audit.json >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/research_derivative_market_audit.json \
+            soccer_edge_state/analysis/research_derivative_market_audit.json
+
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add --sparse -f soccer_edge_state/analysis/research_derivative_market_audit.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update cards props evidence audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
