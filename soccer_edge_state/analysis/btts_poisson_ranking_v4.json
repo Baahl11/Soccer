@@ -1,45 +1,45 @@
 {
-  "available_oos_rows": 70,
+  "available_oos_rows": 88,
   "calibrated_metrics": {
-    "brier": 0.25980871,
+    "brier": 0.25726328,
     "discrimination": {
-      "auc": 0.5625,
-      "auc_lower_95": 0.42755988,
-      "auc_standard_error": 0.068847,
+      "auc": 0.56720291,
+      "auc_lower_95": 0.44731047,
+      "auc_standard_error": 0.06116961,
       "discrimination_ready": false,
-      "negative_count": 32,
-      "positive_count": 38
+      "negative_count": 41,
+      "positive_count": 47
     },
-    "log_loss": 0.71350226,
-    "negative_count": 32,
-    "positive_count": 38,
-    "rows": 70
+    "log_loss": 0.70824451,
+    "negative_count": 41,
+    "positive_count": 47,
+    "rows": 88
   },
   "calibrated_probability_role": "EDGE_ESTIMATION_ONLY_NOT_SELECTION_SORT_KEY",
   "calibration_method": "EXPANDING_WALK_FORWARD_PLATT_LOGIT_TRAIN_ONLY",
   "canonical_bet_logic_changed": false,
   "comparison": {
-    "auc_delta": -0.04851974,
-    "brier_delta": -0.04110976,
-    "calibrated_auc_lower_95": 0.42755988,
+    "auc_delta": -0.03373118,
+    "brier_delta": -0.05292965,
+    "calibrated_auc_lower_95": 0.44731047,
     "calibration_improves": true,
     "discrimination_ready": false,
-    "log_loss_delta": -0.18222319,
-    "pooled_calibrated_auc_delta_not_used_as_gate": -0.04851974,
+    "log_loss_delta": -0.21549738,
+    "pooled_calibrated_auc_delta_not_used_as_gate": -0.03373118,
     "positive_slope_all_folds": true,
-    "raw_auc_lower_95": 0.47926451,
+    "raw_auc_lower_95": 0.48291229,
     "raw_poisson_is_selection_ranking_signal": true,
     "sample_ready": true,
     "within_fold_ranking_preserved": true
   },
-  "dataset_fingerprint": "adae262cc06797a1bb833411aed33a5ee543c9713025b4766f28cf141b46e5ce",
-  "dataset_row_count": 120,
+  "dataset_fingerprint": "917f48cf7bc97941bdc1f8a402ee5d11c9c6d7d120c55a7a3badc1aba4bd7325",
+  "dataset_row_count": 138,
   "dataset_version": "4.0.0",
   "effective_training_rows": 50,
   "eligibility_gate": "RAW_AUC_LOWER_95_GT_0_50_AND_WITHIN_FOLD_MONOTONIC_PLATT_AND_BRIER_LOGLOSS_IMPROVE",
-  "eligible_rows": 120,
+  "eligible_rows": 138,
   "feature_schema_version": "4.0.0",
-  "fitted_folds": 3,
+  "fitted_folds": 4,
   "folds": [
     {
       "calibrated_metrics": {
@@ -127,19 +127,19 @@
     },
     {
       "calibrated_metrics": {
-        "brier": 0.25984371,
+        "brier": 0.25210839,
         "discrimination": {
-          "auc": 0.53535354,
-          "auc_lower_95": 0.27612451,
-          "auc_standard_error": 0.13225971,
+          "auc": 0.55128205,
+          "auc_lower_95": 0.32205295,
+          "auc_standard_error": 0.11695362,
           "discrimination_ready": false,
-          "negative_count": 9,
-          "positive_count": 11
+          "negative_count": 12,
+          "positive_count": 13
         },
-        "log_loss": 0.713571,
-        "negative_count": 9,
-        "positive_count": 11,
-        "rows": 20
+        "log_loss": 0.69778941,
+        "negative_count": 12,
+        "positive_count": 13,
+        "rows": 25
       },
       "fold": 3,
       "platt_parameters": {
@@ -149,23 +149,65 @@
       "platt_status": "RESEARCH_CALIBRATOR_FITTED",
       "positive_slope": true,
       "raw_metrics": {
-        "brier": 0.34195736,
+        "brier": 0.31533176,
         "discrimination": {
-          "auc": 0.53535354,
-          "auc_lower_95": 0.27612451,
-          "auc_standard_error": 0.13225971,
+          "auc": 0.55128205,
+          "auc_lower_95": 0.32205295,
+          "auc_standard_error": 0.11695362,
           "discrimination_ready": false,
-          "negative_count": 9,
-          "positive_count": 11
+          "negative_count": 12,
+          "positive_count": 13
         },
-        "log_loss": 1.04773246,
-        "negative_count": 9,
-        "positive_count": 11,
-        "rows": 20
+        "log_loss": 0.9522739,
+        "negative_count": 12,
+        "positive_count": 13,
+        "rows": 25
       },
-      "test_positives": 11,
-      "test_rows": 20,
+      "test_positives": 13,
+      "test_rows": 25,
       "train_rows": 100
+    },
+    {
+      "calibrated_metrics": {
+        "brier": 0.25744026,
+        "discrimination": {
+          "auc": 0.5,
+          "auc_lower_95": 0.17333333,
+          "auc_standard_error": 0.16666667,
+          "discrimination_ready": false,
+          "negative_count": 6,
+          "positive_count": 7
+        },
+        "log_loss": 0.70823407,
+        "negative_count": 6,
+        "positive_count": 7,
+        "rows": 13
+      },
+      "fold": 4,
+      "platt_parameters": {
+        "intercept": 0.0756847079,
+        "slope": 0.1607707948
+      },
+      "platt_status": "RESEARCH_CALIBRATOR_FITTED",
+      "positive_slope": true,
+      "raw_metrics": {
+        "brier": 0.39911834,
+        "discrimination": {
+          "auc": 0.5,
+          "auc_lower_95": 0.17333333,
+          "auc_standard_error": 0.16666667,
+          "discrimination_ready": false,
+          "negative_count": 6,
+          "positive_count": 7
+        },
+        "log_loss": 1.21048511,
+        "negative_count": 6,
+        "positive_count": 7,
+        "rows": 13
+      },
+      "test_positives": 7,
+      "test_rows": 13,
+      "train_rows": 125
     }
   ],
   "market_fields_used": false,
@@ -180,19 +222,19 @@
   "provider_requests_added": 0,
   "ranking_signal": "INDEPENDENT_POISSON_BTTS_FROM_PREKICKOFF_HOME_AWAY_GOAL_RATES",
   "raw_metrics": {
-    "brier": 0.30091847,
+    "brier": 0.31019293,
     "discrimination": {
-      "auc": 0.61101974,
-      "auc_lower_95": 0.47926451,
-      "auc_standard_error": 0.06722205,
+      "auc": 0.60093409,
+      "auc_lower_95": 0.48291229,
+      "auc_standard_error": 0.0602152,
       "discrimination_ready": false,
-      "negative_count": 32,
-      "positive_count": 38
+      "negative_count": 41,
+      "positive_count": 47
     },
-    "log_loss": 0.89572545,
-    "negative_count": 32,
-    "positive_count": 38,
-    "rows": 70
+    "log_loss": 0.92374189,
+    "negative_count": 41,
+    "positive_count": 47,
+    "rows": 88
   },
   "research_eligible": false,
   "runtime_prediction_weight": 0,
@@ -200,5 +242,5 @@
   "selection_ranking_key": "RAW_POISSON_BTTS_PROBABILITY",
   "status": "RESEARCH_ONLY",
   "target": "btts",
-  "walk_forward_evaluated": 70
+  "walk_forward_evaluated": 88
 }
