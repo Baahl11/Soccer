@@ -133,3 +133,20 @@ def test_team_totals_accepts_api_football_total_home_and_away_labels():
     assert report["observed_exact_market_count"] == 4
     assert {row["team_role"] for row in rows} == {"HOME", "AWAY"}
     assert {row["market"] for row in rows} == {"Total - Home", "Total - Away"}
+
+
+
+def test_team_totals_attaches_to_research_spillover_event():
+    event = _base_event([
+        {"selection": "Over", "line": 1.5, "decimal_price": 1.95},
+        {"selection": "Under", "line": 1.5, "decimal_price": 1.85},
+    ])
+    event["event_type"] = "TEAM_TOTALS_RESEARCH_SPILLOVER"
+    payload = {"events": [event]}
+
+    metrics = tti.attach(payload)
+
+    assert metrics["modeled_events"] == 1
+    assert metrics["events_with_observed_team_total_markets"] == 1
+    assert metrics["observed_exact_market_rows"] == 2
+    assert payload["events"][0]["team_totals_intelligence"]["actionable"] is False
