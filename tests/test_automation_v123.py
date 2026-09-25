@@ -644,7 +644,7 @@ def test_v5_odds_cache_marks_replay_and_fresh_provider(monkeypatch):
         return {"response": []}
 
     monkeypatch.setattr(v5.base, "_api_get", fake_api_get)
-    monkeypatch.setattr(v5.base, "_compact_odds", lambda payload: dict(compact))
+    monkeypatch.setattr(v5.base, "_compact_odds", lambda payload, lineup=None: dict(compact))
     fresh = asyncio.run(v5._odds_7m(999, now))
     assert fresh["source"] == "API_FOOTBALL_ODDS_V3"
     assert fresh["resolution_status"] == "PRICE_API_RESOLVED"
@@ -870,3 +870,48 @@ def test_production_event_passes_confirmed_xi_into_odds_compaction(monkeypatch):
     assert seen["lineup"] is lineup
     assert event["lineups"]["both_xi_confirmed"] is True
     assert event["market"]["xi_alignment_input_available"] is True
+
+
+def test_v5_cached_player_props_are_realigned_when_confirmed_xi_arrives(monkeypatch):
+    now = datetime(2026, 9, 25, 12, 0, tzinfo=timezone.utc)
+    cached = {
+        "markets": [],
+        "research_cards_props_markets": [{
+            "research_only": True,
+            "research_family": "PLAYER_PROPS",
+            "research_subfamily": "SHOTS",
+            "market": "Player Shots",
+            "values": [{
+                "selection": "Player A Over 2.5",
+                "price": "1.90",
+                "parsed_line": 2.5,
+                "xi_alignment_status": "NO_CONFIRMED_XI_AT_QUOTE",
+            }],
+        }],
+        "player_prop_research_market_rows": 1,
+    }
+    lineup = {
+        "both_xi_confirmed": True,
+        "both_goalkeepers_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Keeper B", "pos": "G"}],
+            },
+        ],
+    }
+
+    monkeypatch.setattr(v5.base, "_cache_get", lambda *args, **kwargs: dict(cached))
+    result = asyncio.run(v5._odds_7m(999, now, lineup=lineup))
+
+    value = result["research_cards_props_markets"][0]["values"][0]
+    assert result["source"] == "LOCAL_ODDS_CACHE"
+    assert value["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+    assert value["player_id"] == 501
+    assert result["research_cards_props_markets"][0]["xi_aligned_value_rows"] == 1
