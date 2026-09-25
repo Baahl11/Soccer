@@ -1,0 +1,154 @@
+name: Player Trend Registry Backfill
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/player-trend-registry-backfill.yml"]
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: player-trend-registry-backfill
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Checkout engine
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: engine
+          fetch-depth: 1
+
+      - name: Warm Render
+        run: |
+          curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors             https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+          cat /tmp/health.json || true
+
+      - name: Run future-only registry backfill
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS               -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}"               "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          TOKEN=$(get_oidc_token)
+          echo "::add-mask::$TOKEN"
+
+          HTTP_CODE=$(curl -sS --max-time 180 -o /tmp/player_trend_registry_backfill.json -w "%{http_code}"             -X POST             -H "Authorization: Bearer ${TOKEN}"             -H "Content-Type: application/json"             -d '{"lookback_days":180,"max_fixtures":8}'             https://soccer-edge-api.onrender.com/internal/player-trend-registry-backfill-v4/run)
+
+          cat /tmp/player_trend_registry_backfill.json | jq '{
+            status,
+            model_version,
+            candidate_fixture_count,
+            attempted,
+            captured,
+            unavailable,
+            provider_requests_added,
+            daily_remaining_after_run,
+            future_registry_use_only,
+            retroactive_pregame_signal_created,
+            eligible_for_historical_oos_reconstruction,
+            details
+          }'
+
+          test "$HTTP_CODE" = "200"
+          jq -e '
+            .model_version == "SOCCER_PLAYER_TREND_REGISTRY_BACKFILL_V4_1.0.0"
+            and .provider_requests_added <= 8
+            and .future_registry_use_only == true
+            and .retroactive_pregame_signal_created == false
+            and .eligible_for_historical_oos_reconstruction == false
+            and .production_promotion_allowed == false
+          ' /tmp/player_trend_registry_backfill.json >/dev/null
+
+      - name: Merge registry-only captures
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p state/soccer_edge_state/analysis
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          incoming = json.load(open("/tmp/player_trend_registry_backfill.json", encoding="utf-8"))
+          path = Path("state/soccer_edge_state/analysis/player_trend_registry_backfill.json")
+          try:
+              existing = json.load(open(path, encoding="utf-8"))
+          except Exception:
+              existing = {}
+
+          merged = {}
+          for row in existing.get("captures") or []:
+              if isinstance(row, dict) and row.get("fixture_id") is not None:
+                  merged[int(row["fixture_id"])] = row
+          for row in incoming.get("captures") or []:
+              if isinstance(row, dict) and row.get("fixture_id") is not None:
+                  merged[int(row["fixture_id"])] = row
+
+          captures = sorted(
+              merged.values(),
+              key=lambda row: (str(row.get("kickoff") or ""), int(row.get("fixture_id") or 0)),
+          )[-500:]
+          report = {
+              "schema_version": "1.0.0",
+              "status": "RESEARCH_PLAYER_TREND_REGISTRY_BACKFILL_STORE",
+              "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+              "capture_count": len(captures),
+              "captures": captures,
+              "future_registry_use_only": True,
+              "retroactive_pregame_signal_created": False,
+              "eligible_for_historical_oos_reconstruction": False,
+          }
+          path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps({k:v for k,v in report.items() if k != "captures"}, indent=2))
+          PY
+
+      - name: Rebuild player trend registries
+        env:
+          PYTHONPATH: engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_player_trends.py             --history-dir state/soccer_edge_state/history             --registry-backfill state/soccer_edge_state/analysis/player_trend_registry_backfill.json             --output state/soccer_edge_state/analysis/player_trends.json
+          python engine/mcp_gateway/build_player_role_registry.py             --player-trends state/soccer_edge_state/analysis/player_trends.json             --output state/soccer_edge_state/analysis/player_role_registry.json
+          python engine/mcp_gateway/build_goalkeeper_profiles.py             --player-trends state/soccer_edge_state/analysis/player_trends.json             --output state/soccer_edge_state/analysis/goalkeeper_profiles.json
+          python engine/mcp_gateway/build_player_trend_model_registry.py             --player-trends state/soccer_edge_state/analysis/player_trends.json             --player-roles state/soccer_edge_state/analysis/player_role_registry.json             --output state/soccer_edge_state/analysis/player_trend_model_registry.json
+
+      - name: Persist state
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f             soccer_edge_state/analysis/player_trend_registry_backfill.json             soccer_edge_state/analysis/player_trends.json             soccer_edge_state/analysis/player_role_registry.json             soccer_edge_state/analysis/goalkeeper_profiles.json             soccer_edge_state/analysis/player_trend_model_registry.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Mature player trend registry from finalized prop fixtures"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
