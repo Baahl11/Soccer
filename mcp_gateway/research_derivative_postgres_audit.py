@@ -3,14 +3,15 @@ from __future__ import annotations
 import json
 import math
 import re
+import unicodedata
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from typing import Any, Iterable
 
 from mcp_gateway import persistence as persistence_base
 
-SCHEMA_VERSION = "1.2.0"
-MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.2.0"
+SCHEMA_VERSION = "1.3.0"
+MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.3.0"
 
 
 def _norm(value: Any) -> str:
@@ -121,6 +122,106 @@ def _price(value: dict[str, Any]) -> float | None:
     return None
 
 
+PLAYER_PROP_FAMILIES = {
+    "PLAYER_CARDS",
+    "SHOTS",
+    "SOT",
+    "GOALSCORER_ANYTIME",
+    "GOALSCORER_FIRST",
+    "GOALSCORER_LAST",
+    "GOALSCORER_OTHER",
+    "ASSISTS",
+    "GK_SAVES",
+}
+
+
+def _norm_player_text(value: Any) -> str:
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = re.sub(r"[^A-Za-z0-9]+", " ", text).strip().lower()
+    return re.sub(r"\s+", " ", text)
+
+
+def _confirmed_starters(lineup_payload: Any) -> list[dict[str, Any]]:
+    payload = lineup_payload
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except json.JSONDecodeError:
+            return []
+    if not isinstance(payload, dict) or payload.get("both_xi_confirmed") is not True:
+        return []
+
+    starters: list[dict[str, Any]] = []
+    for team in payload.get("teams") or []:
+        if not isinstance(team, dict):
+            continue
+        for player in team.get("starters") or []:
+            if not isinstance(player, dict) or not player.get("name"):
+                continue
+            starters.append({
+                "player_id": player.get("id"),
+                "player_name": player.get("name"),
+                "team_id": team.get("team_id"),
+                "team": team.get("team"),
+                "position": player.get("pos"),
+            })
+    return starters
+
+
+def align_value_to_confirmed_xi(
+    value: dict[str, Any],
+    *,
+    lineup_payload: Any,
+    family: str,
+) -> dict[str, Any]:
+    out = dict(value)
+    raw = value.get("raw_selection")
+    if raw is None:
+        raw = value.get("selection")
+    if raw is None:
+        raw = value.get("value")
+
+    normalized = _norm_player_text(raw)
+    starters = _confirmed_starters(lineup_payload)
+    matches: list[dict[str, Any]] = []
+    padded = f" {normalized} "
+
+    for starter in starters:
+        player_name = _norm_player_text(starter.get("player_name"))
+        if player_name and f" {player_name} " in padded:
+            matches.append(starter)
+
+    if not starters:
+        out["xi_alignment_status"] = "NO_CONFIRMED_XI_AT_QUOTE"
+        return out
+    if not normalized:
+        out["xi_alignment_status"] = "SELECTION_MISSING"
+        return out
+    if len(matches) == 0:
+        out["xi_alignment_status"] = "PLAYER_NOT_MATCHED_TO_CONFIRMED_XI"
+        return out
+    if len(matches) > 1:
+        out["xi_alignment_status"] = "AMBIGUOUS_CONFIRMED_XI_MATCH"
+        return out
+
+    starter = matches[0]
+    if family == "GK_SAVES" and str(starter.get("position") or "").upper() != "G":
+        out["xi_alignment_status"] = "MATCHED_NON_GOALKEEPER"
+        return out
+
+    out.update({
+        "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+        "player_id": starter.get("player_id"),
+        "player_name": starter.get("player_name"),
+        "team_id": starter.get("team_id"),
+        "team": starter.get("team"),
+        "position": starter.get("position"),
+        "confirmed_starter": True,
+    })
+    return out
+
+
 def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dict[str, Any]:
     family_rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
     samples: list[dict[str, Any]] = []
@@ -154,12 +255,34 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
         values = _payload(row.get("values"))
         line_values = sum(1 for value in values if value_line(value) is not None)
         priced_values = sum(1 for value in values if _price(value) is not None)
+        aligned_values = [
+            align_value_to_confirmed_xi(
+                value,
+                lineup_payload=row.get("confirmed_lineup_payload"),
+                family=family,
+            )
+            for value in values
+        ] if family in PLAYER_PROP_FAMILIES else []
+        xi_aligned_values = [
+            value for value in aligned_values
+            if value.get("xi_alignment_status") == "MATCHED_CONFIRMED_XI"
+        ]
+        xi_aligned_line_values = sum(
+            1 for value in xi_aligned_values if value_line(value) is not None
+        )
+        xi_aligned_priced_values = sum(
+            1 for value in xi_aligned_values if _price(value) is not None
+        )
         normalized = {
             **row,
             "family": family,
             "value_count": len(values),
             "line_value_count": line_values,
             "priced_value_count": priced_values,
+            "xi_aligned_value_count": len(xi_aligned_values),
+            "xi_aligned_line_value_count": xi_aligned_line_values,
+            "xi_aligned_priced_value_count": xi_aligned_priced_values,
+            "xi_alignment_values": aligned_values,
         }
         family_rows[family].append(normalized)
         if len(samples) < 50:
@@ -175,6 +298,9 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
                 "pre_kickoff": bool(row.get("pre_kickoff")),
                 "value_count": len(values),
                 "line_value_count": line_values,
+                "xi_aligned_value_count": len(xi_aligned_values),
+                "xi_aligned_priced_value_count": xi_aligned_priced_values,
+                "xi_alignment_values": aligned_values[:6],
             })
 
     summaries: dict[str, Any] = {}
@@ -182,6 +308,7 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
     all_confirmed: set[int] = set()
     all_rows = 0
     all_line_values = 0
+    all_xi_aligned_fixtures: set[int] = set()
 
     for family in (
         "CARDS",
@@ -216,10 +343,20 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
             for row in items
             if row.get("fixture_id") is not None and row.get("provider_update") is not None
         }
+        xi_aligned_fixtures = {
+            int(row["fixture_id"])
+            for row in items
+            if row.get("fixture_id") is not None
+            and bool(row.get("pre_kickoff"))
+            and int(row.get("xi_aligned_priced_value_count") or 0) > 0
+        }
         stages = Counter(str(row.get("stage") or "UNKNOWN") for row in items)
         bookmakers = {str(row.get("bookmaker")) for row in items if row.get("bookmaker")}
         line_values = sum(int(row.get("line_value_count") or 0) for row in items)
         priced_values = sum(int(row.get("priced_value_count") or 0) for row in items)
+        xi_aligned_values = sum(int(row.get("xi_aligned_value_count") or 0) for row in items)
+        xi_aligned_line_values = sum(int(row.get("xi_aligned_line_value_count") or 0) for row in items)
+        xi_aligned_priced_values = sum(int(row.get("xi_aligned_priced_value_count") or 0) for row in items)
 
         summaries[family] = {
             "market_snapshot_rows": len(items),
@@ -231,12 +368,18 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
             "value_rows": sum(int(row.get("value_count") or 0) for row in items),
             "priced_value_rows": priced_values,
             "exact_line_value_rows": line_values,
+            "xi_aligned_value_rows": xi_aligned_values,
+            "xi_aligned_priced_value_rows": xi_aligned_priced_values,
+            "xi_aligned_exact_line_value_rows": xi_aligned_line_values,
+            "confirmed_xi_player_aligned_unique_fixtures": len(xi_aligned_fixtures),
             "stages": dict(sorted(stages.items())),
             "exact_observed_market_history_materialized": bool(items),
             "confirmed_xi_overlap_materialized": bool(confirmed_fixtures),
+            "player_xi_alignment_materialized": bool(xi_aligned_fixtures),
         }
         all_fixtures.update(fixtures)
         all_confirmed.update(confirmed_fixtures)
+        all_xi_aligned_fixtures.update(xi_aligned_fixtures)
         all_rows += len(items)
         all_line_values += line_values
 
@@ -254,6 +397,7 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
         "market_snapshot_rows": all_rows,
         "unique_fixtures": len(all_fixtures),
         "confirmed_xi_pre_kickoff_unique_fixtures": len(all_confirmed),
+        "confirmed_xi_player_aligned_unique_fixtures": len(all_xi_aligned_fixtures),
         "exact_line_value_rows": all_line_values,
         "market_name_counts": dict(market_name_counts.most_common(100)),
         "unclassified_market_name_counts": dict(unclassified_market_name_counts.most_common(100)),
@@ -262,8 +406,9 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
         "unclassified_sample_rows": unclassified_samples,
         "policy": (
             "POSTGRES_READ_ONLY; PREMATCH MARKET SNAPSHOTS ONLY FOR OOS READINESS; "
-            "CONFIRMED_XI MUST EXIST AT_OR_BEFORE MARKET CAPTURE; NO PROVIDER CALLS; "
-            "MARKET HISTORY DOES NOT IMPLY MODEL VALIDATION OR PRODUCTION PROMOTION"
+            "CONFIRMED_XI MUST EXIST AT_OR_BEFORE MARKET CAPTURE; PLAYER PROP VALUES MUST ALIGN "
+            "TO EXACT CONFIRMED STARTERS; NO PROVIDER CALLS; MARKET HISTORY DOES NOT IMPLY "
+            "MODEL VALIDATION OR PRODUCTION PROMOTION"
         ),
     }
 
@@ -303,15 +448,19 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
                         WHEN f.kickoff IS NOT NULL AND m.captured_at < f.kickoff THEN TRUE
                         ELSE FALSE
                     END AS pre_kickoff,
-                    EXISTS (
-                        SELECT 1
-                        FROM soccer_lineup_snapshots l
-                        WHERE l.fixture_id = m.fixture_id
-                          AND l.captured_at <= m.captured_at
-                          AND l.both_xi_confirmed IS TRUE
-                    ) AS confirmed_xi_before_market
+                    (confirmed_lineup.payload IS NOT NULL) AS confirmed_xi_before_market,
+                    confirmed_lineup.payload AS confirmed_lineup_payload
                 FROM soccer_market_snapshots m
                 LEFT JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+                LEFT JOIN LATERAL (
+                    SELECT l.payload
+                    FROM soccer_lineup_snapshots l
+                    WHERE l.fixture_id = m.fixture_id
+                      AND l.captured_at <= m.captured_at
+                      AND l.both_xi_confirmed IS TRUE
+                    ORDER BY l.captured_at DESC
+                    LIMIT 1
+                ) confirmed_lineup ON TRUE
                 WHERE m.captured_at >= NOW() - (%s * INTERVAL '1 day')
                   AND (
                     LOWER(COALESCE(m.market, '')) LIKE '%%card%%'
