@@ -90,6 +90,10 @@ def canonical_market_family(row: dict[str, Any]) -> str | None:
         return "GOALSCORER"
     if "ASSIST" in combined:
         return "ASSISTS"
+    if market in {"TOTAL - HOME", "TOTAL HOME"}:
+        return "HOME_TT"
+    if market in {"TOTAL - AWAY", "TOTAL AWAY"}:
+        return "AWAY_TT"
     if "TEAM TOTAL" in combined or "TEAM GOALS" in combined:
         if "AWAY" in combined:
             return "AWAY_TT"
