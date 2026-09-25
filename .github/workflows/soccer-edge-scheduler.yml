@@ -32,7 +32,7 @@ jobs:
 
       - name: Manual validation marker
         if: github.event_name == 'push'
-        run: echo "V4-001 post-env validation run"
+        run: echo "Phase16 discrimination-status validation run"
 
       - name: Warm Render before OIDC
         if: steps.quota_guard.outputs.skip != 'true'
