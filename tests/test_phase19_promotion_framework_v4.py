@@ -596,3 +596,58 @@ def test_phase19_exposes_1x2_selection_progress_without_relaxing_family_gate():
     assert readiness["class_discrimination"]["promotion_shadow_by_selection"]["HOME"]["rows"] == 1
     assert "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW" in review["blockers"]
     assert review["tier_review_eligibility"]["promotion_shadow_family_discrimination"] is False
+
+
+def test_combined_team_totals_uses_exact_fixture_union_without_double_counting():
+    stability = {
+        "families": {
+            "HOME_TT": {
+                "status": "DATA_BLOCKED",
+                "overall": {
+                    "rows": 4,
+                    "unique_fixtures": 2,
+                    "fixture_ids": [1, 2],
+                    "fixture_weighted_avg_probability_clv_pp": 0.2,
+                },
+            },
+            "AWAY_TT": {
+                "status": "DATA_BLOCKED",
+                "overall": {
+                    "rows": 5,
+                    "unique_fixtures": 2,
+                    "fixture_ids": [2, 3],
+                    "fixture_weighted_avg_probability_clv_pp": 0.4,
+                },
+            },
+        }
+    }
+    combined = v._stability_for_family(stability, ("TEAM_TOTALS", "HOME_TT", "AWAY_TT"))
+    assert combined["overall"]["rows"] == 9
+    assert combined["overall"]["unique_fixtures"] == 3
+    assert combined["overall"]["unique_fixture_count_source"] == "EXACT_FIXTURE_ID_UNION"
+
+
+def test_combined_team_totals_legacy_report_keeps_conservative_max_fallback():
+    stability = {
+        "families": {
+            "HOME_TT": {
+                "status": "DATA_BLOCKED",
+                "overall": {
+                    "rows": 4,
+                    "unique_fixtures": 2,
+                    "fixture_weighted_avg_probability_clv_pp": 0.2,
+                },
+            },
+            "AWAY_TT": {
+                "status": "DATA_BLOCKED",
+                "overall": {
+                    "rows": 5,
+                    "unique_fixtures": 3,
+                    "fixture_weighted_avg_probability_clv_pp": 0.4,
+                },
+            },
+        }
+    }
+    combined = v._stability_for_family(stability, ("TEAM_TOTALS", "HOME_TT", "AWAY_TT"))
+    assert combined["overall"]["unique_fixtures"] == 3
+    assert combined["overall"]["unique_fixture_count_source"] == "LEGACY_CONSERVATIVE_MAX"
