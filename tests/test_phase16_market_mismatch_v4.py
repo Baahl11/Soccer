@@ -172,3 +172,21 @@ def test_phase16_annotation_persists_non_rankable_diagnostics():
     assert summary["non_rankable_rows"] == 1
     assert summary["non_rankable_reason_counts"]["CALIBRATED_EDGE_NOT_POSITIVE"] == 1
     assert summary["non_rankable_reason_counts_by_family"]["FT_TOTALS"]["CALIBRATED_EDGE_NOT_POSITIVE"] == 1
+
+
+def test_canonical_market_family_maps_api_football_ft_team_totals():
+    assert v.canonical_market_family({
+        "market_family": "TEAM_TOTALS",
+        "market": "Total - Home",
+        "selection": "Over",
+    }) == "HOME_TT"
+    assert v.canonical_market_family({
+        "market_family": "TEAM_TOTALS",
+        "market": "Total - Away",
+        "selection": "Under",
+    }) == "AWAY_TT"
+    assert v.canonical_market_family({
+        "market_family": "TEAM_TOTALS",
+        "market": "Home Team Total Goals(1st Half)",
+        "selection": "Over",
+    }) == "1H"
