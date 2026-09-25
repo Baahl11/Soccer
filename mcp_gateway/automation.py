@@ -335,16 +335,60 @@ def _is_ft_team_total_bet(bet: dict[str, Any]) -> bool:
     }
 
 
+def _is_player_prop_research_bet(bet: dict[str, Any]) -> bool:
+    name = " ".join(str(bet.get("name") or "").strip().lower().split())
+    player_tokens = (
+        "player shots",
+        "player shot",
+        "shots on target - player",
+        "player shots on target",
+        "player to score",
+        "anytime goalscorer",
+        "goalscorer",
+        "player assists",
+        "player assist",
+        "goalkeeper saves",
+        "keeper saves",
+        "player cards",
+        "player card",
+        "player booked",
+        "player booking",
+    )
+    return any(token in name for token in player_tokens)
+
+
+def _is_card_research_bet(bet: dict[str, Any]) -> bool:
+    if _is_player_prop_research_bet(bet):
+        return False
+    name = " ".join(str(bet.get("name") or "").strip().lower().split())
+    card_tokens = (
+        "cards over/under",
+        "card over/under",
+        "total cards",
+        "total yellow cards",
+        "yellow cards",
+        "red card",
+        "team cards",
+        "booking points",
+        "bookings",
+    )
+    return any(token in name for token in card_tokens)
+
+
 def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
     primary_rows: list[dict[str, Any]] = []
     team_total_rows: list[dict[str, Any]] = []
+    card_research_rows: list[dict[str, Any]] = []
+    player_prop_research_rows: list[dict[str, Any]] = []
     for fixture_row in payload.get("response", []):
         update = fixture_row.get("update")
         for book in fixture_row.get("bookmakers") or []:
             for bet in book.get("bets") or []:
                 name = bet.get("name") or ""
                 is_team_total = _is_ft_team_total_bet(bet)
-                if not is_team_total and not _wanted_market(name):
+                is_player_prop = _is_player_prop_research_bet(bet)
+                is_card_research = _is_card_research_bet(bet)
+                if not is_team_total and not is_player_prop and not is_card_research and not _wanted_market(name):
                     continue
                 values = [
                     {"selection": value.get("value"), "price": value.get("odd")}
@@ -360,6 +404,10 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
                 }
                 if is_team_total:
                     team_total_rows.append(row)
+                elif is_player_prop:
+                    player_prop_research_rows.append(row)
+                elif is_card_research:
+                    card_research_rows.append(row)
                 else:
                     primary_rows.append(row)
 
@@ -368,8 +416,15 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
     # zero additional provider requests and cannot evict 1X2/FT totals/BTTS.
     kept_primary = primary_rows[:60]
     kept_team_totals = team_total_rows[:20]
-    rows = kept_primary + kept_team_totals
-    total_relevant = len(primary_rows) + len(team_total_rows)
+    kept_cards = card_research_rows[:20]
+    kept_player_props = player_prop_research_rows[:40]
+    rows = kept_primary + kept_team_totals + kept_cards + kept_player_props
+    total_relevant = (
+        len(primary_rows)
+        + len(team_total_rows)
+        + len(card_research_rows)
+        + len(player_prop_research_rows)
+    )
     return {
         "markets": rows,
         "market_count": total_relevant,
@@ -377,6 +432,11 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
         "primary_market_rows": len(kept_primary),
         "ft_team_total_rows": len(kept_team_totals),
         "ft_team_totals_reused_from_same_provider_response": bool(kept_team_totals),
+        "card_research_market_rows": len(kept_cards),
+        "player_prop_research_market_rows": len(kept_player_props),
+        "research_derivative_sidecar_rows": len(kept_cards) + len(kept_player_props),
+        "research_derivative_sidecar_provider_requests_added": 0,
+        "research_derivative_sidecar_policy": "SAME_PAID_ODDS_RESPONSE_ONLY; BOUNDED_20_CARD_40_PLAYER_PROP; NEVER_DISPLACES_EXISTING_PRIMARY_OR_TEAM_TOTAL_ROWS; RESEARCH_ONLY",
     }
 
 
