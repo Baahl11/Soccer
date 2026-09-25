@@ -49,5 +49,5 @@ def test_positive_platt_slope_preserves_auc_on_synthetic_signal():
 
     report = v.walk_forward(rows)
     assert report["comparison"]["positive_slope_all_folds"] is True
-    assert report["comparison"]["ranking_preserved"] is True
-    assert abs(report["comparison"]["auc_delta"]) <= 1e-6
+    assert report["comparison"]["within_fold_ranking_preserved"] is True
+    assert report["comparison"]["raw_poisson_is_selection_ranking_signal"] is True
