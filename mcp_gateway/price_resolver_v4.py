@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.13.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.14.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -37,6 +37,19 @@ TEAM_TOTALS_MATURATION_MAX_CALLS_PER_TICK = max(
     int(os.getenv("SOCCER_TEAM_TOTALS_MATURATION_MAX_CALLS_PER_TICK", "12")),
 )
 TEAM_TOTALS_SPILLOVER_EVENT_TYPE = "TEAM_TOTALS_RESEARCH_SPILLOVER"
+PRIMARY_CLV_MATURATION_EVENT_TYPE = "PRIMARY_CLV_MATURATION_SPILLOVER"
+PRIMARY_CLV_MATURATION_LOOKAHEAD_MINUTES = max(
+    20,
+    int(os.getenv("SOCCER_PRIMARY_CLV_MATURATION_LOOKAHEAD_MINUTES", "55")),
+)
+PRIMARY_CLV_MATURATION_BACKLOG_LIMIT = max(
+    20,
+    int(os.getenv("SOCCER_PRIMARY_CLV_MATURATION_BACKLOG_LIMIT", "80")),
+)
+PRIMARY_CLV_MATURATION_MAX_CALLS_PER_TICK = max(
+    1,
+    int(os.getenv("SOCCER_PRIMARY_CLV_MATURATION_MAX_CALLS_PER_TICK", "8")),
+)
 
 FRESHNESS_MINUTES = {
     "EARLY_RESEARCH": 180,
@@ -1094,6 +1107,226 @@ def _load_team_totals_maturation_backlog(
     }
 
 
+def _primary_market_matches_signal(market: dict[str, Any], signal: dict[str, Any]) -> bool:
+    family = str(signal.get("market_family") or "").upper()
+    expected_market = _norm(signal.get("market"))
+    if family not in {"1X2", "FT_TOTALS", "BTTS"}:
+        return False
+    if _market_kind(str(market.get("market") or "")) != family:
+        return False
+    return not expected_market or _norm(market.get("market")) == expected_market
+
+
+def _primary_signals_with_later_provider_quote(
+    markets: list[dict[str, Any]],
+    signals: list[dict[str, Any]],
+) -> set[str]:
+    matured: set[str] = set()
+    for signal in signals:
+        family = str(signal.get("market_family") or "").upper()
+        raw_signal_at = signal.get("signal_generated_at")
+        if family not in {"1X2", "FT_TOTALS", "BTTS"} or not raw_signal_at:
+            continue
+        try:
+            signal_at = (
+                raw_signal_at
+                if isinstance(raw_signal_at, datetime)
+                else datetime.fromisoformat(str(raw_signal_at).replace("Z", "+00:00"))
+            )
+        except ValueError:
+            continue
+        if signal_at.tzinfo is None:
+            signal_at = signal_at.replace(tzinfo=timezone.utc)
+        signal_at = signal_at.astimezone(timezone.utc)
+        for market in markets:
+            if not isinstance(market, dict) or not _primary_market_matches_signal(market, signal):
+                continue
+            raw_update = market.get("provider_update")
+            if not raw_update:
+                continue
+            try:
+                update = (
+                    raw_update
+                    if isinstance(raw_update, datetime)
+                    else datetime.fromisoformat(str(raw_update).replace("Z", "+00:00"))
+                )
+            except ValueError:
+                continue
+            if update.tzinfo is None:
+                update = update.replace(tzinfo=timezone.utc)
+            if update.astimezone(timezone.utc) > signal_at:
+                matured.add(family)
+                break
+    return matured
+
+
+def _load_primary_clv_maturation_backlog(
+    *,
+    lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
+    lookahead_minutes: int = PRIMARY_CLV_MATURATION_LOOKAHEAD_MINUTES,
+    limit: int = PRIMARY_CLV_MATURATION_BACKLOG_LIMIT,
+) -> dict[str, Any]:
+    """Find upcoming primary-family signals that still lack a strictly later real quote.
+
+    This query is provider-call free. It uses persisted Phase16 market mismatch
+    candidates as the entry signal and asks only whether a later provider update
+    for the same market exists before kickoff.
+    """
+    empty = {
+        "candidate_events": [],
+        "candidate_count": 0,
+        "candidate_family_counts": {},
+        "source": "POSTGRES_NOT_CONFIGURED",
+    }
+    if not persistence.persistence_configured():
+        return empty
+
+    persistence.ensure_schema()
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=max(1, int(lookback_days)))
+    lookahead = now + timedelta(minutes=max(20, int(lookahead_minutes)))
+
+    with persistence._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH latest_signal AS (
+                    SELECT DISTINCT ON (
+                        (mm.row ->> 'fixture_id')::BIGINT,
+                        UPPER(mm.row ->> 'market_family')
+                    )
+                        (mm.row ->> 'fixture_id')::BIGINT AS fixture_id,
+                        UPPER(mm.row ->> 'market_family') AS market_family,
+                        mm.row ->> 'market' AS market,
+                        p.generated_at_utc AS signal_generated_at,
+                        f.league_id,
+                        f.league,
+                        f.country,
+                        f.season,
+                        f.round,
+                        f.kickoff,
+                        f.status,
+                        f.status_long,
+                        f.home_team_id,
+                        f.home_team,
+                        f.away_team_id,
+                        f.away_team,
+                        f.venue,
+                        f.city
+                    FROM soccer_pipeline_runs p
+                    CROSS JOIN LATERAL jsonb_array_elements(
+                        CASE
+                            WHEN jsonb_typeof(COALESCE(p.payload -> 'market_mismatch_rows', '[]'::jsonb)) = 'array'
+                            THEN COALESCE(p.payload -> 'market_mismatch_rows', '[]'::jsonb)
+                            ELSE '[]'::jsonb
+                        END
+                    ) AS mm(row)
+                    JOIN soccer_fixtures f
+                      ON f.fixture_id = (mm.row ->> 'fixture_id')::BIGINT
+                    WHERE p.generated_at_utc >= %s
+                      AND p.generated_at_utc < f.kickoff
+                      AND f.kickoff > %s
+                      AND f.kickoff <= %s
+                      AND COALESCE(f.status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                      AND UPPER(mm.row ->> 'market_family') IN ('1X2','FT_TOTALS','BTTS')
+                      AND COALESCE((mm.row ->> 'rankable')::boolean, false) = true
+                      AND NULLIF(mm.row ->> 'market', '') IS NOT NULL
+                      AND NULLIF(mm.row ->> 'price', '') IS NOT NULL
+                    ORDER BY
+                        (mm.row ->> 'fixture_id')::BIGINT,
+                        UPPER(mm.row ->> 'market_family'),
+                        p.generated_at_utc DESC
+                )
+                SELECT ls.*
+                FROM latest_signal ls
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM soccer_market_snapshots m
+                    WHERE m.fixture_id = ls.fixture_id
+                      AND m.captured_at > ls.signal_generated_at
+                      AND m.captured_at < ls.kickoff
+                      AND m.provider_update IS NOT NULL
+                      AND m.provider_update > ls.signal_generated_at
+                      AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(ls.market, '')))
+                )
+                ORDER BY ls.kickoff ASC, ls.fixture_id ASC, ls.market_family ASC
+                LIMIT %s
+                """,
+                (cutoff, now, lookahead, max(1, int(limit))),
+            )
+            rows = cur.fetchall()
+            columns = [desc.name for desc in cur.description]
+
+    grouped: dict[int, dict[str, Any]] = {}
+    family_counts: dict[str, int] = defaultdict(int)
+    for raw_row in rows:
+        row = dict(zip(columns, raw_row))
+        try:
+            fixture_id = int(row.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        family = str(row.get("market_family") or "").upper()
+        signal_at = row.get("signal_generated_at")
+        kickoff = row.get("kickoff")
+        family_counts[family] += 1
+        record = grouped.setdefault(fixture_id, {
+            "fixture": {
+                "fixture_id": fixture_id,
+                "league_id": row.get("league_id"),
+                "league": row.get("league"),
+                "country": row.get("country"),
+                "season": row.get("season"),
+                "round": row.get("round"),
+                "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
+                "status": row.get("status"),
+                "status_long": row.get("status_long"),
+                "home_team_id": row.get("home_team_id"),
+                "home_team": row.get("home_team"),
+                "away_team_id": row.get("away_team_id"),
+                "away_team": row.get("away_team"),
+                "venue": row.get("venue"),
+                "city": row.get("city"),
+            },
+            "kickoff": kickoff,
+            "signals": [],
+        })
+        record["signals"].append({
+            "market_family": family,
+            "market": row.get("market"),
+            "signal_generated_at": signal_at.isoformat() if isinstance(signal_at, datetime) else signal_at,
+        })
+
+    events: list[dict[str, Any]] = []
+    for fixture_id, record in grouped.items():
+        events.append({
+            "event_type": PRIMARY_CLV_MATURATION_EVENT_TYPE,
+            "stage": _maturation_stage(record.get("kickoff"), now),
+            "fixture": record["fixture"],
+            "classification": "RESEARCH_ONLY",
+            "bet_eligible": False,
+            "research_only": True,
+            "decision_weight": 0.0,
+            "primary_clv_maturation": {
+                "candidate_source": "POSTGRES_PHASE16_PRIMARY_SIGNAL_NO_LATER_REAL_QUOTE",
+                "signals": list(record["signals"]),
+                "provider_requests_before_price_resolver": 0,
+                "primary_markets_preempted": False,
+                "requires_provider_update_after_signal": True,
+            },
+        })
+
+    events.sort(key=lambda event: (
+        str(((event.get("fixture") or {}).get("kickoff") or "")),
+        int(((event.get("fixture") or {}).get("fixture_id") or 0)),
+    ))
+    return {
+        "candidate_events": events,
+        "candidate_count": len(events),
+        "candidate_family_counts": dict(sorted(family_counts.items())),
+        "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG",
+    }
+
+
 def _header_int(response: httpx.Response, name: str) -> int | None:
     value = response.headers.get(name)
     try:
@@ -1353,6 +1586,119 @@ async def resolve_payload(
             existing_price_calibrated_rows_added += 1
             row["price_resolution_existing_price_calibration_added"] = True
             row["price_resolution_existing_price_calibration_source"] = "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
+
+    # Primary-family true-CLV maturation.
+    #
+    # Primary price targets above always execute first. This pass then uses only
+    # the same reserved price budget that remains to obtain a strictly later
+    # provider quote for existing 1X2 / FT_TOTALS / BTTS Phase16 signals.
+    # Cache replay is intentionally not accepted as new closing evidence.
+    primary_maturation = await asyncio.to_thread(_load_primary_clv_maturation_backlog)
+    primary_maturation_events = [
+        event
+        for event in (primary_maturation.get("candidate_events") or [])
+        if isinstance(event, dict)
+    ]
+    primary_maturation_candidates = len(primary_maturation_events)
+    primary_maturation_api_calls_added = 0
+    primary_maturation_fixtures_refreshed = 0
+    primary_maturation_family_refresh_counts: dict[str, int] = defaultdict(int)
+    primary_maturation_cache_replays_ignored = 0
+    primary_maturation_unchanged_provider_updates = 0
+    primary_maturation_budget_exhausted = 0
+    primary_maturation_primary_payload_reuse_fixtures = 0
+    primary_maturation_synthetic_events_added = 0
+
+    if primary_maturation_events:
+        async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SECONDS, follow_redirects=True) as primary_maturation_client:
+            primary_maturation_calls_this_tick = 0
+            for event in primary_maturation_events:
+                fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
+                try:
+                    fixture_id = int(fixture.get("fixture_id"))
+                except (TypeError, ValueError):
+                    continue
+                meta = event.get("primary_clv_maturation") if isinstance(event.get("primary_clv_maturation"), dict) else {}
+                signals = [row for row in (meta.get("signals") or []) if isinstance(row, dict)]
+                if not signals:
+                    continue
+
+                markets: list[dict[str, Any]] = []
+                status = ""
+                cached_tuple = fixture_cache.get(fixture_id)
+                if cached_tuple is not None:
+                    candidate_markets, candidate_status = cached_tuple
+                    if str(candidate_status).startswith("PRICE_API") and candidate_markets:
+                        matured = _primary_signals_with_later_provider_quote(candidate_markets, signals)
+                        if matured:
+                            markets = candidate_markets
+                            status = str(candidate_status)
+                            primary_maturation_primary_payload_reuse_fixtures += 1
+                    elif candidate_markets:
+                        primary_maturation_cache_replays_ignored += 1
+
+                if not markets:
+                    if not api_key:
+                        continue
+                    if calls >= budget or primary_maturation_calls_this_tick >= PRIMARY_CLV_MATURATION_MAX_CALLS_PER_TICK:
+                        primary_maturation_budget_exhausted += 1
+                        continue
+                    remaining = min(
+                        budget - calls,
+                        PRIMARY_CLV_MATURATION_MAX_CALLS_PER_TICK - primary_maturation_calls_this_tick,
+                    )
+                    try:
+                        markets, used, status, observed_remaining = await _fetch_fixture_odds(
+                            primary_maturation_client,
+                            fixture_id,
+                            api_key=api_key,
+                            remaining_calls=remaining,
+                        )
+                        calls += used
+                        primary_maturation_calls_this_tick += used
+                        primary_maturation_api_calls_added += used
+                        if observed_remaining is not None:
+                            provider_daily_remaining = (
+                                observed_remaining
+                                if provider_daily_remaining is None
+                                else min(provider_daily_remaining, observed_remaining)
+                            )
+                    except Exception as exc:
+                        event["primary_clv_maturation_error"] = str(exc)[:180]
+                        continue
+
+                matured_families = _primary_signals_with_later_provider_quote(markets, signals)
+                if not matured_families:
+                    primary_maturation_unchanged_provider_updates += 1
+                    continue
+
+                exact_markets = [
+                    market
+                    for market in markets
+                    if isinstance(market, dict)
+                    and any(
+                        str(signal.get("market_family") or "").upper() in matured_families
+                        and _primary_market_matches_signal(market, signal)
+                        for signal in signals
+                    )
+                ]
+                if not exact_markets:
+                    continue
+                event["market"] = {
+                    "source": "API_FOOTBALL_ODDS_V3",
+                    "resolution_status": status or "PRIMARY_CLV_MATURATION_PROVIDER_REFRESH",
+                    "markets": exact_markets,
+                }
+                event["primary_clv_maturation"]["matured_families"] = sorted(matured_families)
+                event["primary_clv_maturation"]["provider_update_after_signal"] = True
+                event["primary_clv_maturation"]["provider_requests_added"] = (
+                    0 if status and status.startswith("PRICE_API") and fixture_id in fixture_cache else 1
+                )
+                events.append(event)
+                primary_maturation_synthetic_events_added += 1
+                primary_maturation_fixtures_refreshed += 1
+                for family in matured_families:
+                    primary_maturation_family_refresh_counts[family] += 1
 
     # Derivative-market research hydration (currently Team Totals).
     #
@@ -1872,6 +2218,19 @@ async def resolve_payload(
         "existing_price_calibrated_rows_added": existing_price_calibrated_rows_added,
         "existing_price_calibration_status_counts": dict(sorted(existing_price_calibration_status_counts.items())),
         "existing_price_calibration_provider_requests_added": 0,
+        "primary_clv_maturation_source": primary_maturation.get("source"),
+        "primary_clv_maturation_candidates": primary_maturation_candidates,
+        "primary_clv_maturation_candidate_family_counts": dict(primary_maturation.get("candidate_family_counts") or {}),
+        "primary_clv_maturation_max_calls_per_tick": PRIMARY_CLV_MATURATION_MAX_CALLS_PER_TICK,
+        "primary_clv_maturation_api_calls_added": primary_maturation_api_calls_added,
+        "primary_clv_maturation_fixtures_refreshed": primary_maturation_fixtures_refreshed,
+        "primary_clv_maturation_family_refresh_counts": dict(sorted(primary_maturation_family_refresh_counts.items())),
+        "primary_clv_maturation_cache_replays_ignored": primary_maturation_cache_replays_ignored,
+        "primary_clv_maturation_unchanged_provider_updates": primary_maturation_unchanged_provider_updates,
+        "primary_clv_maturation_budget_exhausted": primary_maturation_budget_exhausted,
+        "primary_clv_maturation_primary_payload_reuse_fixtures": primary_maturation_primary_payload_reuse_fixtures,
+        "primary_clv_maturation_synthetic_events_added": primary_maturation_synthetic_events_added,
+        "primary_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;THEN_1X2_FT_TOTALS_BTTS_LATER_REAL_QUOTE;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;SAME_GLOBAL_PRICE_BUDGET_ONLY",
         "provider_requests_added": calls,
         "provider_daily_remaining_observed": provider_daily_remaining,
         "quota_accounting_included_in_api_calls_this_tick": True,
