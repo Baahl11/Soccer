@@ -1,4 +1,4 @@
-# V4-011 BTTS O2.5 challenger live audit: 2026-09-24
+# V4-011 BTTS Poisson ranking audit: 2026-09-24
 name: V4-011 LightGBM Goals Validation
 
 on:
@@ -68,7 +68,7 @@ jobs:
 
       - name: Validate Draw challenger unit tests
         run: |
-          PYTHONPATH=. pytest -q tests/test_draw_challenger_v4.py tests/test_goals_binary_challenger_v4.py
+          PYTHONPATH=. pytest -q tests/test_draw_challenger_v4.py tests/test_goals_binary_challenger_v4.py tests/test_btts_poisson_ranking_v4.py
 
       - name: Audit missing formations against persisted pre-kickoff feature snapshots
         shell: bash
@@ -304,6 +304,44 @@ jobs:
           path: /tmp/goals_binary_challenger_v4.json
           retention-days: 30
 
+      - name: Run BTTS Poisson ranking calibration audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m mcp_gateway.btts_poisson_ranking_v4 \
+            --dataset /tmp/v4_011_dataset.json \
+            --output /tmp/btts_poisson_ranking_v4.json
+
+          jq '{
+            model_version,
+            dataset_row_count,
+            eligible_rows,
+            effective_training_rows,
+            walk_forward_evaluated,
+            raw_metrics,
+            calibrated_metrics,
+            comparison,
+            research_eligible,
+            next_gate
+          }' /tmp/btts_poisson_ranking_v4.json
+
+          jq -e '
+            .model_version == "BTTS_POISSON_RANKING_V4_1.0.0"
+            and .market_fields_used == false
+            and .post_kickoff_features_used == false
+            and .provider_requests_added == 0
+            and .production_promotion_allowed == false
+          ' /tmp/btts_poisson_ranking_v4.json >/dev/null
+
+          cp /tmp/btts_poisson_ranking_v4.json state/soccer_edge_state/analysis/btts_poisson_ranking_v4.json
+
+      - name: Upload BTTS Poisson ranking report
+        uses: actions/upload-artifact@v4
+        with:
+          name: btts-poisson-ranking-v4-report
+          path: /tmp/btts_poisson_ranking_v4.json
+          retention-days: 30
+
       - name: Persist Draw challenger research checkpoint
         working-directory: state
         shell: bash
@@ -315,6 +353,7 @@ jobs:
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add -f soccer_edge_state/analysis/draw_challenger_v4.json
           git add -f soccer_edge_state/analysis/goals_binary_challenger_v4.json
+          git add -f soccer_edge_state/analysis/btts_poisson_ranking_v4.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Draw challenger OOS research report"
           for attempt in 1 2 3; do
