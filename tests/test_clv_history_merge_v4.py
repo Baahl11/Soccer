@@ -74,3 +74,44 @@ def test_merge_report_recomputes_family_and_unique_fixture_counts():
     assert report["unique_fixtures_by_family"]["1X2"] == 2
     assert report["unique_fixtures_by_family"]["BTTS"] == 1
     assert report["provider_requests_added"] == 0
+
+
+def test_history_team_totals_require_real_provider_update_after_signal():
+    base = _hist(
+        10,
+        "Home Team Total Goals",
+        "2026-09-20T17:20:00+00:00",
+        "2026-09-20T17:50:00+00:00",
+        "2026-09-20T18:00:00+00:00",
+        selection="Over",
+    )
+    base["market_family"] = "HOME_TT"
+
+    missing_provider = dict(base)
+    stale_provider = dict(base)
+    stale_provider["closing_provider_update"] = "2026-09-20T17:10:00+00:00"
+    valid_provider = dict(base)
+    valid_provider["fixture_id"] = 11
+    valid_provider["closing_provider_update"] = "2026-09-20T17:45:00+00:00"
+
+    out = v.normalize_history_rows(
+        [missing_provider, stale_provider, valid_provider],
+        [],
+    )
+    assert len(out) == 1
+    assert out[0]["fixture_id"] == 11
+    assert out[0]["market_family"] == "HOME_TT"
+    assert out[0]["closing_provider_update"] == "2026-09-20T17:45:00+00:00"
+
+
+def test_history_non_team_totals_remain_backward_compatible_without_provider_update():
+    row = _hist(
+        12,
+        "Match Winner",
+        "2026-09-20T17:20:00+00:00",
+        "2026-09-20T17:50:00+00:00",
+        "2026-09-20T18:00:00+00:00",
+    )
+    out = v.normalize_history_rows([row], [])
+    assert len(out) == 1
+    assert out[0]["market_family"] == "1X2"
