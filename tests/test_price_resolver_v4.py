@@ -996,3 +996,81 @@ def test_scanned_upcoming_capture_stops_when_strict_diversity_target_is_met(monk
     assert calls == [8101]
     assert result["research_spillover_projected_unique_fixtures"] == 20
     assert result["research_spillover_diversity_gap_remaining"] == 0
+
+
+
+def test_team_totals_reuses_primary_event_odds_with_zero_leftover_budget(monkeypatch):
+    payload = {
+        "events": [{
+            "event_type": "SOCCER_REFRESH",
+            "stage": "T-40",
+            "fixture": {
+                "fixture_id": 9001,
+                "home_team": "Home FC",
+                "away_team": "Away FC",
+                "home_team_id": 91,
+                "away_team_id": 92,
+            },
+            "raw_projection": {
+                "raw_home_goal_rate": 1.7,
+                "raw_away_goal_rate": 1.2,
+            },
+            "market": {
+                "markets": [
+                    {
+                        "market_id": 5,
+                        "market": "Goals Over/Under",
+                        "bookmaker": "Book",
+                        "values": [
+                            {"selection": "Over 2.5", "price": "1.95"},
+                            {"selection": "Under 2.5", "price": "1.90"},
+                        ],
+                    },
+                    {
+                        "market_id": 16,
+                        "market": "Total - Home",
+                        "bookmaker": "Book",
+                        "values": [
+                            {"selection": "Over 1.5", "price": "1.85"},
+                            {"selection": "Under 1.5", "price": "1.95"},
+                        ],
+                    },
+                    {
+                        "market_id": 17,
+                        "market": "Total - Away",
+                        "bookmaker": "Book",
+                        "values": [
+                            {"selection": "Over 0.5", "price": "1.70"},
+                            {"selection": "Under 0.5", "price": "2.10"},
+                        ],
+                    },
+                ],
+            },
+        }],
+        "match_table_rows": [],
+        "api_calls_this_tick": 70,
+    }
+
+    monkeypatch.setattr(v, "_load_cached_markets", lambda fixture_id, stage: [])
+    monkeypatch.setattr(v, "_load_team_totals_diversity_backlog", lambda: {
+        "existing_fixture_ids": {8000},
+        "existing_unique_fixtures": 1,
+        "legacy_observed_unique_fixtures": 108,
+        "target": 20,
+        "gap": 19,
+        "candidate_events": [],
+        "candidate_count": 0,
+        "source": "TEST_BACKLOG",
+    })
+
+    result = asyncio.run(v.resolve_payload(payload, max_api_calls=0, calibration_state={}))
+
+    assert result["api_calls_added"] == 0
+    assert result["research_spillover_api_calls_added"] == 0
+    assert result["research_spillover_primary_payload_reuse_fixtures"] == 1
+    assert result["research_spillover_primary_payload_reuse_market_rows"] == 2
+    assert result["research_spillover_new_unique_fixtures_this_tick"] == 1
+    assert result["research_spillover_projected_unique_fixtures"] == 2
+    assert result["research_spillover_diversity_gap_remaining"] == 18
+    assert payload["events"][0]["team_totals_diversity_capture"]["qualifies"] is True
+    assert payload["api_calls_this_tick"] == 70
