@@ -970,17 +970,22 @@ def _load_team_totals_maturation_backlog(
                     JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
                     WHERE e.generated_at >= %s
                       AND e.generated_at < f.kickoff
-                      AND jsonb_typeof(
-                            COALESCE(
-                                e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows',
-                                '[]'::jsonb
-                            )
-                          ) = 'array'
-                      AND jsonb_array_length(
-                            COALESCE(
-                                e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows',
-                                '[]'::jsonb
-                            )
+                      AND (
+                            CASE
+                                WHEN jsonb_typeof(
+                                    COALESCE(
+                                        e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows',
+                                        '[]'::jsonb
+                                    )
+                                ) = 'array'
+                                THEN jsonb_array_length(
+                                    COALESCE(
+                                        e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows',
+                                        '[]'::jsonb
+                                    )
+                                )
+                                ELSE 0
+                            END
                           ) > 0
                     GROUP BY e.fixture_id
                 )
@@ -1598,12 +1603,49 @@ async def resolve_payload(
             if isinstance(market, dict) and _is_ft_team_total_market(market)
         ]
 
-        is_maturation = source in {"CURRENT_DUE_EVENT_MATURATION", "PERSISTED_CLV_MATURATION_BACKLOG"}
-        signal_generated_at = record.get("signal_generated_at")
-
-        if source in {"CURRENT_DUE_EVENT", "CURRENT_DUE_EVENT_MATURATION"}:
+        if source == "CURRENT_DUE_EVENT":
             if markets and not isinstance(event.get("market"), dict):
                 _attach_market_to_event(event, markets, status)
+            return
+
+        if source == "CURRENT_DUE_EVENT_MATURATION":
+            if not exact_team_total_markets:
+                return
+            existing_market = event.get("market") if isinstance(event.get("market"), dict) else None
+            if existing_market is None:
+                _attach_market_to_event(event, exact_team_total_markets, status)
+            else:
+                existing_rows = [
+                    row for row in (existing_market.get("markets") or [])
+                    if isinstance(row, dict)
+                ]
+                seen_keys = {
+                    (
+                        row.get("bookmaker_id"),
+                        row.get("market_id"),
+                        str(row.get("provider_update") or ""),
+                        str(row.get("values") or ""),
+                    )
+                    for row in existing_rows
+                }
+                for row in exact_team_total_markets:
+                    key = (
+                        row.get("bookmaker_id"),
+                        row.get("market_id"),
+                        str(row.get("provider_update") or ""),
+                        str(row.get("values") or ""),
+                    )
+                    if key not in seen_keys:
+                        existing_rows.append(row)
+                        seen_keys.add(key)
+                existing_market["markets"] = existing_rows
+                existing_market["source"] = (
+                    "API_FOOTBALL_ODDS_V3"
+                    if status == "PRICE_API_RESOLVED"
+                    else existing_market.get("source") or "POSTGRES_MARKET_SNAPSHOT_CACHE"
+                )
+                existing_market["resolution_status"] = status
+            research_spillover_ft_team_total_market_rows_attached += len(exact_team_total_markets)
             return
 
         # Synthetic backlog/capture events persist only the derivative market we
@@ -1630,7 +1672,10 @@ async def resolve_payload(
         # attached to this current event. This is the cheapest possible path:
         # zero provider calls, zero cache roundtrip, and primary resolution has
         # already happened before this research-only diversity pass.
-        if source == "CURRENT_DUE_EVENT":
+        is_maturation = source in {"CURRENT_DUE_EVENT_MATURATION", "PERSISTED_CLV_MATURATION_BACKLOG"}
+        signal_generated_at = record.get("signal_generated_at")
+
+        if source in {"CURRENT_DUE_EVENT", "CURRENT_DUE_EVENT_MATURATION"}:
             event_market = event.get("market") if isinstance(event.get("market"), dict) else {}
             event_markets = [
                 market
@@ -1662,6 +1707,8 @@ async def resolve_payload(
             if markets:
                 if is_maturation and str(status).startswith("PRICE_CACHE"):
                     research_spillover_maturation_cache_replays_ignored += 1
+                    unresolved_records.append(record)
+                    continue
                 else:
                     _attach_spillover_event(record, markets, status)
                     _record_exact_team_total_coverage(
