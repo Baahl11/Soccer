@@ -344,19 +344,32 @@ def _align_research_player_value(
         return compact
     out = dict(compact)
     selection = _norm_player_text(out.get("selection"))
+    explicit_player_id = out.get("player_id")
+    explicit_player_name = _norm_player_text(out.get("player_name") or out.get("player"))
     if not confirmed_starters:
         out["xi_alignment_status"] = "NO_CONFIRMED_XI_AT_QUOTE"
         return out
-    if not selection:
-        out["xi_alignment_status"] = "SELECTION_MISSING"
-        return out
 
-    padded = f" {selection} "
     matches = []
-    for starter in confirmed_starters:
-        player_name = _norm_player_text(starter.get("player_name"))
-        if player_name and f" {player_name} " in padded:
-            matches.append(starter)
+    if explicit_player_id is not None:
+        matches = [
+            starter for starter in confirmed_starters
+            if str(starter.get("player_id")) == str(explicit_player_id)
+        ]
+    elif explicit_player_name:
+        matches = [
+            starter for starter in confirmed_starters
+            if _norm_player_text(starter.get("player_name")) == explicit_player_name
+        ]
+    else:
+        if not selection:
+            out["xi_alignment_status"] = "SELECTION_MISSING"
+            return out
+        padded = f" {selection} "
+        for starter in confirmed_starters:
+            player_name = _norm_player_text(starter.get("player_name"))
+            if player_name and f" {player_name} " in padded:
+                matches.append(starter)
 
     if not matches:
         out["xi_alignment_status"] = "PLAYER_NOT_MATCHED_TO_CONFIRMED_XI"
@@ -454,7 +467,16 @@ def _player_prop_research_subfamily(bet: dict[str, Any]) -> str | None:
         return "GK_SAVES"
     if "player assists" in name or "player assist" in name:
         return "ASSISTS"
-    if any(token in name for token in ("player cards", "player card", "player booked", "player booking")):
+    if any(token in name for token in (
+        "player cards",
+        "player card",
+        "player booked",
+        "player booking",
+        "player yellow card",
+        "player yellow cards",
+        "to be booked",
+        "to be carded",
+    )):
         return "PLAYER_CARDS"
     return None
 
@@ -520,6 +542,17 @@ def _research_value(
                 line = float(threshold_count) - 0.5
                 line_basis = "PLAYER_THRESHOLD_N_PLUS"
 
+    player_meta = value.get("player")
+    explicit_player_id = value.get("player_id")
+    explicit_player_name = value.get("player_name")
+    if isinstance(player_meta, dict):
+        if explicit_player_id is None:
+            explicit_player_id = player_meta.get("id")
+        if explicit_player_name is None:
+            explicit_player_name = player_meta.get("name")
+    elif explicit_player_name is None and isinstance(player_meta, str) and player_meta.strip():
+        explicit_player_name = player_meta.strip()
+
     compact = {
         "selection": value.get("value"),
         "price": value.get("odd"),
@@ -527,6 +560,10 @@ def _research_value(
         "line_basis": line_basis,
         "threshold_count": threshold_count,
     }
+    if explicit_player_id is not None:
+        compact["player_id"] = explicit_player_id
+    if explicit_player_name is not None and str(explicit_player_name).strip():
+        compact["player_name"] = str(explicit_player_name).strip()
     return _align_research_player_value(
         compact,
         confirmed_starters=confirmed_starters or [],
