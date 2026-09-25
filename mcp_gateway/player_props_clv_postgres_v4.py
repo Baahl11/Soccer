@@ -11,7 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.2.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.2.1"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
@@ -512,10 +512,17 @@ def _build_snapshot_instrument_index(
 def pair_signals_to_closes(
     signals: Iterable[dict[str, Any]],
     snapshots: Iterable[dict[str, Any]],
+    diagnostics: dict[str, Any] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     instrument_index = _build_snapshot_instrument_index(snapshots)
     tracked: list[dict[str, Any]] = []
     skip = Counter()
+    diag = diagnostics if isinstance(diagnostics, dict) else {}
+    diag.setdefault("signals_checked", 0)
+    diag.setdefault("exact_instrument_snapshot_rows", 0)
+    diag.setdefault("failure_reasons", {})
+    diag.setdefault("failure_samples", [])
+    diag.setdefault("by_family", {})
 
     for signal in signals:
         fixture_id = int(signal["fixture_id"])
@@ -534,17 +541,69 @@ def pair_signals_to_closes(
             _line_key(_num(signal.get("line"))),
         )
         instrument_rows = instrument_index.get(key, [])
-        candidates = [
-            row
-            for row in instrument_rows
-            if row["captured_at"] > signal_at
-            and row["captured_at"] < kickoff
-            and row["provider_update"] > signal_at
-            and row["provider_update"] < kickoff
+        diag["signals_checked"] += 1
+        diag["exact_instrument_snapshot_rows"] += len(instrument_rows)
+        family_diag = diag["by_family"].setdefault(family, {
+            "signals_checked": 0,
+            "exact_instrument_snapshot_rows": 0,
+            "strict_close_rows": 0,
+            "failure_reasons": {},
+        })
+        family_diag["signals_checked"] += 1
+        family_diag["exact_instrument_snapshot_rows"] += len(instrument_rows)
+
+        later_capture = [
+            row for row in instrument_rows
+            if row["captured_at"] > signal_at and row["captured_at"] < kickoff
         ]
+        later_provider = [
+            row for row in later_capture
+            if row["provider_update"] > signal_at and row["provider_update"] < kickoff
+        ]
+        candidates = later_provider
 
         if not candidates:
             skip["NO_LATER_STRICT_PLAYER_PROP_CLOSE"] += 1
+            if not instrument_rows:
+                reason = "NO_EXACT_INSTRUMENT_SNAPSHOT"
+            elif not later_capture:
+                reason = "NO_LATER_CAPTURE_BEFORE_KICKOFF"
+            else:
+                provider_after_signal = [
+                    row for row in later_capture
+                    if row["provider_update"] > signal_at
+                ]
+                if not provider_after_signal:
+                    reason = "LATER_CAPTURE_PROVIDER_UPDATE_NOT_NEWER"
+                else:
+                    reason = "LATER_PROVIDER_UPDATE_NOT_PREKICKOFF"
+            diag["failure_reasons"][reason] = int(diag["failure_reasons"].get(reason, 0)) + 1
+            family_diag["failure_reasons"][reason] = int(
+                family_diag["failure_reasons"].get(reason, 0)
+            ) + 1
+            if len(diag["failure_samples"]) < 24:
+                diag["failure_samples"].append({
+                    "fixture_id": fixture_id,
+                    "family": family,
+                    "player_id": signal.get("player_id"),
+                    "stage": signal.get("stage"),
+                    "signal_timestamp": signal_at.isoformat(),
+                    "kickoff": kickoff.isoformat(),
+                    "line": signal.get("line"),
+                    "side": signal.get("side"),
+                    "instrument_snapshot_rows": len(instrument_rows),
+                    "later_capture_rows": len(later_capture),
+                    "later_provider_rows": len(later_provider),
+                    "latest_captured_at": (
+                        max(row["captured_at"] for row in instrument_rows).isoformat()
+                        if instrument_rows else None
+                    ),
+                    "latest_provider_update": (
+                        max(row["provider_update"] for row in instrument_rows).isoformat()
+                        if instrument_rows else None
+                    ),
+                    "reason": reason,
+                })
             continue
 
         signal_book = str(signal.get("bookmaker_id") or signal.get("bookmaker"))
@@ -554,6 +613,7 @@ def pair_signals_to_closes(
         ]
         pool = same_book_candidates or candidates
         close = max(pool, key=lambda row: row["captured_at"])
+        family_diag["strict_close_rows"] += 1
 
         close_at = close["captured_at"]
         close_price = float(close["price"])
@@ -762,7 +822,12 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
             max_rows=max_rows,
         )
 
-    rows, skip_reasons = pair_signals_to_closes(signals, snapshots)
+    close_diagnostics: dict[str, Any] = {}
+    rows, skip_reasons = pair_signals_to_closes(
+        signals,
+        snapshots,
+        diagnostics=close_diagnostics,
+    )
     summary = summarize_tracking(rows)
     all_ready = bool(summary["families"]) and all(
         item.get("review_ready") is True for item in summary["families"].values()
@@ -777,6 +842,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "signal_diagnostics": signal_diagnostics,
         "snapshot_rows": len(snapshots),
         "skip_reasons": skip_reasons,
+        "close_diagnostics": close_diagnostics,
         **summary,
         "rows": rows,
         "provider_requests_added": 0,
