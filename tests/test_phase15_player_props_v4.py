@@ -4,6 +4,7 @@ from mcp_gateway import player_props_oos_postgres_v4 as prop_oos
 from mcp_gateway import player_props_phase15_coverage_audit as coverage_audit
 from mcp_gateway import player_props_postgame_backfill_v4 as prop_backfill
 from mcp_gateway import player_trend_registry_backfill_v4 as registry_backfill
+from mcp_gateway import gk_saves_intelligence as gk_saves
 from mcp_gateway import automation as base_automation
 
 
@@ -1457,3 +1458,101 @@ def test_assists_binary_yes_no_shadow_signals_use_explicit_player_identity():
     assert no["model_probability"] == 0.70
     assert yes["entry_market_fair_basis"] == "DEVIGGED_TWO_WAY"
     assert no["entry_market_fair_basis"] == "DEVIGGED_TWO_WAY"
+
+
+
+def test_v156_gk_saves_uses_global_prior_without_claiming_player_specific_quality():
+    prior = {"save_probability_proxy": 0.674157}
+    row = gk_saves._keeper_save_probability(None, prior)
+
+    assert row["status"] == "GLOBAL_PRIOR_ONLY_SAVE_RESULT_PROXY"
+    assert row["save_probability"] == 0.674157
+    assert row["player_specific_evidence_applied"] is False
+    assert row["player_specific_weight"] == 0.0
+
+
+def test_v156_gk_saves_models_confirmed_unknown_goalkeepers_with_full_market_ladder():
+    event = {
+        "fixture": {
+            "fixture_id": 9300,
+            "home_team_id": 10,
+            "away_team_id": 20,
+        },
+        "lineups": {
+            "both_goalkeepers_confirmed": True,
+            "teams": [
+                {
+                    "team_id": 10,
+                    "team": "Home",
+                    "goalkeepers": [{"id": 501, "name": "Home GK"}],
+                },
+                {
+                    "team_id": 20,
+                    "team": "Away",
+                    "goalkeepers": [{"id": 601, "name": "Away GK"}],
+                },
+            ],
+        },
+    }
+    registry = {
+        "goalkeepers": {
+            "999": {
+                "sample_band": "LOW",
+                "windows": {
+                    "last_20": {
+                        "save_result_proxy_saves": 6.0,
+                        "save_result_proxy_goals_conceded": 3.0,
+                    }
+                },
+            }
+        }
+    }
+    trends = {
+        "global_context": {"avg_team_sot": 4.5},
+        "teams": [],
+    }
+
+    report = gk_saves.build(event, registry, trends)
+
+    assert report["status"] == "LIVE_RESEARCH_GK_SAVES"
+    assert report["modeled_goalkeepers"] == 2
+    assert report["prior_only_modeled_goalkeepers"] == 2
+    assert report["player_specific_modeled_goalkeepers"] == 0
+    for keeper in report["goalkeepers"]:
+        assert keeper["status"] == "LIVE_RESEARCH_GK_SAVES_GLOBAL_PRIOR_DISTRIBUTION"
+        assert keeper["save_profile"]["player_specific_evidence_applied"] is False
+        lines = [row["line"] for row in keeper["lines"]]
+        assert lines == [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]
+        overs = [row["p_over"] for row in keeper["lines"]]
+        assert all(overs[i] >= overs[i + 1] for i in range(len(overs) - 1))
+
+
+def test_v156_registry_backfill_marks_gk_saves_priority_future_only():
+    compact = {
+        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+        "teams": [{
+            "team_id": 10,
+            "team": "Home",
+            "players": [{
+                "player_id": 501,
+                "name": "Home GK",
+                "position": "G",
+                "minutes": 90,
+                "saves": 4,
+                "goals_conceded": 1,
+            }],
+        }],
+    }
+    event = registry_backfill.make_registry_backfill_event(
+        9301,
+        "2026-09-25T20:00:00+00:00",
+        compact,
+        provider_daily_remaining=7000,
+        priority_family="GK_SAVES",
+    )
+
+    assert registry_backfill.MAX_FIXTURES_PER_RUN == 16
+    assert event["backfill"]["priority_family"] == "GK_SAVES"
+    assert event["backfill"]["future_registry_use_only"] is True
+    assert event["backfill"]["retroactive_pregame_signal_created"] is False
+    assert event["backfill"]["eligible_for_historical_oos_reconstruction"] is False
