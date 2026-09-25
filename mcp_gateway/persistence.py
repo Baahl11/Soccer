@@ -146,7 +146,10 @@ def _persist_refresh_event(cur, tick: dict[str, Any], event: dict[str, Any]) -> 
         )
 
     market = event.get("market")
-    if fixture_id and isinstance(market, dict):
+    market_source = str((market or {}).get("source") or "").upper() if isinstance(market, dict) else ""
+    market_resolution_status = str((market or {}).get("resolution_status") or "").upper() if isinstance(market, dict) else ""
+    market_is_cache_replay = "CACHE" in market_source or "CACHE" in market_resolution_status
+    if fixture_id and isinstance(market, dict) and not market_is_cache_replay:
         for row in market.get("markets") or []:
             cur.execute(
                 """
