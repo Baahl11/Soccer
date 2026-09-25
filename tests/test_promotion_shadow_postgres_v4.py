@@ -212,3 +212,27 @@ def test_v2_accumulation_diagnostics_are_reported_by_family():
     assert diag["missing_evidence_regime_rows_by_family"]["1X2"] == 1
     assert diag["required_evidence_regime_accumulation_gap_by_family"]["1X2"]["directional_20_gap"] == 19
     assert diag["required_evidence_regime_accumulation_gap_by_family"]["1X2"]["review_50_gap"] == 49
+
+
+def test_1x2_promotion_shadow_reports_selection_progress():
+    rows = [
+        _row(1, "2026-09-20T17:40:00", "T-20", "home", 2.0, 0.60, 0.50, goals=None),
+        _row(2, "2026-09-20T17:40:00", "T-20", "away", 2.5, 0.55, 0.40, goals=(0, 1)),
+    ]
+    report = v.build_report_from_rows(rows)
+    by_selection = report["families"]["1X2"]["promotion_evaluable"]["by_selection"]
+
+    assert by_selection["HOME"]["rows"] == 1
+    assert by_selection["HOME"]["pending"] == 1
+    assert by_selection["HOME"]["settled"] == 0
+    assert by_selection["HOME"]["directional_remaining"] == 20
+
+    assert by_selection["AWAY"]["rows"] == 1
+    assert by_selection["AWAY"]["settled"] == 1
+    assert by_selection["AWAY"]["win"] == 1
+    assert by_selection["AWAY"]["directional_remaining"] == 19
+
+    assert by_selection["DRAW"]["rows"] == 0
+    assert by_selection["DRAW"]["settled"] == 0
+    assert by_selection["DRAW"]["directional_remaining"] == 20
+    assert by_selection["DRAW"]["review_remaining"] == 50
