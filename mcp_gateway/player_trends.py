@@ -1,9 +1,10 @@
 from __future__ import annotations
+import os
 from typing import Any
 from mcp_gateway import automation_v4 as v4
 
-MAX_PLAYER_FIXTURES_PER_TICK=2
-_ALLOWED_STAGES={'T-40','T-20','T-10'}
+MAX_PLAYER_FIXTURES_PER_TICK=max(1,min(int(os.getenv('SOCCER_PLAYER_TRENDS_PREGAME_MAX_FIXTURES_PER_TICK','2')),6))
+_ALLOWED_STAGES={'T-40','T-30','T-20','T-10'}
 
 def _num(v):
     try:return float(v)
