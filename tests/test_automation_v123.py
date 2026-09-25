@@ -6,6 +6,7 @@ from mcp_gateway import automation_v123 as v
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v5 as v5
 from mcp_gateway import automation_v7 as v7
+from mcp_gateway import automation_v25 as v25
 from mcp_gateway import persistence as persistence_base
 
 
@@ -1191,3 +1192,27 @@ def test_player_prop_threshold_format_maps_n_plus_to_decimal_line_and_excludes_t
     assert gk_value["threshold_count"] == 3
     assert gk_value["line_basis"] == "PLAYER_THRESHOLD_N_PLUS"
     assert gk_value["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+
+
+def test_v25_postgame_player_candidates_prioritize_statistics_players_coverage():
+    events = [
+        {
+            "stage": "POSTGAME",
+            "fixture": {"fixture_id": 2, "kickoff": "2026-09-25T10:00:00+00:00"},
+            "coverage": {"statistics_players": False},
+        },
+        {
+            "stage": "POSTGAME",
+            "fixture": {"fixture_id": 1, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "coverage": {"statistics_players": True},
+        },
+        {
+            "stage": "POSTGAME",
+            "fixture": {"fixture_id": 1, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "coverage": {"statistics_players": True},
+        },
+        {"stage": "T-10", "fixture": {"fixture_id": 3}},
+    ]
+    candidates = v25._postgame_candidates(events)
+    assert [row["fixture"]["fixture_id"] for row in candidates] == [1, 2]
+    assert v25.MAX_POSTGAME_PLAYER_CALLS_PER_TICK >= 2
