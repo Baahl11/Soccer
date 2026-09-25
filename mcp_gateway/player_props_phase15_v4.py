@@ -7,8 +7,8 @@ import os
 import re
 from typing import Any, Iterable
 
-SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_PHASE15_V4_1.3.0"
+SCHEMA_VERSION = "1.4.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_PHASE15_V4_1.4.0"
 MIN_PROP_TRUE_CLV = 50
 MIN_PROP_TRUE_CLV_FIXTURES = 20
 MIN_GK_PROFILES = 100
@@ -168,6 +168,39 @@ PROP_AUDIT_FAMILY = {
 LINE_REQUIRED_PROPS = {"shots", "sot", "gk_saves"}
 
 
+OOS_FAMILY_TO_PROP = {
+    "SHOTS": "shots",
+    "SOT": "sot",
+    "GOALSCORER_ANYTIME": "goalscorer",
+    "ASSISTS": "assists",
+    "PLAYER_CARDS": "cards",
+    "GK_SAVES": "gk_saves",
+}
+
+
+def _oos_evidence(report: dict[str, Any] | None, family: str) -> dict[str, Any]:
+    families = report.get("families") if isinstance(report, dict) and isinstance(report.get("families"), dict) else {}
+    row = families.get(family) if isinstance(families.get(family), dict) else {}
+    return {
+        "audit_family": family,
+        "status": row.get("status"),
+        "player_game_rows": int(row.get("player_game_rows") or 0),
+        "binary_probability_rows": int(row.get("binary_probability_rows") or 0),
+        "unique_fixtures": int(row.get("unique_fixtures") or 0),
+        "unique_player_fixtures": int(row.get("unique_player_fixtures") or 0),
+        "minimum_player_games_for_review": int(row.get("minimum_player_games_for_review") or 0),
+        "sample_target_met": bool(row.get("sample_target_met")),
+        "oos_validation_complete": bool(row.get("oos_validation_complete")),
+        "brier_score": _num(row.get("brier_score")),
+        "log_loss": _num(row.get("log_loss")),
+        "expected_count_mae": _num(row.get("expected_count_mae")),
+        "expected_count_rmse": _num(row.get("expected_count_rmse")),
+        "expected_minutes_mae": _num(row.get("expected_minutes_mae")),
+        "calibration_ece": _num(row.get("calibration_ece")),
+        "calibration_bins": row.get("calibration_bins") if isinstance(row.get("calibration_bins"), list) else [],
+    }
+
+
 def _market_evidence(audit: dict[str, Any] | None, family: str) -> dict[str, Any]:
     families = audit.get("families") if isinstance(audit, dict) and isinstance(audit.get("families"), dict) else {}
     row = families.get(family) if isinstance(families.get(family), dict) else {}
@@ -200,6 +233,7 @@ def build_report(
     gk_saves: dict[str, Any],
     true_clv_rows: Iterable[dict[str, Any]],
     market_audit: dict[str, Any] | None = None,
+    oos_report: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     props = {
         "shots": _prop_summary(shots),
@@ -211,6 +245,9 @@ def build_report(
     }
     for prop_name, audit_family in PROP_AUDIT_FAMILY.items():
         props[prop_name]["market_evidence"] = _market_evidence(market_audit, audit_family)
+        props[prop_name]["oos_evidence"] = _oos_evidence(oos_report, audit_family)
+        if isinstance(oos_report, dict) and isinstance(oos_report.get("families"), dict):
+            props[prop_name]["oos_validation_complete"] = props[prop_name]["oos_evidence"]["oos_validation_complete"]
 
     clv = summarize_true_clv(true_clv_rows)
     blockers: list[str] = []
@@ -258,10 +295,12 @@ def build_report(
         if prop_name in LINE_REQUIRED_PROPS and evidence["xi_aligned_exact_line_value_rows"] <= 0:
             blockers.append(f"{blocker_prefix}_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING")
 
-    blockers.extend([
-        "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-        "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED",
-    ])
+    if not (isinstance(oos_report, dict) and isinstance(oos_report.get("families"), dict)):
+        blockers.extend([
+            "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
+            "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
+            "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED",
+        ])
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -303,6 +342,8 @@ def build_report(
             "Prop-specific calibration and true CLV must be tracked independently by market family.",
             "Phase15 true-CLV review requires both per-family row volume and fixture diversity; many player prices from a tiny fixture set cannot satisfy maturity.",
             "One-way player markets may contribute exact-instrument price CLV while probability CLV remains explicitly non-de-vigged/unavailable.",
+            "OOS completion is sourced from the dedicated finalized-result ledger by prop family; structural sanity files do not self-promote OOS readiness.",
+            "OOS calibration uses one canonical pregame snapshot per fixture and joins finalized player outcomes by player_id, with Brier/log-loss, count error, minutes error, and calibration bins reported separately.",
         ],
     }
 
@@ -343,6 +384,7 @@ def main() -> None:
     parser.add_argument("--gk-saves", required=True)
     parser.add_argument("--true-clv-tracking", required=True)
     parser.add_argument("--market-audit", required=False)
+    parser.add_argument("--oos-report", required=False)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     report = build_report(
@@ -354,6 +396,7 @@ def main() -> None:
         _load_json(args.gk_saves),
         _load_jsonl(args.true_clv_tracking),
         _load_json(args.market_audit) if args.market_audit else {},
+        _load_json(args.oos_report) if args.oos_report else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
