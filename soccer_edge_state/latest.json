@@ -4,8 +4,8 @@
   "service": "soccer-edge-automation",
   "version": "4.31.1-price-resolver-team-totals-refresh",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-25T00:18:05.037087+00:00",
-  "generated_at_local": "2026-09-24T18:18:05.037087-06:00",
+  "generated_at_utc": "2026-09-25T00:22:04.606840+00:00",
+  "generated_at_local": "2026-09-24T18:22:04.606840-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 96,
   "due_fixture_count": 11,
@@ -15,7 +15,7 @@
   "api_calls_this_tick": 36,
   "max_api_calls_per_tick": 70,
   "effective_max_api_calls_per_tick": 70,
-  "last_daily_remaining": 7463,
+  "last_daily_remaining": 7427,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -71,7 +71,66 @@
         "SPORTING_SCREEN_PASS"
       ],
       "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+      "p_raw": 0.589831,
+      "phase16_calibration_promotion_shadow_eligible": true,
+      "phase16_1x2_class_discrimination_ready": {
+        "home_win": true,
+        "draw": false,
+        "away_win": true
+      },
+      "phase16_1x2_class_discrimination_diagnostics": {
+        "home_win": {
+          "rows": 407,
+          "positive_count": 176,
+          "negative_count": 231,
+          "auc": 0.60743802,
+          "auc_lower_95": 0.55182825,
+          "auc_lower_95_gap_to_gate": 0.05182825,
+          "brier_delta": -0.0037086,
+          "log_loss_delta": -0.0140891,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        },
+        "draw": {
+          "rows": 407,
+          "positive_count": 96,
+          "negative_count": 311,
+          "auc": 0.49946409,
+          "auc_lower_95": 0.43333423,
+          "auc_lower_95_gap_to_gate": -0.06666577,
+          "brier_delta": -0.00747142,
+          "log_loss_delta": -0.01533486,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": false,
+          "source_model_version_matches": true
+        },
+        "away_win": {
+          "rows": 407,
+          "positive_count": 135,
+          "negative_count": 272,
+          "auc": 0.61364379,
+          "auc_lower_95": 0.55442182,
+          "auc_lower_95_gap_to_gate": 0.05442182,
+          "brier_delta": -0.00322122,
+          "log_loss_delta": -0.00790889,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        }
+      },
+      "phase16_1x2_family_discrimination_ready": false,
+      "phase16_1x2_not_ready_classes": [
+        "DRAW"
+      ],
+      "p_model_calibrated": 0.48314566,
+      "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+      "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+      "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+      "price_resolution_calibrated_probability_added": true,
+      "price_resolution_existing_price_calibration_added": true,
+      "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
     },
     {
       "row_type": "research_visibility",
@@ -120,7 +179,66 @@
         "SPORTING_SCREEN_PASS"
       ],
       "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+      "p_raw": 0.523752,
+      "phase16_calibration_promotion_shadow_eligible": true,
+      "phase16_1x2_class_discrimination_ready": {
+        "home_win": true,
+        "draw": false,
+        "away_win": true
+      },
+      "phase16_1x2_class_discrimination_diagnostics": {
+        "home_win": {
+          "rows": 407,
+          "positive_count": 176,
+          "negative_count": 231,
+          "auc": 0.60743802,
+          "auc_lower_95": 0.55182825,
+          "auc_lower_95_gap_to_gate": 0.05182825,
+          "brier_delta": -0.0037086,
+          "log_loss_delta": -0.0140891,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        },
+        "draw": {
+          "rows": 407,
+          "positive_count": 96,
+          "negative_count": 311,
+          "auc": 0.49946409,
+          "auc_lower_95": 0.43333423,
+          "auc_lower_95_gap_to_gate": -0.06666577,
+          "brier_delta": -0.00747142,
+          "log_loss_delta": -0.01533486,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": false,
+          "source_model_version_matches": true
+        },
+        "away_win": {
+          "rows": 407,
+          "positive_count": 135,
+          "negative_count": 272,
+          "auc": 0.61364379,
+          "auc_lower_95": 0.55442182,
+          "auc_lower_95_gap_to_gate": 0.05442182,
+          "brier_delta": -0.00322122,
+          "log_loss_delta": -0.00790889,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        }
+      },
+      "phase16_1x2_family_discrimination_ready": false,
+      "phase16_1x2_not_ready_classes": [
+        "DRAW"
+      ],
+      "p_model_calibrated": 0.44359178,
+      "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+      "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+      "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+      "price_resolution_calibrated_probability_added": true,
+      "price_resolution_existing_price_calibration_added": true,
+      "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
     },
     {
       "row_type": "research_visibility",
@@ -168,7 +286,66 @@
         "SPORTING_SCREEN_PASS"
       ],
       "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+      "p_raw": 0.471182,
+      "phase16_calibration_promotion_shadow_eligible": true,
+      "phase16_1x2_class_discrimination_ready": {
+        "home_win": true,
+        "draw": false,
+        "away_win": true
+      },
+      "phase16_1x2_class_discrimination_diagnostics": {
+        "home_win": {
+          "rows": 407,
+          "positive_count": 176,
+          "negative_count": 231,
+          "auc": 0.60743802,
+          "auc_lower_95": 0.55182825,
+          "auc_lower_95_gap_to_gate": 0.05182825,
+          "brier_delta": -0.0037086,
+          "log_loss_delta": -0.0140891,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        },
+        "draw": {
+          "rows": 407,
+          "positive_count": 96,
+          "negative_count": 311,
+          "auc": 0.49946409,
+          "auc_lower_95": 0.43333423,
+          "auc_lower_95_gap_to_gate": -0.06666577,
+          "brier_delta": -0.00747142,
+          "log_loss_delta": -0.01533486,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": false,
+          "source_model_version_matches": true
+        },
+        "away_win": {
+          "rows": 407,
+          "positive_count": 135,
+          "negative_count": 272,
+          "auc": 0.61364379,
+          "auc_lower_95": 0.55442182,
+          "auc_lower_95_gap_to_gate": 0.05442182,
+          "brier_delta": -0.00322122,
+          "log_loss_delta": -0.00790889,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        }
+      },
+      "phase16_1x2_family_discrimination_ready": false,
+      "phase16_1x2_not_ready_classes": [
+        "DRAW"
+      ],
+      "p_model_calibrated": 0.41321845,
+      "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+      "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+      "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+      "price_resolution_calibrated_probability_added": true,
+      "price_resolution_existing_price_calibration_added": true,
+      "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
     },
     {
       "row_type": "research_visibility",
@@ -597,7 +774,7 @@
   },
   "price_resolution_v4": {
     "schema_version": "1.0.0",
-    "model_version": "SOCCER_PRICE_RESOLVER_V4_1.6.0",
+    "model_version": "SOCCER_PRICE_RESOLVER_V4_1.7.0",
     "status": "ACTIVE_PRICE_RESOLVER",
     "candidate_rows": 2,
     "unique_candidate_fixtures": 2,
@@ -614,18 +791,25 @@
     "calibration_state_source": "SOCCER_EDGE_STATE_RAW",
     "calibration_state_loaded": true,
     "calibrated_rows_added": 0,
+    "existing_price_calibration_rows_considered": 5,
+    "existing_price_calibrated_rows_added": 3,
+    "existing_price_calibration_status_counts": {
+      "BINARY_DISCRIMINATION_NOT_READY": 2,
+      "RESEARCH_CALIBRATION_APPLIED": 3
+    },
+    "existing_price_calibration_provider_requests_added": 0,
     "provider_requests_added": 0,
     "provider_daily_remaining_observed": null,
     "quota_accounting_included_in_api_calls_this_tick": true,
-    "cache_hydrated_research_fixtures": 2,
-    "cache_hydrated_research_market_rows": 411,
+    "cache_hydrated_research_fixtures": 3,
+    "cache_hydrated_research_market_rows": 531,
     "cache_hydration_provider_requests_added": 0,
     "cache_hydration_policy": "PREGAME_SOCCER_REFRESH_WITH_TEAM_LAMBDAS_FRESH_POSTGRES_SNAPSHOTS_ONLY"
   },
   "price_resolution_checkpoint": {
     "schema_version": "1.0.0",
     "status": "ACTIVE_PRICE_RESOLVER",
-    "model_version": "SOCCER_PRICE_RESOLVER_V4_1.6.0",
+    "model_version": "SOCCER_PRICE_RESOLVER_V4_1.7.0",
     "candidate_rows": 2,
     "unique_candidate_fixtures": 2,
     "api_calls_added": 0,
@@ -650,30 +834,21 @@
   "v4_005_score_matrix_observability": {
     "schema_version": "0.6.0",
     "status": "LIVE_RESEARCH",
-    "events_modeled": 1,
+    "events_modeled": 0,
     "gate_counts": {
       "NOT_SOCCER_REFRESH": 2,
       "STAGE_T-10": 1,
       "ACTIONABLE_STAGE": 3,
-      "MARKET_FRESH": 1,
-      "MATRIX_READY": 1,
-      "EXPANDED_LEGS_PRESENT": 1,
+      "MARKET_NOT_FRESH": 3,
+      "MARKET_NOT_FRESH_SOURCE_API_FALLBACK_ODDS": 3,
+      "MARKET_TIMESTAMP_TOO_OLD": 3,
       "STAGE_T-40": 2,
-      "MARKET_NOT_FRESH": 2,
-      "MARKET_NOT_FRESH_SOURCE_API_FALLBACK_ODDS": 2,
-      "MARKET_TIMESTAMP_TOO_OLD": 2,
       "STAGE_POSTGAME": 4,
       "STAGE_EARLY_RESEARCH": 2
     },
-    "family_leg_counts": {
-      "ONE_X_TWO": 4,
-      "TEAM_TOTAL_HOME": 4,
-      "TEAM_TOTAL_AWAY": 4,
-      "ASIAN_HANDICAP_HALF": 4,
-      "ASIAN_HANDICAP_SETTLEMENT": 21
-    },
-    "research_candidate_count": 3,
-    "settlement_diagnostic_count": 8,
+    "family_leg_counts": {},
+    "research_candidate_count": 0,
+    "settlement_diagnostic_count": 0,
     "binary_joint_method": "DIRECT_SCORE_MATRIX_INTERSECTION",
     "settlement_joint_method": "DIRECT_SCORE_MATRIX_SETTLEMENT_INTEGRATION",
     "production_promotion_allowed": false,
@@ -683,7 +858,7 @@
   "elastic_deep_dive_cap_reason": "GT_6000",
   "elastic_request_cap": 70,
   "elastic_request_cap_reason": "GT_6000",
-  "elastic_quota_remaining_basis": 7463,
+  "elastic_quota_remaining_basis": 7427,
   "fair_scheduler": {
     "schema_version": "1.0.0",
     "policy": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY",
@@ -1204,16 +1379,17 @@
     "model_version": "SOCCER_MARKET_MISMATCH_V4_1.4.0",
     "rows_analyzed": 9,
     "fixtures_analyzed": 9,
-    "rankable_rows": 0,
-    "non_rankable_rows": 9,
+    "rankable_rows": 2,
+    "non_rankable_rows": 7,
     "non_rankable_reason_counts": {
       "BINARY_DISCRIMINATION_NOT_READY": 2,
-      "CALIBRATED_MODEL_PROBABILITY_MISSING": 7,
+      "CALIBRATED_EDGE_NOT_POSITIVE": 1,
+      "CALIBRATED_MODEL_PROBABILITY_MISSING": 4,
       "PRICE_OR_FAIR_PROBABILITY_MISSING": 4
     },
     "non_rankable_reason_counts_by_family": {
       "1X2": {
-        "CALIBRATED_MODEL_PROBABILITY_MISSING": 3
+        "CALIBRATED_EDGE_NOT_POSITIVE": 1
       },
       "BTTS": {
         "BINARY_DISCRIMINATION_NOT_READY": 1,
@@ -1231,7 +1407,9 @@
       "BTTS": 2,
       "FT_TOTALS": 4
     },
-    "rankable_market_family_coverage": {},
+    "rankable_market_family_coverage": {
+      "1X2": 2
+    },
     "ranking_weights": {
       "sport_confidence": 0.3,
       "calibrated_edge": 0.3,
@@ -1242,7 +1420,7 @@
     "calibrated_probability_required_for_ranking": true,
     "raw_legacy_edge_used_for_diagnostic_only": true,
     "correlation_suppression_enabled": true,
-    "primary_candidate_count": 0,
+    "primary_candidate_count": 2,
     "correlated_candidate_count": 0,
     "provider_requests_added": 0,
     "production_promotion_allowed": false,
@@ -1571,7 +1749,66 @@
             "SPORTING_SCREEN_PASS"
           ],
           "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+          "p_raw": 0.589831,
+          "phase16_calibration_promotion_shadow_eligible": true,
+          "phase16_1x2_class_discrimination_ready": {
+            "home_win": true,
+            "draw": false,
+            "away_win": true
+          },
+          "phase16_1x2_class_discrimination_diagnostics": {
+            "home_win": {
+              "rows": 407,
+              "positive_count": 176,
+              "negative_count": 231,
+              "auc": 0.60743802,
+              "auc_lower_95": 0.55182825,
+              "auc_lower_95_gap_to_gate": 0.05182825,
+              "brier_delta": -0.0037086,
+              "log_loss_delta": -0.0140891,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            },
+            "draw": {
+              "rows": 407,
+              "positive_count": 96,
+              "negative_count": 311,
+              "auc": 0.49946409,
+              "auc_lower_95": 0.43333423,
+              "auc_lower_95_gap_to_gate": -0.06666577,
+              "brier_delta": -0.00747142,
+              "log_loss_delta": -0.01533486,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": false,
+              "source_model_version_matches": true
+            },
+            "away_win": {
+              "rows": 407,
+              "positive_count": 135,
+              "negative_count": 272,
+              "auc": 0.61364379,
+              "auc_lower_95": 0.55442182,
+              "auc_lower_95_gap_to_gate": 0.05442182,
+              "brier_delta": -0.00322122,
+              "log_loss_delta": -0.00790889,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            }
+          },
+          "phase16_1x2_family_discrimination_ready": false,
+          "phase16_1x2_not_ready_classes": [
+            "DRAW"
+          ],
+          "p_model_calibrated": 0.48314566,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+          "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+          "price_resolution_calibrated_probability_added": true,
+          "price_resolution_existing_price_calibration_added": true,
+          "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
         },
         {
           "row_type": "research_visibility",
@@ -1620,7 +1857,66 @@
             "SPORTING_SCREEN_PASS"
           ],
           "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+          "p_raw": 0.523752,
+          "phase16_calibration_promotion_shadow_eligible": true,
+          "phase16_1x2_class_discrimination_ready": {
+            "home_win": true,
+            "draw": false,
+            "away_win": true
+          },
+          "phase16_1x2_class_discrimination_diagnostics": {
+            "home_win": {
+              "rows": 407,
+              "positive_count": 176,
+              "negative_count": 231,
+              "auc": 0.60743802,
+              "auc_lower_95": 0.55182825,
+              "auc_lower_95_gap_to_gate": 0.05182825,
+              "brier_delta": -0.0037086,
+              "log_loss_delta": -0.0140891,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            },
+            "draw": {
+              "rows": 407,
+              "positive_count": 96,
+              "negative_count": 311,
+              "auc": 0.49946409,
+              "auc_lower_95": 0.43333423,
+              "auc_lower_95_gap_to_gate": -0.06666577,
+              "brier_delta": -0.00747142,
+              "log_loss_delta": -0.01533486,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": false,
+              "source_model_version_matches": true
+            },
+            "away_win": {
+              "rows": 407,
+              "positive_count": 135,
+              "negative_count": 272,
+              "auc": 0.61364379,
+              "auc_lower_95": 0.55442182,
+              "auc_lower_95_gap_to_gate": 0.05442182,
+              "brier_delta": -0.00322122,
+              "log_loss_delta": -0.00790889,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            }
+          },
+          "phase16_1x2_family_discrimination_ready": false,
+          "phase16_1x2_not_ready_classes": [
+            "DRAW"
+          ],
+          "p_model_calibrated": 0.44359178,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+          "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+          "price_resolution_calibrated_probability_added": true,
+          "price_resolution_existing_price_calibration_added": true,
+          "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
         },
         {
           "row_type": "research_visibility",
@@ -1668,7 +1964,66 @@
             "SPORTING_SCREEN_PASS"
           ],
           "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+          "p_raw": 0.471182,
+          "phase16_calibration_promotion_shadow_eligible": true,
+          "phase16_1x2_class_discrimination_ready": {
+            "home_win": true,
+            "draw": false,
+            "away_win": true
+          },
+          "phase16_1x2_class_discrimination_diagnostics": {
+            "home_win": {
+              "rows": 407,
+              "positive_count": 176,
+              "negative_count": 231,
+              "auc": 0.60743802,
+              "auc_lower_95": 0.55182825,
+              "auc_lower_95_gap_to_gate": 0.05182825,
+              "brier_delta": -0.0037086,
+              "log_loss_delta": -0.0140891,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            },
+            "draw": {
+              "rows": 407,
+              "positive_count": 96,
+              "negative_count": 311,
+              "auc": 0.49946409,
+              "auc_lower_95": 0.43333423,
+              "auc_lower_95_gap_to_gate": -0.06666577,
+              "brier_delta": -0.00747142,
+              "log_loss_delta": -0.01533486,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": false,
+              "source_model_version_matches": true
+            },
+            "away_win": {
+              "rows": 407,
+              "positive_count": 135,
+              "negative_count": 272,
+              "auc": 0.61364379,
+              "auc_lower_95": 0.55442182,
+              "auc_lower_95_gap_to_gate": 0.05442182,
+              "brier_delta": -0.00322122,
+              "log_loss_delta": -0.00790889,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            }
+          },
+          "phase16_1x2_family_discrimination_ready": false,
+          "phase16_1x2_not_ready_classes": [
+            "DRAW"
+          ],
+          "p_model_calibrated": 0.41321845,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+          "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+          "price_resolution_calibrated_probability_added": true,
+          "price_resolution_existing_price_calibration_added": true,
+          "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
         },
         {
           "row_type": "research_visibility",
@@ -1949,7 +2304,66 @@
             "SPORTING_SCREEN_PASS"
           ],
           "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+          "p_raw": 0.523752,
+          "phase16_calibration_promotion_shadow_eligible": true,
+          "phase16_1x2_class_discrimination_ready": {
+            "home_win": true,
+            "draw": false,
+            "away_win": true
+          },
+          "phase16_1x2_class_discrimination_diagnostics": {
+            "home_win": {
+              "rows": 407,
+              "positive_count": 176,
+              "negative_count": 231,
+              "auc": 0.60743802,
+              "auc_lower_95": 0.55182825,
+              "auc_lower_95_gap_to_gate": 0.05182825,
+              "brier_delta": -0.0037086,
+              "log_loss_delta": -0.0140891,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            },
+            "draw": {
+              "rows": 407,
+              "positive_count": 96,
+              "negative_count": 311,
+              "auc": 0.49946409,
+              "auc_lower_95": 0.43333423,
+              "auc_lower_95_gap_to_gate": -0.06666577,
+              "brier_delta": -0.00747142,
+              "log_loss_delta": -0.01533486,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": false,
+              "source_model_version_matches": true
+            },
+            "away_win": {
+              "rows": 407,
+              "positive_count": 135,
+              "negative_count": 272,
+              "auc": 0.61364379,
+              "auc_lower_95": 0.55442182,
+              "auc_lower_95_gap_to_gate": 0.05442182,
+              "brier_delta": -0.00322122,
+              "log_loss_delta": -0.00790889,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            }
+          },
+          "phase16_1x2_family_discrimination_ready": false,
+          "phase16_1x2_not_ready_classes": [
+            "DRAW"
+          ],
+          "p_model_calibrated": 0.44359178,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+          "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+          "price_resolution_calibrated_probability_added": true,
+          "price_resolution_existing_price_calibration_added": true,
+          "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
         },
         {
           "row_type": "research_visibility",
@@ -1997,7 +2411,66 @@
             "SPORTING_SCREEN_PASS"
           ],
           "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+          "p_raw": 0.471182,
+          "phase16_calibration_promotion_shadow_eligible": true,
+          "phase16_1x2_class_discrimination_ready": {
+            "home_win": true,
+            "draw": false,
+            "away_win": true
+          },
+          "phase16_1x2_class_discrimination_diagnostics": {
+            "home_win": {
+              "rows": 407,
+              "positive_count": 176,
+              "negative_count": 231,
+              "auc": 0.60743802,
+              "auc_lower_95": 0.55182825,
+              "auc_lower_95_gap_to_gate": 0.05182825,
+              "brier_delta": -0.0037086,
+              "log_loss_delta": -0.0140891,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            },
+            "draw": {
+              "rows": 407,
+              "positive_count": 96,
+              "negative_count": 311,
+              "auc": 0.49946409,
+              "auc_lower_95": 0.43333423,
+              "auc_lower_95_gap_to_gate": -0.06666577,
+              "brier_delta": -0.00747142,
+              "log_loss_delta": -0.01533486,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": false,
+              "source_model_version_matches": true
+            },
+            "away_win": {
+              "rows": 407,
+              "positive_count": 135,
+              "negative_count": 272,
+              "auc": 0.61364379,
+              "auc_lower_95": 0.55442182,
+              "auc_lower_95_gap_to_gate": 0.05442182,
+              "brier_delta": -0.00322122,
+              "log_loss_delta": -0.00790889,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            }
+          },
+          "phase16_1x2_family_discrimination_ready": false,
+          "phase16_1x2_not_ready_classes": [
+            "DRAW"
+          ],
+          "p_model_calibrated": 0.41321845,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+          "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+          "price_resolution_calibrated_probability_added": true,
+          "price_resolution_existing_price_calibration_added": true,
+          "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
         },
         {
           "row_type": "research_visibility",
@@ -2121,7 +2594,66 @@
             "SPORTING_SCREEN_PASS"
           ],
           "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
+          "p_raw": 0.589831,
+          "phase16_calibration_promotion_shadow_eligible": true,
+          "phase16_1x2_class_discrimination_ready": {
+            "home_win": true,
+            "draw": false,
+            "away_win": true
+          },
+          "phase16_1x2_class_discrimination_diagnostics": {
+            "home_win": {
+              "rows": 407,
+              "positive_count": 176,
+              "negative_count": 231,
+              "auc": 0.60743802,
+              "auc_lower_95": 0.55182825,
+              "auc_lower_95_gap_to_gate": 0.05182825,
+              "brier_delta": -0.0037086,
+              "log_loss_delta": -0.0140891,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            },
+            "draw": {
+              "rows": 407,
+              "positive_count": 96,
+              "negative_count": 311,
+              "auc": 0.49946409,
+              "auc_lower_95": 0.43333423,
+              "auc_lower_95_gap_to_gate": -0.06666577,
+              "brier_delta": -0.00747142,
+              "log_loss_delta": -0.01533486,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": false,
+              "source_model_version_matches": true
+            },
+            "away_win": {
+              "rows": 407,
+              "positive_count": 135,
+              "negative_count": 272,
+              "auc": 0.61364379,
+              "auc_lower_95": 0.55442182,
+              "auc_lower_95_gap_to_gate": 0.05442182,
+              "brier_delta": -0.00322122,
+              "log_loss_delta": -0.00790889,
+              "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+              "ready": true,
+              "source_model_version_matches": true
+            }
+          },
+          "phase16_1x2_family_discrimination_ready": false,
+          "phase16_1x2_not_ready_classes": [
+            "DRAW"
+          ],
+          "p_model_calibrated": 0.48314566,
+          "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+          "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+          "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+          "price_resolution_calibrated_probability_added": true,
+          "price_resolution_existing_price_calibration_added": true,
+          "price_resolution_existing_price_calibration_source": "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
         }
       ],
       "total": 5
@@ -2330,7 +2862,7 @@
       "database_persisted": false,
       "api_calls_this_tick": 36,
       "max_api_calls_per_tick": 70,
-      "last_daily_remaining": 7463,
+      "last_daily_remaining": 7427,
       "fixture_scan_count": 96,
       "due_fixture_count": 11,
       "deferred_due_to_budget": 0,
@@ -2338,7 +2870,180 @@
     }
   },
   "phase21_alert_audit_rows": [],
-  "market_mismatch_rows": [],
+  "market_mismatch_rows": [
+    {
+      "fixture_id": 1581479,
+      "league": "Liga de Expansión MX",
+      "home": "Mineros de Zacatecas",
+      "away": "Piratas",
+      "stage": "T-40",
+      "market_family": "1X2",
+      "correlation_group": "MATCH_RESULT",
+      "market": "Match Winner",
+      "selection": "home",
+      "line": null,
+      "price": 2.77,
+      "bookmaker": "SBO",
+      "sport_confidence_score": 84.4,
+      "calibrated_probability": 0.41321845,
+      "calibrated_probability_source": "p_model_calibrated",
+      "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+      "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+      "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+      "phase16_1x2_class_discrimination_ready": {
+        "home_win": true,
+        "draw": false,
+        "away_win": true
+      },
+      "phase16_1x2_class_discrimination_diagnostics": {
+        "home_win": {
+          "rows": 407,
+          "positive_count": 176,
+          "negative_count": 231,
+          "auc": 0.60743802,
+          "auc_lower_95": 0.55182825,
+          "auc_lower_95_gap_to_gate": 0.05182825,
+          "brier_delta": -0.0037086,
+          "log_loss_delta": -0.0140891,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        },
+        "draw": {
+          "rows": 407,
+          "positive_count": 96,
+          "negative_count": 311,
+          "auc": 0.49946409,
+          "auc_lower_95": 0.43333423,
+          "auc_lower_95_gap_to_gate": -0.06666577,
+          "brier_delta": -0.00747142,
+          "log_loss_delta": -0.01533486,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": false,
+          "source_model_version_matches": true
+        },
+        "away_win": {
+          "rows": 407,
+          "positive_count": 135,
+          "negative_count": 272,
+          "auc": 0.61364379,
+          "auc_lower_95": 0.55442182,
+          "auc_lower_95_gap_to_gate": 0.05442182,
+          "brier_delta": -0.00322122,
+          "log_loss_delta": -0.00790889,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        }
+      },
+      "phase16_1x2_family_discrimination_ready": false,
+      "phase16_1x2_not_ready_classes": [
+        "DRAW"
+      ],
+      "promotion_shadow_eligible": true,
+      "market_fair_probability": 0.3144,
+      "calibrated_edge_pp": 9.8818,
+      "raw_legacy_edge_pp": 2.508,
+      "data_quality_score": 80.0,
+      "price_quality_score": 100.0,
+      "uncertainty": 0.5,
+      "uncertainty_source": "MISSING_NEUTRAL_RESEARCH_ONLY",
+      "rankable": true,
+      "rankability_reasons": [],
+      "evidence_regime": "PHASE16_DISCRIMINATION_GATED_V2",
+      "mismatch_score": 77.0837,
+      "raw_diagnostic_score": 62.336,
+      "blockers": [],
+      "production_promotion_allowed": false,
+      "bet_eligible": false
+    },
+    {
+      "fixture_id": 1581432,
+      "league": "Liga de Expansión MX",
+      "home": "Alebrijes de Oaxaca",
+      "away": "CA La Paz",
+      "stage": "T-40",
+      "market_family": "1X2",
+      "correlation_group": "MATCH_RESULT",
+      "market": "Match Winner",
+      "selection": "away",
+      "line": null,
+      "price": 2.1,
+      "bookmaker": "Betfair",
+      "sport_confidence_score": 85.8,
+      "calibrated_probability": 0.44359178,
+      "calibrated_probability_source": "p_model_calibrated",
+      "phase16_calibration_source": "CURRENT_MODEL_OOS_TEMPERATURE:1X2",
+      "phase16_calibration_policy": "MULTICLASS_TEMPERATURE+SELECTION_AUC_L95_GT_0_50",
+      "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+      "phase16_1x2_class_discrimination_ready": {
+        "home_win": true,
+        "draw": false,
+        "away_win": true
+      },
+      "phase16_1x2_class_discrimination_diagnostics": {
+        "home_win": {
+          "rows": 407,
+          "positive_count": 176,
+          "negative_count": 231,
+          "auc": 0.60743802,
+          "auc_lower_95": 0.55182825,
+          "auc_lower_95_gap_to_gate": 0.05182825,
+          "brier_delta": -0.0037086,
+          "log_loss_delta": -0.0140891,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        },
+        "draw": {
+          "rows": 407,
+          "positive_count": 96,
+          "negative_count": 311,
+          "auc": 0.49946409,
+          "auc_lower_95": 0.43333423,
+          "auc_lower_95_gap_to_gate": -0.06666577,
+          "brier_delta": -0.00747142,
+          "log_loss_delta": -0.01533486,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": false,
+          "source_model_version_matches": true
+        },
+        "away_win": {
+          "rows": 407,
+          "positive_count": 135,
+          "negative_count": 272,
+          "auc": 0.61364379,
+          "auc_lower_95": 0.55442182,
+          "auc_lower_95_gap_to_gate": 0.05442182,
+          "brier_delta": -0.00322122,
+          "log_loss_delta": -0.00790889,
+          "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+          "ready": true,
+          "source_model_version_matches": true
+        }
+      },
+      "phase16_1x2_family_discrimination_ready": false,
+      "phase16_1x2_not_ready_classes": [
+        "DRAW"
+      ],
+      "promotion_shadow_eligible": true,
+      "market_fair_probability": 0.4315,
+      "calibrated_edge_pp": 1.2092,
+      "raw_legacy_edge_pp": 1.476,
+      "data_quality_score": 80.0,
+      "price_quality_score": 100.0,
+      "uncertainty": 0.5,
+      "uncertainty_source": "MISSING_NEUTRAL_RESEARCH_ONLY",
+      "rankable": true,
+      "rankability_reasons": [],
+      "evidence_regime": "PHASE16_DISCRIMINATION_GATED_V2",
+      "mismatch_score": 60.1584,
+      "raw_diagnostic_score": 60.692,
+      "blockers": [],
+      "production_promotion_allowed": false,
+      "bet_eligible": false
+    }
+  ],
   "market_mismatch_correlated_suppressed": [],
   "latest_payload_policy": "COMPACT_OPERATIONAL_VIEW_FULL_TICK_IN_POSTGRES_COMPACT_HISTORY_IN_GIT"
 }
