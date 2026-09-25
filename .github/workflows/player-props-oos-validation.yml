@@ -75,7 +75,7 @@ jobs:
 
           test "$HTTP_CODE" = "200"
           jq -e '
-            .model_version == "SOCCER_PLAYER_PROPS_OOS_V4_1.0.0"
+            .model_version == "SOCCER_PLAYER_PROPS_OOS_V4_1.0.1"
             and .provider_requests_added == 0
             and .production_promotion_allowed == false
             and (.families | type == "object")
