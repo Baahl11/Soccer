@@ -7,16 +7,47 @@
     "RED_CARD_REFEREE_ADJUSTED_SAMPLE_INSUFFICIENT",
     "RED_CARDS_PROMOTION_GATE_DISABLED",
     "PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
-    "CARD_TRUE_CLV_0_LT_50"
+    "CARD_TRUE_CLV_0_LT_50",
+    "PLAYER_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING"
   ],
   "canonical_bet_logic_changed": false,
   "manual_review_required": true,
-  "model_version": "SOCCER_CARDS_REFEREE_PHASE14_V4_1.0.0",
+  "market_evidence": {
+    "audit_model_version": "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.0.0",
+    "match_cards": {
+      "audit_family": "CARDS",
+      "bookmaker_count": 4,
+      "confirmed_xi_overlap_materialized": true,
+      "confirmed_xi_pre_kickoff_unique_fixtures": 4,
+      "exact_line_value_rows": 1530,
+      "exact_observed_market_history_materialized": true,
+      "market_snapshot_rows": 675,
+      "pre_kickoff_unique_fixtures": 29,
+      "priced_value_rows": 2387,
+      "provider_update_unique_fixtures": 32,
+      "unique_fixtures": 32
+    },
+    "player_cards": {
+      "audit_family": "PLAYER_CARDS",
+      "bookmaker_count": 0,
+      "confirmed_xi_overlap_materialized": false,
+      "confirmed_xi_pre_kickoff_unique_fixtures": 0,
+      "exact_line_value_rows": 0,
+      "exact_observed_market_history_materialized": false,
+      "market_snapshot_rows": 0,
+      "pre_kickoff_unique_fixtures": 0,
+      "priced_value_rows": 0,
+      "provider_update_unique_fixtures": 0,
+      "unique_fixtures": 0
+    }
+  },
+  "model_version": "SOCCER_CARDS_REFEREE_PHASE14_V4_1.1.0",
   "model_weights_changed": false,
   "notes": [
     "Yellow-card counts, red-card occurrence and player-card props remain separate targets.",
     "Referee effects cannot be promoted with zero verified referee-adjusted OOS observations.",
     "Sportsbook card-settlement/scoring rules must be mapped explicitly; generic card points are not assumed.",
+    "Observed match-card market history and player-card prop history are audited separately; generic card market coverage cannot satisfy player-card evidence gates.",
     "Player-card structural sanity is necessary but not equivalent to OOS performance validation."
   ],
   "phase": "FASE_14_CARDS_REFEREE",
@@ -58,7 +89,7 @@
     },
     "referee_adjusted_n": 0
   },
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "status": "RESEARCH_HOLD",
   "true_clv": {
     "avg_probability_clv_pp": null,
