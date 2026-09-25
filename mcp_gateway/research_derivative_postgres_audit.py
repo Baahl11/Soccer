@@ -9,8 +9,8 @@ from typing import Any, Iterable
 
 from mcp_gateway import persistence as persistence_base
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.1.0"
 
 
 def _norm(value: Any) -> str:
@@ -107,12 +107,32 @@ def _price(value: dict[str, Any]) -> float | None:
 def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dict[str, Any]:
     family_rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
     samples: list[dict[str, Any]] = []
+    candidate_rows = 0
+    market_name_counts: Counter[str] = Counter()
+    unclassified_market_name_counts: Counter[str] = Counter()
+    unclassified_samples: list[dict[str, Any]] = []
 
     for row in rows:
         if not isinstance(row, dict):
             continue
+        candidate_rows += 1
+        market_name = str(row.get("market") or "UNKNOWN")
+        market_name_counts[market_name] += 1
         family = classify_market(row.get("market"))
         if family is None:
+            unclassified_market_name_counts[market_name] += 1
+            if len(unclassified_samples) < 50:
+                unclassified_samples.append({
+                    "fixture_id": row.get("fixture_id"),
+                    "captured_at": row.get("captured_at"),
+                    "stage": row.get("stage"),
+                    "bookmaker": row.get("bookmaker"),
+                    "market": row.get("market"),
+                    "provider_update": row.get("provider_update"),
+                    "pre_kickoff": bool(row.get("pre_kickoff")),
+                    "confirmed_xi_before_market": bool(row.get("confirmed_xi_before_market")),
+                    "values": _payload(row.get("values"))[:6],
+                })
             continue
         values = _payload(row.get("values"))
         line_values = sum(1 for value in values if value_line(value) is not None)
@@ -198,12 +218,18 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "decision_weight": 0.0,
+        "candidate_rows": candidate_rows,
+        "classified_rows": all_rows,
+        "unclassified_rows": candidate_rows - all_rows,
         "market_snapshot_rows": all_rows,
         "unique_fixtures": len(all_fixtures),
         "confirmed_xi_pre_kickoff_unique_fixtures": len(all_confirmed),
         "exact_line_value_rows": all_line_values,
+        "market_name_counts": dict(market_name_counts.most_common(100)),
+        "unclassified_market_name_counts": dict(unclassified_market_name_counts.most_common(100)),
         "families": summaries,
         "sample_rows": samples,
+        "unclassified_sample_rows": unclassified_samples,
         "policy": (
             "POSTGRES_READ_ONLY; PREMATCH MARKET SNAPSHOTS ONLY FOR OOS READINESS; "
             "CONFIRMED_XI MUST EXIST AT_OR_BEFORE MARKET CAPTURE; NO PROVIDER CALLS; "
