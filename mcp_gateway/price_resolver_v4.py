@@ -13,10 +13,18 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.8.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.9.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
+TEAM_TOTALS_DIVERSITY_TARGET = max(1, int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_TARGET", "20")))
+TEAM_TOTALS_DIVERSITY_LOOKAHEAD_HOURS = max(1, int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_LOOKAHEAD_HOURS", "36")))
+TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS = max(1, int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS", "180")))
+TEAM_TOTALS_DIVERSITY_BACKLOG_LIMIT = max(
+    TEAM_TOTALS_DIVERSITY_TARGET,
+    int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_BACKLOG_LIMIT", "80")),
+)
+TEAM_TOTALS_SPILLOVER_EVENT_TYPE = "TEAM_TOTALS_RESEARCH_SPILLOVER"
 
 FRESHNESS_MINUTES = {
     "EARLY_RESEARCH": 180,
@@ -606,6 +614,224 @@ def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
     return out
 
 
+def _is_ft_team_total_market(market: dict[str, Any]) -> bool:
+    try:
+        market_id = int(market.get("market_id")) if market.get("market_id") is not None else None
+    except (TypeError, ValueError):
+        market_id = None
+    if market_id in {16, 17}:
+        return True
+    name = _norm(market.get("market"))
+    return name in {
+        "total - home",
+        "total home",
+        "total - away",
+        "total away",
+        "home team total goals",
+        "away team total goals",
+        "home team goals over/under",
+        "away team goals over/under",
+    }
+
+
+def _has_ft_team_total_market(markets: list[dict[str, Any]]) -> bool:
+    return any(isinstance(market, dict) and _is_ft_team_total_market(market) for market in markets)
+
+
+def _json_object(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        try:
+            decoded = json.loads(value)
+        except json.JSONDecodeError:
+            return {}
+        return decoded if isinstance(decoded, dict) else {}
+    return {}
+
+
+def _load_team_totals_diversity_backlog(
+    *,
+    target: int = TEAM_TOTALS_DIVERSITY_TARGET,
+    lookahead_hours: int = TEAM_TOTALS_DIVERSITY_LOOKAHEAD_HOURS,
+    lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
+    limit: int = TEAM_TOTALS_DIVERSITY_BACKLOG_LIMIT,
+) -> dict[str, Any]:
+    """Load upcoming fixtures that already have a pre-kickoff model run but no FT Team Totals evidence.
+
+    This loader is provider-call free. It deliberately reuses persisted model runs so
+    diversity spillover spends only /odds requests and never creates extra sporting,
+    lineup, injury, or model-input requests.
+    """
+    empty = {
+        "existing_fixture_ids": set(),
+        "existing_unique_fixtures": 0,
+        "target": int(target),
+        "gap": int(target),
+        "candidate_events": [],
+        "candidate_count": 0,
+        "source": "POSTGRES_NOT_CONFIGURED",
+    }
+    if not persistence.persistence_configured():
+        return empty
+
+    persistence.ensure_schema()
+    now = datetime.now(timezone.utc)
+    lookback_cutoff = now - timedelta(days=max(1, int(lookback_days)))
+    lookahead_cutoff = now + timedelta(hours=max(1, int(lookahead_hours)))
+
+    observed_rows_expr = """
+        CASE
+            WHEN jsonb_typeof(COALESCE(e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb)) = 'array'
+            THEN jsonb_array_length(COALESCE(e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb))
+            ELSE 0
+        END
+    """
+
+    with persistence._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT DISTINCT e.fixture_id
+                FROM soccer_refresh_events e
+                JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                WHERE e.generated_at >= %s
+                  AND e.generated_at < f.kickoff
+                  AND ({observed_rows_expr}) > 0
+                """,
+                (lookback_cutoff,),
+            )
+            existing_fixture_ids = {
+                int(row[0])
+                for row in cur.fetchall()
+                if row and row[0] is not None
+            }
+
+            gap = max(0, int(target) - len(existing_fixture_ids))
+            if gap <= 0:
+                return {
+                    "existing_fixture_ids": existing_fixture_ids,
+                    "existing_unique_fixtures": len(existing_fixture_ids),
+                    "target": int(target),
+                    "gap": 0,
+                    "candidate_events": [],
+                    "candidate_count": 0,
+                    "source": "POSTGRES_MODELED_FIXTURE_BACKLOG",
+                }
+
+            cur.execute(
+                f"""
+                WITH latest_model AS (
+                    SELECT DISTINCT ON (m.fixture_id)
+                        m.fixture_id,
+                        m.run_timestamp,
+                        m.run_type,
+                        m.model_version,
+                        m.raw_projection,
+                        f.league_id,
+                        f.league,
+                        f.country,
+                        f.season,
+                        f.round,
+                        f.kickoff,
+                        f.status,
+                        f.status_long,
+                        f.home_team_id,
+                        f.home_team,
+                        f.away_team_id,
+                        f.away_team,
+                        f.venue,
+                        f.city
+                    FROM soccer_model_runs m
+                    JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+                    WHERE m.run_timestamp < f.kickoff
+                      AND f.kickoff > %s
+                      AND f.kickoff <= %s
+                      AND COALESCE(f.status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                      AND m.raw_projection IS NOT NULL
+                      AND (
+                            NULLIF(m.raw_projection ->> 'raw_home_goal_rate', '') IS NOT NULL
+                            OR NULLIF(m.raw_projection ->> 'raw_away_goal_rate', '') IS NOT NULL
+                      )
+                    ORDER BY m.fixture_id, m.run_timestamp DESC
+                )
+                SELECT lm.*
+                FROM latest_model lm
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM soccer_refresh_events e
+                    JOIN soccer_fixtures f2 ON f2.fixture_id = e.fixture_id
+                    WHERE e.fixture_id = lm.fixture_id
+                      AND e.generated_at >= %s
+                      AND e.generated_at < f2.kickoff
+                      AND ({observed_rows_expr}) > 0
+                )
+                ORDER BY lm.kickoff ASC, lm.run_timestamp DESC
+                LIMIT %s
+                """,
+                (now, lookahead_cutoff, lookback_cutoff, max(1, int(limit))),
+            )
+            rows = cur.fetchall()
+            columns = [desc.name for desc in cur.description]
+
+    candidate_events: list[dict[str, Any]] = []
+    for raw_row in rows:
+        row = dict(zip(columns, raw_row))
+        raw_projection = _json_object(row.get("raw_projection"))
+        if _num(raw_projection.get("raw_home_goal_rate")) is None and _num(raw_projection.get("raw_away_goal_rate")) is None:
+            continue
+        stage = str(row.get("run_type") or "EARLY_RESEARCH").upper()
+        if stage not in TEAM_TOTALS_RESEARCH_STAGES:
+            stage = "EARLY_RESEARCH"
+        kickoff = row.get("kickoff")
+        run_timestamp = row.get("run_timestamp")
+        fixture = {
+            "fixture_id": row.get("fixture_id"),
+            "league_id": row.get("league_id"),
+            "league": row.get("league"),
+            "country": row.get("country"),
+            "season": row.get("season"),
+            "round": row.get("round"),
+            "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
+            "status": row.get("status"),
+            "status_long": row.get("status_long"),
+            "home_team_id": row.get("home_team_id"),
+            "home_team": row.get("home_team"),
+            "away_team_id": row.get("away_team_id"),
+            "away_team": row.get("away_team"),
+            "venue": row.get("venue"),
+            "city": row.get("city"),
+        }
+        candidate_events.append({
+            "event_type": TEAM_TOTALS_SPILLOVER_EVENT_TYPE,
+            "stage": stage,
+            "fixture": fixture,
+            "raw_projection": raw_projection,
+            "classification": "RESEARCH_ONLY",
+            "bet_eligible": False,
+            "model_version": row.get("model_version"),
+            "research_only": True,
+            "decision_weight": 0.0,
+            "team_totals_diversity_provenance": {
+                "candidate_source": "POSTGRES_UPCOMING_MODELED_FIXTURE",
+                "model_run_timestamp": run_timestamp.isoformat() if isinstance(run_timestamp, datetime) else run_timestamp,
+                "provider_requests_before_price_resolver": 0,
+                "model_recomputed": False,
+                "primary_markets_preempted": False,
+            },
+        })
+
+    return {
+        "existing_fixture_ids": existing_fixture_ids,
+        "existing_unique_fixtures": len(existing_fixture_ids),
+        "target": int(target),
+        "gap": max(0, int(target) - len(existing_fixture_ids)),
+        "candidate_events": candidate_events,
+        "candidate_count": len(candidate_events),
+        "source": "POSTGRES_UPCOMING_MODELED_FIXTURE_BACKLOG",
+    }
+
+
 def _header_int(response: httpx.Response, name: str) -> int | None:
     value = response.headers.get(name)
     try:
@@ -869,10 +1095,16 @@ async def resolve_payload(
     # Derivative-market research hydration (currently Team Totals).
     #
     # Primary Phase16 price targets are always resolved first. Only the provider
-    # budget left after that primary loop may be used here. This lets us persist
-    # real full fixture /odds snapshots for HOME/AWAY team totals without
-    # stealing a request from FT Totals / BTTS / 1X2 and without making Team
-    # Totals rankable or actionable.
+    # budget left after that complete primary loop may be used below.
+    #
+    # Diversity policy:
+    #   1) Reuse current due-event fixtures and fresh cache at zero provider cost.
+    #   2) Load upcoming fixtures that already have a persisted pre-kickoff team
+    #      lambda but no observed FT Team Totals evidence.
+    #   3) Prioritize uncovered fixtures until 20+ unique fixtures are reached.
+    #   4) Keep lifecycle refreshes for already-covered current due events behind
+    #      new diversity work so later CLV snapshots can still accumulate.
+    #   5) Never issue sporting/model/lineup calls here: /odds only.
     cache_hydrated_research_fixtures = 0
     cache_hydrated_research_market_rows = 0
     research_spillover_candidate_fixtures: set[int] = set()
@@ -882,17 +1114,33 @@ async def resolve_payload(
     research_spillover_market_rows_fetched = 0
     research_spillover_budget_exhausted_fixtures = 0
     research_spillover_api_errors = 0
+    research_spillover_synthetic_events_added = 0
+    research_spillover_exact_team_total_fixture_ids: set[int] = set()
+    research_spillover_new_unique_fixture_ids: set[int] = set()
+    research_spillover_current_event_candidates = 0
 
+    diversity = await asyncio.to_thread(_load_team_totals_diversity_backlog)
+    existing_team_total_fixture_ids = {
+        int(value)
+        for value in (diversity.get("existing_fixture_ids") or set())
+        if value is not None
+    }
+    diversity_target = int(diversity.get("target") or TEAM_TOTALS_DIVERSITY_TARGET)
+    persisted_backlog_events = [
+        event
+        for event in (diversity.get("candidate_events") or [])
+        if isinstance(event, dict)
+    ]
+
+    current_candidates: list[dict[str, Any]] = []
     for event in events:
         if not isinstance(event, dict) or str(event.get("stage") or "").upper() == "POSTGAME":
             continue
         if str(event.get("event_type") or "") != "SOCCER_REFRESH":
             continue
-
         stage = str(event.get("stage") or "").upper()
         if stage not in TEAM_TOTALS_RESEARCH_STAGES:
             continue
-
         fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
         fixture_id_value = fixture.get("fixture_id")
         if fixture_id_value is None:
@@ -901,77 +1149,155 @@ async def resolve_payload(
             fixture_id = int(fixture_id_value)
         except (TypeError, ValueError):
             continue
-
         raw = event.get("raw_projection") if isinstance(event.get("raw_projection"), dict) else {}
         if _num(raw.get("raw_home_goal_rate")) is None and _num(raw.get("raw_away_goal_rate")) is None:
             continue
+        current_candidates.append({
+            "fixture_id": fixture_id,
+            "event": event,
+            "source": "CURRENT_DUE_EVENT",
+            "priority": 0 if fixture_id not in existing_team_total_fixture_ids else 2,
+        })
+        research_spillover_current_event_candidates += 1
 
-        research_spillover_candidate_fixtures.add(fixture_id)
+    candidate_records: list[dict[str, Any]] = []
+    seen_candidate_fixture_ids: set[int] = set()
+    for record in current_candidates:
+        fixture_id = int(record["fixture_id"])
+        if fixture_id in seen_candidate_fixture_ids:
+            continue
+        seen_candidate_fixture_ids.add(fixture_id)
+        candidate_records.append(record)
 
-        # A primary candidate for the same fixture may already have fetched the
-        # complete /odds payload. Reuse it at zero extra cost.
+    for event in persisted_backlog_events:
+        fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
+        try:
+            fixture_id = int(fixture.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        if fixture_id in seen_candidate_fixture_ids or fixture_id in existing_team_total_fixture_ids:
+            continue
+        seen_candidate_fixture_ids.add(fixture_id)
+        candidate_records.append({
+            "fixture_id": fixture_id,
+            "event": event,
+            "source": "PERSISTED_MODELED_BACKLOG",
+            "priority": 1,
+        })
+
+    candidate_records.sort(key=lambda record: (
+        int(record.get("priority") or 0),
+        str(((record.get("event") or {}).get("fixture") or {}).get("kickoff") or ""),
+        int(record.get("fixture_id") or 0),
+    ))
+    research_spillover_candidate_fixtures = {
+        int(record["fixture_id"]) for record in candidate_records
+    }
+
+    def _record_exact_team_total_coverage(fixture_id: int, markets: list[dict[str, Any]]) -> None:
+        if not _has_ft_team_total_market(markets):
+            return
+        research_spillover_exact_team_total_fixture_ids.add(fixture_id)
+        if fixture_id not in existing_team_total_fixture_ids:
+            research_spillover_new_unique_fixture_ids.add(fixture_id)
+
+    def _attach_spillover_event(record: dict[str, Any], markets: list[dict[str, Any]], status: str) -> None:
+        nonlocal research_spillover_synthetic_events_added
+        event = record["event"]
+        if markets and not isinstance(event.get("market"), dict):
+            _attach_market_to_event(event, markets, status)
+        if record.get("source") != "PERSISTED_MODELED_BACKLOG":
+            return
+        if event not in events and markets:
+            events.append(event)
+            research_spillover_synthetic_events_added += 1
+
+    # First pass: consume only already-fetched primary payloads or fresh Postgres
+    # market snapshots. This can increase fixture diversity with zero provider calls.
+    unresolved_records: list[dict[str, Any]] = []
+    for record in candidate_records:
+        fixture_id = int(record["fixture_id"])
+        event = record["event"]
+
         if fixture_id in fixture_cache:
             markets, status = fixture_cache[fixture_id]
-            if markets and not isinstance(event.get("market"), dict):
-                _attach_market_to_event(event, markets, status)
-            if markets and str(status).startswith("PRICE_CACHE"):
-                research_spillover_cache_hits += 1
+            if markets:
+                _attach_spillover_event(record, markets, status)
+                _record_exact_team_total_coverage(fixture_id, markets)
+                if str(status).startswith("PRICE_CACHE"):
+                    research_spillover_cache_hits += 1
             continue
 
         cached = await asyncio.to_thread(_load_cached_markets, fixture_id, event.get("stage"))
         if cached:
             fixture_cache[fixture_id] = (cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
-            _attach_market_to_event(event, cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
+            _attach_spillover_event(record, cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
+            _record_exact_team_total_coverage(fixture_id, cached)
             cache_hydrated_research_fixtures += 1
             cache_hydrated_research_market_rows += len(cached)
             research_spillover_cache_hits += 1
             continue
 
-        # Cache miss: only use provider capacity that survived the complete
-        # primary target loop above. No research spillover call can pre-empt a
-        # primary price-resolution request.
-        if not api_key:
-            fixture_cache[fixture_id] = ([], "PRICE_API_KEY_MISSING_RESEARCH_ONLY")
-            continue
-        if calls >= budget:
-            fixture_cache[fixture_id] = ([], "PRICE_BUDGET_EXHAUSTED_RESEARCH_ONLY")
-            research_spillover_budget_exhausted_fixtures += 1
-            continue
+        unresolved_records.append(record)
 
-        before_calls = calls
-        try:
-            markets, used, status, observed_remaining = await _fetch_fixture_odds(
-                client,
-                fixture_id,
-                api_key=api_key,
-                remaining_calls=budget - calls,
-            )
-            calls += used
-            research_spillover_api_calls_added += used
-            if observed_remaining is not None:
-                provider_daily_remaining = (
-                    observed_remaining
-                    if provider_daily_remaining is None
-                    else min(provider_daily_remaining, observed_remaining)
-                )
-            if markets:
-                fixture_cache[fixture_id] = (markets, status)
-                _attach_market_to_event(event, markets, status)
-                research_spillover_fixtures_fetched += 1
-                research_spillover_market_rows_fetched += len(markets)
-                event["research_price_spillover"] = {
-                    "source": "API_FOOTBALL_ODDS_V3",
-                    "provider_requests_added": used,
-                    "policy": "LEFTOVER_PRICE_RESOLVER_BUDGET_AFTER_PRIMARY_TARGETS",
-                    "research_only": True,
-                }
-            else:
-                fixture_cache[fixture_id] = ([], status)
-        except Exception as exc:
-            research_spillover_api_errors += 1
-            calls = before_calls
-            fixture_cache[fixture_id] = ([], "PRICE_API_ERROR_RESEARCH_ONLY")
-            event["research_price_spillover_error"] = str(exc)[:180]
+    # Second pass: only now can leftover provider budget be spent. Use a fresh
+    # client because the primary resolver client above has already exited its
+    # context manager; reusing that closed client would make cache misses fail.
+    if unresolved_records:
+        async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SECONDS, follow_redirects=True) as spillover_client:
+            for record in unresolved_records:
+                fixture_id = int(record["fixture_id"])
+                event = record["event"]
+                source = str(record.get("source") or "")
+
+                # Once the accumulated diversity target is satisfied, do not spend
+                # extra calls on synthetic backlog. Current due-event lifecycle
+                # refreshes may still use any budget that remains for future CLV.
+                diversity_progress = len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids)
+                if source == "PERSISTED_MODELED_BACKLOG" and diversity_progress >= diversity_target:
+                    continue
+
+                if not api_key:
+                    fixture_cache[fixture_id] = ([], "PRICE_API_KEY_MISSING_RESEARCH_ONLY")
+                    continue
+                if calls >= budget:
+                    fixture_cache[fixture_id] = ([], "PRICE_BUDGET_EXHAUSTED_RESEARCH_ONLY")
+                    research_spillover_budget_exhausted_fixtures += 1
+                    continue
+
+                try:
+                    markets, used, status, observed_remaining = await _fetch_fixture_odds(
+                        spillover_client,
+                        fixture_id,
+                        api_key=api_key,
+                        remaining_calls=budget - calls,
+                    )
+                    calls += used
+                    research_spillover_api_calls_added += used
+                    if observed_remaining is not None:
+                        provider_daily_remaining = (
+                            observed_remaining
+                            if provider_daily_remaining is None
+                            else min(provider_daily_remaining, observed_remaining)
+                        )
+                    fixture_cache[fixture_id] = (markets, status)
+                    if markets:
+                        _attach_spillover_event(record, markets, status)
+                        _record_exact_team_total_coverage(fixture_id, markets)
+                        research_spillover_fixtures_fetched += 1
+                        research_spillover_market_rows_fetched += len(markets)
+                        event["research_price_spillover"] = {
+                            "source": "API_FOOTBALL_ODDS_V3",
+                            "provider_requests_added": used,
+                            "policy": "LEFTOVER_PRICE_RESOLVER_BUDGET_AFTER_PRIMARY_TARGETS",
+                            "research_only": True,
+                            "diversity_priority": source == "PERSISTED_MODELED_BACKLOG",
+                            "ft_team_totals_present": _has_ft_team_total_market(markets),
+                        }
+                except Exception as exc:
+                    research_spillover_api_errors += 1
+                    fixture_cache[fixture_id] = ([], "PRICE_API_ERROR_RESEARCH_ONLY")
+                    event["research_price_spillover_error"] = str(exc)[:180]
 
     _apply_quota_accounting(payload, calls, provider_daily_remaining)
 
@@ -1007,8 +1333,18 @@ async def resolve_payload(
         "cache_hydrated_research_fixtures": cache_hydrated_research_fixtures,
         "cache_hydrated_research_market_rows": cache_hydrated_research_market_rows,
         "cache_hydration_provider_requests_added": 0,
-        "cache_hydration_policy": "PREGAME_SOCCER_REFRESH_WITH_TEAM_LAMBDAS_FRESH_POSTGRES_SNAPSHOTS_FIRST",
+        "cache_hydration_policy": "PREGAME_TEAM_LAMBDA_FIXTURES_FRESH_POSTGRES_SNAPSHOTS_FIRST",
         "research_spillover_candidate_fixtures": len(research_spillover_candidate_fixtures),
+        "research_spillover_current_event_candidates": research_spillover_current_event_candidates,
+        "research_spillover_persisted_backlog_candidates": int(diversity.get("candidate_count") or 0),
+        "research_spillover_diversity_source": diversity.get("source"),
+        "research_spillover_unique_fixture_target": diversity_target,
+        "research_spillover_existing_unique_fixtures": len(existing_team_total_fixture_ids),
+        "research_spillover_new_unique_fixtures_this_tick": len(research_spillover_new_unique_fixture_ids),
+        "research_spillover_projected_unique_fixtures": len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids),
+        "research_spillover_diversity_gap_remaining": max(0, diversity_target - len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids)),
+        "research_spillover_exact_team_total_fixtures_attached": len(research_spillover_exact_team_total_fixture_ids),
+        "research_spillover_synthetic_events_added": research_spillover_synthetic_events_added,
         "research_spillover_cache_hits": research_spillover_cache_hits,
         "research_spillover_api_calls_added": research_spillover_api_calls_added,
         "research_spillover_fixtures_fetched": research_spillover_fixtures_fetched,
@@ -1016,7 +1352,9 @@ async def resolve_payload(
         "research_spillover_budget_exhausted_fixtures": research_spillover_budget_exhausted_fixtures,
         "research_spillover_api_errors": research_spillover_api_errors,
         "research_spillover_provider_requests_included_in_api_calls_added": True,
-        "research_spillover_policy": "CACHE_FIRST;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET_AFTER_ALL_PRIMARY_PRICE_TARGETS;TEAM_TOTALS_RESEARCH_ONLY",
+        "research_spillover_primary_markets_preempted": False,
+        "research_spillover_only_odds_provider_calls": True,
+        "research_spillover_policy": "CACHE_FIRST;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;DIVERSIFY_TO_20_UNIQUE_FT_TEAM_TOTAL_FIXTURES_FROM_PERSISTED_PREKICKOFF_MODELS;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
     }
     payload["price_resolution_provider_requests_added"] = calls
     return payload["price_resolution_v4"]
