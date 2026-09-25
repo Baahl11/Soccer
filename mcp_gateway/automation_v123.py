@@ -4,6 +4,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from mcp_gateway import automation_v2 as v2
+from mcp_gateway import automation_v6 as v6
 from mcp_gateway import automation_v121 as v121
 from mcp_gateway import automation_v92 as v92
 from mcp_gateway import automation_v112 as v112
@@ -11,7 +13,11 @@ from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.31.8-team-totals-diversity-catchup"
+AUTOMATION_VERSION = "4.31.9-primary-price-reserve-no-overflow"
+PRIMARY_PRICE_RESERVE_CALLS = max(
+    0,
+    int(os.getenv("SOCCER_PRIMARY_PRICE_RESERVE_CALLS", "20")),
+)
 # Deployment marker: v128 guarded diversity catch-up overflow.
 # Deployment marker: v126 active-v7 upcoming fixture handoff.
 # Deployment marker: v125 scanned-upcoming FT Team Totals capture.
@@ -35,17 +41,12 @@ def _leftover_price_budget(payload: dict[str, Any]) -> int:
     return max(0, min(configured, cap - used))
 
 
-TEAM_TOTALS_DIVERSITY_CATCHUP_MAX_CALLS = max(
-    0,
-    int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_CATCHUP_MAX_CALLS", "20")),
-)
-TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR = max(
-    0,
-    int(os.getenv("SOCCER_TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR", "5000")),
-)
-
-
 def _price_budget_plan(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return a strict leftover-only price budget.
+
+    Any capacity used here must fit inside the same global per-tick cap. There is
+    no Team Totals overflow above the cap, even when daily quota is abundant.
+    """
     configured = max(0, int(price_resolver_v4.DEFAULT_MAX_API_CALLS))
     standard_leftover = _leftover_price_budget(payload)
 
@@ -59,32 +60,16 @@ def _price_budget_plan(payload: dict[str, Any]) -> dict[str, Any]:
             daily_remaining = None
 
     mode = str(payload.get("daily_budget_mode") or "").upper()
-    catchup = 0
-    if (
-        configured > standard_leftover
-        and TEAM_TOTALS_DIVERSITY_CATCHUP_MAX_CALLS > 0
-        and mode == "NORMAL"
-        and daily_remaining is not None
-        and daily_remaining > TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR
-    ):
-        daily_surplus = max(0, daily_remaining - TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR)
-        catchup = min(
-            TEAM_TOTALS_DIVERSITY_CATCHUP_MAX_CALLS,
-            configured - standard_leftover,
-            daily_surplus,
-        )
-
-    total = standard_leftover + catchup
     return {
         "configured_price_cap": configured,
         "standard_leftover_budget": standard_leftover,
-        "diversity_catchup_overflow_budget": catchup,
-        "total_price_resolver_budget": total,
+        "diversity_catchup_overflow_budget": 0,
+        "total_price_resolver_budget": standard_leftover,
         "daily_remaining_before_price_resolver": daily_remaining,
-        "daily_floor": TEAM_TOTALS_DIVERSITY_CATCHUP_DAILY_FLOOR,
         "daily_budget_mode": mode or None,
-        "catchup_enabled": catchup > 0,
-        "primary_tick_cap_unchanged": True,
+        "catchup_enabled": False,
+        "overflow_above_global_tick_cap_allowed": False,
+        "primary_tick_cap_unchanged": False,
     }
 
 
@@ -131,8 +116,14 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "diversity_catchup_overflow_budget": payload.get("team_totals_diversity_catchup_overflow_budget", 0),
         "total_price_resolver_budget": payload.get("price_resolver_total_budget", 0),
         "price_resolver_budget_plan": dict(payload.get("price_resolver_budget_plan") or {}),
+        "pre_price_pipeline_api_cap": payload.get("pre_price_pipeline_api_cap"),
+        "global_api_cap_after_daily_policy": payload.get("global_api_cap_after_daily_policy"),
+        "primary_price_reserve_calls": payload.get("primary_price_reserve_calls"),
+        "overflow_above_global_tick_cap_allowed": False,
         "note": (
-            "Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
+            "The upstream sporting/deep-dive chain is temporarily capped below the SAME global tick ceiling so "
+            "primary FT Totals/BTTS/1X2 price targets retain reserved capacity on busy slates; no overflow above "
+            "the global cap is allowed. Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
             "Resolved rows are re-evaluated by Team Totals research intelligence, execution-status separation "
             "and Phase16. Team Totals first reuses exact FT Team Totals already present in paid primary /odds "
             "payloads at zero extra provider cost; cache comes next, and only then may it use provider budget left after every primary "
@@ -148,34 +139,53 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
 
 
 async def run_tick() -> dict[str, Any]:
-    payload = await v121.run_tick()
+    # Reserve price capacity inside the same global cap instead of allowing a
+    # post-cap catch-up overflow. On a normal 70-call production tick, the
+    # default split is 50 upstream + up to 20 price calls. Primary price targets
+    # consume this budget first; Team Totals receives only any remainder.
+    original_base_cap = int(v6._BASE_MAX_API_CALLS_PER_TICK)
+    reserve_requested = min(PRIMARY_PRICE_RESERVE_CALLS, max(0, original_base_cap - 1))
+    pre_price_cap = max(1, original_base_cap - reserve_requested)
+
+    v6._BASE_MAX_API_CALLS_PER_TICK = pre_price_cap
+    try:
+        payload = await v121.run_tick()
+    finally:
+        v6._BASE_MAX_API_CALLS_PER_TICK = original_base_cap
+
+    remaining_raw = payload.get("last_daily_remaining")
+    try:
+        remaining = int(remaining_raw) if remaining_raw is not None else None
+    except (TypeError, ValueError):
+        remaining = None
+
+    _mode, global_cap = v6._budget_for_remaining(remaining)
+    global_cap = int(global_cap)
+    v2.MAX_API_CALLS_PER_TICK = global_cap
+
+    payload["pre_price_pipeline_api_cap"] = pre_price_cap
+    payload["global_api_cap_after_daily_policy"] = global_cap
+    payload["primary_price_reserve_calls"] = max(0, global_cap - pre_price_cap)
+    payload["max_api_calls_per_tick"] = global_cap
+    payload["effective_max_api_calls_per_tick"] = global_cap
 
     budget_plan = _price_budget_plan(payload)
     payload["price_resolver_leftover_budget"] = budget_plan["standard_leftover_budget"]
-    payload["team_totals_diversity_catchup_overflow_budget"] = budget_plan["diversity_catchup_overflow_budget"]
+    payload["team_totals_diversity_catchup_overflow_budget"] = 0
     payload["price_resolver_total_budget"] = budget_plan["total_price_resolver_budget"]
     payload["price_resolver_budget_plan"] = budget_plan
     payload["price_resolver_budget_policy"] = (
-        "PRIMARY SCHEDULER KEEPS ITS FULL EFFECTIVE TICK CAP; STANDARD PRICE BUDGET USES ONLY CAP LEFTOVER. "
-        "WHILE STRICT FT TEAM TOTAL DIVERSITY IS CATCHING UP, NORMAL DAILY-BUDGET MODE WITH >5000 REQUESTS "
-        "REMAINING MAY ADD UP TO 20 TEMPORARY RESEARCH-ONLY /ODDS CALLS AFTER PRIMARY WORK. "
-        "PRIMARY PRICE TARGETS STILL RUN BEFORE TEAM TOTALS; OVERFLOW NEVER REDUCES THE PRIMARY CAP."
+        "SAME_GLOBAL_TICK_CAP_ONLY; UPSTREAM_SPORT_DEEP_DIVE_TEMP_CAP_RESERVES_CAPACITY; "
+        "FT_TOTALS_BTTS_1X2_PRICE_TARGETS_RESOLVE_FIRST; TEAM_TOTALS_USES_ONLY_POST_PRIMARY_LEFTOVER; "
+        "NO_DIVERSITY_OVERFLOW_ABOVE_GLOBAL_CAP"
     )
     await price_resolver_v4.resolve_payload(
         payload,
         max_api_calls=budget_plan["total_price_resolver_budget"],
     )
 
-    # Team Totals is built earlier in the automation chain, before the price
-    # resolver may attach real fixture /odds markets. Rebuild this research-only
-    # derivative after price enrichment. The resolver may use only budget left
-    # after all primary price targets, so derivative collection never pre-empts
-    # FT Totals / BTTS / 1X2 price resolution.
     payload["team_totals_post_resolution"] = team_totals_intelligence.attach(payload)
 
-    # Price enrichment changes exact market/selection/price/fair probability on
-    # research visibility rows. Recompute readiness and Phase16 against that
-    # enriched point-in-time view. Both functions remain research-only.
     v92._annotate_decision_separation(payload)
     v112._annotate_phase16(payload)
 
