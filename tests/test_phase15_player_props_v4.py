@@ -3,6 +3,7 @@ from mcp_gateway import player_props_clv_postgres_v4 as prop_clv
 from mcp_gateway import player_props_oos_postgres_v4 as prop_oos
 from mcp_gateway import player_props_phase15_coverage_audit as coverage_audit
 from mcp_gateway import player_props_postgame_backfill_v4 as prop_backfill
+from mcp_gateway import automation as base_automation
 
 
 BASE = {
@@ -980,3 +981,104 @@ def test_phase15_backfill_event_never_creates_retroactive_pregame_evidence():
     assert event["backfill"]["retroactive_market_created"] is False
     assert event["actionable"] is False
     assert event["decision_weight"] == 0.0
+
+
+def test_player_props_clv_accepts_t30_and_n_plus_line_as_real_prediction_point():
+    lineup = {
+        "both_xi_confirmed": True,
+        "both_goalkeepers_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Keeper B", "pos": "G"}],
+            },
+        ],
+    }
+    market = base_automation._compact_odds(
+        {
+            "response": [{
+                "update": "2026-09-25T10:28:00+00:00",
+                "bookmakers": [{
+                    "id": 1,
+                    "name": "Book",
+                    "bets": [{
+                        "id": 801,
+                        "name": "Player Shots",
+                        "values": [{"value": "Player A - 3", "odd": "1.90"}],
+                    }],
+                }],
+            }],
+        },
+        lineup=lineup,
+    )
+    event = {
+        "fixture_id": 9100,
+        "generated_at": "2026-09-25T10:30:00+00:00",
+        "stage": "T-30",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-30",
+            "fixture": {"fixture_id": 9100, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "lineups": lineup,
+            "player_shots_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "confirmed_starter": True,
+                    "expected_minutes_if_confirmed_starter": 82.0,
+                    "lines": [{"line": 2.5, "p_over": 0.54, "p_under": 0.46}],
+                }]
+            },
+            "market": market,
+        },
+    }
+
+    signals = prop_clv.extract_shadow_signals([event])
+    assert len(signals) == 1
+    assert signals[0]["stage"] == "T-30"
+    assert signals[0]["line"] == 2.5
+    assert signals[0]["side"] == "OVER"
+    assert signals[0]["model_probability"] == 0.54
+    assert signals[0]["player_id"] == 501
+
+
+def test_player_props_oos_t30_is_valid_but_t20_and_t10_remain_higher_priority():
+    base_payload = {
+        "fixture": {"fixture_id": 9200, "kickoff": "2026-09-25T11:00:00+00:00"},
+    }
+    rows = [
+        {
+            "fixture_id": 9200,
+            "stage": "T-40",
+            "generated_at": "2026-09-25T10:20:00+00:00",
+            "kickoff": "2026-09-25T11:00:00+00:00",
+            "event_payload": {**base_payload, "stage": "T-40"},
+        },
+        {
+            "fixture_id": 9200,
+            "stage": "T-30",
+            "generated_at": "2026-09-25T10:30:00+00:00",
+            "kickoff": "2026-09-25T11:00:00+00:00",
+            "event_payload": {**base_payload, "stage": "T-30"},
+        },
+    ]
+    out = prop_oos.choose_canonical_pregame_events(rows)
+    assert len(out) == 1
+    assert out[0]["stage"] == "T-30"
+
+    rows.append({
+        "fixture_id": 9200,
+        "stage": "T-20",
+        "generated_at": "2026-09-25T10:40:00+00:00",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {**base_payload, "stage": "T-20"},
+    })
+    out = prop_oos.choose_canonical_pregame_events(rows)
+    assert out[0]["stage"] == "T-20"
