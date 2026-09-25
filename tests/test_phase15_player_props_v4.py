@@ -711,3 +711,59 @@ def test_phase15_uses_dedicated_oos_report_instead_of_static_sanity_flag():
     assert "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED" not in report["blockers"]
     assert "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED" not in report["blockers"]
     assert report["production_promotion_allowed"] is False
+
+
+def test_player_props_oos_excludes_confirmed_but_unmodelable_players_from_sample():
+    pregame = [{
+        "fixture_id": 7100,
+        "stage": "T-10",
+        "generated_at": "2026-09-25T10:50:00+00:00",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-10",
+            "fixture": {"fixture_id": 7100, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "player_shots_intelligence": {
+                "players": [
+                    {
+                        "player_id": 501,
+                        "player": "Modelable",
+                        "team_id": 10,
+                        "confirmed_starter": True,
+                        "expected_minutes_if_confirmed_starter": 80.0,
+                        "expected_shots": 2.2,
+                        "lines": [{"line": 1.5, "p_over": 0.61, "p_under": 0.39}],
+                    },
+                    {
+                        "player_id": 502,
+                        "player": "Unmodelable",
+                        "team_id": 10,
+                        "confirmed_starter": True,
+                        "status": "PROFILE_NOT_MODELABLE",
+                        "lines": [],
+                    },
+                ]
+            },
+        },
+    }]
+    postgame = [{
+        "fixture_id": 7100,
+        "stage": "POSTGAME",
+        "generated_at": "2026-09-25T13:00:00+00:00",
+        "event_payload": {
+            "fixture": {"fixture_id": 7100},
+            "postgame_player_stats": {
+                "teams": [{
+                    "team_id": 10,
+                    "players": [
+                        {"player_id": 501, "minutes": 90, "shots": 2},
+                        {"player_id": 502, "minutes": 90, "shots": 1},
+                    ],
+                }],
+            },
+        },
+    }]
+
+    rows = prop_oos.build_oos_rows(pregame, postgame)
+    assert len(rows) == 1
+    assert rows[0]["player_id"] == 501
+    assert len(rows[0]["binary_rows"]) == 1
