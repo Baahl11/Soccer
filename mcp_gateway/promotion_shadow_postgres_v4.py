@@ -9,7 +9,7 @@ from typing import Any, Iterable
 from mcp_gateway import persistence
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.6.0"
+MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.7.0"
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
 SUPPORTED_FAMILIES = {"1X2", "FT_TOTALS", "BTTS"}
 REQUIRED_EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
@@ -312,6 +312,11 @@ def _promotion_filter_diagnostics(raw_rows: Iterable[dict[str, Any]]) -> dict[st
     family_counts: dict[str, int] = defaultdict(int)
     eligible_family_counts: dict[str, int] = defaultdict(int)
     evidence_regime_counts: dict[str, int] = defaultdict(int)
+    required_regime_family_counts: dict[str, int] = defaultdict(int)
+    required_regime_eligible_family_counts: dict[str, int] = defaultdict(int)
+    missing_regime_family_counts: dict[str, int] = defaultdict(int)
+    required_regime_fixture_ids: dict[str, set[int]] = defaultdict(set)
+    required_regime_eligible_fixture_ids: dict[str, set[int]] = defaultdict(set)
     supported_rankable = 0
     promotion_flag_true = 0
     pre_normalization_eligible = 0
@@ -328,6 +333,15 @@ def _promotion_filter_diagnostics(raw_rows: Iterable[dict[str, Any]]) -> dict[st
 
         supported_rankable += 1
         family_counts[family] += 1
+        evidence_regime = str(candidate.get("evidence_regime") or "")
+        if evidence_regime == REQUIRED_EVIDENCE_REGIME:
+            required_regime_family_counts[family] += 1
+            try:
+                required_regime_fixture_ids[family].add(int(row.get("fixture_id")))
+            except (TypeError, ValueError):
+                pass
+        elif not evidence_regime:
+            missing_regime_family_counts[family] += 1
 
         if candidate.get("promotion_shadow_eligible") is not True:
             reason_counts["PROMOTION_SHADOW_ELIGIBLE_FALSE"] += 1
@@ -335,11 +349,16 @@ def _promotion_filter_diagnostics(raw_rows: Iterable[dict[str, Any]]) -> dict[st
 
         promotion_flag_true += 1
         eligible_family_counts[family] += 1
-        evidence_regime = str(candidate.get("evidence_regime") or "")
         evidence_regime_counts[evidence_regime or "(MISSING)"] += 1
         if evidence_regime != REQUIRED_EVIDENCE_REGIME:
             reason_counts["EVIDENCE_REGIME_MISMATCH"] += 1
             continue
+
+        required_regime_eligible_family_counts[family] += 1
+        try:
+            required_regime_eligible_fixture_ids[family].add(int(row.get("fixture_id")))
+        except (TypeError, ValueError):
+            pass
 
         try:
             int(row.get("fixture_id"))
@@ -371,6 +390,33 @@ def _promotion_filter_diagnostics(raw_rows: Iterable[dict[str, Any]]) -> dict[st
         "supported_rankable_by_family": dict(sorted(family_counts.items())),
         "promotion_shadow_flag_true_by_family": dict(sorted(eligible_family_counts.items())),
         "promotion_shadow_flag_true_evidence_regime_counts": dict(sorted(evidence_regime_counts.items())),
+        "required_evidence_regime_rows_by_family": {
+            family: int(required_regime_family_counts.get(family, 0))
+            for family in sorted(SUPPORTED_FAMILIES)
+        },
+        "required_evidence_regime_unique_fixtures_by_family": {
+            family: len(required_regime_fixture_ids.get(family, set()))
+            for family in sorted(SUPPORTED_FAMILIES)
+        },
+        "required_evidence_regime_promotion_eligible_rows_by_family": {
+            family: int(required_regime_eligible_family_counts.get(family, 0))
+            for family in sorted(SUPPORTED_FAMILIES)
+        },
+        "required_evidence_regime_promotion_eligible_unique_fixtures_by_family": {
+            family: len(required_regime_eligible_fixture_ids.get(family, set()))
+            for family in sorted(SUPPORTED_FAMILIES)
+        },
+        "missing_evidence_regime_rows_by_family": {
+            family: int(missing_regime_family_counts.get(family, 0))
+            for family in sorted(SUPPORTED_FAMILIES)
+        },
+        "required_evidence_regime_accumulation_gap_by_family": {
+            family: {
+                "directional_20_gap": max(0, DIRECTIONAL_MIN - len(required_regime_eligible_fixture_ids.get(family, set()))),
+                "review_50_gap": max(0, REVIEW_MIN - len(required_regime_eligible_fixture_ids.get(family, set()))),
+            }
+            for family in sorted(SUPPORTED_FAMILIES)
+        },
     }
 
 
