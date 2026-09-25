@@ -807,6 +807,12 @@ def test_team_totals_diversity_backlog_uses_fresh_client_and_counts_exact_fixtur
     assert payload["events"][0]["event_type"] == "TEAM_TOTALS_RESEARCH_SPILLOVER"
     assert payload["events"][0]["market"]["markets"][0]["market"] == "Total - Home"
     assert payload["events"][0]["research_price_spillover"]["ft_team_totals_present"] is True
+    capture = payload["events"][0]["team_totals_diversity_capture"]
+    assert capture["qualifies"] is True
+    assert capture["phase19_true_clv_qualified"] is False
+    assert capture["phase19_true_clv_requires_later_pre_kickoff_close"] is True
+    assert result["research_spillover_diversity_counter_semantics"].startswith("EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_MARKER")
+    assert result["research_spillover_phase19_true_clv_gate_separate"] is True
 
 
 def test_team_totals_diversity_does_not_count_generic_odds_payload(monkeypatch):
