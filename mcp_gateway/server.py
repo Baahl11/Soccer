@@ -783,7 +783,10 @@ async def internal_training_dataset_export(request: Request) -> Response:
     try:
         _github_oidc_claims(
             request,
-            {".github/workflows/v4-011-lightgbm-validation.yml"},
+            {
+                ".github/workflows/v4-011-lightgbm-validation.yml",
+                ".github/workflows/phase19-promotion-framework-validation.yml",
+            },
         )
     except Exception as exc:
         return JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
