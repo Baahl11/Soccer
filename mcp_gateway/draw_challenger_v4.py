@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from datetime import datetime
 from typing import Any
 
 from mcp_gateway.oos_stage_diagnostics_v4 import _auc_discrimination
@@ -71,7 +72,14 @@ def eligible_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         captured = str(row.get("feature_captured_at") or "")
         kickoff = str(row.get("kickoff") or "")
-        if not captured or not kickoff or captured >= kickoff:
+        if not captured or not kickoff:
+            continue
+        try:
+            captured_dt = datetime.fromisoformat(captured.replace("Z", "+00:00"))
+            kickoff_dt = datetime.fromisoformat(kickoff.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if captured_dt.tzinfo is None or kickoff_dt.tzinfo is None or captured_dt >= kickoff_dt:
             continue
         out.append(row)
     out.sort(key=lambda row: (
