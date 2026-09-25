@@ -139,7 +139,7 @@ def main() -> None:
         },
         "full_history_state_registry": full_registry(fixtures, args.state_prior_games),
         "promotion_gate": {"enabled": False, "minimum_oos_for_live_research_review": 200, "sample_gate_met": n >= 200, "requires": ["beats pregame 2H baseline on Brier/log-loss/MAE", "dedicated HT scheduler path", "verified current halftime score", "red-card state before production review", "live market price/CLV calibration"]},
-        "live_status": "OFFLINE_MODEL_BUILT; SCHEDULER_HAS_NO_DEDICATED_HT_RESEARCH_STAGE_YET",
+        "live_status": "OFFLINE_MODEL_BUILT; DEDICATED_HT_RESEARCH_STAGE_IMPLEMENTED_RESEARCH_ONLY; LIVE_2H_PRICE_RED_CARD_SHOTS_SOT_PENDING",
         "anti_leakage": "Every target multiplier uses only earlier finalized fixtures; target second-half outcome never enters its own state multiplier.",
         "rows": rows[-500:],
     }
