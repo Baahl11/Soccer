@@ -170,3 +170,38 @@ def test_v4_019_accepts_total_home_away_only_as_team_total_families():
     assert summary["rows"] == 2
     assert summary["unique_fixtures"] == 2
     assert summary["avg_probability_clv_pp"] == 0.005
+
+
+def test_v4_019_fifty_rows_from_one_fixture_do_not_satisfy_unique_fixture_gate():
+    validation = {
+        "evaluated_fixtures": 500,
+        "evaluated_probability_rows": 6000,
+        "by_line": {"0.5": {"n": 2000}, "1.5": {"n": 2000}, "2.5": {"n": 2000}},
+        "by_role_line_selection": {
+            "HOME:0.5:OVER": {"n": 500, "mean_probability": 0.72, "observed_rate": 0.78},
+        },
+        "promotion_gate": {"enabled": False},
+    }
+    rows = [
+        {"market_family": "HOME_TT", "market": "Total - Home", "fixture_id": 99, "clv_probability_pp": 0.01}
+        for _ in range(50)
+    ]
+    report = v.build_report(validation, rows)
+
+    assert report["true_clv"]["rows"] == 50
+    assert report["true_clv"]["unique_fixtures"] == 1
+    assert report["review_gate"]["true_clv_sample_ready"] is True
+    assert report["review_gate"]["true_clv_unique_fixture_sample_ready"] is False
+    assert "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_1_LT_20" in report["blockers"]
+    assert report["status"] == "RESEARCH_HOLD"
+
+
+def test_v4_019_non_comparable_rows_do_not_count_as_true_clv_sample():
+    summary = v.summarize_true_clv([
+        {"market_family": "HOME_TT", "market": "Total - Home", "fixture_id": 1, "clv_probability_pp": None},
+        {"market_family": "AWAY_TT", "market": "Total - Away", "fixture_id": 2, "clv_probability_pp": "nan"},
+        {"market_family": "HOME_TT", "market": "Total - Home", "fixture_id": 3, "clv_probability_pp": 0.02},
+    ])
+    assert summary["raw_team_total_rows_seen"] == 3
+    assert summary["rows"] == 1
+    assert summary["unique_fixtures"] == 1
