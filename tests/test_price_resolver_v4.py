@@ -417,3 +417,66 @@ def test_research_cache_hydration_adds_zero_provider_calls(monkeypatch):
     assert result["cache_hydration_provider_requests_added"] == 0
     assert payload["api_calls_this_tick"] == 12
     assert payload["events"][0]["market"]["markets"][0]["market"] == "Home Team Total Goals"
+
+
+def test_binary_discrimination_blocker_is_explicit_for_btts_and_totals():
+    state = _calibration_state()
+    for target in ("btts", "over_2_5"):
+        state["binary"]["current_model_deployment_calibrators"][target]["eligible_for_phase16_research"] = False
+        state["binary"]["current_model_deployment_calibrators"][target]["rows"] = 407
+        state["binary"]["current_model_deployment_calibrators"][target]["brier_delta"] = -0.04
+        state["binary"]["current_model_deployment_calibrators"][target]["log_loss_delta"] = -0.11
+        state["binary"]["current_model_deployment_calibrators"][target]["discrimination"] = {
+            "auc": 0.52,
+            "auc_lower_95": 0.46,
+            "positive_count": 240,
+            "negative_count": 167,
+        }
+
+    btts_row = {"market_family": "FT_BTTS_RESEARCH", "selection": "BTTS research"}
+    btts_event = {"raw_projection": {"raw_btts_yes_prob": 0.58}}
+    btts_markets = [{
+        "market": "Both Teams To Score",
+        "bookmaker": "Book",
+        "values": [
+            {"selection": "Yes", "line": None, "decimal_price": 1.9, "fair_probability": 0.51},
+            {"selection": "No", "line": None, "decimal_price": 1.95, "fair_probability": 0.49},
+        ],
+    }]
+    v._enrich_row(
+        btts_row,
+        btts_event,
+        btts_markets,
+        "PRICE_API_RESOLVED",
+        calibration_state=state,
+        model_version="SOCCER EDGE ENGINE v1.7",
+    )
+    assert btts_row["phase16_calibration_status"] == "BINARY_DISCRIMINATION_NOT_READY"
+    assert btts_row["phase16_binary_calibration_diagnostics"]["target"] == "btts"
+    assert btts_row["phase16_binary_calibration_diagnostics"]["auc_lower_95"] == 0.46
+    assert btts_row["phase16_binary_calibration_diagnostics"]["auc_lower_95_gap_to_gate"] == -0.04
+    assert btts_row["phase16_calibration_promotion_shadow_eligible"] is False
+    assert "p_model_calibrated" not in btts_row
+
+    totals_row = {"market_family": "FT_TOTALS_RESEARCH", "selection": "Over research"}
+    totals_event = {"raw_projection": {"raw_over_2_5_prob": 0.62}}
+    totals_markets = [{
+        "market": "Goals Over/Under",
+        "bookmaker": "Book",
+        "values": [
+            {"selection": "Over", "line": 2.5, "decimal_price": 2.0, "fair_probability": 0.48},
+            {"selection": "Under", "line": 2.5, "decimal_price": 1.85, "fair_probability": 0.52},
+        ],
+    }]
+    v._enrich_row(
+        totals_row,
+        totals_event,
+        totals_markets,
+        "PRICE_API_RESOLVED",
+        calibration_state=state,
+        model_version="SOCCER EDGE ENGINE v1.7",
+    )
+    assert totals_row["phase16_calibration_status"] == "BINARY_DISCRIMINATION_NOT_READY"
+    assert totals_row["phase16_binary_calibration_diagnostics"]["target"] == "over_2_5"
+    assert totals_row["phase16_calibration_promotion_shadow_eligible"] is False
+    assert "p_model_calibrated" not in totals_row
