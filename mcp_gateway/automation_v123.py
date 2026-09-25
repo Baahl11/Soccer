@@ -12,9 +12,10 @@ from mcp_gateway import automation_v92 as v92
 from mcp_gateway import automation_v112 as v112
 from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
+from mcp_gateway import halftime_2h_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.32.6-primary-clv-maturation"
+AUTOMATION_VERSION = "4.32.7-dedicated-ht-research"
 PRIMARY_PRICE_RESERVE_CALLS = max(
     0,
     int(os.getenv("SOCCER_PRIMARY_PRICE_RESERVE_CALLS", "20")),
@@ -32,6 +33,74 @@ def _reserve_from_elastic_cap(global_cap: int) -> tuple[int, int]:
 # Deployment marker: v128 guarded diversity catch-up overflow.
 # Deployment marker: v126 active-v7 upcoming fixture handoff.
 # Deployment marker: v125 scanned-upcoming FT Team Totals capture.
+
+
+def _attach_dedicated_ht_research(payload: dict[str, Any]) -> dict[str, Any]:
+    fixtures = (
+        payload.pop("current_halftime_research_fixtures", [])
+        if isinstance(payload.get("current_halftime_research_fixtures"), list)
+        else []
+    )
+    events = payload.get("events") if isinstance(payload.get("events"), list) else []
+    existing = {
+        int((event.get("fixture") or {}).get("fixture_id"))
+        for event in events
+        if isinstance(event, dict)
+        and event.get("stage") == "HT"
+        and isinstance(event.get("fixture"), dict)
+        and (event.get("fixture") or {}).get("fixture_id") is not None
+    }
+    added = 0
+    for fixture in fixtures:
+        if not isinstance(fixture, dict):
+            continue
+        try:
+            fixture_id = int(fixture.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        if fixture_id in existing:
+            continue
+        events.append({
+            "event_type": "SOCCER_REFRESH",
+            "stage": "HT",
+            "fixture": dict(fixture),
+            "coverage": {
+                "known": False,
+                "data_tier": "RESEARCH_ONLY",
+                "source": "CURRENT_SLATE_FIXTURE_ONLY",
+            },
+            "classification": "RESEARCH_ONLY",
+            "bet_eligible": False,
+            "research_only": True,
+            "decision_weight": 0.0,
+            "market": "NOT VERIFIED",
+            "lineups": "NOT VERIFIED_IN_HT_PATH",
+            "injuries": "NOT VERIFIED_IN_HT_PATH",
+            "model_version": MODEL_VERSION,
+            "notes": [
+                "Dedicated HT research event uses the already-paid fixture slate status and halftime score.",
+                "No live odds, red-card, shots or SOT request is made by this handoff.",
+            ],
+        })
+        existing.add(fixture_id)
+        added += 1
+    payload["events"] = events
+    intel = halftime_2h_intelligence.attach(payload)
+    result = {
+        "schema_version": "1.0.0",
+        "status": "DEDICATED_HT_RESEARCH_STAGE_ACTIVE",
+        "slate_halftime_fixture_count": len(fixtures),
+        "synthetic_ht_events_added": added,
+        **intel,
+        "provider_requests_added": 0,
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+        "canonical_bet_logic_changed": False,
+        "model_weights_changed": False,
+        "policy": "PAID_FIXTURE_SLATE_ONLY; VERIFIED_STATUS_HT_AND_HALFTIME_SCORE; ZERO_EXTRA_PROVIDER_CALLS; RESEARCH_ONLY",
+    }
+    payload["dedicated_ht_research"] = result
+    return result
 
 
 def _leftover_price_budget(payload: dict[str, Any]) -> int:
@@ -100,6 +169,7 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "phase16_recomputed_after_price_resolution": True,
         "team_totals_recomputed_after_price_resolution": True,
         "team_totals_post_resolution": dict(payload.get("team_totals_post_resolution") or {}),
+        "dedicated_ht_research": dict(payload.get("dedicated_ht_research") or {}),
         "canonical_bet_logic_changed": False,
         "model_weights_changed": False,
         "production_promotion_allowed": False,
@@ -190,6 +260,8 @@ async def run_tick() -> dict[str, Any]:
         payload = await v121.run_tick()
     finally:
         v90._elastic_request_cap = original_elastic_request_cap
+
+    _attach_dedicated_ht_research(payload)
 
     remaining_raw = payload.get("last_daily_remaining")
     try:
