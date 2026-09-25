@@ -1,0 +1,76 @@
+{
+  "baseline": "INDEPENDENT_POISSON_DRAW_FROM_PREKICKOFF_HOME_AWAY_GOAL_RATES",
+  "baseline_metrics": {
+    "brier": null,
+    "discrimination": {
+      "auc": null,
+      "auc_lower_95": null,
+      "auc_standard_error": null,
+      "discrimination_ready": false,
+      "negative_count": 0,
+      "positive_count": 0
+    },
+    "log_loss": null,
+    "negative_count": 0,
+    "positive_count": 0,
+    "rows": 0
+  },
+  "canonical_bet_logic_changed": false,
+  "challenger_metrics": {
+    "brier": null,
+    "discrimination": {
+      "auc": null,
+      "auc_lower_95": null,
+      "auc_standard_error": null,
+      "discrimination_ready": false,
+      "negative_count": 0,
+      "positive_count": 0
+    },
+    "log_loss": null,
+    "negative_count": 0,
+    "positive_count": 0,
+    "rows": 0
+  },
+  "comparison": {
+    "auc_lower_95_delta": null,
+    "brier_delta": null,
+    "challenger_discrimination_ready": false,
+    "improves_all_primary_metrics": false,
+    "log_loss_delta": null
+  },
+  "dataset_fingerprint": "53c92719ea3bb3864bca72550b1849a81f4c09c2d47cf43ccf2679cffb404018",
+  "dataset_row_count": 115,
+  "dataset_version": "4.0.0",
+  "eligible_rows": 115,
+  "feature_count": 13,
+  "feature_names": [
+    "home_goal_rate",
+    "away_goal_rate",
+    "total_goal_rate",
+    "goal_rate_abs_gap",
+    "goal_rate_balance_ratio",
+    "goal_rate_geometric_mean",
+    "poisson_draw_probability",
+    "both_xi_confirmed",
+    "both_xi_confirmed__missing",
+    "both_goalkeepers_confirmed",
+    "both_goalkeepers_confirmed__missing",
+    "injury_report_count",
+    "injury_report_count__missing"
+  ],
+  "feature_schema_version": "4.0.0",
+  "folds": [],
+  "market_fields_used": false,
+  "minimum_oos_rows": 50,
+  "minimum_training_rows": 100,
+  "model_version": "LIGHTGBM_DRAW_V4_CHALLENGER_1.0.0",
+  "model_weights_changed": false,
+  "post_kickoff_features_used": false,
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "runtime_prediction_weight": 0,
+  "schema_version": "1.0.0",
+  "status": "INSUFFICIENT_TRAINING_SAMPLE",
+  "training_policy": "EXPANDING_WALK_FORWARD_BLOCKS;NO_MARKET_FIELDS;STRICTLY_PREKICKOFF_FEATURES",
+  "walk_forward_evaluated": 0
+}
