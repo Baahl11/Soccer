@@ -8,9 +8,9 @@ from typing import Any
 
 from mcp_gateway.oos_stage_diagnostics_v4 import _auc_discrimination
 
-MODEL_VERSION = "LIGHTGBM_DRAW_V4_CHALLENGER_1.0.0"
+MODEL_VERSION = "LIGHTGBM_DRAW_V4_CHALLENGER_1.1.0"
 SCHEMA_VERSION = "1.0.0"
-MIN_TRAIN_ROWS = 100
+MIN_TRAIN_ROWS = 50
 MIN_OOS_ROWS = 50
 MIN_FOLD_ROWS = 25
 MAX_GOALS = 15
