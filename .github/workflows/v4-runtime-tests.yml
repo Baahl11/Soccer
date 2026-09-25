@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - soccer-edge-mcp-v1
+      - cards-props-taxonomy-fix-v144
     paths:
       - "mcp_gateway/**"
       - "tests/test_v4_*.py"
@@ -28,6 +29,7 @@ on:
       - "tests/test_promotion_shadow_ledger_v4.py"
       - "tests/test_phase16_market_mismatch_v4.py"
       - "tests/test_research_derivative_postgres_audit.py"
+      - "tests/test_player_props_phase15_v4.py"
       - ".github/workflows/v4-runtime-tests.yml"
 
 jobs:
@@ -73,6 +75,7 @@ jobs:
             tests/test_promotion_shadow_ledger_v4.py \
             tests/test_phase16_market_mismatch_v4.py \
             tests/test_research_derivative_postgres_audit.py \
+            tests/test_player_props_phase15_v4.py \
             tests/test_v4_017_one_x_two_validation.py \
             tests/test_v4_018_btts_validation.py \
             tests/test_v4_022_corners_oos.py \
