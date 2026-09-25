@@ -1,42 +1,43 @@
 {
   "canonical_merge_version": "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.1.0",
-  "comparable_true_clv_rows": 58,
-  "derivative_event_rows_loaded": 50,
+  "comparable_true_clv_rows": 91,
+  "derivative_event_rows_loaded": 54,
   "derivative_family_counts": {
-    "1H": 416,
-    "AWAY_TT": 401,
-    "FT_CORNERS": 202,
-    "HOME_TT": 373,
-    "TEAM_CORNERS": 148
+    "1H": 480,
+    "AWAY_TT": 419,
+    "FT_CORNERS": 178,
+    "HOME_TT": 389,
+    "TEAM_CORNERS": 114
   },
   "derivative_family_counts_raw": {
-    "1H": 652,
-    "2H": 224,
-    "AWAY_TT": 401,
-    "FT_CORNERS": 202,
-    "HOME_TT": 373,
-    "TEAM_CORNERS": 148
+    "1H": 694,
+    "2H": 206,
+    "AWAY_TT": 419,
+    "FT_CORNERS": 178,
+    "HOME_TT": 389,
+    "TEAM_CORNERS": 114
   },
-  "derivative_market_rows_loaded": 1540,
+  "derivative_market_rows_loaded": 1580,
   "derivative_market_rows_loaded_raw": 2000,
-  "derivative_period_team_total_rows_excluded": 460,
+  "derivative_period_team_total_rows_excluded": 420,
   "derivative_source_counts": {
-    "DERIVATIVE_INTELLIGENCE:corners_intelligence": 350,
-    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 416,
-    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 774
+    "DERIVATIVE_INTELLIGENCE:corners_intelligence": 292,
+    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 480,
+    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 808
   },
   "derivative_source_counts_raw": {
-    "DERIVATIVE_INTELLIGENCE:corners_intelligence": 350,
-    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 416,
-    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 1234
+    "DERIVATIVE_INTELLIGENCE:corners_intelligence": 292,
+    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 480,
+    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 1228
   },
   "family_counts": {
+    "1H": 32,
     "1X2": 45,
-    "BTTS": 13
+    "BTTS": 14
   },
   "historical_backfill_rows_added": 57,
   "historical_backfill_unique_fixtures": 57,
-  "legacy_signal_rows_loaded": 238,
+  "legacy_signal_rows_loaded": 242,
   "lookback_days": 60,
   "minimum_true_close_rows": 50,
   "model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.9",
@@ -55,14 +56,15 @@
     "Historical dedicated-close backfill adds at most one latest pre-kickoff row per fixture/family and is skipped whenever Postgres already covers that fixture/family.",
     "Historical Team Totals backfill additionally requires a provider close update strictly after the signal and before kickoff; legacy rows without this provenance cannot re-enter canonical true CLV."
   ],
-  "pipeline_market_rows_loaded": 239,
+  "pipeline_market_rows_loaded": 243,
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
   "schema_version": "1.0.0",
-  "signal_rows_considered": 1779,
+  "signal_rows_considered": 1823,
   "signal_source_counts": {
+    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 32,
     "HISTORICAL_DEDICATED_CLOSE": 57,
-    "PIPELINE_MATCH_TABLE": 1
+    "PIPELINE_MATCH_TABLE": 2
   },
   "skip_reason_market_counts": {
     "INVALID_ENTRY_PRICE": {
@@ -70,25 +72,25 @@
       "FT_TOTALS_RESEARCH | Goals Over/Under": 44
     },
     "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": {
-      "1H | Goals Over/Under First Half": 128,
+      "1H | Goals Over/Under First Half": 192,
       "1X2 | Match Winner": 21,
-      "BTTS | Both Teams Score": 3,
+      "BTTS | Both Teams Score": 5,
       "FT_CORNERS | Away Corners Over/Under": 29,
       "FT_CORNERS | Corners. Total (Range)": 2,
       "FT_CORNERS | Home Corners Over/Under": 33,
       "FT_CORNERS | Total Corners (3 way)": 64,
-      "TEAM_TOTALS | Total - Away": 326,
-      "TEAM_TOTALS | Total - Home": 328,
+      "TEAM_TOTALS | Total - Away": 344,
+      "TEAM_TOTALS | Total - Home": 344,
       "TOTAL | Goals Over/Under": 29
     },
     "NO_LATER_PROVIDER_UPDATE": {
-      "1H | Goals Over/Under First Half": 288,
+      "1H | Goals Over/Under First Half": 256,
       "1X2 | Match Winner": 35,
-      "BTTS | Both Teams Score": 5,
-      "FT_CORNERS | Away Corners Over/Under": 40,
+      "BTTS | Both Teams Score": 6,
+      "FT_CORNERS | Away Corners Over/Under": 24,
       "FT_CORNERS | Corners. Total (Range)": 6,
-      "FT_CORNERS | Home Corners Over/Under": 46,
-      "FT_CORNERS | Total Corners (3 way)": 130,
+      "FT_CORNERS | Home Corners Over/Under": 28,
+      "FT_CORNERS | Total Corners (3 way)": 106,
       "TEAM_TOTALS | Total - Away": 75,
       "TEAM_TOTALS | Total - Home": 45,
       "TOTAL | Goals Over/Under": 55
@@ -99,8 +101,8 @@
   },
   "skip_reasons": {
     "INVALID_ENTRY_PRICE": 58,
-    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 963,
-    "NO_LATER_PROVIDER_UPDATE": 725,
+    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 1063,
+    "NO_LATER_PROVIDER_UPDATE": 636,
     "UNMAPPED_MARKET_FAMILY": 32
   },
   "snapshot_fixture_batch_size": 50,
@@ -231,9 +233,10 @@
     "true_clv_unique_fixtures": 0,
     "true_clv_unique_fixtures_remaining_to_directional": 20
   },
-  "tracked_rows": 58,
+  "tracked_rows": 91,
   "unique_fixtures_by_family": {
+    "1H": 1,
     "1X2": 45,
-    "BTTS": 13
+    "BTTS": 14
   }
 }
