@@ -13,6 +13,15 @@ def _is_postgame_phase(value: Any) -> bool:
     return str(value or "").upper().startswith("POSTGAME")
 
 
+def _load(path: str) -> dict[str, Any]:
+    try:
+        with open(path, encoding="utf-8") as fh:
+            payload = json.load(fh)
+        return payload if isinstance(payload, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
 def _num(value: Any) -> float | None:
     try:
         return float(value)
