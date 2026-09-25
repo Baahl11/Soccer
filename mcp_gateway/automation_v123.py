@@ -105,29 +105,52 @@ def _attach_dedicated_ht_research(payload: dict[str, Any]) -> dict[str, Any]:
 
 def _summarize_research_derivative_sidecars(payload: dict[str, Any]) -> dict[str, Any]:
     events_with_sidecar = 0
-    card_rows = 0
-    prop_rows = 0
+    fresh_provider_events = 0
+    cache_replay_events = 0
+    observed_card_rows = 0
+    observed_prop_rows = 0
+    captured_card_rows = 0
+    captured_prop_rows = 0
     for event in payload.get("events") or []:
         if not isinstance(event, dict):
             continue
         market = event.get("market") if isinstance(event.get("market"), dict) else {}
         cards = int(market.get("card_research_market_rows") or 0)
         props = int(market.get("player_prop_research_market_rows") or 0)
-        if cards or props:
-            events_with_sidecar += 1
-            card_rows += cards
-            prop_rows += props
+        if not (cards or props):
+            continue
+        events_with_sidecar += 1
+        observed_card_rows += cards
+        observed_prop_rows += props
+        source = str(market.get("source") or "").upper()
+        status = str(market.get("resolution_status") or "").upper()
+        is_cache_replay = "CACHE" in source or "CACHE" in status
+        if is_cache_replay:
+            cache_replay_events += 1
+            continue
+        fresh_provider_events += 1
+        captured_card_rows += cards
+        captured_prop_rows += props
+
     result = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "status": "RESEARCH_DERIVATIVE_ODDS_SIDECAR_ACTIVE",
         "events_with_sidecar": events_with_sidecar,
-        "card_market_rows": card_rows,
-        "player_prop_market_rows": prop_rows,
-        "total_market_rows": card_rows + prop_rows,
+        "fresh_provider_events_with_sidecar": fresh_provider_events,
+        "cache_replay_events_with_sidecar": cache_replay_events,
+        "observed_card_market_rows": observed_card_rows,
+        "observed_player_prop_market_rows": observed_prop_rows,
+        "observed_total_market_rows": observed_card_rows + observed_prop_rows,
+        "card_market_rows": captured_card_rows,
+        "player_prop_market_rows": captured_prop_rows,
+        "total_market_rows": captured_card_rows + captured_prop_rows,
+        "cache_replay_rows_excluded_from_new_evidence": (
+            observed_card_rows + observed_prop_rows - captured_card_rows - captured_prop_rows
+        ),
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "decision_weight": 0.0,
-        "policy": "REUSE_EXISTING_PAID_ODDS_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP_PER_RESPONSE; RESEARCH_ONLY",
+        "policy": "REUSE_EXISTING_PAID_ODDS_RESPONSE; SEPARATE_SIDECAR; FRESH_PROVIDER_ONLY_COUNTS_AS_NEW_CAPTURE; CACHE_REPLAY_EXCLUDED; BOUNDED_20_CARD_40_PLAYER_PROP; RESEARCH_ONLY",
     }
     payload["research_derivative_market_capture"] = result
     return result
@@ -293,7 +316,6 @@ async def run_tick() -> dict[str, Any]:
         v90._elastic_request_cap = original_elastic_request_cap
 
     _attach_dedicated_ht_research(payload)
-    _summarize_research_derivative_sidecars(payload)
 
     remaining_raw = payload.get("last_daily_remaining")
     try:
@@ -338,6 +360,10 @@ async def run_tick() -> dict[str, Any]:
         max_api_calls=budget_plan["total_price_resolver_budget"],
     )
 
+    # Count Cards/Props after every paid odds path has run, including the
+    # primary price resolver. Cache replays remain visible diagnostically but
+    # cannot increment fresh capture evidence.
+    _summarize_research_derivative_sidecars(payload)
     payload["team_totals_post_resolution"] = team_totals_intelligence.attach(payload)
 
     v92._annotate_decision_separation(payload)
