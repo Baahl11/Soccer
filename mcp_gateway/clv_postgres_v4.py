@@ -10,7 +10,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.7"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.8"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 TEAM_TOTALS_RESEARCH_STAGES = ("EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
@@ -33,6 +33,31 @@ def _num(value: Any) -> float | None:
 
 def _norm(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "").strip()).lower()
+
+
+def _as_utc_datetime(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        out = value
+    elif isinstance(value, str):
+        text = value.strip().replace("Z", "+00:00")
+        try:
+            out = datetime.fromisoformat(text)
+        except ValueError:
+            return None
+    else:
+        return None
+    if out.tzinfo is None:
+        out = out.replace(tzinfo=timezone.utc)
+    return out.astimezone(timezone.utc)
+
+
+def _is_strictly_later_provider_quote(snapshot: dict[str, Any], generated_at: Any) -> bool:
+    signal_at = _as_utc_datetime(generated_at)
+    captured_at = _as_utc_datetime(snapshot.get("captured_at"))
+    provider_update = _as_utc_datetime(snapshot.get("provider_update"))
+    if signal_at is None or captured_at is None or provider_update is None:
+        return False
+    return captured_at > signal_at and provider_update > signal_at
 
 
 def _line_from_selection(selection: Any) -> float | None:
@@ -657,16 +682,26 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
                 skip_reason_market_counts["MISSING_TIMESTAMPS"][_candidate_label(candidate)] += 1
                 continue
 
-            candidates = [
+            later_market_snapshots = [
                 snap
                 for snap in snapshots_by_fixture.get(fixture_id, [])
                 if snap.get("captured_at") is not None
-                and generated_at <= snap["captured_at"] < kickoff
+                and generated_at < snap["captured_at"] < kickoff
                 and _norm(snap.get("market")) == _norm(candidate.get("market"))
             ]
+            if not later_market_snapshots:
+                reasons["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"] += 1
+                skip_reason_market_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"][_candidate_label(candidate)] += 1
+                continue
+
+            candidates = [
+                snap
+                for snap in later_market_snapshots
+                if _is_strictly_later_provider_quote(snap, generated_at)
+            ]
             if not candidates:
-                reasons["NO_PREKICKOFF_MARKET_SNAPSHOT"] += 1
-                skip_reason_market_counts["NO_PREKICKOFF_MARKET_SNAPSHOT"][_candidate_label(candidate)] += 1
+                reasons["NO_LATER_PROVIDER_UPDATE"] += 1
+                skip_reason_market_counts["NO_LATER_PROVIDER_UPDATE"][_candidate_label(candidate)] += 1
                 continue
 
             same_book = [
@@ -676,6 +711,12 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             pool = same_book or candidates
             close_at = max(snap["captured_at"] for snap in pool)
             close_groups = [snap for snap in pool if snap["captured_at"] == close_at]
+            close_provider_updates = [
+                _as_utc_datetime(snap.get("provider_update"))
+                for snap in close_groups
+                if _as_utc_datetime(snap.get("provider_update")) is not None
+            ]
+            close_provider_update = max(close_provider_updates) if close_provider_updates else None
 
             fair_values: list[float] = []
             price_values: list[float] = []
@@ -753,6 +794,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
                 "entry_fair_probability": round(entry_fair, 8) if entry_fair is not None else None,
                 "signal_fair_probability": round(entry_fair, 8) if entry_fair is not None else None,
                 "closing_timestamp": close_at.isoformat() if hasattr(close_at, "isoformat") else str(close_at),
+                "closing_provider_update": close_provider_update.isoformat() if close_provider_update is not None else None,
                 "closing_line": closing_line,
                 "closing_price": round(closing_price, 6) if closing_price is not None else None,
                 "close_price": round(closing_price, 6) if closing_price is not None else None,
@@ -810,6 +852,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             "Derivative source/family counts are reported before and after period-team-total exclusion so missing Team Totals can be localized to generation versus close matching.",
             "Team Totals may enter CLV collection from any explicitly pre-kickoff research stage, including EARLY_RESEARCH/T-90/T-60/T-30/CLOSE, while other derivative families retain the narrower T-40/T-20/T-10 stage policy.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
+            "A true close must be a strictly later ingest AND carry a provider_update strictly later than the signal timestamp; cache replays and unchanged provider quotes do not count as new CLV evidence.",
             "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
             "Line movement may still be recorded when the selected side survives but the sportsbook line changes.",
             "Same-book close is preferred; otherwise the latest cross-book snapshot at the latest pre-kickoff timestamp is used.",
