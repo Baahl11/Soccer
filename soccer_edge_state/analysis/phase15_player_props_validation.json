@@ -41,13 +41,11 @@
     "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
     "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
     "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
-    "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-    "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-    "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
+    "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING"
   ],
   "canonical_bet_logic_changed": false,
   "manual_review_required": true,
-  "model_version": "SOCCER_PLAYER_PROPS_PHASE15_V4_1.3.0",
+  "model_version": "SOCCER_PLAYER_PROPS_PHASE15_V4_1.4.0",
   "model_weights_changed": false,
   "notes": [
     "All six prop modules currently pass structural sanity, but structural sanity is not OOS performance.",
@@ -57,7 +55,9 @@
     "The goalscorer model is an anytime-scorer model; First Goal Scorer and Last Goal Scorer market history are captured separately and cannot satisfy the anytime evidence gate.",
     "Prop-specific calibration and true CLV must be tracked independently by market family.",
     "Phase15 true-CLV review requires both per-family row volume and fixture diversity; many player prices from a tiny fixture set cannot satisfy maturity.",
-    "One-way player markets may contribute exact-instrument price CLV while probability CLV remains explicitly non-de-vigged/unavailable."
+    "One-way player markets may contribute exact-instrument price CLV while probability CLV remains explicitly non-de-vigged/unavailable.",
+    "OOS completion is sourced from the dedicated finalized-result ledger by prop family; structural sanity files do not self-promote OOS readiness.",
+    "OOS calibration uses one canonical pregame snapshot per fixture and joins finalized player outcomes by player_id, with Brier/log-loss, count error, minutes error, and calibration bins reported separately."
   ],
   "phase": "FASE_15_PLAYER_PROPS",
   "production_promotion_allowed": false,
@@ -83,6 +83,39 @@
         "xi_aligned_exact_line_value_rows": 0,
         "xi_aligned_priced_value_rows": 0,
         "xi_aligned_value_rows": 0
+      },
+      "oos_evidence": {
+        "audit_family": "ASSISTS",
+        "binary_probability_rows": 10,
+        "brier_score": 0.18309827,
+        "calibration_bins": [
+          {
+            "bucket": "0.0-0.1",
+            "calibration_gap_pp": 16.5926,
+            "mean_probability": 0.056296,
+            "observed_rate": 0.222222,
+            "rows": 9
+          },
+          {
+            "bucket": "0.1-0.2",
+            "calibration_gap_pp": -15.8672,
+            "mean_probability": 0.158672,
+            "observed_rate": 0.0,
+            "rows": 1
+          }
+        ],
+        "calibration_ece": 0.1652006,
+        "expected_count_mae": 0.2492403,
+        "expected_count_rmse": 0.42709482,
+        "expected_minutes_mae": 18.8037,
+        "log_loss": 0.64182863,
+        "minimum_player_games_for_review": 1000,
+        "oos_validation_complete": false,
+        "player_game_rows": 10,
+        "sample_target_met": false,
+        "status": "COLLECTING_OOS",
+        "unique_fixtures": 1,
+        "unique_player_fixtures": 10
       },
       "oos_validation_complete": false,
       "profiles_checked": 3160,
@@ -113,6 +146,24 @@
         "xi_aligned_priced_value_rows": 0,
         "xi_aligned_value_rows": 0
       },
+      "oos_evidence": {
+        "audit_family": "PLAYER_CARDS",
+        "binary_probability_rows": 0,
+        "brier_score": null,
+        "calibration_bins": [],
+        "calibration_ece": null,
+        "expected_count_mae": null,
+        "expected_count_rmse": null,
+        "expected_minutes_mae": null,
+        "log_loss": null,
+        "minimum_player_games_for_review": 1000,
+        "oos_validation_complete": false,
+        "player_game_rows": 0,
+        "sample_target_met": false,
+        "status": "COLLECTING_OOS",
+        "unique_fixtures": 0,
+        "unique_player_fixtures": 0
+      },
       "oos_validation_complete": false,
       "profiles_checked": 2514,
       "profiles_valid": 2514,
@@ -141,6 +192,24 @@
         "xi_aligned_exact_line_value_rows": 0,
         "xi_aligned_priced_value_rows": 0,
         "xi_aligned_value_rows": 0
+      },
+      "oos_evidence": {
+        "audit_family": "GK_SAVES",
+        "binary_probability_rows": 0,
+        "brier_score": null,
+        "calibration_bins": [],
+        "calibration_ece": null,
+        "expected_count_mae": null,
+        "expected_count_rmse": null,
+        "expected_minutes_mae": null,
+        "log_loss": null,
+        "minimum_player_games_for_review": 300,
+        "oos_validation_complete": false,
+        "player_game_rows": 0,
+        "sample_target_met": false,
+        "status": "COLLECTING_OOS",
+        "unique_fixtures": 0,
+        "unique_player_fixtures": 0
       },
       "oos_validation_complete": false,
       "profiles_checked": 22,
@@ -171,6 +240,39 @@
         "xi_aligned_priced_value_rows": 0,
         "xi_aligned_value_rows": 0
       },
+      "oos_evidence": {
+        "audit_family": "GOALSCORER_ANYTIME",
+        "binary_probability_rows": 10,
+        "brier_score": 0.08529281,
+        "calibration_bins": [
+          {
+            "bucket": "0.0-0.1",
+            "calibration_gap_pp": -4.47324,
+            "mean_probability": 0.044732,
+            "observed_rate": 0.0,
+            "rows": 5
+          },
+          {
+            "bucket": "0.1-0.2",
+            "calibration_gap_pp": 3.7259,
+            "mean_probability": 0.162741,
+            "observed_rate": 0.2,
+            "rows": 5
+          }
+        ],
+        "calibration_ece": 0.0409955,
+        "expected_count_mae": 0.1852966,
+        "expected_count_rmse": 0.29361619,
+        "expected_minutes_mae": 18.8037,
+        "log_loss": 0.28781224,
+        "minimum_player_games_for_review": 1000,
+        "oos_validation_complete": false,
+        "player_game_rows": 10,
+        "sample_target_met": false,
+        "status": "COLLECTING_OOS",
+        "unique_fixtures": 1,
+        "unique_player_fixtures": 10
+      },
       "oos_validation_complete": false,
       "profiles_checked": 3160,
       "profiles_valid": 3160,
@@ -199,6 +301,74 @@
         "xi_aligned_exact_line_value_rows": 0,
         "xi_aligned_priced_value_rows": 0,
         "xi_aligned_value_rows": 0
+      },
+      "oos_evidence": {
+        "audit_family": "SHOTS",
+        "binary_probability_rows": 60,
+        "brier_score": 0.06356663,
+        "calibration_bins": [
+          {
+            "bucket": "0.0-0.1",
+            "calibration_gap_pp": -1.872926,
+            "mean_probability": 0.018729,
+            "observed_rate": 0.0,
+            "rows": 39
+          },
+          {
+            "bucket": "0.1-0.2",
+            "calibration_gap_pp": -15.051714,
+            "mean_probability": 0.150517,
+            "observed_rate": 0.0,
+            "rows": 7
+          },
+          {
+            "bucket": "0.3-0.4",
+            "calibration_gap_pp": -1.5579,
+            "mean_probability": 0.348912,
+            "observed_rate": 0.333333,
+            "rows": 6
+          },
+          {
+            "bucket": "0.4-0.5",
+            "calibration_gap_pp": -42.80785,
+            "mean_probability": 0.428079,
+            "observed_rate": 0.0,
+            "rows": 2
+          },
+          {
+            "bucket": "0.5-0.6",
+            "calibration_gap_pp": -50.0965,
+            "mean_probability": 0.500965,
+            "observed_rate": 0.0,
+            "rows": 1
+          },
+          {
+            "bucket": "0.6-0.7",
+            "calibration_gap_pp": -34.8896,
+            "mean_probability": 0.682229,
+            "observed_rate": 0.333333,
+            "rows": 3
+          },
+          {
+            "bucket": "0.7-0.8",
+            "calibration_gap_pp": -23.6501,
+            "mean_probability": 0.736501,
+            "observed_rate": 0.5,
+            "rows": 2
+          }
+        ],
+        "calibration_ece": 0.07923895,
+        "expected_count_mae": 0.7369657,
+        "expected_count_rmse": 0.84630394,
+        "expected_minutes_mae": 18.8037,
+        "log_loss": 0.19820694,
+        "minimum_player_games_for_review": 500,
+        "oos_validation_complete": false,
+        "player_game_rows": 10,
+        "sample_target_met": false,
+        "status": "COLLECTING_OOS",
+        "unique_fixtures": 1,
+        "unique_player_fixtures": 10
       },
       "oos_validation_complete": false,
       "profiles_checked": 2915,
@@ -229,6 +399,53 @@
         "xi_aligned_priced_value_rows": 0,
         "xi_aligned_value_rows": 0
       },
+      "oos_evidence": {
+        "audit_family": "SOT",
+        "binary_probability_rows": 40,
+        "brier_score": 0.02681385,
+        "calibration_bins": [
+          {
+            "bucket": "0.0-0.1",
+            "calibration_gap_pp": -2.253561,
+            "mean_probability": 0.022536,
+            "observed_rate": 0.0,
+            "rows": 31
+          },
+          {
+            "bucket": "0.1-0.2",
+            "calibration_gap_pp": -11.73865,
+            "mean_probability": 0.117387,
+            "observed_rate": 0.0,
+            "rows": 2
+          },
+          {
+            "bucket": "0.2-0.3",
+            "calibration_gap_pp": -22.628,
+            "mean_probability": 0.22628,
+            "observed_rate": 0.0,
+            "rows": 2
+          },
+          {
+            "bucket": "0.3-0.4",
+            "calibration_gap_pp": -15.28442,
+            "mean_probability": 0.352844,
+            "observed_rate": 0.2,
+            "rows": 5
+          }
+        ],
+        "calibration_ece": 0.05375425,
+        "expected_count_mae": 0.3210873,
+        "expected_count_rmse": 0.36064826,
+        "expected_minutes_mae": 18.8037,
+        "log_loss": 0.10570022,
+        "minimum_player_games_for_review": 500,
+        "oos_validation_complete": false,
+        "player_game_rows": 10,
+        "sample_target_met": false,
+        "status": "COLLECTING_OOS",
+        "unique_fixtures": 1,
+        "unique_player_fixtures": 10
+      },
       "oos_validation_complete": false,
       "profiles_checked": 2834,
       "profiles_valid": 2834,
@@ -238,7 +455,7 @@
     }
   },
   "provider_requests_added": 0,
-  "schema_version": "1.3.0",
+  "schema_version": "1.4.0",
   "shared_engine_requirements": {
     "confirmed_lineup_required": true,
     "expected_minutes_required": true,
