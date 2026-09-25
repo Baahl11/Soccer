@@ -732,3 +732,131 @@ def test_existing_priced_1x2_row_gets_zero_call_calibration(monkeypatch):
     assert row["phase16_1x2_class_discrimination_ready"]["away_win"] is True
     assert 0 < row["p_model_calibrated"] < 1
     assert payload["api_calls_this_tick"] == 5
+
+
+
+def test_team_totals_diversity_backlog_uses_fresh_client_and_counts_exact_fixture(monkeypatch):
+    payload = {
+        "model_version": "SOCCER EDGE ENGINE v1.7",
+        "events": [],
+        "match_table_rows": [],
+        "api_calls_this_tick": 2,
+    }
+    backlog_event = {
+        "event_type": "TEAM_TOTALS_RESEARCH_SPILLOVER",
+        "stage": "T-90",
+        "fixture": {
+            "fixture_id": 7001,
+            "kickoff": "2026-09-25T03:00:00+00:00",
+            "home_team": "Home FC",
+            "away_team": "Away FC",
+            "home_team_id": 71,
+            "away_team_id": 72,
+        },
+        "raw_projection": {
+            "raw_home_goal_rate": 1.8,
+            "raw_away_goal_rate": 1.1,
+        },
+        "classification": "RESEARCH_ONLY",
+        "research_only": True,
+        "decision_weight": 0.0,
+    }
+    fetched = [{
+        "fixture_id": 7001,
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market_id": 16,
+        "market": "Total - Home",
+        "values": [
+            {"selection": "Over", "line": 1.5, "decimal_price": 1.90},
+            {"selection": "Under", "line": 1.5, "decimal_price": 1.90},
+        ],
+        "source": "API_FOOTBALL_ODDS_V3",
+    }]
+    calls = []
+
+    async def fake_fetch(client, fixture_id, *, api_key, remaining_calls):
+        assert client.is_closed is False
+        calls.append((fixture_id, remaining_calls))
+        return fetched, 1, "PRICE_API_RESOLVED", 7200
+
+    monkeypatch.setenv("API_FOOTBALL_KEY", "test-key")
+    monkeypatch.setattr(v, "_load_cached_markets", lambda fixture_id, stage: [])
+    monkeypatch.setattr(v, "_load_team_totals_diversity_backlog", lambda: {
+        "existing_fixture_ids": {6000},
+        "existing_unique_fixtures": 1,
+        "target": 20,
+        "gap": 19,
+        "candidate_events": [backlog_event],
+        "candidate_count": 1,
+        "source": "TEST_BACKLOG",
+    })
+    monkeypatch.setattr(v, "_fetch_fixture_odds", fake_fetch)
+
+    result = asyncio.run(v.resolve_payload(payload, max_api_calls=3, calibration_state={}))
+
+    assert calls == [(7001, 3)]
+    assert result["research_spillover_existing_unique_fixtures"] == 1
+    assert result["research_spillover_new_unique_fixtures_this_tick"] == 1
+    assert result["research_spillover_projected_unique_fixtures"] == 2
+    assert result["research_spillover_diversity_gap_remaining"] == 18
+    assert result["research_spillover_exact_team_total_fixtures_attached"] == 1
+    assert result["research_spillover_synthetic_events_added"] == 1
+    assert result["research_spillover_primary_markets_preempted"] is False
+    assert payload["api_calls_this_tick"] == 3
+    assert payload["events"][0]["event_type"] == "TEAM_TOTALS_RESEARCH_SPILLOVER"
+    assert payload["events"][0]["market"]["markets"][0]["market"] == "Total - Home"
+    assert payload["events"][0]["research_price_spillover"]["ft_team_totals_present"] is True
+
+
+def test_team_totals_diversity_does_not_count_generic_odds_payload(monkeypatch):
+    payload = {
+        "events": [],
+        "match_table_rows": [],
+        "api_calls_this_tick": 0,
+    }
+    backlog_event = {
+        "event_type": "TEAM_TOTALS_RESEARCH_SPILLOVER",
+        "stage": "T-90",
+        "fixture": {"fixture_id": 7002, "kickoff": "2026-09-25T04:00:00+00:00"},
+        "raw_projection": {
+            "raw_home_goal_rate": 1.5,
+            "raw_away_goal_rate": 1.3,
+        },
+        "classification": "RESEARCH_ONLY",
+    }
+    fetched = [{
+        "fixture_id": 7002,
+        "bookmaker": "Book",
+        "market_id": 5,
+        "market": "Goals Over/Under",
+        "values": [
+            {"selection": "Over", "line": 2.5, "decimal_price": 1.95},
+            {"selection": "Under", "line": 2.5, "decimal_price": 1.90},
+        ],
+        "source": "API_FOOTBALL_ODDS_V3",
+    }]
+
+    async def fake_fetch(client, fixture_id, *, api_key, remaining_calls):
+        return fetched, 1, "PRICE_API_RESOLVED", 7199
+
+    monkeypatch.setenv("API_FOOTBALL_KEY", "test-key")
+    monkeypatch.setattr(v, "_load_cached_markets", lambda fixture_id, stage: [])
+    monkeypatch.setattr(v, "_load_team_totals_diversity_backlog", lambda: {
+        "existing_fixture_ids": {6000},
+        "existing_unique_fixtures": 1,
+        "target": 20,
+        "gap": 19,
+        "candidate_events": [backlog_event],
+        "candidate_count": 1,
+        "source": "TEST_BACKLOG",
+    })
+    monkeypatch.setattr(v, "_fetch_fixture_odds", fake_fetch)
+
+    result = asyncio.run(v.resolve_payload(payload, max_api_calls=2, calibration_state={}))
+
+    assert result["research_spillover_new_unique_fixtures_this_tick"] == 0
+    assert result["research_spillover_projected_unique_fixtures"] == 1
+    assert result["research_spillover_diversity_gap_remaining"] == 19
+    assert result["research_spillover_exact_team_total_fixtures_attached"] == 0
+    assert result["research_spillover_synthetic_events_added"] == 1
