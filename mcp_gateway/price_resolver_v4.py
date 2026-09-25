@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.7.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.8.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -27,6 +27,17 @@ FRESHNESS_MINUTES = {
     "T-20": 15,
     "T-10": 10,
     "CLOSE": 5,
+}
+
+TEAM_TOTALS_RESEARCH_STAGES = {
+    "EARLY_RESEARCH",
+    "T-90",
+    "T-60",
+    "T-40",
+    "T-30",
+    "T-20",
+    "T-10",
+    "CLOSE",
 }
 
 ELIGIBLE_STATUSES = {"WAIT_PRICE", "WAIT_FRESH_QUOTE", "STALE_QUOTE"}
@@ -855,16 +866,33 @@ async def resolve_payload(
             row["price_resolution_existing_price_calibration_added"] = True
             row["price_resolution_existing_price_calibration_source"] = "EXISTING_REAL_PRICE_AND_FAIR_PROBABILITY"
 
-    # Zero-provider-call research hydration for derivative markets such as Team Totals.
-    # Phase16 price targets above remain the only path allowed to spend API budget.
+    # Derivative-market research hydration (currently Team Totals).
+    #
+    # Primary Phase16 price targets are always resolved first. Only the provider
+    # budget left after that primary loop may be used here. This lets us persist
+    # real full fixture /odds snapshots for HOME/AWAY team totals without
+    # stealing a request from FT Totals / BTTS / 1X2 and without making Team
+    # Totals rankable or actionable.
     cache_hydrated_research_fixtures = 0
     cache_hydrated_research_market_rows = 0
-    target_fixture_ids = {int(row["fixture_id"]) for row in targets}
+    research_spillover_candidate_fixtures: set[int] = set()
+    research_spillover_cache_hits = 0
+    research_spillover_api_calls_added = 0
+    research_spillover_fixtures_fetched = 0
+    research_spillover_market_rows_fetched = 0
+    research_spillover_budget_exhausted_fixtures = 0
+    research_spillover_api_errors = 0
+
     for event in events:
         if not isinstance(event, dict) or str(event.get("stage") or "").upper() == "POSTGAME":
             continue
         if str(event.get("event_type") or "") != "SOCCER_REFRESH":
             continue
+
+        stage = str(event.get("stage") or "").upper()
+        if stage not in TEAM_TOTALS_RESEARCH_STAGES:
+            continue
+
         fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
         fixture_id_value = fixture.get("fixture_id")
         if fixture_id_value is None:
@@ -878,19 +906,72 @@ async def resolve_payload(
         if _num(raw.get("raw_home_goal_rate")) is None and _num(raw.get("raw_away_goal_rate")) is None:
             continue
 
+        research_spillover_candidate_fixtures.add(fixture_id)
+
+        # A primary candidate for the same fixture may already have fetched the
+        # complete /odds payload. Reuse it at zero extra cost.
         if fixture_id in fixture_cache:
             markets, status = fixture_cache[fixture_id]
             if markets and not isinstance(event.get("market"), dict):
                 _attach_market_to_event(event, markets, status)
+            if markets and str(status).startswith("PRICE_CACHE"):
+                research_spillover_cache_hits += 1
             continue
 
         cached = await asyncio.to_thread(_load_cached_markets, fixture_id, event.get("stage"))
-        fixture_cache[fixture_id] = (cached, "PRICE_CACHE_HIT_RESEARCH_ONLY" if cached else "PRICE_CACHE_MISS_RESEARCH_ONLY")
-        if not cached:
+        if cached:
+            fixture_cache[fixture_id] = (cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
+            _attach_market_to_event(event, cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
+            cache_hydrated_research_fixtures += 1
+            cache_hydrated_research_market_rows += len(cached)
+            research_spillover_cache_hits += 1
             continue
-        _attach_market_to_event(event, cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
-        cache_hydrated_research_fixtures += 1
-        cache_hydrated_research_market_rows += len(cached)
+
+        # Cache miss: only use provider capacity that survived the complete
+        # primary target loop above. No research spillover call can pre-empt a
+        # primary price-resolution request.
+        if not api_key:
+            fixture_cache[fixture_id] = ([], "PRICE_API_KEY_MISSING_RESEARCH_ONLY")
+            continue
+        if calls >= budget:
+            fixture_cache[fixture_id] = ([], "PRICE_BUDGET_EXHAUSTED_RESEARCH_ONLY")
+            research_spillover_budget_exhausted_fixtures += 1
+            continue
+
+        before_calls = calls
+        try:
+            markets, used, status, observed_remaining = await _fetch_fixture_odds(
+                client,
+                fixture_id,
+                api_key=api_key,
+                remaining_calls=budget - calls,
+            )
+            calls += used
+            research_spillover_api_calls_added += used
+            if observed_remaining is not None:
+                provider_daily_remaining = (
+                    observed_remaining
+                    if provider_daily_remaining is None
+                    else min(provider_daily_remaining, observed_remaining)
+                )
+            if markets:
+                fixture_cache[fixture_id] = (markets, status)
+                _attach_market_to_event(event, markets, status)
+                research_spillover_fixtures_fetched += 1
+                research_spillover_market_rows_fetched += len(markets)
+                event["research_price_spillover"] = {
+                    "source": "API_FOOTBALL_ODDS_V3",
+                    "provider_requests_added": used,
+                    "policy": "LEFTOVER_PRICE_RESOLVER_BUDGET_AFTER_PRIMARY_TARGETS",
+                    "research_only": True,
+                }
+            else:
+                fixture_cache[fixture_id] = ([], status)
+        except Exception as exc:
+            research_spillover_api_errors += 1
+            calls = before_calls
+            fixture_cache[fixture_id] = ([], "PRICE_API_ERROR_RESEARCH_ONLY")
+            event["research_price_spillover_error"] = str(exc)[:180]
 
     _apply_quota_accounting(payload, calls, provider_daily_remaining)
 
@@ -926,7 +1007,16 @@ async def resolve_payload(
         "cache_hydrated_research_fixtures": cache_hydrated_research_fixtures,
         "cache_hydrated_research_market_rows": cache_hydrated_research_market_rows,
         "cache_hydration_provider_requests_added": 0,
-        "cache_hydration_policy": "PREGAME_SOCCER_REFRESH_WITH_TEAM_LAMBDAS_FRESH_POSTGRES_SNAPSHOTS_ONLY",
+        "cache_hydration_policy": "PREGAME_SOCCER_REFRESH_WITH_TEAM_LAMBDAS_FRESH_POSTGRES_SNAPSHOTS_FIRST",
+        "research_spillover_candidate_fixtures": len(research_spillover_candidate_fixtures),
+        "research_spillover_cache_hits": research_spillover_cache_hits,
+        "research_spillover_api_calls_added": research_spillover_api_calls_added,
+        "research_spillover_fixtures_fetched": research_spillover_fixtures_fetched,
+        "research_spillover_market_rows_fetched": research_spillover_market_rows_fetched,
+        "research_spillover_budget_exhausted_fixtures": research_spillover_budget_exhausted_fixtures,
+        "research_spillover_api_errors": research_spillover_api_errors,
+        "research_spillover_provider_requests_included_in_api_calls_added": True,
+        "research_spillover_policy": "CACHE_FIRST;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET_AFTER_ALL_PRIMARY_PRICE_TARGETS;TEAM_TOTALS_RESEARCH_ONLY",
     }
     payload["price_resolution_provider_requests_added"] = calls
     return payload["price_resolution_v4"]
