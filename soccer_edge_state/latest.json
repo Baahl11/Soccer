@@ -4,126 +4,37 @@
   "service": "soccer-edge-automation",
   "version": "4.31.2-team-totals-leftover-odds",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-09-25T03:22:59.418689+00:00",
-  "generated_at_local": "2026-09-24T21:22:59.418689-06:00",
+  "generated_at_utc": "2026-09-25T03:34:08.828885+00:00",
+  "generated_at_local": "2026-09-24T21:34:08.828885-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 96,
   "due_fixture_count": 5,
-  "event_count": 1,
+  "event_count": 0,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 2,
+  "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 70,
   "effective_max_api_calls_per_tick": 70,
-  "last_daily_remaining": 7292,
+  "last_daily_remaining": 7291,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
-  "deep_dive_processed_count": 1,
+  "deep_dive_processed_count": 0,
   "deferred_due_to_budget": 0,
   "deferred_due_to_priority": 0,
-  "research_visible_count": 1,
-  "match_table_rows": [
-    {
-      "row_type": "research_visibility",
-      "row_index": 0,
-      "event_type": "SOCCER_REFRESH",
-      "stage": "T-90",
-      "classification": "WATCH",
-      "event_classification": "WATCH",
-      "fixture_id": 1641614,
-      "kickoff": "2026-09-24T23:00:00-06:00",
-      "league": "Asian Games",
-      "country": "World",
-      "home": "Uzbekistan U23",
-      "away": "Saudi Arabia U23",
-      "status": "NS",
-      "data_tier": "B",
-      "market_family": "FT_TOTALS",
-      "market": "Goals Over/Under",
-      "selection": "Over",
-      "line": 2.5,
-      "price": 2.14,
-      "bookmaker": "1xBet",
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "side_score": 100.0,
-      "goals_score": 84.4,
-      "two_way_score": 72.8,
-      "shortlist_rank": 100.0,
-      "tracks": [
-        "SIDE",
-        "GOALS_OVER",
-        "TWO_WAY"
-      ],
-      "prob_edge_pp": 25.793,
-      "estimated_ev": null,
-      "p_market_fair": 0.435356,
-      "p_shrunk": null,
-      "reason": "SPORTING_SCREEN_PASS",
-      "notes_count": 1,
-      "market_use": "MARKET_COMPARISON_AFTER_SPORTING_SHORTLIST",
-      "model_signal": "VERY_STRONG",
-      "model_signal_score": 100.0,
-      "execution_status": "RESEARCH_ONLY",
-      "blockers": [
-        "RESEARCH_ONLY",
-        "SPORTING_SCREEN_PASS"
-      ],
-      "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
-      "p_raw": 0.693286,
-      "price_resolution_status": "PRICE_CACHE_HIT",
-      "price_resolution_source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
-      "price_resolution_provider_update": "2026-09-24T21:17:15+00:00",
-      "price_resolution_bookmaker_count": 6,
-      "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
-      "price_resolution_calibrated_probability_added": false,
-      "phase16_calibration_promotion_shadow_eligible": false,
-      "phase16_binary_calibration_diagnostics": {
-        "target": "over_2_5",
-        "source_model_version": "SOCCER EDGE ENGINE v1.7",
-        "requested_model_version": "SOCCER EDGE ENGINE v1.7",
-        "source_model_version_matches": true,
-        "rows": 407,
-        "positive_count": 241,
-        "negative_count": 166,
-        "auc": 0.52229666,
-        "auc_lower_95": 0.46538323,
-        "auc_lower_95_gap_to_gate": -0.03461677,
-        "brier_delta": -0.04869725,
-        "log_loss_delta": -0.16684858,
-        "eligible_for_phase16_research": false,
-        "calibrator_status": "RESEARCH_CALIBRATOR_FITTED"
-      },
-      "phase16_calibration_status": "BINARY_DISCRIMINATION_NOT_READY",
-      "phase16_calibration_policy": "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
-    }
-  ],
+  "research_visible_count": 0,
+  "match_table_rows": [],
   "research_visibility": {
     "schema_version": "1.0.0",
     "policy": "ALWAYS_SURFACE_RESEARCH_ROWS_FOR_BET_LEAN_WATCH_PASS_EVENTS",
-    "row_count": 1,
+    "row_count": 0,
     "row_limit": 40,
-    "visible_classification_counts": {
-      "WATCH": 1
-    },
-    "raw_event_classification_counts": {
-      "WATCH": 1
-    },
-    "market_family_counts": {
-      "FT_TOTALS_RESEARCH": 1
-    },
-    "stage_counts": {
-      "T-90": 1
-    },
-    "track_counts": {
-      "SIDE": 1,
-      "GOALS_OVER": 1,
-      "TWO_WAY": 1
-    },
-    "silent_tick_prevention": true,
+    "visible_classification_counts": {},
+    "raw_event_classification_counts": {},
+    "market_family_counts": {},
+    "stage_counts": {},
+    "track_counts": {},
+    "silent_tick_prevention": false,
     "actionable_refresh_count": 0,
     "bet_candidate_count": 0,
     "note": "Rows are a visibility layer only. WATCH rows can include raw PASS/CLOSE events so the live digest shows what was analyzed and why no BET/LEAN was emitted."
@@ -131,13 +42,9 @@
   "decision_separation": {
     "schema_version": "1.1.0",
     "policy": "MODEL_SIGNAL_INDEPENDENT_OF_PRICE_EXECUTION_STATUS_INDEPENDENT_OF_SPORT_STRENGTH",
-    "row_count": 1,
-    "model_signal_counts": {
-      "VERY_STRONG": 1
-    },
-    "execution_status_counts": {
-      "RESEARCH_ONLY": 1
-    },
+    "row_count": 0,
+    "model_signal_counts": {},
+    "execution_status_counts": {},
     "valid_model_signals": [
       "INSUFFICIENT_DATA",
       "MODEL_DISAGREEMENT",
@@ -173,13 +80,11 @@
     "schema_version": "1.0.0",
     "model_version": "SOCCER_PRICE_RESOLVER_V4_1.8.0",
     "status": "ACTIVE_PRICE_RESOLVER",
-    "candidate_rows": 1,
-    "unique_candidate_fixtures": 1,
+    "candidate_rows": 0,
+    "unique_candidate_fixtures": 0,
     "api_calls_added": 0,
     "max_api_calls": 25,
-    "resolution_counts": {
-      "PRICE_CACHE_HIT": 1
-    },
+    "resolution_counts": {},
     "provider": "API_FOOTBALL",
     "endpoint": "/odds?fixture=<id>",
     "catalog_policy": "/odds/bookmakers and /odds/bets are metadata catalogs; fixture /odds response is authoritative for prices.",
@@ -188,11 +93,9 @@
     "calibration_state_source": "SOCCER_EDGE_STATE_RAW",
     "calibration_state_loaded": true,
     "calibrated_rows_added": 0,
-    "existing_price_calibration_rows_considered": 1,
+    "existing_price_calibration_rows_considered": 0,
     "existing_price_calibrated_rows_added": 0,
-    "existing_price_calibration_status_counts": {
-      "BINARY_DISCRIMINATION_NOT_READY": 1
-    },
+    "existing_price_calibration_status_counts": {},
     "existing_price_calibration_provider_requests_added": 0,
     "provider_requests_added": 0,
     "provider_daily_remaining_observed": null,
@@ -201,8 +104,8 @@
     "cache_hydrated_research_market_rows": 0,
     "cache_hydration_provider_requests_added": 0,
     "cache_hydration_policy": "PREGAME_SOCCER_REFRESH_WITH_TEAM_LAMBDAS_FRESH_POSTGRES_SNAPSHOTS_FIRST",
-    "research_spillover_candidate_fixtures": 1,
-    "research_spillover_cache_hits": 1,
+    "research_spillover_candidate_fixtures": 0,
+    "research_spillover_cache_hits": 0,
     "research_spillover_api_calls_added": 0,
     "research_spillover_fixtures_fetched": 0,
     "research_spillover_market_rows_fetched": 0,
@@ -215,27 +118,25 @@
     "schema_version": "1.0.0",
     "status": "ACTIVE_PRICE_RESOLVER",
     "model_version": "SOCCER_PRICE_RESOLVER_V4_1.8.0",
-    "candidate_rows": 1,
-    "unique_candidate_fixtures": 1,
+    "candidate_rows": 0,
+    "unique_candidate_fixtures": 0,
     "api_calls_added": 0,
-    "resolution_counts": {
-      "PRICE_CACHE_HIT": 1
-    },
+    "resolution_counts": {},
     "simulated_odds_allowed": false,
     "calibrated_probability_fabricated": false,
     "phase16_recomputed_after_price_resolution": true,
     "team_totals_recomputed_after_price_resolution": true,
     "team_totals_post_resolution": {
-      "modeled_events": 1,
-      "events_with_observed_team_total_markets": 1,
-      "observed_exact_market_rows": 24,
-      "unsupported_observed_rows": 12
+      "modeled_events": 0,
+      "events_with_observed_team_total_markets": 0,
+      "observed_exact_market_rows": 0,
+      "unsupported_observed_rows": 0
     },
     "canonical_bet_logic_changed": false,
     "model_weights_changed": false,
     "production_promotion_allowed": false,
-    "research_spillover_candidate_fixtures": 1,
-    "research_spillover_cache_hits": 1,
+    "research_spillover_candidate_fixtures": 0,
+    "research_spillover_cache_hits": 0,
     "research_spillover_api_calls_added": 0,
     "research_spillover_fixtures_fetched": 0,
     "research_spillover_market_rows_fetched": 0,
@@ -245,12 +146,7 @@
     "schema_version": "0.6.0",
     "status": "LIVE_RESEARCH",
     "events_modeled": 0,
-    "gate_counts": {
-      "STAGE_T-90": 1,
-      "PRE_ACTIONABLE_OBSERVED": 1,
-      "PRE_ACTIONABLE_MARKET_NOT_FRESH": 1,
-      "PRE_ACTIONABLE_GOAL_RATES_PRESENT": 1
-    },
+    "gate_counts": {},
     "family_leg_counts": {},
     "research_candidate_count": 0,
     "settlement_diagnostic_count": 0,
@@ -263,7 +159,7 @@
   "elastic_deep_dive_cap_reason": "GT_6000",
   "elastic_request_cap": 70,
   "elastic_request_cap_reason": "GT_6000",
-  "elastic_quota_remaining_basis": 7292,
+  "elastic_quota_remaining_basis": 7291,
   "fair_scheduler": {
     "schema_version": "1.0.0",
     "policy": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY",
@@ -273,16 +169,16 @@
       "exploratory": 15
     },
     "eligible_queue_counts": {
-      "actionable": 1,
+      "actionable": 0,
       "unseen": 0,
       "exploratory": 0
     },
     "planned_slot_counts": {
-      "actionable": 1,
+      "actionable": 0,
       "unseen": 0,
       "exploratory": 0
     },
-    "planned_slot_count": 1,
+    "planned_slot_count": 0,
     "deferred_after_slot_plan": 0,
     "eligible_tier_ab_due_count": 5,
     "due_with_any_deep_dive_count": 5,
@@ -293,7 +189,7 @@
     "analyzed_by_t40_pct": 0.0,
     "starvation_count": 0,
     "avg_deep_dives_per_due_fixture": 15.2,
-    "provider_calls_per_processed_fixture": 2.0,
+    "provider_calls_per_processed_fixture": null,
     "actionable_due_count": 0,
     "actionable_processed_count": 0,
     "actionable_refresh_pct": null,
@@ -302,7 +198,7 @@
     "tier_ab_due_coverage_target_met": true,
     "shortlist_actionable_refresh_target_met": null,
     "processed_category_counts": {
-      "actionable": 1,
+      "actionable": 0,
       "unseen": 0,
       "exploratory": 0
     },
@@ -320,17 +216,17 @@
       "exploratory": 15
     },
     "eligible_queue_counts": {
-      "actionable": 1,
+      "actionable": 0,
       "unseen": 0,
       "exploratory": 0
     },
     "planned_slot_counts": {
-      "actionable": 1,
+      "actionable": 0,
       "unseen": 0,
       "exploratory": 0
     },
     "processed_category_counts": {
-      "actionable": 1,
+      "actionable": 0,
       "unseen": 0,
       "exploratory": 0
     },
@@ -341,7 +237,7 @@
     "analyzed_by_t40_pct": 0.0,
     "starvation_count": 0,
     "avg_deep_dives_per_due_fixture": 15.2,
-    "provider_calls_per_processed_fixture": 2.0,
+    "provider_calls_per_processed_fixture": null,
     "actionable_due_count": 0,
     "actionable_processed_count": 0,
     "actionable_refresh_pct": null,
@@ -359,14 +255,12 @@
   "v4_007_feature_snapshot_schema": {
     "schema_version": "4.0.0",
     "status": "LIVE_VALIDATION",
-    "valid_snapshot_count": 1,
+    "valid_snapshot_count": 0,
     "invalid_snapshot_count": 0,
-    "feature_cells_count": 25,
-    "missing_feature_cells_count": 17,
-    "missing_feature_pct": 68.0,
-    "stage_counts": {
-      "T-90": 1
-    },
+    "feature_cells_count": 0,
+    "missing_feature_cells_count": 0,
+    "missing_feature_pct": null,
+    "stage_counts": {},
     "sport_first": true,
     "market_fields_included": false,
     "feature_envelope_fields": [
@@ -403,7 +297,7 @@
     "provider_requests_added": 0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
-    "current_tick_valid_feature_snapshots": 1,
+    "current_tick_valid_feature_snapshots": 0,
     "current_tick_invalid_feature_snapshots": 0
   },
   "v4_009_dixon_coles_baseline": {
@@ -491,7 +385,7 @@
     "runtime_prediction_weight": 0.0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
-    "current_tick_feature_snapshot_count": 1,
+    "current_tick_feature_snapshot_count": 0,
     "note": "No ensemble probability is emitted until component predictions share an adequate same-fixture OOS cohort. Research framework only."
   },
   "v4_013_calibration_engine_v1": {
@@ -519,7 +413,7 @@
     "minimum_positives": 25,
     "minimum_negatives": 25,
     "same_fixture_oos_prediction_ledger_required": true,
-    "current_tick_feature_snapshot_count": 1,
+    "current_tick_feature_snapshot_count": 0,
     "market_fields_used": false,
     "provider_requests_added": 0,
     "production_promotion_allowed": false,
@@ -780,21 +674,13 @@
     "schema_version": "1.0.0",
     "status": "RESEARCH_ENGINE_IMPLEMENTED",
     "model_version": "SOCCER_MARKET_MISMATCH_V4_1.4.0",
-    "rows_analyzed": 1,
-    "fixtures_analyzed": 1,
+    "rows_analyzed": 0,
+    "fixtures_analyzed": 0,
     "rankable_rows": 0,
-    "non_rankable_rows": 1,
-    "non_rankable_reason_counts": {
-      "BINARY_DISCRIMINATION_NOT_READY": 1
-    },
-    "non_rankable_reason_counts_by_family": {
-      "FT_TOTALS": {
-        "BINARY_DISCRIMINATION_NOT_READY": 1
-      }
-    },
-    "market_family_coverage": {
-      "FT_TOTALS": 1
-    },
+    "non_rankable_rows": 0,
+    "non_rankable_reason_counts": {},
+    "non_rankable_reason_counts_by_family": {},
+    "market_family_coverage": {},
     "rankable_market_family_coverage": {},
     "ranking_weights": {
       "sport_confidence": 0.3,
@@ -1087,166 +973,12 @@
   },
   "dashboard_views": {
     "todays_slate": {
-      "rows": [
-        {
-          "row_type": "research_visibility",
-          "row_index": 0,
-          "event_type": "SOCCER_REFRESH",
-          "stage": "T-90",
-          "classification": "WATCH",
-          "event_classification": "WATCH",
-          "fixture_id": 1641614,
-          "kickoff": "2026-09-24T23:00:00-06:00",
-          "league": "Asian Games",
-          "country": "World",
-          "home": "Uzbekistan U23",
-          "away": "Saudi Arabia U23",
-          "status": "NS",
-          "data_tier": "B",
-          "market_family": "FT_TOTALS",
-          "market": "Goals Over/Under",
-          "selection": "Over",
-          "line": 2.5,
-          "price": 2.14,
-          "bookmaker": "1xBet",
-          "tier": null,
-          "stake_units": 0.0,
-          "bet_eligible": false,
-          "side_score": 100.0,
-          "goals_score": 84.4,
-          "two_way_score": 72.8,
-          "shortlist_rank": 100.0,
-          "tracks": [
-            "SIDE",
-            "GOALS_OVER",
-            "TWO_WAY"
-          ],
-          "prob_edge_pp": 25.793,
-          "estimated_ev": null,
-          "p_market_fair": 0.435356,
-          "p_shrunk": null,
-          "reason": "SPORTING_SCREEN_PASS",
-          "notes_count": 1,
-          "market_use": "MARKET_COMPARISON_AFTER_SPORTING_SHORTLIST",
-          "model_signal": "VERY_STRONG",
-          "model_signal_score": 100.0,
-          "execution_status": "RESEARCH_ONLY",
-          "blockers": [
-            "RESEARCH_ONLY",
-            "SPORTING_SCREEN_PASS"
-          ],
-          "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
-          "p_raw": 0.693286,
-          "price_resolution_status": "PRICE_CACHE_HIT",
-          "price_resolution_source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
-          "price_resolution_provider_update": "2026-09-24T21:17:15+00:00",
-          "price_resolution_bookmaker_count": 6,
-          "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
-          "price_resolution_calibrated_probability_added": false,
-          "phase16_calibration_promotion_shadow_eligible": false,
-          "phase16_binary_calibration_diagnostics": {
-            "target": "over_2_5",
-            "source_model_version": "SOCCER EDGE ENGINE v1.7",
-            "requested_model_version": "SOCCER EDGE ENGINE v1.7",
-            "source_model_version_matches": true,
-            "rows": 407,
-            "positive_count": 241,
-            "negative_count": 166,
-            "auc": 0.52229666,
-            "auc_lower_95": 0.46538323,
-            "auc_lower_95_gap_to_gate": -0.03461677,
-            "brier_delta": -0.04869725,
-            "log_loss_delta": -0.16684858,
-            "eligible_for_phase16_research": false,
-            "calibrator_status": "RESEARCH_CALIBRATOR_FITTED"
-          },
-          "phase16_calibration_status": "BINARY_DISCRIMINATION_NOT_READY",
-          "phase16_calibration_policy": "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
-        }
-      ],
-      "total": 1
+      "rows": [],
+      "total": 0
     },
     "strong_sport_signals": {
-      "rows": [
-        {
-          "row_type": "research_visibility",
-          "row_index": 0,
-          "event_type": "SOCCER_REFRESH",
-          "stage": "T-90",
-          "classification": "WATCH",
-          "event_classification": "WATCH",
-          "fixture_id": 1641614,
-          "kickoff": "2026-09-24T23:00:00-06:00",
-          "league": "Asian Games",
-          "country": "World",
-          "home": "Uzbekistan U23",
-          "away": "Saudi Arabia U23",
-          "status": "NS",
-          "data_tier": "B",
-          "market_family": "FT_TOTALS",
-          "market": "Goals Over/Under",
-          "selection": "Over",
-          "line": 2.5,
-          "price": 2.14,
-          "bookmaker": "1xBet",
-          "tier": null,
-          "stake_units": 0.0,
-          "bet_eligible": false,
-          "side_score": 100.0,
-          "goals_score": 84.4,
-          "two_way_score": 72.8,
-          "shortlist_rank": 100.0,
-          "tracks": [
-            "SIDE",
-            "GOALS_OVER",
-            "TWO_WAY"
-          ],
-          "prob_edge_pp": 25.793,
-          "estimated_ev": null,
-          "p_market_fair": 0.435356,
-          "p_shrunk": null,
-          "reason": "SPORTING_SCREEN_PASS",
-          "notes_count": 1,
-          "market_use": "MARKET_COMPARISON_AFTER_SPORTING_SHORTLIST",
-          "model_signal": "VERY_STRONG",
-          "model_signal_score": 100.0,
-          "execution_status": "RESEARCH_ONLY",
-          "blockers": [
-            "RESEARCH_ONLY",
-            "SPORTING_SCREEN_PASS"
-          ],
-          "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
-          "p_raw": 0.693286,
-          "price_resolution_status": "PRICE_CACHE_HIT",
-          "price_resolution_source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
-          "price_resolution_provider_update": "2026-09-24T21:17:15+00:00",
-          "price_resolution_bookmaker_count": 6,
-          "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
-          "price_resolution_calibrated_probability_added": false,
-          "phase16_calibration_promotion_shadow_eligible": false,
-          "phase16_binary_calibration_diagnostics": {
-            "target": "over_2_5",
-            "source_model_version": "SOCCER EDGE ENGINE v1.7",
-            "requested_model_version": "SOCCER EDGE ENGINE v1.7",
-            "source_model_version_matches": true,
-            "rows": 407,
-            "positive_count": 241,
-            "negative_count": 166,
-            "auc": 0.52229666,
-            "auc_lower_95": 0.46538323,
-            "auc_lower_95_gap_to_gate": -0.03461677,
-            "brier_delta": -0.04869725,
-            "log_loss_delta": -0.16684858,
-            "eligible_for_phase16_research": false,
-            "calibrator_status": "RESEARCH_CALIBRATOR_FITTED"
-          },
-          "phase16_calibration_status": "BINARY_DISCRIMINATION_NOT_READY",
-          "phase16_calibration_policy": "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
-        }
-      ],
-      "total": 1
+      "rows": [],
+      "total": 0
     },
     "value_plays": {
       "rows": [],
@@ -1254,85 +986,8 @@
       "requires_calibrated_probability": true
     },
     "waiting_for_price": {
-      "rows": [
-        {
-          "row_type": "research_visibility",
-          "row_index": 0,
-          "event_type": "SOCCER_REFRESH",
-          "stage": "T-90",
-          "classification": "WATCH",
-          "event_classification": "WATCH",
-          "fixture_id": 1641614,
-          "kickoff": "2026-09-24T23:00:00-06:00",
-          "league": "Asian Games",
-          "country": "World",
-          "home": "Uzbekistan U23",
-          "away": "Saudi Arabia U23",
-          "status": "NS",
-          "data_tier": "B",
-          "market_family": "FT_TOTALS",
-          "market": "Goals Over/Under",
-          "selection": "Over",
-          "line": 2.5,
-          "price": 2.14,
-          "bookmaker": "1xBet",
-          "tier": null,
-          "stake_units": 0.0,
-          "bet_eligible": false,
-          "side_score": 100.0,
-          "goals_score": 84.4,
-          "two_way_score": 72.8,
-          "shortlist_rank": 100.0,
-          "tracks": [
-            "SIDE",
-            "GOALS_OVER",
-            "TWO_WAY"
-          ],
-          "prob_edge_pp": 25.793,
-          "estimated_ev": null,
-          "p_market_fair": 0.435356,
-          "p_shrunk": null,
-          "reason": "SPORTING_SCREEN_PASS",
-          "notes_count": 1,
-          "market_use": "MARKET_COMPARISON_AFTER_SPORTING_SHORTLIST",
-          "model_signal": "VERY_STRONG",
-          "model_signal_score": 100.0,
-          "execution_status": "RESEARCH_ONLY",
-          "blockers": [
-            "RESEARCH_ONLY",
-            "SPORTING_SCREEN_PASS"
-          ],
-          "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY",
-          "p_raw": 0.693286,
-          "price_resolution_status": "PRICE_CACHE_HIT",
-          "price_resolution_source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
-          "price_resolution_provider_update": "2026-09-24T21:17:15+00:00",
-          "price_resolution_bookmaker_count": 6,
-          "price_resolution_reference_policy": "MEDIAN_PRICE_NEAREST_BOOKMAKER",
-          "price_resolution_calibrated_probability_added": false,
-          "phase16_calibration_promotion_shadow_eligible": false,
-          "phase16_binary_calibration_diagnostics": {
-            "target": "over_2_5",
-            "source_model_version": "SOCCER EDGE ENGINE v1.7",
-            "requested_model_version": "SOCCER EDGE ENGINE v1.7",
-            "source_model_version_matches": true,
-            "rows": 407,
-            "positive_count": 241,
-            "negative_count": 166,
-            "auc": 0.52229666,
-            "auc_lower_95": 0.46538323,
-            "auc_lower_95_gap_to_gate": -0.03461677,
-            "brier_delta": -0.04869725,
-            "log_loss_delta": -0.16684858,
-            "eligible_for_phase16_research": false,
-            "calibrator_status": "RESEARCH_CALIBRATOR_FITTED"
-          },
-          "phase16_calibration_status": "BINARY_DISCRIMINATION_NOT_READY",
-          "phase16_calibration_policy": "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
-        }
-      ],
-      "total": 1
+      "rows": [],
+      "total": 0
     },
     "waiting_for_xi": {
       "rows": [],
@@ -1375,9 +1030,9 @@
     },
     "data_health": {
       "database_persisted": false,
-      "api_calls_this_tick": 2,
+      "api_calls_this_tick": 1,
       "max_api_calls_per_tick": 70,
-      "last_daily_remaining": 7292,
+      "last_daily_remaining": 7291,
       "fixture_scan_count": 96,
       "due_fixture_count": 5,
       "deferred_due_to_budget": 0,
