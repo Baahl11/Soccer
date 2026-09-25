@@ -64,3 +64,41 @@ def test_team_totals_keeps_legacy_embedded_line_price_support():
         ("OVER", 1.5),
         ("UNDER", 1.5),
     }
+
+
+def test_team_totals_rejects_period_and_non_goal_team_total_markets():
+    event = _base_event([
+        {"selection": "Over", "line": 1.5, "decimal_price": 1.95},
+        {"selection": "Under", "line": 1.5, "decimal_price": 1.85},
+    ])
+    event["market"]["markets"] = [
+        {
+            "market": "Home Team Total Cards",
+            "bookmaker": "Book",
+            "values": [
+                {"selection": "Over", "line": 1.5, "decimal_price": 1.95},
+                {"selection": "Under", "line": 1.5, "decimal_price": 1.85},
+            ],
+        },
+        {
+            "market": "Away Team Total Corners",
+            "bookmaker": "Book",
+            "values": [
+                {"selection": "Over", "line": 1.5, "decimal_price": 1.95},
+                {"selection": "Under", "line": 1.5, "decimal_price": 1.85},
+            ],
+        },
+        {
+            "market": "Home Team Total Goals - First Half",
+            "bookmaker": "Book",
+            "values": [
+                {"selection": "Over", "line": 1.5, "decimal_price": 1.95},
+                {"selection": "Under", "line": 1.5, "decimal_price": 1.85},
+            ],
+        },
+    ]
+
+    report = tti.build(event)
+
+    assert report["observed_exact_market_count"] == 0
+    assert report["observed_exact_market_rows"] == []
