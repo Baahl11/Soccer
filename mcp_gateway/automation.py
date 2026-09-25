@@ -432,6 +432,12 @@ def _player_prop_research_subfamily(bet: dict[str, Any]) -> str | None:
     if any(token in name for token in aggregate_player_markets):
         return None
 
+    # Combined outcome is not an anytime-goalscorer instrument. Our goalscorer
+    # model estimates goal probability only and cannot be compared with
+    # "score OR assist" without a joint model.
+    if "score or assist" in name or "score/assist" in name:
+        return None
+
     if "first goal scorer" in name:
         return "GOALSCORER_FIRST"
     if "last goal scorer" in name:
