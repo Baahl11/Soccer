@@ -5,6 +5,7 @@ from mcp_gateway import player_props_phase15_coverage_audit as coverage_audit
 from mcp_gateway import player_props_postgame_backfill_v4 as prop_backfill
 from mcp_gateway import player_trend_registry_backfill_v4 as registry_backfill
 from mcp_gateway import gk_saves_intelligence as gk_saves
+from mcp_gateway import analyze_player_trends as trend_analysis
 from mcp_gateway import automation as base_automation
 
 
@@ -1647,3 +1648,32 @@ def test_v156_unknown_goalkeeper_reaches_player_prop_shadow_signal_pipeline():
     assert signals[0]["line"] == 1.5
     assert signals[0]["side"] == "OVER"
     assert signals[0]["model_probability"] == expected
+
+
+
+def test_v156_goalkeeper_taxonomy_ignores_outfield_zero_save_placeholders():
+    assert trend_analysis._is_goalkeeper_row({
+        "position": "M",
+        "saves": 0,
+        "goals_conceded": None,
+    }) is False
+    assert trend_analysis._is_goalkeeper_row({
+        "position": None,
+        "saves": 0,
+        "goals_conceded": None,
+    }) is False
+    assert trend_analysis._is_goalkeeper_row({
+        "position": "G",
+        "saves": 0,
+        "goals_conceded": None,
+    }) is True
+    assert trend_analysis._is_goalkeeper_row({
+        "position": None,
+        "saves": 2,
+        "goals_conceded": None,
+    }) is True
+    assert trend_analysis._is_goalkeeper_row({
+        "position": None,
+        "saves": 0,
+        "goals_conceded": 1,
+    }) is True
