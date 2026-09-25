@@ -1244,3 +1244,100 @@ def test_registry_backfill_preserves_provider_goalkeeper_conceded_value():
     )
     assert out[0]["players"][0]["goals_conceded"] == 4
     assert "goals_conceded_source" not in out[0]["players"][0]
+
+
+def test_clv_close_diagnostics_distinguish_no_later_capture_from_stale_provider_update():
+    signal = {
+        "fixture_id": 5001,
+        "kickoff": "2026-09-25T12:00:00+00:00",
+        "signal_timestamp": "2026-09-25T11:30:00+00:00",
+        "stage": "T-30",
+        "market_family": "SHOTS",
+        "player_id": 100,
+        "side": "OVER",
+        "line": 1.5,
+        "entry_price": 1.9,
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+    }
+    earlier = {
+        "fixture_id": 5001,
+        "captured_at": "2026-09-25T11:29:00+00:00",
+        "provider_update": "2026-09-25T11:28:00+00:00",
+        "market": "Player Shots",
+        "values": [{
+            "player_id": 100,
+            "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+            "selection": "Player A - 2",
+            "parsed_line": 1.5,
+            "price": 1.8,
+        }],
+        "confirmed_lineup_payload": {},
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+    }
+
+    diagnostics = {}
+    rows, skip = prop_clv.pair_signals_to_closes(
+        [signal],
+        [earlier],
+        diagnostics=diagnostics,
+    )
+    assert rows == []
+    assert skip["NO_LATER_STRICT_PLAYER_PROP_CLOSE"] == 1
+    assert diagnostics["failure_reasons"]["NO_LATER_CAPTURE_BEFORE_KICKOFF"] == 1
+
+    stale = {
+        **earlier,
+        "captured_at": "2026-09-25T11:40:00+00:00",
+        "provider_update": "2026-09-25T11:29:00+00:00",
+    }
+    diagnostics = {}
+    rows, skip = prop_clv.pair_signals_to_closes(
+        [signal],
+        [stale],
+        diagnostics=diagnostics,
+    )
+    assert rows == []
+    assert diagnostics["failure_reasons"]["LATER_CAPTURE_PROVIDER_UPDATE_NOT_NEWER"] == 1
+
+
+def test_clv_close_diagnostics_count_strict_close():
+    signal = {
+        "fixture_id": 5002,
+        "kickoff": "2026-09-25T12:00:00+00:00",
+        "signal_timestamp": "2026-09-25T11:30:00+00:00",
+        "stage": "T-30",
+        "market_family": "SHOTS",
+        "player_id": 101,
+        "side": "OVER",
+        "line": 1.5,
+        "entry_price": 1.9,
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+    }
+    snapshot = {
+        "fixture_id": 5002,
+        "captured_at": "2026-09-25T11:45:00+00:00",
+        "provider_update": "2026-09-25T11:44:00+00:00",
+        "market": "Player Shots",
+        "values": [{
+            "player_id": 101,
+            "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+            "selection": "Player B - 2",
+            "parsed_line": 1.5,
+            "price": 1.8,
+        }],
+        "confirmed_lineup_payload": {},
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+    }
+    diagnostics = {}
+    rows, skip = prop_clv.pair_signals_to_closes(
+        [signal],
+        [snapshot],
+        diagnostics=diagnostics,
+    )
+    assert len(rows) == 1
+    assert skip == {}
+    assert diagnostics["by_family"]["SHOTS"]["strict_close_rows"] == 1
