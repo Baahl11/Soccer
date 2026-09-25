@@ -7,8 +7,8 @@ import os
 import re
 from typing import Any, Iterable
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_CARDS_REFEREE_PHASE14_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_CARDS_REFEREE_PHASE14_V4_1.1.0"
 MIN_YELLOW_OOS = 200
 MIN_REFEREE_ADJUSTED = 100
 MIN_RED_MARKET_REVIEW = 500
@@ -47,11 +47,30 @@ def summarize_true_clv(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _market_evidence(audit: dict[str, Any] | None, family: str) -> dict[str, Any]:
+    families = audit.get("families") if isinstance(audit, dict) and isinstance(audit.get("families"), dict) else {}
+    row = families.get(family) if isinstance(families.get(family), dict) else {}
+    return {
+        "audit_family": family,
+        "market_snapshot_rows": int(row.get("market_snapshot_rows") or 0),
+        "unique_fixtures": int(row.get("unique_fixtures") or 0),
+        "pre_kickoff_unique_fixtures": int(row.get("pre_kickoff_unique_fixtures") or 0),
+        "provider_update_unique_fixtures": int(row.get("provider_update_unique_fixtures") or 0),
+        "confirmed_xi_pre_kickoff_unique_fixtures": int(row.get("confirmed_xi_pre_kickoff_unique_fixtures") or 0),
+        "bookmaker_count": int(row.get("bookmaker_count") or 0),
+        "priced_value_rows": int(row.get("priced_value_rows") or 0),
+        "exact_line_value_rows": int(row.get("exact_line_value_rows") or 0),
+        "exact_observed_market_history_materialized": bool(row.get("exact_observed_market_history_materialized")),
+        "confirmed_xi_overlap_materialized": bool(row.get("confirmed_xi_overlap_materialized")),
+    }
+
+
 def build_report(
     yellow_cards: dict[str, Any],
     red_cards: dict[str, Any],
     player_cards: dict[str, Any],
     true_clv_rows: Iterable[dict[str, Any]],
+    market_audit: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     yellow_metrics = yellow_cards.get("metrics") if isinstance(yellow_cards.get("metrics"), dict) else {}
     yellow_gate = yellow_cards.get("promotion_gate") if isinstance(yellow_cards.get("promotion_gate"), dict) else {}
@@ -70,6 +89,8 @@ def build_report(
     player_actionable = bool(player_cards.get("actionable"))
 
     clv = summarize_true_clv(true_clv_rows)
+    match_cards_market_evidence = _market_evidence(market_audit, "CARDS")
+    player_cards_market_evidence = _market_evidence(market_audit, "PLAYER_CARDS")
     blockers: list[str] = []
     warnings: list[str] = []
 
@@ -98,6 +119,10 @@ def build_report(
 
     if clv["rows"] < MIN_CARD_TRUE_CLV:
         blockers.append(f"CARD_TRUE_CLV_{clv['rows']}_LT_{MIN_CARD_TRUE_CLV}")
+    if match_cards_market_evidence["priced_value_rows"] <= 0:
+        blockers.append("MATCH_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING")
+    if player_cards_market_evidence["priced_value_rows"] <= 0:
+        blockers.append("PLAYER_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING")
     if bool(player_cards.get("bookmaker_card_scoring_rule_assumed")):
         blockers.append("BOOKMAKER_CARD_SCORING_RULE_ASSUMPTION_NOT_ALLOWED")
 
@@ -129,6 +154,11 @@ def build_report(
             "referee_adjusted_n": red_ref_n,
             "promotion_gate": red_gate,
         },
+        "market_evidence": {
+            "match_cards": match_cards_market_evidence,
+            "player_cards": player_cards_market_evidence,
+            "audit_model_version": market_audit.get("model_version") if isinstance(market_audit, dict) else None,
+        },
         "player_cards": {
             "profiles_checked": player_profiles,
             "structural_pass": player_structural_pass,
@@ -148,6 +178,7 @@ def build_report(
             "Yellow-card counts, red-card occurrence and player-card props remain separate targets.",
             "Referee effects cannot be promoted with zero verified referee-adjusted OOS observations.",
             "Sportsbook card-settlement/scoring rules must be mapped explicitly; generic card points are not assumed.",
+            "Observed match-card market history and player-card prop history are audited separately; generic card market coverage cannot satisfy player-card evidence gates.",
             "Player-card structural sanity is necessary but not equivalent to OOS performance validation.",
         ],
     }
@@ -185,6 +216,7 @@ def main() -> None:
     parser.add_argument("--red-cards", required=True)
     parser.add_argument("--player-cards", required=True)
     parser.add_argument("--true-clv-tracking", required=True)
+    parser.add_argument("--market-audit", required=False)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     report = build_report(
@@ -192,6 +224,7 @@ def main() -> None:
         _load_json(args.red_cards),
         _load_json(args.player_cards),
         _load_jsonl(args.true_clv_tracking),
+        _load_json(args.market_audit) if args.market_audit else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
