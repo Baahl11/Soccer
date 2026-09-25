@@ -8,11 +8,12 @@ from typing import Any
 
 from mcp_gateway.oos_stage_diagnostics_v4 import _auc_discrimination
 
-MODEL_VERSION = "LIGHTGBM_DRAW_V4_CHALLENGER_1.1.0"
+MODEL_VERSION = "LIGHTGBM_DRAW_V4_CHALLENGER_1.2.0"
 SCHEMA_VERSION = "1.0.0"
 MIN_TRAIN_ROWS = 50
 MIN_OOS_ROWS = 50
 MIN_FOLD_ROWS = 25
+MIN_CLASS_ROWS = 10
 MAX_GOALS = 15
 
 FEATURE_KEYS = (
@@ -224,6 +225,38 @@ def walk_forward(
             },
         }
 
+    effective_train_rows = int(min_train_rows)
+    while effective_train_rows < len(ordered):
+        prefix_targets = [_target(row) for row in ordered[:effective_train_rows]]
+        positives = sum(int(value) for value in prefix_targets if value is not None)
+        negatives = len(prefix_targets) - positives
+        if positives >= MIN_CLASS_ROWS and negatives >= MIN_CLASS_ROWS:
+            break
+        effective_train_rows += 1
+
+    if effective_train_rows >= len(ordered):
+        return {
+            **base,
+            "status": "INSUFFICIENT_CLASS_SUPPORT",
+            "effective_training_rows": effective_train_rows,
+            "available_oos_rows": 0,
+            "folds": [],
+            "walk_forward_evaluated": 0,
+            "baseline_metrics": _binary_metrics([], []),
+            "challenger_metrics": _binary_metrics([], []),
+            "comparison": {
+                "auc_lower_95_delta": None,
+                "brier_delta": None,
+                "log_loss_delta": None,
+                "challenger_discrimination_ready": False,
+                "improves_all_primary_metrics": False,
+            },
+            "research_followup_candidate": False,
+        }
+
+    base["effective_training_rows"] = effective_train_rows
+    base["available_oos_rows"] = len(ordered) - effective_train_rows
+
     try:
         import lightgbm as lgb
     except Exception as exc:
@@ -251,7 +284,7 @@ def walk_forward(
     importance_sum = {name: 0.0 for name in expanded_feature_names()}
     fitted_folds = 0
 
-    for fold_index, (start, end) in enumerate(_fold_boundaries(len(ordered), int(min_train_rows)), start=1):
+    for fold_index, (start, end) in enumerate(_fold_boundaries(len(ordered), effective_train_rows), start=1):
         train = ordered[:start]
         test = ordered[start:end]
         y_train = [_target(row) for row in train]
@@ -259,7 +292,7 @@ def walk_forward(
             continue
         positives = sum(int(value) for value in y_train if value is not None)
         negatives = len(y_train) - positives
-        if positives < 10 or negatives < 10:
+        if positives < MIN_CLASS_ROWS or negatives < MIN_CLASS_ROWS:
             continue
 
         model = lgb.LGBMClassifier(
