@@ -423,3 +423,79 @@ def test_phase15_counts_exact_one_way_price_clv_without_faking_probability_clv()
     assert scorer["price_clv_rows"] == 1
     assert scorer["probability_clv_rows"] == 0
     assert scorer["avg_probability_clv_pp"] is None
+
+
+def test_player_prop_clv_gk_signal_does_not_require_outfield_confirmed_starter_flag():
+    lineup = {
+        "both_xi_confirmed": True,
+        "both_goalkeepers_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+                "goalkeepers": [{"id": 701, "name": "Keeper A", "pos": "G"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Player B", "pos": "F"}],
+                "goalkeepers": [{"id": 702, "name": "Keeper B", "pos": "G"}],
+            },
+        ],
+    }
+    event = {
+        "fixture_id": 9100,
+        "generated_at": "2026-09-25T10:00:00+00:00",
+        "stage": "T-20",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-20",
+            "fixture": {"fixture_id": 9100, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "lineups": lineup,
+            "gk_saves_intelligence": {
+                "goalkeepers": [{
+                    "player_id": 701,
+                    "player": "Keeper A",
+                    "team_id": 10,
+                    "expected_minutes": 90.0,
+                    "lines": [{"line": 3.5, "p_over": 0.45, "p_under": 0.55}],
+                }]
+            },
+            "market": {
+                "research_cards_props_markets": [{
+                    "research_family": "PLAYER_PROPS",
+                    "research_subfamily": "GK_SAVES",
+                    "market": "Goalkeeper Saves",
+                    "bookmaker": "Book",
+                    "provider_update": "2026-09-25T09:58:00+00:00",
+                    "values": [
+                        {
+                            "selection": "Keeper A Over 3.5",
+                            "price": "2.05",
+                            "parsed_line": 3.5,
+                            "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                            "player_id": 701,
+                            "player_name": "Keeper A",
+                            "team_id": 10,
+                        },
+                        {
+                            "selection": "Keeper A Under 3.5",
+                            "price": "1.75",
+                            "parsed_line": 3.5,
+                            "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                            "player_id": 701,
+                            "player_name": "Keeper A",
+                            "team_id": 10,
+                        },
+                    ],
+                }]
+            },
+        },
+    }
+
+    signals = prop_clv.extract_shadow_signals([event])
+    assert len(signals) == 2
+    assert {row["market_family"] for row in signals} == {"GK_SAVES"}
+    assert all(isinstance(row["provider_update"], str) for row in signals)
+    assert next(row for row in signals if row["side"] == "OVER")["model_probability"] == 0.45
