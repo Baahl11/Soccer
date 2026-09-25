@@ -154,3 +154,98 @@ def test_summarize_rows_exposes_unclassified_taxonomy_gaps():
     assert report["unclassified_market_name_counts"]["Player Total Passes"] == 1
     assert report["unclassified_market_name_counts"]["Shots Inside Box"] == 1
     assert len(report["unclassified_sample_rows"]) == 2
+
+
+def test_xi_alignment_requires_exact_confirmed_starter_and_goalkeeper_role():
+    lineup = {
+        "both_xi_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [
+                    {"id": 501, "name": "Ángel Di María", "pos": "F"},
+                    {"id": 502, "name": "Keeper One", "pos": "G"},
+                ],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [
+                    {"id": 601, "name": "Player B", "pos": "M"},
+                    {"id": 602, "name": "Keeper Two", "pos": "G"},
+                ],
+            },
+        ],
+    }
+
+    shot = v.align_value_to_confirmed_xi(
+        {"selection": "Angel Di Maria Over 2.5", "price": "1.90", "parsed_line": 2.5},
+        lineup_payload=lineup,
+        family="SHOTS",
+    )
+    assert shot["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+    assert shot["player_id"] == 501
+    assert shot["team_id"] == 10
+    assert shot["confirmed_starter"] is True
+
+    missing = v.align_value_to_confirmed_xi(
+        {"selection": "Bench Player Over 1.5", "price": "1.80", "parsed_line": 1.5},
+        lineup_payload=lineup,
+        family="SHOTS",
+    )
+    assert missing["xi_alignment_status"] == "PLAYER_NOT_MATCHED_TO_CONFIRMED_XI"
+
+    wrong_gk = v.align_value_to_confirmed_xi(
+        {"selection": "Angel Di Maria Over 2.5", "price": "2.10", "parsed_line": 2.5},
+        lineup_payload=lineup,
+        family="GK_SAVES",
+    )
+    assert wrong_gk["xi_alignment_status"] == "MATCHED_NON_GOALKEEPER"
+
+    right_gk = v.align_value_to_confirmed_xi(
+        {"selection": "Keeper One Over 3.5", "price": "1.88", "parsed_line": 3.5},
+        lineup_payload=lineup,
+        family="GK_SAVES",
+    )
+    assert right_gk["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+    assert right_gk["position"] == "G"
+
+
+def test_summarize_rows_counts_only_priced_xi_aligned_player_values():
+    lineup = {
+        "both_xi_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Player B", "pos": "M"}],
+            },
+        ],
+    }
+    rows = [
+        {
+            "fixture_id": 300,
+            "market": "Player Shots",
+            "values": [
+                {"selection": "Player A Over 2.5", "price": "1.90", "parsed_line": 2.5},
+                {"selection": "Bench Player Over 1.5", "price": "1.80", "parsed_line": 1.5},
+            ],
+            "pre_kickoff": True,
+            "confirmed_xi_before_market": True,
+            "confirmed_lineup_payload": lineup,
+        }
+    ]
+
+    report = v.summarize_rows(rows, lookback_days=180)
+    shots = report["families"]["SHOTS"]
+    assert shots["priced_value_rows"] == 2
+    assert shots["xi_aligned_priced_value_rows"] == 1
+    assert shots["xi_aligned_exact_line_value_rows"] == 1
+    assert shots["confirmed_xi_player_aligned_unique_fixtures"] == 1
+    assert shots["player_xi_alignment_materialized"] is True
