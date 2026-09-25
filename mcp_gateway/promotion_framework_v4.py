@@ -8,7 +8,7 @@ import re
 from typing import Any
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.11.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.12.0"
 
 STATES = (
     "DORMANT",
@@ -273,9 +273,23 @@ def _stability_for_family(stability_report: dict[str, Any], keys: tuple[str, ...
 
     overalls = [value.get("overall") for value in matches if isinstance(value.get("overall"), dict)]
     rows = sum(int(value.get("rows") or 0) for value in overalls)
-    # Conservative for combined home/away families: do not sum unique fixtures,
-    # because the same fixture can contribute to both sides.
-    unique_fixtures = max((int(value.get("unique_fixtures") or 0) for value in overalls), default=0)
+    fixture_id_sets = [
+        {
+            int(fixture_id)
+            for fixture_id in (value.get("fixture_ids") or [])
+            if fixture_id is not None
+        }
+        for value in overalls
+        if isinstance(value.get("fixture_ids"), list)
+    ]
+    if fixture_id_sets:
+        unique_fixtures = len(set().union(*fixture_id_sets))
+        unique_fixture_count_source = "EXACT_FIXTURE_ID_UNION"
+    else:
+        # Backward-compatible fallback for legacy reports that predate fixture_ids.
+        # Never sum counts because HOME/AWAY derivative families can share fixtures.
+        unique_fixtures = max((int(value.get("unique_fixtures") or 0) for value in overalls), default=0)
+        unique_fixture_count_source = "LEGACY_CONSERVATIVE_MAX"
     weighted_parts = []
     for value in overalls:
         n = int(value.get("rows") or 0)
@@ -312,6 +326,7 @@ def _stability_for_family(stability_report: dict[str, Any], keys: tuple[str, ...
         "overall": {
             "rows": rows,
             "unique_fixtures": unique_fixtures,
+            "unique_fixture_count_source": unique_fixture_count_source,
             "fixture_weighted_avg_probability_clv_pp": round(avg_clv, 6) if avg_clv is not None else None,
         },
         "negative_directional_leagues": negative_leagues,
