@@ -172,3 +172,18 @@ def test_phase16_discrimination_gate_accepts_clear_signal():
     result = v._auc_discrimination(observations)
     assert result["auc"] == 1.0
     assert result["discrimination_ready"] is True
+
+
+def test_stage_binary_metrics_include_discrimination_auc():
+    rows = []
+    for fid in range(1, 101):
+        outcome = "draw" if fid % 2 == 0 else "home"
+        draw_p = 0.75 if outcome == "draw" else 0.15
+        home_p = 0.15 if outcome == "draw" else 0.75
+        rows.append(_row(fid, "T-10", "SOCCER EDGE ENGINE v1.7", (home_p, draw_p, 0.10), outcome))
+
+    report = v.build_report(rows)
+    draw = report["current_model_by_stage"]["T-10"]["binary_targets"]["draw"]
+    assert draw["discrimination"]["auc"] == 1.0
+    assert draw["discrimination"]["auc_lower_95"] > 0.5
+    assert draw["discrimination"]["discrimination_ready"] is True
