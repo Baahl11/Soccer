@@ -356,6 +356,7 @@ def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
     registry = load_gk_registry()
     team_report = load_team_trends()
     modeled_events = modeled_goalkeepers = 0
+    prior_only_goalkeepers = player_specific_goalkeepers = 0
     for event in payload.get("events") or []:
         if not isinstance(event, dict) or event.get("event_type") != "SOCCER_REFRESH" or event.get("stage") in {"POSTGAME", "HT", "CLOSE"}:
             continue
@@ -364,6 +365,8 @@ def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
         if intel.get("status") == "LIVE_RESEARCH_GK_SAVES":
             modeled_events += 1
             modeled_goalkeepers += int(intel.get("modeled_goalkeepers") or 0)
+            prior_only_goalkeepers += int(intel.get("prior_only_modeled_goalkeepers") or 0)
+            player_specific_goalkeepers += int(intel.get("player_specific_modeled_goalkeepers") or 0)
         mi = event.get("match_intelligence")
         if isinstance(mi, dict) and isinstance(mi.get("areas"), dict):
             mi["areas"]["gk_saves"] = intel
@@ -372,5 +375,7 @@ def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
         "team_trends_loaded": bool(team_report),
         "modeled_events": modeled_events,
         "modeled_goalkeepers": modeled_goalkeepers,
+        "prior_only_modeled_goalkeepers": prior_only_goalkeepers,
+        "player_specific_modeled_goalkeepers": player_specific_goalkeepers,
         "provider_requests_added": 0,
     }
