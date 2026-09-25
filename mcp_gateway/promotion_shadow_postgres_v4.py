@@ -9,7 +9,7 @@ from typing import Any, Iterable
 from mcp_gateway import persistence
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.5.0"
+MODEL_VERSION = "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.6.0"
 PREGAME_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE"}
 SUPPORTED_FAMILIES = {"1X2", "FT_TOTALS", "BTTS"}
 REQUIRED_EVIDENCE_REGIME = "PHASE16_DISCRIMINATION_GATED_V2"
@@ -307,6 +307,73 @@ def _family_report(family: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _promotion_filter_diagnostics(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
+    reason_counts: dict[str, int] = defaultdict(int)
+    family_counts: dict[str, int] = defaultdict(int)
+    eligible_family_counts: dict[str, int] = defaultdict(int)
+    evidence_regime_counts: dict[str, int] = defaultdict(int)
+    supported_rankable = 0
+    promotion_flag_true = 0
+    pre_normalization_eligible = 0
+
+    for row in raw_rows:
+        if not isinstance(row, dict):
+            continue
+        candidate = row.get("phase16_candidate")
+        if not isinstance(candidate, dict):
+            continue
+        family = str(candidate.get("market_family") or "").upper()
+        if candidate.get("rankable") is not True or family not in SUPPORTED_FAMILIES:
+            continue
+
+        supported_rankable += 1
+        family_counts[family] += 1
+
+        if candidate.get("promotion_shadow_eligible") is not True:
+            reason_counts["PROMOTION_SHADOW_ELIGIBLE_FALSE"] += 1
+            continue
+
+        promotion_flag_true += 1
+        eligible_family_counts[family] += 1
+        evidence_regime = str(candidate.get("evidence_regime") or "")
+        evidence_regime_counts[evidence_regime or "(MISSING)"] += 1
+        if evidence_regime != REQUIRED_EVIDENCE_REGIME:
+            reason_counts["EVIDENCE_REGIME_MISMATCH"] += 1
+            continue
+
+        try:
+            int(row.get("fixture_id"))
+        except (TypeError, ValueError):
+            reason_counts["FIXTURE_ID_INVALID"] += 1
+            continue
+
+        generated_at = _parse_dt(row.get("generated_at"))
+        kickoff = _parse_dt(row.get("kickoff"))
+        if generated_at is None or kickoff is None:
+            reason_counts["TIMESTAMP_MISSING_OR_INVALID"] += 1
+            continue
+        if generated_at >= kickoff:
+            reason_counts["NOT_STRICTLY_PREKICKOFF"] += 1
+            continue
+
+        stage = str(candidate.get("stage") or row.get("stage") or "").upper()
+        if stage not in PREGAME_STAGES:
+            reason_counts["NON_PREGAME_STAGE"] += 1
+            continue
+
+        pre_normalization_eligible += 1
+
+    return {
+        "supported_rankable_rows": supported_rankable,
+        "promotion_shadow_flag_true_rows": promotion_flag_true,
+        "pre_normalization_eligible_rows": pre_normalization_eligible,
+        "reason_counts": dict(sorted(reason_counts.items())),
+        "supported_rankable_by_family": dict(sorted(family_counts.items())),
+        "promotion_shadow_flag_true_by_family": dict(sorted(eligible_family_counts.items())),
+        "promotion_shadow_flag_true_evidence_regime_counts": dict(sorted(evidence_regime_counts.items())),
+    }
+
+
 def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     raw_list = [row for row in raw_rows if isinstance(row, dict)]
     supported_rankable_rows = [
@@ -319,7 +386,9 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
         1 for row in supported_rankable_rows
         if row["phase16_candidate"].get("promotion_shadow_eligible") is not True
     )
+    filter_diagnostics = _promotion_filter_diagnostics(raw_list)
     rows = normalize_rows(raw_list)
+    filter_diagnostics["normalized_rows_after_latest_regime_dedupe"] = len(rows)
     by_family_raw: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         by_family_raw[str(row.get("market_family") or "UNKNOWN")].append(row)
@@ -337,6 +406,7 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
         "source_regime": _current_source_regime(rows),
         "phase16_rankable_supported_rows_seen": len(supported_rankable_rows),
         "excluded_without_current_calibration_policy": excluded_without_current_calibration_policy,
+        "promotion_filter_diagnostics": filter_diagnostics,
         "promotion_evaluable": aggregate,
         "families": families,
         "rows": rows,
