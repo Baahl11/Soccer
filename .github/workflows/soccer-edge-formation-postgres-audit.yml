@@ -1,0 +1,160 @@
+name: Soccer Edge Formation Postgres Reconciliation Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 8 * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/soccer-edge-formation-postgres-audit.yml"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: soccer-edge-formation-postgres-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/corners_baseline.json
+          sparse-checkout-cone-mode: false
+
+      - name: Warm Render
+        run: |
+          curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors \
+            https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+          cat /tmp/health.json || true
+
+      - name: Build missing-formation target set
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=state/soccer_edge_state/analysis/corners_baseline.json
+          jq '[
+            (.formation_eligibility_audit.rows // [])[]
+            | select(.reason != "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8")
+            | {
+                fixture_id,
+                kickoff_local
+              }
+          ]' "$BASE" > /tmp/formation_targets.json
+
+          jq '{
+            historical_oos_evaluations: .walk_forward_evaluations,
+            historical_formation_adjusted_evaluations: .formation_adjusted_evaluations,
+            historical_formation_eligibility_audit: {
+              excluded_from_formation_adjustment: .formation_eligibility_audit.excluded_from_formation_adjustment,
+              formation_present_but_prior_matchup_lt_8: .formation_eligibility_audit.formation_present_but_prior_matchup_lt_8,
+              missing_matchup_rows: .formation_eligibility_audit.missing_matchup_rows,
+              recoverable_missing_matchup_rows: .formation_eligibility_audit.recoverable_missing_matchup_rows,
+              reason_counts: .formation_eligibility_audit.reason_counts
+            }
+          }' "$BASE" > /tmp/historical_formation_summary.json
+
+          TARGET_COUNT=$(jq 'length' /tmp/formation_targets.json)
+          echo "Missing-formation targets for Postgres cross-check: $TARGET_COUNT"
+          test "$TARGET_COUNT" -gt 0
+
+      - name: Run Postgres reconciliation audit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS \
+              -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          TOKEN=$(get_oidc_token)
+          echo "::add-mask::$TOKEN"
+
+          jq -n --slurpfile targets /tmp/formation_targets.json \
+            '{targets: $targets[0]}' > /tmp/request.json
+
+          HTTP_CODE=$(curl -sS --max-time 120 -o /tmp/formation_postgres_audit_raw.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/request.json \
+            https://soccer-edge-api.onrender.com/internal/formation-postgres-audit)
+
+          cat /tmp/formation_postgres_audit_raw.json | jq '.'
+          test "$HTTP_CODE" = "200"
+          jq -e '
+            .status == "POSTGRES_FORMATION_RECONCILIATION_AUDIT"
+            and (.target_count | type == "number")
+            and (.recoverable_prekickoff_formations | type == "number")
+            and (.reason_counts | type == "object")
+            and (.rows | type == "array")
+          ' /tmp/formation_postgres_audit_raw.json >/dev/null
+
+      - name: Build canonical formation reconciliation report
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          jq -s '
+            .[0] as $historical
+            | .[1] as $pg
+            | {
+                schema_version: "1.0.0",
+                status: "FORMATION_RECONCILIATION_AUDIT_COMPLETE",
+                policy: $pg.policy,
+                provider_requests_added: 0,
+                historical_oos_evaluations: $historical.historical_oos_evaluations,
+                historical_formation_adjusted_evaluations: $historical.historical_formation_adjusted_evaluations,
+                historical_formation_eligibility_audit: $historical.historical_formation_eligibility_audit,
+                postgres_crosscheck_target_count: $pg.target_count,
+                postgres_recoverable_prekickoff_formations: $pg.recoverable_prekickoff_formations,
+                postgres_reason_counts: $pg.reason_counts,
+                backfill_decision: (
+                  if ($pg.recoverable_prekickoff_formations // 0) > 0
+                  then "RECONCILIATION_CANDIDATES_EXIST_REVIEW_BEFORE_BACKFILL"
+                  else "NO_VERIFIED_PREKICKOFF_FORMATION_BACKFILL_AVAILABLE"
+                  end
+                ),
+                rows: $pg.rows
+              }
+          ' /tmp/historical_formation_summary.json /tmp/formation_postgres_audit_raw.json \
+            > /tmp/formation_postgres_reconciliation_audit.json
+
+          jq 'del(.rows)' /tmp/formation_postgres_reconciliation_audit.json
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/formation_postgres_reconciliation_audit.json \
+            soccer_edge_state/analysis/formation_postgres_reconciliation_audit.json
+
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/formation_postgres_reconciliation_audit.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update formation Postgres reconciliation audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
