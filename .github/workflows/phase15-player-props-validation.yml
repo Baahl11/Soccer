@@ -8,12 +8,16 @@ on:
   push:
     branches: [main]
     paths: [".github/workflows/phase15-player-props-validation.yml"]
+  workflow_run:
+    workflows: ["Player Props OOS Calibration Validation"]
+    types: [completed]
 
 permissions:
   contents: write
 
 jobs:
   validate:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
