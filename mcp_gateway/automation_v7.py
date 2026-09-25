@@ -45,6 +45,32 @@ def _upcoming_market_capture_fixtures(
     )[:v5.MAX_UPCOMING_MARKET_CAPTURE_FIXTURES]
 
 
+def _current_halftime_research_fixtures(
+    fixtures: list[dict[str, Any]],
+    *,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    """Expose verified HT fixture state from the already-paid slate fetch.
+
+    No provider call is made here. Rows require API-Football status=HT and a
+    parseable halftime score so downstream 2H intelligence cannot relabel a
+    pregame fixture as halftime research.
+    """
+    rows: list[dict[str, Any]] = []
+    for fx in fixtures:
+        if not isinstance(fx, dict) or str(fx.get("status") or "").upper() != "HT":
+            continue
+        score = fx.get("score") if isinstance(fx.get("score"), dict) else {}
+        halftime = score.get("halftime") if isinstance(score.get("halftime"), dict) else {}
+        try:
+            int(halftime.get("home"))
+            int(halftime.get("away"))
+        except (TypeError, ValueError):
+            continue
+        rows.append(dict(fx))
+    return rows[:max(1, int(limit))]
+
+
 def _queue_priority(
     fx: dict[str, Any],
     stage: str,
@@ -140,6 +166,7 @@ async def run_tick() -> dict[str, Any]:
                     fixtures.append(fx)
 
         upcoming_market_capture_fixtures = _upcoming_market_capture_fixtures(fixtures, now_utc)
+        current_halftime_research_fixtures = _current_halftime_research_fixtures(fixtures)
 
         events: list[dict[str, Any]] = []
         discovery = await v3._daily_discovery_event(fixtures, now_utc, local_now)
@@ -343,6 +370,8 @@ async def run_tick() -> dict[str, Any]:
             "fixture_scan_count": len(fixtures),
             "upcoming_market_capture_fixture_count": len(upcoming_market_capture_fixtures),
             "upcoming_market_capture_fixtures": upcoming_market_capture_fixtures,
+            "current_halftime_research_fixture_count": len(current_halftime_research_fixtures),
+            "current_halftime_research_fixtures": current_halftime_research_fixtures,
             "due_fixture_count": len(due),
             "event_count": len(events),
             "actionable_refresh_count": len(actionable),
