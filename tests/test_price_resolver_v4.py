@@ -1673,3 +1673,60 @@ def test_price_resolver_sidecar_normalizes_n_plus_threshold_and_excludes_team_sh
     assert gk["values"][0]["player_id"] == 601
     assert gk["values"][0]["parsed_line"] == 2.5
     assert gk["values"][0]["line_basis"] == "PLAYER_THRESHOLD_N_PLUS"
+
+
+def test_player_props_maturation_requires_market_and_modelable_probability():
+    event = {
+        "market": {
+            "research_cards_props_markets": [{
+                "research_family": "PLAYER_PROPS",
+                "research_subfamily": "SHOTS",
+                "market": "Player Shots",
+                "values": [{"selection": "Player A - 2", "price": 1.9}],
+            }]
+        },
+        "player_shots_intelligence": {
+            "players": [{
+                "player_id": 10,
+                "status": "LIVE_RESEARCH_SHOTS_DISTRIBUTION",
+                "lines": [{"line": 1.5, "p_over": 0.55, "p_under": 0.45}],
+            }]
+        },
+    }
+    assert v._player_prop_signal_families(event) == {"SHOTS"}
+
+    event["player_shots_intelligence"]["players"][0]["lines"] = []
+    assert v._player_prop_signal_families(event) == set()
+
+
+def test_player_props_maturation_accepts_only_later_provider_update():
+    signals = [{
+        "market_family": "SHOTS",
+        "signal_generated_at": "2026-09-25T11:30:00+00:00",
+    }]
+    stale = [{
+        "market": "Player Shots",
+        "provider_update": "2026-09-25T11:29:00+00:00",
+        "values": [{"selection": "Player A - 2", "decimal_price": 1.9}],
+    }]
+    fresh = [{
+        "market": "Player Shots",
+        "provider_update": "2026-09-25T11:35:00+00:00",
+        "values": [{"selection": "Player A - 2", "decimal_price": 1.85}],
+    }]
+
+    assert v._player_prop_markets_with_later_provider_quote(stale, signals) == set()
+    assert v._player_prop_markets_with_later_provider_quote(fresh, signals) == {"SHOTS"}
+
+
+def test_player_props_maturation_does_not_mix_prop_families():
+    signals = [{
+        "market_family": "GOALSCORER_ANYTIME",
+        "signal_generated_at": "2026-09-25T11:30:00+00:00",
+    }]
+    markets = [{
+        "market": "Player Shots",
+        "provider_update": "2026-09-25T11:40:00+00:00",
+        "values": [{"selection": "Player A - 2", "decimal_price": 1.8}],
+    }]
+    assert v._player_prop_markets_with_later_provider_quote(markets, signals) == set()
