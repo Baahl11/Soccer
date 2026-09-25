@@ -370,3 +370,56 @@ def test_player_prop_true_clv_summary_requires_rows_and_fixture_diversity_per_fa
     assert shots["fixture_diversity_target_met"] is True
     assert shots["row_target_met"] is False
     assert shots["review_ready"] is False
+
+
+def test_phase15_true_clv_cannot_mature_from_mixed_or_low_diversity_rows():
+    rows = [
+        {
+            "fixture_id": 1 + (i % 2),
+            "player_id": 1000 + i,
+            "market_family": "SHOTS",
+            "market": "Player Shots",
+            "selection": "Player A Over 2.5",
+            "is_true_closing_line": True,
+            "clv_probability_pp": 0.2,
+            "price_clv_pct": 0.4,
+        }
+        for i in range(60)
+    ]
+    summary = v.summarize_true_clv(rows)
+
+    assert summary["rows"] == 60
+    assert summary["by_family"]["shots"]["rows"] == 60
+    assert summary["by_family"]["shots"]["unique_fixtures"] == 2
+    assert summary["by_family"]["shots"]["row_target_met"] is True
+    assert summary["by_family"]["shots"]["fixture_diversity_target_met"] is False
+    assert summary["by_family"]["sot"]["rows"] == 0
+
+    report = v.build_report(
+        dict(BASE), dict(BASE), dict(BASE), dict(BASE), dict(BASE), dict(BASE), rows, {}
+    )
+    assert "PLAYER_PROP_TRUE_CLV_60_LT_50" not in report["blockers"]
+    assert "SHOTS_TRUE_CLV_60_LT_50" not in report["blockers"]
+    assert "SHOTS_TRUE_CLV_FIXTURES_2_LT_20" in report["blockers"]
+    assert "SOT_TRUE_CLV_0_LT_50" in report["blockers"]
+    assert report["production_promotion_allowed"] is False
+
+
+def test_phase15_counts_exact_one_way_price_clv_without_faking_probability_clv():
+    rows = [{
+        "fixture_id": 44,
+        "player_id": 501,
+        "market_family": "GOALSCORER_ANYTIME",
+        "market": "Anytime Goal Scorer",
+        "selection": "Player A",
+        "is_true_closing_line": True,
+        "clv_probability_pp": None,
+        "price_clv_pct": 4.2,
+    }]
+    summary = v.summarize_true_clv(rows)
+    scorer = summary["by_family"]["goalscorer"]
+
+    assert scorer["rows"] == 1
+    assert scorer["price_clv_rows"] == 1
+    assert scorer["probability_clv_rows"] == 0
+    assert scorer["avg_probability_clv_pp"] is None
