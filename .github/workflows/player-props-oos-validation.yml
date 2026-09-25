@@ -1,0 +1,113 @@
+name: Player Props OOS Calibration Validation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "50 9 * * *"
+  push:
+    branches: [main]
+    paths: [".github/workflows/player-props-oos-validation.yml"]
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: player-props-oos-calibration-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Warm Render
+        run: |
+          curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors \
+            https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+          cat /tmp/health.json || true
+
+      - name: Build read-only Player Props OOS calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS \
+              -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          TOKEN=$(get_oidc_token)
+          echo "::add-mask::$TOKEN"
+
+          HTTP_CODE=$(curl -sS --max-time 180 -o /tmp/player_props_oos.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"lookback_days":180,"max_rows":50000}' \
+            https://soccer-edge-api.onrender.com/internal/player-props-oos-v4/build)
+
+          cat /tmp/player_props_oos.json | jq '{
+            status,
+            model_version,
+            pregame_event_rows_loaded,
+            canonical_pregame_fixtures,
+            postgame_event_rows_loaded,
+            player_game_rows,
+            unique_fixtures,
+            review_ready_family_count,
+            families,
+            provider_requests_added,
+            production_promotion_allowed
+          }'
+
+          test "$HTTP_CODE" = "200"
+          jq -e '
+            .model_version == "SOCCER_PLAYER_PROPS_OOS_V4_1.0.0"
+            and .provider_requests_added == 0
+            and .production_promotion_allowed == false
+            and (.families | type == "object")
+            and (.rows | type == "array")
+          ' /tmp/player_props_oos.json >/dev/null
+
+      - name: Materialize report and tracking
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p state/soccer_edge_state/analysis
+          jq 'del(.rows)' /tmp/player_props_oos.json \
+            > state/soccer_edge_state/analysis/player_props_oos_v4_report.json
+          jq -c '.rows[]' /tmp/player_props_oos.json \
+            > state/soccer_edge_state/analysis/player_props_oos_v4_tracking.jsonl
+
+      - name: Persist state
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f \
+            soccer_edge_state/analysis/player_props_oos_v4_report.json \
+            soccer_edge_state/analysis/player_props_oos_v4_tracking.jsonl
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update Player Props OOS calibration"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
