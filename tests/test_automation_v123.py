@@ -70,4 +70,4 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     rows = out["events"][0]["team_totals_intelligence"]["observed_exact_market_rows"]
     assert {row["team_role"] for row in rows} == {"HOME"}
     assert {row["market"] for row in rows} == {"Total - Home"}
-    assert out["version"] == "4.31.3-team-totals-diversity-spillover"
+    assert out["version"] == "4.31.4-team-totals-strict-diversity-capture"
