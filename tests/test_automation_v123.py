@@ -689,3 +689,109 @@ def test_observed_goal_scorer_and_card_derivatives_are_isolated_in_sidecar():
     assert research["Cards Asian Handicap"]["research_family"] == "CARDS"
     assert research["First Card Received (3 way)"]["research_family"] == "CARDS"
     assert research["RCARD"]["research_family"] == "CARDS"
+
+
+def test_player_prop_capture_aligns_values_to_confirmed_xi_without_extra_calls():
+    lineup = {
+        "both_xi_confirmed": True,
+        "both_goalkeepers_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [
+                    {"id": 501, "name": "Ángel Di María", "pos": "F"},
+                    {"id": 502, "name": "Keeper One", "pos": "G"},
+                ],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [
+                    {"id": 601, "name": "Player B", "pos": "M"},
+                    {"id": 602, "name": "Keeper Two", "pos": "G"},
+                ],
+            },
+        ],
+    }
+    payload = {
+        "response": [{
+            "update": "2026-09-25T14:00:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [
+                    {
+                        "id": 801,
+                        "name": "Player Shots",
+                        "values": [
+                            {"value": "Angel Di Maria Over 2.5", "odd": "1.90"},
+                            {"value": "Bench Player Over 1.5", "odd": "1.80"},
+                        ],
+                    },
+                    {
+                        "id": 802,
+                        "name": "Goalkeeper Saves",
+                        "values": [
+                            {"value": "Keeper One Over 3.5", "odd": "1.88"},
+                        ],
+                    },
+                ],
+            }],
+        }],
+    }
+
+    compact = base._compact_odds(payload, lineup=lineup)
+
+    assert compact["player_prop_research_market_rows"] == 2
+    rows = {
+        row["research_subfamily"]: row
+        for row in compact["research_cards_props_markets"]
+        if row.get("research_family") == "PLAYER_PROPS"
+    }
+
+    shots = rows["SHOTS"]
+    assert shots["confirmed_xi_at_quote"] is True
+    assert shots["xi_aligned_value_rows"] == 1
+    assert shots["decision_weight"] == 0.0
+    assert shots["production_promotion_allowed"] is False
+    assert shots["values"][0]["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+    assert shots["values"][0]["player_id"] == 501
+    assert shots["values"][0]["team_id"] == 10
+    assert shots["values"][0]["parsed_line"] == 2.5
+    assert shots["values"][1]["xi_alignment_status"] == "PLAYER_NOT_MATCHED_TO_CONFIRMED_XI"
+
+    gk = rows["GK_SAVES"]
+    assert gk["confirmed_xi_at_quote"] is True
+    assert gk["xi_aligned_value_rows"] == 1
+    assert gk["values"][0]["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+    assert gk["values"][0]["position"] == "G"
+    assert gk["values"][0]["player_id"] == 502
+
+
+def test_player_prop_capture_marks_unaligned_when_confirmed_xi_is_unavailable():
+    payload = {
+        "response": [{
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [{
+                    "id": 801,
+                    "name": "Player Shots",
+                    "values": [{"value": "Player A Over 2.5", "odd": "1.90"}],
+                }],
+            }],
+        }],
+    }
+
+    compact = base._compact_odds(payload)
+    row = next(
+        row for row in compact["research_cards_props_markets"]
+        if row.get("research_subfamily") == "SHOTS"
+    )
+
+    assert row["confirmed_xi_at_quote"] is False
+    assert row["xi_aligned_value_rows"] == 0
+    assert row["values"][0]["xi_alignment_status"] == "NO_CONFIRMED_XI_AT_QUOTE"
+    assert row["decision_weight"] == 0.0
+    assert row["production_promotion_allowed"] is False
