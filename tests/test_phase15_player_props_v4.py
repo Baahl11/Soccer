@@ -1,6 +1,7 @@
 from mcp_gateway import player_props_phase15_v4 as v
 from mcp_gateway import player_props_clv_postgres_v4 as prop_clv
 from mcp_gateway import player_props_oos_postgres_v4 as prop_oos
+from mcp_gateway import player_props_phase15_coverage_audit as coverage_audit
 
 
 BASE = {
@@ -767,3 +768,163 @@ def test_player_props_oos_excludes_confirmed_but_unmodelable_players_from_sample
     assert len(rows) == 1
     assert rows[0]["player_id"] == 501
     assert len(rows[0]["binary_rows"]) == 1
+
+
+def test_phase15_coverage_audit_separates_future_capture_from_provider_backfill():
+    pregame = {
+        "fixture_id": 8001,
+        "stage": "T-10",
+        "generated_at": "2026-09-25T10:50:00+00:00",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-10",
+            "fixture": {"fixture_id": 8001, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "coverage": {"statistics_players": True},
+            "lineups": _xi_lineup(),
+            "player_shots_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "confirmed_starter": True,
+                    "lines": [{"line": 2.5, "p_over": 0.55, "p_under": 0.45}],
+                }]
+            },
+        },
+    }
+
+    shots = coverage_audit.classify_fixture_family(
+        pregame,
+        family="SHOTS",
+        postgame_row=None,
+        finalized_result_exists=True,
+    )
+    assert shots["oos_reason"] == "POSTGAME_EVENT_MISSING"
+    assert shots["oos_recoverability"] == "PROVIDER_BACKFILL_CANDIDATE"
+    assert shots["clv_reason"] == "PLAYER_PROP_MARKET_NOT_CAPTURED"
+    assert shots["clv_recoverability"] == "FUTURE_CAPTURE_ONLY"
+
+    cards = coverage_audit.classify_fixture_family(
+        pregame,
+        family="PLAYER_CARDS",
+        postgame_row=None,
+        finalized_result_exists=True,
+    )
+    assert cards["oos_reason"] == "NO_PREGAME_MODEL_SIGNAL"
+    assert cards["oos_recoverability"] == "FUTURE_CAPTURE_ONLY"
+    assert cards["clv_reason"] == "NO_PREGAME_MODEL_SIGNAL"
+
+
+def test_phase15_coverage_audit_flags_reconciliation_when_player_ids_do_not_overlap():
+    pregame = {
+        "fixture_id": 8002,
+        "stage": "T-10",
+        "generated_at": "2026-09-25T10:50:00+00:00",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-10",
+            "fixture": {"fixture_id": 8002, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "coverage": {"statistics_players": True},
+            "lineups": _xi_lineup(),
+            "player_shots_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "confirmed_starter": True,
+                    "lines": [{"line": 2.5, "p_over": 0.55, "p_under": 0.45}],
+                }]
+            },
+        },
+    }
+    postgame = {
+        "fixture_id": 8002,
+        "stage": "POSTGAME",
+        "generated_at": "2026-09-25T13:00:00+00:00",
+        "event_payload": {
+            "fixture": {"fixture_id": 8002},
+            "postgame_player_stats": {
+                "teams": [{
+                    "team_id": 10,
+                    "players": [{"player_id": 999, "minutes": 90, "shots": 3}],
+                }]
+            },
+        },
+    }
+
+    audit = coverage_audit.classify_fixture_family(
+        pregame,
+        family="SHOTS",
+        postgame_row=postgame,
+        finalized_result_exists=True,
+    )
+    assert audit["oos_reason"] == "PLAYER_ID_OVERLAP_MISSING"
+    assert audit["oos_recoverability"] == "RECONCILIATION_CANDIDATE"
+
+
+def test_phase15_coverage_audit_marks_ready_oos_and_entry_signal_when_evidence_exists():
+    pregame = {
+        "fixture_id": 8003,
+        "stage": "T-10",
+        "generated_at": "2026-09-25T10:50:00+00:00",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-10",
+            "fixture": {"fixture_id": 8003, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "coverage": {"statistics_players": True},
+            "lineups": _xi_lineup(),
+            "player_shots_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "confirmed_starter": True,
+                    "lines": [{"line": 2.5, "p_over": 0.55, "p_under": 0.45}],
+                }]
+            },
+            "market": {
+                "research_cards_props_markets": [{
+                    "research_family": "PLAYER_PROPS",
+                    "research_subfamily": "SHOTS",
+                    "market": "Player Shots",
+                    "values": [
+                        {
+                            "selection": "Player A Over 2.5",
+                            "price": "1.90",
+                            "parsed_line": 2.5,
+                        },
+                        {
+                            "selection": "Player A Under 2.5",
+                            "price": "1.90",
+                            "parsed_line": 2.5,
+                        },
+                    ],
+                }]
+            },
+        },
+    }
+    postgame = {
+        "fixture_id": 8003,
+        "stage": "POSTGAME",
+        "generated_at": "2026-09-25T13:00:00+00:00",
+        "event_payload": {
+            "fixture": {"fixture_id": 8003},
+            "postgame_player_stats": {
+                "teams": [{
+                    "team_id": 10,
+                    "players": [{"player_id": 501, "minutes": 90, "shots": 3}],
+                }]
+            },
+        },
+    }
+
+    audit = coverage_audit.classify_fixture_family(
+        pregame,
+        family="SHOTS",
+        postgame_row=postgame,
+        finalized_result_exists=True,
+    )
+    assert audit["oos_reason"] == "READY_OOS"
+    assert audit["oos_recoverability"] == "ALREADY_MATERIALIZED"
+    assert audit["clv_reason"] == "ENTRY_SIGNAL_READY"
+    assert audit["model_price_player_overlap_count"] == 1
