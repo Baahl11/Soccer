@@ -12,7 +12,7 @@ from mcp_gateway import calibration_v4
 from mcp_gateway import one_x_two_multiclass_oos_v4 as multiclass
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.2.0"
+MODEL_VERSION = "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.3.0"
 DIRECTIONAL_MIN = 20
 REVIEW_MIN = 50
 TARGET_KEYS = ("home_win", "draw", "away_win", "btts", "over_2_5")
@@ -75,6 +75,7 @@ def _binary_stage_metrics(rows: list[dict[str, Any]], target: str) -> dict[str, 
 
     metrics = calibration_v4.reliability_metrics(observations)
     positives = sum(int(row["outcome"]) for row in observations)
+    discrimination = _auc_discrimination(observations)
     return {
         "rows": len(observations),
         "positive_count": positives,
@@ -84,6 +85,7 @@ def _binary_stage_metrics(rows: list[dict[str, Any]], target: str) -> dict[str, 
         "log_loss": metrics.get("log_loss"),
         "ece": metrics.get("ece"),
         "mce": metrics.get("mce"),
+        "discrimination": discrimination,
     }
 
 
@@ -275,6 +277,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "production_promotion_allowed": False,
         "notes": [
             "Stage metrics are diagnostics only; no stage-specific calibrator is fitted or applied.",
+            "Each stage now reports AUC and conservative AUC lower-95 discrimination for every binary target; stage diagnostics never change runtime weights or eligibility by themselves.",
             "Current-model stage metrics are reported separately to avoid mixing historical runtime model versions.",
             "Multiclass 1X2 metrics use the same normalized probability simplex as the canonical multiclass OOS validator.",
             "Current-model full-OOS binary calibrators are persisted only for downstream Phase16 research ranking; stage metrics remain diagnostic and production prediction weights remain unchanged.",
