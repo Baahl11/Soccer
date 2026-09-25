@@ -1,6 +1,8 @@
 import asyncio
+from datetime import datetime, timezone
 
 from mcp_gateway import automation_v123 as v
+from mcp_gateway import automation_v7 as v7
 
 
 def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
@@ -72,7 +74,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert {row["team_role"] for row in rows} == {"HOME"}
     assert {row["market"] for row in rows} == {"Total - Home"}
     assert out["price_resolver_leftover_budget"] == 25
-    assert out["version"] == "4.31.5-team-totals-upcoming-market-capture"
+    assert out["version"] == "4.31.6-team-totals-v7-scan-handoff"
 
 
 def test_v123_price_budget_is_global_leftover():
@@ -88,3 +90,34 @@ def test_v123_price_budget_is_global_leftover():
 
     payload = {"api_calls_this_tick": 3, "max_api_calls_per_tick": 70}
     assert v._leftover_price_budget(payload) == 25
+
+
+
+def test_v7_exposes_only_future_upcoming_market_capture_fixtures():
+    now = datetime(2026, 9, 25, 4, 0, tzinfo=timezone.utc)
+    fixtures = [
+        {
+            "fixture_id": 1,
+            "kickoff": "2026-09-25T05:00:00+00:00",
+            "status": "NS",
+        },
+        {
+            "fixture_id": 2,
+            "kickoff": "2026-09-25T03:00:00+00:00",
+            "status": "FT",
+        },
+        {
+            "fixture_id": 3,
+            "kickoff": "2026-09-25T06:00:00+00:00",
+            "status": "PST",
+        },
+        {
+            "fixture_id": 4,
+            "kickoff": "2026-09-25T04:30:00+00:00",
+            "status": "NS",
+        },
+    ]
+
+    rows = v7._upcoming_market_capture_fixtures(fixtures, now)
+
+    assert [row["fixture_id"] for row in rows] == [4, 1]
