@@ -57,6 +57,18 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
             "research_spillover_api_calls_added": 0,
             "research_spillover_fixtures_fetched": 0,
             "research_spillover_market_rows_fetched": 0,
+            "primary_clv_maturation_source": "TEST_PRIMARY",
+            "primary_clv_maturation_candidates": 4,
+            "primary_clv_maturation_candidate_family_counts": {"1X2": 2, "BTTS": 1, "FT_TOTALS": 1},
+            "primary_clv_maturation_max_calls_per_tick": 8,
+            "primary_clv_maturation_api_calls_added": 2,
+            "primary_clv_maturation_fixtures_refreshed": 2,
+            "primary_clv_maturation_family_refresh_counts": {"1X2": 1, "BTTS": 1},
+            "primary_clv_maturation_cache_replays_ignored": 1,
+            "primary_clv_maturation_unchanged_provider_updates": 1,
+            "primary_clv_maturation_budget_exhausted": 0,
+            "primary_clv_maturation_primary_payload_reuse_fixtures": 1,
+            "primary_clv_maturation_synthetic_events_added": 1,
             "research_spillover_maturation_source": "TEST_MATURATION",
             "research_spillover_maturation_candidates": 3,
             "research_spillover_maturation_max_calls_per_tick": 12,
@@ -79,6 +91,10 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert checkpoint["research_spillover_cache_hits"] == 1
     assert checkpoint["research_spillover_api_calls_added"] == 0
     assert checkpoint["research_spillover_fixtures_fetched"] == 0
+    assert checkpoint["primary_clv_maturation_candidates"] == 4
+    assert checkpoint["primary_clv_maturation_api_calls_added"] == 2
+    assert checkpoint["primary_clv_maturation_fixtures_refreshed"] == 2
+    assert checkpoint["primary_clv_maturation_family_refresh_counts"] == {"1X2": 1, "BTTS": 1}
     assert checkpoint["research_spillover_maturation_source"] == "TEST_MATURATION"
     assert checkpoint["research_spillover_maturation_candidates"] == 3
     assert checkpoint["research_spillover_maturation_api_calls_added"] == 2
@@ -96,7 +112,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert out["global_api_cap_after_daily_policy"] == expected_global_cap
     assert out["primary_price_reserve_calls"] == expected_reserve
     assert out["team_totals_diversity_catchup_overflow_budget"] == 0
-    assert out["version"] == "4.32.5-elastic-price-reserve"
+    assert out["version"] == "4.32.6-primary-clv-maturation"
 
 
 def test_v123_price_budget_is_global_leftover():
