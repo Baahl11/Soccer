@@ -100,7 +100,7 @@ jobs:
           test "$HTTP_CODE" = "200"
           jq -e '
             .schema_version == "1.3.0"
-            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.5.0"
+            and .model_version == "SOCCER_PROMOTION_SHADOW_POSTGRES_V4_1.6.0"
             and (.promotion_evaluable | type == "object")
             and (.rows | type == "array")
             and (.provider_requests_added == 0)
