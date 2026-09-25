@@ -8,7 +8,7 @@ import re
 from typing import Any
 
 SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.10.0"
+MODEL_VERSION = "SOCCER_PROMOTION_FRAMEWORK_V4_1.11.0"
 
 STATES = (
     "DORMANT",
@@ -192,6 +192,7 @@ def _promotion_shadow_for_family(
             "family_discrimination_ready": evidence.get("family_discrimination_ready"),
             "not_ready_classes": list(evidence.get("not_ready_classes") or []),
             "class_discrimination_diagnostics": dict(evidence.get("class_discrimination_diagnostics") or {}),
+            "selection_progress": dict(evidence.get("by_selection") or {}),
             "evidence_source": "POSTGRES_PHASE16_REPLAY:PROMOTION_EVALUABLE",
         }
 
@@ -224,6 +225,7 @@ def _promotion_shadow_for_family(
             "family_discrimination_ready": None,
             "not_ready_classes": [],
             "class_discrimination_diagnostics": {},
+            "selection_progress": {},
             "evidence_source": None,
         }
 
@@ -254,6 +256,7 @@ def _promotion_shadow_for_family(
         "family_discrimination_ready": evidence.get("family_discrimination_ready"),
         "not_ready_classes": list(evidence.get("not_ready_classes") or []),
         "class_discrimination_diagnostics": dict(evidence.get("class_discrimination_diagnostics") or {}),
+        "selection_progress": dict(evidence.get("by_selection") or {}),
         "evidence_source": "SHADOW_SELECTION_DIAGNOSTICS:PROMOTION_EVALUABLE",
     }
 
@@ -621,6 +624,7 @@ def _promotion_readiness(
                 "family_ready": review.get("promotion_shadow_family_discrimination_ready") is True,
                 "not_ready_classes": list(review.get("promotion_shadow_not_ready_classes") or []),
                 "classes": class_diagnostics,
+                "promotion_shadow_by_selection": dict(review.get("promotion_shadow_selection_progress") or {}),
                 "gate": "AUC_LOWER_95_GT_0_50 + BRIER_LOGLOSS_IMPROVEMENT + FITTED_CALIBRATOR",
             }
 
@@ -745,6 +749,7 @@ def build_report(
         review["validation_model_version"] = validation.get("model_version")
         review["promotion_shadow_evidence_source"] = promotion_shadow.get("evidence_source")
         review["promotion_shadow_pending"] = int(promotion_shadow.get("pending") or 0)
+        review["promotion_shadow_selection_progress"] = dict(promotion_shadow.get("selection_progress") or {})
         review["watch_shadow_settled"] = int(watch_shadow.get("settled") or 0)
         review["watch_shadow_roi_per_settled_unit"] = _num(watch_shadow.get("shadow_roi_per_settled_unit"))
         review["watch_shadow_sample_status"] = str(watch_shadow.get("sample_status") or "MISSING")
