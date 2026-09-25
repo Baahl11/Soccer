@@ -10,6 +10,7 @@ from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
 AUTOMATION_VERSION = "4.31.5-team-totals-upcoming-market-capture"
+# Deployment marker: v125 scanned-upcoming FT Team Totals capture.
 
 
 def _leftover_price_budget(payload: dict[str, Any]) -> int:
