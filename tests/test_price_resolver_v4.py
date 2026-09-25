@@ -1682,7 +1682,12 @@ def test_player_props_maturation_requires_market_and_modelable_probability():
                 "research_family": "PLAYER_PROPS",
                 "research_subfamily": "SHOTS",
                 "market": "Player Shots",
-                "values": [{"selection": "Player A - 2", "price": 1.9}],
+                "values": [{
+                    "selection": "Player A - 2",
+                    "price": 1.9,
+                    "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                    "player_id": 10,
+                }],
             }]
         },
         "player_shots_intelligence": {
@@ -1697,6 +1702,102 @@ def test_player_props_maturation_requires_market_and_modelable_probability():
 
     event["player_shots_intelligence"]["players"][0]["lines"] = []
     assert v._player_prop_signal_families(event) == set()
+
+
+def test_player_props_maturation_rejects_anonymous_assists_but_accepts_explicit_player_identity():
+    anonymous = {
+        "market": {
+            "research_cards_props_markets": [{
+                "research_family": "PLAYER_PROPS",
+                "research_subfamily": "ASSISTS",
+                "market": "Player Assists",
+                "values": [
+                    {"selection": "Yes", "decimal_price": 3.20},
+                    {"selection": "No", "decimal_price": 1.30},
+                ],
+            }]
+        },
+        "player_assists_intelligence": {
+            "players": [{
+                "player_id": 501,
+                "p_1plus_assist": 0.31,
+                "p_2plus_assists": 0.08,
+            }]
+        },
+    }
+    assert v._player_prop_signal_families(anonymous) == set()
+
+    identified = {
+        **anonymous,
+        "market": {
+            "research_cards_props_markets": [{
+                "research_family": "PLAYER_PROPS",
+                "research_subfamily": "ASSISTS",
+                "market": "Player Assists",
+                "values": [
+                    {
+                        "selection": "Yes",
+                        "decimal_price": 3.20,
+                        "player_id": 501,
+                        "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                    },
+                    {
+                        "selection": "No",
+                        "decimal_price": 1.30,
+                        "player_id": 501,
+                        "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                    },
+                ],
+            }]
+        },
+    }
+    assert v._player_prop_signal_families(identified) == {"ASSISTS"}
+
+
+def test_price_resolver_preserves_provider_player_identity_for_binary_props():
+    raw = {
+        "response": [{
+            "fixture": {"id": 9960},
+            "update": "2026-09-25T19:00:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [{
+                    "id": 601,
+                    "name": "Player Assists",
+                    "values": [
+                        {"value": "Yes", "odd": "3.20", "player": {"id": 501, "name": "Player A"}},
+                        {"value": "No", "odd": "1.30", "player": {"id": 501, "name": "Player A"}},
+                    ],
+                }],
+            }],
+        }],
+    }
+    event = {
+        "lineups": {
+            "both_xi_confirmed": True,
+            "teams": [
+                {"team_id": 10, "team": "Home", "starters": [{"id": 501, "name": "Player A", "pos": "M"}]},
+                {"team_id": 20, "team": "Away", "starters": [{"id": 601, "name": "Player B", "pos": "F"}]},
+            ],
+        }
+    }
+
+    markets = v.normalize_api_response(raw)
+    v._attach_market_to_event(event, markets, "PRICE_API_RESOLVED")
+    assists = next(
+        row for row in event["market"]["research_cards_props_markets"]
+        if row["research_subfamily"] == "ASSISTS"
+    )
+    assert assists["xi_aligned_value_rows"] == 2
+    assert {row["player_id"] for row in assists["values"]} == {501}
+    assert {row["player_name"] for row in assists["values"]} == {"Player A"}
+
+
+def test_price_resolver_recognizes_player_booking_aliases_as_player_cards():
+    assert v._research_derivative_subfamily("Player To Be Booked") == "PLAYER_CARDS"
+    assert v._research_derivative_subfamily("Player To Be Carded") == "PLAYER_CARDS"
+    assert v._research_derivative_subfamily("Player Yellow Cards") == "PLAYER_CARDS"
 
 
 def test_player_props_maturation_accepts_only_later_provider_update():
