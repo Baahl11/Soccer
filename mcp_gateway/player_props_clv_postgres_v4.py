@@ -10,8 +10,8 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.0.0"
-SIGNAL_STAGES = {"T-40", "T-20", "T-10"}
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.1.0"
+SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
 
@@ -78,6 +78,10 @@ def _side(selection: Any) -> str:
         return "YES"
     if re.search(r"\bno\b", text):
         return "NO"
+    # API-Football "Player - N" means N+ events and is therefore an Over
+    # threshold once converted to the equivalent N-0.5 line.
+    if re.match(r"^.+?\s+-\s+\d+\s*$", str(selection or "").strip()):
+        return "OVER"
     return "PLAYER_EVENT"
 
 
@@ -459,7 +463,7 @@ def _load_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, A
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.generated_at < f.kickoff
-              AND e.stage IN ('T-40','T-20','T-10')
+              AND e.stage IN ('T-40','T-30','T-20','T-10')
             ORDER BY e.generated_at DESC
             LIMIT %s
             """,
@@ -554,7 +558,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "decision_weight": 0.0,
         "production_promotion_allowed": False,
         "policy": (
-            "XI_ALIGNED_SHADOW_MODEL_SIGNAL -> EXACT PLAYER/FAMILY/LINE/SIDE PRICE -> "
+            "XI_ALIGNED_SHADOW_MODEL_SIGNAL AT T-40/T-30/T-20/T-10 -> EXACT PLAYER/FAMILY/LINE/SIDE PRICE -> "
             "STRICTLY_LATER PREKICKOFF PROVIDER UPDATE; SAME BOOK PREFERRED; "
             "ONE-WAY MARKETS TRACK PRICE CLV WITHOUT PRETENDING TO BE DEVIGGED; "
             "50 ROWS AND 20 UNIQUE FIXTURES PER FAMILY ARE RESEARCH REVIEW TARGETS ONLY; "
