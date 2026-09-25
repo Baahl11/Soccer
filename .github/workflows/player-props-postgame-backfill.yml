@@ -1,0 +1,97 @@
+name: Player Props Postgame Backfill
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/player-props-postgame-backfill.yml"]
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: player-props-postgame-backfill
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Warm Render
+        run: |
+          curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors             https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+          cat /tmp/health.json || true
+
+      - name: Run guarded postgame backfill
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS               -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}"               "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          TOKEN=$(get_oidc_token)
+          echo "::add-mask::$TOKEN"
+
+          HTTP_CODE=$(curl -sS --max-time 180 -o /tmp/player_props_backfill.json -w "%{http_code}"             -X POST             -H "Authorization: Bearer ${TOKEN}"             -H "Content-Type: application/json"             -d '{"lookback_days":180,"max_fixtures":5}'             https://soccer-edge-api.onrender.com/internal/player-props-postgame-backfill-v4/run)
+
+          cat /tmp/player_props_backfill.json | jq '{
+            status,
+            model_version,
+            candidate_fixture_count,
+            attempted,
+            captured,
+            already_materialized,
+            unavailable,
+            details,
+            provider_requests_added,
+            daily_remaining_after_run,
+            production_promotion_allowed
+          }'
+
+          test "$HTTP_CODE" = "200"
+          jq -e '
+            .model_version == "SOCCER_PLAYER_PROPS_POSTGAME_BACKFILL_V4_1.0.0"
+            and .provider_requests_added <= 5
+            and .production_promotion_allowed == false
+            and (.details | type == "array")
+          ' /tmp/player_props_backfill.json >/dev/null
+
+      - name: Materialize backfill report
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p state/soccer_edge_state/analysis
+          cp /tmp/player_props_backfill.json             state/soccer_edge_state/analysis/player_props_postgame_backfill_v4_report.json
+
+      - name: Persist state
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/player_props_postgame_backfill_v4_report.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update Player Props postgame backfill report"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
