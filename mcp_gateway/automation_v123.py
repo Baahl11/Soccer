@@ -14,7 +14,7 @@ from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.32.5-elastic-price-reserve"
+AUTOMATION_VERSION = "4.32.6-primary-clv-maturation"
 PRIMARY_PRICE_RESERVE_CALLS = max(
     0,
     int(os.getenv("SOCCER_PRIMARY_PRICE_RESERVE_CALLS", "20")),
@@ -103,6 +103,19 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "canonical_bet_logic_changed": False,
         "model_weights_changed": False,
         "production_promotion_allowed": False,
+        "primary_clv_maturation_source": resolution.get("primary_clv_maturation_source"),
+        "primary_clv_maturation_candidates": resolution.get("primary_clv_maturation_candidates", 0),
+        "primary_clv_maturation_candidate_family_counts": dict(resolution.get("primary_clv_maturation_candidate_family_counts") or {}),
+        "primary_clv_maturation_max_calls_per_tick": resolution.get("primary_clv_maturation_max_calls_per_tick", 0),
+        "primary_clv_maturation_api_calls_added": resolution.get("primary_clv_maturation_api_calls_added", 0),
+        "primary_clv_maturation_fixtures_refreshed": resolution.get("primary_clv_maturation_fixtures_refreshed", 0),
+        "primary_clv_maturation_family_refresh_counts": dict(resolution.get("primary_clv_maturation_family_refresh_counts") or {}),
+        "primary_clv_maturation_cache_replays_ignored": resolution.get("primary_clv_maturation_cache_replays_ignored", 0),
+        "primary_clv_maturation_unchanged_provider_updates": resolution.get("primary_clv_maturation_unchanged_provider_updates", 0),
+        "primary_clv_maturation_budget_exhausted": resolution.get("primary_clv_maturation_budget_exhausted", 0),
+        "primary_clv_maturation_primary_payload_reuse_fixtures": resolution.get("primary_clv_maturation_primary_payload_reuse_fixtures", 0),
+        "primary_clv_maturation_synthetic_events_added": resolution.get("primary_clv_maturation_synthetic_events_added", 0),
+        "primary_clv_maturation_policy": resolution.get("primary_clv_maturation_policy"),
         "research_spillover_candidate_fixtures": resolution.get("research_spillover_candidate_fixtures", 0),
         "research_spillover_cache_hits": resolution.get("research_spillover_cache_hits", 0),
         "research_spillover_api_calls_added": resolution.get("research_spillover_api_calls_added", 0),
