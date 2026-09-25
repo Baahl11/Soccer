@@ -67,6 +67,54 @@ def _candidate_fixtures(
         return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
+def _load_materialized_captures(
+    conn,
+    *,
+    lookback_days: int,
+    limit: int = 500,
+) -> list[dict[str, Any]]:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                e.fixture_id,
+                f.kickoff,
+                e.payload->'postgame_player_stats' AS player_stats
+            FROM soccer_refresh_events e
+            LEFT JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            WHERE e.generated_at >= %s
+              AND e.stage = 'POSTGAME_REGISTRY_BACKFILL'
+              AND e.payload ? 'postgame_player_stats'
+            ORDER BY e.generated_at DESC
+            LIMIT %s
+            """,
+            (cutoff, int(limit)),
+        )
+        rows = cur.fetchall()
+
+    newly_captured: list[dict[str, Any]] = []
+    seen: set[int] = set()
+    for fixture_id, kickoff, player_stats in rows:
+        if fixture_id is None:
+            continue
+        fid = int(fixture_id)
+        if fid in seen:
+            continue
+        seen.add(fid)
+        stats = player_stats if isinstance(player_stats, dict) else {}
+        teams = stats.get("teams") if isinstance(stats.get("teams"), list) else []
+        if not teams:
+            continue
+        captures.append({
+            "fixture_id": fid,
+            "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
+            "capture_phase": "POSTGAME_REGISTRY_BACKFILL",
+            "teams": teams,
+        })
+    return captures
+
+
 def _has_players(compact: dict[str, Any]) -> bool:
     return any(
         isinstance(team, dict) and bool(team.get("players"))
@@ -223,7 +271,7 @@ async def run_backfill(
                     "capture_phase": "POSTGAME_REGISTRY_BACKFILL",
                     "teams": compact.get("teams") or [],
                 }
-                captures.append(capture)
+                newly_captured.append(capture)
                 details.append({
                     "fixture_id": fixture_id,
                     "status": "CAPTURED_FOR_FUTURE_REGISTRY",
@@ -239,6 +287,13 @@ async def run_backfill(
                     "daily_remaining": daily_remaining,
                 })
 
+    with persistence_base._connect() as conn:
+        materialized_captures = _load_materialized_captures(
+            conn,
+            lookback_days=lookback_days,
+            limit=500,
+        )
+
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
@@ -249,7 +304,9 @@ async def run_backfill(
         "captured": captured,
         "unavailable": unavailable,
         "details": details,
-        "captures": captures,
+        "captures": materialized_captures,
+        "newly_captured_count": len(newly_captured),
+        "materialized_capture_count": len(materialized_captures),
         "provider_requests_added": attempted,
         "max_provider_requests_per_run": MAX_FIXTURES_PER_RUN,
         "daily_remaining_after_run": daily_remaining,
