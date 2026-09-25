@@ -47,6 +47,11 @@ def persist_tick(tick: dict[str, Any]) -> bool:
 
                 if not fixture_id or not isinstance(raw, dict):
                     continue
+                # Diversity spillover reuses an already-persisted pre-kickoff
+                # model run. Persist its research event + market snapshots in
+                # the base layer, but do not duplicate the model run here.
+                if event.get("event_type") == "TEAM_TOTALS_RESEARCH_SPILLOVER":
+                    continue
                 cur.execute(
                     """
                     INSERT INTO soccer_model_runs (
