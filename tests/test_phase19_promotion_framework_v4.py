@@ -540,3 +540,59 @@ def test_load_validation_reports_uses_family_view_for_shared_corners_validator(t
     assert reports["FT_CORNERS"]["blockers"] == []
     assert reports["FT_CORNERS"]["validation_family_view"] == "FT_CORNERS"
     assert reports["TEAM_CORNERS"]["blockers"] == ["TEAM_CORNERS_TRUE_CLV_10_LT_50"]
+
+
+def test_phase19_exposes_1x2_selection_progress_without_relaxing_family_gate():
+    promotion_shadow = {
+        "families": {
+            "1X2": {
+                "promotion_evaluable": {
+                    "settled": 0,
+                    "pending": 2,
+                    "roi_per_settled_unit": None,
+                    "sample_status": "DATA_BLOCKED",
+                    "negative_directional_stages": [],
+                    "family_discrimination_ready": False,
+                    "not_ready_classes": ["DRAW"],
+                    "class_discrimination_diagnostics": {
+                        "home_win": {"rows": 407, "auc_lower_95": 0.5518, "ready": True},
+                        "draw": {"rows": 407, "auc_lower_95": 0.4333, "ready": False},
+                        "away_win": {"rows": 407, "auc_lower_95": 0.5544, "ready": True},
+                    },
+                    "by_selection": {
+                        "HOME": {"rows": 1, "settled": 0, "pending": 1, "directional_remaining": 20, "review_remaining": 50},
+                        "DRAW": {"rows": 0, "settled": 0, "pending": 0, "directional_remaining": 20, "review_remaining": 50},
+                        "AWAY": {"rows": 1, "settled": 0, "pending": 1, "directional_remaining": 20, "review_remaining": 50},
+                    },
+                }
+            }
+        }
+    }
+    report = v.build_report(
+        {"by_market_family": {"FT_1X2": {"n": 10, "settled": 10, "roi_units": 2.0}}},
+        {
+            "families": {
+                "1X2": {
+                    "status": "STABILITY_REVIEW_READY",
+                    "overall": {
+                        "rows": 82,
+                        "unique_fixtures": 67,
+                        "fixture_weighted_avg_probability_clv_pp": 0.122891,
+                    },
+                }
+            }
+        },
+        {"1X2": {"status": "CALIBRATION_REVIEW_ELIGIBLE", "blockers": []}},
+        {},
+        {},
+        promotion_shadow,
+    )
+    review = next(row for row in report["market_family_reviews"] if row["market_family"] == "1X2")
+    readiness = report["promotion_readiness"]["families"]["1X2"]
+
+    assert review["promotion_shadow_selection_progress"]["HOME"]["pending"] == 1
+    assert review["promotion_shadow_selection_progress"]["AWAY"]["pending"] == 1
+    assert review["promotion_shadow_selection_progress"]["DRAW"]["rows"] == 0
+    assert readiness["class_discrimination"]["promotion_shadow_by_selection"]["HOME"]["rows"] == 1
+    assert "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW" in review["blockers"]
+    assert review["tier_review_eligibility"]["promotion_shadow_family_discrimination"] is False
