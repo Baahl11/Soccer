@@ -1,6 +1,7 @@
 {
   "blockers": [
-    "TEAM_TOTALS_TRUE_CLV_24_LT_50"
+    "TEAM_TOTALS_TRUE_CLV_0_LT_50",
+    "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20"
   ],
   "by_line": {
     "0.5": {
@@ -44,12 +45,14 @@
   "canonical_bet_logic_changed": false,
   "manual_review_required": true,
   "missing_required_lines": [],
-  "model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.2.0",
+  "model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.3.0",
   "model_weights_changed": false,
   "notes": [
     "The source validation report intentionally remains research-only; its historical promotion_gate.enabled flag is not treated as a promotion blocker.",
     "V4-019 review eligibility is derived here from explicit OOS sample, exact half-goal line coverage, family-specific true CLV and role/line calibration gates.",
     "Team-total true CLV must come from exact team-total line/price history; FT totals/1X2/BTTS closes cannot satisfy this requirement.",
+    "True-CLV review requires both 50 comparable Team Totals rows and at least 20 unique fixtures; repeated lines/selections from one match cannot satisfy the directional evidence gate.",
+    "Rows without a numeric comparable CLV probability are diagnostic only and do not count toward the true-CLV row or unique-fixture samples.",
     "OOS review eligibility is not production promotion. Production remains disabled and manual approval remains mandatory."
   ],
   "observed_lines": [
@@ -86,7 +89,8 @@
     "required_half_goal_lines_ready": true,
     "review_eligible": false,
     "role_line_calibration_ready": true,
-    "true_clv_sample_ready": false
+    "true_clv_sample_ready": false,
+    "true_clv_unique_fixture_sample_ready": false
   },
   "role_line_calibration": {
     "max_absolute_calibration_gap": 0.087565,
@@ -94,7 +98,7 @@
     "weighted_absolute_calibration_gap": 0.05096183,
     "worst_segment": "HOME:0.5:OVER"
   },
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "source_promotion_gate": {
     "actionable_review_sample_gate_met": true,
     "enabled": false,
@@ -111,14 +115,16 @@
   "status": "RESEARCH_HOLD",
   "ticket": "V4-019",
   "true_clv": {
-    "avg_probability_clv_pp": 5e-06,
+    "avg_probability_clv_pp": null,
     "family_specific": true,
     "flat_rows": 0,
     "minimum_rows": 50,
-    "negative_rows": 8,
-    "positive_rows": 16,
-    "rows": 24,
-    "unique_fixtures": 1
+    "minimum_unique_fixtures": 20,
+    "negative_rows": 0,
+    "positive_rows": 0,
+    "raw_team_total_rows_seen": 0,
+    "rows": 0,
+    "unique_fixtures": 0
   },
   "warnings": []
 }
