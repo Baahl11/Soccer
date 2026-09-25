@@ -73,7 +73,7 @@ jobs:
 
           test "$HTTP_CODE" = "200"
           jq -e '
-            .model_version == "SOCCER_PLAYER_TREND_REGISTRY_BACKFILL_V4_1.0.0"
+            .model_version == "SOCCER_PLAYER_TREND_REGISTRY_BACKFILL_V4_1.1.0"
             and .provider_requests_added <= 8
             and .future_registry_use_only == true
             and .retroactive_pregame_signal_created == false
