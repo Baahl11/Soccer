@@ -379,7 +379,7 @@ def _is_card_research_bet(bet: dict[str, Any]) -> bool:
 def _research_value(value: dict[str, Any]) -> dict[str, Any]:
     raw = str(value.get("value") or "").strip()
     line = None
-    match = re.search(r"\\b(?:over|under)\\s+([+-]?\\d+(?:\\.\\d+)?)\\b", raw, flags=re.IGNORECASE)
+    match = re.search(r"\b(?:over|under)\s+([+-]?\d+(?:\.\d+)?)\b", raw, flags=re.IGNORECASE)
     if match:
         try:
             line = float(match.group(1))
