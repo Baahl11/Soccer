@@ -6,6 +6,7 @@ from typing import Any
 
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v6 as v6
+from mcp_gateway import automation_v90 as v90
 from mcp_gateway import automation_v121 as v121
 from mcp_gateway import automation_v92 as v92
 from mcp_gateway import automation_v112 as v112
@@ -13,11 +14,21 @@ from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.32.4-team-totals-clv-maturation"
+AUTOMATION_VERSION = "4.32.5-elastic-price-reserve"
 PRIMARY_PRICE_RESERVE_CALLS = max(
     0,
     int(os.getenv("SOCCER_PRIMARY_PRICE_RESERVE_CALLS", "20")),
 )
+MIN_UPSTREAM_API_CALLS = max(
+    1,
+    int(os.getenv("SOCCER_MIN_UPSTREAM_API_CALLS", "8")),
+)
+
+
+def _reserve_from_elastic_cap(global_cap: int) -> tuple[int, int]:
+    cap = max(1, int(global_cap))
+    reserve = min(PRIMARY_PRICE_RESERVE_CALLS, max(0, cap - MIN_UPSTREAM_API_CALLS))
+    return max(1, cap - reserve), reserve
 # Deployment marker: v128 guarded diversity catch-up overflow.
 # Deployment marker: v126 active-v7 upcoming fixture handoff.
 # Deployment marker: v125 scanned-upcoming FT Team Totals capture.
@@ -70,6 +81,7 @@ def _price_budget_plan(payload: dict[str, Any]) -> dict[str, Any]:
         "catchup_enabled": False,
         "overflow_above_global_tick_cap_allowed": False,
         "primary_tick_cap_unchanged": False,
+        "elastic_global_cap_used": True,
     }
 
 
@@ -111,6 +123,15 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "research_spillover_ft_team_total_market_rows_attached": resolution.get("research_spillover_ft_team_total_market_rows_attached", 0),
         "research_spillover_primary_payload_reuse_fixtures": resolution.get("research_spillover_primary_payload_reuse_fixtures", 0),
         "research_spillover_primary_payload_reuse_market_rows": resolution.get("research_spillover_primary_payload_reuse_market_rows", 0),
+        "research_spillover_maturation_source": resolution.get("research_spillover_maturation_source"),
+        "research_spillover_maturation_candidates": resolution.get("research_spillover_maturation_candidates", 0),
+        "research_spillover_maturation_max_calls_per_tick": resolution.get("research_spillover_maturation_max_calls_per_tick", 0),
+        "research_spillover_maturation_api_calls_added": resolution.get("research_spillover_maturation_api_calls_added", 0),
+        "research_spillover_maturation_later_real_quote_refreshes": resolution.get("research_spillover_maturation_later_real_quote_refreshes", 0),
+        "research_spillover_maturation_cache_replays_ignored": resolution.get("research_spillover_maturation_cache_replays_ignored", 0),
+        "research_spillover_maturation_unchanged_provider_updates": resolution.get("research_spillover_maturation_unchanged_provider_updates", 0),
+        "research_spillover_maturation_budget_exhausted": resolution.get("research_spillover_maturation_budget_exhausted", 0),
+        "research_spillover_clv_maturation_continues_after_diversity_target": resolution.get("research_spillover_clv_maturation_continues_after_diversity_target", False),
         "research_spillover_primary_markets_preempted": resolution.get("research_spillover_primary_markets_preempted", False),
         "standard_leftover_budget": payload.get("price_resolver_leftover_budget", 0),
         "diversity_catchup_overflow_budget": payload.get("team_totals_diversity_catchup_overflow_budget", 0),
@@ -119,6 +140,7 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "pre_price_pipeline_api_cap": payload.get("pre_price_pipeline_api_cap"),
         "global_api_cap_after_daily_policy": payload.get("global_api_cap_after_daily_policy"),
         "primary_price_reserve_calls": payload.get("primary_price_reserve_calls"),
+        "elastic_request_cap_upstream_observed": payload.get("elastic_request_cap_upstream_observed"),
         "overflow_above_global_tick_cap_allowed": False,
         "note": (
             "The upstream sporting/deep-dive chain is temporarily capped below the SAME global tick ceiling so "
@@ -139,19 +161,22 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
 
 
 async def run_tick() -> dict[str, Any]:
-    # Reserve price capacity inside the same global cap instead of allowing a
-    # post-cap catch-up overflow. On a normal 70-call production tick, the
-    # default split is 50 upstream + up to 20 price calls. Primary price targets
-    # consume this budget first; Team Totals receives only any remainder.
-    original_base_cap = int(v6._BASE_MAX_API_CALLS_PER_TICK)
-    reserve_requested = min(PRIMARY_PRICE_RESERVE_CALLS, max(0, original_base_cap - 1))
-    pre_price_cap = max(1, original_base_cap - reserve_requested)
+    # v90 owns the live elastic request ceiling (70/55/45/35/25 from verified
+    # quota). Reserve capacity at THAT layer, not at v6's nominal base cap,
+    # otherwise v90 simply expands the upstream loop again and consumes the
+    # intended pricing reserve.
+    original_elastic_request_cap = v90._elastic_request_cap
 
-    v6._BASE_MAX_API_CALLS_PER_TICK = pre_price_cap
+    def _reserved_elastic_request_cap(remaining: Any) -> tuple[int, str]:
+        global_cap, reason = original_elastic_request_cap(remaining)
+        upstream_cap, reserve = _reserve_from_elastic_cap(int(global_cap))
+        return upstream_cap, f"{reason}_PRICE_RESERVE_{reserve}"
+
+    v90._elastic_request_cap = _reserved_elastic_request_cap
     try:
         payload = await v121.run_tick()
     finally:
-        v6._BASE_MAX_API_CALLS_PER_TICK = original_base_cap
+        v90._elastic_request_cap = original_elastic_request_cap
 
     remaining_raw = payload.get("last_daily_remaining")
     try:
@@ -159,13 +184,25 @@ async def run_tick() -> dict[str, Any]:
     except (TypeError, ValueError):
         remaining = None
 
-    _mode, global_cap = v6._budget_for_remaining(remaining)
+    global_cap, global_reason = original_elastic_request_cap(remaining)
     global_cap = int(global_cap)
-    v2.MAX_API_CALLS_PER_TICK = global_cap
+    pre_price_cap, reserve_requested = _reserve_from_elastic_cap(global_cap)
+    observed_upstream_cap = payload.get("elastic_request_cap")
+    try:
+        observed_upstream_cap = int(observed_upstream_cap)
+    except (TypeError, ValueError):
+        observed_upstream_cap = pre_price_cap
 
-    payload["pre_price_pipeline_api_cap"] = pre_price_cap
+    # The actual upstream wrapper should have used the reserved cap. Keep the
+    # observed value visible, but restore top-level max/effective to the true
+    # global elastic ceiling before computing post-primary leftover.
+    v2.MAX_API_CALLS_PER_TICK = global_cap
+    payload["pre_price_pipeline_api_cap"] = observed_upstream_cap
     payload["global_api_cap_after_daily_policy"] = global_cap
-    payload["primary_price_reserve_calls"] = max(0, global_cap - pre_price_cap)
+    payload["primary_price_reserve_calls"] = max(0, global_cap - observed_upstream_cap)
+    payload["elastic_request_cap_upstream_observed"] = observed_upstream_cap
+    payload["elastic_request_cap"] = global_cap
+    payload["elastic_request_cap_reason"] = global_reason
     payload["max_api_calls_per_tick"] = global_cap
     payload["effective_max_api_calls_per_tick"] = global_cap
 
