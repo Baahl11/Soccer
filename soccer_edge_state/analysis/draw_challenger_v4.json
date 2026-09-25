@@ -1,48 +1,102 @@
 {
   "baseline": "INDEPENDENT_POISSON_DRAW_FROM_PREKICKOFF_HOME_AWAY_GOAL_RATES",
   "baseline_metrics": {
-    "brier": null,
+    "brier": 0.22285603,
     "discrimination": {
-      "auc": null,
-      "auc_lower_95": null,
-      "auc_standard_error": null,
+      "auc": 0.48039216,
+      "auc_lower_95": 0.2292467,
+      "auc_standard_error": 0.12813544,
       "discrimination_ready": false,
-      "negative_count": 0,
-      "positive_count": 0
+      "negative_count": 34,
+      "positive_count": 6
     },
-    "log_loss": null,
-    "negative_count": 0,
-    "positive_count": 0,
-    "rows": 0
+    "log_loss": 0.62936091,
+    "negative_count": 34,
+    "positive_count": 6,
+    "rows": 40
   },
   "canonical_bet_logic_changed": false,
   "challenger_metrics": {
-    "brier": null,
+    "brier": 0.13245479,
     "discrimination": {
-      "auc": null,
-      "auc_lower_95": null,
-      "auc_standard_error": null,
+      "auc": 0.48284314,
+      "auc_lower_95": 0.23135741,
+      "auc_standard_error": 0.12830904,
       "discrimination_ready": false,
-      "negative_count": 0,
-      "positive_count": 0
+      "negative_count": 34,
+      "positive_count": 6
     },
-    "log_loss": null,
-    "negative_count": 0,
-    "positive_count": 0,
-    "rows": 0
+    "log_loss": 0.4396534,
+    "negative_count": 34,
+    "positive_count": 6,
+    "rows": 40
   },
   "comparison": {
-    "auc_lower_95_delta": null,
-    "brier_delta": null,
+    "auc_lower_95_delta": 0.00211071,
+    "brier_delta": -0.09040124,
     "challenger_discrimination_ready": false,
-    "improves_all_primary_metrics": false,
-    "log_loss_delta": null
+    "improves_all_primary_metrics": true,
+    "log_loss_delta": -0.18970751
   },
   "dataset_fingerprint": "53c92719ea3bb3864bca72550b1849a81f4c09c2d47cf43ccf2679cffb404018",
   "dataset_row_count": 115,
   "dataset_version": "4.0.0",
   "eligible_rows": 115,
   "feature_count": 13,
+  "feature_importance": [
+    {
+      "feature": "away_goal_rate",
+      "mean_importance": 50.5
+    },
+    {
+      "feature": "both_xi_confirmed",
+      "mean_importance": 48.5
+    },
+    {
+      "feature": "both_xi_confirmed__missing",
+      "mean_importance": 30.5
+    },
+    {
+      "feature": "home_goal_rate",
+      "mean_importance": 29.0
+    },
+    {
+      "feature": "poisson_draw_probability",
+      "mean_importance": 28.0
+    },
+    {
+      "feature": "total_goal_rate",
+      "mean_importance": 25.0
+    },
+    {
+      "feature": "goal_rate_abs_gap",
+      "mean_importance": 24.0
+    },
+    {
+      "feature": "goal_rate_geometric_mean",
+      "mean_importance": 17.5
+    },
+    {
+      "feature": "goal_rate_balance_ratio",
+      "mean_importance": 14.5
+    },
+    {
+      "feature": "both_goalkeepers_confirmed",
+      "mean_importance": 0.0
+    },
+    {
+      "feature": "both_goalkeepers_confirmed__missing",
+      "mean_importance": 0.0
+    },
+    {
+      "feature": "injury_report_count",
+      "mean_importance": 0.0
+    },
+    {
+      "feature": "injury_report_count__missing",
+      "mean_importance": 0.0
+    }
+  ],
   "feature_names": [
     "home_goal_rate",
     "away_goal_rate",
@@ -59,18 +113,94 @@
     "injury_report_count__missing"
   ],
   "feature_schema_version": "4.0.0",
-  "folds": [],
+  "fitted_folds": 2,
+  "folds": [
+    {
+      "baseline": {
+        "brier": 0.19211354,
+        "discrimination": {
+          "auc": 0.66666667,
+          "auc_lower_95": 0.30882126,
+          "auc_standard_error": 0.18257419,
+          "discrimination_ready": false,
+          "negative_count": 22,
+          "positive_count": 3
+        },
+        "log_loss": 0.55790279,
+        "negative_count": 22,
+        "positive_count": 3,
+        "rows": 25
+      },
+      "challenger": {
+        "brier": 0.11390381,
+        "discrimination": {
+          "auc": 0.5,
+          "auc_lower_95": 0.14487589,
+          "auc_standard_error": 0.18118577,
+          "discrimination_ready": false,
+          "negative_count": 22,
+          "positive_count": 3
+        },
+        "log_loss": 0.39091165,
+        "negative_count": 22,
+        "positive_count": 3,
+        "rows": 25
+      },
+      "fold": 2,
+      "test_draws": 3,
+      "test_rows": 25,
+      "train_rows": 75
+    },
+    {
+      "baseline": {
+        "brier": 0.27409353,
+        "discrimination": {
+          "auc": 0.19444444,
+          "auc_lower_95": 0.0,
+          "auc_standard_error": 0.12658885,
+          "discrimination_ready": false,
+          "negative_count": 12,
+          "positive_count": 3
+        },
+        "log_loss": 0.74845778,
+        "negative_count": 12,
+        "positive_count": 3,
+        "rows": 15
+      },
+      "challenger": {
+        "brier": 0.16337308,
+        "discrimination": {
+          "auc": 0.40277778,
+          "auc_lower_95": 0.047899,
+          "auc_standard_error": 0.1810606,
+          "discrimination_ready": false,
+          "negative_count": 12,
+          "positive_count": 3
+        },
+        "log_loss": 0.52088965,
+        "negative_count": 12,
+        "positive_count": 3,
+        "rows": 15
+      },
+      "fold": 3,
+      "test_draws": 3,
+      "test_rows": 15,
+      "train_rows": 100
+    }
+  ],
   "market_fields_used": false,
   "minimum_oos_rows": 50,
-  "minimum_training_rows": 100,
-  "model_version": "LIGHTGBM_DRAW_V4_CHALLENGER_1.0.0",
+  "minimum_training_rows": 50,
+  "model_version": "LIGHTGBM_DRAW_V4_CHALLENGER_1.1.0",
   "model_weights_changed": false,
   "post_kickoff_features_used": false,
   "production_promotion_allowed": false,
+  "promotion_reason": "OFFLINE_DRAW_CHALLENGER_REQUIRES_SEPARATE_VALIDATION_AND_MANUAL_REVIEW",
   "provider_requests_added": 0,
+  "research_followup_candidate": false,
   "runtime_prediction_weight": 0,
   "schema_version": "1.0.0",
-  "status": "INSUFFICIENT_TRAINING_SAMPLE",
+  "status": "RESEARCH_ONLY",
   "training_policy": "EXPANDING_WALK_FORWARD_BLOCKS;NO_MARKET_FIELDS;STRICTLY_PREKICKOFF_FEATURES",
-  "walk_forward_evaluated": 0
+  "walk_forward_evaluated": 40
 }
