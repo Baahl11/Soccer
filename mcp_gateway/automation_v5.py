@@ -17,6 +17,10 @@ MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
 AUTOMATION_VERSION = "1.5.0"
 
 MAX_DEEP_DIVE_FIXTURES_PER_TICK = int(os.getenv("SOCCER_EDGE_MAX_DEEP_DIVE_FIXTURES_PER_TICK", "8"))
+MAX_UPCOMING_MARKET_CAPTURE_FIXTURES = max(
+    20,
+    int(os.getenv("SOCCER_EDGE_MAX_UPCOMING_MARKET_CAPTURE_FIXTURES", "80")),
+)
 SHORTLIST_TTL = timedelta(hours=14)
 
 STAGE_PRIORITY = {
@@ -477,6 +481,16 @@ async def run_tick() -> dict[str, Any]:
                 ):
                     fixtures.append(fx)
 
+        upcoming_market_capture_fixtures = sorted(
+            [
+                fx
+                for fx in fixtures
+                if base._dt(fx["kickoff"]) > now_utc
+                and fx.get("status") not in base.CANCELLED_STATUSES | base.POSTPONED_STATUSES
+            ],
+            key=lambda fx: base._dt(fx["kickoff"]),
+        )[:MAX_UPCOMING_MARKET_CAPTURE_FIXTURES]
+
         events: list[dict[str, Any]] = []
         discovery = await v3._daily_discovery_event(fixtures, now_utc, local_now)
         if discovery is not None:
@@ -619,6 +633,8 @@ async def run_tick() -> dict[str, Any]:
             "generated_at_local": local_now.isoformat(),
             "timezone": base.TIMEZONE_NAME,
             "fixture_scan_count": len(fixtures),
+            "upcoming_market_capture_fixture_count": len(upcoming_market_capture_fixtures),
+            "upcoming_market_capture_fixtures": upcoming_market_capture_fixtures,
             "due_fixture_count": len(due),
             "event_count": len(events),
             "actionable_refresh_count": len(actionable),
