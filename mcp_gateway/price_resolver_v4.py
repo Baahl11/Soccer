@@ -1396,6 +1396,18 @@ async def _fetch_fixture_odds(
 
 def _research_derivative_subfamily(market_name: str) -> str | None:
     name = _norm(market_name)
+    aggregate_player_markets = (
+        "home player shots total",
+        "away player shots total",
+        "home player shots on target total",
+        "away player shots on target total",
+        "player shots total - home",
+        "player shots total - away",
+        "player shots on target total - home",
+        "player shots on target total - away",
+    )
+    if any(token in name for token in aggregate_player_markets):
+        return None
     if "first goal scorer" in name:
         return "GOALSCORER_FIRST"
     if "last goal scorer" in name:
@@ -1467,15 +1479,34 @@ def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]]
         }
         if family == "PLAYER_PROPS":
             lineup = event.get("lineups") if isinstance(event.get("lineups"), dict) else None
-            aligned_values = [
-                derivative_audit.align_value_to_confirmed_xi(
-                    value,
-                    lineup_payload=lineup,
-                    family=str(subfamily or ""),
+            aligned_values = []
+            for value in (market.get("values") or []):
+                if not isinstance(value, dict):
+                    aligned_values.append(value)
+                    continue
+                normalized_value = dict(value)
+                if (
+                    subfamily in {"SHOTS", "SOT", "GK_SAVES"}
+                    and derivative_audit.value_line(normalized_value) is not None
+                    and normalized_value.get("parsed_line") is None
+                    and normalized_value.get("line") is None
+                ):
+                    normalized_value["parsed_line"] = derivative_audit.value_line(normalized_value)
+                    normalized_value["line_basis"] = (
+                        "PLAYER_THRESHOLD_N_PLUS"
+                        if re.match(
+                            r"^.+?\s+-\s+\d+\s*$",
+                            str(normalized_value.get("selection") or normalized_value.get("value") or "").strip(),
+                        )
+                        else "DERIVED_FROM_SELECTION"
+                    )
+                aligned_values.append(
+                    derivative_audit.align_value_to_confirmed_xi(
+                        normalized_value,
+                        lineup_payload=lineup,
+                        family=str(subfamily or ""),
+                    )
                 )
-                if isinstance(value, dict) else value
-                for value in (market.get("values") or [])
-            ]
             row["values"] = aligned_values
             row["confirmed_xi_at_quote"] = bool(
                 isinstance(lineup, dict) and lineup.get("both_xi_confirmed") is True
