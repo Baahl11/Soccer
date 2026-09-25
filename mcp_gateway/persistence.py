@@ -150,7 +150,15 @@ def _persist_refresh_event(cur, tick: dict[str, Any], event: dict[str, Any]) -> 
     market_resolution_status = str((market or {}).get("resolution_status") or "").upper() if isinstance(market, dict) else ""
     market_is_cache_replay = "CACHE" in market_source or "CACHE" in market_resolution_status
     if fixture_id and isinstance(market, dict) and not market_is_cache_replay:
-        for row in market.get("markets") or []:
+        canonical_rows = [
+            row for row in (market.get("markets") or [])
+            if isinstance(row, dict)
+        ]
+        research_rows = [
+            row for row in (market.get("research_cards_props_markets") or [])
+            if isinstance(row, dict)
+        ]
+        for row in canonical_rows + research_rows:
             cur.execute(
                 """
                 INSERT INTO soccer_market_snapshots (
