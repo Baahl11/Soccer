@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sqlite3
+import unicodedata
 from datetime import datetime, timedelta, timezone as dt_timezone
 from zoneinfo import ZoneInfo
 from typing import Any
@@ -306,6 +307,81 @@ def _compact_lineups(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _norm_player_text(value: Any) -> str:
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = re.sub(r"[^A-Za-z0-9]+", " ", text).strip().lower()
+    return re.sub(r"\s+", " ", text)
+
+
+def _confirmed_starters(lineup: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not isinstance(lineup, dict) or lineup.get("both_xi_confirmed") is not True:
+        return []
+    out: list[dict[str, Any]] = []
+    for team in lineup.get("teams") or []:
+        if not isinstance(team, dict):
+            continue
+        for player in team.get("starters") or []:
+            if not isinstance(player, dict) or not player.get("name"):
+                continue
+            out.append({
+                "player_id": player.get("id"),
+                "player_name": player.get("name"),
+                "team_id": team.get("team_id"),
+                "team": team.get("team"),
+                "position": player.get("pos"),
+            })
+    return out
+
+
+def _align_research_player_value(
+    compact: dict[str, Any],
+    *,
+    confirmed_starters: list[dict[str, Any]],
+    research_subfamily: str | None,
+) -> dict[str, Any]:
+    if research_subfamily is None:
+        return compact
+    out = dict(compact)
+    selection = _norm_player_text(out.get("selection"))
+    if not confirmed_starters:
+        out["xi_alignment_status"] = "NO_CONFIRMED_XI_AT_QUOTE"
+        return out
+    if not selection:
+        out["xi_alignment_status"] = "SELECTION_MISSING"
+        return out
+
+    padded = f" {selection} "
+    matches = []
+    for starter in confirmed_starters:
+        player_name = _norm_player_text(starter.get("player_name"))
+        if player_name and f" {player_name} " in padded:
+            matches.append(starter)
+
+    if not matches:
+        out["xi_alignment_status"] = "PLAYER_NOT_MATCHED_TO_CONFIRMED_XI"
+        return out
+    if len(matches) > 1:
+        out["xi_alignment_status"] = "AMBIGUOUS_CONFIRMED_XI_MATCH"
+        return out
+
+    starter = matches[0]
+    if research_subfamily == "GK_SAVES" and str(starter.get("position") or "").upper() != "G":
+        out["xi_alignment_status"] = "MATCHED_NON_GOALKEEPER"
+        return out
+
+    out.update({
+        "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+        "player_id": starter.get("player_id"),
+        "player_name": starter.get("player_name"),
+        "team_id": starter.get("team_id"),
+        "team": starter.get("team"),
+        "position": starter.get("position"),
+        "confirmed_starter": True,
+    })
+    return out
+
+
 def _wanted_market(name: str) -> bool:
     n = (name or "").lower()
     keys = (
@@ -384,7 +460,12 @@ def _is_card_research_bet(bet: dict[str, Any]) -> bool:
     return name == "rcard" or any(token in name for token in card_tokens)
 
 
-def _research_value(value: dict[str, Any]) -> dict[str, Any]:
+def _research_value(
+    value: dict[str, Any],
+    *,
+    confirmed_starters: list[dict[str, Any]] | None = None,
+    research_subfamily: str | None = None,
+) -> dict[str, Any]:
     raw = str(value.get("value") or "").strip()
     line = None
     match = re.search(r"\b(?:over|under)\s+([+-]?\d+(?:\.\d+)?)\b", raw, flags=re.IGNORECASE)
@@ -393,31 +474,42 @@ def _research_value(value: dict[str, Any]) -> dict[str, Any]:
             line = float(match.group(1))
         except (TypeError, ValueError):
             line = None
-    return {
+    compact = {
         "selection": value.get("value"),
         "price": value.get("odd"),
         "parsed_line": line,
     }
+    return _align_research_player_value(
+        compact,
+        confirmed_starters=confirmed_starters or [],
+        research_subfamily=research_subfamily,
+    )
 
 
-def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
+def _compact_odds(payload: dict[str, Any], lineup: dict[str, Any] | None = None) -> dict[str, Any]:
     primary_rows: list[dict[str, Any]] = []
     team_total_rows: list[dict[str, Any]] = []
     card_research_rows: list[dict[str, Any]] = []
     player_prop_research_rows: list[dict[str, Any]] = []
+    confirmed_starters = _confirmed_starters(lineup)
     for fixture_row in payload.get("response", []):
         update = fixture_row.get("update")
         for book in fixture_row.get("bookmakers") or []:
             for bet in book.get("bets") or []:
                 name = bet.get("name") or ""
                 is_team_total = _is_ft_team_total_bet(bet)
-                is_player_prop = _is_player_prop_research_bet(bet)
+                player_prop_subfamily = _player_prop_research_subfamily(bet)
+                is_player_prop = player_prop_subfamily is not None
                 is_card_research = _is_card_research_bet(bet)
                 if not is_team_total and not is_player_prop and not is_card_research and not _wanted_market(name):
                     continue
                 is_research = is_player_prop or is_card_research
                 values = [
-                    _research_value(value) if is_research else {
+                    _research_value(
+                        value,
+                        confirmed_starters=confirmed_starters if is_player_prop else [],
+                        research_subfamily=player_prop_subfamily if is_player_prop else None,
+                    ) if is_research else {
                         "selection": value.get("value"),
                         "price": value.get("odd"),
                     }
@@ -437,8 +529,13 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
                     row.update({
                         "research_only": True,
                         "research_family": "PLAYER_PROPS",
-                        "research_subfamily": _player_prop_research_subfamily(bet),
+                        "research_subfamily": player_prop_subfamily,
                         "decision_weight": 0.0,
+                        "confirmed_xi_at_quote": bool(confirmed_starters),
+                        "xi_aligned_value_rows": sum(
+                            1 for value in values
+                            if value.get("xi_alignment_status") == "MATCHED_CONFIRMED_XI"
+                        ),
                         "production_promotion_allowed": False,
                     })
                     player_prop_research_rows.append(row)
@@ -579,7 +676,10 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
     # Market snapshots are stored only after sporting data collection and never
     # define the raw sporting projection.
     if stage in {"T-40", "T-20", "T-10", "CLOSE"} and coverage.get("odds"):
-        event["market"] = _compact_odds(await _api_get("odds", {"fixture": fx["fixture_id"], "page": 1}))
+        event["market"] = _compact_odds(
+            await _api_get("odds", {"fixture": fx["fixture_id"], "page": 1}),
+            lineup=event.get("lineups") if isinstance(event.get("lineups"), dict) else None,
+        )
         event["market_use"] = "HISTORY_AND_LATER_MARKET_COMPARISON_ONLY"
     elif stage in {"T-40", "T-20", "T-10", "CLOSE"}:
         event["market"] = "NOT VERIFIED"
