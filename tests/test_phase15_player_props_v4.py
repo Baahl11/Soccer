@@ -1164,3 +1164,83 @@ def test_registry_backfill_event_is_future_only_and_never_reconstructs_oos():
     assert event["backfill"]["retroactive_market_created"] is False
     assert event["actionable"] is False
     assert event["decision_weight"] == 0.0
+
+
+def test_registry_backfill_infers_conceded_only_for_full_match_goalkeeper():
+    teams = [
+        {
+            "team_id": 10,
+            "team": "Home",
+            "players": [
+                {
+                    "player_id": 1,
+                    "name": "Home GK",
+                    "position": "G",
+                    "minutes": 90,
+                    "saves": 4,
+                    "goals_conceded": None,
+                },
+                {
+                    "player_id": 2,
+                    "name": "Partial GK",
+                    "position": "G",
+                    "minutes": 45,
+                    "saves": 2,
+                    "goals_conceded": None,
+                },
+            ],
+        },
+        {
+            "team_id": 20,
+            "team": "Away",
+            "players": [
+                {
+                    "player_id": 3,
+                    "name": "Away GK",
+                    "position": "GK",
+                    "minutes": 90,
+                    "saves": 5,
+                    "goals_conceded": None,
+                }
+            ],
+        },
+    ]
+
+    out = registry_backfill._enrich_full_match_goalkeeper_conceded(
+        teams,
+        home_team_id=10,
+        away_team_id=20,
+        home_goals=2,
+        away_goals=1,
+    )
+
+    home = out[0]["players"]
+    away = out[1]["players"]
+    assert home[0]["goals_conceded"] == 1.0
+    assert home[0]["goals_conceded_source"] == "FINAL_SCORE_FULL_MATCH_GK_FALLBACK"
+    assert home[0]["goals_conceded_inferred_for_registry_only"] is True
+    assert home[1]["goals_conceded"] is None
+    assert "goals_conceded_source" not in home[1]
+    assert away[0]["goals_conceded"] == 2.0
+
+
+def test_registry_backfill_preserves_provider_goalkeeper_conceded_value():
+    teams = [{
+        "team_id": 10,
+        "players": [{
+            "player_id": 1,
+            "position": "G",
+            "minutes": 90,
+            "saves": 3,
+            "goals_conceded": 4,
+        }],
+    }]
+    out = registry_backfill._enrich_full_match_goalkeeper_conceded(
+        teams,
+        home_team_id=10,
+        away_team_id=20,
+        home_goals=0,
+        away_goals=1,
+    )
+    assert out[0]["players"][0]["goals_conceded"] == 4
+    assert "goals_conceded_source" not in out[0]["players"][0]
