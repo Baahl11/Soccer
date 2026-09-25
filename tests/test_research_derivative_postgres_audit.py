@@ -106,3 +106,40 @@ def test_summarize_rows_tracks_unique_fixture_line_and_confirmed_xi_coverage():
     assert gk["unique_fixtures"] == 1
     assert gk["pre_kickoff_unique_fixtures"] == 0
     assert gk["confirmed_xi_pre_kickoff_unique_fixtures"] == 0
+
+
+
+def test_summarize_rows_exposes_unclassified_taxonomy_gaps():
+    rows = [
+        {
+            "fixture_id": 201,
+            "market": "Total Yellow Cards",
+            "values": [{"selection": "Over 4.5", "price": "1.90", "parsed_line": 4.5}],
+            "pre_kickoff": True,
+            "confirmed_xi_before_market": False,
+        },
+        {
+            "fixture_id": 202,
+            "market": "Player Total Passes",
+            "values": [{"selection": "Player A Over 45.5", "price": "1.90"}],
+            "pre_kickoff": True,
+            "confirmed_xi_before_market": True,
+        },
+        {
+            "fixture_id": 203,
+            "market": "Shots Inside Box",
+            "values": [{"selection": "Over 7.5", "price": "1.85"}],
+            "pre_kickoff": True,
+            "confirmed_xi_before_market": False,
+        },
+    ]
+
+    report = v.summarize_rows(rows, lookback_days=180)
+
+    assert report["candidate_rows"] == 3
+    assert report["classified_rows"] == 1
+    assert report["unclassified_rows"] == 2
+    assert report["market_name_counts"]["Total Yellow Cards"] == 1
+    assert report["unclassified_market_name_counts"]["Player Total Passes"] == 1
+    assert report["unclassified_market_name_counts"]["Shots Inside Box"] == 1
+    assert len(report["unclassified_sample_rows"]) == 2
