@@ -30,12 +30,17 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "canonical_bet_logic_changed": False,
         "model_weights_changed": False,
         "production_promotion_allowed": False,
+        "research_spillover_candidate_fixtures": price_resolution.get("research_spillover_candidate_fixtures", 0),
+        "research_spillover_cache_hits": price_resolution.get("research_spillover_cache_hits", 0),
+        "research_spillover_api_calls_added": price_resolution.get("research_spillover_api_calls_added", 0),
+        "research_spillover_fixtures_fetched": price_resolution.get("research_spillover_fixtures_fetched", 0),
+        "research_spillover_market_rows_fetched": price_resolution.get("research_spillover_market_rows_fetched", 0),
         "note": (
             "Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
             "Resolved rows are re-evaluated by Team Totals research intelligence, execution-status separation "
-            "and Phase16. Team Totals reuses the already-fetched market payload to persist exact HOME/AWAY "
-            "team-total price rows for CLV with zero additional provider calls; no calibrated probability is "
-            "fabricated and no BET/tier/stake/model threshold is changed."
+            "and Phase16. Team Totals is cache-first and may use only provider budget left after every primary "
+            "price target; those spillover calls remain research-only and cannot pre-empt FT Totals/BTTS/1X2. "
+            "No calibrated probability is fabricated and no BET/tier/stake/model threshold is changed."
         ),
     }
 
