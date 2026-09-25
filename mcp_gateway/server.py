@@ -435,7 +435,9 @@ async def health(request: Request) -> Response:
     return JSONResponse({
         "status": "ok",
         "service": "soccer-edge-api",
-        "version": "1.4.0",
+        "version": "1.4.1",
+        "clv_model_version": clv_postgres_v4.MODEL_VERSION,
+        "render_git_commit": os.getenv("RENDER_GIT_COMMIT"),
         "api_key_configured": bool(os.getenv("API_FOOTBALL_KEY", "").strip()),
         "scheduler_endpoint": True,
         "scheduler_isolated_worker": True,
