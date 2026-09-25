@@ -190,7 +190,12 @@ def extract_shadow_signals(events: Iterable[dict[str, Any]]) -> list[dict[str, A
                 continue
             player_rows = [
                 p for p in (intel.get(config["rows_key"]) or [])
-                if isinstance(p, dict) and p.get("player_id") is not None and p.get("confirmed_starter") is True
+                if isinstance(p, dict)
+                and p.get("player_id") is not None
+                and (
+                    family == "GK_SAVES"
+                    or p.get("confirmed_starter") is True
+                )
             ]
             if not player_rows:
                 continue
@@ -222,7 +227,11 @@ def extract_shadow_signals(events: Iterable[dict[str, Any]]) -> list[dict[str, A
                         "market_id": market_row.get("market_id"),
                         "bookmaker_id": market_row.get("bookmaker_id"),
                         "bookmaker": market_row.get("bookmaker"),
-                        "provider_update": _dt(market_row.get("provider_update")),
+                        "provider_update": (
+                            _dt(market_row.get("provider_update")).isoformat()
+                            if _dt(market_row.get("provider_update")) is not None
+                            else None
+                        ),
                         "player_id": value.get("player_id"),
                         "player_name": value.get("player_name") or player.get("player"),
                         "team_id": value.get("team_id") or player.get("team_id"),
