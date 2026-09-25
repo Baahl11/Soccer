@@ -80,7 +80,7 @@ jobs:
           test "$HTTP_CODE" = "200"
           jq -e '
             .status == "RESEARCH_DERIVATIVE_MARKET_AUDIT"
-            and .model_version == "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.1.0"
+            and .model_version == "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.2.0"
             and .provider_requests_added == 0
             and .production_promotion_allowed == false
             and (.families | type == "object")
