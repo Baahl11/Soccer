@@ -14,7 +14,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence, research_derivative_postgres_audit as derivative_audit
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.16.1"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.17.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -160,13 +160,31 @@ def _normalize_market_values(market_name: str, values: list[dict[str, Any]]) -> 
         )
         if embedded_match:
             embedded_line = _num(embedded_match.group(1))
-        parsed.append({
+        player_meta = item.get("player")
+        explicit_player_id = item.get("player_id")
+        explicit_player_name = item.get("player_name")
+        if isinstance(player_meta, dict):
+            if explicit_player_id is None:
+                explicit_player_id = player_meta.get("id")
+            if explicit_player_name is None:
+                explicit_player_name = player_meta.get("name")
+        elif explicit_player_name is None and isinstance(player_meta, str) and player_meta.strip():
+            explicit_player_name = player_meta.strip()
+
+        normalized_value = {
             "selection": selection,
             "raw_selection": raw_selection,
             "line": line if line is not None else embedded_line,
             "decimal_price": price,
             "fair_probability": _num(item.get("fair_probability")),
-        })
+        }
+        # Preserve explicit provider player identity for binary props such as
+        # Assists Yes/No, whose selection text alone cannot identify a player.
+        if explicit_player_id is not None:
+            normalized_value["player_id"] = explicit_player_id
+        if explicit_player_name is not None and str(explicit_player_name).strip():
+            normalized_value["player_name"] = str(explicit_player_name).strip()
+        parsed.append(normalized_value)
 
     # Recalculate de-vig probabilities from the full observed mutually-exclusive
     # group whenever possible; this also upgrades legacy cached value/odd rows.
@@ -1353,21 +1371,48 @@ def _load_primary_clv_maturation_backlog(
 
 
 def _player_prop_signal_families(event: dict[str, Any]) -> set[str]:
-    """Return Player Props families that have both a market and a model probability source."""
+    """Return families with a priced XI player and model probability for that same player."""
     market = event.get("market") if isinstance(event.get("market"), dict) else {}
-    observed: set[str] = set()
+    lineup = event.get("lineups") if isinstance(event.get("lineups"), dict) else None
+    observed_player_ids: dict[str, set[str]] = defaultdict(set)
+
     for row in market.get("research_cards_props_markets") or []:
-        if not isinstance(row, dict):
-            continue
-        if row.get("research_family") != "PLAYER_PROPS":
+        if not isinstance(row, dict) or row.get("research_family") != "PLAYER_PROPS":
             continue
         family = str(
             _research_derivative_subfamily(str(row.get("market") or "")) or ""
         ).upper()
-        if family:
-            observed.add(family)
+        if not family:
+            continue
+        for value in row.get("values") or []:
+            if not isinstance(value, dict):
+                continue
+            aligned = value
+            if (
+                value.get("xi_alignment_status") != "MATCHED_CONFIRMED_XI"
+                or value.get("player_id") is None
+            ):
+                aligned = derivative_audit.align_value_to_confirmed_xi(
+                    value,
+                    lineup_payload=lineup,
+                    family=family,
+                )
+            price = _num(
+                aligned.get("decimal_price")
+                if aligned.get("decimal_price") is not None
+                else aligned.get("price")
+                if aligned.get("price") is not None
+                else aligned.get("odd")
+            )
+            if (
+                aligned.get("xi_alignment_status") == "MATCHED_CONFIRMED_XI"
+                and aligned.get("player_id") is not None
+                and price is not None
+                and price > 1.0
+            ):
+                observed_player_ids[family].add(str(aligned["player_id"]))
 
-    modelable: set[str] = set()
+    modelable_player_ids: dict[str, set[str]] = defaultdict(set)
     configs = {
         "SHOTS": ("player_shots_intelligence", "players", "LINES"),
         "SOT": ("player_sot_intelligence", "players", "LINES"),
@@ -1381,26 +1426,28 @@ def _player_prop_signal_families(event: dict[str, Any]) -> set[str]:
         for player in intel.get(rows_key) or []:
             if not isinstance(player, dict) or player.get("player_id") is None:
                 continue
-            if mode == "LINES" and any(
-                isinstance(line, dict)
-                and _num(line.get("p_over")) is not None
-                and _num(line.get("p_under")) is not None
-                for line in (player.get("lines") or [])
-            ):
-                modelable.add(family)
-                break
-            if mode == "ANYTIME" and _num(player.get("p_anytime_goal")) is not None:
-                modelable.add(family)
-                break
-            if mode == "ASSISTS" and _num(player.get("p_1plus_assist")) is not None:
-                modelable.add(family)
-                break
-            if mode == "CARDS" and _num(player.get("p_player_booked_yellow")) is not None:
-                modelable.add(family)
-                break
+            modelable = False
+            if mode == "LINES":
+                modelable = any(
+                    isinstance(line, dict)
+                    and _num(line.get("p_over")) is not None
+                    and _num(line.get("p_under")) is not None
+                    for line in (player.get("lines") or [])
+                )
+            elif mode == "ANYTIME":
+                modelable = _num(player.get("p_anytime_goal")) is not None
+            elif mode == "ASSISTS":
+                modelable = _num(player.get("p_1plus_assist")) is not None
+            elif mode == "CARDS":
+                modelable = _num(player.get("p_player_booked_yellow")) is not None
+            if modelable:
+                modelable_player_ids[family].add(str(player["player_id"]))
 
-    return observed & modelable
-
+    return {
+        family
+        for family, player_ids in observed_player_ids.items()
+        if player_ids & modelable_player_ids.get(family, set())
+    }
 
 def _player_prop_markets_with_later_provider_quote(
     markets: list[dict[str, Any]],
@@ -1622,6 +1669,9 @@ def _load_player_props_clv_maturation_backlog(
                              OR LOWER(COALESCE(m.market,'')) LIKE '%%goalkeeper save%%'
                              OR LOWER(COALESCE(m.market,'')) LIKE '%%keeper save%%'
                              OR LOWER(COALESCE(m.market,'')) LIKE '%%player card%%'
+                             OR LOWER(COALESCE(m.market,'')) LIKE '%%player book%%'
+                             OR LOWER(COALESCE(m.market,'')) LIKE '%%to be booked%%'
+                             OR LOWER(COALESCE(m.market,'')) LIKE '%%to be carded%%'
                           )
                         LIMIT 1
                         """,
@@ -1752,7 +1802,16 @@ def _research_derivative_subfamily(market_name: str) -> str | None:
         return "GK_SAVES"
     if "player assists" in name or "player assist" in name:
         return "ASSISTS"
-    if any(token in name for token in ("player cards", "player card", "player booked", "player booking")):
+    if any(token in name for token in (
+        "player cards",
+        "player card",
+        "player booked",
+        "player booking",
+        "player yellow card",
+        "player yellow cards",
+        "to be booked",
+        "to be carded",
+    )):
         return "PLAYER_CARDS"
     return None
 
