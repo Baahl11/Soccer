@@ -54,6 +54,19 @@ def _hit(rows: list[dict[str, Any]], key: str, threshold: float) -> dict[str, An
     return {"n": len(vals), "hits": hits, "rate": round(hits / len(vals), 4) if vals else None}
 
 
+def _is_goalkeeper_row(row: dict[str, Any]) -> bool:
+    position = str(row.get("position") or "").upper()
+    if position in {"G", "GK", "GOALKEEPER"}:
+        return True
+    # Some historical provider rows may omit position. In that case only
+    # positive saves or an explicit conceded value are goalkeeper evidence.
+    # Generic outfield saves=0 placeholders must never create GK matches.
+    saves = _num(row.get("saves"))
+    if saves is not None and saves > 0:
+        return True
+    return row.get("goals_conceded") is not None
+
+
 def _save_result_proxy(rows: list[dict[str, Any]]) -> dict[str, Any]:
     saves = conceded = 0.0
     n = 0
@@ -202,12 +215,7 @@ def main() -> None:
         for n in (5, 10, 20):
             sample = player_rows[-n:]
             played = [r for r in sample if (_num(r.get("minutes")) or 0) > 0]
-            gk_rows = [
-                r for r in played
-                if str(r.get("position") or "").upper() in {"G", "GK", "GOALKEEPER"}
-                or r.get("saves") is not None
-                or r.get("goals_conceded") is not None
-            ]
+            gk_rows = [r for r in played if _is_goalkeeper_row(r)]
             total_minutes = _sum(played, "minutes")
             shots_total = _sum(played, "shots")
             sot_total = _sum(played, "shots_on_target")
@@ -254,7 +262,7 @@ def main() -> None:
         output_players.append(item)
 
     report = {
-        "schema_version": "1.5.0",
+        "schema_version": "1.6.0",
         "status": "RESEARCH_ONLY_PLAYER_TRENDS",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "decision_weight": 0.0,
