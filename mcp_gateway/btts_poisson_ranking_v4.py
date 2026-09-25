@@ -19,7 +19,7 @@ from mcp_gateway.goals_binary_challenger_v4 import (
     poisson_probability,
 )
 
-MODEL_VERSION = "BTTS_POISSON_RANKING_V4_1.0.0"
+MODEL_VERSION = "BTTS_POISSON_RANKING_V4_1.1.0"
 SCHEMA_VERSION = "1.0.0"
 TARGET = "btts"
 
@@ -69,7 +69,9 @@ def walk_forward(
         "canonical_bet_logic_changed": False,
         "ranking_signal": "INDEPENDENT_POISSON_BTTS_FROM_PREKICKOFF_HOME_AWAY_GOAL_RATES",
         "calibration_method": "EXPANDING_WALK_FORWARD_PLATT_LOGIT_TRAIN_ONLY",
-        "eligibility_gate": "RAW_AUC_LOWER_95_GT_0_50_AND_PLATT_POSITIVE_SLOPE_AND_BRIER_LOGLOSS_IMPROVE",
+        "selection_ranking_key": "RAW_POISSON_BTTS_PROBABILITY",
+        "calibrated_probability_role": "EDGE_ESTIMATION_ONLY_NOT_SELECTION_SORT_KEY",
+        "eligibility_gate": "RAW_AUC_LOWER_95_GT_0_50_AND_WITHIN_FOLD_MONOTONIC_PLATT_AND_BRIER_LOGLOSS_IMPROVE",
     }
     if len(ordered) < int(min_train_rows) + int(min_oos_rows):
         return {
@@ -157,10 +159,17 @@ def walk_forward(
         if cal_auc is not None and raw_auc is not None
         else None
     )
-    ranking_preserved = bool(
+    within_fold_ranking_preserved = bool(
         positive_slope_all_folds
-        and auc_delta is not None
-        and abs(float(auc_delta)) <= 1e-6
+        and all(
+            abs(
+                float((fold.get("calibrated_metrics") or {}).get("discrimination", {}).get("auc") or 0.0)
+                - float((fold.get("raw_metrics") or {}).get("discrimination", {}).get("auc") or 0.0)
+            ) <= 1e-6
+            for fold in folds
+            if (fold.get("raw_metrics") or {}).get("discrimination", {}).get("auc") is not None
+            and (fold.get("calibrated_metrics") or {}).get("discrimination", {}).get("auc") is not None
+        )
     )
     sample_ready = len(outcomes) >= int(min_oos_rows)
     discrimination_ready = isinstance(raw_l95, (int, float)) and float(raw_l95) > 0.50
@@ -171,7 +180,7 @@ def walk_forward(
     research_eligible = bool(
         sample_ready
         and discrimination_ready
-        and ranking_preserved
+        and within_fold_ranking_preserved
         and calibration_improves
     )
 
@@ -191,7 +200,9 @@ def walk_forward(
             "brier_delta": brier_delta,
             "log_loss_delta": log_loss_delta,
             "positive_slope_all_folds": positive_slope_all_folds,
-            "ranking_preserved": ranking_preserved,
+            "within_fold_ranking_preserved": within_fold_ranking_preserved,
+            "pooled_calibrated_auc_delta_not_used_as_gate": auc_delta,
+            "raw_poisson_is_selection_ranking_signal": True,
             "sample_ready": sample_ready,
             "discrimination_ready": discrimination_ready,
             "calibration_improves": calibration_improves,
