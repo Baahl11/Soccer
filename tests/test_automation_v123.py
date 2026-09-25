@@ -6,6 +6,7 @@ from mcp_gateway import automation_v123 as v
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v5 as v5
 from mcp_gateway import automation_v7 as v7
+from mcp_gateway import persistence as persistence_base
 
 
 def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
@@ -1046,3 +1047,77 @@ def test_v5_research_only_xi_capture_does_not_request_odds_without_confirmed_xi(
     assert event["research_player_props_xi_capture"]["status"] == "XI_NOT_CONFIRMED"
     assert v5._PLAYER_PROPS_XI_RESEARCH_ATTEMPTS == 1
     assert v5._PLAYER_PROPS_XI_RESEARCH_CAPTURED == 0
+
+
+def test_persistence_disambiguates_same_fixture_stage_events_by_microsecond(monkeypatch):
+    executed = []
+
+    class FakeCursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, sql, params=None):
+            executed.append((sql, params))
+
+    class FakeConnection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def cursor(self):
+            return FakeCursor()
+
+    monkeypatch.setattr(persistence_base, "persistence_configured", lambda: True)
+    monkeypatch.setattr(persistence_base, "ensure_schema", lambda: None)
+    monkeypatch.setattr(persistence_base, "_connect", lambda: FakeConnection())
+
+    generated = "2026-09-25T18:14:19.376270+00:00"
+    fixture = {
+        "fixture_id": 1569941,
+        "kickoff": "2026-09-25T18:40:00+00:00",
+        "home_team_id": 10,
+        "away_team_id": 20,
+    }
+    tick = {
+        "generated_at_utc": generated,
+        "generated_at_local": "2026-09-25T12:14:19.376270-06:00",
+        "timezone": "America/Mexico_City",
+        "fixture_scan_count": 1,
+        "event_count": 2,
+        "actionable_refresh_count": 0,
+        "events": [
+            {
+                "event_type": "SOCCER_REFRESH",
+                "stage": "T-20",
+                "fixture": dict(fixture),
+                "classification": "WATCH",
+                "bet_eligible": False,
+            },
+            {
+                "event_type": "SOCCER_REFRESH",
+                "stage": "T-20",
+                "fixture": dict(fixture),
+                "classification": "RESEARCH_ONLY",
+                "bet_eligible": False,
+            },
+        ],
+    }
+
+    assert persistence_base.persist_tick(tick) is True
+
+    refresh_params = [
+        params
+        for sql, params in executed
+        if "INSERT INTO soccer_refresh_events" in sql
+    ]
+    assert len(refresh_params) == 2
+    assert refresh_params[0][7] == generated
+    assert refresh_params[1][7] != generated
+    assert str(refresh_params[1][7]).endswith("376271+00:00")
+    assert tick["events"][1]["persistence"]["same_fixture_stage_ordinal"] == 1
+    assert tick["events"][1]["persistence"]["generated_at_microsecond_offset"] == 1
