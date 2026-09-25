@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+import gc
 from datetime import datetime, timedelta, timezone
 import math
 import re
@@ -10,7 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.1.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.1.1"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
@@ -306,19 +307,69 @@ def _selection_close(values: list[dict[str, Any]], signal: dict[str, Any]) -> tu
     return price, fair, basis
 
 
-def pair_signals_to_closes(
-    signals: Iterable[dict[str, Any]],
+def _line_key(value: float | None) -> float | None:
+    return round(float(value), 6) if value is not None else None
+
+
+def _build_snapshot_instrument_index(
     snapshots: Iterable[dict[str, Any]],
-) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
+) -> dict[tuple[int, str, str, str, float | None], list[dict[str, Any]]]:
+    index: dict[tuple[int, str, str, str, float | None], list[dict[str, Any]]] = defaultdict(list)
     for snapshot in snapshots:
         if not isinstance(snapshot, dict) or snapshot.get("fixture_id") is None:
             continue
         try:
-            by_fixture[int(snapshot["fixture_id"])].append(snapshot)
+            fixture_id = int(snapshot["fixture_id"])
         except (TypeError, ValueError):
             continue
 
+        family = derivative_audit.classify_market(snapshot.get("market"))
+        if family not in FAMILY_CONFIG:
+            continue
+        captured_at = _dt(snapshot.get("captured_at"))
+        provider_update = _dt(snapshot.get("provider_update"))
+        if captured_at is None or provider_update is None:
+            continue
+
+        values = _snapshot_values(snapshot, family)
+        if not values:
+            continue
+
+        for value in values:
+            player_id = value.get("player_id")
+            price = _price(value)
+            if player_id is None or price is None:
+                continue
+            side = _side(value.get("selection"))
+            line = _line(value)
+            fair, basis = _entry_market_fair(values, value)
+            key = (
+                fixture_id,
+                family,
+                str(player_id),
+                side,
+                _line_key(line),
+            )
+            index[key].append({
+                "captured_at": captured_at,
+                "provider_update": provider_update,
+                "bookmaker_id": snapshot.get("bookmaker_id"),
+                "bookmaker": snapshot.get("bookmaker"),
+                "price": price,
+                "fair_probability": fair,
+                "fair_basis": basis,
+            })
+
+    for rows in index.values():
+        rows.sort(key=lambda row: row["captured_at"])
+    return index
+
+
+def pair_signals_to_closes(
+    signals: Iterable[dict[str, Any]],
+    snapshots: Iterable[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    instrument_index = _build_snapshot_instrument_index(snapshots)
     tracked: list[dict[str, Any]] = []
     skip = Counter()
 
@@ -331,39 +382,40 @@ def pair_signals_to_closes(
             continue
 
         family = str(signal.get("market_family") or "")
-        candidates: list[tuple[datetime, int, dict[str, Any], float, float | None, str]] = []
-        for snapshot in by_fixture.get(fixture_id, []):
-            snapshot_family = derivative_audit.classify_market(snapshot.get("market"))
-            if snapshot_family != family:
-                continue
-            captured_at = _dt(snapshot.get("captured_at"))
-            provider_update = _dt(snapshot.get("provider_update"))
-            if captured_at is None or provider_update is None:
-                continue
-            if captured_at <= signal_at or captured_at >= kickoff:
-                continue
-            if provider_update <= signal_at or provider_update >= kickoff:
-                continue
-
-            values = _snapshot_values(snapshot, family)
-            close_price, close_fair, close_basis = _selection_close(values, signal)
-            if close_price is None:
-                continue
-            same_book = int(
-                str(snapshot.get("bookmaker_id") or snapshot.get("bookmaker"))
-                == str(signal.get("bookmaker_id") or signal.get("bookmaker"))
-            )
-            candidates.append((captured_at, same_book, snapshot, close_price, close_fair, close_basis))
+        key = (
+            fixture_id,
+            family,
+            str(signal.get("player_id")),
+            str(signal.get("side") or ""),
+            _line_key(_num(signal.get("line"))),
+        )
+        instrument_rows = instrument_index.get(key, [])
+        candidates = [
+            row
+            for row in instrument_rows
+            if row["captured_at"] > signal_at
+            and row["captured_at"] < kickoff
+            and row["provider_update"] > signal_at
+            and row["provider_update"] < kickoff
+        ]
 
         if not candidates:
             skip["NO_LATER_STRICT_PLAYER_PROP_CLOSE"] += 1
             continue
 
-        same_book_candidates = [item for item in candidates if item[1] == 1]
+        signal_book = str(signal.get("bookmaker_id") or signal.get("bookmaker"))
+        same_book_candidates = [
+            row for row in candidates
+            if str(row.get("bookmaker_id") or row.get("bookmaker")) == signal_book
+        ]
         pool = same_book_candidates or candidates
-        close_at, same_book, snapshot, close_price, close_fair, close_basis = max(
-            pool, key=lambda item: item[0]
-        )
+        close = max(pool, key=lambda row: row["captured_at"])
+
+        close_at = close["captured_at"]
+        close_price = float(close["price"])
+        close_fair = _num(close.get("fair_probability"))
+        close_basis = str(close.get("fair_basis") or "ONE_WAY_OR_UNPAIRED")
+        same_book = bool(same_book_candidates)
 
         entry_price = float(signal["entry_price"])
         entry_fair = _num(signal.get("entry_market_fair_probability"))
@@ -387,9 +439,9 @@ def pair_signals_to_closes(
             "signal_timestamp": signal_at.isoformat(),
             "kickoff": kickoff.isoformat(),
             "closing_timestamp": close_at.isoformat(),
-            "closing_provider_update": _dt(snapshot.get("provider_update")).isoformat(),
-            "closing_bookmaker_id": snapshot.get("bookmaker_id"),
-            "closing_bookmaker": snapshot.get("bookmaker"),
+            "closing_provider_update": close["provider_update"].isoformat(),
+            "closing_bookmaker_id": close.get("bookmaker_id"),
+            "closing_bookmaker": close.get("bookmaker"),
             "closing_price": round(close_price, 6),
             "closing_market_fair_probability": round(close_fair, 8) if close_fair is not None else None,
             "closing_market_fair_basis": close_basis,
@@ -400,7 +452,7 @@ def pair_signals_to_closes(
             "strict_later_provider_update": True,
             "probability_comparable_same_line": exact_devig_comparable,
             "price_comparable_same_instrument": True,
-            "same_book_preferred": bool(same_book),
+            "same_book_preferred": same_book,
             "closing_line_status": (
                 "TRUE_PREKICKOFF_PLAYER_PROP_CLOSE_DEVIGGED"
                 if exact_devig_comparable
@@ -411,7 +463,6 @@ def pair_signals_to_closes(
         })
 
     return tracked, dict(skip)
-
 
 def summarize_tracking(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     items = [row for row in rows if isinstance(row, dict)]
@@ -458,12 +509,36 @@ def _load_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, A
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT e.fixture_id, e.generated_at, e.stage, e.payload AS event_payload, f.kickoff
+            SELECT
+                e.fixture_id,
+                e.generated_at,
+                e.stage,
+                jsonb_build_object(
+                    'fixture', e.payload->'fixture',
+                    'lineups', e.payload->'lineups',
+                    'market', e.payload->'market',
+                    'player_shots_intelligence', e.payload->'player_shots_intelligence',
+                    'player_sot_intelligence', e.payload->'player_sot_intelligence',
+                    'player_goalscorer_intelligence', e.payload->'player_goalscorer_intelligence',
+                    'player_assists_intelligence', e.payload->'player_assists_intelligence',
+                    'player_cards_intelligence', e.payload->'player_cards_intelligence',
+                    'gk_saves_intelligence', e.payload->'gk_saves_intelligence'
+                ) AS event_payload,
+                f.kickoff
             FROM soccer_refresh_events e
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.generated_at < f.kickoff
               AND e.stage IN ('T-40','T-30','T-20','T-10')
+              AND e.payload ? 'market'
+              AND (
+                    e.payload ? 'player_shots_intelligence'
+                 OR e.payload ? 'player_sot_intelligence'
+                 OR e.payload ? 'player_goalscorer_intelligence'
+                 OR e.payload ? 'player_assists_intelligence'
+                 OR e.payload ? 'player_cards_intelligence'
+                 OR e.payload ? 'gk_saves_intelligence'
+              )
             ORDER BY e.generated_at DESC
             LIMIT %s
             """,
@@ -532,6 +607,9 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         events = _load_events(conn, lookback_days=lookback_days, max_rows=max_rows)
         signals = extract_shadow_signals(events)
         fixture_ids = sorted({int(row["fixture_id"]) for row in signals})
+        event_rows_loaded = len(events)
+        del events
+        gc.collect()
         snapshots = _load_snapshots(
             conn,
             fixture_ids,
@@ -549,6 +627,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "model_version": MODEL_VERSION,
         "status": "PLAYER_PROP_TRUE_CLV_REVIEW_READY" if all_ready else "COLLECTING_PLAYER_PROP_TRUE_CLV",
         "lookback_days": lookback_days,
+        "event_rows_loaded": event_rows_loaded,
         "signal_rows": len(signals),
         "snapshot_rows": len(snapshots),
         "skip_reasons": skip_reasons,
