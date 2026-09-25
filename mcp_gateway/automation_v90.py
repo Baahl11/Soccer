@@ -26,6 +26,13 @@ CORE_SLATE_FLOOR_MIN_DAILY_REMAINING = int(
 ELASTIC_GC_BATCH_SIZE = max(1, int(os.getenv("SOCCER_EDGE_ELASTIC_GC_BATCH_SIZE", "4")))
 POSTGAME_STATS_MAX_ROWS = max(1, int(os.getenv("SOCCER_EDGE_POSTGAME_STATS_MAX_ROWS", "2")))
 
+# A higher orchestration layer may temporarily reserve part of the SAME global
+# elastic tick ceiling for post-upstream price resolution. The reserve is
+# enforced here, beside the real paced provider gate, rather than only being
+# reported after the upstream loop has already spent its budget.
+_REQUEST_CAP_RESERVE_CALLS = 0
+_REQUEST_CAP_MIN_UPSTREAM_CALLS = 1
+
 RunTick = Callable[[], Awaitable[dict[str, Any]]]
 
 
@@ -61,6 +68,32 @@ def _elastic_request_cap(daily_remaining: Any) -> tuple[int, str]:
     if remaining > 1500:
         return 35, "GT_1500"
     return 25, "RESERVE_MODE"
+
+
+def _request_cap_with_reserve(global_cap: int) -> tuple[int, int]:
+    cap = max(1, int(global_cap))
+    reserve_requested = max(0, int(_REQUEST_CAP_RESERVE_CALLS or 0))
+    min_upstream = max(1, int(_REQUEST_CAP_MIN_UPSTREAM_CALLS or 1))
+    reserve = min(reserve_requested, max(0, cap - min_upstream))
+    return max(1, cap - reserve), reserve
+
+
+def _enforce_live_request_cap(
+    remaining: Any,
+    elastic_state: dict[str, Any] | None = None,
+) -> tuple[int, int, str]:
+    global_cap, request_reason = _elastic_request_cap(remaining)
+    upstream_cap, reserve = _request_cap_with_reserve(global_cap)
+    v2.MAX_API_CALLS_PER_TICK = upstream_cap
+    if elastic_state is not None:
+        elastic_state.update({
+            "basis": int(remaining) if remaining is not None else None,
+            "global_request_cap": int(global_cap),
+            "request_cap": int(upstream_cap),
+            "request_reserve": int(reserve),
+            "request_reason": f"{request_reason}_PRICE_RESERVE_{reserve}" if reserve else request_reason,
+        })
+    return upstream_cap, reserve, request_reason
 
 
 def _new_core_metrics() -> dict[str, Any]:
@@ -480,13 +513,22 @@ async def run_tick() -> dict[str, Any]:
     original_deep_cap = v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK
     elastic_state: dict[str, Any] = {
         "basis": None,
+        "global_request_cap": 35,
         "request_cap": 35,
+        "request_reserve": 0,
         "request_reason": "QUOTA_UNKNOWN_LEGACY",
         "deep_cap": 12,
         "deep_reason": "QUOTA_UNKNOWN_SAFE",
     }
 
     async def elastic_adaptive_api_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
+        # Enforce the reserved cap BEFORE the next real provider request. This
+        # is the hard gate that prevents a lower post-tick annotation from
+        # claiming a reserve that the upstream loop already consumed.
+        prior_remaining = v2._LAST_DAILY_REMAINING
+        if prior_remaining is not None:
+            _enforce_live_request_cap(prior_remaining, elastic_state)
+
         payload = await original_adaptive(endpoint, params)
         remaining = v2._LAST_DAILY_REMAINING
         if remaining is None:
@@ -496,15 +538,23 @@ async def run_tick() -> dict[str, Any]:
             except (TypeError, ValueError):
                 remaining = None
         if remaining is not None:
-            request_cap, request_reason = _elastic_request_cap(remaining)
+            upstream_cap, reserve, request_reason = _enforce_live_request_cap(
+                remaining,
+                elastic_state,
+            )
+            global_cap, _ = _elastic_request_cap(remaining)
             deep_cap, deep_reason = _elastic_deep_dive_cap(remaining, 1_000_000)
-            v2.MAX_API_CALLS_PER_TICK = request_cap
             v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK = deep_cap
             elastic_state.update(
                 {
                     "basis": int(remaining),
-                    "request_cap": request_cap,
-                    "request_reason": request_reason,
+                    "global_request_cap": int(global_cap),
+                    "request_cap": int(upstream_cap),
+                    "request_reserve": int(reserve),
+                    "request_reason": (
+                        f"{request_reason}_PRICE_RESERVE_{reserve}"
+                        if reserve else request_reason
+                    ),
                     "deep_cap": deep_cap,
                     "deep_reason": deep_reason,
                 }
@@ -539,12 +589,19 @@ async def run_tick() -> dict[str, Any]:
 
     due_count = int(payload.get("due_fixture_count") or 0)
     deep_cap, deep_reason = _elastic_deep_dive_cap(basis, due_count)
-    request_cap, request_reason = _elastic_request_cap(basis)
+    global_request_cap, base_request_reason = _elastic_request_cap(basis)
+    request_cap, request_reserve = _request_cap_with_reserve(global_request_cap)
+    request_reason = (
+        f"{base_request_reason}_PRICE_RESERVE_{request_reserve}"
+        if request_reserve else base_request_reason
+    )
 
     payload["elastic_quota_remaining_basis"] = basis
     payload["elastic_deep_dive_cap"] = deep_cap
     payload["elastic_deep_dive_cap_reason"] = deep_reason
+    payload["elastic_global_request_cap"] = global_request_cap
     payload["elastic_request_cap"] = request_cap
+    payload["elastic_request_cap_reserve"] = request_reserve
     payload["elastic_request_cap_reason"] = request_reason
     payload["max_deep_dive_fixtures_per_tick"] = deep_cap
     payload["configured_deep_dive_floor"] = original_deep_cap
