@@ -45,8 +45,37 @@ def _selection(value: Any) -> tuple[str | None, float | None]:
 
 def _team_role(market_name: Any, fixture: dict[str, Any]) -> str | None:
     name = _norm(market_name)
+
+    # V1 Team Totals is strictly FULL-TIME TEAM GOALS. API-Football exposes
+    # many derivative markets with "team total" in the label (cards, corners,
+    # shots, half-specific totals, etc.). Those must never be interpreted with
+    # a goal lambda or admitted into the FT Team Totals CLV sample.
+    period_tokens = ("first half", "1st half", "1h ", "second half", "2nd half", "2h ")
+    non_goal_tokens = (
+        "corner",
+        "card",
+        "booking",
+        "yellow",
+        "red card",
+        "shot",
+        "offside",
+        "throw in",
+        "throw-in",
+        "foul",
+        "save",
+        "tackle",
+        "goal kick",
+    )
+    if any(token in name for token in period_tokens):
+        return None
+    if any(token in name for token in non_goal_tokens):
+        return None
+    if "goal" not in name:
+        return None
     if "team total" not in name and not (
         "total goals" in name and any(token in name for token in ("home team", "away team"))
+    ) and not (
+        "team goals" in name and any(token in name for token in ("home", "away"))
     ):
         return None
 
