@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -269,10 +270,46 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                     json.dumps({key: value for key, value in tick.items() if key not in {"events", "shortlist_state"}}),
                 ),
             )
+            # Multiple research/maturation events for the same fixture and
+            # stage can legitimately be produced within one scheduler tick. The
+            # relational schema keeps (fixture_id, stage, generated_at) unique,
+            # so preserve every event by assigning a deterministic microsecond
+            # offset only when that key repeats inside this tick. This does not
+            # alter the event payload's prediction point; it only disambiguates
+            # persistence ordering.
+            persisted_key_counts: dict[tuple[Any, Any], int] = {}
+            base_generated_at = tick.get("generated_at_utc")
+            try:
+                parsed_generated_at = datetime.fromisoformat(
+                    str(base_generated_at).replace("Z", "+00:00")
+                ) if base_generated_at else None
+            except ValueError:
+                parsed_generated_at = None
+
             for event in tick.get("events") or []:
                 if event.get("event_type") == "DAILY_DISCOVERY":
                     for fx in event.get("fixtures") or []:
                         _upsert_fixture(cur, fx)
                     continue
-                _persist_refresh_event(cur, tick, event)
+
+                fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
+                key = (fixture.get("fixture_id"), event.get("stage"))
+                ordinal = persisted_key_counts.get(key, 0)
+                persisted_key_counts[key] = ordinal + 1
+
+                persist_tick_view = tick
+                if ordinal > 0 and parsed_generated_at is not None:
+                    persist_tick_view = dict(tick)
+                    persist_tick_view["generated_at_utc"] = (
+                        parsed_generated_at + timedelta(microseconds=ordinal)
+                    ).isoformat()
+                    event.setdefault("persistence", {})
+                    if isinstance(event["persistence"], dict):
+                        event["persistence"].update({
+                            "same_fixture_stage_ordinal": ordinal,
+                            "generated_at_microsecond_offset": ordinal,
+                            "reason": "DISAMBIGUATE_SAME_TICK_FIXTURE_STAGE_EVENTS",
+                        })
+
+                _persist_refresh_event(cur, persist_tick_view, event)
     return True
