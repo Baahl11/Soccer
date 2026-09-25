@@ -7,8 +7,8 @@ import os
 import re
 from typing import Any, Iterable
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_PHASE15_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_PHASE15_V4_1.1.0"
 MIN_PROP_TRUE_CLV = 50
 MIN_GK_PROFILES = 100
 
@@ -83,6 +83,35 @@ def _prop_summary(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+PROP_AUDIT_FAMILY = {
+    "shots": "SHOTS",
+    "sot": "SOT",
+    "goalscorer": "GOALSCORER",
+    "assists": "ASSISTS",
+    "cards": "PLAYER_CARDS",
+    "gk_saves": "GK_SAVES",
+}
+LINE_REQUIRED_PROPS = {"shots", "sot", "gk_saves"}
+
+
+def _market_evidence(audit: dict[str, Any] | None, family: str) -> dict[str, Any]:
+    families = audit.get("families") if isinstance(audit, dict) and isinstance(audit.get("families"), dict) else {}
+    row = families.get(family) if isinstance(families.get(family), dict) else {}
+    return {
+        "audit_family": family,
+        "market_snapshot_rows": int(row.get("market_snapshot_rows") or 0),
+        "unique_fixtures": int(row.get("unique_fixtures") or 0),
+        "pre_kickoff_unique_fixtures": int(row.get("pre_kickoff_unique_fixtures") or 0),
+        "provider_update_unique_fixtures": int(row.get("provider_update_unique_fixtures") or 0),
+        "confirmed_xi_pre_kickoff_unique_fixtures": int(row.get("confirmed_xi_pre_kickoff_unique_fixtures") or 0),
+        "bookmaker_count": int(row.get("bookmaker_count") or 0),
+        "priced_value_rows": int(row.get("priced_value_rows") or 0),
+        "exact_line_value_rows": int(row.get("exact_line_value_rows") or 0),
+        "exact_observed_market_history_materialized": bool(row.get("exact_observed_market_history_materialized")),
+        "confirmed_xi_overlap_materialized": bool(row.get("confirmed_xi_overlap_materialized")),
+    }
+
+
 def build_report(
     shots: dict[str, Any],
     sot: dict[str, Any],
@@ -91,6 +120,7 @@ def build_report(
     cards: dict[str, Any],
     gk_saves: dict[str, Any],
     true_clv_rows: Iterable[dict[str, Any]],
+    market_audit: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     props = {
         "shots": _prop_summary(shots),
@@ -100,6 +130,8 @@ def build_report(
         "cards": _prop_summary(cards),
         "gk_saves": _prop_summary(gk_saves),
     }
+    for prop_name, audit_family in PROP_AUDIT_FAMILY.items():
+        props[prop_name]["market_evidence"] = _market_evidence(market_audit, audit_family)
 
     clv = summarize_true_clv(true_clv_rows)
     blockers: list[str] = []
@@ -118,10 +150,18 @@ def build_report(
     if clv["rows"] < MIN_PROP_TRUE_CLV:
         blockers.append(f"PLAYER_PROP_TRUE_CLV_{clv['rows']}_LT_{MIN_PROP_TRUE_CLV}")
 
+    for prop_name, summary in props.items():
+        evidence = summary["market_evidence"]
+        blocker_prefix = prop_name.upper()
+        if evidence["market_snapshot_rows"] <= 0 or evidence["priced_value_rows"] <= 0:
+            blockers.append(f"{blocker_prefix}_OBSERVED_MARKET_PRICE_HISTORY_MISSING")
+        if evidence["confirmed_xi_pre_kickoff_unique_fixtures"] <= 0:
+            blockers.append(f"{blocker_prefix}_CONFIRMED_XI_MARKET_OVERLAP_MISSING")
+        if prop_name in LINE_REQUIRED_PROPS and evidence["exact_line_value_rows"] <= 0:
+            blockers.append(f"{blocker_prefix}_EXACT_LINE_HISTORY_MISSING")
+
     blockers.extend([
-        "CONFIRMED_XI_OOS_COVERAGE_NOT_MATERIALIZED",
         "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-        "EXACT_OBSERVED_PROP_LINE_HISTORY_NOT_MATERIALIZED",
         "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED",
     ])
 
@@ -156,7 +196,7 @@ def build_report(
         "warnings": warnings,
         "notes": [
             "All six prop modules currently pass structural sanity, but structural sanity is not OOS performance.",
-            "No player prop may become actionable without confirmed XI/role/minutes and an exact observed sportsbook line.",
+            "No player prop may become actionable without confirmed XI/role/minutes and an exact observed sportsbook market price; numeric exact lines are additionally required for line-based props such as shots, SOT and goalkeeper saves.",
             "Goalkeeper saves currently has a much smaller validated profile pool than outfield prop families.",
             "Prop-specific calibration and true CLV must be tracked independently by market family.",
         ],
@@ -198,6 +238,7 @@ def main() -> None:
     parser.add_argument("--cards", required=True)
     parser.add_argument("--gk-saves", required=True)
     parser.add_argument("--true-clv-tracking", required=True)
+    parser.add_argument("--market-audit", required=False)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     report = build_report(
@@ -208,6 +249,7 @@ def main() -> None:
         _load_json(args.cards),
         _load_json(args.gk_saves),
         _load_jsonl(args.true_clv_tracking),
+        _load_json(args.market_audit) if args.market_audit else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
