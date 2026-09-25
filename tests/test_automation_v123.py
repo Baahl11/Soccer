@@ -28,7 +28,8 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     async def fake_run_tick():
         return payload
 
-    async def fake_resolve(target):
+    async def fake_resolve(target, *, max_api_calls=None):
+        assert max_api_calls == 25
         target["events"][0]["market"] = {
             "source": "API_FOOTBALL_ODDS_V3",
             "resolution_status": "PRICE_CACHE_HIT_RESEARCH_ONLY",
@@ -70,4 +71,20 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     rows = out["events"][0]["team_totals_intelligence"]["observed_exact_market_rows"]
     assert {row["team_role"] for row in rows} == {"HOME"}
     assert {row["market"] for row in rows} == {"Total - Home"}
-    assert out["version"] == "4.31.4-team-totals-strict-diversity-capture"
+    assert out["price_resolver_leftover_budget"] == 25
+    assert out["version"] == "4.31.5-team-totals-upcoming-market-capture"
+
+
+def test_v123_price_budget_is_global_leftover():
+    payload = {
+        "api_calls_this_tick": 63,
+        "effective_max_api_calls_per_tick": 70,
+        "max_api_calls_per_tick": 90,
+    }
+    assert v._leftover_price_budget(payload) == 7
+
+    payload["api_calls_this_tick"] = 75
+    assert v._leftover_price_budget(payload) == 0
+
+    payload = {"api_calls_this_tick": 3, "max_api_calls_per_tick": 70}
+    assert v._leftover_price_budget(payload) == 25
