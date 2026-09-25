@@ -1261,6 +1261,10 @@ async def resolve_payload(
         research_spillover_scanned_upcoming_candidates += 1
         research_spillover_market_capture_only_candidates += 1
 
+    # The fixture list is an intra-tick handoff only. Keep the scalar count but
+    # drop the bounded list before Postgres persists the final pipeline payload.
+    payload.pop("upcoming_market_capture_fixtures", None)
+
     candidate_records.sort(key=lambda record: (
         int(record.get("priority") or 0),
         str(((record.get("event") or {}).get("fixture") or {}).get("kickoff") or ""),
