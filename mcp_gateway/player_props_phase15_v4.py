@@ -7,9 +7,10 @@ import os
 import re
 from typing import Any, Iterable
 
-SCHEMA_VERSION = "1.2.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_PHASE15_V4_1.2.0"
+SCHEMA_VERSION = "1.3.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_PHASE15_V4_1.3.0"
 MIN_PROP_TRUE_CLV = 50
+MIN_PROP_TRUE_CLV_FIXTURES = 20
 MIN_GK_PROFILES = 100
 
 PROP_KEYS = (
@@ -56,10 +57,80 @@ def is_player_prop_market(row: dict[str, Any]) -> bool:
     return any(token in combined for token in tokens)
 
 
+CLV_FAMILY_TO_PROP = {
+    "SHOTS": "shots",
+    "SOT": "sot",
+    "GOALSCORER_ANYTIME": "goalscorer",
+    "ASSISTS": "assists",
+    "PLAYER_CARDS": "cards",
+    "GK_SAVES": "gk_saves",
+}
+
+
+def _clv_prop_name(row: dict[str, Any]) -> str | None:
+    family = str(row.get("market_family") or "").upper().strip()
+    if family in CLV_FAMILY_TO_PROP:
+        return CLV_FAMILY_TO_PROP[family]
+
+    market = _norm(row.get("market"))
+    selection = _norm(row.get("selection"))
+    combined = f"{market} {selection}"
+    if "goalkeeper save" in combined or "gk save" in combined or "keeper save" in combined:
+        return "gk_saves"
+    if "shots on target" in combined or "shot on target" in combined:
+        return "sot"
+    if "shot" in combined and "team" not in market:
+        return "shots"
+    if "anytime" in combined and ("scorer" in combined or "goal scorer" in combined):
+        return "goalscorer"
+    if "assist" in combined:
+        return "assists"
+    if "player card" in combined or "player booked" in combined or "to be booked" in combined:
+        return "cards"
+    return None
+
+
 def summarize_true_clv(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
-    selected = [row for row in rows if isinstance(row, dict) and is_player_prop_market(row)]
+    selected = [
+        row for row in rows
+        if isinstance(row, dict)
+        and row.get("is_true_closing_line") is not False
+        and _clv_prop_name(row) is not None
+    ]
     values = [_num(row.get("clv_probability_pp")) for row in selected]
     valid = [value for value in values if value is not None]
+    by_family: dict[str, dict[str, Any]] = {}
+
+    for prop_name in PROP_KEYS:
+        items = [row for row in selected if _clv_prop_name(row) == prop_name]
+        probabilities = [_num(row.get("clv_probability_pp")) for row in items]
+        valid_probabilities = [value for value in probabilities if value is not None]
+        fixtures = {
+            row.get("fixture_id")
+            for row in items
+            if row.get("fixture_id") is not None
+        }
+        player_fixtures = {
+            (row.get("fixture_id"), row.get("player_id"))
+            for row in items
+            if row.get("fixture_id") is not None and row.get("player_id") is not None
+        }
+        by_family[prop_name] = {
+            "rows": len(items),
+            "unique_fixtures": len(fixtures),
+            "unique_player_fixtures": len(player_fixtures),
+            "probability_clv_rows": len(valid_probabilities),
+            "price_clv_rows": sum(1 for row in items if _num(row.get("price_clv_pct")) is not None),
+            "avg_probability_clv_pp": (
+                round(sum(valid_probabilities) / len(valid_probabilities), 6)
+                if valid_probabilities else None
+            ),
+            "minimum_rows": MIN_PROP_TRUE_CLV,
+            "minimum_unique_fixtures": MIN_PROP_TRUE_CLV_FIXTURES,
+            "row_target_met": len(items) >= MIN_PROP_TRUE_CLV,
+            "fixture_diversity_target_met": len(fixtures) >= MIN_PROP_TRUE_CLV_FIXTURES,
+        }
+
     return {
         "rows": len(selected),
         "unique_fixtures": len({row.get("fixture_id") for row in selected if row.get("fixture_id") is not None}),
@@ -67,6 +138,7 @@ def summarize_true_clv(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "positive_rows": sum(1 for value in valid if value > 0),
         "negative_rows": sum(1 for value in valid if value < 0),
         "flat_rows": sum(1 for value in valid if math.isclose(value, 0.0, abs_tol=1e-12)),
+        "by_family": by_family,
     }
 
 
@@ -157,6 +229,18 @@ def build_report(
     if clv["rows"] < MIN_PROP_TRUE_CLV:
         blockers.append(f"PLAYER_PROP_TRUE_CLV_{clv['rows']}_LT_{MIN_PROP_TRUE_CLV}")
 
+    for prop_name in PROP_KEYS:
+        family_clv = clv["by_family"][prop_name]
+        prefix = prop_name.upper()
+        if family_clv["rows"] < MIN_PROP_TRUE_CLV:
+            blockers.append(
+                f"{prefix}_TRUE_CLV_{family_clv['rows']}_LT_{MIN_PROP_TRUE_CLV}"
+            )
+        if family_clv["unique_fixtures"] < MIN_PROP_TRUE_CLV_FIXTURES:
+            blockers.append(
+                f"{prefix}_TRUE_CLV_FIXTURES_{family_clv['unique_fixtures']}_LT_{MIN_PROP_TRUE_CLV_FIXTURES}"
+            )
+
     for prop_name, summary in props.items():
         evidence = summary["market_evidence"]
         blocker_prefix = prop_name.upper()
@@ -205,6 +289,7 @@ def build_report(
         "true_clv": {
             **clv,
             "minimum_rows": MIN_PROP_TRUE_CLV,
+            "minimum_unique_fixtures_per_family": MIN_PROP_TRUE_CLV_FIXTURES,
             "family_specific": True,
         },
         "blockers": blockers,
@@ -216,6 +301,8 @@ def build_report(
             "Goalkeeper saves currently has a much smaller validated profile pool than outfield prop families.",
             "The goalscorer model is an anytime-scorer model; First Goal Scorer and Last Goal Scorer market history are captured separately and cannot satisfy the anytime evidence gate.",
             "Prop-specific calibration and true CLV must be tracked independently by market family.",
+            "Phase15 true-CLV review requires both per-family row volume and fixture diversity; many player prices from a tiny fixture set cannot satisfy maturity.",
+            "One-way player markets may contribute exact-instrument price CLV while probability CLV remains explicitly non-de-vigged/unavailable.",
         ],
     }
 
