@@ -11,7 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import player_trends
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_TREND_REGISTRY_BACKFILL_V4_1.0.0"
+MODEL_VERSION = "SOCCER_PLAYER_TREND_REGISTRY_BACKFILL_V4_1.1.0"
 MAX_FIXTURES_PER_RUN = 8
 MIN_DAILY_REMAINING = 250
 MIN_REQUEST_INTERVAL_SECONDS = 0.8
@@ -30,6 +30,10 @@ def _candidate_fixtures(
             SELECT
                 m.fixture_id,
                 f.kickoff,
+                f.home_team_id,
+                f.away_team_id,
+                r.home_goals,
+                r.away_goals,
                 MAX(m.captured_at) AS last_player_prop_market_at
             FROM soccer_market_snapshots m
             JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
@@ -57,7 +61,7 @@ def _candidate_fixtures(
                       )
                       AND e.payload ? 'postgame_player_stats'
               )
-            GROUP BY m.fixture_id, f.kickoff
+            GROUP BY m.fixture_id, f.kickoff, f.home_team_id, f.away_team_id, r.home_goals, r.away_goals
             ORDER BY MAX(m.captured_at) DESC
             LIMIT %s
             """,
@@ -65,6 +69,67 @@ def _candidate_fixtures(
         )
         cols = [desc.name for desc in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+def _enrich_full_match_goalkeeper_conceded(
+    teams: list[dict[str, Any]],
+    *,
+    home_team_id: Any,
+    away_team_id: Any,
+    home_goals: Any,
+    away_goals: Any,
+) -> list[dict[str, Any]]:
+    try:
+        home_id = int(home_team_id) if home_team_id is not None else None
+        away_id = int(away_team_id) if away_team_id is not None else None
+        home_score = float(home_goals) if home_goals is not None else None
+        away_score = float(away_goals) if away_goals is not None else None
+    except (TypeError, ValueError):
+        return teams
+
+    if home_id is None or away_id is None or home_score is None or away_score is None:
+        return teams
+
+    enriched: list[dict[str, Any]] = []
+    for team in teams:
+        if not isinstance(team, dict):
+            continue
+        row = dict(team)
+        team_id = row.get("team_id")
+        opponent_goals = None
+        try:
+            tid = int(team_id) if team_id is not None else None
+        except (TypeError, ValueError):
+            tid = None
+        if tid == home_id:
+            opponent_goals = away_score
+        elif tid == away_id:
+            opponent_goals = home_score
+
+        players: list[dict[str, Any]] = []
+        for player in row.get("players") or []:
+            if not isinstance(player, dict):
+                continue
+            p = dict(player)
+            position = str(p.get("position") or "").upper()
+            try:
+                minutes = float(p.get("minutes")) if p.get("minutes") is not None else None
+            except (TypeError, ValueError):
+                minutes = None
+            if (
+                opponent_goals is not None
+                and position in {"G", "GK", "GOALKEEPER"}
+                and minutes is not None
+                and minutes >= 89.0
+                and p.get("goals_conceded") is None
+            ):
+                p["goals_conceded"] = opponent_goals
+                p["goals_conceded_source"] = "FINAL_SCORE_FULL_MATCH_GK_FALLBACK"
+                p["goals_conceded_inferred_for_registry_only"] = True
+            players.append(p)
+        row["players"] = players
+        enriched.append(row)
+    return enriched
 
 
 def _load_materialized_captures(
@@ -80,9 +145,14 @@ def _load_materialized_captures(
             SELECT
                 e.fixture_id,
                 f.kickoff,
+                f.home_team_id,
+                f.away_team_id,
+                r.home_goals,
+                r.away_goals,
                 e.payload->'postgame_player_stats' AS player_stats
             FROM soccer_refresh_events e
             LEFT JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            LEFT JOIN soccer_results r ON r.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.stage = 'POSTGAME_REGISTRY_BACKFILL'
               AND e.payload ? 'postgame_player_stats'
@@ -95,7 +165,7 @@ def _load_materialized_captures(
 
     captures: list[dict[str, Any]] = []
     seen: set[int] = set()
-    for fixture_id, kickoff, player_stats in rows:
+    for fixture_id, kickoff, home_team_id, away_team_id, home_goals, away_goals, player_stats in rows:
         if fixture_id is None:
             continue
         fid = int(fixture_id)
@@ -106,6 +176,13 @@ def _load_materialized_captures(
         teams = stats.get("teams") if isinstance(stats.get("teams"), list) else []
         if not teams:
             continue
+        teams = _enrich_full_match_goalkeeper_conceded(
+            teams,
+            home_team_id=home_team_id,
+            away_team_id=away_team_id,
+            home_goals=home_goals,
+            away_goals=away_goals,
+        )
         captures.append({
             "fixture_id": fid,
             "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
@@ -243,6 +320,13 @@ async def run_backfill(
                     pass
 
                 compact = player_trends._compact(raw)
+                compact["teams"] = _enrich_full_match_goalkeeper_conceded(
+                    compact.get("teams") or [],
+                    home_team_id=candidate.get("home_team_id"),
+                    away_team_id=candidate.get("away_team_id"),
+                    home_goals=candidate.get("home_goals"),
+                    away_goals=candidate.get("away_goals"),
+                )
                 if not _has_players(compact):
                     unavailable += 1
                     details.append({
