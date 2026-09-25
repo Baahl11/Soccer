@@ -3,6 +3,7 @@ from mcp_gateway import player_props_clv_postgres_v4 as prop_clv
 from mcp_gateway import player_props_oos_postgres_v4 as prop_oos
 from mcp_gateway import player_props_phase15_coverage_audit as coverage_audit
 from mcp_gateway import player_props_postgame_backfill_v4 as prop_backfill
+from mcp_gateway import player_trend_registry_backfill_v4 as registry_backfill
 from mcp_gateway import automation as base_automation
 
 
@@ -1136,3 +1137,30 @@ def test_clv_probability_reconciliation_accepts_anytime_probability():
     assert reason == "OK"
     assert detail["probability_key"] == "p_anytime_goal"
     assert detail["probability"] == 0.31
+
+
+def test_registry_backfill_event_is_future_only_and_never_reconstructs_oos():
+    compact = {
+        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+        "teams": [{
+            "team_id": 10,
+            "team": "Home",
+            "players": [{"player_id": 501, "name": "Player A", "minutes": 90, "shots": 3}],
+        }],
+    }
+    event = registry_backfill.make_registry_backfill_event(
+        99001,
+        "2026-09-25T18:00:00+00:00",
+        compact,
+        provider_daily_remaining=3500,
+    )
+    assert event["stage"] == "POSTGAME_REGISTRY_BACKFILL"
+    assert event["event_type"] == "RESEARCH_BACKFILL"
+    assert event["postgame_player_stats"]["capture_phase"] == "POSTGAME_REGISTRY_BACKFILL"
+    assert event["postgame_player_stats"]["future_registry_use_only"] is True
+    assert event["backfill"]["future_registry_use_only"] is True
+    assert event["backfill"]["eligible_for_historical_oos_reconstruction"] is False
+    assert event["backfill"]["retroactive_pregame_signal_created"] is False
+    assert event["backfill"]["retroactive_market_created"] is False
+    assert event["actionable"] is False
+    assert event["decision_weight"] == 0.0
