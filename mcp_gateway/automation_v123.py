@@ -10,6 +10,7 @@ from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
 AUTOMATION_VERSION = "4.31.3-team-totals-diversity-spillover"
+# Deployment marker: FT Team Totals fixture-diversity spillover v124.
 
 
 def _annotate_checkpoint(payload: dict[str, Any]) -> None:
