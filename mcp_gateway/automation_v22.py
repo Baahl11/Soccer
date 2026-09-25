@@ -22,7 +22,7 @@ async def run_tick()->dict[str,Any]:
     payload['player_trend_fixtures_captured_this_tick']=captured
     payload['player_trend_players_captured_this_tick']=players
     payload['player_trend_max_fixture_calls_per_tick']=player_trends.MAX_PLAYER_FIXTURES_PER_TICK
-    payload['player_trend_policy']='SELECTIVE_T40_T20_T10_ONLY; MAX_2_FIXTURES_PER_TICK; RESEARCH_ONLY; ZERO_DECISION_WEIGHT; NO_BET_UPGRADE'
+    payload['player_trend_policy']=f'SELECTIVE_T40_T30_T20_T10_ONLY; MAX_{player_trends.MAX_PLAYER_FIXTURES_PER_TICK}_FIXTURES_PER_TICK; RESEARCH_ONLY; ZERO_DECISION_WEIGHT; NO_BET_UPGRADE'
     payload['version']=AUTOMATION_VERSION;payload['model_version']=MODEL_VERSION
     contract=payload.get('presentation_contract')
     if isinstance(contract,dict):contract['player_trends']='RESEARCH_ONLY; SHOW VERIFIED PLAYER FIXTURE STATS WHEN CAPTURED; NEVER USE AS BET JUSTIFICATION UNTIL OOS MODEL GATE PASSES'
