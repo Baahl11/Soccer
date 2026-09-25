@@ -2,6 +2,7 @@ from mcp_gateway import player_props_phase15_v4 as v
 from mcp_gateway import player_props_clv_postgres_v4 as prop_clv
 from mcp_gateway import player_props_oos_postgres_v4 as prop_oos
 from mcp_gateway import player_props_phase15_coverage_audit as coverage_audit
+from mcp_gateway import player_props_postgame_backfill_v4 as prop_backfill
 
 
 BASE = {
@@ -928,3 +929,54 @@ def test_phase15_coverage_audit_marks_ready_oos_and_entry_signal_when_evidence_e
     assert audit["oos_recoverability"] == "ALREADY_MATERIALIZED"
     assert audit["clv_reason"] == "ENTRY_SIGNAL_READY"
     assert audit["model_price_player_overlap_count"] == 1
+
+
+def test_phase15_backfill_selects_unique_provider_candidates_only():
+    audit = {
+        "fixtures": [
+            {
+                "fixture_id": 1,
+                "families": {
+                    "SHOTS": {"oos_recoverability": "PROVIDER_BACKFILL_CANDIDATE"},
+                    "SOT": {"oos_recoverability": "PROVIDER_BACKFILL_CANDIDATE"},
+                },
+            },
+            {
+                "fixture_id": 2,
+                "families": {
+                    "SHOTS": {"oos_recoverability": "FUTURE_CAPTURE_ONLY"},
+                },
+            },
+            {
+                "fixture_id": 3,
+                "families": {
+                    "PLAYER_CARDS": {"oos_recoverability": "PROVIDER_BACKFILL_CANDIDATE"},
+                },
+            },
+        ]
+    }
+    assert prop_backfill.select_candidate_fixture_ids(audit, max_fixtures=5) == [1, 3]
+
+
+def test_phase15_backfill_event_never_creates_retroactive_pregame_evidence():
+    compact = {
+        "status": "RESEARCH_ONLY_PLAYER_FIXTURE_STATS",
+        "teams": [{
+            "team_id": 10,
+            "team": "Home",
+            "players": [{"player_id": 501, "name": "Player A", "shots": 3}],
+        }],
+    }
+    event = prop_backfill.make_backfill_event(
+        9001,
+        compact,
+        provider_daily_remaining=7000,
+    )
+    assert event["stage"] == "POSTGAME_BACKFILL"
+    assert event["event_type"] == "RESEARCH_BACKFILL"
+    assert event["postgame_player_stats"]["capture_phase"] == "POSTGAME_BACKFILL"
+    assert event["backfill"]["pregame_signal_required"] is True
+    assert event["backfill"]["retroactive_pregame_signal_created"] is False
+    assert event["backfill"]["retroactive_market_created"] is False
+    assert event["actionable"] is False
+    assert event["decision_weight"] == 0.0
