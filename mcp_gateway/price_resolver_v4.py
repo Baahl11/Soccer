@@ -12,9 +12,9 @@ from typing import Any
 
 import httpx
 
-from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
+from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence, research_derivative_postgres_audit as derivative_audit
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.14.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.15.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -1453,17 +1453,38 @@ def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]]
         if family is None:
             canonical.append(market)
             continue
+        subfamily = (
+            _research_derivative_subfamily(str(market.get("market") or ""))
+            if family == "PLAYER_PROPS" else None
+        )
         row = {
             **market,
             "research_only": True,
             "research_family": family,
-            "research_subfamily": (
-                _research_derivative_subfamily(str(market.get("market") or ""))
-                if family == "PLAYER_PROPS" else None
-            ),
+            "research_subfamily": subfamily,
             "decision_weight": 0.0,
             "production_promotion_allowed": False,
         }
+        if family == "PLAYER_PROPS":
+            lineup = event.get("lineups") if isinstance(event.get("lineups"), dict) else None
+            aligned_values = [
+                derivative_audit.align_value_to_confirmed_xi(
+                    value,
+                    lineup_payload=lineup,
+                    family=str(subfamily or ""),
+                )
+                if isinstance(value, dict) else value
+                for value in (market.get("values") or [])
+            ]
+            row["values"] = aligned_values
+            row["confirmed_xi_at_quote"] = bool(
+                isinstance(lineup, dict) and lineup.get("both_xi_confirmed") is True
+            )
+            row["xi_aligned_value_rows"] = sum(
+                1 for value in aligned_values
+                if isinstance(value, dict)
+                and value.get("xi_alignment_status") == "MATCHED_CONFIRMED_XI"
+            )
         if family == "CARDS":
             row["bookmaker_scoring_rule_required"] = "booking point" in _norm(market.get("market"))
             card_rows.append(row)
@@ -1484,7 +1505,7 @@ def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]]
         "research_derivative_sidecar_provider_requests_added": 0,
         "research_derivative_sidecar_decision_weight": 0.0,
         "research_derivative_sidecar_production_promotion_allowed": False,
-        "research_derivative_sidecar_policy": "SPLIT_FROM_ALREADY_PAID_PRICE_RESOLVER_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP; RESEARCH_ONLY",
+        "research_derivative_sidecar_policy": "SPLIT_FROM_ALREADY_PAID_PRICE_RESOLVER_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP; XI_ALIGN_WHEN_CONFIRMED; RESEARCH_ONLY",
     }
 
 
