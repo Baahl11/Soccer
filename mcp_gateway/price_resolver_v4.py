@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.10.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.11.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -1148,6 +1148,8 @@ async def resolve_payload(
     research_spillover_scanned_upcoming_candidates = 0
     research_spillover_market_capture_only_candidates = 0
     research_spillover_ft_team_total_market_rows_attached = 0
+    research_spillover_primary_payload_reuse_fixtures = 0
+    research_spillover_primary_payload_reuse_market_rows = 0
 
     diversity = await asyncio.to_thread(_load_team_totals_diversity_backlog)
     existing_team_total_fixture_ids = {
@@ -1332,6 +1334,33 @@ async def resolve_payload(
         fixture_id = int(record["fixture_id"])
         event = record["event"]
 
+        source = str(record.get("source") or "")
+
+        # Reuse Team Totals already present in the paid primary /odds payload
+        # attached to this current event. This is the cheapest possible path:
+        # zero provider calls, zero cache roundtrip, and primary resolution has
+        # already happened before this research-only diversity pass.
+        if source == "CURRENT_DUE_EVENT":
+            event_market = event.get("market") if isinstance(event.get("market"), dict) else {}
+            event_markets = [
+                market
+                for market in (event_market.get("markets") or [])
+                if isinstance(market, dict)
+            ]
+            if _has_ft_team_total_market(event_markets):
+                _record_exact_team_total_coverage(
+                    fixture_id,
+                    event_markets,
+                    event,
+                    candidate_source="PRIMARY_ODDS_PAYLOAD_REUSE",
+                    resolution_status=str(event_market.get("resolution_status") or "PRIMARY_ODDS_PAYLOAD_REUSE"),
+                )
+                research_spillover_primary_payload_reuse_fixtures += 1
+                research_spillover_primary_payload_reuse_market_rows += sum(
+                    1 for market in event_markets if _is_ft_team_total_market(market)
+                )
+                continue
+
         if fixture_id in fixture_cache:
             markets, status = fixture_cache[fixture_id]
             if markets:
@@ -1482,6 +1511,8 @@ async def resolve_payload(
         "research_spillover_exact_team_total_fixtures_attached": len(research_spillover_exact_team_total_fixture_ids),
         "research_spillover_synthetic_events_added": research_spillover_synthetic_events_added,
         "research_spillover_ft_team_total_market_rows_attached": research_spillover_ft_team_total_market_rows_attached,
+        "research_spillover_primary_payload_reuse_fixtures": research_spillover_primary_payload_reuse_fixtures,
+        "research_spillover_primary_payload_reuse_market_rows": research_spillover_primary_payload_reuse_market_rows,
         "research_spillover_cache_hits": research_spillover_cache_hits,
         "research_spillover_api_calls_added": research_spillover_api_calls_added,
         "research_spillover_fixtures_fetched": research_spillover_fixtures_fetched,
@@ -1491,7 +1522,7 @@ async def resolve_payload(
         "research_spillover_provider_requests_included_in_api_calls_added": True,
         "research_spillover_primary_markets_preempted": False,
         "research_spillover_only_odds_provider_calls": True,
-        "research_spillover_policy": "CACHE_FIRST;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;PERSISTED_MODELED_FIXTURES_FIRST;THEN_CURRENT_TICK_SCANNED_UPCOMING_FIXTURES_FOR_MARKET_CAPTURE_ONLY;DIVERSIFY_TO_20_EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_FIXTURES;LEGACY_OBSERVED_ROWS_DO_NOT_SATISFY_GATE;MARKET_CAPTURE_WITHOUT_MODEL_IS_NOT_PHASE19_DIRECTIONAL_EVIDENCE;PHASE19_TRUE_CLV_REMAINS_SEPARATE;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
+        "research_spillover_policy": "PRIMARY_ODDS_PAYLOAD_REUSE_FIRST_ZERO_EXTRA_CALLS;CACHE_SECOND;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;PERSISTED_MODELED_FIXTURES_FIRST;THEN_CURRENT_TICK_SCANNED_UPCOMING_FIXTURES_FOR_MARKET_CAPTURE_ONLY;DIVERSIFY_TO_20_EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_FIXTURES;LEGACY_OBSERVED_ROWS_DO_NOT_SATISFY_GATE;MARKET_CAPTURE_WITHOUT_MODEL_IS_NOT_PHASE19_DIRECTIONAL_EVIDENCE;PHASE19_TRUE_CLV_REMAINS_SEPARATE;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
     }
     payload["price_resolution_provider_requests_added"] = calls
     return payload["price_resolution_v4"]
