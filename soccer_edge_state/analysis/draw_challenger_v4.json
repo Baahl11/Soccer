@@ -1,84 +1,86 @@
 {
+  "available_oos_rows": 51,
   "baseline": "INDEPENDENT_POISSON_DRAW_FROM_PREKICKOFF_HOME_AWAY_GOAL_RATES",
   "baseline_metrics": {
-    "brier": 0.22285603,
+    "brier": 0.24613511,
     "discrimination": {
-      "auc": 0.48039216,
-      "auc_lower_95": 0.2292467,
-      "auc_standard_error": 0.12813544,
+      "auc": 0.40384615,
+      "auc_lower_95": 0.22580448,
+      "auc_standard_error": 0.09083759,
       "discrimination_ready": false,
-      "negative_count": 34,
-      "positive_count": 6
+      "negative_count": 39,
+      "positive_count": 12
     },
-    "log_loss": 0.62936091,
-    "negative_count": 34,
-    "positive_count": 6,
-    "rows": 40
+    "log_loss": 0.68272523,
+    "negative_count": 39,
+    "positive_count": 12,
+    "rows": 51
   },
   "canonical_bet_logic_changed": false,
   "challenger_metrics": {
-    "brier": 0.13245479,
+    "brier": 0.18696369,
     "discrimination": {
-      "auc": 0.48284314,
-      "auc_lower_95": 0.23135741,
-      "auc_standard_error": 0.12830904,
+      "auc": 0.49252137,
+      "auc_lower_95": 0.30443464,
+      "auc_standard_error": 0.09596262,
       "discrimination_ready": false,
-      "negative_count": 34,
-      "positive_count": 6
+      "negative_count": 39,
+      "positive_count": 12
     },
-    "log_loss": 0.4396534,
-    "negative_count": 34,
-    "positive_count": 6,
-    "rows": 40
+    "log_loss": 0.57006764,
+    "negative_count": 39,
+    "positive_count": 12,
+    "rows": 51
   },
   "comparison": {
-    "auc_lower_95_delta": 0.00211071,
-    "brier_delta": -0.09040124,
+    "auc_lower_95_delta": 0.07863016,
+    "brier_delta": -0.05917142,
     "challenger_discrimination_ready": false,
     "improves_all_primary_metrics": true,
-    "log_loss_delta": -0.18970751
+    "log_loss_delta": -0.11265759
   },
   "dataset_fingerprint": "53c92719ea3bb3864bca72550b1849a81f4c09c2d47cf43ccf2679cffb404018",
   "dataset_row_count": 115,
   "dataset_version": "4.0.0",
+  "effective_training_rows": 64,
   "eligible_rows": 115,
   "feature_count": 13,
   "feature_importance": [
     {
       "feature": "away_goal_rate",
-      "mean_importance": 50.5
+      "mean_importance": 86.666667
     },
     {
       "feature": "both_xi_confirmed",
-      "mean_importance": 48.5
-    },
-    {
-      "feature": "both_xi_confirmed__missing",
-      "mean_importance": 30.5
-    },
-    {
-      "feature": "home_goal_rate",
-      "mean_importance": 29.0
-    },
-    {
-      "feature": "poisson_draw_probability",
-      "mean_importance": 28.0
-    },
-    {
-      "feature": "total_goal_rate",
-      "mean_importance": 25.0
-    },
-    {
-      "feature": "goal_rate_abs_gap",
-      "mean_importance": 24.0
+      "mean_importance": 45.666667
     },
     {
       "feature": "goal_rate_geometric_mean",
-      "mean_importance": 17.5
+      "mean_importance": 39.666667
+    },
+    {
+      "feature": "home_goal_rate",
+      "mean_importance": 35.666667
     },
     {
       "feature": "goal_rate_balance_ratio",
-      "mean_importance": 14.5
+      "mean_importance": 26.666667
+    },
+    {
+      "feature": "total_goal_rate",
+      "mean_importance": 17.333333
+    },
+    {
+      "feature": "poisson_draw_probability",
+      "mean_importance": 17.333333
+    },
+    {
+      "feature": "both_xi_confirmed__missing",
+      "mean_importance": 13.333333
+    },
+    {
+      "feature": "goal_rate_abs_gap",
+      "mean_importance": 12.666667
     },
     {
       "feature": "both_goalkeepers_confirmed",
@@ -113,85 +115,121 @@
     "injury_report_count__missing"
   ],
   "feature_schema_version": "4.0.0",
-  "fitted_folds": 2,
+  "fitted_folds": 3,
   "folds": [
     {
       "baseline": {
-        "brier": 0.19211354,
+        "brier": 0.2605231,
         "discrimination": {
-          "auc": 0.66666667,
-          "auc_lower_95": 0.30882126,
-          "auc_standard_error": 0.18257419,
+          "auc": 0.38235294,
+          "auc_lower_95": 0.14992686,
+          "auc_standard_error": 0.11858474,
           "discrimination_ready": false,
-          "negative_count": 22,
-          "positive_count": 3
+          "negative_count": 17,
+          "positive_count": 8
         },
-        "log_loss": 0.55790279,
-        "negative_count": 22,
-        "positive_count": 3,
+        "log_loss": 0.71728073,
+        "negative_count": 17,
+        "positive_count": 8,
         "rows": 25
       },
       "challenger": {
-        "brier": 0.11390381,
+        "brier": 0.24090808,
         "discrimination": {
-          "auc": 0.5,
-          "auc_lower_95": 0.14487589,
-          "auc_standard_error": 0.18118577,
+          "auc": 0.58455882,
+          "auc_lower_95": 0.33668016,
+          "auc_standard_error": 0.12646871,
           "discrimination_ready": false,
-          "negative_count": 22,
-          "positive_count": 3
+          "negative_count": 17,
+          "positive_count": 8
         },
-        "log_loss": 0.39091165,
-        "negative_count": 22,
-        "positive_count": 3,
+        "log_loss": 0.70152105,
+        "negative_count": 17,
+        "positive_count": 8,
         "rows": 25
       },
-      "fold": 2,
-      "test_draws": 3,
+      "fold": 1,
+      "test_draws": 8,
       "test_rows": 25,
-      "train_rows": 75
+      "train_rows": 64
     },
     {
       "baseline": {
-        "brier": 0.27409353,
+        "brier": 0.22916722,
         "discrimination": {
-          "auc": 0.19444444,
-          "auc_lower_95": 0.0,
-          "auc_standard_error": 0.12658885,
+          "auc": 0.46428571,
+          "auc_lower_95": 0.15539542,
+          "auc_standard_error": 0.15759709,
           "discrimination_ready": false,
-          "negative_count": 12,
-          "positive_count": 3
+          "negative_count": 21,
+          "positive_count": 4
         },
-        "log_loss": 0.74845778,
-        "negative_count": 12,
-        "positive_count": 3,
-        "rows": 15
+        "log_loss": 0.64288022,
+        "negative_count": 21,
+        "positive_count": 4,
+        "rows": 25
       },
       "challenger": {
-        "brier": 0.16337308,
+        "brier": 0.13904918,
         "discrimination": {
-          "auc": 0.40277778,
-          "auc_lower_95": 0.047899,
-          "auc_standard_error": 0.1810606,
+          "auc": 0.53571429,
+          "auc_lower_95": 0.21703641,
+          "auc_standard_error": 0.16259075,
           "discrimination_ready": false,
-          "negative_count": 12,
-          "positive_count": 3
+          "negative_count": 21,
+          "positive_count": 4
         },
-        "log_loss": 0.52088965,
-        "negative_count": 12,
-        "positive_count": 3,
-        "rows": 15
+        "log_loss": 0.45297297,
+        "negative_count": 21,
+        "positive_count": 4,
+        "rows": 25
+      },
+      "fold": 2,
+      "test_draws": 4,
+      "test_rows": 25,
+      "train_rows": 89
+    },
+    {
+      "baseline": {
+        "brier": 0.31063263,
+        "discrimination": {
+          "auc": null,
+          "auc_lower_95": null,
+          "auc_standard_error": null,
+          "discrimination_ready": false,
+          "negative_count": 1,
+          "positive_count": 0
+        },
+        "log_loss": 0.81496293,
+        "negative_count": 1,
+        "positive_count": 0,
+        "rows": 1
+      },
+      "challenger": {
+        "brier": 0.03621635,
+        "discrimination": {
+          "auc": null,
+          "auc_lower_95": null,
+          "auc_standard_error": null,
+          "discrimination_ready": false,
+          "negative_count": 1,
+          "positive_count": 0
+        },
+        "log_loss": 0.21109879,
+        "negative_count": 1,
+        "positive_count": 0,
+        "rows": 1
       },
       "fold": 3,
-      "test_draws": 3,
-      "test_rows": 15,
-      "train_rows": 100
+      "test_draws": 0,
+      "test_rows": 1,
+      "train_rows": 114
     }
   ],
   "market_fields_used": false,
   "minimum_oos_rows": 50,
   "minimum_training_rows": 50,
-  "model_version": "LIGHTGBM_DRAW_V4_CHALLENGER_1.1.0",
+  "model_version": "LIGHTGBM_DRAW_V4_CHALLENGER_1.2.0",
   "model_weights_changed": false,
   "post_kickoff_features_used": false,
   "production_promotion_allowed": false,
@@ -202,5 +240,5 @@
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY",
   "training_policy": "EXPANDING_WALK_FORWARD_BLOCKS;NO_MARKET_FIELDS;STRICTLY_PREKICKOFF_FEATURES",
-  "walk_forward_evaluated": 40
+  "walk_forward_evaluated": 51
 }
