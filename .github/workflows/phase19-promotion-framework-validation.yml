@@ -1,4 +1,4 @@
-# Phase19 class-aware shadow live rerun: 2026-09-24
+# Phase19 Draw challenger live audit: 2026-09-24
 name: Phase 19 Promotion Framework Validation
 
 on:
@@ -60,8 +60,8 @@ jobs:
         working-directory: runtime
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
-          PYTHONPATH=. pytest -q tests/test_phase19_promotion_framework_v4.py tests/test_promotion_shadow_postgres_v4.py
+          pip install pytest "lightgbm>=4,<5"
+          PYTHONPATH=. pytest -q tests/test_phase19_promotion_framework_v4.py tests/test_promotion_shadow_postgres_v4.py tests/test_draw_challenger_v4.py
 
       - name: Build promotion-quality shadow from Postgres
         shell: bash
@@ -109,6 +109,45 @@ jobs:
 
           cp /tmp/promotion_shadow_v4.json state/soccer_edge_state/analysis/promotion_shadow_postgres_v4.json
 
+          CUTOFF=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          DRAW_HTTP_CODE=$(curl -sS --max-time 420 -o /tmp/phase19_draw_dataset.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg cutoff "$CUTOFF" '{cutoff:$cutoff,row_limit:20000}')" \
+            https://soccer-edge-api.onrender.com/internal/training-dataset/export)
+
+          test "$DRAW_HTTP_CODE" = "200"
+          jq -e '.status == "OK" and .market_fields_included == false and (.rows | type == "array")' /tmp/phase19_draw_dataset.json >/dev/null
+
+          PYTHONPATH=runtime python -m mcp_gateway.draw_challenger_v4 \
+            --dataset /tmp/phase19_draw_dataset.json \
+            --output /tmp/draw_challenger_v4.json
+
+          jq '{
+            model_version,
+            status,
+            dataset_row_count,
+            eligible_rows,
+            walk_forward_evaluated,
+            baseline_metrics,
+            challenger_metrics,
+            comparison,
+            research_followup_candidate,
+            production_promotion_allowed
+          }' /tmp/draw_challenger_v4.json
+
+          jq -e '
+            .model_version == "LIGHTGBM_DRAW_V4_CHALLENGER_1.0.0"
+            and .market_fields_used == false
+            and .post_kickoff_features_used == false
+            and .provider_requests_added == 0
+            and .production_promotion_allowed == false
+            and (.status == "RESEARCH_ONLY" or .status == "INSUFFICIENT_TRAINING_SAMPLE")
+          ' /tmp/draw_challenger_v4.json >/dev/null
+
+          cp /tmp/draw_challenger_v4.json state/soccer_edge_state/analysis/draw_challenger_v4.json
+
       - name: Build current promotion framework report
         working-directory: runtime
         run: |
@@ -140,6 +179,7 @@ jobs:
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add -f soccer_edge_state/analysis/phase19_promotion_framework_report.json
           git add -f soccer_edge_state/analysis/promotion_shadow_postgres_v4.json
+          git add -f soccer_edge_state/analysis/draw_challenger_v4.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Phase 19 promotion framework report"
           for attempt in 1 2 3; do
