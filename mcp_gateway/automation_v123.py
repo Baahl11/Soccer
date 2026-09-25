@@ -15,7 +15,7 @@ from mcp_gateway import team_totals_intelligence
 from mcp_gateway import halftime_2h_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.32.7-dedicated-ht-research"
+AUTOMATION_VERSION = "4.32.8-cards-props-market-sidecar"
 PRIMARY_PRICE_RESERVE_CALLS = max(
     0,
     int(os.getenv("SOCCER_PRIMARY_PRICE_RESERVE_CALLS", "20")),
@@ -103,6 +103,36 @@ def _attach_dedicated_ht_research(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _summarize_research_derivative_sidecars(payload: dict[str, Any]) -> dict[str, Any]:
+    events_with_sidecar = 0
+    card_rows = 0
+    prop_rows = 0
+    for event in payload.get("events") or []:
+        if not isinstance(event, dict):
+            continue
+        market = event.get("market") if isinstance(event.get("market"), dict) else {}
+        cards = int(market.get("card_research_market_rows") or 0)
+        props = int(market.get("player_prop_research_market_rows") or 0)
+        if cards or props:
+            events_with_sidecar += 1
+            card_rows += cards
+            prop_rows += props
+    result = {
+        "schema_version": "1.0.0",
+        "status": "RESEARCH_DERIVATIVE_ODDS_SIDECAR_ACTIVE",
+        "events_with_sidecar": events_with_sidecar,
+        "card_market_rows": card_rows,
+        "player_prop_market_rows": prop_rows,
+        "total_market_rows": card_rows + prop_rows,
+        "provider_requests_added": 0,
+        "production_promotion_allowed": False,
+        "decision_weight": 0.0,
+        "policy": "REUSE_EXISTING_PAID_ODDS_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP_PER_RESPONSE; RESEARCH_ONLY",
+    }
+    payload["research_derivative_market_capture"] = result
+    return result
+
+
 def _leftover_price_budget(payload: dict[str, Any]) -> int:
     configured = int(price_resolver_v4.DEFAULT_MAX_API_CALLS)
     try:
@@ -170,6 +200,7 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "team_totals_recomputed_after_price_resolution": True,
         "team_totals_post_resolution": dict(payload.get("team_totals_post_resolution") or {}),
         "dedicated_ht_research": dict(payload.get("dedicated_ht_research") or {}),
+        "research_derivative_market_capture": dict(payload.get("research_derivative_market_capture") or {}),
         "canonical_bet_logic_changed": False,
         "model_weights_changed": False,
         "production_promotion_allowed": False,
@@ -262,6 +293,7 @@ async def run_tick() -> dict[str, Any]:
         v90._elastic_request_cap = original_elastic_request_cap
 
     _attach_dedicated_ht_research(payload)
+    _summarize_research_derivative_sidecars(payload)
 
     remaining_raw = payload.get("last_daily_remaining")
     try:
