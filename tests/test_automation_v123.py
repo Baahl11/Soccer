@@ -1121,3 +1121,73 @@ def test_persistence_disambiguates_same_fixture_stage_events_by_microsecond(monk
     assert str(refresh_params[1][7]).endswith("376271+00:00")
     assert tick["events"][1]["persistence"]["same_fixture_stage_ordinal"] == 1
     assert tick["events"][1]["persistence"]["generated_at_microsecond_offset"] == 1
+
+
+def test_player_prop_threshold_format_maps_n_plus_to_decimal_line_and_excludes_team_aggregate():
+    lineup = {
+        "both_xi_confirmed": True,
+        "both_goalkeepers_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Alexander Isak", "pos": "F"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Viktor Johansson", "pos": "G"}],
+            },
+        ],
+    }
+    payload = {
+        "response": [{
+            "update": "2026-09-25T18:20:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [
+                    {
+                        "id": 100,
+                        "name": "Away Player Shots Total",
+                        "values": [
+                            {"value": "Over 9.5", "odd": "1.90"},
+                            {"value": "Under 9.5", "odd": "1.90"},
+                        ],
+                    },
+                    {
+                        "id": 101,
+                        "name": "Player Shots on Target",
+                        "values": [{"value": "Alexander Isak - 1", "odd": "1.75"}],
+                    },
+                    {
+                        "id": 102,
+                        "name": "Goalkeeper Saves",
+                        "values": [{"value": "Viktor Johansson - 3", "odd": "1.88"}],
+                    },
+                ],
+            }],
+        }],
+    }
+
+    compact = base._compact_odds(payload, lineup=lineup)
+    props = compact["research_cards_props_markets"]
+
+    assert len(props) == 2
+    assert all(row["market"] != "Away Player Shots Total" for row in props)
+
+    sot = next(row for row in props if row["research_subfamily"] == "SOT")
+    sot_value = sot["values"][0]
+    assert sot_value["player_id"] == 501
+    assert sot_value["parsed_line"] == 0.5
+    assert sot_value["threshold_count"] == 1
+    assert sot_value["line_basis"] == "PLAYER_THRESHOLD_N_PLUS"
+    assert sot_value["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+
+    gk = next(row for row in props if row["research_subfamily"] == "GK_SAVES")
+    gk_value = gk["values"][0]
+    assert gk_value["player_id"] == 601
+    assert gk_value["parsed_line"] == 2.5
+    assert gk_value["threshold_count"] == 3
+    assert gk_value["line_basis"] == "PLAYER_THRESHOLD_N_PLUS"
+    assert gk_value["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
