@@ -10,8 +10,8 @@ from typing import Any, Iterable
 
 from mcp_gateway import persistence as persistence_base
 
-SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.3.0"
+SCHEMA_VERSION = "1.4.0"
+MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.4.0"
 
 
 def _norm(value: Any) -> str:
@@ -45,7 +45,10 @@ def classify_market(market: Any) -> str | None:
         "player card",
         "player booked",
         "player booking",
+        "player yellow card",
+        "player yellow cards",
         "to be booked",
+        "to be carded",
     )
     if any(token in name for token in player_card_tokens):
         return "PLAYER_CARDS"
@@ -215,21 +218,34 @@ def align_value_to_confirmed_xi(
         raw = value.get("value")
 
     normalized = _norm_player_text(raw)
+    explicit_player_id = value.get("player_id")
+    explicit_player_name = _norm_player_text(value.get("player_name") or value.get("player"))
     starters = _confirmed_starters(lineup_payload)
     matches: list[dict[str, Any]] = []
-    padded = f" {normalized} "
-
-    for starter in starters:
-        player_name = _norm_player_text(starter.get("player_name"))
-        if player_name and f" {player_name} " in padded:
-            matches.append(starter)
 
     if not starters:
         out["xi_alignment_status"] = "NO_CONFIRMED_XI_AT_QUOTE"
         return out
-    if not normalized:
-        out["xi_alignment_status"] = "SELECTION_MISSING"
-        return out
+
+    if explicit_player_id is not None:
+        matches = [
+            starter for starter in starters
+            if str(starter.get("player_id")) == str(explicit_player_id)
+        ]
+    elif explicit_player_name:
+        matches = [
+            starter for starter in starters
+            if _norm_player_text(starter.get("player_name")) == explicit_player_name
+        ]
+    else:
+        if not normalized:
+            out["xi_alignment_status"] = "SELECTION_MISSING"
+            return out
+        padded = f" {normalized} "
+        for starter in starters:
+            player_name = _norm_player_text(starter.get("player_name"))
+            if player_name and f" {player_name} " in padded:
+                matches.append(starter)
     if len(matches) == 0:
         out["xi_alignment_status"] = "PLAYER_NOT_MATCHED_TO_CONFIRMED_XI"
         return out
