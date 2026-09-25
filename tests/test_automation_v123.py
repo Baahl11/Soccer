@@ -441,13 +441,26 @@ def test_odds_compactor_retains_cards_and_player_props_without_displacing_existi
     assert compact["player_prop_research_market_rows"] == 3
     assert compact["research_derivative_sidecar_rows"] == 4
     assert compact["research_derivative_sidecar_provider_requests_added"] == 0
-    names = [row["market"] for row in compact["markets"]]
-    assert "Total - Home" in names
-    assert "Total Yellow Cards" in names
-    assert "Player Shots" in names
-    assert "Goalkeeper Saves" in names
-    assert "Player Cards" in names
-    assert len(compact["markets"]) == 65
+    canonical_names = [row["market"] for row in compact["markets"]]
+    research_names = [row["market"] for row in compact["research_cards_props_markets"]]
+    assert "Total - Home" in canonical_names
+    assert "Total Yellow Cards" not in canonical_names
+    assert "Player Shots" not in canonical_names
+    assert "Goalkeeper Saves" not in canonical_names
+    assert "Player Cards" not in canonical_names
+    assert len(compact["markets"]) == 61
+    assert set(research_names) == {
+        "Total Yellow Cards",
+        "Player Shots",
+        "Goalkeeper Saves",
+        "Player Cards",
+    }
+    assert all(row["research_only"] is True for row in compact["research_cards_props_markets"])
+    assert all(row["decision_weight"] == 0.0 for row in compact["research_cards_props_markets"])
+    player_shots = next(row for row in compact["research_cards_props_markets"] if row["market"] == "Player Shots")
+    assert player_shots["values"][0]["parsed_line"] == 2.5
+    player_cards = next(row for row in compact["research_cards_props_markets"] if row["market"] == "Player Cards")
+    assert player_cards["values"][0]["parsed_line"] is None
 
 
 def test_research_derivative_sidecar_summary_is_zero_call_and_research_only():
@@ -466,3 +479,41 @@ def test_research_derivative_sidecar_summary_is_zero_call_and_research_only():
     assert result["provider_requests_added"] == 0
     assert result["production_promotion_allowed"] is False
     assert result["decision_weight"] == 0.0
+
+
+
+def test_research_derivative_classifier_does_not_steal_team_totals_or_corners():
+    assert base._is_ft_team_total_bet({"id": 16, "name": "Total - Home"}) is True
+    assert base._is_player_prop_research_bet({"name": "Player Shots On Target"}) is True
+    assert base._is_player_prop_research_bet({"name": "Anytime Goalscorer"}) is True
+    assert base._is_player_prop_research_bet({"name": "Goalkeeper Saves"}) is True
+    assert base._is_card_research_bet({"name": "Total Yellow Cards"}) is True
+    assert base._is_card_research_bet({"name": "Booking Points"}) is True
+    assert base._is_card_research_bet({"name": "Player Cards"}) is False
+    assert base._is_player_prop_research_bet({"name": "Player Cards"}) is True
+    assert base._is_card_research_bet({"name": "Total Corners"}) is False
+    assert base._is_player_prop_research_bet({"name": "Total - Home"}) is False
+
+
+def test_booking_points_are_captured_but_flagged_for_scoring_rule_mapping():
+    payload = {
+        "response": [{
+            "update": "2026-09-25T06:10:00+00:00",
+            "bookmakers": [{
+                "id": 7,
+                "name": "Book",
+                "bets": [{
+                    "id": 300,
+                    "name": "Booking Points",
+                    "values": [{"value": "Over 35.5", "odd": "1.91"}],
+                }],
+            }],
+        }],
+    }
+    compact = base._compact_odds(payload)
+    assert compact["markets"] == []
+    assert compact["card_research_market_rows"] == 1
+    row = compact["research_cards_props_markets"][0]
+    assert row["research_family"] == "CARDS"
+    assert row["bookmaker_scoring_rule_required"] is True
+    assert row["values"][0]["parsed_line"] == 35.5
