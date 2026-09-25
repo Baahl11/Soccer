@@ -7,16 +7,18 @@
   "market_family_reviews": [
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": -0.01932,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_39_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_15_LT_DIRECTIONAL_20",
         "SETTLED_15_LT_TIER_B_REVIEW_50",
-        "FAMILY_TRUE_CLV_NEGATIVE",
-        "STABILITY_DIRECTIONAL_ONLY",
+        "FAMILY_TRUE_CLV_MISSING",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:SETTLED_15_LT_DIRECTIONAL_20",
-        "VALIDATION:SETTLED_15_LT_ACTIONABLE_REVIEW_50"
+        "VALIDATION:SETTLED_15_LT_ACTIONABLE_REVIEW_50",
+        "VALIDATION:FT_TOTALS_TRUE_CLV_0_LT_50"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -31,10 +33,10 @@
       "promotion_shadow_sample_status": "DATA_BLOCKED",
       "promotion_shadow_selection_progress": {},
       "promotion_shadow_settled": 0,
-      "recommended_state": "SHADOW",
+      "recommended_state": "RESEARCH",
       "roi_per_settled_unit": 0.222987,
       "settled": 15,
-      "stability_status": "DIRECTIONAL_ONLY",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -46,11 +48,12 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 84,
-      "unique_fixtures": 39,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
         "SETTLED_15_LT_DIRECTIONAL_20",
-        "SETTLED_15_LT_ACTIONABLE_REVIEW_50"
+        "SETTLED_15_LT_ACTIONABLE_REVIEW_50",
+        "FT_TOTALS_TRUE_CLV_0_LT_50"
       ],
       "validation_model_version": "SOCCER_FT_TOTALS_VALIDATION_V4_1.0.0",
       "validation_status": "RESEARCH_HOLD",
@@ -65,13 +68,15 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 0.10862,
+      "avg_true_clv_probability_pp": 0.098766,
       "blockers": [
+        "UNIQUE_FIXTURES_45_LT_TIER_B_REVIEW_50",
         "SETTLED_10_LT_DIRECTIONAL_20",
         "SETTLED_10_LT_TIER_B_REVIEW_50",
-        "STABILITY_SEGMENT_REVIEW",
+        "STABILITY_DIRECTIONAL_ONLY",
         "PROMOTION_SHADOW_SETTLED_2_LT_DIRECTIONAL_20",
-        "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW"
+        "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW",
+        "VALIDATION:1X2_TRUE_CLV_45_LT_50"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -180,7 +185,7 @@
       "recommended_state": "SHADOW",
       "roi_per_settled_unit": 1.12,
       "settled": 10,
-      "stability_status": "SEGMENT_REVIEW",
+      "stability_status": "DIRECTIONAL_ONLY",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -192,11 +197,13 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 96,
-      "unique_fixtures": 72,
-      "validation_blockers": [],
+      "true_clv_rows": 45,
+      "unique_fixtures": 45,
+      "validation_blockers": [
+        "1X2_TRUE_CLV_45_LT_50"
+      ],
       "validation_model_version": "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.1.0",
-      "validation_status": "CALIBRATION_REVIEW_ELIGIBLE",
+      "validation_status": "RESEARCH_HOLD",
       "warnings": [],
       "watch_shadow_negative_directional_stages": [
         "T-10"
@@ -207,16 +214,16 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 0.12331,
+      "avg_true_clv_probability_pp": 0.151469,
       "blockers": [
-        "UNIQUE_FIXTURES_16_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_16_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_13_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_13_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
         "ROI_MISSING",
         "STABILITY_DATA_BLOCKED",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-        "VALIDATION:BTTS_TRUE_CLV_21_LT_50"
+        "VALIDATION:BTTS_TRUE_CLV_13_LT_50"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -246,10 +253,10 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 21,
-      "unique_fixtures": 16,
+      "true_clv_rows": 13,
+      "unique_fixtures": 13,
       "validation_blockers": [
-        "BTTS_TRUE_CLV_21_LT_50"
+        "BTTS_TRUE_CLV_13_LT_50"
       ],
       "validation_model_version": "SOCCER_BTTS_CALIBRATION_VALIDATION_V4_1.1.0",
       "validation_status": "RESEARCH_HOLD",
@@ -261,16 +268,18 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 5e-06,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_1_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_1_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
-        "STABILITY_DATA_BLOCKED",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-        "VALIDATION:TEAM_TOTALS_TRUE_CLV_24_LT_50"
+        "VALIDATION:TEAM_TOTALS_TRUE_CLV_0_LT_50",
+        "VALIDATION:TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -288,7 +297,7 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -300,12 +309,13 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 24,
-      "unique_fixtures": 1,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
-        "TEAM_TOTALS_TRUE_CLV_24_LT_50"
+        "TEAM_TOTALS_TRUE_CLV_0_LT_50",
+        "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20"
       ],
-      "validation_model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.2.0",
+      "validation_model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.3.0",
       "validation_status": "RESEARCH_HOLD",
       "warnings": [],
       "watch_shadow_negative_directional_stages": [],
@@ -315,18 +325,19 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": -0.957021,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_6_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_6_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
-        "FAMILY_TRUE_CLV_NEGATIVE",
+        "FAMILY_TRUE_CLV_MISSING",
         "ROI_NOT_POSITIVE",
-        "STABILITY_DATA_BLOCKED",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
         "VALIDATION:CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
+        "VALIDATION:1H_TRUE_CLV_0_LT_50",
         "VALIDATION:SOURCE_1H_PROMOTION_GATE_DISABLED"
       ],
       "current_state": "RESEARCH",
@@ -345,7 +356,7 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": 0.0,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -357,11 +368,12 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 512,
-      "unique_fixtures": 6,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
         "CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
         "CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
+        "1H_TRUE_CLV_0_LT_50",
         "SOURCE_1H_PROMOTION_GATE_DISABLED"
       ],
       "validation_model_version": "SOCCER_1H_OOS_VALIDATION_V4_1.0.0",
@@ -435,16 +447,18 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 0.938408,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_6_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_6_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
-        "STABILITY_DATA_BLOCKED",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:FORMATION_ADJUSTED_39_LT_100",
+        "VALIDATION:FT_CORNERS_TRUE_CLV_0_LT_50",
         "VALIDATION:FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
       ],
       "current_state": "RESEARCH",
@@ -463,7 +477,7 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -475,10 +489,11 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 176,
-      "unique_fixtures": 6,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
         "FORMATION_ADJUSTED_39_LT_100",
+        "FT_CORNERS_TRUE_CLV_0_LT_50",
         "FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
       ],
       "validation_model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.4.0",
@@ -491,15 +506,17 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 0.222569,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_3_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_3_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
-        "STABILITY_DATA_BLOCKED",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+        "VALIDATION:TEAM_CORNERS_TRUE_CLV_0_LT_50",
         "VALIDATION:PARENT_FT_CORNERS_NOT_REVIEW_READY",
         "VALIDATION:TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
       ],
@@ -519,7 +536,7 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -531,9 +548,10 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 186,
-      "unique_fixtures": 3,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
+        "TEAM_CORNERS_TRUE_CLV_0_LT_50",
         "PARENT_FT_CORNERS_NOT_REVIEW_READY",
         "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
       ],
@@ -547,15 +565,15 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": -4.7e-05,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_1_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_1_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
-        "FAMILY_TRUE_CLV_NEGATIVE",
+        "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
-        "STABILITY_DATA_BLOCKED",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:YELLOW_REFEREE_ADJUSTED_0_LT_100",
         "VALIDATION:YELLOW_CARDS_PROMOTION_GATE_DISABLED",
@@ -564,7 +582,7 @@
         "VALIDATION:RED_CARD_REFEREE_ADJUSTED_SAMPLE_INSUFFICIENT",
         "VALIDATION:RED_CARDS_PROMOTION_GATE_DISABLED",
         "VALIDATION:PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
-        "VALIDATION:CARD_TRUE_CLV_5_LT_50"
+        "VALIDATION:CARD_TRUE_CLV_0_LT_50"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -582,7 +600,7 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -594,8 +612,8 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 5,
-      "unique_fixtures": 1,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
         "YELLOW_REFEREE_ADJUSTED_0_LT_100",
         "YELLOW_CARDS_PROMOTION_GATE_DISABLED",
@@ -604,7 +622,7 @@
         "RED_CARD_REFEREE_ADJUSTED_SAMPLE_INSUFFICIENT",
         "RED_CARDS_PROMOTION_GATE_DISABLED",
         "PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
-        "CARD_TRUE_CLV_5_LT_50"
+        "CARD_TRUE_CLV_0_LT_50"
       ],
       "validation_model_version": "SOCCER_CARDS_REFEREE_PHASE14_V4_1.0.0",
       "validation_status": "RESEARCH_HOLD",
@@ -713,16 +731,17 @@
     "families": {
       "1H": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_6_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_6_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
-          "FAMILY_TRUE_CLV_NEGATIVE",
+          "FAMILY_TRUE_CLV_MISSING",
           "ROI_NOT_POSITIVE",
-          "STABILITY_DATA_BLOCKED",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
           "VALIDATION:CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
           "VALIDATION:CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
+          "VALIDATION:1H_TRUE_CLV_0_LT_50",
           "VALIDATION:SOURCE_1H_PROMOTION_GATE_DISABLED"
         ],
         "current_state": "RESEARCH",
@@ -739,7 +758,7 @@
         "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -748,8 +767,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 6,
-            "unique_fixtures_remaining": 14
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -757,8 +776,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 6,
-            "unique_fixtures_remaining": 94
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -766,8 +785,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 6,
-            "unique_fixtures_remaining": 44
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -775,20 +794,27 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 6,
-            "unique_fixtures_remaining": 194
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": -1.008705,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 512,
-          "rows_remaining": 0,
-          "sample_ready": true,
-          "status": "READY"
+          "rows": 0,
+          "rows_remaining": 50,
+          "sample_ready": false,
+          "status": "COLLECTING"
         },
         "validation": {
-          "numeric_deficits": [],
+          "numeric_deficits": [
+            {
+              "actual": 0,
+              "gate": "1H_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
+              "required": 50
+            }
+          ],
           "qualitative_blockers": [
             "CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
             "CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
@@ -799,11 +825,13 @@
       },
       "1X2": {
         "all_current_blockers": [
+          "UNIQUE_FIXTURES_45_LT_TIER_B_REVIEW_50",
           "SETTLED_10_LT_DIRECTIONAL_20",
           "SETTLED_10_LT_TIER_B_REVIEW_50",
-          "STABILITY_SEGMENT_REVIEW",
+          "STABILITY_DIRECTIONAL_ONLY",
           "PROMOTION_SHADOW_SETTLED_2_LT_DIRECTIONAL_20",
-          "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW"
+          "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW",
+          "VALIDATION:1X2_TRUE_CLV_45_LT_50"
         ],
         "class_discrimination": {
           "classes": {
@@ -917,7 +945,7 @@
         "recommended_state": "SHADOW",
         "stability": {
           "ready": false,
-          "status": "SEGMENT_REVIEW"
+          "status": "DIRECTIONAL_ONLY"
         },
         "tier_samples": {
           "directional": {
@@ -926,7 +954,7 @@
             "sample_ready": false,
             "settled": 10,
             "settled_remaining": 10,
-            "unique_fixtures": 72,
+            "unique_fixtures": 45,
             "unique_fixtures_remaining": 0
           },
           "tier_a": {
@@ -935,8 +963,8 @@
             "sample_ready": false,
             "settled": 10,
             "settled_remaining": 90,
-            "unique_fixtures": 72,
-            "unique_fixtures_remaining": 28
+            "unique_fixtures": 45,
+            "unique_fixtures_remaining": 55
           },
           "tier_b": {
             "required_settled": 50,
@@ -944,8 +972,8 @@
             "sample_ready": false,
             "settled": 10,
             "settled_remaining": 40,
-            "unique_fixtures": 72,
-            "unique_fixtures_remaining": 0
+            "unique_fixtures": 45,
+            "unique_fixtures_remaining": 5
           },
           "tier_s": {
             "required_settled": 200,
@@ -953,22 +981,29 @@
             "sample_ready": false,
             "settled": 10,
             "settled_remaining": 190,
-            "unique_fixtures": 72,
-            "unique_fixtures_remaining": 128
+            "unique_fixtures": 45,
+            "unique_fixtures_remaining": 155
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 0.073083,
+          "avg_probability_clv_pp": 0.098766,
           "minimum_rows": 50,
-          "rows": 96,
-          "rows_remaining": 0,
-          "sample_ready": true,
-          "status": "READY"
+          "rows": 45,
+          "rows_remaining": 5,
+          "sample_ready": false,
+          "status": "COLLECTING"
         },
         "validation": {
-          "numeric_deficits": [],
+          "numeric_deficits": [
+            {
+              "actual": 45,
+              "gate": "1X2_TRUE_CLV_45_LT_50",
+              "remaining": 5.0,
+              "required": 50
+            }
+          ],
           "qualitative_blockers": [],
-          "status": "CALIBRATION_REVIEW_ELIGIBLE"
+          "status": "RESEARCH_HOLD"
         }
       },
       "2H": {
@@ -1067,14 +1102,14 @@
       },
       "BTTS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_16_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_16_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_13_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_13_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
           "ROI_MISSING",
           "STABILITY_DATA_BLOCKED",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-          "VALIDATION:BTTS_TRUE_CLV_21_LT_50"
+          "VALIDATION:BTTS_TRUE_CLV_13_LT_50"
         ],
         "current_state": "RESEARCH",
         "promotion_shadow": {
@@ -1099,8 +1134,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 16,
-            "unique_fixtures_remaining": 4
+            "unique_fixtures": 13,
+            "unique_fixtures_remaining": 7
           },
           "tier_a": {
             "required_settled": 100,
@@ -1108,8 +1143,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 16,
-            "unique_fixtures_remaining": 84
+            "unique_fixtures": 13,
+            "unique_fixtures_remaining": 87
           },
           "tier_b": {
             "required_settled": 50,
@@ -1117,8 +1152,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 16,
-            "unique_fixtures_remaining": 34
+            "unique_fixtures": 13,
+            "unique_fixtures_remaining": 37
           },
           "tier_s": {
             "required_settled": 200,
@@ -1126,24 +1161,24 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 16,
-            "unique_fixtures_remaining": 184
+            "unique_fixtures": 13,
+            "unique_fixtures_remaining": 187
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 0.094231,
+          "avg_probability_clv_pp": 0.151469,
           "minimum_rows": 50,
-          "rows": 21,
-          "rows_remaining": 29,
+          "rows": 13,
+          "rows_remaining": 37,
           "sample_ready": false,
           "status": "COLLECTING"
         },
         "validation": {
           "numeric_deficits": [
             {
-              "actual": 21,
-              "gate": "BTTS_TRUE_CLV_21_LT_50",
-              "remaining": 29.0,
+              "actual": 13,
+              "gate": "BTTS_TRUE_CLV_13_LT_50",
+              "remaining": 37.0,
               "required": 50
             }
           ],
@@ -1153,13 +1188,13 @@
       },
       "CARDS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_1_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_1_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
-          "FAMILY_TRUE_CLV_NEGATIVE",
+          "FAMILY_TRUE_CLV_MISSING",
           "ROI_MISSING",
-          "STABILITY_DATA_BLOCKED",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
           "VALIDATION:YELLOW_REFEREE_ADJUSTED_0_LT_100",
           "VALIDATION:YELLOW_CARDS_PROMOTION_GATE_DISABLED",
@@ -1168,7 +1203,7 @@
           "VALIDATION:RED_CARD_REFEREE_ADJUSTED_SAMPLE_INSUFFICIENT",
           "VALIDATION:RED_CARDS_PROMOTION_GATE_DISABLED",
           "VALIDATION:PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
-          "VALIDATION:CARD_TRUE_CLV_5_LT_50"
+          "VALIDATION:CARD_TRUE_CLV_0_LT_50"
         ],
         "current_state": "RESEARCH",
         "promotion_shadow": {
@@ -1184,7 +1219,7 @@
         "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -1193,8 +1228,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 19
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -1202,8 +1237,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 99
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -1211,8 +1246,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 49
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -1220,15 +1255,15 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 199
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": -4.7e-05,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 5,
-          "rows_remaining": 45,
+          "rows": 0,
+          "rows_remaining": 50,
           "sample_ready": false,
           "status": "COLLECTING"
         },
@@ -1253,9 +1288,9 @@
               "required": 1000
             },
             {
-              "actual": 5,
-              "gate": "CARD_TRUE_CLV_5_LT_50",
-              "remaining": 45.0,
+              "actual": 0,
+              "gate": "CARD_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
               "required": 50
             }
           ],
@@ -1270,14 +1305,16 @@
       },
       "FT_CORNERS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_6_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_6_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
+          "FAMILY_TRUE_CLV_MISSING",
           "ROI_MISSING",
-          "STABILITY_DATA_BLOCKED",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
           "VALIDATION:FORMATION_ADJUSTED_39_LT_100",
+          "VALIDATION:FT_CORNERS_TRUE_CLV_0_LT_50",
           "VALIDATION:FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
         ],
         "current_state": "RESEARCH",
@@ -1294,7 +1331,7 @@
         "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -1303,8 +1340,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 6,
-            "unique_fixtures_remaining": 14
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -1312,8 +1349,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 6,
-            "unique_fixtures_remaining": 94
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -1321,8 +1358,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 6,
-            "unique_fixtures_remaining": 44
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -1330,17 +1367,17 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 6,
-            "unique_fixtures_remaining": 194
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 2.047498,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 176,
-          "rows_remaining": 0,
-          "sample_ready": true,
-          "status": "READY"
+          "rows": 0,
+          "rows_remaining": 50,
+          "sample_ready": false,
+          "status": "COLLECTING"
         },
         "validation": {
           "numeric_deficits": [
@@ -1349,6 +1386,12 @@
               "gate": "FORMATION_ADJUSTED_39_LT_100",
               "remaining": 61.0,
               "required": 100
+            },
+            {
+              "actual": 0,
+              "gate": "FT_CORNERS_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
+              "required": 50
             }
           ],
           "qualitative_blockers": [
@@ -1359,14 +1402,16 @@
       },
       "FT_TOTALS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_39_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_15_LT_DIRECTIONAL_20",
           "SETTLED_15_LT_TIER_B_REVIEW_50",
-          "FAMILY_TRUE_CLV_NEGATIVE",
-          "STABILITY_DIRECTIONAL_ONLY",
+          "FAMILY_TRUE_CLV_MISSING",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
           "VALIDATION:SETTLED_15_LT_DIRECTIONAL_20",
-          "VALIDATION:SETTLED_15_LT_ACTIONABLE_REVIEW_50"
+          "VALIDATION:SETTLED_15_LT_ACTIONABLE_REVIEW_50",
+          "VALIDATION:FT_TOTALS_TRUE_CLV_0_LT_50"
         ],
         "current_state": "RESEARCH",
         "promotion_shadow": {
@@ -1379,10 +1424,10 @@
           "sample_status": "DATA_BLOCKED",
           "settled": 0
         },
-        "recommended_state": "SHADOW",
+        "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DIRECTIONAL_ONLY"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -1391,8 +1436,8 @@
             "sample_ready": false,
             "settled": 15,
             "settled_remaining": 5,
-            "unique_fixtures": 39,
-            "unique_fixtures_remaining": 0
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -1400,8 +1445,8 @@
             "sample_ready": false,
             "settled": 15,
             "settled_remaining": 85,
-            "unique_fixtures": 39,
-            "unique_fixtures_remaining": 61
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -1409,8 +1454,8 @@
             "sample_ready": false,
             "settled": 15,
             "settled_remaining": 35,
-            "unique_fixtures": 39,
-            "unique_fixtures_remaining": 11
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -1418,17 +1463,17 @@
             "sample_ready": false,
             "settled": 15,
             "settled_remaining": 185,
-            "unique_fixtures": 39,
-            "unique_fixtures_remaining": 161
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": -0.018139,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 84,
-          "rows_remaining": 0,
-          "sample_ready": true,
-          "status": "READY"
+          "rows": 0,
+          "rows_remaining": 50,
+          "sample_ready": false,
+          "status": "COLLECTING"
         },
         "validation": {
           "numeric_deficits": [
@@ -1442,6 +1487,12 @@
               "actual": 15,
               "gate": "SETTLED_15_LT_ACTIONABLE_REVIEW_50",
               "remaining": 35.0,
+              "required": 50
+            },
+            {
+              "actual": 0,
+              "gate": "FT_TOTALS_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
               "required": 50
             }
           ],
@@ -1566,13 +1617,15 @@
       },
       "TEAM_CORNERS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_3_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_3_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
+          "FAMILY_TRUE_CLV_MISSING",
           "ROI_MISSING",
-          "STABILITY_DATA_BLOCKED",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+          "VALIDATION:TEAM_CORNERS_TRUE_CLV_0_LT_50",
           "VALIDATION:PARENT_FT_CORNERS_NOT_REVIEW_READY",
           "VALIDATION:TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
         ],
@@ -1590,7 +1643,7 @@
         "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -1599,8 +1652,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 3,
-            "unique_fixtures_remaining": 17
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -1608,8 +1661,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 3,
-            "unique_fixtures_remaining": 97
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -1617,8 +1670,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 3,
-            "unique_fixtures_remaining": 47
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -1626,20 +1679,27 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 3,
-            "unique_fixtures_remaining": 197
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 0.107694,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 186,
-          "rows_remaining": 0,
-          "sample_ready": true,
-          "status": "READY"
+          "rows": 0,
+          "rows_remaining": 50,
+          "sample_ready": false,
+          "status": "COLLECTING"
         },
         "validation": {
-          "numeric_deficits": [],
+          "numeric_deficits": [
+            {
+              "actual": 0,
+              "gate": "TEAM_CORNERS_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
+              "required": 50
+            }
+          ],
           "qualitative_blockers": [
             "PARENT_FT_CORNERS_NOT_REVIEW_READY",
             "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
@@ -1649,14 +1709,16 @@
       },
       "TEAM_TOTALS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_1_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_1_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
+          "FAMILY_TRUE_CLV_MISSING",
           "ROI_MISSING",
-          "STABILITY_DATA_BLOCKED",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-          "VALIDATION:TEAM_TOTALS_TRUE_CLV_24_LT_50"
+          "VALIDATION:TEAM_TOTALS_TRUE_CLV_0_LT_50",
+          "VALIDATION:TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20"
         ],
         "current_state": "RESEARCH",
         "promotion_shadow": {
@@ -1672,7 +1734,7 @@
         "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -1681,8 +1743,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 19
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -1690,8 +1752,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 99
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -1699,8 +1761,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 49
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -1708,25 +1770,31 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 199
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 5e-06,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 24,
-          "rows_remaining": 26,
+          "rows": 0,
+          "rows_remaining": 50,
           "sample_ready": false,
           "status": "COLLECTING"
         },
         "validation": {
           "numeric_deficits": [
             {
-              "actual": 24,
-              "gate": "TEAM_TOTALS_TRUE_CLV_24_LT_50",
-              "remaining": 26.0,
+              "actual": 0,
+              "gate": "TEAM_TOTALS_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
               "required": 50
+            },
+            {
+              "actual": 0,
+              "gate": "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20",
+              "remaining": 20.0,
+              "required": 20
             }
           ],
           "qualitative_blockers": [],
@@ -1750,8 +1818,8 @@
   },
   "provider_requests_added": 0,
   "recommended_state_counts": {
-    "RESEARCH": 8,
-    "SHADOW": 2
+    "RESEARCH": 9,
+    "SHADOW": 1
   },
   "runtime_state_mutation_enabled": false,
   "sample_policy": {
