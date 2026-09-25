@@ -1561,3 +1561,57 @@ def test_price_resolver_routes_observed_goal_scorer_and_card_names_to_research_s
     assert research["Cards European Handicap"]["research_family"] == "CARDS"
     assert research["First Card Received (3 way)"]["research_family"] == "CARDS"
     assert research["RCARD"]["research_family"] == "CARDS"
+
+
+def test_price_resolver_sidecar_xi_aligns_player_prop_values():
+    raw = {
+        "response": [{
+            "fixture": {"id": 9910},
+            "update": "2026-09-25T11:00:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [{
+                    "id": 201,
+                    "name": "Player Shots",
+                    "values": [
+                        {"value": "Player A Over 2.5", "odd": "1.95"},
+                        {"value": "Player A Under 2.5", "odd": "1.85"},
+                    ],
+                }],
+            }],
+        }],
+    }
+    event = {
+        "lineups": {
+            "both_xi_confirmed": True,
+            "both_goalkeepers_confirmed": True,
+            "teams": [
+                {
+                    "team_id": 10,
+                    "team": "Home",
+                    "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+                },
+                {
+                    "team_id": 20,
+                    "team": "Away",
+                    "starters": [{"id": 601, "name": "Keeper B", "pos": "G"}],
+                },
+            ],
+        }
+    }
+
+    markets = v.normalize_api_response(raw)
+    v._attach_market_to_event(event, markets, "PRICE_API_RESOLVED")
+
+    shots = next(
+        row for row in event["market"]["research_cards_props_markets"]
+        if row["market"] == "Player Shots"
+    )
+    assert shots["confirmed_xi_at_quote"] is True
+    assert shots["xi_aligned_value_rows"] == 2
+    assert {value["player_id"] for value in shots["values"]} == {501}
+    assert all(
+        value["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+        for value in shots["values"]
+    )
