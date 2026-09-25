@@ -8,9 +8,20 @@ def test_classify_research_derivative_markets():
     assert v.classify_market("Player Cards") == "PLAYER_CARDS"
     assert v.classify_market("Player Shots") == "SHOTS"
     assert v.classify_market("Player Shots On Target") == "SOT"
-    assert v.classify_market("Anytime Goalscorer") == "GOALSCORER"
+    assert v.classify_market("Anytime Goalscorer") == "GOALSCORER_ANYTIME"
     assert v.classify_market("Player Assists") == "ASSISTS"
     assert v.classify_market("Goalkeeper Saves") == "GK_SAVES"
+    assert v.classify_market("Home Anytime Goal Scorer") == "GOALSCORER_ANYTIME"
+    assert v.classify_market("Away First Goal Scorer") == "GOALSCORER_FIRST"
+    assert v.classify_market("Home Last Goal Scorer") == "GOALSCORER_LAST"
+    assert v.classify_market("Cards Asian Handicap") == "CARDS"
+    assert v.classify_market("Cards European Handicap") == "CARDS"
+    assert v.classify_market("First Card Received (3 way)") == "CARDS"
+    assert v.classify_market("RCARD") == "CARDS"
+    assert v.classify_market("ShotOnTarget Handicap") == "TEAM_SOT"
+    assert v.classify_market("ShotOnTarget 1x2") == "TEAM_SOT"
+    assert v.classify_market("Total ShotOnGoal") == "TEAM_SOT"
+    assert v.classify_market("Total Shots") == "TEAM_SHOTS"
     assert v.classify_market("Match Winner") is None
     assert v.classify_market("Total Corners") is None
 
