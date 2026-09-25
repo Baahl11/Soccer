@@ -1,3 +1,4 @@
+# V4-011 Draw challenger audit: 2026-09-24
 name: V4-011 LightGBM Goals Validation
 
 on:
@@ -7,7 +8,7 @@ on:
     paths: [".github/workflows/v4-011-lightgbm-validation.yml"]
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -35,7 +36,7 @@ jobs:
       - name: Install offline challenger dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "lightgbm>=4,<5"
+          pip install "lightgbm>=4,<5" pytest
 
       - name: Warm Render
         run: |
@@ -64,6 +65,10 @@ jobs:
           test "$http_code" = "200"
           jq -e '.status == "OK"' /tmp/v4_011_dataset.json >/dev/null
           jq -e '.market_fields_included == false' /tmp/v4_011_dataset.json >/dev/null
+
+      - name: Validate Draw challenger unit tests
+        run: |
+          PYTHONPATH=. pytest -q tests/test_draw_challenger_v4.py
 
       - name: Audit missing formations against persisted pre-kickoff feature snapshots
         shell: bash
@@ -207,3 +212,61 @@ jobs:
           name: v4-011-lightgbm-report
           path: /tmp/v4_011_report.json
           retention-days: 30
+
+      - name: Run Draw-specific chronological challenger
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m mcp_gateway.draw_challenger_v4 \
+            --dataset /tmp/v4_011_dataset.json \
+            --output /tmp/draw_challenger_v4.json
+
+          jq '{
+            model_version,
+            status,
+            dataset_row_count,
+            eligible_rows,
+            walk_forward_evaluated,
+            baseline_metrics,
+            challenger_metrics,
+            comparison,
+            research_followup_candidate,
+            production_promotion_allowed
+          }' /tmp/draw_challenger_v4.json
+
+          jq -e '
+            .model_version == "LIGHTGBM_DRAW_V4_CHALLENGER_1.0.0"
+            and .market_fields_used == false
+            and .post_kickoff_features_used == false
+            and .provider_requests_added == 0
+            and .production_promotion_allowed == false
+            and (.status == "RESEARCH_ONLY" or .status == "INSUFFICIENT_TRAINING_SAMPLE")
+          ' /tmp/draw_challenger_v4.json >/dev/null
+
+      - name: Upload Draw challenger report
+        uses: actions/upload-artifact@v4
+        with:
+          name: draw-challenger-v4-report
+          path: /tmp/draw_challenger_v4.json
+          retention-days: 30
+
+      - name: Persist Draw challenger research checkpoint
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p soccer_edge_state/analysis
+          cp /tmp/draw_challenger_v4.json soccer_edge_state/analysis/draw_challenger_v4.json
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/draw_challenger_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update Draw challenger OOS research report"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase --autostash origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
+
