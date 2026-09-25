@@ -281,7 +281,7 @@ def _load_rows(conn, *, lookback_days: int, max_rows: int) -> tuple[list[dict[st
             FROM soccer_refresh_events e
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
-              AND e.stage = 'POSTGAME'
+              AND e.stage IN ('POSTGAME','POSTGAME_BACKFILL')
             ORDER BY e.fixture_id, e.generated_at
             LIMIT %s
             """,
