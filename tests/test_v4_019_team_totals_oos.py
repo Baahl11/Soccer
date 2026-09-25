@@ -143,3 +143,30 @@ def test_v4_019_blocks_calibration_gap_at_or_above_ten_points():
     assert any(blocker.startswith("ROLE_LINE_CALIBRATION_MAX_GAP_") for blocker in report["blockers"])
     assert report["review_gate"]["role_line_calibration_ready"] is False
     assert report["production_promotion_allowed"] is False
+
+
+def test_v4_019_accepts_total_home_away_only_as_team_total_families():
+    summary = v.summarize_true_clv([
+        {
+            "market_family": "HOME_TT",
+            "market": "Total - Home",
+            "fixture_id": 20,
+            "clv_probability_pp": 0.02,
+        },
+        {
+            "market_family": "AWAY_TT",
+            "market": "Total - Away",
+            "fixture_id": 21,
+            "clv_probability_pp": -0.01,
+        },
+        {
+            "market_family": "CARDS",
+            "market": "Total - Home",
+            "fixture_id": 22,
+            "clv_probability_pp": 0.50,
+        },
+    ])
+
+    assert summary["rows"] == 2
+    assert summary["unique_fixtures"] == 2
+    assert summary["avg_probability_clv_pp"] == 0.005
