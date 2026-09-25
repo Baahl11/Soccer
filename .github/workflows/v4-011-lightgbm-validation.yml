@@ -1,4 +1,4 @@
-# V4-011 Draw challenger live audit: 2026-09-24
+# V4-011 BTTS O2.5 challenger live audit: 2026-09-24
 name: V4-011 LightGBM Goals Validation
 
 on:
@@ -68,7 +68,7 @@ jobs:
 
       - name: Validate Draw challenger unit tests
         run: |
-          PYTHONPATH=. pytest -q tests/test_draw_challenger_v4.py
+          PYTHONPATH=. pytest -q tests/test_draw_challenger_v4.py tests/test_goals_binary_challenger_v4.py
 
       - name: Audit missing formations against persisted pre-kickoff feature snapshots
         shell: bash
@@ -250,6 +250,60 @@ jobs:
           path: /tmp/draw_challenger_v4.json
           retention-days: 30
 
+      - name: Run BTTS and O2.5 chronological challengers
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m mcp_gateway.goals_binary_challenger_v4 \
+            --dataset /tmp/v4_011_dataset.json \
+            --output /tmp/goals_binary_challenger_v4.json
+
+          jq '{
+            model_version,
+            dataset_row_count,
+            targets:{
+              btts:{
+                status:.targets.btts.status,
+                eligible_rows:.targets.btts.eligible_rows,
+                effective_training_rows:.targets.btts.effective_training_rows,
+                walk_forward_evaluated:.targets.btts.walk_forward_evaluated,
+                baseline_metrics:.targets.btts.baseline_metrics,
+                challenger_metrics:.targets.btts.challenger_metrics,
+                comparison:.targets.btts.comparison,
+                research_followup_candidate:.targets.btts.research_followup_candidate
+              },
+              over_2_5:{
+                status:.targets.over_2_5.status,
+                eligible_rows:.targets.over_2_5.eligible_rows,
+                effective_training_rows:.targets.over_2_5.effective_training_rows,
+                walk_forward_evaluated:.targets.over_2_5.walk_forward_evaluated,
+                baseline_metrics:.targets.over_2_5.baseline_metrics,
+                challenger_metrics:.targets.over_2_5.challenger_metrics,
+                comparison:.targets.over_2_5.comparison,
+                research_followup_candidate:.targets.over_2_5.research_followup_candidate
+              }
+            }
+          }' /tmp/goals_binary_challenger_v4.json
+
+          jq -e '
+            .model_version == "LIGHTGBM_GOALS_BINARY_V4_CHALLENGER_1.0.0"
+            and .provider_requests_added == 0
+            and .production_promotion_allowed == false
+            and (.targets.btts.market_fields_used == false)
+            and (.targets.btts.post_kickoff_features_used == false)
+            and (.targets.over_2_5.market_fields_used == false)
+            and (.targets.over_2_5.post_kickoff_features_used == false)
+          ' /tmp/goals_binary_challenger_v4.json >/dev/null
+
+          cp /tmp/goals_binary_challenger_v4.json state/soccer_edge_state/analysis/goals_binary_challenger_v4.json
+
+      - name: Upload BTTS and O2.5 challenger report
+        uses: actions/upload-artifact@v4
+        with:
+          name: goals-binary-challenger-v4-report
+          path: /tmp/goals_binary_challenger_v4.json
+          retention-days: 30
+
       - name: Persist Draw challenger research checkpoint
         working-directory: state
         shell: bash
@@ -260,6 +314,7 @@ jobs:
           git config user.name soccer-edge-bot
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add -f soccer_edge_state/analysis/draw_challenger_v4.json
+          git add -f soccer_edge_state/analysis/goals_binary_challenger_v4.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update Draw challenger OOS research report"
           for attempt in 1 2 3; do
