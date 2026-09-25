@@ -159,7 +159,7 @@ jobs:
         run: |
           set -euo pipefail
           jq -e '.phase == "FASE_19_PROMOTION_FRAMEWORK"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
-          jq -e '.model_version == "SOCCER_PROMOTION_FRAMEWORK_V4_1.11.0"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
+          jq -e '.model_version == "SOCCER_PROMOTION_FRAMEWORK_V4_1.12.0"' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.automatic_promotion_allowed == false' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.manual_approval_required == true' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
           jq -e '.runtime_state_mutation_enabled == false' state/soccer_edge_state/analysis/phase19_promotion_framework_report.json >/dev/null
