@@ -9,7 +9,25 @@ from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.31.4-team-totals-strict-diversity-capture"
+AUTOMATION_VERSION = "4.31.5-team-totals-upcoming-market-capture"
+
+
+def _leftover_price_budget(payload: dict[str, Any]) -> int:
+    configured = int(price_resolver_v4.DEFAULT_MAX_API_CALLS)
+    try:
+        used = int(payload.get("api_calls_this_tick") or 0)
+    except (TypeError, ValueError):
+        used = 0
+
+    cap_value = payload.get("effective_max_api_calls_per_tick")
+    if cap_value is None:
+        cap_value = payload.get("max_api_calls_per_tick")
+    try:
+        cap = int(cap_value)
+    except (TypeError, ValueError):
+        return configured
+
+    return max(0, min(configured, cap - used))
 
 
 def _annotate_checkpoint(payload: dict[str, Any]) -> None:
@@ -44,15 +62,20 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "research_spillover_projected_unique_fixtures": resolution.get("research_spillover_projected_unique_fixtures", 0),
         "research_spillover_diversity_gap_remaining": resolution.get("research_spillover_diversity_gap_remaining", 20),
         "research_spillover_persisted_backlog_candidates": resolution.get("research_spillover_persisted_backlog_candidates", 0),
+        "research_spillover_scanned_upcoming_candidates": resolution.get("research_spillover_scanned_upcoming_candidates", 0),
+        "research_spillover_market_capture_only_candidates": resolution.get("research_spillover_market_capture_only_candidates", 0),
         "research_spillover_exact_team_total_fixtures_attached": resolution.get("research_spillover_exact_team_total_fixtures_attached", 0),
+        "research_spillover_ft_team_total_market_rows_attached": resolution.get("research_spillover_ft_team_total_market_rows_attached", 0),
         "research_spillover_primary_markets_preempted": resolution.get("research_spillover_primary_markets_preempted", False),
         "note": (
             "Price resolver uses real API-Football /odds fixture quotes or fresh Postgres market snapshots. "
             "Resolved rows are re-evaluated by Team Totals research intelligence, execution-status separation "
             "and Phase16. Team Totals is cache-first and may use only provider budget left after every primary "
             "price target; those spillover calls remain research-only and cannot pre-empt FT Totals/BTTS/1X2. "
-            "Uncovered upcoming fixtures with persisted pre-kickoff team lambdas are prioritized until 20 explicit "
-            "strict FT Team Totals capture fixtures are collected. Legacy observed rows are diagnostic only and cannot "
+            "Uncovered fixtures with persisted pre-kickoff team lambdas are prioritized first; then already-scanned "
+            "upcoming fixtures may receive market-capture-only /odds hydration until 20 explicit strict FT Team Totals "
+            "capture fixtures are collected. A market-only capture is not Phase19 directional evidence. Legacy observed "
+            "rows are diagnostic only and cannot "
             "satisfy this gate; Phase19 true-CLV uniqueness remains a separate downstream gate that needs a later "
             "pre-kickoff close. No calibrated probability is fabricated and no BET/tier/stake/model threshold is changed."
         ),
@@ -62,7 +85,13 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
 async def run_tick() -> dict[str, Any]:
     payload = await v121.run_tick()
 
-    await price_resolver_v4.resolve_payload(payload)
+    leftover_price_budget = _leftover_price_budget(payload)
+    payload["price_resolver_leftover_budget"] = leftover_price_budget
+    payload["price_resolver_budget_policy"] = (
+        "MIN(CONFIGURED_PRICE_CAP, EFFECTIVE_TICK_CAP - CALLS_ALREADY_USED); "
+        "PRIMARY PRICE TARGETS FIRST; TEAM TOTALS SPILLOVER ONLY AFTER PRIMARY"
+    )
+    await price_resolver_v4.resolve_payload(payload, max_api_calls=leftover_price_budget)
 
     # Team Totals is built earlier in the automation chain, before the price
     # resolver may attach real fixture /odds markets. Rebuild this research-only
