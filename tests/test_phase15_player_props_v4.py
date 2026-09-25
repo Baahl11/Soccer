@@ -1556,3 +1556,94 @@ def test_v156_registry_backfill_marks_gk_saves_priority_future_only():
     assert event["backfill"]["future_registry_use_only"] is True
     assert event["backfill"]["retroactive_pregame_signal_created"] is False
     assert event["backfill"]["eligible_for_historical_oos_reconstruction"] is False
+
+
+
+def test_v156_unknown_goalkeeper_reaches_player_prop_shadow_signal_pipeline():
+    lineup = {
+        "both_goalkeepers_confirmed": True,
+        "both_xi_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "goalkeepers": [{"id": 501, "name": "Home GK"}],
+                "starters": [{"id": 501, "name": "Home GK", "pos": "G"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "goalkeepers": [{"id": 601, "name": "Away GK"}],
+                "starters": [{"id": 601, "name": "Away GK", "pos": "G"}],
+            },
+        ],
+    }
+    registry = {
+        "goalkeepers": {
+            "999": {
+                "sample_band": "LOW",
+                "windows": {
+                    "last_20": {
+                        "save_result_proxy_saves": 8.0,
+                        "save_result_proxy_goals_conceded": 4.0,
+                    }
+                },
+            }
+        }
+    }
+    trends = {
+        "global_context": {"avg_team_sot": 4.5},
+        "teams": [],
+    }
+    model = gk_saves.build(
+        {
+            "fixture": {
+                "fixture_id": 9400,
+                "home_team_id": 10,
+                "away_team_id": 20,
+            },
+            "lineups": lineup,
+        },
+        registry,
+        trends,
+    )
+    home_model = next(row for row in model["goalkeepers"] if row["player_id"] == 501)
+    expected = next(row["p_over"] for row in home_model["lines"] if row["line"] == 1.5)
+
+    event = {
+        "fixture_id": 9400,
+        "generated_at": "2026-09-25T10:00:00+00:00",
+        "stage": "T-20",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-20",
+            "fixture": {"fixture_id": 9400, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "lineups": lineup,
+            "gk_saves_intelligence": model,
+            "market": {
+                "research_cards_props_markets": [{
+                    "research_family": "PLAYER_PROPS",
+                    "research_subfamily": "GK_SAVES",
+                    "market": "Goalkeeper Saves",
+                    "bookmaker": "Book",
+                    "provider_update": "2026-09-25T09:58:00+00:00",
+                    "values": [{
+                        "selection": "Home GK - 2",
+                        "decimal_price": 1.95,
+                        "parsed_line": 1.5,
+                        "player_id": 501,
+                        "player_name": "Home GK",
+                        "xi_alignment_status": "MATCHED_CONFIRMED_XI",
+                    }],
+                }]
+            },
+        },
+    }
+
+    signals = prop_clv.extract_shadow_signals([event])
+    assert len(signals) == 1
+    assert signals[0]["market_family"] == "GK_SAVES"
+    assert signals[0]["player_id"] == 501
+    assert signals[0]["line"] == 1.5
+    assert signals[0]["side"] == "OVER"
+    assert signals[0]["model_probability"] == expected
