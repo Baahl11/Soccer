@@ -11,8 +11,8 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import player_trends
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_TREND_REGISTRY_BACKFILL_V4_1.1.0"
-MAX_FIXTURES_PER_RUN = 8
+MODEL_VERSION = "SOCCER_PLAYER_TREND_REGISTRY_BACKFILL_V4_1.2.0"
+MAX_FIXTURES_PER_RUN = 16
 MIN_DAILY_REMAINING = 250
 MIN_REQUEST_INTERVAL_SECONDS = 0.8
 
@@ -34,7 +34,18 @@ def _candidate_fixtures(
                 f.away_team_id,
                 r.home_goals,
                 r.away_goals,
-                MAX(m.captured_at) AS last_player_prop_market_at
+                MAX(m.captured_at) AS last_player_prop_market_at,
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(m.market, '')) LIKE '%%goalkeeper save%%'
+                       OR LOWER(COALESCE(m.market, '')) LIKE '%%keeper save%%'
+                       OR LOWER(COALESCE(m.market, '')) LIKE '%%gk save%%'
+                ) AS gk_saves_market_rows,
+                BOOL_OR(
+                    LOWER(COALESCE(m.market, '')) LIKE '%%goalkeeper save%%'
+                    OR LOWER(COALESCE(m.market, '')) LIKE '%%keeper save%%'
+                    OR LOWER(COALESCE(m.market, '')) LIKE '%%gk save%%'
+                ) AS has_gk_saves_market,
+                COUNT(*) AS player_prop_market_rows
             FROM soccer_market_snapshots m
             JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
             JOIN soccer_results r ON r.fixture_id = m.fixture_id
@@ -62,7 +73,13 @@ def _candidate_fixtures(
                       AND e.payload ? 'postgame_player_stats'
               )
             GROUP BY m.fixture_id, f.kickoff, f.home_team_id, f.away_team_id, r.home_goals, r.away_goals
-            ORDER BY MAX(m.captured_at) DESC
+            ORDER BY
+                BOOL_OR(
+                    LOWER(COALESCE(m.market, '')) LIKE '%%goalkeeper save%%'
+                    OR LOWER(COALESCE(m.market, '')) LIKE '%%keeper save%%'
+                    OR LOWER(COALESCE(m.market, '')) LIKE '%%gk save%%'
+                ) DESC,
+                MAX(m.captured_at) DESC
             LIMIT %s
             """,
             (cutoff, max_fixtures),
@@ -205,6 +222,7 @@ def make_registry_backfill_event(
     compact: dict[str, Any],
     *,
     provider_daily_remaining: int | None,
+    priority_family: str | None = None,
 ) -> dict[str, Any]:
     stats = dict(compact)
     stats["fixture_id"] = int(fixture_id)
@@ -225,6 +243,7 @@ def make_registry_backfill_event(
         "postgame_player_stats": stats,
         "backfill": {
             "reason": "PLAYER_TREND_REGISTRY_MATURATION",
+            "priority_family": priority_family,
             "future_registry_use_only": True,
             "eligible_for_historical_oos_reconstruction": False,
             "pregame_signal_required": False,
@@ -278,6 +297,8 @@ async def run_backfill(
 
     persistence_base.ensure_schema()
     attempted = captured = unavailable = 0
+    captured_gk_priority = 0
+    captured_goalkeeper_rows = 0
     details: list[dict[str, Any]] = []
     newly_captured: list[dict[str, Any]] = []
     daily_remaining = v2._LAST_DAILY_REMAINING
@@ -336,19 +357,33 @@ async def run_backfill(
                     })
                     continue
 
+                priority_family = "GK_SAVES" if candidate.get("has_gk_saves_market") is True else None
                 event = make_registry_backfill_event(
                     fixture_id,
                     kickoff,
                     compact,
                     provider_daily_remaining=daily_remaining,
+                    priority_family=priority_family,
                 )
                 _persist_event(conn, event, generated_at=datetime.now(timezone.utc))
                 captured += 1
+                if priority_family == "GK_SAVES":
+                    captured_gk_priority += 1
                 player_rows = sum(
                     len(team.get("players") or [])
                     for team in compact.get("teams") or []
                     if isinstance(team, dict)
                 )
+                goalkeeper_rows = sum(
+                    1
+                    for team in compact.get("teams") or []
+                    if isinstance(team, dict)
+                    for player in (team.get("players") or [])
+                    if isinstance(player, dict)
+                    and str(player.get("position") or "").upper() in {"G", "GK", "GOALKEEPER"}
+                    and (_num(player.get("minutes")) or 0.0) > 0.0
+                )
+                captured_goalkeeper_rows += goalkeeper_rows
                 capture = {
                     "fixture_id": fixture_id,
                     "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
@@ -359,7 +394,10 @@ async def run_backfill(
                 details.append({
                     "fixture_id": fixture_id,
                     "status": "CAPTURED_FOR_FUTURE_REGISTRY",
+                    "priority_family": priority_family,
+                    "gk_saves_market_rows": int(candidate.get("gk_saves_market_rows") or 0),
                     "player_rows": player_rows,
+                    "goalkeeper_rows": goalkeeper_rows,
                     "daily_remaining": daily_remaining,
                 })
             except Exception as exc:
@@ -384,8 +422,13 @@ async def run_backfill(
         "status": "PLAYER_TREND_REGISTRY_BACKFILL_COMPLETE",
         "candidate_fixtures": [int(row["fixture_id"]) for row in candidates],
         "candidate_fixture_count": len(candidates),
+        "gk_saves_priority_candidate_count": sum(
+            1 for row in candidates if row.get("has_gk_saves_market") is True
+        ),
         "attempted": attempted,
         "captured": captured,
+        "captured_gk_saves_priority_fixtures": captured_gk_priority,
+        "captured_goalkeeper_rows": captured_goalkeeper_rows,
         "unavailable": unavailable,
         "details": details,
         "captures": materialized_captures,
@@ -400,7 +443,7 @@ async def run_backfill(
         "decision_weight": 0.0,
         "production_promotion_allowed": False,
         "policy": (
-            "FINALIZED FIXTURES WITH OBSERVED PLAYER-PROP MARKETS ONLY; OUTCOME/STATS BACKFILL "
+            "FINALIZED FIXTURES WITH OBSERVED PLAYER-PROP MARKETS ONLY; GK SAVES MARKET FIXTURES ARE PRIORITIZED; OUTCOME/STATS BACKFILL "
             "MAY FEED FUTURE PLAYER TREND/ROLE/MODEL REGISTRIES ONLY; NEVER CREATE OR RECONSTRUCT "
             "HISTORICAL PREGAME SIGNALS, XI, PRICES, CLV, OOS PREDICTIONS, OR BET ELIGIBILITY."
         ),
