@@ -1,49 +1,49 @@
 {
-  "available_oos_rows": 57,
+  "available_oos_rows": 64,
   "baseline": "INDEPENDENT_POISSON_DRAW_FROM_PREKICKOFF_HOME_AWAY_GOAL_RATES",
   "baseline_metrics": {
-    "brier": 0.23505962,
+    "brier": 0.23562393,
     "discrimination": {
-      "auc": 0.42482517,
-      "auc_lower_95": 0.25199065,
-      "auc_standard_error": 0.08818088,
+      "auc": 0.43428571,
+      "auc_lower_95": 0.26789566,
+      "auc_standard_error": 0.08489288,
       "discrimination_ready": false,
-      "negative_count": 44,
-      "positive_count": 13
+      "negative_count": 50,
+      "positive_count": 14
     },
-    "log_loss": 0.65732731,
-    "negative_count": 44,
-    "positive_count": 13,
-    "rows": 57
+    "log_loss": 0.65803222,
+    "negative_count": 50,
+    "positive_count": 14,
+    "rows": 64
   },
   "canonical_bet_logic_changed": false,
   "challenger_metrics": {
-    "brier": 0.18478743,
+    "brier": 0.17808812,
     "discrimination": {
-      "auc": 0.46940559,
-      "auc_lower_95": 0.29161746,
-      "auc_standard_error": 0.09070823,
+      "auc": 0.47642857,
+      "auc_lower_95": 0.30575283,
+      "auc_standard_error": 0.08707946,
       "discrimination_ready": false,
-      "negative_count": 44,
-      "positive_count": 13
+      "negative_count": 50,
+      "positive_count": 14
     },
-    "log_loss": 0.5643606,
-    "negative_count": 44,
-    "positive_count": 13,
-    "rows": 57
+    "log_loss": 0.5479075,
+    "negative_count": 50,
+    "positive_count": 14,
+    "rows": 64
   },
   "comparison": {
-    "auc_lower_95_delta": 0.03962681,
-    "brier_delta": -0.05027219,
+    "auc_lower_95_delta": 0.03785717,
+    "brier_delta": -0.05753581,
     "challenger_discrimination_ready": false,
     "improves_all_primary_metrics": true,
-    "log_loss_delta": -0.09296671
+    "log_loss_delta": -0.11012472
   },
-  "dataset_fingerprint": "418bafdbd05716eb141af544a50ac5fc5be0382ce73394f18c02ca797f5aa5d2",
-  "dataset_row_count": 121,
+  "dataset_fingerprint": "aea649726ea94593768a0977149e424aa9884a94ead982d0f8810e1abba333c7",
+  "dataset_row_count": 128,
   "dataset_version": "4.0.0",
   "effective_training_rows": 64,
-  "eligible_rows": 121,
+  "eligible_rows": 128,
   "feature_count": 13,
   "feature_importance": [
     {
@@ -191,38 +191,38 @@
     },
     {
       "baseline": {
-        "brier": 0.16516287,
+        "brier": 0.20269099,
         "discrimination": {
-          "auc": 0.33333333,
+          "auc": 0.41666667,
           "auc_lower_95": 0.0,
-          "auc_standard_error": 0.28867513,
+          "auc_standard_error": 0.21592423,
           "discrimination_ready": false,
-          "negative_count": 6,
-          "positive_count": 1
+          "negative_count": 12,
+          "positive_count": 2
         },
-        "log_loss": 0.49480475,
-        "negative_count": 6,
-        "positive_count": 1,
-        "rows": 7
+        "log_loss": 0.57928845,
+        "negative_count": 12,
+        "positive_count": 2,
+        "rows": 14
       },
       "challenger": {
-        "brier": 0.14770743,
+        "brier": 0.13562202,
         "discrimination": {
-          "auc": 0.33333333,
-          "auc_lower_95": 0.0,
-          "auc_standard_error": 0.28867513,
+          "auc": 0.54166667,
+          "auc_lower_95": 0.08800039,
+          "auc_standard_error": 0.23146239,
           "discrimination_ready": false,
-          "negative_count": 6,
-          "positive_count": 1
+          "negative_count": 12,
+          "positive_count": 2
         },
-        "log_loss": 0.47231483,
-        "negative_count": 6,
-        "positive_count": 1,
-        "rows": 7
+        "log_loss": 0.44312355,
+        "negative_count": 12,
+        "positive_count": 2,
+        "rows": 14
       },
       "fold": 3,
-      "test_draws": 1,
-      "test_rows": 7,
+      "test_draws": 2,
+      "test_rows": 14,
       "train_rows": 114
     }
   ],
@@ -240,5 +240,5 @@
   "schema_version": "1.0.0",
   "status": "RESEARCH_ONLY",
   "training_policy": "EXPANDING_WALK_FORWARD_BLOCKS;NO_MARKET_FIELDS;STRICTLY_PREKICKOFF_FEATURES",
-  "walk_forward_evaluated": 57
+  "walk_forward_evaluated": 64
 }
