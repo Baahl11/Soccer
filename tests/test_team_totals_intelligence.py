@@ -102,3 +102,34 @@ def test_team_totals_rejects_period_and_non_goal_team_total_markets():
 
     assert report["observed_exact_market_count"] == 0
     assert report["observed_exact_market_rows"] == []
+
+
+def test_team_totals_accepts_api_football_total_home_and_away_labels():
+    event = _base_event([])
+    event["market"]["markets"] = [
+        {
+            "market": "Total - Home",
+            "market_id": 16,
+            "bookmaker": "1xBet",
+            "values": [
+                {"selection": "Over", "line": 1.5, "decimal_price": 1.83},
+                {"selection": "Under", "line": 1.5, "decimal_price": 1.80},
+            ],
+        },
+        {
+            "market": "Total - Away",
+            "market_id": 17,
+            "bookmaker": "1xBet",
+            "values": [
+                {"selection": "Over", "line": 0.5, "decimal_price": 1.75},
+                {"selection": "Under", "line": 0.5, "decimal_price": 2.00},
+            ],
+        },
+    ]
+
+    report = tti.build(event)
+    rows = report["observed_exact_market_rows"]
+
+    assert report["observed_exact_market_count"] == 4
+    assert {row["team_role"] for row in rows} == {"HOME", "AWAY"}
+    assert {row["market"] for row in rows} == {"Total - Home", "Total - Away"}
