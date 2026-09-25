@@ -14,7 +14,7 @@ from mcp_gateway import automation_v4 as v4
 from mcp_gateway.soccer_model import build_raw_projection, public_raw_projection
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
-AUTOMATION_VERSION = "1.5.1"
+AUTOMATION_VERSION = "1.5.2"
 
 MAX_DEEP_DIVE_FIXTURES_PER_TICK = int(os.getenv("SOCCER_EDGE_MAX_DEEP_DIVE_FIXTURES_PER_TICK", "8"))
 MAX_UPCOMING_MARKET_CAPTURE_FIXTURES = max(
@@ -22,6 +22,14 @@ MAX_UPCOMING_MARKET_CAPTURE_FIXTURES = max(
     int(os.getenv("SOCCER_EDGE_MAX_UPCOMING_MARKET_CAPTURE_FIXTURES", "80")),
 )
 SHORTLIST_TTL = timedelta(hours=14)
+
+PLAYER_PROPS_XI_RESEARCH_STAGES = {"T-20", "T-10"}
+MAX_PLAYER_PROPS_XI_RESEARCH_FIXTURES_PER_TICK = max(
+    1,
+    int(os.getenv("SOCCER_PLAYER_PROPS_XI_RESEARCH_MAX_FIXTURES_PER_TICK", "4")),
+)
+_PLAYER_PROPS_XI_RESEARCH_ATTEMPTS = 0
+_PLAYER_PROPS_XI_RESEARCH_CAPTURED = 0
 
 STAGE_PRIORITY = {
     "T-40": 0,
@@ -276,6 +284,85 @@ async def _odds_7m(
     }
 
 
+async def _try_player_props_xi_research(
+    event: dict[str, Any],
+    fx: dict[str, Any],
+    stage: str,
+    coverage: dict[str, Any],
+    now: datetime,
+) -> bool:
+    global _PLAYER_PROPS_XI_RESEARCH_ATTEMPTS
+    global _PLAYER_PROPS_XI_RESEARCH_CAPTURED
+
+    if stage not in PLAYER_PROPS_XI_RESEARCH_STAGES:
+        return False
+    if not coverage.get("lineups") or not coverage.get("odds"):
+        return False
+    if _PLAYER_PROPS_XI_RESEARCH_ATTEMPTS >= MAX_PLAYER_PROPS_XI_RESEARCH_FIXTURES_PER_TICK:
+        return False
+
+    _PLAYER_PROPS_XI_RESEARCH_ATTEMPTS += 1
+    lineup = await _lineup_cached(fx["fixture_id"], now)
+    event["lineups"] = lineup
+    event["availability_confidence"] = (
+        0.90
+        if lineup.get("both_xi_confirmed") and lineup.get("both_goalkeepers_confirmed")
+        else 0.75
+    )
+
+    if lineup.get("both_xi_confirmed") is not True:
+        event["research_player_props_xi_capture"] = {
+            "status": "XI_NOT_CONFIRMED",
+            "stage": stage,
+            "research_only": True,
+            "decision_weight": 0.0,
+            "production_promotion_allowed": False,
+        }
+        return False
+
+    market = await _odds_7m(
+        fx["fixture_id"],
+        now,
+        lineup=lineup,
+    )
+    event["market"] = market
+    event["market_use"] = "PLAYER_PROPS_XI_RESEARCH_ONLY"
+    event["classification"] = "RESEARCH_ONLY"
+    event["bet_eligible"] = False
+    event["stake_units"] = 0.0
+    event["decision_weight"] = 0.0
+
+    prop_rows = [
+        row for row in (market.get("research_cards_props_markets") or [])
+        if isinstance(row, dict)
+        and row.get("research_family") == "PLAYER_PROPS"
+    ]
+    xi_aligned_values = sum(
+        1
+        for row in prop_rows
+        for value in (row.get("values") or [])
+        if isinstance(value, dict)
+        and value.get("xi_alignment_status") == "MATCHED_CONFIRMED_XI"
+    )
+    event["research_player_props_xi_capture"] = {
+        "status": "XI_CONFIRMED_RESEARCH_CAPTURED",
+        "stage": stage,
+        "market_source": market.get("source"),
+        "market_resolution_status": market.get("resolution_status"),
+        "player_prop_market_rows": len(prop_rows),
+        "xi_aligned_value_rows": xi_aligned_values,
+        "research_only": True,
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+        "primary_market_decision_created": False,
+    }
+    event["notes"].append(
+        "Confirmed-XI Player Props research capture retained despite sporting shortlist miss; no production decision created."
+    )
+    _PLAYER_PROPS_XI_RESEARCH_CAPTURED += 1
+    return True
+
+
 async def _cheap_sport_bundle(fx: dict[str, Any], now: datetime) -> dict[str, Any]:
     # First-stage SPORT FIRST screen: season home/away splits only. Recent-form
     # requests are reserved for candidates that survive the screen.
@@ -385,10 +472,13 @@ async def _priority_event(
             _shortlist_set(fx["fixture_id"], cheap_screen, now)
             event["raw_projection"] = public_raw_projection(raw_cheap)
             event["sporting_shortlist"] = cheap_screen
+            if await _try_player_props_xi_research(event, fx, stage, coverage, now):
+                event["market_skipped_by_sport_screen"] = False
+                return event
             event["classification"] = "PASS"
             event["market_skipped_by_sport_screen"] = stage in v2.MARKET_STAGES
             event["notes"].append(
-                "SPORT FIRST screen below shortlist threshold; recent-form, lineup and detailed market requests deferred."
+                "SPORT FIRST screen below shortlist threshold; recent-form and production market requests deferred."
             )
             return event
 
@@ -402,16 +492,21 @@ async def _priority_event(
 
         if not shortlisted:
             event["raw_projection"] = public_raw_projection(raw_internal)
+            if await _try_player_props_xi_research(event, fx, stage, coverage, now):
+                event["market_skipped_by_sport_screen"] = False
+                return event
             event["classification"] = "PASS"
             event["market_skipped_by_sport_screen"] = stage in v2.MARKET_STAGES
             event["notes"].append(
-                "Refined sporting screen fell below shortlist threshold; no detailed market request made."
+                "Refined sporting screen fell below shortlist threshold; no production market request made."
             )
             return event
     else:
         event["sporting_shortlist"] = prior_shortlist
 
     if not shortlisted:
+        if await _try_player_props_xi_research(event, fx, stage, coverage, now):
+            return event
         event["classification"] = "PASS"
         event["notes"].append("No active sporting shortlist for this refresh.")
         return event
@@ -498,8 +593,13 @@ async def _priority_event(
 
 
 async def run_tick() -> dict[str, Any]:
+    global _PLAYER_PROPS_XI_RESEARCH_ATTEMPTS
+    global _PLAYER_PROPS_XI_RESEARCH_CAPTURED
+
     v2._API_CALLS_THIS_TICK = 0
     v2._LAST_DAILY_REMAINING = None
+    _PLAYER_PROPS_XI_RESEARCH_ATTEMPTS = 0
+    _PLAYER_PROPS_XI_RESEARCH_CAPTURED = 0
 
     # v1.4 protections remain active.
     base._api_get = v4._paced_api_get
@@ -706,6 +806,9 @@ async def run_tick() -> dict[str, Any]:
             "shortlist_event_count": shortlist_events,
             "screened_out_low_data_count": sum(low_data_counts.values()),
             "market_requests_avoided_by_sport_screen": market_requests_avoided_by_screen,
+            "player_props_xi_research_attempts": _PLAYER_PROPS_XI_RESEARCH_ATTEMPTS,
+            "player_props_xi_research_captured": _PLAYER_PROPS_XI_RESEARCH_CAPTURED,
+            "player_props_xi_research_max_per_tick": MAX_PLAYER_PROPS_XI_RESEARCH_FIXTURES_PER_TICK,
             "max_deep_dive_fixtures_per_tick": MAX_DEEP_DIVE_FIXTURES_PER_TICK,
             "priority_queue": "DATA_TIER_THEN_STAGE_THEN_PRIOR_SHORTLIST_THEN_COMPETITION_THEN_COVERAGE",
             "request_pacing_seconds": v4.MIN_REQUEST_INTERVAL_SECONDS,
