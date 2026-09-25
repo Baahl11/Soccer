@@ -1394,26 +1394,32 @@ async def _fetch_fixture_odds(
     return markets, calls, "PRICE_API_RESOLVED" if markets else "PRICE_API_NO_FIXTURE_OR_MARKET", daily_remaining
 
 
+def _research_derivative_subfamily(market_name: str) -> str | None:
+    name = _norm(market_name)
+    if "first goal scorer" in name:
+        return "GOALSCORER_FIRST"
+    if "last goal scorer" in name:
+        return "GOALSCORER_LAST"
+    if any(token in name for token in ("anytime goal scorer", "anytime goalscorer", "player to score")):
+        return "GOALSCORER_ANYTIME"
+    if "goal scorer" in name or "goalscorer" in name:
+        return "GOALSCORER_OTHER"
+    if "shots on target - player" in name or "player shots on target" in name:
+        return "SOT"
+    if "player shots" in name or "player shot" in name:
+        return "SHOTS"
+    if "goalkeeper saves" in name or "keeper saves" in name or "gk saves" in name:
+        return "GK_SAVES"
+    if "player assists" in name or "player assist" in name:
+        return "ASSISTS"
+    if any(token in name for token in ("player cards", "player card", "player booked", "player booking")):
+        return "PLAYER_CARDS"
+    return None
+
+
 def _research_derivative_family(market_name: str) -> str | None:
     name = _norm(market_name)
-    player_tokens = (
-        "player shots",
-        "player shot",
-        "shots on target - player",
-        "player shots on target",
-        "player to score",
-        "anytime goalscorer",
-        "goalscorer",
-        "player assists",
-        "player assist",
-        "goalkeeper saves",
-        "keeper saves",
-        "player cards",
-        "player card",
-        "player booked",
-        "player booking",
-    )
-    if any(token in name for token in player_tokens):
+    if _research_derivative_subfamily(name) is not None:
         return "PLAYER_PROPS"
     card_tokens = (
         "cards over/under",
@@ -1425,8 +1431,11 @@ def _research_derivative_family(market_name: str) -> str | None:
         "team cards",
         "booking points",
         "bookings",
+        "cards asian handicap",
+        "cards european handicap",
+        "first card received",
     )
-    if any(token in name for token in card_tokens):
+    if name == "rcard" or any(token in name for token in card_tokens):
         return "CARDS"
     return None
 
@@ -1448,6 +1457,10 @@ def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]]
             **market,
             "research_only": True,
             "research_family": family,
+            "research_subfamily": (
+                _research_derivative_subfamily(str(market.get("market") or ""))
+                if family == "PLAYER_PROPS" else None
+            ),
             "decision_weight": 0.0,
             "production_promotion_allowed": False,
         }
