@@ -235,12 +235,12 @@ jobs:
           }' /tmp/draw_challenger_v4.json
 
           jq -e '
-            .model_version == "LIGHTGBM_DRAW_V4_CHALLENGER_1.1.0"
+            .model_version == "LIGHTGBM_DRAW_V4_CHALLENGER_1.2.0"
             and .market_fields_used == false
             and .post_kickoff_features_used == false
             and .provider_requests_added == 0
             and .production_promotion_allowed == false
-            and (.status == "RESEARCH_ONLY" or .status == "INSUFFICIENT_TRAINING_SAMPLE")
+            and (.status == "RESEARCH_ONLY" or .status == "INSUFFICIENT_TRAINING_SAMPLE" or .status == "INSUFFICIENT_CLASS_SUPPORT")
           ' /tmp/draw_challenger_v4.json >/dev/null
 
       - name: Upload Draw challenger report
