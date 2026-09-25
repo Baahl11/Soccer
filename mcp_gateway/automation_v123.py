@@ -11,6 +11,7 @@ from mcp_gateway import team_totals_intelligence
 
 MODEL_VERSION = v121.MODEL_VERSION
 AUTOMATION_VERSION = "4.31.6-team-totals-v7-scan-handoff"
+# Deployment marker: v126 active-v7 upcoming fixture handoff.
 # Deployment marker: v125 scanned-upcoming FT Team Totals capture.
 
 
