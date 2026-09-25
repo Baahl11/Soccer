@@ -1448,3 +1448,76 @@ def test_primary_maturation_quote_helper_requires_same_market_and_later_update()
         },
     ]
     assert v._primary_signals_with_later_provider_quote(markets, signals) == {"1X2"}
+
+
+
+def test_price_resolver_splits_cards_and_props_from_canonical_event_markets():
+    raw = {
+        "response": [{
+            "fixture": {"id": 9901},
+            "update": "2026-09-25T11:00:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [
+                    {
+                        "id": 1,
+                        "name": "Match Winner",
+                        "values": [
+                            {"value": "Home", "odd": "2.00"},
+                            {"value": "Draw", "odd": "3.20"},
+                            {"value": "Away", "odd": "3.60"},
+                        ],
+                    },
+                    {
+                        "id": 200,
+                        "name": "Total Yellow Cards",
+                        "values": [
+                            {"value": "Over 4.5", "odd": "1.90"},
+                            {"value": "Under 4.5", "odd": "1.90"},
+                        ],
+                    },
+                    {
+                        "id": 201,
+                        "name": "Player Shots",
+                        "values": [
+                            {"value": "Player A Over 2.5", "odd": "1.95"},
+                        ],
+                    },
+                ],
+            }],
+        }],
+    }
+
+    markets = v.normalize_api_response(raw)
+    event = {}
+    v._attach_market_to_event(event, markets, "PRICE_API_RESOLVED")
+
+    canonical = event["market"]["markets"]
+    research = event["market"]["research_cards_props_markets"]
+    assert [row["market"] for row in canonical] == ["Match Winner"]
+    assert {row["market"] for row in research} == {"Total Yellow Cards", "Player Shots"}
+    assert event["market"]["card_research_market_rows"] == 1
+    assert event["market"]["player_prop_research_market_rows"] == 1
+    assert all(row["research_only"] is True for row in research)
+    shots = next(row for row in research if row["market"] == "Player Shots")
+    assert shots["values"][0]["raw_selection"] == "Player A Over 2.5"
+    assert shots["values"][0]["line"] == 2.5
+
+
+def test_price_resolver_cache_sidecar_is_marked_cache_not_fresh_provider():
+    event = {}
+    markets = [{
+        "fixture_id": 9902,
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market_id": 200,
+        "market": "Total Yellow Cards",
+        "values": [{"selection": "Over", "line": 4.5, "decimal_price": 1.9}],
+        "provider_update": "2026-09-25T11:00:00+00:00",
+        "source": "POSTGRES_MARKET_SNAPSHOT_CACHE",
+    }]
+    v._attach_market_to_event(event, markets, "PRICE_CACHE_HIT")
+    assert event["market"]["source"] == "POSTGRES_MARKET_SNAPSHOT_CACHE"
+    assert event["market"]["resolution_status"] == "PRICE_CACHE_HIT"
+    assert event["market"]["card_research_market_rows"] == 1
