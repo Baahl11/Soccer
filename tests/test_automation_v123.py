@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from mcp_gateway import automation as base
 from mcp_gateway import automation_v123 as v
+from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v5 as v5
 from mcp_gateway import automation_v7 as v7
 
@@ -795,3 +796,77 @@ def test_player_prop_capture_marks_unaligned_when_confirmed_xi_is_unavailable():
     assert row["values"][0]["xi_alignment_status"] == "NO_CONFIRMED_XI_AT_QUOTE"
     assert row["decision_weight"] == 0.0
     assert row["production_promotion_allowed"] is False
+
+
+def test_production_event_passes_confirmed_xi_into_odds_compaction(monkeypatch):
+    now = datetime(2026, 9, 25, 12, 0, tzinfo=timezone.utc)
+    fixture = {
+        "fixture_id": 99001,
+        "league_id": 39,
+        "season": 2026,
+        "kickoff": "2026-09-25T12:10:00+00:00",
+        "home_team_id": 10,
+        "away_team_id": 20,
+        "home_team": "Home",
+        "away_team": "Away",
+    }
+    lineup = {
+        "both_xi_confirmed": True,
+        "both_goalkeepers_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Keeper B", "pos": "G"}],
+            },
+        ],
+    }
+
+    async def fake_coverage(*args, **kwargs):
+        return {
+            "data_tier": "A",
+            "injuries": False,
+            "lineups": True,
+            "odds": True,
+            "statistics_fixtures": False,
+        }
+
+    async def fake_sport_bundle(*args, **kwargs):
+        return {"sport_data": "UNAVAILABLE"}
+
+    async def fake_api_get(endpoint, params):
+        if endpoint == "fixtures/lineups":
+            return {"response": []}
+        if endpoint == "odds":
+            return {"response": []}
+        raise AssertionError(endpoint)
+
+    seen = {}
+
+    def fake_compact_lineups(payload):
+        return lineup
+
+    def fake_compact_odds(payload, lineup=None):
+        seen["lineup"] = lineup
+        return {
+            "markets": [],
+            "research_cards_props_markets": [],
+            "player_prop_research_market_rows": 0,
+        }
+
+    monkeypatch.setattr(v2.base, "_coverage", fake_coverage)
+    monkeypatch.setattr(v2.base, "_sport_bundle", fake_sport_bundle)
+    monkeypatch.setattr(v2.base, "_api_get", fake_api_get)
+    monkeypatch.setattr(v2.base, "_compact_lineups", fake_compact_lineups)
+    monkeypatch.setattr(v2.base, "_compact_odds", fake_compact_odds)
+
+    event = asyncio.run(v2._event_for_fixture(fixture, "T-10", now))
+
+    assert seen["lineup"] is lineup
+    assert event["lineups"]["both_xi_confirmed"] is True
+    assert event["market"]["xi_alignment_input_available"] is True
