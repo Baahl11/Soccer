@@ -1082,3 +1082,57 @@ def test_player_props_oos_t30_is_valid_but_t20_and_t10_remain_higher_priority():
     })
     out = prop_oos.choose_canonical_pregame_events(rows)
     assert out[0]["stage"] == "T-20"
+
+
+def test_clv_probability_reconciliation_distinguishes_missing_profile_from_line_mismatch():
+    missing_player = {
+        "player_id": 1,
+        "player": "Missing Profile",
+        "status": "PROFILE_NOT_MODELABLE",
+        "confirmed_starter": True,
+    }
+    reason, detail = prop_clv._probability_reconciliation_reason(
+        missing_player,
+        mode="LINES",
+        line=2.5,
+        side="OVER",
+    )
+    assert reason == "PLAYER_MODEL_LINES_MISSING"
+    assert detail["player_status"] == "PROFILE_NOT_MODELABLE"
+
+    modeled_player = {
+        "player_id": 2,
+        "player": "Modeled",
+        "status": "LIVE_RESEARCH_SHOTS_DISTRIBUTION",
+        "confirmed_starter": True,
+        "lines": [
+            {"line": 0.5, "p_over": 0.80, "p_under": 0.20},
+            {"line": 1.5, "p_over": 0.55, "p_under": 0.45},
+        ],
+    }
+    reason, detail = prop_clv._probability_reconciliation_reason(
+        modeled_player,
+        mode="LINES",
+        line=2.5,
+        side="OVER",
+    )
+    assert reason == "MODEL_LINE_NOT_AVAILABLE"
+    assert detail["available_lines"] == [0.5, 1.5]
+
+
+def test_clv_probability_reconciliation_accepts_anytime_probability():
+    player = {
+        "player_id": 3,
+        "player": "Scorer",
+        "status": "LIVE_RESEARCH_GOALSCORER_DISTRIBUTION",
+        "p_anytime_goal": 0.31,
+    }
+    reason, detail = prop_clv._probability_reconciliation_reason(
+        player,
+        mode="ANYTIME",
+        line=None,
+        side="PLAYER_EVENT",
+    )
+    assert reason == "OK"
+    assert detail["probability_key"] == "p_anytime_goal"
+    assert detail["probability"] == 0.31
