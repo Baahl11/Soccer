@@ -11,7 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.1.1"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.1.2"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
@@ -170,8 +170,21 @@ def _entry_market_fair(values: list[dict[str, Any]], target: dict[str, Any]) -> 
     return None, "ONE_WAY_OR_UNPAIRED"
 
 
-def extract_shadow_signals(events: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
+def extract_shadow_signals(
+    events: Iterable[dict[str, Any]],
+    diagnostics: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     signals: list[dict[str, Any]] = []
+    diag = diagnostics if isinstance(diagnostics, dict) else {}
+    families_diag = diag.setdefault("families", {})
+    diag.setdefault("eligible_event_rows", 0)
+    diag.setdefault("family_intelligence_hits", 0)
+    diag.setdefault("family_market_overlap_hits", 0)
+    diag.setdefault("modelable_player_rows", 0)
+    diag.setdefault("aligned_market_values", 0)
+    diag.setdefault("player_id_overlap_values", 0)
+    diag.setdefault("priced_overlap_values", 0)
+    diag.setdefault("model_probability_values", 0)
     for row in events:
         if not isinstance(row, dict):
             continue
@@ -186,13 +199,36 @@ def extract_shadow_signals(events: Iterable[dict[str, Any]]) -> list[dict[str, A
         if fixture_id is None or signal_at is None or kickoff is None or signal_at >= kickoff:
             continue
 
+        diag["eligible_event_rows"] += 1
         for family, config in FAMILY_CONFIG.items():
+            family_diag = families_diag.setdefault(family, {
+                "intelligence_event_rows": 0,
+                "market_overlap_event_rows": 0,
+                "modelable_player_rows": 0,
+                "market_rows": 0,
+                "raw_market_values": 0,
+                "aligned_market_values": 0,
+                "player_id_overlap_values": 0,
+                "priced_overlap_values": 0,
+                "model_probability_values": 0,
+                "signal_rows": 0,
+            })
             intel = event.get(config["intel_key"])
             if not isinstance(intel, dict):
                 continue
+            family_diag["intelligence_event_rows"] += 1
+            diag["family_intelligence_hits"] += 1
             market_rows = _event_market_rows(event, family)
             if not market_rows:
                 continue
+            family_diag["market_overlap_event_rows"] += 1
+            family_diag["market_rows"] += len(market_rows)
+            family_diag["raw_market_values"] += sum(
+                len(row.get("values") or [])
+                for row in market_rows
+                if isinstance(row, dict)
+            )
+            diag["family_market_overlap_hits"] += 1
             player_rows = [
                 p for p in (intel.get(config["rows_key"]) or [])
                 if isinstance(p, dict)
@@ -204,23 +240,34 @@ def extract_shadow_signals(events: Iterable[dict[str, Any]]) -> list[dict[str, A
             ]
             if not player_rows:
                 continue
+            family_diag["modelable_player_rows"] += len(player_rows)
+            diag["modelable_player_rows"] += len(player_rows)
             players_by_id = {str(p["player_id"]): p for p in player_rows}
 
             for market_row in market_rows:
                 values = _align_market_values(event, market_row, family)
+                family_diag["aligned_market_values"] += len(values)
+                diag["aligned_market_values"] += len(values)
                 for value in values:
                     player = players_by_id.get(str(value.get("player_id")))
                     if player is None:
                         continue
+                    family_diag["player_id_overlap_values"] += 1
+                    diag["player_id_overlap_values"] += 1
                     price = _price(value)
                     if price is None:
                         continue
+                    family_diag["priced_overlap_values"] += 1
+                    diag["priced_overlap_values"] += 1
                     line = _line(value)
                     side = _side(value.get("selection"))
                     model_prob = _prob_from_model(player, mode=config["mode"], line=line, side=side)
                     if model_prob is None or not 0.0 < model_prob < 1.0:
                         continue
+                    family_diag["model_probability_values"] += 1
+                    diag["model_probability_values"] += 1
                     market_fair, fair_basis = _entry_market_fair(values, value)
+                    family_diag["signal_rows"] += 1
                     signals.append({
                         "schema_version": SCHEMA_VERSION,
                         "fixture_id": int(fixture_id),
@@ -605,7 +652,8 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
     persistence_base.ensure_schema()
     with persistence_base._connect() as conn:
         events = _load_events(conn, lookback_days=lookback_days, max_rows=max_rows)
-        signals = extract_shadow_signals(events)
+        signal_diagnostics: dict[str, Any] = {}
+        signals = extract_shadow_signals(events, signal_diagnostics)
         fixture_ids = sorted({int(row["fixture_id"]) for row in signals})
         event_rows_loaded = len(events)
         del events
@@ -629,6 +677,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "lookback_days": lookback_days,
         "event_rows_loaded": event_rows_loaded,
         "signal_rows": len(signals),
+        "signal_diagnostics": signal_diagnostics,
         "snapshot_rows": len(snapshots),
         "skip_reasons": skip_reasons,
         **summary,
