@@ -70,6 +70,15 @@ def _team_role(market_name: Any, fixture: dict[str, Any]) -> str | None:
         return None
     if any(token in name for token in non_goal_tokens):
         return None
+
+    # API-Football canonical FT team-goal markets are bet ids 16/17 and are
+    # labelled "Total - Home" / "Total - Away". Treat only those exact generic
+    # labels as goal totals when the word "goal" is absent.
+    if name in {"total - home", "total home"}:
+        return "HOME"
+    if name in {"total - away", "total away"}:
+        return "AWAY"
+
     if "goal" not in name:
         return None
     if "team total" not in name and not (
