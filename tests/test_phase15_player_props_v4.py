@@ -1361,3 +1361,99 @@ def test_audit_does_not_classify_score_or_assist_as_anytime_scorer():
     from mcp_gateway import research_derivative_postgres_audit as derivative_audit
     assert derivative_audit.classify_market("Player to Score or Assist") is None
     assert derivative_audit.classify_market("Anytime Goal Scorer") == "GOALSCORER_ANYTIME"
+
+
+
+def test_assists_and_player_cards_binary_probability_mapping_is_side_and_rung_aware():
+    assists = {
+        "p_1plus_assist": 0.30,
+        "p_2plus_assists": 0.08,
+    }
+    cards = {
+        "p_player_booked_yellow": 0.25,
+        "p_2plus_yellow_cards": 0.04,
+    }
+
+    assert prop_clv._prob_from_model(assists, mode="ASSISTS", line=None, side="YES") == 0.30
+    assert prop_clv._prob_from_model(assists, mode="ASSISTS", line=None, side="NO") == 0.70
+    assert prop_clv._prob_from_model(assists, mode="ASSISTS", line=1.5, side="OVER") == 0.08
+    assert prop_clv._prob_from_model(assists, mode="ASSISTS", line=1.5, side="UNDER") == 0.92
+    assert prop_clv._prob_from_model(assists, mode="ASSISTS", line=2.5, side="OVER") is None
+
+    assert prop_clv._prob_from_model(cards, mode="CARDS", line=None, side="YES") == 0.25
+    assert prop_clv._prob_from_model(cards, mode="CARDS", line=None, side="NO") == 0.75
+    assert prop_clv._prob_from_model(cards, mode="CARDS", line=1.5, side="OVER") == 0.04
+    assert prop_clv._prob_from_model(cards, mode="CARDS", line=1.5, side="UNDER") == 0.96
+
+
+def test_assists_binary_yes_no_shadow_signals_use_explicit_player_identity():
+    lineup = {
+        "both_xi_confirmed": True,
+        "teams": [
+            {
+                "team_id": 10,
+                "team": "Home",
+                "starters": [{"id": 501, "name": "Player A", "pos": "M"}],
+            },
+            {
+                "team_id": 20,
+                "team": "Away",
+                "starters": [{"id": 601, "name": "Player B", "pos": "F"}],
+            },
+        ],
+    }
+    event = {
+        "fixture_id": 9200,
+        "generated_at": "2026-09-25T10:00:00+00:00",
+        "stage": "T-20",
+        "kickoff": "2026-09-25T11:00:00+00:00",
+        "event_payload": {
+            "stage": "T-20",
+            "fixture": {"fixture_id": 9200, "kickoff": "2026-09-25T11:00:00+00:00"},
+            "lineups": lineup,
+            "player_assists_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "confirmed_starter": True,
+                    "expected_minutes_if_confirmed_starter": 82.0,
+                    "p_1plus_assist": 0.30,
+                    "p_2plus_assists": 0.08,
+                }]
+            },
+            "market": {
+                "research_cards_props_markets": [{
+                    "research_family": "PLAYER_PROPS",
+                    "research_subfamily": "ASSISTS",
+                    "market": "Player Assists",
+                    "bookmaker": "Book",
+                    "provider_update": "2026-09-25T09:58:00+00:00",
+                    "values": [
+                        {
+                            "selection": "Yes",
+                            "decimal_price": 3.20,
+                            "player_id": 501,
+                            "player_name": "Player A",
+                        },
+                        {
+                            "selection": "No",
+                            "decimal_price": 1.30,
+                            "player_id": 501,
+                            "player_name": "Player A",
+                        },
+                    ],
+                }]
+            },
+        },
+    }
+
+    signals = prop_clv.extract_shadow_signals([event])
+    assert len(signals) == 2
+    yes = next(row for row in signals if row["side"] == "YES")
+    no = next(row for row in signals if row["side"] == "NO")
+    assert yes["market_family"] == "ASSISTS"
+    assert yes["model_probability"] == 0.30
+    assert no["model_probability"] == 0.70
+    assert yes["entry_market_fair_basis"] == "DEVIGGED_TWO_WAY"
+    assert no["entry_market_fair_basis"] == "DEVIGGED_TWO_WAY"
