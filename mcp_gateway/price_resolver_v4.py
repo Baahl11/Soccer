@@ -1625,6 +1625,8 @@ async def resolve_payload(
 
                 markets: list[dict[str, Any]] = []
                 status = ""
+                provider_calls_for_event = 0
+                reused_paid_primary_payload = False
                 cached_tuple = fixture_cache.get(fixture_id)
                 if cached_tuple is not None:
                     candidate_markets, candidate_status = cached_tuple
@@ -1633,6 +1635,7 @@ async def resolve_payload(
                         if matured:
                             markets = candidate_markets
                             status = str(candidate_status)
+                            reused_paid_primary_payload = True
                             primary_maturation_primary_payload_reuse_fixtures += 1
                     elif candidate_markets:
                         primary_maturation_cache_replays_ignored += 1
@@ -1657,6 +1660,8 @@ async def resolve_payload(
                         calls += used
                         primary_maturation_calls_this_tick += used
                         primary_maturation_api_calls_added += used
+                        provider_calls_for_event = used
+                        fixture_cache[fixture_id] = (markets, status)
                         if observed_remaining is not None:
                             provider_daily_remaining = (
                                 observed_remaining
@@ -1691,9 +1696,8 @@ async def resolve_payload(
                 }
                 event["primary_clv_maturation"]["matured_families"] = sorted(matured_families)
                 event["primary_clv_maturation"]["provider_update_after_signal"] = True
-                event["primary_clv_maturation"]["provider_requests_added"] = (
-                    0 if status and status.startswith("PRICE_API") and fixture_id in fixture_cache else 1
-                )
+                event["primary_clv_maturation"]["provider_requests_added"] = provider_calls_for_event
+                event["primary_clv_maturation"]["reused_paid_primary_payload"] = reused_paid_primary_payload
                 events.append(event)
                 primary_maturation_synthetic_events_added += 1
                 primary_maturation_fixtures_refreshed += 1
