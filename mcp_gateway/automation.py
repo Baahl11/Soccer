@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import sqlite3
 from datetime import datetime, timedelta, timezone as dt_timezone
 from zoneinfo import ZoneInfo
@@ -375,6 +376,22 @@ def _is_card_research_bet(bet: dict[str, Any]) -> bool:
     return any(token in name for token in card_tokens)
 
 
+def _research_value(value: dict[str, Any]) -> dict[str, Any]:
+    raw = str(value.get("value") or "").strip()
+    line = None
+    match = re.search(r"\\b(?:over|under)\\s+([+-]?\\d+(?:\\.\\d+)?)\\b", raw, flags=re.IGNORECASE)
+    if match:
+        try:
+            line = float(match.group(1))
+        except (TypeError, ValueError):
+            line = None
+    return {
+        "selection": value.get("value"),
+        "price": value.get("odd"),
+        "parsed_line": line,
+    }
+
+
 def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
     primary_rows: list[dict[str, Any]] = []
     team_total_rows: list[dict[str, Any]] = []
@@ -390,8 +407,12 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
                 is_card_research = _is_card_research_bet(bet)
                 if not is_team_total and not is_player_prop and not is_card_research and not _wanted_market(name):
                     continue
+                is_research = is_player_prop or is_card_research
                 values = [
-                    {"selection": value.get("value"), "price": value.get("odd")}
+                    _research_value(value) if is_research else {
+                        "selection": value.get("value"),
+                        "price": value.get("odd"),
+                    }
                     for value in (bet.get("values") or [])
                 ]
                 row = {
@@ -405,8 +426,21 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
                 if is_team_total:
                     team_total_rows.append(row)
                 elif is_player_prop:
+                    row.update({
+                        "research_only": True,
+                        "research_family": "PLAYER_PROPS",
+                        "decision_weight": 0.0,
+                        "production_promotion_allowed": False,
+                    })
                     player_prop_research_rows.append(row)
                 elif is_card_research:
+                    row.update({
+                        "research_only": True,
+                        "research_family": "CARDS",
+                        "decision_weight": 0.0,
+                        "production_promotion_allowed": False,
+                        "bookmaker_scoring_rule_required": "booking point" in str(name).lower(),
+                    })
                     card_research_rows.append(row)
                 else:
                     primary_rows.append(row)
@@ -418,25 +452,30 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
     kept_team_totals = team_total_rows[:20]
     kept_cards = card_research_rows[:20]
     kept_player_props = player_prop_research_rows[:40]
-    rows = kept_primary + kept_team_totals + kept_cards + kept_player_props
-    total_relevant = (
-        len(primary_rows)
-        + len(team_total_rows)
-        + len(card_research_rows)
-        + len(player_prop_research_rows)
-    )
+    canonical_rows = kept_primary + kept_team_totals
+    research_rows = kept_cards + kept_player_props
+    canonical_total = len(primary_rows) + len(team_total_rows)
+    research_total = len(card_research_rows) + len(player_prop_research_rows)
     return {
-        "markets": rows,
-        "market_count": total_relevant,
-        "truncated": total_relevant > len(rows),
+        # Only canonical / already-supported market families stay in markets[].
+        # Cards and player props are intentionally isolated from Phase16 and all
+        # production decision paths until their own OOS/calibration gates pass.
+        "markets": canonical_rows,
+        "market_count": canonical_total,
+        "truncated": canonical_total > len(canonical_rows),
         "primary_market_rows": len(kept_primary),
         "ft_team_total_rows": len(kept_team_totals),
         "ft_team_totals_reused_from_same_provider_response": bool(kept_team_totals),
+        "research_cards_props_markets": research_rows,
+        "research_derivative_observed_rows": research_total,
+        "research_derivative_sidecar_truncated": research_total > len(research_rows),
         "card_research_market_rows": len(kept_cards),
         "player_prop_research_market_rows": len(kept_player_props),
-        "research_derivative_sidecar_rows": len(kept_cards) + len(kept_player_props),
+        "research_derivative_sidecar_rows": len(research_rows),
         "research_derivative_sidecar_provider_requests_added": 0,
-        "research_derivative_sidecar_policy": "SAME_PAID_ODDS_RESPONSE_ONLY; BOUNDED_20_CARD_40_PLAYER_PROP; NEVER_DISPLACES_EXISTING_PRIMARY_OR_TEAM_TOTAL_ROWS; RESEARCH_ONLY",
+        "research_derivative_sidecar_decision_weight": 0.0,
+        "research_derivative_sidecar_production_promotion_allowed": False,
+        "research_derivative_sidecar_policy": "SAME_PAID_ODDS_RESPONSE_ONLY; SEPARATE_FROM_CANONICAL_MARKETS; BOUNDED_20_CARD_40_PLAYER_PROP; PERSIST_FOR_OOS_AND_CLV_RESEARCH; ZERO_DECISION_WEIGHT",
     }
 
 
