@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.5.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.6.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -233,6 +233,38 @@ async def _load_research_calibration_state(client: httpx.AsyncClient) -> tuple[d
         return {}, "UNAVAILABLE"
 
 
+def _binary_calibration_diagnostics(
+    *,
+    target: str,
+    calibration_state: dict[str, Any],
+    model_version: str | None,
+) -> dict[str, Any]:
+    report = calibration_state.get("binary") if isinstance(calibration_state.get("binary"), dict) else {}
+    source_model_version = str(report.get("current_source_model_version") or "")
+    version_matches = source_model_version == str(model_version or "")
+    targets = report.get("current_model_deployment_calibrators")
+    target_report = targets.get(target) if version_matches and isinstance(targets, dict) and isinstance(targets.get(target), dict) else {}
+    discrimination = target_report.get("discrimination") if isinstance(target_report.get("discrimination"), dict) else {}
+    calibrator = target_report.get("calibrator") if isinstance(target_report.get("calibrator"), dict) else {}
+    lower_95 = _num(discrimination.get("auc_lower_95"))
+    return {
+        "target": target,
+        "source_model_version": source_model_version or None,
+        "requested_model_version": model_version,
+        "source_model_version_matches": version_matches,
+        "rows": int(target_report.get("rows") or 0),
+        "positive_count": int(discrimination.get("positive_count") or 0),
+        "negative_count": int(discrimination.get("negative_count") or 0),
+        "auc": _num(discrimination.get("auc")),
+        "auc_lower_95": lower_95,
+        "auc_lower_95_gap_to_gate": round(lower_95 - 0.50, 8) if lower_95 is not None else None,
+        "brier_delta": _num(target_report.get("brier_delta")),
+        "log_loss_delta": _num(target_report.get("log_loss_delta")),
+        "eligible_for_phase16_research": target_report.get("eligible_for_phase16_research") is True,
+        "calibrator_status": calibrator.get("status"),
+    }
+
+
 def _binary_calibrated_probability(
     raw_probability: float | None,
     *,
@@ -371,6 +403,12 @@ def _apply_phase16_calibration(
     row["phase16_calibration_promotion_shadow_eligible"] = False
 
     if family == "BTTS":
+        binary_diagnostics = _binary_calibration_diagnostics(
+            target="btts",
+            calibration_state=calibration_state,
+            model_version=model_version,
+        )
+        row["phase16_binary_calibration_diagnostics"] = binary_diagnostics
         raw_yes = _num(_event_projection(event).get("raw_btts_yes_prob"))
         calibrated_yes = _binary_calibrated_probability(
             raw_yes,
@@ -382,8 +420,18 @@ def _apply_phase16_calibration(
             calibrated = calibrated_yes if _norm(selection) == "yes" else 1.0 - calibrated_yes
             source = "CURRENT_MODEL_OOS_PLATT:BTTS"
             policy = "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
+        elif binary_diagnostics.get("source_model_version_matches") is True and binary_diagnostics.get("calibrator_status") == "RESEARCH_CALIBRATOR_FITTED" and binary_diagnostics.get("eligible_for_phase16_research") is not True:
+            row["phase16_calibration_status"] = "BINARY_DISCRIMINATION_NOT_READY"
+            row["phase16_calibration_policy"] = "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
+            return None
 
     elif family == "FT_TOTALS":
+        binary_diagnostics = _binary_calibration_diagnostics(
+            target="over_2_5",
+            calibration_state=calibration_state,
+            model_version=model_version,
+        )
+        row["phase16_binary_calibration_diagnostics"] = binary_diagnostics
         raw_over = _num(_event_projection(event).get("raw_over_2_5_prob"))
         calibrated_over = _binary_calibrated_probability(
             raw_over,
@@ -395,6 +443,10 @@ def _apply_phase16_calibration(
             calibrated = calibrated_over if _norm(selection) == "over" else 1.0 - calibrated_over
             source = "CURRENT_MODEL_OOS_PLATT:OVER_2_5"
             policy = "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
+        elif binary_diagnostics.get("source_model_version_matches") is True and binary_diagnostics.get("calibrator_status") == "RESEARCH_CALIBRATOR_FITTED" and binary_diagnostics.get("eligible_for_phase16_research") is not True:
+            row["phase16_calibration_status"] = "BINARY_DISCRIMINATION_NOT_READY"
+            row["phase16_calibration_policy"] = "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50"
+            return None
 
     elif family == "1X2":
         class_diagnostics = _one_x_two_class_discrimination_diagnostics(
