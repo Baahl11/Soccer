@@ -1521,3 +1521,43 @@ def test_price_resolver_cache_sidecar_is_marked_cache_not_fresh_provider():
     assert event["market"]["source"] == "POSTGRES_MARKET_SNAPSHOT_CACHE"
     assert event["market"]["resolution_status"] == "PRICE_CACHE_HIT"
     assert event["market"]["card_research_market_rows"] == 1
+
+
+
+def test_price_resolver_routes_observed_goal_scorer_and_card_names_to_research_sidecar():
+    raw = {
+        "response": [{
+            "fixture": {"id": 9950},
+            "update": "2026-09-25T14:00:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [
+                    {"id": 501, "name": "Home Anytime Goal Scorer", "values": [{"value": "Player A", "odd": "2.20"}]},
+                    {"id": 502, "name": "Away First Goal Scorer", "values": [{"value": "Player B", "odd": "6.00"}]},
+                    {"id": 503, "name": "Home Last Goal Scorer", "values": [{"value": "Player C", "odd": "7.00"}]},
+                    {"id": 504, "name": "Cards Asian Handicap", "values": [{"value": "Home +0.5", "odd": "1.90"}]},
+                    {"id": 505, "name": "Cards European Handicap", "values": [{"value": "Home +0", "odd": "2.20"}]},
+                    {"id": 506, "name": "First Card Received (3 way)", "values": [{"value": "Home", "odd": "1.80"}]},
+                    {"id": 507, "name": "RCARD", "values": [{"value": "Yes", "odd": "3.40"}]},
+                    {"id": 508, "name": "ShotOnTarget Handicap", "values": [{"value": "Home +0.5", "odd": "1.90"}]},
+                ],
+            }],
+        }],
+    }
+
+    markets = v.normalize_api_response(raw)
+    event = {}
+    v._attach_market_to_event(event, markets, "PRICE_API_RESOLVED")
+
+    canonical_names = {row["market"] for row in event["market"]["markets"]}
+    research = {row["market"]: row for row in event["market"]["research_cards_props_markets"]}
+
+    assert "ShotOnTarget Handicap" in canonical_names
+    assert research["Home Anytime Goal Scorer"]["research_subfamily"] == "GOALSCORER_ANYTIME"
+    assert research["Away First Goal Scorer"]["research_subfamily"] == "GOALSCORER_FIRST"
+    assert research["Home Last Goal Scorer"]["research_subfamily"] == "GOALSCORER_LAST"
+    assert research["Cards Asian Handicap"]["research_family"] == "CARDS"
+    assert research["Cards European Handicap"]["research_family"] == "CARDS"
+    assert research["First Card Received (3 way)"]["research_family"] == "CARDS"
+    assert research["RCARD"]["research_family"] == "CARDS"
