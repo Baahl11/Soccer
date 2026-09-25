@@ -15,6 +15,7 @@
     "positive_count": 36,
     "rows": 65
   },
+  "calibrated_probability_role": "EDGE_ESTIMATION_ONLY_NOT_SELECTION_SORT_KEY",
   "calibration_method": "EXPANDING_WALK_FORWARD_PLATT_LOGIT_TRAIN_ONLY",
   "canonical_bet_logic_changed": false,
   "comparison": {
@@ -24,16 +25,18 @@
     "calibration_improves": true,
     "discrimination_ready": false,
     "log_loss_delta": -0.20045208,
+    "pooled_calibrated_auc_delta_not_used_as_gate": -0.03927203,
     "positive_slope_all_folds": true,
-    "ranking_preserved": false,
     "raw_auc_lower_95": 0.48574316,
-    "sample_ready": true
+    "raw_poisson_is_selection_ranking_signal": true,
+    "sample_ready": true,
+    "within_fold_ranking_preserved": true
   },
   "dataset_fingerprint": "53c92719ea3bb3864bca72550b1849a81f4c09c2d47cf43ccf2679cffb404018",
   "dataset_row_count": 115,
   "dataset_version": "4.0.0",
   "effective_training_rows": 50,
-  "eligibility_gate": "RAW_AUC_LOWER_95_GT_0_50_AND_PLATT_POSITIVE_SLOPE_AND_BRIER_LOGLOSS_IMPROVE",
+  "eligibility_gate": "RAW_AUC_LOWER_95_GT_0_50_AND_WITHIN_FOLD_MONOTONIC_PLATT_AND_BRIER_LOGLOSS_IMPROVE",
   "eligible_rows": 115,
   "feature_schema_version": "4.0.0",
   "fitted_folds": 3,
@@ -169,7 +172,7 @@
   "minimum_class_rows": 10,
   "minimum_oos_rows": 50,
   "minimum_training_rows": 50,
-  "model_version": "BTTS_POISSON_RANKING_V4_1.0.0",
+  "model_version": "BTTS_POISSON_RANKING_V4_1.1.0",
   "model_weights_changed": false,
   "next_gate": "REMAIN_RESEARCH_HOLD",
   "post_kickoff_features_used": false,
@@ -194,6 +197,7 @@
   "research_eligible": false,
   "runtime_prediction_weight": 0,
   "schema_version": "1.0.0",
+  "selection_ranking_key": "RAW_POISSON_BTTS_PROBABILITY",
   "status": "RESEARCH_ONLY",
   "target": "btts",
   "walk_forward_evaluated": 65
