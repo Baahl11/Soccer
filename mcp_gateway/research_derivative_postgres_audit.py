@@ -9,8 +9,8 @@ from typing import Any, Iterable
 
 from mcp_gateway import persistence as persistence_base
 
-SCHEMA_VERSION = "1.1.0"
-MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.1.0"
+SCHEMA_VERSION = "1.2.0"
+MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.2.0"
 
 
 def _norm(value: Any) -> str:
@@ -31,16 +31,24 @@ def classify_market(market: Any) -> str | None:
     )
     if any(token in name for token in player_card_tokens):
         return "PLAYER_CARDS"
-    if "shots on target" in name or "shot on target" in name:
+
+    if "first goal scorer" in name:
+        return "GOALSCORER_FIRST"
+    if "last goal scorer" in name:
+        return "GOALSCORER_LAST"
+    if any(token in name for token in ("anytime goal scorer", "anytime goalscorer", "player to score")):
+        return "GOALSCORER_ANYTIME"
+    if "goal scorer" in name or "goalscorer" in name:
+        return "GOALSCORER_OTHER"
+
+    if "shots on target - player" in name or "player shots on target" in name:
         return "SOT"
-    if "goalkeeper saves" in name or "keeper saves" in name or "gk saves" in name:
-        return "GK_SAVES"
-    if "goalscorer" in name or "anytime scorer" in name or "player to score" in name:
-        return "GOALSCORER"
-    if "assist" in name:
-        return "ASSISTS"
     if "player shots" in name or "player shot" in name:
         return "SHOTS"
+    if "goalkeeper saves" in name or "keeper saves" in name or "gk saves" in name:
+        return "GK_SAVES"
+    if "player assists" in name or "player assist" in name:
+        return "ASSISTS"
 
     card_tokens = (
         "cards over/under",
@@ -52,9 +60,18 @@ def classify_market(market: Any) -> str | None:
         "team cards",
         "booking points",
         "bookings",
+        "cards asian handicap",
+        "cards european handicap",
+        "first card received",
     )
-    if any(token in name for token in card_tokens):
+    if name == "rcard" or any(token in name for token in card_tokens):
         return "CARDS"
+
+    compact = re.sub(r"[^a-z0-9]+", "", name)
+    if "shotontarget" in compact or "shotongoal" in compact:
+        return "TEAM_SOT"
+    if "totalshots" in compact:
+        return "TEAM_SHOTS"
     return None
 
 
@@ -166,7 +183,20 @@ def summarize_rows(rows: Iterable[dict[str, Any]], *, lookback_days: int) -> dic
     all_rows = 0
     all_line_values = 0
 
-    for family in ("CARDS", "PLAYER_CARDS", "SHOTS", "SOT", "GOALSCORER", "ASSISTS", "GK_SAVES"):
+    for family in (
+        "CARDS",
+        "PLAYER_CARDS",
+        "SHOTS",
+        "SOT",
+        "GOALSCORER_ANYTIME",
+        "GOALSCORER_FIRST",
+        "GOALSCORER_LAST",
+        "GOALSCORER_OTHER",
+        "ASSISTS",
+        "GK_SAVES",
+        "TEAM_SHOTS",
+        "TEAM_SOT",
+    ):
         items = family_rows.get(family, [])
         fixtures = {int(row["fixture_id"]) for row in items if row.get("fixture_id") is not None}
         prekickoff_fixtures = {
