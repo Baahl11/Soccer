@@ -37,6 +37,39 @@ def test_v4_019_team_total_clv_matcher_is_strict():
     assert summary["avg_probability_clv_pp"] == 0.01
 
 
+def test_v4_019_rejects_cards_corners_and_period_team_totals_from_true_clv():
+    summary = v.summarize_true_clv([
+        {
+            "market_family": "CARDS",
+            "market": "Home Team Total Cards",
+            "fixture_id": 10,
+            "clv_probability_pp": 0.04,
+        },
+        {
+            "market_family": "TEAM_CORNERS",
+            "market": "Away Team Total Corners",
+            "fixture_id": 11,
+            "clv_probability_pp": 0.03,
+        },
+        {
+            "market_family": "1H",
+            "market": "Home Team Total Goals - First Half",
+            "fixture_id": 12,
+            "clv_probability_pp": 0.02,
+        },
+        {
+            "market_family": "HOME_TT",
+            "market": "Home Team Total Goals",
+            "fixture_id": 13,
+            "clv_probability_pp": 0.01,
+        },
+    ])
+
+    assert summary["rows"] == 1
+    assert summary["unique_fixtures"] == 1
+    assert summary["avg_probability_clv_pp"] == 0.01
+
+
 def test_v4_019_role_line_calibration_summary():
     metrics = v.role_line_calibration({
         "HOME:0.5:OVER": {"n": 100, "mean_probability": 0.70, "observed_rate": 0.80},
