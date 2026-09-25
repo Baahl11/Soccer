@@ -1,0 +1,579 @@
+{
+  "schema_version": "1.0.0",
+  "status": "FORMATION_RECONCILIATION_AUDIT_COMPLETE",
+  "policy": "READ_ONLY; USE ONLY SNAPSHOTS CAPTURED_AT_OR_BEFORE_FINAL_KICKOFF; POSTKICKOFF FORMATIONS ARE NEVER BACKFILLED INTO OOS",
+  "provider_requests_added": 0,
+  "historical_oos_evaluations": 244,
+  "historical_formation_adjusted_evaluations": 39,
+  "historical_formation_eligibility_audit": {
+    "excluded_from_formation_adjustment": 205,
+    "formation_present_but_prior_matchup_lt_8": 150,
+    "missing_matchup_rows": 55,
+    "recoverable_missing_matchup_rows": 0,
+    "reason_counts": {
+      "CONFIRMED_XI_WITHOUT_FORMATION_VALUE": 7,
+      "FORMATION_PRESENT_MATCHUP_HISTORY_LT_8": 150,
+      "FORMATION_TIMESTAMP_POSTERIOR_TO_PREDICTION_POINT": 1,
+      "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP": 14,
+      "LINEUP_NOT_CONFIRMED_AT_SNAPSHOT": 33
+    }
+  },
+  "postgres_crosscheck_target_count": 55,
+  "postgres_recoverable_prekickoff_formations": 0,
+  "postgres_reason_counts": {
+    "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP": 55
+  },
+  "backfill_decision": "NO_VERIFIED_PREKICKOFF_FORMATION_BACKFILL_AVAILABLE",
+  "rows": [
+    {
+      "fixture_id": 1490486,
+      "kickoff_local": "2026-09-19T18:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1493143,
+      "kickoff_local": "2026-09-19T18:15:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1494766,
+      "kickoff_local": "2026-09-19T10:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1495561,
+      "kickoff_local": "2026-09-18T11:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1507443,
+      "kickoff_local": "2026-09-17T06:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1507445,
+      "kickoff_local": "2026-09-17T06:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1507448,
+      "kickoff_local": "2026-09-17T09:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1507449,
+      "kickoff_local": "2026-09-17T06:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1508546,
+      "kickoff_local": "2026-09-16T19:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1508547,
+      "kickoff_local": "2026-09-16T20:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1508551,
+      "kickoff_local": "2026-09-19T19:50:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1520883,
+      "kickoff_local": "2026-09-21T18:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1523230,
+      "kickoff_local": "2026-09-18T05:35:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1550128,
+      "kickoff_local": "2026-09-19T10:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1552172,
+      "kickoff_local": "2026-09-19T08:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1553179,
+      "kickoff_local": "2026-09-18T10:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1557410,
+      "kickoff_local": "2026-09-19T08:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1557414,
+      "kickoff_local": "2026-09-19T08:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1557415,
+      "kickoff_local": "2026-09-19T10:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1557416,
+      "kickoff_local": "2026-09-19T05:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1559168,
+      "kickoff_local": "2026-09-20T11:15:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1561932,
+      "kickoff_local": "2026-09-20T06:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1561933,
+      "kickoff_local": "2026-09-20T06:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1563170,
+      "kickoff_local": "2026-09-19T05:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1563172,
+      "kickoff_local": "2026-09-19T05:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1563173,
+      "kickoff_local": "2026-09-20T06:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1563176,
+      "kickoff_local": "2026-09-19T05:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1563764,
+      "kickoff_local": "2026-09-19T05:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1565262,
+      "kickoff_local": "2026-09-18T09:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1570395,
+      "kickoff_local": "2026-09-19T10:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1570400,
+      "kickoff_local": "2026-09-19T13:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1575168,
+      "kickoff_local": "2026-09-19T10:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1577531,
+      "kickoff_local": "2026-09-18T08:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1577533,
+      "kickoff_local": "2026-09-17T10:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1577535,
+      "kickoff_local": "2026-09-18T08:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1577536,
+      "kickoff_local": "2026-09-17T08:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1577537,
+      "kickoff_local": "2026-09-17T10:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1577538,
+      "kickoff_local": "2026-09-18T08:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1577539,
+      "kickoff_local": "2026-09-16T06:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1584013,
+      "kickoff_local": "2026-09-20T11:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1588816,
+      "kickoff_local": "2026-09-22T12:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1588823,
+      "kickoff_local": "2026-09-22T12:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1588824,
+      "kickoff_local": "2026-09-22T12:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1588830,
+      "kickoff_local": "2026-09-22T12:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1588847,
+      "kickoff_local": "2026-09-22T12:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1588853,
+      "kickoff_local": "2026-09-22T12:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1588865,
+      "kickoff_local": "2026-09-22T12:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1588871,
+      "kickoff_local": "2026-09-22T12:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1601541,
+      "kickoff_local": "2026-09-19T09:15:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1606423,
+      "kickoff_local": "2026-09-18T18:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1606499,
+      "kickoff_local": "2026-09-19T12:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1606504,
+      "kickoff_local": "2026-09-19T12:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1606506,
+      "kickoff_local": "2026-09-19T12:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1635568,
+      "kickoff_local": "2026-09-15T13:00:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    },
+    {
+      "fixture_id": 1639788,
+      "kickoff_local": "2026-09-18T18:30:00-06:00",
+      "postgres_lineup_snapshots": 0,
+      "postgres_prekickoff_snapshots": 0,
+      "postgres_postkickoff_snapshots": 0,
+      "reason": "LEAGUE_OR_FIXTURE_WITHOUT_LINEUP",
+      "recoverable_by_reconciliation": false,
+      "recovered_formation": null
+    }
+  ]
+}
