@@ -76,7 +76,7 @@ jobs:
 
           test "$HTTP_CODE" = "200"
           jq -e '
-            .model_version == "SOCCER_PHASE15_COVERAGE_AUDIT_V4_1.0.0"
+            .model_version == "SOCCER_PHASE15_COVERAGE_AUDIT_V4_1.1.0"
             and .provider_requests_added == 0
             and .production_promotion_allowed == false
             and (.families | type == "object")
