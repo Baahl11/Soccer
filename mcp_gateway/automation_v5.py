@@ -14,7 +14,7 @@ from mcp_gateway import automation_v4 as v4
 from mcp_gateway.soccer_model import build_raw_projection, public_raw_projection
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
-AUTOMATION_VERSION = "1.5.0"
+AUTOMATION_VERSION = "1.5.1"
 
 MAX_DEEP_DIVE_FIXTURES_PER_TICK = int(os.getenv("SOCCER_EDGE_MAX_DEEP_DIVE_FIXTURES_PER_TICK", "8"))
 MAX_UPCOMING_MARKET_CAPTURE_FIXTURES = max(
@@ -210,17 +210,61 @@ async def _lineup_cached(fixture_id: int, now: datetime) -> dict[str, Any]:
     return compact
 
 
-async def _odds_7m(fixture_id: int, now: datetime) -> dict[str, Any]:
+def _realign_cached_player_props(
+    compact: dict[str, Any],
+    lineup: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if not isinstance(compact, dict):
+        return compact
+    rows = []
+    starters = base._confirmed_starters(lineup)
+    for row in compact.get("research_cards_props_markets") or []:
+        if not isinstance(row, dict) or row.get("research_family") != "PLAYER_PROPS":
+            rows.append(row)
+            continue
+        subfamily = row.get("research_subfamily")
+        values = [
+            base._align_research_player_value(
+                value,
+                confirmed_starters=starters,
+                research_subfamily=subfamily,
+            )
+            if isinstance(value, dict) else value
+            for value in (row.get("values") or [])
+        ]
+        rows.append({
+            **row,
+            "values": values,
+            "confirmed_xi_at_quote": bool(starters),
+            "xi_aligned_value_rows": sum(
+                1 for value in values
+                if isinstance(value, dict)
+                and value.get("xi_alignment_status") == "MATCHED_CONFIRMED_XI"
+            ),
+        })
+    return {
+        **compact,
+        "research_cards_props_markets": rows,
+    }
+
+
+async def _odds_7m(
+    fixture_id: int,
+    now: datetime,
+    lineup: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     key = str(fixture_id)
     cached = base._cache_get("odds_compact", key, timedelta(minutes=7), now)
     if isinstance(cached, dict):
+        aligned = _realign_cached_player_props(cached, lineup)
         return {
-            **cached,
+            **aligned,
             "source": "LOCAL_ODDS_CACHE",
             "resolution_status": "PRICE_CACHE_HIT_LOCAL",
         }
     compact = base._compact_odds(
-        await base._api_get("odds", {"fixture": fixture_id, "page": 1})
+        await base._api_get("odds", {"fixture": fixture_id, "page": 1}),
+        lineup=lineup,
     )
     # Persist the provider payload without the transient source marker so a
     # later cache read cannot masquerade as a fresh provider observation.
@@ -405,7 +449,11 @@ async def _priority_event(
 
     # Detailed market is requested only for sporting-shortlisted candidates.
     if stage in v2.MARKET_STAGES and coverage.get("odds"):
-        event["market"] = await _odds_7m(fx["fixture_id"], now)
+        event["market"] = await _odds_7m(
+            fx["fixture_id"],
+            now,
+            lineup=event.get("lineups") if isinstance(event.get("lineups"), dict) else None,
+        )
         event["market_use"] = "MARKET_COMPARISON_AFTER_SPORTING_SHORTLIST"
     elif stage in v2.MARKET_STAGES:
         event["market"] = "NOT VERIFIED"
