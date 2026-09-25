@@ -1,3 +1,4 @@
+# v135 integrated Team Totals CLV funnel + provider chronology
 # v132 rebuild strict Team Totals true-CLV after provider-update hardening
 # Team Totals strict FT CLV refresh after v123: 2026-09-24 21:09 CDMX
 # v123 strict FT Team Totals CLV refresh: 2026-09-24 21:09 CDMX
@@ -67,7 +68,7 @@ jobs:
           # This contract check intentionally fails if Render is serving a stale runtime.
           # Diagnostics include per-market rejection counts from the live collector.
           # Derivative CLV smoke includes persisted research market rows.
-          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.8"
+          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.9"
           READY=0
           for attempt in 1 2 3 4 5; do
             TOKEN=$(get_oidc_token)
@@ -109,6 +110,7 @@ jobs:
             comparable_true_clv_rows,
             family_counts,
             signal_source_counts,
+            team_totals_maturation_funnel,
             skip_reasons,
             error,
             detail
@@ -116,7 +118,7 @@ jobs:
           test "$READY" = "1"
           jq -e '
             .schema_version == "1.0.0"
-            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.8"
+            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.9"
             and (.rows | type == "array")
             and (.pipeline_market_rows_loaded | type == "number")
             and (.signal_source_counts | type == "object")
@@ -150,7 +152,7 @@ jobs:
           }' /tmp/clv_v4.json
           jq -e '
             .schema_version == "1.0.0"
-            and .canonical_merge_version == "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.0.0"
+            and .canonical_merge_version == "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.1.0"
             and (.rows | type == "array")
             and (.provider_requests_added == 0)
           ' /tmp/clv_v4.json >/dev/null
