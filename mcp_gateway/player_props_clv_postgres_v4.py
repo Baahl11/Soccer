@@ -11,7 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.2.1"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.2.2"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
@@ -182,7 +182,15 @@ def _event_market_rows(event: dict[str, Any], family: str) -> list[dict[str, Any
     for row in market.get("research_cards_props_markets") or []:
         if not isinstance(row, dict):
             continue
-        row_family = row.get("research_subfamily") or derivative_audit.classify_market(row.get("market"))
+        market_name = row.get("market")
+        canonical_family = derivative_audit.classify_market(market_name)
+        # Historical rows may contain an obsolete stored subfamily. Prefer the
+        # current market-name taxonomy whenever a market name is available.
+        row_family = (
+            canonical_family
+            if market_name not in (None, "")
+            else row.get("research_subfamily")
+        )
         if row_family == family:
             out.append(row)
     return out
