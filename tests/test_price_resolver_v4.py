@@ -1241,3 +1241,210 @@ def test_team_totals_current_due_maturation_merges_fresh_team_total_into_existin
     assert [row["market"] for row in markets] == ["Goals Over/Under", "Total - Home"]
     assert result["research_spillover_maturation_later_real_quote_refreshes"] == 1
     assert payload["events"][0]["team_totals_clv_maturation"]["provider_update_after_signal"] is True
+
+
+
+def _empty_team_totals_backlogs(monkeypatch):
+    monkeypatch.setattr(v, "_load_team_totals_maturation_backlog", lambda: {
+        "candidate_events": [],
+        "candidate_count": 0,
+        "source": "TEST_EMPTY_TEAM_TOTALS_MATURATION",
+    })
+    monkeypatch.setattr(v, "_load_team_totals_diversity_backlog", lambda: {
+        "existing_fixture_ids": set(range(1, 21)),
+        "existing_unique_fixtures": 20,
+        "legacy_observed_unique_fixtures": 0,
+        "target": 20,
+        "gap": 0,
+        "candidate_events": [],
+        "candidate_count": 0,
+        "source": "TEST_EMPTY_TEAM_TOTALS_DIVERSITY",
+    })
+
+
+def test_primary_clv_maturation_fetches_one_fixture_for_multiple_primary_families(monkeypatch):
+    payload = {
+        "events": [],
+        "match_table_rows": [],
+        "api_calls_this_tick": 50,
+    }
+    event = {
+        "event_type": v.PRIMARY_CLV_MATURATION_EVENT_TYPE,
+        "stage": "T-20",
+        "fixture": {
+            "fixture_id": 9401,
+            "kickoff": "2026-09-25T06:30:00+00:00",
+            "home_team": "Home",
+            "away_team": "Away",
+        },
+        "classification": "RESEARCH_ONLY",
+        "primary_clv_maturation": {
+            "signals": [
+                {
+                    "market_family": "FT_TOTALS",
+                    "market": "Goals Over/Under",
+                    "signal_generated_at": "2026-09-25T05:30:00+00:00",
+                },
+                {
+                    "market_family": "BTTS",
+                    "market": "Both Teams Score",
+                    "signal_generated_at": "2026-09-25T05:32:00+00:00",
+                },
+            ],
+        },
+    }
+    fresh = [
+        {
+            "fixture_id": 9401,
+            "bookmaker_id": 1,
+            "bookmaker": "Book",
+            "market_id": 5,
+            "market": "Goals Over/Under",
+            "values": [
+                {"selection": "Over", "line": 2.5, "decimal_price": 1.95},
+                {"selection": "Under", "line": 2.5, "decimal_price": 1.90},
+            ],
+            "provider_update": "2026-09-25T06:00:00+00:00",
+            "source": "API_FOOTBALL_ODDS_V3",
+        },
+        {
+            "fixture_id": 9401,
+            "bookmaker_id": 1,
+            "bookmaker": "Book",
+            "market_id": 8,
+            "market": "Both Teams Score",
+            "values": [
+                {"selection": "Yes", "line": None, "decimal_price": 1.85},
+                {"selection": "No", "line": None, "decimal_price": 1.95},
+            ],
+            "provider_update": "2026-09-25T06:00:00+00:00",
+            "source": "API_FOOTBALL_ODDS_V3",
+        },
+        {
+            "fixture_id": 9401,
+            "bookmaker_id": 1,
+            "bookmaker": "Book",
+            "market_id": 16,
+            "market": "Total - Home",
+            "values": [
+                {"selection": "Over", "line": 1.5, "decimal_price": 1.90},
+                {"selection": "Under", "line": 1.5, "decimal_price": 1.90},
+            ],
+            "provider_update": "2026-09-25T06:00:00+00:00",
+            "source": "API_FOOTBALL_ODDS_V3",
+        },
+    ]
+    calls = []
+
+    async def fake_fetch(client, fixture_id, *, api_key, remaining_calls):
+        calls.append((fixture_id, remaining_calls))
+        return fresh, 1, "PRICE_API_RESOLVED", 6200
+
+    monkeypatch.setenv("API_FOOTBALL_KEY", "test-key")
+    monkeypatch.setattr(v, "_load_primary_clv_maturation_backlog", lambda: {
+        "candidate_events": [event],
+        "candidate_count": 1,
+        "candidate_family_counts": {"BTTS": 1, "FT_TOTALS": 1},
+        "source": "TEST_PRIMARY_MATURATION",
+    })
+    _empty_team_totals_backlogs(monkeypatch)
+    monkeypatch.setattr(v, "_fetch_fixture_odds", fake_fetch)
+
+    result = asyncio.run(v.resolve_payload(payload, max_api_calls=6, calibration_state={}))
+
+    assert calls == [(9401, 6)]
+    assert result["primary_clv_maturation_candidates"] == 1
+    assert result["primary_clv_maturation_api_calls_added"] == 1
+    assert result["primary_clv_maturation_fixtures_refreshed"] == 1
+    assert result["primary_clv_maturation_family_refresh_counts"] == {"BTTS": 1, "FT_TOTALS": 1}
+    assert result["primary_clv_maturation_synthetic_events_added"] == 1
+    assert payload["api_calls_this_tick"] == 51
+    persisted = payload["events"][0]
+    assert persisted["event_type"] == v.PRIMARY_CLV_MATURATION_EVENT_TYPE
+    assert persisted["primary_clv_maturation"]["matured_families"] == ["BTTS", "FT_TOTALS"]
+    assert [row["market"] for row in persisted["market"]["markets"]] == [
+        "Goals Over/Under",
+        "Both Teams Score",
+    ]
+
+
+def test_primary_clv_maturation_rejects_unchanged_provider_update(monkeypatch):
+    payload = {
+        "events": [],
+        "match_table_rows": [],
+        "api_calls_this_tick": 5,
+    }
+    event = {
+        "event_type": v.PRIMARY_CLV_MATURATION_EVENT_TYPE,
+        "stage": "T-10",
+        "fixture": {"fixture_id": 9402, "kickoff": "2026-09-25T06:30:00+00:00"},
+        "classification": "RESEARCH_ONLY",
+        "primary_clv_maturation": {
+            "signals": [{
+                "market_family": "1X2",
+                "market": "Match Winner",
+                "signal_generated_at": "2026-09-25T06:00:00+00:00",
+            }],
+        },
+    }
+    stale = [{
+        "fixture_id": 9402,
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market_id": 1,
+        "market": "Match Winner",
+        "values": [
+            {"selection": "Home", "line": None, "decimal_price": 2.0},
+            {"selection": "Draw", "line": None, "decimal_price": 3.2},
+            {"selection": "Away", "line": None, "decimal_price": 3.5},
+        ],
+        "provider_update": "2026-09-25T05:59:00+00:00",
+        "source": "API_FOOTBALL_ODDS_V3",
+    }]
+
+    async def fake_fetch(client, fixture_id, *, api_key, remaining_calls):
+        return stale, 1, "PRICE_API_RESOLVED", 6199
+
+    monkeypatch.setenv("API_FOOTBALL_KEY", "test-key")
+    monkeypatch.setattr(v, "_load_primary_clv_maturation_backlog", lambda: {
+        "candidate_events": [event],
+        "candidate_count": 1,
+        "candidate_family_counts": {"1X2": 1},
+        "source": "TEST_PRIMARY_MATURATION",
+    })
+    _empty_team_totals_backlogs(monkeypatch)
+    monkeypatch.setattr(v, "_fetch_fixture_odds", fake_fetch)
+
+    result = asyncio.run(v.resolve_payload(payload, max_api_calls=3, calibration_state={}))
+
+    assert result["primary_clv_maturation_api_calls_added"] == 1
+    assert result["primary_clv_maturation_fixtures_refreshed"] == 0
+    assert result["primary_clv_maturation_unchanged_provider_updates"] == 1
+    assert payload["events"] == []
+    assert payload["api_calls_this_tick"] == 6
+
+
+def test_primary_maturation_quote_helper_requires_same_market_and_later_update():
+    signals = [
+        {
+            "market_family": "1X2",
+            "market": "Match Winner",
+            "signal_generated_at": "2026-09-25T06:00:00+00:00",
+        },
+        {
+            "market_family": "BTTS",
+            "market": "Both Teams Score",
+            "signal_generated_at": "2026-09-25T06:00:00+00:00",
+        },
+    ]
+    markets = [
+        {
+            "market": "Match Winner",
+            "provider_update": "2026-09-25T06:05:00+00:00",
+        },
+        {
+            "market": "Both Teams Score",
+            "provider_update": "2026-09-25T05:59:00+00:00",
+        },
+    ]
+    assert v._primary_signals_with_later_provider_quote(markets, signals) == {"1X2"}
