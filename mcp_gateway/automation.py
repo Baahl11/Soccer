@@ -336,26 +336,31 @@ def _is_ft_team_total_bet(bet: dict[str, Any]) -> bool:
     }
 
 
-def _is_player_prop_research_bet(bet: dict[str, Any]) -> bool:
+def _player_prop_research_subfamily(bet: dict[str, Any]) -> str | None:
     name = " ".join(str(bet.get("name") or "").strip().lower().split())
-    player_tokens = (
-        "player shots",
-        "player shot",
-        "shots on target - player",
-        "player shots on target",
-        "player to score",
-        "anytime goalscorer",
-        "goalscorer",
-        "player assists",
-        "player assist",
-        "goalkeeper saves",
-        "keeper saves",
-        "player cards",
-        "player card",
-        "player booked",
-        "player booking",
-    )
-    return any(token in name for token in player_tokens)
+    if "first goal scorer" in name:
+        return "GOALSCORER_FIRST"
+    if "last goal scorer" in name:
+        return "GOALSCORER_LAST"
+    if any(token in name for token in ("anytime goal scorer", "anytime goalscorer", "player to score")):
+        return "GOALSCORER_ANYTIME"
+    if "goal scorer" in name or "goalscorer" in name:
+        return "GOALSCORER_OTHER"
+    if "shots on target - player" in name or "player shots on target" in name:
+        return "SOT"
+    if "player shots" in name or "player shot" in name:
+        return "SHOTS"
+    if "goalkeeper saves" in name or "keeper saves" in name:
+        return "GK_SAVES"
+    if "player assists" in name or "player assist" in name:
+        return "ASSISTS"
+    if any(token in name for token in ("player cards", "player card", "player booked", "player booking")):
+        return "PLAYER_CARDS"
+    return None
+
+
+def _is_player_prop_research_bet(bet: dict[str, Any]) -> bool:
+    return _player_prop_research_subfamily(bet) is not None
 
 
 def _is_card_research_bet(bet: dict[str, Any]) -> bool:
@@ -372,8 +377,11 @@ def _is_card_research_bet(bet: dict[str, Any]) -> bool:
         "team cards",
         "booking points",
         "bookings",
+        "cards asian handicap",
+        "cards european handicap",
+        "first card received",
     )
-    return any(token in name for token in card_tokens)
+    return name == "rcard" or any(token in name for token in card_tokens)
 
 
 def _research_value(value: dict[str, Any]) -> dict[str, Any]:
@@ -429,6 +437,7 @@ def _compact_odds(payload: dict[str, Any]) -> dict[str, Any]:
                     row.update({
                         "research_only": True,
                         "research_family": "PLAYER_PROPS",
+                        "research_subfamily": _player_prop_research_subfamily(bet),
                         "decision_weight": 0.0,
                         "production_promotion_allowed": False,
                     })
