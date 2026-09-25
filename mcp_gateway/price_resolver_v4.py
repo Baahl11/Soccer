@@ -137,9 +137,18 @@ def _normalize_market_values(market_name: str, values: list[dict[str, Any]]) -> 
             price = _num(item.get("price"))
         if price is None or price <= 1.0:
             continue
+        embedded_line = None
+        embedded_match = re.search(
+            r"\\b(?:over|under)\\s+([+-]?\\d+(?:\\.\\d+)?)\\b",
+            str(raw_selection or ""),
+            flags=re.IGNORECASE,
+        )
+        if embedded_match:
+            embedded_line = _num(embedded_match.group(1))
         parsed.append({
             "selection": selection,
-            "line": line,
+            "raw_selection": raw_selection,
+            "line": line if line is not None else embedded_line,
             "decimal_price": price,
             "fair_probability": _num(item.get("fair_probability")),
         })
@@ -1384,13 +1393,84 @@ async def _fetch_fixture_odds(
     return markets, calls, "PRICE_API_RESOLVED" if markets else "PRICE_API_NO_FIXTURE_OR_MARKET", daily_remaining
 
 
+def _research_derivative_family(market_name: str) -> str | None:
+    name = _norm(market_name)
+    player_tokens = (
+        "player shots",
+        "player shot",
+        "shots on target - player",
+        "player shots on target",
+        "player to score",
+        "anytime goalscorer",
+        "goalscorer",
+        "player assists",
+        "player assist",
+        "goalkeeper saves",
+        "keeper saves",
+        "player cards",
+        "player card",
+        "player booked",
+        "player booking",
+    )
+    if any(token in name for token in player_tokens):
+        return "PLAYER_PROPS"
+    card_tokens = (
+        "cards over/under",
+        "card over/under",
+        "total cards",
+        "total yellow cards",
+        "yellow cards",
+        "red card",
+        "team cards",
+        "booking points",
+        "bookings",
+    )
+    if any(token in name for token in card_tokens):
+        return "CARDS"
+    return None
+
+
 def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]], source_status: str) -> None:
     if not markets:
         return
+    canonical: list[dict[str, Any]] = []
+    card_rows: list[dict[str, Any]] = []
+    prop_rows: list[dict[str, Any]] = []
+    for market in markets:
+        if not isinstance(market, dict):
+            continue
+        family = _research_derivative_family(str(market.get("market") or ""))
+        if family is None:
+            canonical.append(market)
+            continue
+        row = {
+            **market,
+            "research_only": True,
+            "research_family": family,
+            "decision_weight": 0.0,
+            "production_promotion_allowed": False,
+        }
+        if family == "CARDS":
+            row["bookmaker_scoring_rule_required"] = "booking point" in _norm(market.get("market"))
+            card_rows.append(row)
+        else:
+            prop_rows.append(row)
+
+    kept_cards = card_rows[:20]
+    kept_props = prop_rows[:40]
+    research_rows = kept_cards + kept_props
     event["market"] = {
         "source": "API_FOOTBALL_ODDS_V3" if source_status == "PRICE_API_RESOLVED" else "POSTGRES_MARKET_SNAPSHOT_CACHE",
         "resolution_status": source_status,
-        "markets": markets,
+        "markets": canonical,
+        "research_cards_props_markets": research_rows,
+        "card_research_market_rows": len(kept_cards),
+        "player_prop_research_market_rows": len(kept_props),
+        "research_derivative_sidecar_rows": len(research_rows),
+        "research_derivative_sidecar_provider_requests_added": 0,
+        "research_derivative_sidecar_decision_weight": 0.0,
+        "research_derivative_sidecar_production_promotion_allowed": False,
+        "research_derivative_sidecar_policy": "SPLIT_FROM_ALREADY_PAID_PRICE_RESOLVER_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP; RESEARCH_ONLY",
     }
 
 
