@@ -8,14 +8,14 @@ import httpx
 
 from mcp_gateway import automation as base
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 GK_REGISTRY_URL = "https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-state/soccer_edge_state/analysis/goalkeeper_profiles.json"
 TEAM_TRENDS_URL = "https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-state/soccer_edge_state/analysis/trend_intelligence.json"
 CACHE_TTL = timedelta(hours=6)
 TEAM_PRIOR_MATCHES = 10.0
 SAVE_PROXY_PRIOR_SOT = 30.0
 SOT_FACTOR_CLIP = (0.65, 1.35)
-LINES = (1.5, 2.5, 3.5, 4.5, 5.5)
+LINES = (0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5)
 
 
 def _num(value: Any) -> float | None:
@@ -142,22 +142,42 @@ def _global_save_prior(registry: dict[str, Any] | None) -> dict[str, Any]:
 
 
 def _keeper_save_probability(profile: dict[str, Any] | None, global_prior: dict[str, Any]) -> dict[str, Any]:
-    if not isinstance(profile, dict):
-        return {"status": "GK_PROFILE_NOT_AVAILABLE", "save_probability": None}
-    windows = profile.get("windows") if isinstance(profile.get("windows"), dict) else {}
+    global_p = _num(global_prior.get("save_probability_proxy"))
+    if global_p is None:
+        return {
+            "status": "GLOBAL_SAVE_PRIOR_UNAVAILABLE",
+            "save_probability": None,
+            "sample_band": profile.get("sample_band") if isinstance(profile, dict) else "NONE",
+            "player_specific_evidence_applied": False,
+        }
+
+    windows = profile.get("windows") if isinstance(profile, dict) and isinstance(profile.get("windows"), dict) else {}
     l20 = windows.get("last_20") if isinstance(windows.get("last_20"), dict) else {}
     saves = _num(l20.get("save_result_proxy_saves"))
     conceded = _num(l20.get("save_result_proxy_goals_conceded"))
-    global_p = _num(global_prior.get("save_probability_proxy"))
-    if saves is None or conceded is None or saves + conceded <= 0 or global_p is None:
+
+    if saves is None or conceded is None or saves + conceded <= 0:
         return {
-            "status": "GK_SAVE_COUNTS_NOT_AVAILABLE",
-            "save_probability": None,
-            "sample_band": profile.get("sample_band"),
+            "status": "GLOBAL_PRIOR_ONLY_SAVE_RESULT_PROXY",
+            "sample_band": profile.get("sample_band") if isinstance(profile, dict) else "NONE",
+            "observed_saves": saves,
+            "observed_goals_conceded": conceded,
+            "observed_sot_proxy": 0.0,
+            "raw_save_result_proxy": None,
+            "global_save_result_proxy": round(global_p, 6),
+            "prior_sot_proxy": SAVE_PROXY_PRIOR_SOT,
+            "player_specific_evidence_applied": False,
+            "player_specific_weight": 0.0,
+            "save_probability": round(global_p, 6),
+            "definition_warning": (
+                "global saves/(saves+goals_conceded) prior only; no player-specific goalkeeper "
+                "quality effect is claimed; NOT PSxG and not shot-quality adjusted"
+            ),
         }
 
     observed_sot_proxy = saves + conceded
     posterior = (saves + SAVE_PROXY_PRIOR_SOT * global_p) / (observed_sot_proxy + SAVE_PROXY_PRIOR_SOT)
+    player_weight = observed_sot_proxy / (observed_sot_proxy + SAVE_PROXY_PRIOR_SOT)
     return {
         "status": "SHRUNK_SAVE_RESULT_PROXY",
         "sample_band": profile.get("sample_band"),
@@ -167,6 +187,8 @@ def _keeper_save_probability(profile: dict[str, Any] | None, global_prior: dict[
         "raw_save_result_proxy": round(saves / observed_sot_proxy, 6),
         "global_save_result_proxy": round(global_p, 6),
         "prior_sot_proxy": SAVE_PROXY_PRIOR_SOT,
+        "player_specific_evidence_applied": True,
+        "player_specific_weight": round(player_weight, 6),
         "save_probability": round(posterior, 6),
         "definition_warning": "saves/(saves+goals_conceded) proxy; NOT PSxG and not shot-quality adjusted",
     }
@@ -239,6 +261,8 @@ def build(event: dict[str, Any], registry: dict[str, Any] | None, team_report: d
     away_id = fixture.get("away_team_id")
     rows: list[dict[str, Any]] = []
     modeled = 0
+    prior_only_modeled = 0
+    player_specific_modeled = 0
 
     for gk in _confirmed_goalkeepers(event):
         team_id = gk.get("team_id")
@@ -263,10 +287,18 @@ def build(event: dict[str, Any], registry: dict[str, Any] | None, team_report: d
 
         lam = max(0.0, projected_sot * p_save)
         modeled += 1
+        if save.get("player_specific_evidence_applied") is True:
+            player_specific_modeled += 1
+        else:
+            prior_only_modeled += 1
         rows.append({
             **gk,
             "opponent_team_id": opponent_id,
-            "status": "LIVE_RESEARCH_GK_SAVES_DISTRIBUTION",
+            "status": (
+                "LIVE_RESEARCH_GK_SAVES_DISTRIBUTION"
+                if save.get("player_specific_evidence_applied") is True
+                else "LIVE_RESEARCH_GK_SAVES_GLOBAL_PRIOR_DISTRIBUTION"
+            ),
             "save_profile": save,
             "opponent_sot_projection": sot,
             "expected_minutes": 90.0,
@@ -284,17 +316,19 @@ def build(event: dict[str, Any], registry: dict[str, Any] | None, team_report: d
     return {
         "schema_version": SCHEMA_VERSION,
         "fixture_id": fixture.get("fixture_id"),
-        "status": "LIVE_RESEARCH_GK_SAVES",
-        "model": "PROJECTED_OPPONENT_SOT_X_SHRUNK_GK_SAVE_RESULT_PROXY__POISSON_v0.1",
+        "status": "LIVE_RESEARCH_GK_SAVES" if modeled > 0 else "DATA_BLOCKED_GK_SAVES",
+        "model": "PROJECTED_OPPONENT_SOT_X_SHRUNK_GK_SAVE_RESULT_PROXY__POISSON_v0.2",
         "goalkeepers": rows,
         "modeled_goalkeepers": modeled,
+        "prior_only_modeled_goalkeepers": prior_only_modeled,
+        "player_specific_modeled_goalkeepers": player_specific_modeled,
         "global_save_proxy_prior": global_prior,
         "psxg_available": False,
         "shot_quality_adjusted": False,
         "market_prices_attached": False,
         "actionable": False,
         "decision_weight": 0.0,
-        "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE",
+        "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE" if modeled > 0 else "DORMANT_DATA_BLOCKED",
         "calibration_gate": {
             "minimum_oos_gk_games_for_review": 300,
             "minimum_oos_gk_games_for_market_review": 750,
@@ -309,7 +343,12 @@ def build(event: dict[str, Any], registry: dict[str, Any] | None, team_report: d
                 "PSxG/shot-quality data before claiming goalkeeper quality impact",
             ],
         },
-        "policy": "GK SAVES ARE MODELED AS PROJECTED SOT FACED X SHRUNK SAVE RESULT PROXY; PROXY IS NOT PSxG; NO VERIFIED SAVE PRICE=NO EV PICK",
+        "policy": (
+            "GK SAVES ARE MODELED AS PROJECTED SOT FACED X SAVE-RESULT PROXY. "
+            "WHEN A CONFIRMED GK HAS NO PLAYER-SPECIFIC SAVE HISTORY, THE GLOBAL SAVE PRIOR IS USED "
+            "WITH ZERO PLAYER-SPECIFIC WEIGHT; THIS IS A BASELINE SIGNAL, NOT A GOALKEEPER-QUALITY CLAIM. "
+            "PROXY IS NOT PSxG; NO VERIFIED SAVE PRICE=NO EV PICK."
+        ),
     }
 
 
