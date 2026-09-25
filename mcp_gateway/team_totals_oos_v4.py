@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TEAM_TOTALS_OOS_V4_1.1.0"
+MODEL_VERSION = "SOCCER_TEAM_TOTALS_OOS_V4_1.2.0"
 MIN_RESEARCH_FIXTURES = 100
 MIN_ACTIONABLE_REVIEW_FIXTURES = 200
 MIN_TRUE_CLV_ROWS = 50
@@ -29,8 +29,41 @@ def _norm(value: Any) -> str:
 
 
 def is_team_total_market(row: dict[str, Any]) -> bool:
+    family = _norm(row.get("market_family")).upper()
+    if family and family not in {"TEAM_TOTALS", "HOME_TT", "AWAY_TT"}:
+        return False
+
     market = _norm(row.get("market"))
-    return "team total" in market or "team goals" in market
+    period_tokens = ("first half", "1st half", "1h ", "second half", "2nd half", "2h ")
+    non_goal_tokens = (
+        "corner",
+        "card",
+        "booking",
+        "yellow",
+        "red card",
+        "shot",
+        "offside",
+        "throw in",
+        "throw-in",
+        "foul",
+        "save",
+        "tackle",
+        "goal kick",
+    )
+    if any(token in market for token in period_tokens):
+        return False
+    if any(token in market for token in non_goal_tokens):
+        return False
+    if "goal" not in market:
+        return False
+    return (
+        "team total" in market
+        or "team goals" in market
+        or (
+            "total goals" in market
+            and any(token in market for token in ("home team", "away team"))
+        )
+    )
 
 
 def summarize_true_clv(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
