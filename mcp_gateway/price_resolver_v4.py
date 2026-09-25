@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.11.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.12.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -1408,6 +1408,12 @@ async def resolve_payload(
                 # extra calls on synthetic backlog. Current due-event lifecycle
                 # refreshes may still use any budget that remains for future CLV.
                 diversity_progress = len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids)
+                catchup_overflow_active = int(payload.get("team_totals_diversity_catchup_overflow_budget") or 0) > 0
+                if catchup_overflow_active and diversity_progress >= diversity_target:
+                    # Temporary overflow exists only to close the strict
+                    # diversity gap. Once 20 fixtures are reached, never spend
+                    # the remaining overflow on lifecycle refreshes.
+                    continue
                 if source in {"PERSISTED_MODELED_BACKLOG", "SCANNED_UPCOMING_FIXTURE"} and diversity_progress >= diversity_target:
                     continue
 
@@ -1522,6 +1528,10 @@ async def resolve_payload(
         "research_spillover_provider_requests_included_in_api_calls_added": True,
         "research_spillover_primary_markets_preempted": False,
         "research_spillover_only_odds_provider_calls": True,
+        "research_spillover_standard_leftover_budget": int(payload.get("price_resolver_leftover_budget") or 0),
+        "research_spillover_diversity_catchup_overflow_budget": int(payload.get("team_totals_diversity_catchup_overflow_budget") or 0),
+        "research_spillover_total_price_resolver_budget": budget,
+        "research_spillover_catchup_stops_at_diversity_target": True,
         "research_spillover_policy": "PRIMARY_ODDS_PAYLOAD_REUSE_FIRST_ZERO_EXTRA_CALLS;CACHE_SECOND;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;PERSISTED_MODELED_FIXTURES_FIRST;THEN_CURRENT_TICK_SCANNED_UPCOMING_FIXTURES_FOR_MARKET_CAPTURE_ONLY;DIVERSIFY_TO_20_EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_FIXTURES;LEGACY_OBSERVED_ROWS_DO_NOT_SATISFY_GATE;MARKET_CAPTURE_WITHOUT_MODEL_IS_NOT_PHASE19_DIRECTIONAL_EVIDENCE;PHASE19_TRUE_CLV_REMAINS_SEPARATE;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
     }
     payload["price_resolution_provider_requests_added"] = calls
