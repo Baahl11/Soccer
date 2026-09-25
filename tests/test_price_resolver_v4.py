@@ -1615,3 +1615,61 @@ def test_price_resolver_sidecar_xi_aligns_player_prop_values():
         value["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
         for value in shots["values"]
     )
+
+
+def test_price_resolver_sidecar_normalizes_n_plus_threshold_and_excludes_team_shots_aggregate():
+    raw = {
+        "response": [{
+            "fixture": {"id": 9911},
+            "update": "2026-09-25T18:30:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [
+                    {
+                        "id": 301,
+                        "name": "Away Player Shots Total",
+                        "values": [
+                            {"value": "Over 9.5", "odd": "1.90"},
+                            {"value": "Under 9.5", "odd": "1.90"},
+                        ],
+                    },
+                    {
+                        "id": 302,
+                        "name": "Goalkeeper Saves",
+                        "values": [{"value": "Keeper B - 3", "odd": "1.88"}],
+                    },
+                ],
+            }],
+        }],
+    }
+    event = {
+        "lineups": {
+            "both_xi_confirmed": True,
+            "both_goalkeepers_confirmed": True,
+            "teams": [
+                {
+                    "team_id": 10,
+                    "team": "Home",
+                    "starters": [{"id": 501, "name": "Player A", "pos": "F"}],
+                },
+                {
+                    "team_id": 20,
+                    "team": "Away",
+                    "starters": [{"id": 601, "name": "Keeper B", "pos": "G"}],
+                },
+            ],
+        }
+    }
+
+    markets = v.normalize_api_response(raw)
+    v._attach_market_to_event(event, markets, "PRICE_API_RESOLVED")
+
+    props = event["market"]["research_cards_props_markets"]
+    assert all(row["market"] != "Away Player Shots Total" for row in props)
+
+    gk = next(row for row in props if row["research_subfamily"] == "GK_SAVES")
+    assert gk["xi_aligned_value_rows"] == 1
+    assert gk["values"][0]["player_id"] == 601
+    assert gk["values"][0]["parsed_line"] == 2.5
+    assert gk["values"][0]["line_basis"] == "PLAYER_THRESHOLD_N_PLUS"
