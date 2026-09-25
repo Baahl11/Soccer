@@ -112,7 +112,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert out["global_api_cap_after_daily_policy"] == expected_global_cap
     assert out["primary_price_reserve_calls"] == expected_reserve
     assert out["team_totals_diversity_catchup_overflow_budget"] == 0
-    assert out["version"] == "4.32.7-dedicated-ht-research"
+    assert out["version"] == "4.32.8-cards-props-market-sidecar"
 
 
 def test_v123_price_budget_is_global_leftover():
@@ -384,3 +384,85 @@ def test_v123_ht_handoff_dedupes_existing_ht_event(monkeypatch):
     result = v._attach_dedicated_ht_research(payload)
     assert result["synthetic_ht_events_added"] == 0
     assert len(payload["events"]) == 1
+
+
+
+def test_odds_compactor_retains_cards_and_player_props_without_displacing_existing_rows():
+    primary_bets = [
+        {
+            "id": 1000 + i,
+            "name": f"Corners Market {i}",
+            "values": [{"value": "Over 8.5", "odd": "1.90"}],
+        }
+        for i in range(70)
+    ]
+    payload = {
+        "response": [{
+            "update": "2026-09-25T06:00:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": primary_bets + [
+                    {
+                        "id": 16,
+                        "name": "Total - Home",
+                        "values": [{"value": "Over 1.5", "odd": "1.85"}],
+                    },
+                    {
+                        "id": 200,
+                        "name": "Total Yellow Cards",
+                        "values": [{"value": "Over 4.5", "odd": "1.90"}],
+                    },
+                    {
+                        "id": 201,
+                        "name": "Player Shots",
+                        "values": [{"value": "Player A Over 2.5", "odd": "1.95"}],
+                    },
+                    {
+                        "id": 202,
+                        "name": "Goalkeeper Saves",
+                        "values": [{"value": "Keeper A Over 3.5", "odd": "1.88"}],
+                    },
+                    {
+                        "id": 203,
+                        "name": "Player Cards",
+                        "values": [{"value": "Player B To Be Booked", "odd": "2.10"}],
+                    },
+                ],
+            }],
+        }],
+    }
+
+    compact = base._compact_odds(payload)
+
+    assert compact["primary_market_rows"] == 60
+    assert compact["ft_team_total_rows"] == 1
+    assert compact["card_research_market_rows"] == 1
+    assert compact["player_prop_research_market_rows"] == 3
+    assert compact["research_derivative_sidecar_rows"] == 4
+    assert compact["research_derivative_sidecar_provider_requests_added"] == 0
+    names = [row["market"] for row in compact["markets"]]
+    assert "Total - Home" in names
+    assert "Total Yellow Cards" in names
+    assert "Player Shots" in names
+    assert "Goalkeeper Saves" in names
+    assert "Player Cards" in names
+    assert len(compact["markets"]) == 65
+
+
+def test_research_derivative_sidecar_summary_is_zero_call_and_research_only():
+    payload = {
+        "events": [
+            {"market": {"card_research_market_rows": 2, "player_prop_research_market_rows": 3}},
+            {"market": {"card_research_market_rows": 1, "player_prop_research_market_rows": 0}},
+            {"market": "NOT VERIFIED"},
+        ]
+    }
+    result = v._summarize_research_derivative_sidecars(payload)
+    assert result["events_with_sidecar"] == 2
+    assert result["card_market_rows"] == 3
+    assert result["player_prop_market_rows"] == 3
+    assert result["total_market_rows"] == 6
+    assert result["provider_requests_added"] == 0
+    assert result["production_promotion_allowed"] is False
+    assert result["decision_weight"] == 0.0
