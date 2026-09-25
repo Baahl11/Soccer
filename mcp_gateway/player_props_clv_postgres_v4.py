@@ -11,7 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.1.2"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.2.0"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
@@ -84,6 +84,75 @@ def _side(selection: Any) -> str:
     if re.match(r"^.+?\s+-\s+\d+\s*$", str(selection or "").strip()):
         return "OVER"
     return "PLAYER_EVENT"
+
+
+def _probability_reconciliation_reason(
+    player: dict[str, Any],
+    *,
+    mode: str,
+    line: float | None,
+    side: str,
+) -> tuple[str, dict[str, Any]]:
+    status = str(player.get("status") or "UNKNOWN")
+    detail: dict[str, Any] = {
+        "player_status": status,
+        "line": line,
+        "side": side,
+    }
+
+    if mode == "LINES":
+        if line is None:
+            return "MARKET_LINE_MISSING", detail
+        if side not in {"OVER", "UNDER"}:
+            return "MARKET_SIDE_UNSUPPORTED", detail
+        lines = [
+            row for row in (player.get("lines") or [])
+            if isinstance(row, dict)
+        ]
+        available_lines = [
+            _num(row.get("line"))
+            for row in lines
+            if _num(row.get("line")) is not None
+        ]
+        detail["available_lines"] = available_lines
+        if not lines:
+            return "PLAYER_MODEL_LINES_MISSING", detail
+        matched = next(
+            (
+                row for row in lines
+                if _num(row.get("line")) is not None
+                and abs(float(_num(row.get("line"))) - float(line)) <= 1e-6
+            ),
+            None,
+        )
+        if matched is None:
+            return "MODEL_LINE_NOT_AVAILABLE", detail
+        key = "p_over" if side == "OVER" else "p_under"
+        probability = _num(matched.get(key))
+        detail["probability_key"] = key
+        detail["probability"] = probability
+        if probability is None:
+            return "MODEL_PROBABILITY_KEY_MISSING", detail
+        if not 0.0 < probability < 1.0:
+            return "MODEL_PROBABILITY_OUT_OF_RANGE", detail
+        return "OK", detail
+
+    key_by_mode = {
+        "ANYTIME": "p_anytime_goal",
+        "ASSISTS": "p_1plus_assist",
+        "CARDS": "p_player_booked_yellow",
+    }
+    key = key_by_mode.get(mode)
+    if key is None:
+        return "UNKNOWN_MODEL_MODE", detail
+    probability = _num(player.get(key))
+    detail["probability_key"] = key
+    detail["probability"] = probability
+    if probability is None:
+        return "MODEL_PROBABILITY_KEY_MISSING", detail
+    if not 0.0 < probability < 1.0:
+        return "MODEL_PROBABILITY_OUT_OF_RANGE", detail
+    return "OK", detail
 
 
 def _prob_from_model(player: dict[str, Any], *, mode: str, line: float | None, side: str) -> float | None:
@@ -212,6 +281,9 @@ def extract_shadow_signals(
                 "priced_overlap_values": 0,
                 "model_probability_values": 0,
                 "signal_rows": 0,
+                "probability_failure_reasons": {},
+                "matched_player_statuses": {},
+                "probability_failure_samples": [],
             })
             intel = event.get(config["intel_key"])
             if not isinstance(intel, dict):
@@ -261,6 +333,31 @@ def extract_shadow_signals(
                     diag["priced_overlap_values"] += 1
                     line = _line(value)
                     side = _side(value.get("selection"))
+                    player_status = str(player.get("status") or "UNKNOWN")
+                    status_counts = family_diag["matched_player_statuses"]
+                    status_counts[player_status] = int(status_counts.get(player_status, 0)) + 1
+                    reason, reason_detail = _probability_reconciliation_reason(
+                        player,
+                        mode=config["mode"],
+                        line=line,
+                        side=side,
+                    )
+                    if reason != "OK":
+                        reason_counts = family_diag["probability_failure_reasons"]
+                        reason_counts[reason] = int(reason_counts.get(reason, 0)) + 1
+                        samples = family_diag["probability_failure_samples"]
+                        if len(samples) < 12:
+                            samples.append({
+                                "fixture_id": int(fixture_id),
+                                "stage": stage,
+                                "player_id": value.get("player_id"),
+                                "player_name": value.get("player_name") or player.get("player"),
+                                "selection": value.get("selection"),
+                                "market_line": line,
+                                **reason_detail,
+                                "reason": reason,
+                            })
+                        continue
                     model_prob = _prob_from_model(player, mode=config["mode"], line=line, side=side)
                     if model_prob is None or not 0.0 < model_prob < 1.0:
                         continue
