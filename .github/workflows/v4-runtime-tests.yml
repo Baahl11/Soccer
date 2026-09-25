@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - soccer-edge-mcp-v1
+      - phase14-15-evidence-v143
     paths:
       - "mcp_gateway/**"
       - "tests/test_v4_*.py"
@@ -14,6 +15,8 @@ on:
       - "tests/test_team_totals_intelligence.py"
       - "tests/test_league_stage_stability_v4.py"
       - "tests/test_phase19_promotion_framework_v4.py"
+      - "tests/test_phase14_cards_referee_v4.py"
+      - "tests/test_phase15_player_props_v4.py"
       - "tests/test_oos_history_backfill_v4.py"
       - "tests/test_clv_history_merge_v4.py"
       - "tests/test_shadow_settlement_v4.py"
@@ -57,6 +60,8 @@ jobs:
             tests/test_team_totals_intelligence.py \
             tests/test_league_stage_stability_v4.py \
             tests/test_phase19_promotion_framework_v4.py \
+            tests/test_phase14_cards_referee_v4.py \
+            tests/test_phase15_player_props_v4.py \
             tests/test_oos_history_backfill_v4.py \
             tests/test_clv_history_merge_v4.py \
             tests/test_shadow_settlement_v4.py \
