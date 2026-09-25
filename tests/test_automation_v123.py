@@ -113,7 +113,7 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert out["global_api_cap_after_daily_policy"] == expected_global_cap
     assert out["primary_price_reserve_calls"] == expected_reserve
     assert out["team_totals_diversity_catchup_overflow_budget"] == 0
-    assert out["version"] == "4.32.8-cards-props-market-sidecar"
+    assert out["version"] == "4.32.9-hard-budget-reserve"
 
 
 def test_v123_price_budget_is_global_leftover():
@@ -156,19 +156,16 @@ def test_v123_price_budget_plan_never_exceeds_global_tick_leftover():
     assert partial["overflow_above_global_tick_cap_allowed"] is False
 
 
-def test_v123_reserves_capacity_inside_live_elastic_cap(monkeypatch):
+def test_v123_configures_hard_v90_reserve_and_restores_it(monkeypatch):
     seen = {}
-    original_elastic = v.v90._elastic_request_cap
-    global_cap, _reason = original_elastic(7000)
-    expected_pre_cap, expected_reserve = v._reserve_from_elastic_cap(global_cap)
-    assert global_cap == 70
-    assert expected_pre_cap == 50
-    assert expected_reserve == 20
+    original_reserve = v.v90._REQUEST_CAP_RESERVE_CALLS
+    original_min_upstream = v.v90._REQUEST_CAP_MIN_UPSTREAM_CALLS
 
     async def fake_run_tick():
-        upstream_cap, upstream_reason = v.v90._elastic_request_cap(7000)
-        seen["pre_price_cap_during_upstream"] = upstream_cap
-        seen["pre_price_reason_during_upstream"] = upstream_reason
+        seen["reserve_during_upstream"] = v.v90._REQUEST_CAP_RESERVE_CALLS
+        seen["min_upstream_during_upstream"] = v.v90._REQUEST_CAP_MIN_UPSTREAM_CALLS
+        global_cap, _ = v.v90._elastic_request_cap(7000)
+        upstream_cap, reserve = v.v90._request_cap_with_reserve(global_cap)
         return {
             "events": [],
             "match_table_rows": [],
@@ -196,10 +193,11 @@ def test_v123_reserves_capacity_inside_live_elastic_cap(monkeypatch):
 
     out = asyncio.run(v.run_tick())
 
-    assert seen["pre_price_cap_during_upstream"] == 50
-    assert "PRICE_RESERVE_20" in seen["pre_price_reason_during_upstream"]
+    assert seen["reserve_during_upstream"] == 20
+    assert seen["min_upstream_during_upstream"] == v.MIN_UPSTREAM_API_CALLS
     assert seen["price_budget"] == 20
-    assert v.v90._elastic_request_cap is original_elastic
+    assert v.v90._REQUEST_CAP_RESERVE_CALLS == original_reserve
+    assert v.v90._REQUEST_CAP_MIN_UPSTREAM_CALLS == original_min_upstream
     assert out["api_calls_this_tick"] == 50
     assert out["pre_price_pipeline_api_cap"] == 50
     assert out["elastic_request_cap_upstream_observed"] == 50
@@ -209,6 +207,63 @@ def test_v123_reserves_capacity_inside_live_elastic_cap(monkeypatch):
     assert out["effective_max_api_calls_per_tick"] == 70
     assert out["price_resolver_leftover_budget"] == 20
     assert out["team_totals_diversity_catchup_overflow_budget"] == 0
+
+
+def test_v90_hard_gate_stops_upstream_at_reserved_cap(monkeypatch):
+    original_adaptive = v.v90.v6._adaptive_paced_api_get
+    original_run_tick = v.v90.v89.run_tick
+    original_reserve = v.v90._REQUEST_CAP_RESERVE_CALLS
+    original_min = v.v90._REQUEST_CAP_MIN_UPSTREAM_CALLS
+    original_calls = v.v90.v2._API_CALLS_THIS_TICK
+    original_remaining = v.v90.v2._LAST_DAILY_REMAINING
+    original_cap = v.v90.v2.MAX_API_CALLS_PER_TICK
+
+    async def fake_original_adaptive(endpoint, params):
+        if v.v90.v2._API_CALLS_THIS_TICK >= v.v90.v2.MAX_API_CALLS_PER_TICK:
+            raise v.v90.v2.TickBudgetExceeded("hard cap")
+        v.v90.v2._API_CALLS_THIS_TICK += 1
+        remaining = 4403 - v.v90.v2._API_CALLS_THIS_TICK
+        v.v90.v2._LAST_DAILY_REMAINING = remaining
+        return {"quota": {"daily_remaining": remaining}, "response": []}
+
+    async def fake_v89_run_tick():
+        v.v90.v2._API_CALLS_THIS_TICK = 0
+        v.v90.v2._LAST_DAILY_REMAINING = None
+        v.v90.v2.MAX_API_CALLS_PER_TICK = v.v90.v6._BASE_MAX_API_CALLS_PER_TICK
+        while True:
+            try:
+                await v.v90.v6._adaptive_paced_api_get("fixtures", {"date": "2026-09-25"})
+            except v.v90.v2.TickBudgetExceeded:
+                break
+        return {
+            "events": [],
+            "due_fixture_count": 0,
+            "api_calls_this_tick": v.v90.v2._API_CALLS_THIS_TICK,
+            "max_api_calls_per_tick": v.v90.v2.MAX_API_CALLS_PER_TICK,
+            "last_daily_remaining": v.v90.v2._LAST_DAILY_REMAINING,
+        }
+
+    monkeypatch.setattr(v.v90.v6, "_adaptive_paced_api_get", fake_original_adaptive)
+    monkeypatch.setattr(v.v90.v89, "run_tick", fake_v89_run_tick)
+    v.v90._REQUEST_CAP_RESERVE_CALLS = 20
+    v.v90._REQUEST_CAP_MIN_UPSTREAM_CALLS = 8
+    try:
+        out = asyncio.run(v.v90.run_tick())
+    finally:
+        v.v90._REQUEST_CAP_RESERVE_CALLS = original_reserve
+        v.v90._REQUEST_CAP_MIN_UPSTREAM_CALLS = original_min
+        v.v90.v6._adaptive_paced_api_get = original_adaptive
+        v.v90.v89.run_tick = original_run_tick
+        v.v90.v2._API_CALLS_THIS_TICK = original_calls
+        v.v90.v2._LAST_DAILY_REMAINING = original_remaining
+        v.v90.v2.MAX_API_CALLS_PER_TICK = original_cap
+
+    assert out["api_calls_this_tick"] == 25
+    assert out["elastic_global_request_cap"] == 45
+    assert out["elastic_request_cap"] == 25
+    assert out["elastic_request_cap_reserve"] == 20
+    assert "PRICE_RESERVE_20" in out["elastic_request_cap_reason"]
+    assert out["v4_005_runtime_request_cap_observed"] == 25
 
 
 def test_v123_reserve_preserves_minimum_upstream_capacity():
