@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.9.1"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.10.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -1145,6 +1145,9 @@ async def resolve_payload(
     research_spillover_exact_team_total_fixture_ids: set[int] = set()
     research_spillover_new_unique_fixture_ids: set[int] = set()
     research_spillover_current_event_candidates = 0
+    research_spillover_scanned_upcoming_candidates = 0
+    research_spillover_market_capture_only_candidates = 0
+    research_spillover_ft_team_total_market_rows_attached = 0
 
     diversity = await asyncio.to_thread(_load_team_totals_diversity_backlog)
     existing_team_total_fixture_ids = {
@@ -1183,7 +1186,7 @@ async def resolve_payload(
             "fixture_id": fixture_id,
             "event": event,
             "source": "CURRENT_DUE_EVENT",
-            "priority": 0 if fixture_id not in existing_team_total_fixture_ids else 2,
+            "priority": 0 if fixture_id not in existing_team_total_fixture_ids else 3,
         })
         research_spillover_current_event_candidates += 1
 
@@ -1211,6 +1214,52 @@ async def resolve_payload(
             "source": "PERSISTED_MODELED_BACKLOG",
             "priority": 1,
         })
+
+    # The base scheduler already paid for the fixture slate scan. Reuse those
+    # upcoming fixture identities here at zero provider cost, even before a
+    # Team Totals model run exists. This captures the exact FT Team Totals
+    # market early; it does NOT count as Phase19 directional evidence until a
+    # pre-kickoff model signal and later close are available.
+    scanned_upcoming = (
+        payload.get("upcoming_market_capture_fixtures")
+        if isinstance(payload.get("upcoming_market_capture_fixtures"), list)
+        else []
+    )
+    for fixture in scanned_upcoming:
+        if not isinstance(fixture, dict):
+            continue
+        try:
+            fixture_id = int(fixture.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        if fixture_id in seen_candidate_fixture_ids or fixture_id in existing_team_total_fixture_ids:
+            continue
+        event = {
+            "event_type": TEAM_TOTALS_SPILLOVER_EVENT_TYPE,
+            "stage": "EARLY_RESEARCH",
+            "fixture": dict(fixture),
+            "classification": "RESEARCH_ONLY",
+            "bet_eligible": False,
+            "research_only": True,
+            "decision_weight": 0.0,
+            "team_totals_diversity_provenance": {
+                "candidate_source": "CURRENT_TICK_SCANNED_UPCOMING_FIXTURE",
+                "market_capture_only": True,
+                "model_recomputed": False,
+                "provider_requests_before_price_resolver": 0,
+                "primary_markets_preempted": False,
+                "phase19_directional_evidence": False,
+            },
+        }
+        seen_candidate_fixture_ids.add(fixture_id)
+        candidate_records.append({
+            "fixture_id": fixture_id,
+            "event": event,
+            "source": "SCANNED_UPCOMING_FIXTURE",
+            "priority": 2,
+        })
+        research_spillover_scanned_upcoming_candidates += 1
+        research_spillover_market_capture_only_candidates += 1
 
     candidate_records.sort(key=lambda record: (
         int(record.get("priority") or 0),
@@ -1248,12 +1297,27 @@ async def resolve_payload(
 
     def _attach_spillover_event(record: dict[str, Any], markets: list[dict[str, Any]], status: str) -> None:
         nonlocal research_spillover_synthetic_events_added
+        nonlocal research_spillover_ft_team_total_market_rows_attached
         event = record["event"]
-        if markets and not isinstance(event.get("market"), dict):
-            _attach_market_to_event(event, markets, status)
-        if record.get("source") != "PERSISTED_MODELED_BACKLOG":
+        source = str(record.get("source") or "")
+        exact_team_total_markets = [
+            market for market in markets
+            if isinstance(market, dict) and _is_ft_team_total_market(market)
+        ]
+
+        if source == "CURRENT_DUE_EVENT":
+            if markets and not isinstance(event.get("market"), dict):
+                _attach_market_to_event(event, markets, status)
             return
-        if event not in events and markets:
+
+        # Synthetic backlog/capture events persist only the derivative market we
+        # actually need. Avoid writing the entire /odds catalog for 20+ fixtures.
+        if not exact_team_total_markets:
+            return
+        if not isinstance(event.get("market"), dict):
+            _attach_market_to_event(event, exact_team_total_markets, status)
+        research_spillover_ft_team_total_market_rows_attached += len(exact_team_total_markets)
+        if event not in events:
             events.append(event)
             research_spillover_synthetic_events_added += 1
 
@@ -1311,7 +1375,7 @@ async def resolve_payload(
                 # extra calls on synthetic backlog. Current due-event lifecycle
                 # refreshes may still use any budget that remains for future CLV.
                 diversity_progress = len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids)
-                if source == "PERSISTED_MODELED_BACKLOG" and diversity_progress >= diversity_target:
+                if source in {"PERSISTED_MODELED_BACKLOG", "SCANNED_UPCOMING_FIXTURE"} and diversity_progress >= diversity_target:
                     continue
 
                 if not api_key:
@@ -1354,7 +1418,7 @@ async def resolve_payload(
                             "provider_requests_added": used,
                             "policy": "LEFTOVER_PRICE_RESOLVER_BUDGET_AFTER_PRIMARY_TARGETS",
                             "research_only": True,
-                            "diversity_priority": source == "PERSISTED_MODELED_BACKLOG",
+                            "diversity_priority": source in {"PERSISTED_MODELED_BACKLOG", "SCANNED_UPCOMING_FIXTURE"},
                             "ft_team_totals_present": _has_ft_team_total_market(markets),
                         }
                 except Exception as exc:
@@ -1400,6 +1464,8 @@ async def resolve_payload(
         "research_spillover_candidate_fixtures": len(research_spillover_candidate_fixtures),
         "research_spillover_current_event_candidates": research_spillover_current_event_candidates,
         "research_spillover_persisted_backlog_candidates": int(diversity.get("candidate_count") or 0),
+        "research_spillover_scanned_upcoming_candidates": research_spillover_scanned_upcoming_candidates,
+        "research_spillover_market_capture_only_candidates": research_spillover_market_capture_only_candidates,
         "research_spillover_diversity_source": diversity.get("source"),
         "research_spillover_unique_fixture_target": diversity_target,
         "research_spillover_existing_unique_fixtures": len(existing_team_total_fixture_ids),
@@ -1411,6 +1477,7 @@ async def resolve_payload(
         "research_spillover_diversity_gap_remaining": max(0, diversity_target - len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids)),
         "research_spillover_exact_team_total_fixtures_attached": len(research_spillover_exact_team_total_fixture_ids),
         "research_spillover_synthetic_events_added": research_spillover_synthetic_events_added,
+        "research_spillover_ft_team_total_market_rows_attached": research_spillover_ft_team_total_market_rows_attached,
         "research_spillover_cache_hits": research_spillover_cache_hits,
         "research_spillover_api_calls_added": research_spillover_api_calls_added,
         "research_spillover_fixtures_fetched": research_spillover_fixtures_fetched,
@@ -1420,7 +1487,7 @@ async def resolve_payload(
         "research_spillover_provider_requests_included_in_api_calls_added": True,
         "research_spillover_primary_markets_preempted": False,
         "research_spillover_only_odds_provider_calls": True,
-        "research_spillover_policy": "CACHE_FIRST;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;DIVERSIFY_TO_20_EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_FIXTURES_FROM_PERSISTED_PREKICKOFF_MODELS;LEGACY_OBSERVED_ROWS_DO_NOT_SATISFY_GATE;PHASE19_TRUE_CLV_REMAINS_SEPARATE;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
+        "research_spillover_policy": "CACHE_FIRST;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;PERSISTED_MODELED_FIXTURES_FIRST;THEN_CURRENT_TICK_SCANNED_UPCOMING_FIXTURES_FOR_MARKET_CAPTURE_ONLY;DIVERSIFY_TO_20_EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_FIXTURES;LEGACY_OBSERVED_ROWS_DO_NOT_SATISFY_GATE;MARKET_CAPTURE_WITHOUT_MODEL_IS_NOT_PHASE19_DIRECTIONAL_EVIDENCE;PHASE19_TRUE_CLV_REMAINS_SEPARATE;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
     }
     payload["price_resolution_provider_requests_added"] = calls
     return payload["price_resolution_v4"]
