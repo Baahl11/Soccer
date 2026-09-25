@@ -75,7 +75,10 @@ def test_v123_exposes_spillover_checkpoint_and_ft_team_totals(monkeypatch):
     assert {row["team_role"] for row in rows} == {"HOME"}
     assert {row["market"] for row in rows} == {"Total - Home"}
     assert out["price_resolver_leftover_budget"] == 25
-    assert out["version"] == "4.31.7-team-totals-primary-odds-reuse"
+    assert out["pre_price_pipeline_api_cap"] == 50
+    assert out["global_api_cap_after_daily_policy"] == 70
+    assert out["primary_price_reserve_calls"] == 20
+    assert out["version"] == "4.31.8-primary-price-reserve"
 
 
 def test_v123_price_budget_is_global_leftover():
@@ -169,3 +172,46 @@ def test_primary_odds_compactor_preserves_api_football_ft_team_totals_without_di
     assert compact["ft_team_totals_reused_from_same_provider_response"] is True
     assert len(compact["markets"]) == 62
     assert {row["market_id"] for row in compact["markets"][-2:]} == {16, 17}
+
+
+
+def test_v123_reserves_capacity_for_primary_prices_without_raising_global_cap(monkeypatch):
+    seen = {}
+
+    async def fake_run_tick():
+        seen["pre_price_cap_during_upstream"] = v.v6._BASE_MAX_API_CALLS_PER_TICK
+        return {
+            "events": [],
+            "match_table_rows": [],
+            "api_calls_this_tick": 50,
+            "max_api_calls_per_tick": 50,
+            "effective_max_api_calls_per_tick": 50,
+            "last_daily_remaining": 7000,
+        }
+
+    async def fake_resolve(target, *, max_api_calls=None):
+        seen["price_budget"] = max_api_calls
+        target["price_resolution_v4"] = {
+            "status": "ACTIVE_PRICE_RESOLVER",
+            "candidate_rows": 0,
+            "unique_candidate_fixtures": 0,
+            "api_calls_added": 0,
+            "resolution_counts": {},
+        }
+        return target["price_resolution_v4"]
+
+    original_base = v.v6._BASE_MAX_API_CALLS_PER_TICK
+    monkeypatch.setattr(v.v121, "run_tick", fake_run_tick)
+    monkeypatch.setattr(v.price_resolver_v4, "resolve_payload", fake_resolve)
+
+    out = asyncio.run(v.run_tick())
+
+    assert seen["pre_price_cap_during_upstream"] == original_base - 20
+    assert seen["price_budget"] == 20
+    assert v.v6._BASE_MAX_API_CALLS_PER_TICK == original_base
+    assert out["api_calls_this_tick"] == 50
+    assert out["pre_price_pipeline_api_cap"] == original_base - 20
+    assert out["global_api_cap_after_daily_policy"] == original_base
+    assert out["primary_price_reserve_calls"] == 20
+    assert out["effective_max_api_calls_per_tick"] == original_base
+    assert out["price_resolver_leftover_budget"] == 20
