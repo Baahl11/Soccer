@@ -1,4 +1,4 @@
-# refresh after dedicated Player Props true CLV v146
+# refresh after Player Props OOS calibration v147
 name: Phase 15 Player Props Validation
 
 on:
@@ -59,6 +59,7 @@ jobs:
             --gk-saves ../state/soccer_edge_state/analysis/gk_saves_model_sanity.json \
             --true-clv-tracking "$PROP_CLV" \
             --market-audit ../state/soccer_edge_state/analysis/research_derivative_market_audit.json \
+            --oos-report ../state/soccer_edge_state/analysis/player_props_oos_v4_report.json \
             --output ../state/soccer_edge_state/analysis/phase15_player_props_validation.json
 
       - name: Validate safety gates
