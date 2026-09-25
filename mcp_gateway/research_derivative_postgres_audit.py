@@ -23,6 +23,23 @@ def classify_market(market: Any) -> str | None:
     if not name:
         return None
 
+    aggregate_player_shot_markets = (
+        "home player shots total",
+        "away player shots total",
+        "player shots total - home",
+        "player shots total - away",
+    )
+    aggregate_player_sot_markets = (
+        "home player shots on target total",
+        "away player shots on target total",
+        "player shots on target total - home",
+        "player shots on target total - away",
+    )
+    if any(token in name for token in aggregate_player_sot_markets):
+        return "TEAM_SOT"
+    if any(token in name for token in aggregate_player_shot_markets):
+        return "TEAM_SHOTS"
+
     player_card_tokens = (
         "player cards",
         "player card",
@@ -106,12 +123,24 @@ def value_line(value: dict[str, Any]) -> float | None:
         raw = value.get("selection")
     if raw is None:
         raw = value.get("value")
+    text = str(raw or "")
+
     match = re.search(
         r"\b(?:over|under)\s+([+-]?\d+(?:\.\d+)?)\b",
-        str(raw or ""),
+        text,
         flags=re.IGNORECASE,
     )
-    return _num(match.group(1)) if match else None
+    if match:
+        return _num(match.group(1))
+
+    # Historical API-Football Player Props can be encoded as "Player - N",
+    # where N means N+ events. The equivalent decimal line is N-0.5.
+    threshold_match = re.match(r"^.+?\s+-\s+(\d+)\s*$", text.strip())
+    if threshold_match:
+        threshold = _num(threshold_match.group(1))
+        if threshold is not None and threshold >= 1:
+            return threshold - 0.5
+    return None
 
 
 def _price(value: dict[str, Any]) -> float | None:
