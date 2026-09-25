@@ -93,7 +93,7 @@ def _load_materialized_captures(
         )
         rows = cur.fetchall()
 
-    newly_captured: list[dict[str, Any]] = []
+    captures: list[dict[str, Any]] = []
     seen: set[int] = set()
     for fixture_id, kickoff, player_stats in rows:
         if fixture_id is None:
@@ -202,7 +202,7 @@ async def run_backfill(
     persistence_base.ensure_schema()
     attempted = captured = unavailable = 0
     details: list[dict[str, Any]] = []
-    captures: list[dict[str, Any]] = []
+    newly_captured: list[dict[str, Any]] = []
     daily_remaining = v2._LAST_DAILY_REMAINING
     last_request_started = 0.0
 
