@@ -10,7 +10,7 @@ from mcp_gateway import player_props_oos_postgres_v4 as oos
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PHASE15_COVERAGE_AUDIT_V4_1.1.0"
+MODEL_VERSION = "SOCCER_PHASE15_COVERAGE_AUDIT_V4_1.1.1"
 
 FAMILY_CONFIG = oos.FAMILY_CONFIG
 
@@ -248,7 +248,7 @@ def build_audit(
         "decision_weight": 0.0,
         "production_promotion_allowed": False,
         "policy": (
-            "AUDIT ONLY. DISTINGUISH HISTORICALLY RECOVERABLE EVIDENCE FROM DATA THAT NEVER EXISTED "
+            "AUDIT ONLY. POSTGRES-PROJECTED CANONICAL EVENTS. DISTINGUISH HISTORICALLY RECOVERABLE EVIDENCE FROM DATA THAT NEVER EXISTED "
             "AT THE ORIGINAL PREDICTION POINT. DO NOT BACKFILL PREGAME MODEL SIGNALS OR XI/PRICES "
             "RETROACTIVELY. PROVIDER BACKFILL MAY ONLY TARGET FINALIZED PLAYER OUTCOMES WHEN THE "
             "ORIGINAL PREGAME MODEL SIGNAL ALREADY EXISTS."
@@ -261,13 +261,38 @@ def _load_rows(conn, *, lookback_days: int, max_rows: int) -> tuple[list[dict[st
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT e.fixture_id, e.generated_at, e.stage, e.payload AS event_payload, f.kickoff
+            SELECT DISTINCT ON (e.fixture_id)
+                e.fixture_id,
+                e.generated_at,
+                e.stage,
+                jsonb_build_object(
+                    'fixture', e.payload->'fixture',
+                    'coverage', e.payload->'coverage',
+                    'lineups', e.payload->'lineups',
+                    'market', e.payload->'market',
+                    'player_shots_intelligence', e.payload->'player_shots_intelligence',
+                    'player_sot_intelligence', e.payload->'player_sot_intelligence',
+                    'player_goalscorer_intelligence', e.payload->'player_goalscorer_intelligence',
+                    'player_assists_intelligence', e.payload->'player_assists_intelligence',
+                    'player_cards_intelligence', e.payload->'player_cards_intelligence',
+                    'gk_saves_intelligence', e.payload->'gk_saves_intelligence'
+                ) AS event_payload,
+                f.kickoff
             FROM soccer_refresh_events e
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.generated_at < f.kickoff
               AND e.stage IN ('T-40','T-30','T-20','T-10')
-            ORDER BY e.fixture_id, e.generated_at
+            ORDER BY
+                e.fixture_id,
+                CASE e.stage
+                    WHEN 'T-10' THEN 4
+                    WHEN 'T-20' THEN 3
+                    WHEN 'T-30' THEN 2
+                    WHEN 'T-40' THEN 1
+                    ELSE 0
+                END DESC,
+                e.generated_at DESC
             LIMIT %s
             """,
             (cutoff, max_rows),
@@ -277,12 +302,20 @@ def _load_rows(conn, *, lookback_days: int, max_rows: int) -> tuple[list[dict[st
 
         cur.execute(
             """
-            SELECT e.fixture_id, e.generated_at, e.stage, e.payload AS event_payload, f.kickoff
+            SELECT DISTINCT ON (e.fixture_id)
+                e.fixture_id,
+                e.generated_at,
+                e.stage,
+                jsonb_build_object(
+                    'fixture', e.payload->'fixture',
+                    'postgame_player_stats', e.payload->'postgame_player_stats'
+                ) AS event_payload,
+                f.kickoff
             FROM soccer_refresh_events e
             JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
             WHERE e.generated_at >= %s
               AND e.stage IN ('POSTGAME','POSTGAME_BACKFILL')
-            ORDER BY e.fixture_id, e.generated_at
+            ORDER BY e.fixture_id, e.generated_at DESC
             LIMIT %s
             """,
             (cutoff, max_rows),
