@@ -1,3 +1,4 @@
+# Phase13 stage discrimination audit: 2026-09-24
 name: Phase 13 OOS Calibration Validation
 
 on:
@@ -117,8 +118,9 @@ jobs:
           }' /tmp/oos_stage_diagnostics_v4.json
           jq -e '
             .schema_version == "1.0.0"
-            and .model_version == "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.2.0"
+            and .model_version == "SOCCER_OOS_STAGE_DIAGNOSTICS_V4_1.3.0"
             and (.current_model_by_stage | type == "object")
+            and ([.current_model_by_stage[]?.binary_targets.draw.discrimination | type] | all(. == "object"))
             and (.provider_requests_added == 0)
           ' /tmp/oos_stage_diagnostics_v4.json >/dev/null
 
