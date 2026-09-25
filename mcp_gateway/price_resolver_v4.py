@@ -13,7 +13,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.9.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.9.1"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -666,6 +666,7 @@ def _load_team_totals_diversity_backlog(
     empty = {
         "existing_fixture_ids": set(),
         "existing_unique_fixtures": 0,
+        "legacy_observed_unique_fixtures": 0,
         "target": int(target),
         "gap": int(target),
         "candidate_events": [],
@@ -690,14 +691,21 @@ def _load_team_totals_diversity_backlog(
 
     with persistence._connect() as conn:
         with conn.cursor() as cur:
+            # Diversity is intentionally based only on the explicit strict-capture
+            # marker introduced by resolver v1.9+. Historical
+            # team_totals_intelligence.observed_exact_market_rows can contain
+            # legacy/broader evidence and must never satisfy the 20-fixture gate.
             cur.execute(
-                f"""
+                """
                 SELECT DISTINCT e.fixture_id
                 FROM soccer_refresh_events e
                 JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
                 WHERE e.generated_at >= %s
                   AND e.generated_at < f.kickoff
-                  AND ({observed_rows_expr}) > 0
+                  AND COALESCE(
+                        e.payload -> 'team_totals_diversity_capture' ->> 'qualifies',
+                        'false'
+                      ) = 'true'
                 """,
                 (lookback_cutoff,),
             )
@@ -707,16 +715,31 @@ def _load_team_totals_diversity_backlog(
                 if row and row[0] is not None
             }
 
+            cur.execute(
+                f"""
+                SELECT COUNT(DISTINCT e.fixture_id)
+                FROM soccer_refresh_events e
+                JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                WHERE e.generated_at >= %s
+                  AND e.generated_at < f.kickoff
+                  AND ({observed_rows_expr}) > 0
+                """,
+                (lookback_cutoff,),
+            )
+            legacy_row = cur.fetchone()
+            legacy_observed_unique_fixtures = int((legacy_row or [0])[0] or 0)
+
             gap = max(0, int(target) - len(existing_fixture_ids))
             if gap <= 0:
                 return {
                     "existing_fixture_ids": existing_fixture_ids,
                     "existing_unique_fixtures": len(existing_fixture_ids),
+                    "legacy_observed_unique_fixtures": legacy_observed_unique_fixtures,
                     "target": int(target),
                     "gap": 0,
                     "candidate_events": [],
                     "candidate_count": 0,
-                    "source": "POSTGRES_MODELED_FIXTURE_BACKLOG",
+                    "source": "POSTGRES_STRICT_TEAM_TOTAL_DIVERSITY_CAPTURE_BACKLOG",
                 }
 
             cur.execute(
@@ -764,7 +787,10 @@ def _load_team_totals_diversity_backlog(
                     WHERE e.fixture_id = lm.fixture_id
                       AND e.generated_at >= %s
                       AND e.generated_at < f2.kickoff
-                      AND ({observed_rows_expr}) > 0
+                      AND COALESCE(
+                            e.payload -> 'team_totals_diversity_capture' ->> 'qualifies',
+                            'false'
+                          ) = 'true'
                 )
                 ORDER BY lm.kickoff ASC, lm.run_timestamp DESC
                 LIMIT %s
@@ -824,6 +850,7 @@ def _load_team_totals_diversity_backlog(
     return {
         "existing_fixture_ids": existing_fixture_ids,
         "existing_unique_fixtures": len(existing_fixture_ids),
+        "legacy_observed_unique_fixtures": legacy_observed_unique_fixtures,
         "target": int(target),
         "gap": max(0, int(target) - len(existing_fixture_ids)),
         "candidate_events": candidate_events,
@@ -1194,10 +1221,28 @@ async def resolve_payload(
         int(record["fixture_id"]) for record in candidate_records
     }
 
-    def _record_exact_team_total_coverage(fixture_id: int, markets: list[dict[str, Any]]) -> None:
+    def _record_exact_team_total_coverage(
+        fixture_id: int,
+        markets: list[dict[str, Any]],
+        event: dict[str, Any],
+        *,
+        candidate_source: str,
+        resolution_status: str,
+    ) -> None:
         if not _has_ft_team_total_market(markets):
             return
         research_spillover_exact_team_total_fixture_ids.add(fixture_id)
+        event["team_totals_diversity_capture"] = {
+            "schema_version": "1.0.0",
+            "qualifies": True,
+            "criterion": "STRICT_FT_TEAM_TOTAL_MARKET_ID_16_17_OR_CANONICAL_GOAL_LABEL",
+            "captured_by_price_resolver": MODEL_VERSION,
+            "candidate_source": candidate_source,
+            "resolution_status": resolution_status,
+            "research_only": True,
+            "phase19_true_clv_qualified": False,
+            "phase19_true_clv_requires_later_pre_kickoff_close": True,
+        }
         if fixture_id not in existing_team_total_fixture_ids:
             research_spillover_new_unique_fixture_ids.add(fixture_id)
 
@@ -1223,7 +1268,13 @@ async def resolve_payload(
             markets, status = fixture_cache[fixture_id]
             if markets:
                 _attach_spillover_event(record, markets, status)
-                _record_exact_team_total_coverage(fixture_id, markets)
+                _record_exact_team_total_coverage(
+                    fixture_id,
+                    markets,
+                    event,
+                    candidate_source=str(record.get("source") or ""),
+                    resolution_status=str(status),
+                )
                 if str(status).startswith("PRICE_CACHE"):
                     research_spillover_cache_hits += 1
             continue
@@ -1232,7 +1283,13 @@ async def resolve_payload(
         if cached:
             fixture_cache[fixture_id] = (cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
             _attach_spillover_event(record, cached, "PRICE_CACHE_HIT_RESEARCH_ONLY")
-            _record_exact_team_total_coverage(fixture_id, cached)
+            _record_exact_team_total_coverage(
+                fixture_id,
+                cached,
+                event,
+                candidate_source=str(record.get("source") or ""),
+                resolution_status="PRICE_CACHE_HIT_RESEARCH_ONLY",
+            )
             cache_hydrated_research_fixtures += 1
             cache_hydrated_research_market_rows += len(cached)
             research_spillover_cache_hits += 1
@@ -1283,7 +1340,13 @@ async def resolve_payload(
                     fixture_cache[fixture_id] = (markets, status)
                     if markets:
                         _attach_spillover_event(record, markets, status)
-                        _record_exact_team_total_coverage(fixture_id, markets)
+                        _record_exact_team_total_coverage(
+                            fixture_id,
+                            markets,
+                            event,
+                            candidate_source=source,
+                            resolution_status=str(status),
+                        )
                         research_spillover_fixtures_fetched += 1
                         research_spillover_market_rows_fetched += len(markets)
                         event["research_price_spillover"] = {
@@ -1340,6 +1403,9 @@ async def resolve_payload(
         "research_spillover_diversity_source": diversity.get("source"),
         "research_spillover_unique_fixture_target": diversity_target,
         "research_spillover_existing_unique_fixtures": len(existing_team_total_fixture_ids),
+        "research_spillover_legacy_observed_unique_fixtures": int(diversity.get("legacy_observed_unique_fixtures") or 0),
+        "research_spillover_diversity_counter_semantics": "EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_MARKER_V1_9_PLUS;NOT_PHASE19_TRUE_CLV",
+        "research_spillover_phase19_true_clv_gate_separate": True,
         "research_spillover_new_unique_fixtures_this_tick": len(research_spillover_new_unique_fixture_ids),
         "research_spillover_projected_unique_fixtures": len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids),
         "research_spillover_diversity_gap_remaining": max(0, diversity_target - len(existing_team_total_fixture_ids | research_spillover_new_unique_fixture_ids)),
@@ -1354,7 +1420,7 @@ async def resolve_payload(
         "research_spillover_provider_requests_included_in_api_calls_added": True,
         "research_spillover_primary_markets_preempted": False,
         "research_spillover_only_odds_provider_calls": True,
-        "research_spillover_policy": "CACHE_FIRST;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;DIVERSIFY_TO_20_UNIQUE_FT_TEAM_TOTAL_FIXTURES_FROM_PERSISTED_PREKICKOFF_MODELS;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
+        "research_spillover_policy": "CACHE_FIRST;PRIMARY_PRICE_TARGETS_COMPLETE_FIRST;DIVERSIFY_TO_20_EXPLICIT_STRICT_FT_TEAM_TOTAL_CAPTURE_FIXTURES_FROM_PERSISTED_PREKICKOFF_MODELS;LEGACY_OBSERVED_ROWS_DO_NOT_SATISFY_GATE;PHASE19_TRUE_CLV_REMAINS_SEPARATE;API_FOOTBALL_ODDS_ONLY_WITH_LEFTOVER_BUDGET;CURRENT_DUE_LIFECYCLE_REFRESH_AFTER_DIVERSITY;RESEARCH_ONLY",
     }
     payload["price_resolution_provider_requests_added"] = calls
     return payload["price_resolution_v4"]
