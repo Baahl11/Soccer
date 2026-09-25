@@ -8,8 +8,8 @@ from collections import defaultdict
 from statistics import median
 from typing import Any, Iterable
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_LEAGUE_STAGE_STABILITY_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_LEAGUE_STAGE_STABILITY_V4_1.1.0"
 MIN_DIRECTIONAL_FIXTURES = 20
 MIN_REVIEW_FIXTURES = 50
 
@@ -41,7 +41,7 @@ def _fixture_weighted_mean(rows: list[dict[str, Any]], field: str) -> float | No
     return round(sum(fixture_means) / len(fixture_means), 6) if fixture_means else None
 
 
-def summarize(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
+def summarize(rows: Iterable[dict[str, Any]], *, include_fixture_ids: bool = False) -> dict[str, Any]:
     selected = [row for row in rows if isinstance(row, dict)]
     probability_values = [_num(row.get("probability_clv")) for row in selected]
     probability_values = [value for value in probability_values if value is not None]
@@ -57,7 +57,7 @@ def summarize(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     else:
         sample_status = "DATA_BLOCKED"
 
-    return {
+    summary = {
         "rows": len(selected),
         "unique_fixtures": fixture_n,
         "sample_status": sample_status,
@@ -71,6 +71,9 @@ def summarize(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "flat_rows": sum(1 for value in probability_values if math.isclose(value, 0.0, abs_tol=1e-12)),
         "positive_row_rate": round(sum(1 for value in probability_values if value > 0) / len(probability_values), 6) if probability_values else None,
     }
+    if include_fixture_ids:
+        summary["fixture_ids"] = sorted(fixtures)
+    return summary
 
 
 def _segment_rows(rows: list[dict[str, Any]], key: str) -> dict[str, list[dict[str, Any]]]:
@@ -110,7 +113,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         stage_raw = _segment_rows(family_rows, "stage")
         by_league = {name: summarize(values) for name, values in sorted(league_raw.items())}
         by_stage = {name: summarize(values) for name, values in sorted(stage_raw.items())}
-        overall = summarize(family_rows)
+        overall = summarize(family_rows, include_fixture_ids=True)
 
         total_fixtures = max(1, int(overall.get("unique_fixtures") or 0))
         max_league_fixture_share = max(
@@ -176,6 +179,7 @@ def build_report(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "families": families,
         "notes": [
             "League/stage stability gates use unique fixtures rather than raw CLV rows to avoid inflating evidence from multiple correlated lines or selections in one match.",
+            "Each family overall summary retains its exact fixture_ids so combined derivative families can union fixture evidence without double-counting or conservative max()-based undercounting.",
             "Both row-weighted and fixture-weighted CLV are reported; fixture-weighted CLV is preferred for stability review.",
             "This validator does not promote any market family automatically.",
             "Negative directional segments are surfaced only after at least 20 unique fixtures in that segment.",
