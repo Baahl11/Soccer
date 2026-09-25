@@ -17,6 +17,13 @@ MIN_DAILY_REMAINING = 250
 MIN_REQUEST_INTERVAL_SECONDS = 0.8
 
 
+def _num(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _candidate_fixtures(
     conn,
     *,
