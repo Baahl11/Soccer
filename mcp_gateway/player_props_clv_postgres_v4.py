@@ -11,7 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.2.2"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.3.0"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
@@ -86,6 +86,21 @@ def _side(selection: Any) -> str:
     return "PLAYER_EVENT"
 
 
+def _binary_event_probability_key(mode: str, line: float | None) -> str | None:
+    keys = {
+        "ASSISTS": ("p_1plus_assist", "p_2plus_assists"),
+        "CARDS": ("p_player_booked_yellow", "p_2plus_yellow_cards"),
+    }
+    pair = keys.get(mode)
+    if pair is None:
+        return None
+    if line is None or abs(float(line) - 0.5) <= 1e-6:
+        return pair[0]
+    if abs(float(line) - 1.5) <= 1e-6:
+        return pair[1]
+    return None
+
+
 def _probability_reconciliation_reason(
     player: dict[str, Any],
     *,
@@ -137,22 +152,40 @@ def _probability_reconciliation_reason(
             return "MODEL_PROBABILITY_OUT_OF_RANGE", detail
         return "OK", detail
 
-    key_by_mode = {
-        "ANYTIME": "p_anytime_goal",
-        "ASSISTS": "p_1plus_assist",
-        "CARDS": "p_player_booked_yellow",
-    }
-    key = key_by_mode.get(mode)
-    if key is None:
-        return "UNKNOWN_MODEL_MODE", detail
-    probability = _num(player.get(key))
-    detail["probability_key"] = key
-    detail["probability"] = probability
-    if probability is None:
-        return "MODEL_PROBABILITY_KEY_MISSING", detail
-    if not 0.0 < probability < 1.0:
-        return "MODEL_PROBABILITY_OUT_OF_RANGE", detail
-    return "OK", detail
+    if mode == "ANYTIME":
+        key = "p_anytime_goal"
+        probability = _num(player.get(key))
+        detail["probability_key"] = key
+        detail["probability"] = probability
+        if probability is None:
+            return "MODEL_PROBABILITY_KEY_MISSING", detail
+        if not 0.0 < probability < 1.0:
+            return "MODEL_PROBABILITY_OUT_OF_RANGE", detail
+        return "OK", detail
+
+    if mode in {"ASSISTS", "CARDS"}:
+        if side not in {"YES", "NO", "OVER", "UNDER", "PLAYER_EVENT"}:
+            return "MARKET_SIDE_UNSUPPORTED", detail
+        key = _binary_event_probability_key(mode, line)
+        detail["probability_key"] = key
+        if key is None:
+            detail["supported_lines"] = [None, 0.5, 1.5]
+            return "MODEL_LINE_NOT_AVAILABLE", detail
+        base_probability = _num(player.get(key))
+        detail["base_event_probability"] = base_probability
+        if base_probability is None:
+            return "MODEL_PROBABILITY_KEY_MISSING", detail
+        probability = (
+            1.0 - base_probability
+            if side in {"NO", "UNDER"}
+            else base_probability
+        )
+        detail["probability"] = probability
+        if not 0.0 < probability < 1.0:
+            return "MODEL_PROBABILITY_OUT_OF_RANGE", detail
+        return "OK", detail
+
+    return "UNKNOWN_MODEL_MODE", detail
 
 
 def _prob_from_model(player: dict[str, Any], *, mode: str, line: float | None, side: str) -> float | None:
@@ -169,10 +202,14 @@ def _prob_from_model(player: dict[str, Any], *, mode: str, line: float | None, s
         return None
     if mode == "ANYTIME":
         return _num(player.get("p_anytime_goal"))
-    if mode == "ASSISTS":
-        return _num(player.get("p_1plus_assist"))
-    if mode == "CARDS":
-        return _num(player.get("p_player_booked_yellow"))
+    if mode in {"ASSISTS", "CARDS"}:
+        key = _binary_event_probability_key(mode, line)
+        if key is None or side not in {"YES", "NO", "OVER", "UNDER", "PLAYER_EVENT"}:
+            return None
+        base_probability = _num(player.get(key))
+        if base_probability is None:
+            return None
+        return 1.0 - base_probability if side in {"NO", "UNDER"} else base_probability
     return None
 
 
