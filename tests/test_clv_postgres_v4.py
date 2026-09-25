@@ -332,3 +332,39 @@ def test_minimal_legacy_payload_preserves_candidate_and_confidence():
     assert converted is not None
     assert converted["market_candidate"]["market"] == "Goals Over/Under"
     assert v._model_signal_from_candidate(converted["market_candidate"], signal["event_payload"]) == "STRONG"
+
+
+def test_strict_later_provider_quote_requires_real_later_update():
+    signal_at = datetime(2026, 9, 25, 2, 0, tzinfo=timezone.utc)
+
+    assert v._is_strictly_later_provider_quote(
+        {
+            "captured_at": datetime(2026, 9, 25, 2, 10, tzinfo=timezone.utc),
+            "provider_update": datetime(2026, 9, 25, 2, 5, tzinfo=timezone.utc),
+        },
+        signal_at,
+    ) is True
+
+    assert v._is_strictly_later_provider_quote(
+        {
+            "captured_at": signal_at,
+            "provider_update": datetime(2026, 9, 25, 2, 5, tzinfo=timezone.utc),
+        },
+        signal_at,
+    ) is False
+
+    assert v._is_strictly_later_provider_quote(
+        {
+            "captured_at": datetime(2026, 9, 25, 2, 10, tzinfo=timezone.utc),
+            "provider_update": datetime(2026, 9, 25, 1, 55, tzinfo=timezone.utc),
+        },
+        signal_at,
+    ) is False
+
+    assert v._is_strictly_later_provider_quote(
+        {
+            "captured_at": datetime(2026, 9, 25, 2, 10, tzinfo=timezone.utc),
+            "provider_update": None,
+        },
+        signal_at,
+    ) is False
