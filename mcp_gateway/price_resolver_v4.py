@@ -1327,8 +1327,38 @@ def _load_primary_clv_maturation_backlog(
                       AND NULLIF(mt.row ->> 'market', '') IS NOT NULL
                       AND NULLIF(mt.row ->> 'selection', '') IS NOT NULL
                       AND NULLIF(mt.row ->> 'price', '') IS NOT NULL
-                      AND CASE
-                            WHEN (mt.row ->> 'price') ~ '^[0-9]+([.][0-9]+)?                SELECT ls.*
+                      AND jsonb_typeof(mt.row -> 'price') = 'number'
+                      AND (mt.row ->> 'price')::DOUBLE PRECISION > 1.0
+                ),
+                latest_signal AS (
+                    SELECT DISTINCT ON (fixture_id, market_family)
+                        fixture_id,
+                        market_family,
+                        market,
+                        signal_generated_at,
+                        candidate_source,
+                        league_id,
+                        league,
+                        country,
+                        season,
+                        round,
+                        kickoff,
+                        status,
+                        status_long,
+                        home_team_id,
+                        home_team,
+                        away_team_id,
+                        away_team,
+                        venue,
+                        city
+                    FROM candidate_signal
+                    ORDER BY
+                        fixture_id,
+                        market_family,
+                        signal_generated_at DESC,
+                        source_priority ASC
+                )
+                SELECT ls.*
                 FROM latest_signal ls
                 WHERE NOT EXISTS (
                     SELECT 1
