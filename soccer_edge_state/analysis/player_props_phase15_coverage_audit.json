@@ -2,175 +2,181 @@
   "schema_version": "1.0.0",
   "model_version": "SOCCER_PHASE15_COVERAGE_AUDIT_V4_1.1.1",
   "status": "PHASE15_COVERAGE_RECONCILIATION_AUDIT",
-  "canonical_pregame_fixtures": 181,
-  "postgame_overlap_fixtures": 3,
-  "finalized_result_fixtures": 137,
+  "canonical_pregame_fixtures": 220,
+  "postgame_overlap_fixtures": 7,
+  "finalized_result_fixtures": 150,
   "families": {
     "SHOTS": {
-      "canonical_fixtures": 181,
+      "canonical_fixtures": 220,
       "oos_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 169,
-        "POSTGAME_EVENT_MISSING": 11,
+        "NO_PREGAME_MODEL_SIGNAL": 207,
+        "POSTGAME_EVENT_MISSING": 12,
         "READY_OOS": 1
       },
       "clv_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 169,
+        "ENTRY_SIGNAL_READY": 1,
+        "NO_PREGAME_MODEL_SIGNAL": 207,
         "PLAYER_PROP_MARKET_NOT_CAPTURED": 12
       },
       "oos_recoverability": {
         "ALREADY_MATERIALIZED": 1,
-        "FUTURE_CAPTURE_ONLY": 169,
+        "FUTURE_CAPTURE_ONLY": 207,
         "FUTURE_CAPTURE_OR_PROVIDER_UNAVAILABLE": 5,
-        "PROVIDER_BACKFILL_CANDIDATE": 6
+        "PROVIDER_BACKFILL_CANDIDATE": 7
       },
       "clv_recoverability": {
-        "FUTURE_CAPTURE_ONLY": 181
+        "FUTURE_CAPTURE_ONLY": 219,
+        "NEEDS_LATER_CLOSE_OR_ALREADY_TRACKABLE": 1
       },
       "oos_ready_fixtures": 1,
-      "oos_provider_backfill_candidates": 6,
+      "oos_provider_backfill_candidates": 7,
       "oos_reconciliation_candidates": 0,
-      "clv_entry_ready_fixtures": 0,
+      "clv_entry_ready_fixtures": 1,
       "clv_reconciliation_candidates": 0,
-      "future_capture_only_oos": 169,
-      "future_capture_only_clv": 181
+      "future_capture_only_oos": 207,
+      "future_capture_only_clv": 219
     },
     "SOT": {
-      "canonical_fixtures": 181,
+      "canonical_fixtures": 220,
       "oos_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 169,
-        "POSTGAME_EVENT_MISSING": 11,
+        "NO_PREGAME_MODEL_SIGNAL": 207,
+        "POSTGAME_EVENT_MISSING": 12,
         "READY_OOS": 1
       },
       "clv_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 169,
-        "PLAYER_PROP_MARKET_NOT_CAPTURED": 12
+        "NO_PREGAME_MODEL_SIGNAL": 207,
+        "PLAYER_PROP_MARKET_NOT_CAPTURED": 13
       },
       "oos_recoverability": {
         "ALREADY_MATERIALIZED": 1,
-        "FUTURE_CAPTURE_ONLY": 169,
+        "FUTURE_CAPTURE_ONLY": 207,
         "FUTURE_CAPTURE_OR_PROVIDER_UNAVAILABLE": 5,
-        "PROVIDER_BACKFILL_CANDIDATE": 6
+        "PROVIDER_BACKFILL_CANDIDATE": 7
       },
       "clv_recoverability": {
-        "FUTURE_CAPTURE_ONLY": 181
+        "FUTURE_CAPTURE_ONLY": 220
       },
       "oos_ready_fixtures": 1,
-      "oos_provider_backfill_candidates": 6,
+      "oos_provider_backfill_candidates": 7,
       "oos_reconciliation_candidates": 0,
       "clv_entry_ready_fixtures": 0,
       "clv_reconciliation_candidates": 0,
-      "future_capture_only_oos": 169,
-      "future_capture_only_clv": 181
+      "future_capture_only_oos": 207,
+      "future_capture_only_clv": 220
     },
     "GOALSCORER_ANYTIME": {
-      "canonical_fixtures": 181,
+      "canonical_fixtures": 220,
       "oos_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 169,
-        "POSTGAME_EVENT_MISSING": 11,
+        "NO_PREGAME_MODEL_SIGNAL": 207,
+        "POSTGAME_EVENT_MISSING": 12,
         "READY_OOS": 1
       },
       "clv_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 169,
+        "ENTRY_SIGNAL_READY": 1,
+        "NO_PREGAME_MODEL_SIGNAL": 207,
         "PLAYER_PROP_MARKET_NOT_CAPTURED": 12
       },
       "oos_recoverability": {
         "ALREADY_MATERIALIZED": 1,
-        "FUTURE_CAPTURE_ONLY": 169,
+        "FUTURE_CAPTURE_ONLY": 207,
         "FUTURE_CAPTURE_OR_PROVIDER_UNAVAILABLE": 5,
-        "PROVIDER_BACKFILL_CANDIDATE": 6
+        "PROVIDER_BACKFILL_CANDIDATE": 7
       },
       "clv_recoverability": {
-        "FUTURE_CAPTURE_ONLY": 181
+        "FUTURE_CAPTURE_ONLY": 219,
+        "NEEDS_LATER_CLOSE_OR_ALREADY_TRACKABLE": 1
       },
       "oos_ready_fixtures": 1,
-      "oos_provider_backfill_candidates": 6,
+      "oos_provider_backfill_candidates": 7,
       "oos_reconciliation_candidates": 0,
-      "clv_entry_ready_fixtures": 0,
+      "clv_entry_ready_fixtures": 1,
       "clv_reconciliation_candidates": 0,
-      "future_capture_only_oos": 169,
-      "future_capture_only_clv": 181
+      "future_capture_only_oos": 207,
+      "future_capture_only_clv": 219
     },
     "ASSISTS": {
-      "canonical_fixtures": 181,
+      "canonical_fixtures": 220,
       "oos_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 169,
-        "POSTGAME_EVENT_MISSING": 11,
+        "NO_PREGAME_MODEL_SIGNAL": 207,
+        "POSTGAME_EVENT_MISSING": 12,
         "READY_OOS": 1
       },
       "clv_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 169,
+        "NO_PREGAME_MODEL_SIGNAL": 207,
+        "PLAYER_PRICE_NOT_XI_ALIGNED": 1,
         "PLAYER_PROP_MARKET_NOT_CAPTURED": 12
       },
       "oos_recoverability": {
         "ALREADY_MATERIALIZED": 1,
-        "FUTURE_CAPTURE_ONLY": 169,
+        "FUTURE_CAPTURE_ONLY": 207,
         "FUTURE_CAPTURE_OR_PROVIDER_UNAVAILABLE": 5,
-        "PROVIDER_BACKFILL_CANDIDATE": 6
+        "PROVIDER_BACKFILL_CANDIDATE": 7
       },
       "clv_recoverability": {
-        "FUTURE_CAPTURE_ONLY": 181
-      },
-      "oos_ready_fixtures": 1,
-      "oos_provider_backfill_candidates": 6,
-      "oos_reconciliation_candidates": 0,
-      "clv_entry_ready_fixtures": 0,
-      "clv_reconciliation_candidates": 0,
-      "future_capture_only_oos": 169,
-      "future_capture_only_clv": 181
-    },
-    "PLAYER_CARDS": {
-      "canonical_fixtures": 181,
-      "oos_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 173,
-        "POSTGAME_EVENT_MISSING": 8
-      },
-      "clv_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 173,
-        "PLAYER_PROP_MARKET_NOT_CAPTURED": 8
-      },
-      "oos_recoverability": {
-        "FUTURE_CAPTURE_ONLY": 173,
-        "FUTURE_CAPTURE_OR_PROVIDER_UNAVAILABLE": 5,
-        "PROVIDER_BACKFILL_CANDIDATE": 3
-      },
-      "clv_recoverability": {
-        "FUTURE_CAPTURE_ONLY": 181
-      },
-      "oos_ready_fixtures": 0,
-      "oos_provider_backfill_candidates": 3,
-      "oos_reconciliation_candidates": 0,
-      "clv_entry_ready_fixtures": 0,
-      "clv_reconciliation_candidates": 0,
-      "future_capture_only_oos": 173,
-      "future_capture_only_clv": 181
-    },
-    "GK_SAVES": {
-      "canonical_fixtures": 181,
-      "oos_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 177,
-        "POSTGAME_EVENT_MISSING": 4
-      },
-      "clv_reasons": {
-        "NO_PREGAME_MODEL_SIGNAL": 177,
-        "PLAYER_PRICE_NOT_XI_ALIGNED": 1,
-        "PLAYER_PROP_MARKET_NOT_CAPTURED": 3
-      },
-      "oos_recoverability": {
-        "FUTURE_CAPTURE_ONLY": 177,
-        "FUTURE_CAPTURE_OR_PROVIDER_UNAVAILABLE": 3,
-        "PROVIDER_BACKFILL_CANDIDATE": 1
-      },
-      "clv_recoverability": {
-        "FUTURE_CAPTURE_ONLY": 180,
+        "FUTURE_CAPTURE_ONLY": 219,
         "RECONCILIATION_CANDIDATE": 1
       },
-      "oos_ready_fixtures": 0,
-      "oos_provider_backfill_candidates": 1,
+      "oos_ready_fixtures": 1,
+      "oos_provider_backfill_candidates": 7,
       "oos_reconciliation_candidates": 0,
       "clv_entry_ready_fixtures": 0,
       "clv_reconciliation_candidates": 1,
-      "future_capture_only_oos": 177,
-      "future_capture_only_clv": 180
+      "future_capture_only_oos": 207,
+      "future_capture_only_clv": 219
+    },
+    "PLAYER_CARDS": {
+      "canonical_fixtures": 220,
+      "oos_reasons": {
+        "NO_PREGAME_MODEL_SIGNAL": 211,
+        "POSTGAME_EVENT_MISSING": 9
+      },
+      "clv_reasons": {
+        "NO_PREGAME_MODEL_SIGNAL": 211,
+        "PLAYER_PROP_MARKET_NOT_CAPTURED": 9
+      },
+      "oos_recoverability": {
+        "FUTURE_CAPTURE_ONLY": 211,
+        "FUTURE_CAPTURE_OR_PROVIDER_UNAVAILABLE": 5,
+        "PROVIDER_BACKFILL_CANDIDATE": 4
+      },
+      "clv_recoverability": {
+        "FUTURE_CAPTURE_ONLY": 220
+      },
+      "oos_ready_fixtures": 0,
+      "oos_provider_backfill_candidates": 4,
+      "oos_reconciliation_candidates": 0,
+      "clv_entry_ready_fixtures": 0,
+      "clv_reconciliation_candidates": 0,
+      "future_capture_only_oos": 211,
+      "future_capture_only_clv": 220
+    },
+    "GK_SAVES": {
+      "canonical_fixtures": 220,
+      "oos_reasons": {
+        "NO_PREGAME_MODEL_SIGNAL": 214,
+        "POSTGAME_EVENT_MISSING": 6
+      },
+      "clv_reasons": {
+        "NO_PREGAME_MODEL_SIGNAL": 214,
+        "PLAYER_PRICE_NOT_XI_ALIGNED": 2,
+        "PLAYER_PROP_MARKET_NOT_CAPTURED": 4
+      },
+      "oos_recoverability": {
+        "FUTURE_CAPTURE_ONLY": 214,
+        "FUTURE_CAPTURE_OR_PROVIDER_UNAVAILABLE": 1,
+        "PROVIDER_BACKFILL_CANDIDATE": 5
+      },
+      "clv_recoverability": {
+        "FUTURE_CAPTURE_ONLY": 218,
+        "RECONCILIATION_CANDIDATE": 2
+      },
+      "oos_ready_fixtures": 0,
+      "oos_provider_backfill_candidates": 5,
+      "oos_reconciliation_candidates": 0,
+      "clv_entry_ready_fixtures": 0,
+      "clv_reconciliation_candidates": 2,
+      "future_capture_only_oos": 214,
+      "future_capture_only_clv": 218
     }
   },
   "provider_requests_added": 0,
@@ -178,6 +184,6 @@
   "production_promotion_allowed": false,
   "policy": "AUDIT ONLY. POSTGRES-PROJECTED CANONICAL EVENTS. DISTINGUISH HISTORICALLY RECOVERABLE EVIDENCE FROM DATA THAT NEVER EXISTED AT THE ORIGINAL PREDICTION POINT. DO NOT BACKFILL PREGAME MODEL SIGNALS OR XI/PRICES RETROACTIVELY. PROVIDER BACKFILL MAY ONLY TARGET FINALIZED PLAYER OUTCOMES WHEN THE ORIGINAL PREGAME MODEL SIGNAL ALREADY EXISTS.",
   "lookback_days": 180,
-  "pregame_event_rows_loaded": 181,
-  "postgame_event_rows_loaded": 231
+  "pregame_event_rows_loaded": 220,
+  "postgame_event_rows_loaded": 250
 }
