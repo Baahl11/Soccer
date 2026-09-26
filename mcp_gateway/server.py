@@ -335,6 +335,8 @@ async def get_product_views(limit: int = product_views_v4.MAX_ROWS_PER_VIEW) -> 
             "row_limit_per_view": bounded_limit,
             "provider_requests_added": 0,
         }
+    payload["database_persisted"] = True
+    payload["database_error"] = None
     result = product_views_v4.build_views(payload, limit=bounded_limit)
     result["generated_at_utc"] = payload.get("generated_at_utc")
     result["pipeline_version"] = payload.get("version")
@@ -366,6 +368,8 @@ async def product_views(request: Request) -> Response:
             status_code=503,
         )
 
+    payload["database_persisted"] = True
+    payload["database_error"] = None
     result = product_views_v4.build_views(payload, limit=limit)
     result["generated_at_utc"] = payload.get("generated_at_utc")
     result["pipeline_version"] = payload.get("version")
@@ -390,6 +394,8 @@ async def dashboard(request: Request) -> Response:
     if not isinstance(payload, dict):
         return JSONResponse({"error": "NO_PERSISTED_PIPELINE_RUN"}, status_code=503)
 
+    payload["database_persisted"] = True
+    payload["database_error"] = None
     product = product_views_v4.build_views(payload, limit=limit)
     product["generated_at_utc"] = payload.get("generated_at_utc")
     product["pipeline_version"] = payload.get("version")
