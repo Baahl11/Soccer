@@ -1,8 +1,11 @@
-# v166 strict Postgres CLV reconciliation
+# v174 canonical CLV auto-refresh + dynamic consistency gates
 name: Phase 18 OOS Backtest Validation - v160 Frozen OOS Evidence
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Phase 17 Postgres CLV Validation - Canonical Refresh"]
+    types: [completed]
   push:
     branches: [main]
     paths: [".github/workflows/phase18-oos-backtest-validation.yml"]
@@ -12,6 +15,7 @@ permissions:
 
 jobs:
   validate:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -51,16 +55,44 @@ jobs:
             --oos-calibration-report ../state/soccer_edge_state/analysis/oos_calibration_v4_report.json \
             --output ../state/soccer_edge_state/analysis/phase18_oos_backtest_report.json
 
-      - name: Validate safety gates
+      - name: Validate safety and canonical CLV consistency gates
+        shell: bash
         run: |
           set -euo pipefail
-          jq -e '.phase == "FASE_18_OOS_BACKTEST"' state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null
-          jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null
-          jq -e '.clv_context.source == "STRICT_POSTGRES_CLV_V4_TRACKING"' state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null
-          jq -e '.clv_context.rows == 61' state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null
-          jq -e '.clv_context.family_counts["1X2"] == 47' state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null
-          jq -e '.clv_context.family_counts.BTTS == 14' state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null
-          jq -e '.clv_context.ft_totals_maturation_funnel.true_clv_rows == 0' state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null
+          REPORT=state/soccer_edge_state/analysis/phase18_oos_backtest_report.json
+          CANON=state/soccer_edge_state/analysis/clv_v4_postgres_report.json
+          TRACKING=state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl
+
+          jq -e '.phase == "FASE_18_OOS_BACKTEST"' "$REPORT" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$REPORT" >/dev/null
+          jq -e '.clv_context.source == "STRICT_POSTGRES_CLV_V4_TRACKING"' "$REPORT" >/dev/null
+          jq -e '.canonical_bet_logic_changed == false' "$REPORT" >/dev/null
+          jq -e '.model_weights_changed == false' "$REPORT" >/dev/null
+
+          # Never freeze Phase18 to historical row counts. The report must instead
+          # match the current canonical Phase17 CLV artifact exactly. This lets a
+          # legitimate new FT Totals/BTTS/1X2 close flow through without lowering
+          # any promotion or sample-size gate.
+          jq -n -e \
+            --slurpfile report "$REPORT" \
+            --slurpfile canon "$CANON" '
+              ($report[0].clv_context.rows == ($canon[0].comparable_true_clv_rows // 0))
+              and ($report[0].clv_context.true_closing_line_rows == ($canon[0].comparable_true_clv_rows // 0))
+              and ($report[0].clv_context.family_counts == ($canon[0].family_counts // {}))
+              and (($report[0].clv_context.ft_totals_maturation_funnel.true_clv_rows // 0)
+                   == ($canon[0].ft_totals_maturation_funnel.true_clv_rows // 0))
+            ' >/dev/null
+
+          TRACKING_ROWS=$(grep -cve '^[[:space:]]*$' "$TRACKING" || true)
+          REPORT_ROWS=$(jq -r '.clv_context.rows // -1' "$REPORT")
+          CANON_ROWS=$(jq -r '.comparable_true_clv_rows // -1' "$CANON")
+          test "$REPORT_ROWS" -eq "$TRACKING_ROWS"
+          test "$CANON_ROWS" -eq "$TRACKING_ROWS"
+
+          # Existing framework safeguards remain intact.
+          jq -e '.manual_review_required == true' "$REPORT" >/dev/null
+          jq -e '.oos_model_evidence.anti_leakage_ok == true' "$REPORT" >/dev/null
+          jq -e '.provider_requests_added == 0' "$REPORT" >/dev/null
 
       - name: Persist report to state branch
         working-directory: state
