@@ -43,7 +43,20 @@ jobs:
         working-directory: runtime
         run: |
           set -euo pipefail
-          PYTHONPATH=. python -m mcp_gateway.ft_totals_validation_v4             --ft-validation ../state/soccer_edge_state/analysis/ft_totals_validation.json             --market-summary ../state/soccer_edge_state/analysis/market_performance_summary.json             --true-clv-tracking ../state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl             --output ../state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
+          OOS_FLAG=""
+          if jq -e '
+            .status == "OOS_FRAMEWORK_READY_FOR_MODEL_PREDICTIONS"
+            and ((.blockers // []) | length == 0)
+          ' ../state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null; then
+            OOS_FLAG="--v4-oos-calibration-available"
+          fi
+
+          PYTHONPATH=. python -m mcp_gateway.ft_totals_validation_v4 \
+            --ft-validation ../state/soccer_edge_state/analysis/ft_totals_validation.json \
+            --market-summary ../state/soccer_edge_state/analysis/market_performance_summary.json \
+            --true-clv-tracking ../state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl \
+            --output ../state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json \
+            ${OOS_FLAG}
 
       - name: Validate safety gates
         run: |
@@ -51,6 +64,13 @@ jobs:
           jq -e '.ticket == "V4-016"' state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json >/dev/null
           jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json >/dev/null
           jq -e '.asian_quarter_settlement_supported == true' state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json >/dev/null
+          if jq -e '
+            .status == "OOS_FRAMEWORK_READY_FOR_MODEL_PREDICTIONS"
+            and ((.blockers // []) | length == 0)
+          ' state/soccer_edge_state/analysis/phase18_oos_backtest_report.json >/dev/null; then
+            jq -e '.v4_oos_calibration_available == true' state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json >/dev/null
+            jq -e '(.blockers // []) | index("V4_OOS_CALIBRATION_NOT_MATERIALIZED") | not' state/soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json >/dev/null
+          fi
 
       - name: Persist validation report to state branch
         working-directory: state
