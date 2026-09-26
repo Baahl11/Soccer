@@ -88,6 +88,25 @@ def _payload():
         "effective_max_api_calls_per_tick": 40,
         "last_daily_remaining": 3000,
         "daily_budget_mode": "NORMAL",
+        "fair_scheduler": {
+            "schema_version": "1.2.0",
+            "scheduling_mode": "COVERAGE_CATCHUP",
+            "effective_weights_pct": {"actionable": 30, "unseen": 60, "exploratory": 10},
+            "planned_unique_leagues": 42,
+            "urgent_actionable_count": 3,
+            "starvation_count": 406,
+            "due_analyzed_pct": 14.71,
+            "processed_category_counts": {"actionable": 4, "unseen": 8, "exploratory": 0},
+        },
+        "price_resolution_checkpoint": {
+            "primary_clv_maturation_candidates": 1,
+            "primary_clv_maturation_fixtures_refreshed": 0,
+            "primary_clv_maturation_unchanged_provider_updates": 1,
+            "research_spillover_maturation_candidates": 2,
+            "research_spillover_maturation_api_calls_added": 1,
+            "research_spillover_maturation_later_real_quote_refreshes": 1,
+            "research_spillover_maturation_unchanged_provider_updates": 0,
+        },
         "fixture_scan_count": 200,
         "due_fixture_count": 20,
         "event_count": 7,
@@ -113,6 +132,13 @@ def test_phase24_builds_all_master_dashboard_views_and_control_tower():
     assert tower["system_health"]["api_football_remaining"] == 3000
     assert tower["pipeline"]["fixtures_scanned"] == 200
     assert tower["pipeline"]["api_call_cap"] == 40
+    assert tower["schema_version"] == "2.0.0"
+    assert tower["pipeline"]["scheduler_mode"] == "COVERAGE_CATCHUP"
+    assert tower["pipeline"]["scheduler_unseen_processed"] == 8
+    assert tower["pipeline"]["scheduler_starvation_count"] == 406
+    assert tower["pipeline"]["scheduler_planned_unique_leagues"] == 42
+    assert tower["pipeline"]["team_totals_maturation_candidates"] == 2
+    assert tower["pipeline"]["team_totals_later_quote_refreshes"] == 1
     assert tower["errors"]["count"] == 0
     assert len(tower["phases"]) == 11
     assert tower["production_promotion_allowed"] is False
