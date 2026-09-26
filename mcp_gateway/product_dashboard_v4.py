@@ -203,8 +203,21 @@ def render_dashboard(product_payload: dict[str, Any]) -> str:
         _health_card("Budget", health.get("daily_budget_mode")),
     ))
 
+    scan_dates = pipeline.get("scan_dates") if isinstance(pipeline.get("scan_dates"), list) else []
+    date_label = " · ".join(str(value) for value in scan_dates[:3]) if scan_dates else "N/V"
     metrics = "".join((
         _metric("Fixtures scanned", pipeline.get("fixtures_scanned")),
+        _metric(
+            "Leagues scanned",
+            pipeline.get("unique_leagues_scanned"),
+            f"{_num(pipeline.get('unique_countries_scanned'))} countries",
+        ),
+        _metric("Dates scanned", len(scan_dates) if scan_dates else None, date_label),
+        _metric(
+            "Market handoff",
+            pipeline.get("market_capture_handoff_fixture_count"),
+            "A/B/C future fixtures",
+        ),
         _metric("Due", pipeline.get("due")),
         _metric("Deep dives", pipeline.get("deep_dives")),
         _metric("Events", pipeline.get("events")),
