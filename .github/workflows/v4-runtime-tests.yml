@@ -50,6 +50,7 @@ jobs:
         run: |
           PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_v4_006_fair_scheduler.py \
+            tests/test_slate_floor_reconciliation.py \
             tests/test_v4_007_feature_snapshot.py \
             tests/test_v4_008_training_dataset.py \
             tests/test_v4_009_dixon_coles.py \
