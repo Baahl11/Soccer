@@ -145,3 +145,63 @@ def test_phase18_accepts_lineup_observation_timestamp_without_claiming_confirmed
     row["lineup_observation_timestamp"] = row["feature_captured_at"]
     discipline = v.timestamp_discipline([row])
     assert discipline["modern_lineup_timestamp_coverage"] == 1.0
+
+
+
+def _oos_report(rows=703):
+    return {
+        "status": "OOS_CALIBRATION_MATERIALIZED",
+        "model_version": "SOCCER_OOS_HISTORY_MERGE_V4_1.0.0",
+        "fixture_rows": rows,
+        "ready_target_count": 5,
+        "targets_improving_brier_and_log_loss": 5,
+        "source_counts": {"POSTGRES_NATIVE": 209, "HISTORICAL_SIGNAL_LEDGER": 494},
+        "run_type_counts": {"T-10": 358, "EARLY_RESEARCH": 89},
+        "anti_leakage": {
+            "prediction_timestamp_before_kickoff_required": True,
+            "one_latest_pre_kickoff_prediction_per_fixture": True,
+            "historical_predictions_recomputed": False,
+            "market_fields_used": False,
+            "final_result_from_postgame_or_final_status_only": True,
+        },
+    }
+
+
+def test_phase18_uses_frozen_oos_predictions_not_bet_count_for_model_readiness():
+    rows = [_row(i, "WIN", 1.0) for i in range(28)]
+    report = v.build_report(
+        rows,
+        {
+            "status": "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE",
+            "rows": 179,
+            "true_closing_line_rows": 179,
+            "overall": {"avg_probability_clv_pp": 0.15},
+        },
+        _oos_report(),
+    )
+
+    assert "OOS_MODEL_FIXTURES_703_LT_50" not in report["blockers"]
+    assert not any("SETTLED_" in blocker for blocker in report["blockers"])
+    assert "REAL_BET_SETTLEMENT_28_LT_50_COMMERCIAL_PERFORMANCE_ONLY" in report["warnings"]
+    assert report["oos_model_evidence"]["fixture_rows"] == 703
+    assert report["oos_model_evidence"]["anti_leakage_ok"] is True
+    assert report["metric_availability_on_current_settlement_ledger"]["brier"] is True
+    assert report["metric_availability_on_current_settlement_ledger"]["log_loss"] is True
+    assert report["metric_availability_on_current_settlement_ledger"]["calibration"] is True
+
+
+def test_phase18_blocks_oos_if_anti_leakage_contract_breaks():
+    oos = _oos_report()
+    oos["anti_leakage"]["market_fields_used"] = True
+    rows = [_row(i, "WIN", 1.0) for i in range(60)]
+    report = v.build_report(
+        rows,
+        {
+            "status": "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE",
+            "rows": 179,
+            "true_closing_line_rows": 179,
+            "overall": {"avg_probability_clv_pp": 0.15},
+        },
+        oos,
+    )
+    assert "OOS_ANTI_LEAKAGE_CONTRACT_INCOMPLETE" in report["blockers"]
