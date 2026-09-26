@@ -6,6 +6,7 @@ from mcp_gateway import automation_v123 as v
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v5 as v5
 from mcp_gateway import automation_v7 as v7
+from mcp_gateway import automation_v24 as v24
 from mcp_gateway import automation_v25 as v25
 from mcp_gateway import automation_v26 as v26
 from mcp_gateway import automation_v33 as v33
@@ -1283,3 +1284,50 @@ def test_v26_galaxy_wrapper_accepts_lineup_keyword(monkeypatch):
         lineup={"both_xi_confirmed": True},
     ))
     assert isinstance(out, dict)
+
+
+
+def test_v24_identity_map_defers_on_authoritative_hard_cap(monkeypatch):
+    payload = {
+        "api_calls_this_tick": 1,
+        "max_api_calls_per_tick": 70,
+        "effective_max_api_calls_per_tick": 70,
+    }
+    monkeypatch.setattr(base, "_cache_get", lambda *args, **kwargs: None)
+    monkeypatch.setattr(v2, "_API_CALLS_THIS_TICK", 50)
+    monkeypatch.setattr(v2, "MAX_API_CALLS_PER_TICK", 50)
+
+    async def should_not_call(*args, **kwargs):
+        raise AssertionError("provider call should have been deferred at hard cap")
+
+    monkeypatch.setattr(base, "_api_get", should_not_call)
+    mapping, source = asyncio.run(
+        v24._identity_map(datetime(2026, 9, 26, tzinfo=timezone.utc), payload)
+    )
+
+    assert mapping == {}
+    assert source == "SKIPPED_PROVIDER_BUDGET"
+
+
+def test_v24_identity_map_converts_budget_race_to_deferred(monkeypatch):
+    payload = {
+        "api_calls_this_tick": 49,
+        "max_api_calls_per_tick": 50,
+        "effective_max_api_calls_per_tick": 50,
+    }
+    monkeypatch.setattr(base, "_cache_get", lambda *args, **kwargs: None)
+    monkeypatch.setattr(v2, "_API_CALLS_THIS_TICK", 49)
+    monkeypatch.setattr(v2, "MAX_API_CALLS_PER_TICK", 50)
+
+    async def budget_race(*args, **kwargs):
+        raise v2.TickBudgetExceeded(
+            "Per-tick API budget reached (50); lower-priority work deferred."
+        )
+
+    monkeypatch.setattr(base, "_api_get", budget_race)
+    mapping, source = asyncio.run(
+        v24._identity_map(datetime(2026, 9, 26, tzinfo=timezone.utc), payload)
+    )
+
+    assert mapping == {}
+    assert source == "SKIPPED_PROVIDER_BUDGET"
