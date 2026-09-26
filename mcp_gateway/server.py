@@ -1018,6 +1018,7 @@ async def internal_training_dataset_export(request: Request) -> Response:
             {
                 ".github/workflows/v4-011-lightgbm-validation.yml",
                 ".github/workflows/phase19-promotion-framework-validation.yml",
+                ".github/workflows/v190-btts-aligned-ranking-audit.yml",
             },
         )
     except Exception as exc:
