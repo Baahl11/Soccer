@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone as dt_timezone
 
 from mcp_gateway import automation_v89 as v89
@@ -173,3 +174,104 @@ def test_v90_future_slate_cache_avoids_repeat_provider_call(monkeypatch):
     assert hit1 is False
     assert hit2 is True
     assert provider_calls["count"] == 1
+
+
+
+def test_v89_active_path_prefetches_48h_and_merges_all_leagues(monkeypatch):
+    cache = {}
+    calls = []
+
+    def fake_cache_get(namespace, key, ttl, now):
+        return cache.get((namespace, key))
+
+    def fake_cache_set(namespace, key, value, now):
+        cache[(namespace, key)] = value
+
+    async def fake_provider(endpoint, params):
+        calls.append(dict(params))
+        v89.v2._LAST_DAILY_REMAINING = 7200
+        call_no = len(calls)
+        start = {1: 1, 2: 101, 3: 201}[call_no]
+        count = {1: 2, 2: 3, 3: 4}[call_no]
+        rows = []
+        for i in range(count):
+            row = _fixture_row(start + i)
+            row["league"] = {
+                "id": 1000 + start + i,
+                "season": 2026,
+                "name": f"League {start + i}",
+                "country": f"Country {start + i}",
+            }
+            rows.append(row)
+        return {"response": rows, "quota": {"daily_remaining": "7200"}}
+
+    async def fake_downstream():
+        today = datetime.now(dt_timezone.utc).astimezone(v89.base.TIMEZONE).date().isoformat()
+        payload = await v89.v6._ORIGINAL_PACED_API_GET(
+            "fixtures", {"date": today, "timezone": v89.base.TIMEZONE_NAME}
+        )
+        return {
+            "fixture_scan_count": len(payload.get("response") or []),
+            "last_daily_remaining": 7200,
+        }
+
+    monkeypatch.setattr(v89.base, "_cache_get", fake_cache_get)
+    monkeypatch.setattr(v89.base, "_cache_set", fake_cache_set)
+    monkeypatch.setattr(v89.v6, "_ORIGINAL_PACED_API_GET", fake_provider)
+    monkeypatch.setattr(v89.v88, "run_tick", fake_downstream)
+    monkeypatch.setattr(v89.v2, "_API_CALLS_THIS_TICK", 1)
+    monkeypatch.setattr(v89.v2, "MAX_API_CALLS_PER_TICK", 70)
+    monkeypatch.setattr(v89.v2, "_LAST_DAILY_REMAINING", 7200)
+
+    result = asyncio.run(v89.run_tick())
+    metrics = result["slate_floor_reconciliation"]
+
+    assert result["fixture_scan_count"] == 9
+    assert len(calls) == 3
+    assert len(metrics["scan_dates"]) == 3
+    assert metrics["primary_slate_count"] == 2
+    assert metrics["future_prefetch_fixture_count"] == 7
+    assert metrics["future_prefetch_provider_requests_added"] == 2
+    assert metrics["merged_slate_count"] == 9
+    assert metrics["unique_leagues_scanned"] == 9
+    assert metrics["unique_countries_scanned"] == 9
+    assert metrics["league_allowlist_applied"] is False
+    assert metrics["policy"] == "RAW_API_FOOTBALL_ROLLING_DATE_SLATE_WITH_CACHED_FUTURE_PREFETCH"
+
+
+def test_v89_future_prefetch_cache_reuses_raw_slate_without_replaying_quota(monkeypatch):
+    cache = {}
+    provider_calls = {"count": 0}
+
+    def fake_cache_get(namespace, key, ttl, now):
+        return cache.get((namespace, key))
+
+    def fake_cache_set(namespace, key, value, now):
+        cache[(namespace, key)] = value
+
+    async def fake_provider(endpoint, params):
+        provider_calls["count"] += 1
+        return {
+            "response": [_fixture_row(777)],
+            "quota": {"daily_remaining": "7199"},
+        }
+
+    monkeypatch.setattr(v89.base, "_cache_get", fake_cache_get)
+    monkeypatch.setattr(v89.base, "_cache_set", fake_cache_set)
+
+    now = datetime.now(dt_timezone.utc)
+    tomorrow = (now.astimezone(v89.base.TIMEZONE).date()).isoformat()
+    params = {"date": tomorrow, "timezone": v89.base.TIMEZONE_NAME}
+
+    first, hit1 = asyncio.run(
+        v89._future_date_payload(fake_provider, "fixtures", params, tomorrow, now)
+    )
+    second, hit2 = asyncio.run(
+        v89._future_date_payload(fake_provider, "fixtures", params, tomorrow, now)
+    )
+
+    assert hit1 is False
+    assert hit2 is True
+    assert provider_calls["count"] == 1
+    assert first["quota"]["daily_remaining"] == "7199"
+    assert "quota" not in second
