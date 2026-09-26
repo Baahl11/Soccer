@@ -1,0 +1,37 @@
+name: v181 Signal Ledger Provenance Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v181-signal-ledger-provenance-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pytest
+        run: python -m pip install --disable-pip-version-check pytest
+
+      - name: Compile signal-ledger builder
+        run: python -m py_compile runtime/mcp_gateway/build_signal_ledger.py
+
+      - name: Run provenance tests
+        working-directory: runtime
+        run: python -m pytest -q tests/test_build_signal_ledger_provenance.py
