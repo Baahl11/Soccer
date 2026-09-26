@@ -1,0 +1,42 @@
+{
+  "ambiguous_candidate_rows": 0,
+  "by_projection_model": {
+    "GOAL_RATE_POISSON_LIMITED_v0.1": {
+      "auc": 0.51404352,
+      "avg_probability": 0.497078,
+      "brier": 0.27945878,
+      "log_loss": 0.78132126,
+      "observed_minus_predicted_pp": 10.9801,
+      "observed_rate": 0.60688,
+      "rows": 407,
+      "unique_fixtures": 407
+    }
+  },
+  "canonical_bet_logic_changed": false,
+  "exact_probability_match_rows": 407,
+  "generated_at_utc": "2026-09-26T05:31:06.500619+00:00",
+  "interpretation_policy": "Diagnostic provenance split only. Differences by projection_model cannot automatically change calibration, weights, thresholds, filters, close windows, or promotion gates.",
+  "market_family": "BTTS",
+  "match_coverage": 1.0,
+  "match_policy": "fixture_id + exact raw BTTS probability when available; otherwise minimum probability delta, then prefer non-future nearest timestamp. Ambiguity is reported and never changes production behavior.",
+  "matched_rows": 407,
+  "model_weights_changed": false,
+  "overall_matched": {
+    "auc": 0.51404352,
+    "avg_probability": 0.497078,
+    "brier": 0.27945878,
+    "log_loss": 0.78132126,
+    "observed_minus_predicted_pp": 10.9801,
+    "observed_rate": 0.60688,
+    "rows": 407,
+    "unique_fixtures": 407
+  },
+  "production_filter_changed": false,
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "schema_version": "1.0.0",
+  "source_model_version": "SOCCER EDGE ENGINE v1.7",
+  "status": "BTTS_OOS_BY_PROJECTION_MODEL_AVAILABLE",
+  "thresholds_changed": false,
+  "unmatched_rows": 0
+}
