@@ -10,8 +10,8 @@ from typing import Any, Iterable
 
 CLV_COMPLETE_STATUSES = {"CLV_ANALYSIS_AVAILABLE", "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE"}
 
-SCHEMA_VERSION = "1.1.0"
-MODEL_VERSION = "SOCCER_OOS_BACKTEST_V4_1.1.0"
+SCHEMA_VERSION = "1.2.0"
+MODEL_VERSION = "SOCCER_OOS_BACKTEST_V4_1.2.0"
 ROLLING_WINDOWS = (20, 50, 100)
 MODERN_SETTLEMENT_SOURCES = {"POSTGRES_REFRESH_EVENT"}
 
@@ -220,6 +220,7 @@ def timestamp_discipline(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
 def build_report(
     settlement_rows: Iterable[dict[str, Any]],
     clv_report: dict[str, Any] | None = None,
+    oos_calibration_report: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     rows = [row for row in settlement_rows if isinstance(row, dict)]
     splits = chronological_splits(rows)
@@ -227,6 +228,30 @@ def build_report(
     realized = settlement_metrics(rows)
     rolling = rolling_settlement_metrics(rows)
     clv_report = clv_report if isinstance(clv_report, dict) else {}
+    oos_calibration_report = (
+        oos_calibration_report if isinstance(oos_calibration_report, dict) else {}
+    )
+    oos_fixture_rows = int(oos_calibration_report.get("fixture_rows") or 0)
+    oos_ready_targets = int(oos_calibration_report.get("ready_target_count") or 0)
+    oos_improving_targets = int(
+        oos_calibration_report.get("targets_improving_brier_and_log_loss") or 0
+    )
+    anti_leakage = (
+        oos_calibration_report.get("anti_leakage")
+        if isinstance(oos_calibration_report.get("anti_leakage"), dict)
+        else {}
+    )
+    anti_leakage_required = {
+        "prediction_timestamp_before_kickoff_required": True,
+        "one_latest_pre_kickoff_prediction_per_fixture": True,
+        "historical_predictions_recomputed": False,
+        "market_fields_used": False,
+        "final_result_from_postgame_or_final_status_only": True,
+    }
+    anti_leakage_ok = all(
+        anti_leakage.get(key) is expected
+        for key, expected in anti_leakage_required.items()
+    )
 
     split_summary: dict[str, Any] = {}
     for name, partition in splits.items():
@@ -268,18 +293,26 @@ def build_report(
             )
     if discipline["pre_kickoff_decision_rate"] is not None and discipline["pre_kickoff_decision_rate"] < 1.0:
         blockers.append("POST_KICKOFF_DECISION_ROWS_DETECTED")
-    if realized["settled_rows"] < 50:
-        blockers.append(f"SETTLED_{realized['settled_rows']}_LT_50")
+    if oos_fixture_rows < 50:
+        blockers.append(f"OOS_MODEL_FIXTURES_{oos_fixture_rows}_LT_50")
+    if oos_ready_targets <= 0:
+        blockers.append("NO_OOS_CALIBRATION_TARGET_READY")
+    if not anti_leakage_ok:
+        blockers.append("OOS_ANTI_LEAKAGE_CONTRACT_INCOMPLETE")
     if str(clv_report.get("status") or "") not in CLV_COMPLETE_STATUSES:
         blockers.append("CLV_ENGINE_NOT_COMPLETE")
 
+    if realized["settled_rows"] < 50:
+        warnings.append(
+            f"REAL_BET_SETTLEMENT_{realized['settled_rows']}_LT_50_COMMERCIAL_PERFORMANCE_ONLY"
+        )
     if len(splits["test"]) < 10:
-        warnings.append("CHRONOLOGICAL_TEST_PARTITION_SMALL")
+        warnings.append("CHRONOLOGICAL_REAL_BET_TEST_PARTITION_SMALL")
 
     metric_availability = {
-        "brier": False,
-        "log_loss": False,
-        "calibration": False,
+        "brier": oos_ready_targets > 0,
+        "log_loss": oos_ready_targets > 0,
+        "calibration": oos_ready_targets > 0,
         "mae": False,
         "rmse": False,
         "hit_rate": realized["hit_rate_ex_push"] is not None,
@@ -309,6 +342,19 @@ def build_report(
         },
         "chronological_split_preview": split_summary,
         "timestamp_discipline": discipline,
+        "oos_model_evidence": {
+            "status": oos_calibration_report.get("status"),
+            "model_version": oos_calibration_report.get("model_version"),
+            "fixture_rows": oos_fixture_rows,
+            "minimum_fixture_rows": 50,
+            "ready_target_count": oos_ready_targets,
+            "targets_improving_brier_and_log_loss": oos_improving_targets,
+            "anti_leakage_ok": anti_leakage_ok,
+            "anti_leakage": anti_leakage,
+            "source_counts": oos_calibration_report.get("source_counts") or {},
+            "run_type_counts": oos_calibration_report.get("run_type_counts") or {},
+            "role": "MODEL_OOS_VALIDATION_NOT_REAL_BET_PERFORMANCE",
+        },
         "realized_settlement_metrics": realized,
         "rolling_settlement_metrics": rolling,
         "metric_availability_on_current_settlement_ledger": metric_availability,
@@ -322,7 +368,8 @@ def build_report(
         "warnings": warnings,
         "notes": [
             "The settlement ledger can measure realized hit rate, ROI, drawdown, losing streak and volatility.",
-            "Brier/log-loss/calibration/MAE/RMSE require point-in-time model predictions joined to final outcomes; settlement ROI alone cannot substitute for those metrics.",
+            "Brier/log-loss/calibration come from frozen OOS model predictions joined to final outcomes; real BET/LEAN settlement ROI is tracked separately and cannot substitute for model OOS evidence.",
+            "Phase18 research readiness must not depend on producing BET/LEAN classifications before promotion; doing so would create a circular promotion gate.",
             "Chronological split preview is diagnostic only. Production model evaluation must use frozen prediction snapshots and walk-forward/rolling retraining without leakage.",
             "Bookmaker, lineup-state observation and feature timestamps must be explicit for modern Postgres prediction rows before production promotion.",
             "Legacy rows with unavailable provenance remain visible as warnings and are never assigned fabricated timestamps.",
@@ -360,9 +407,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Phase 18 OOS/backtest framework report.")
     parser.add_argument("--settlement-ledger", required=True)
     parser.add_argument("--clv-report", required=True)
+    parser.add_argument("--oos-calibration-report", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
-    report = build_report(_load_jsonl(args.settlement_ledger), _load_json(args.clv_report))
+    report = build_report(
+        _load_jsonl(args.settlement_ledger),
+        _load_json(args.clv_report),
+        _load_json(args.oos_calibration_report),
+    )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2, sort_keys=True)
