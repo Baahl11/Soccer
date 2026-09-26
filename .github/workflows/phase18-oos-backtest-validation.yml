@@ -1,4 +1,4 @@
-name: Phase 18 OOS Backtest Validation - Retry
+name: Phase 18 OOS Backtest Validation - v161 CLV Complete
 
 on:
   workflow_dispatch:
@@ -43,7 +43,10 @@ jobs:
         working-directory: runtime
         run: |
           set -euo pipefail
-          PYTHONPATH=. python -m mcp_gateway.oos_backtest_v4             --settlement-ledger ../state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl             --clv-report ../state/soccer_edge_state/analysis/phase17_clv_engine_report.json             --output ../state/soccer_edge_state/analysis/phase18_oos_backtest_report.json
+          PYTHONPATH=. python -m mcp_gateway.oos_backtest_v4 \
+            --settlement-ledger ../state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
+            --clv-report ../state/soccer_edge_state/analysis/phase17_clv_engine_report.json \
+            --output ../state/soccer_edge_state/analysis/phase18_oos_backtest_report.json
 
       - name: Validate safety gates
         run: |
