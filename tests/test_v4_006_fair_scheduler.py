@@ -80,7 +80,7 @@ def test_v4_006_unseen_slots_round_robin_across_leagues():
     assert set(leagues[:3]) == {39, 140, 78}
     assert metrics["eligible_unique_leagues"] == 3
     assert metrics["planned_unique_leagues"] == 3
-    assert metrics["schema_version"] == "1.1.0"
+    assert metrics["schema_version"] == "1.2.0"
     assert "LEAGUE_ROUND_ROBIN" in metrics["policy"]
 
 
