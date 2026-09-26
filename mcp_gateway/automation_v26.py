@@ -31,7 +31,11 @@ def _dt(value: Any) -> datetime | None:
     return out.astimezone(dt_timezone.utc)
 
 
-async def _tagged_galaxy_aware_odds(fixture_id: int, now: datetime) -> dict[str, Any]:
+async def _tagged_galaxy_aware_odds(
+    fixture_id: int,
+    now: datetime,
+    lineup: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Reuse v10 exactly once and attach provenance metadata to its returned market.
 
     No provider request is added here. The source tag is derived from v10's own
@@ -40,6 +44,9 @@ async def _tagged_galaxy_aware_odds(fixture_id: int, now: datetime) -> dict[str,
     """
     before_galaxy = int(v10._METRICS.get("galaxy_odds_used", 0))
     before_fallback = int(v10._METRICS.get("galaxy_odds_stale_or_missing", 0))
+    # Newer callers may provide confirmed-XI context even though the v10
+    # Galaxy resolver itself is still a two-argument function. Accept the
+    # keyword here so the provenance wrapper remains signature-compatible.
     result = await _ORIGINAL_GALAXY_AWARE_ODDS(fixture_id, now)
     if not isinstance(result, dict):
         return result
