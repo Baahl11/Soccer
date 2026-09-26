@@ -1020,7 +1020,7 @@ def _load_team_totals_maturation_backlog(
                 modeled_signal AS (
                     SELECT
                         e.fixture_id,
-                        MIN(e.generated_at) AS signal_generated_at
+                        MAX(e.generated_at) AS signal_generated_at
                     FROM soccer_refresh_events e
                     JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
                     WHERE e.generated_at >= %s
