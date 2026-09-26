@@ -86,3 +86,19 @@ def test_phase18_current_ledger_metrics_are_separate_from_probability_metrics():
     assert availability["brier"] is False
     assert availability["log_loss"] is False
     assert availability["calibration"] is False
+
+
+
+def test_phase18_accepts_v159_capture_complete_clv_status():
+    rows = [_row(i, "WIN", 1.0) for i in range(60)]
+    report = v.build_report(
+        rows,
+        {
+            "status": "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE",
+            "rows": 179,
+            "true_closing_line_rows": 179,
+            "overall": {"avg_probability_clv_pp": 0.15},
+        },
+    )
+    assert "CLV_ENGINE_NOT_COMPLETE" not in report["blockers"]
+    assert report["clv_context"]["status"] == "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE"
