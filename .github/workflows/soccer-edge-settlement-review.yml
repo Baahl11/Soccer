@@ -79,9 +79,11 @@ jobs:
             if [ "$attempt" -lt 5 ]; then sleep 20; fi
           done
 
+          echo "Settlement response diagnostics"
+          jq '{schema_version,model_version,status,error,detail,raw_actionable_rows_loaded,deduped_actionable_decisions,settled_decisions,provider_requests_added}' /tmp/settlement_v4.json || cat /tmp/settlement_v4.json || true
           test "$READY" = "1"
           jq -e '
-            .schema_version == "1.0.0"
+            .schema_version == "1.1.0"
             and .model_version == "SOCCER_SETTLEMENT_POSTGRES_V4_1.1.0"
             and (.rows | type == "array")
             and (.market_performance_summary | type == "object")
