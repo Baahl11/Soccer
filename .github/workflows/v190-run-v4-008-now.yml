@@ -1,0 +1,19 @@
+name: v190 Trigger V4-008 Now
+
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/v190-run-v4-008-now.yml"]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch official V4-008 workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run v4-008-dataset-validation.yml --repo Baahl11/Soccer --ref main
