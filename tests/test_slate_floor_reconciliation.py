@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone as dt_timezone
 
 from mcp_gateway import automation_v89 as v89
+from mcp_gateway import automation_v90 as v90
 
 
 def _fixture_row(fixture_id: int) -> dict:
@@ -98,3 +99,77 @@ def test_should_not_reconcile_when_daily_budget_is_reduced(monkeypatch) -> None:
 
     assert should is False
     assert reason == "DAILY_BUDGET_BLOCKED"
+
+
+
+def test_v90_high_quota_prefetches_two_future_days():
+    local_now = datetime(2026, 9, 25, 18, 0, tzinfo=v90.base.TIMEZONE)
+    assert v90._future_prefetch_offsets(local_now, 7200) == [1, 2]
+
+
+def test_v90_mid_quota_prefetches_only_tomorrow():
+    local_now = datetime(2026, 9, 25, 18, 0, tzinfo=v90.base.TIMEZONE)
+    assert v90._future_prefetch_offsets(local_now, 5000) == [1]
+
+
+def test_v90_low_quota_does_not_prefetch_early():
+    local_now = datetime(2026, 9, 25, 18, 0, tzinfo=v90.base.TIMEZONE)
+    assert v90._future_prefetch_offsets(local_now, 3000) == []
+
+
+def test_v90_late_day_keeps_tomorrow_even_when_quota_is_unknown():
+    local_now = datetime(2026, 9, 25, 22, 30, tzinfo=v90.base.TIMEZONE)
+    assert v90._future_prefetch_offsets(local_now, None) == [1]
+
+
+def test_v90_fixture_merge_has_no_league_allowlist():
+    fixtures = []
+    seen = set()
+    payload = {
+        "response": [
+            _fixture_row(100 + i) | {
+                "league": {"id": 1000 + i, "season": 2026, "name": f"League {i}", "country": f"Country {i}"}
+            }
+            for i in range(40)
+        ]
+    }
+
+    added = v90._append_fixture_payload(fixtures, seen, payload)
+
+    assert added == 40
+    assert len(fixtures) == 40
+    assert len({row["league_id"] for row in fixtures}) == 40
+
+
+def test_v90_future_slate_cache_avoids_repeat_provider_call(monkeypatch):
+    cache = {}
+    provider_calls = {"count": 0}
+
+    def fake_cache_get(namespace, key, ttl, now):
+        return cache.get((namespace, key))
+
+    def fake_cache_set(namespace, key, value, now):
+        cache[(namespace, key)] = value
+
+    async def fake_api_get(endpoint, params):
+        provider_calls["count"] += 1
+        return {
+            "response": [_fixture_row(999)],
+            "quota": {"daily_remaining": "7200"},
+        }
+
+    monkeypatch.setattr(v90.base, "_cache_get", fake_cache_get)
+    monkeypatch.setattr(v90.base, "_cache_set", fake_cache_set)
+    monkeypatch.setattr(v90.base, "_api_get", fake_api_get)
+
+    now = datetime(2026, 9, 25, 18, 0, tzinfo=dt_timezone.utc)
+    future_date = now.astimezone(v90.base.TIMEZONE).date()
+
+    rows1, _, hit1 = __import__("asyncio").run(v90._future_date_slate(future_date, now))
+    rows2, _, hit2 = __import__("asyncio").run(v90._future_date_slate(future_date, now))
+
+    assert len(rows1) == 1
+    assert len(rows2) == 1
+    assert hit1 is False
+    assert hit2 is True
+    assert provider_calls["count"] == 1
