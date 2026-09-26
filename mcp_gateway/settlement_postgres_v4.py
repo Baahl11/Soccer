@@ -7,8 +7,8 @@ from typing import Any, Iterable
 from mcp_gateway import evaluate_postgame as ep
 from mcp_gateway import persistence
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_SETTLEMENT_POSTGRES_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_SETTLEMENT_POSTGRES_V4_1.1.0"
 ACTIONABLE_CLASSES = {"BET", "LEAN"}
 
 
@@ -108,6 +108,10 @@ def _normalized_actionable_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict
             "away_team": raw.get("away_team"),
             "tier": payload.get("tier"),
             "stake_units": ep.fnum(payload.get("stake_units")) or 1.0,
+            "quote_timestamp": _parse_dt(raw.get("quote_timestamp")),
+            "quote_provider_update": _parse_dt(raw.get("quote_provider_update")),
+            "lineup_timestamp": _parse_dt(raw.get("lineup_timestamp")),
+            "feature_timestamp": _parse_dt(raw.get("feature_timestamp")),
             "best_market": best,
             "result": result,
         }
@@ -135,7 +139,7 @@ def _settlement_row(row: dict[str, Any]) -> dict[str, Any]:
     generated_at = row.get("generated_at")
     kickoff = row.get("kickoff")
     return {
-        "schema_version": "1.1.0",
+        "schema_version": SCHEMA_VERSION,
         "event_key": (
             f"postgres:{row['fixture_id']}:{generated_at.isoformat()}"
             if isinstance(generated_at, datetime)
@@ -163,6 +167,13 @@ def _settlement_row(row: dict[str, Any]) -> dict[str, Any]:
         "line": ep.fnum(best.get("line")),
         "decimal_price": price,
         "bookmaker": best.get("bookmaker") or best.get("book"),
+        "quote_timestamp": row.get("quote_timestamp").isoformat() if isinstance(row.get("quote_timestamp"), datetime) else row.get("quote_timestamp"),
+        "bookmaker_timestamp": row.get("quote_timestamp").isoformat() if isinstance(row.get("quote_timestamp"), datetime) else row.get("quote_timestamp"),
+        "quote_provider_update": row.get("quote_provider_update").isoformat() if isinstance(row.get("quote_provider_update"), datetime) else row.get("quote_provider_update"),
+        "lineup_timestamp": row.get("lineup_timestamp").isoformat() if isinstance(row.get("lineup_timestamp"), datetime) else row.get("lineup_timestamp"),
+        "lineup_captured_at": row.get("lineup_timestamp").isoformat() if isinstance(row.get("lineup_timestamp"), datetime) else row.get("lineup_timestamp"),
+        "feature_timestamp": row.get("feature_timestamp").isoformat() if isinstance(row.get("feature_timestamp"), datetime) else row.get("feature_timestamp"),
+        "feature_captured_at": row.get("feature_timestamp").isoformat() if isinstance(row.get("feature_timestamp"), datetime) else row.get("feature_timestamp"),
         "stake_units": stake,
         "settlement_status": outcome,
         "settled": outcome in {"WIN", "LOSS", "PUSH"},
@@ -250,6 +261,7 @@ def build_report_from_rows(raw_rows: Iterable[dict[str, Any]]) -> dict[str, Any]
             "The latest snapshot per fixture/classification/market family/market/selection/line is retained, matching legacy settlement dedupe semantics.",
             "Final results are joined from soccer_results solely for grading; they never feed pre-kickoff candidate generation.",
             "This source remains complete after Git history switched to compact operational envelopes without events.",
+            "Quote, lineup and feature timestamps are recovered only from persisted snapshots captured at or before the decision timestamp; no post-decision provenance is allowed.",
         ],
     }
 
@@ -352,6 +364,48 @@ def _load_rows(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any
                 e.bet_eligible,
                 e.data_tier,
                 e.payload AS event_payload,
+                (
+                    SELECT m.captured_at
+                    FROM soccer_market_snapshots m
+                    WHERE m.fixture_id = e.fixture_id
+                      AND m.captured_at <= e.generated_at
+                      AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(e.payload -> 'best_market' ->> 'market', '')))
+                      AND (
+                            NULLIF(COALESCE(e.payload -> 'best_market' ->> 'bookmaker', e.payload -> 'best_market' ->> 'book'), '') IS NULL
+                            OR LOWER(TRIM(COALESCE(m.bookmaker, ''))) = LOWER(TRIM(COALESCE(e.payload -> 'best_market' ->> 'bookmaker', e.payload -> 'best_market' ->> 'book', '')))
+                          )
+                    ORDER BY m.captured_at DESC, m.snapshot_id DESC
+                    LIMIT 1
+                ) AS quote_timestamp,
+                (
+                    SELECT m.provider_update
+                    FROM soccer_market_snapshots m
+                    WHERE m.fixture_id = e.fixture_id
+                      AND m.captured_at <= e.generated_at
+                      AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(e.payload -> 'best_market' ->> 'market', '')))
+                      AND (
+                            NULLIF(COALESCE(e.payload -> 'best_market' ->> 'bookmaker', e.payload -> 'best_market' ->> 'book'), '') IS NULL
+                            OR LOWER(TRIM(COALESCE(m.bookmaker, ''))) = LOWER(TRIM(COALESCE(e.payload -> 'best_market' ->> 'bookmaker', e.payload -> 'best_market' ->> 'book', '')))
+                          )
+                    ORDER BY m.captured_at DESC, m.snapshot_id DESC
+                    LIMIT 1
+                ) AS quote_provider_update,
+                (
+                    SELECT l.captured_at
+                    FROM soccer_lineup_snapshots l
+                    WHERE l.fixture_id = e.fixture_id
+                      AND l.captured_at <= e.generated_at
+                    ORDER BY l.captured_at DESC, l.snapshot_id DESC
+                    LIMIT 1
+                ) AS lineup_timestamp,
+                (
+                    SELECT s.captured_at
+                    FROM soccer_feature_snapshots s
+                    WHERE s.fixture_id = e.fixture_id
+                      AND s.captured_at <= e.generated_at
+                    ORDER BY s.captured_at DESC, s.snapshot_id DESC
+                    LIMIT 1
+                ) AS feature_timestamp,
                 f.kickoff,
                 f.league,
                 f.home_team_id,
