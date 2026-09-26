@@ -1,0 +1,217 @@
+name: v178 FT Totals Calibration Scope Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v178-ft-totals-calibration-scope-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout state evidence
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/latest.json
+            soccer_edge_state/analysis/oos_stage_diagnostics_v4.json
+            soccer_edge_state/analysis/ft_totals_t10_crosscell_audit_v4.json
+            soccer_edge_state/analysis/ft_totals_calibration_scope_audit_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Build calibration-scope audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from collections import Counter, defaultdict
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          base = Path('state/soccer_edge_state')
+          latest = json.loads((base / 'latest.json').read_text(encoding='utf-8'))
+          oos = json.loads((base / 'analysis/oos_stage_diagnostics_v4.json').read_text(encoding='utf-8'))
+          cross = json.loads((base / 'analysis/ft_totals_t10_crosscell_audit_v4.json').read_text(encoding='utf-8'))
+
+          def is_ft(row):
+              family = str(row.get('market_family') or '').upper()
+              market = str(row.get('market') or '').upper()
+              return family in {'FT_TOTALS','TOTAL','FT_TOTALS_RESEARCH'} or 'GOALS OVER/UNDER' in market
+
+          def line_key(value):
+              try: return f'{float(value):g}'
+              except Exception: return 'MISSING'
+
+          rows = [r for r in (latest.get('match_table_rows') or []) if isinstance(r, dict) and is_ft(r)]
+          by_line = defaultdict(list)
+          for row in rows:
+              by_line[line_key(row.get('line'))].append(row)
+
+          line_report = {}
+          scope_mismatch_rows = []
+          for line, group in sorted(by_line.items()):
+              targets = Counter()
+              statuses = Counter()
+              calibrated_keys = Counter()
+              eligible = 0
+              for row in group:
+                  diag = row.get('phase16_binary_calibration_diagnostics')
+                  diag = diag if isinstance(diag, dict) else {}
+                  target = str(diag.get('target') or row.get('phase16_calibration_target') or 'MISSING')
+                  targets[target] += 1
+                  statuses[str(row.get('phase16_calibration_status') or 'MISSING')] += 1
+                  for key in ('p_model_calibrated','p_calibrated','calibrated_probability','model_probability_calibrated'):
+                      value = row.get(key)
+                      if isinstance(value, (int,float)) and 0 <= float(value) <= 1:
+                          calibrated_keys[key] += 1
+                  if row.get('phase16_calibration_promotion_shadow_eligible') is True:
+                      eligible += 1
+                  if line not in {'2.5','MISSING'} and target == 'over_2_5':
+                      scope_mismatch_rows.append({
+                          'fixture_id': row.get('fixture_id'),
+                          'line': line,
+                          'selection': row.get('selection'),
+                          'price': row.get('price'),
+                          'bookmaker': row.get('bookmaker'),
+                          'calibration_target': target,
+                          'calibration_status': row.get('phase16_calibration_status'),
+                          'promotion_shadow_eligible': row.get('phase16_calibration_promotion_shadow_eligible') is True,
+                          'has_calibrated_probability': bool(calibrated_keys),
+                      })
+              line_report[line] = {
+                  'rows': len(group),
+                  'calibration_targets': dict(targets),
+                  'calibration_statuses': dict(statuses),
+                  'calibrated_probability_keys_present': dict(calibrated_keys),
+                  'promotion_shadow_eligible_rows': eligible,
+              }
+
+          oos_stages = {}
+          all_by_stage = oos.get('all_models_by_stage') if isinstance(oos.get('all_models_by_stage'), dict) else {}
+          for stage in ('EARLY_RESEARCH','T-40','T-20','T-10','CLOSE'):
+              stage_obj = all_by_stage.get(stage) if isinstance(all_by_stage.get(stage), dict) else {}
+              targets = stage_obj.get('binary_targets') if isinstance(stage_obj.get('binary_targets'), dict) else {}
+              over = targets.get('over_2_5') if isinstance(targets.get('over_2_5'), dict) else {}
+              disc = over.get('discrimination') if isinstance(over.get('discrimination'), dict) else {}
+              oos_stages[stage] = {
+                  'rows': int(over.get('rows') or 0),
+                  'positive_count': int(over.get('positive_count') or 0),
+                  'negative_count': int(over.get('negative_count') or 0),
+                  'brier': over.get('brier'),
+                  'log_loss': over.get('log_loss'),
+                  'ece': over.get('ece'),
+                  'auc': disc.get('auc'),
+                  'auc_lower_95': disc.get('auc_lower_95'),
+                  'discrimination_ready': disc.get('discrimination_ready') is True,
+                  'sample_status': over.get('sample_status'),
+              }
+
+          deploy = oos.get('current_model_deployment_calibrators')
+          deploy = deploy if isinstance(deploy, dict) else {}
+          over_deploy = deploy.get('over_2_5') if isinstance(deploy.get('over_2_5'), dict) else {}
+          deploy_disc = over_deploy.get('discrimination') if isinstance(over_deploy.get('discrimination'), dict) else {}
+
+          non25_lines = sorted(line for line in line_report if line not in {'2.5','MISSING'})
+          non25_rows = sum(line_report[line]['rows'] for line in non25_lines)
+          non25_targeted_as_over25 = sum(
+              line_report[line]['calibration_targets'].get('over_2_5', 0)
+              for line in non25_lines
+          )
+
+          report = {
+              'schema_version': '1.0.0',
+              'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+              'status': 'FT_TOTALS_CALIBRATION_SCOPE_AUDIT_AVAILABLE',
+              'source_tick_generated_at_local': latest.get('generated_at_local'),
+              'visible_ft_totals_rows': len(rows),
+              'by_line': line_report,
+              'scope_diagnostics': {
+                  'non_2_5_lines_present': non25_lines,
+                  'non_2_5_rows': non25_rows,
+                  'non_2_5_rows_tagged_over_2_5_target': non25_targeted_as_over25,
+                  'scope_mismatch_candidate_count': len(scope_mismatch_rows),
+                  'scope_mismatch_candidates': scope_mismatch_rows[:50],
+                  'diagnostic_flag': (
+                      'NON_2_5_ROWS_REFERENCING_OVER_2_5_CALIBRATION'
+                      if non25_targeted_as_over25 > 0 else 'NO_VISIBLE_SCOPE_MISMATCH'
+                  ),
+              },
+              'oos_over_2_5_by_stage': oos_stages,
+              'current_over_2_5_deployment_calibrator': {
+                  'rows': int(over_deploy.get('rows') or 0),
+                  'positive_count': int(deploy_disc.get('positive_count') or over_deploy.get('positive_count') or 0),
+                  'negative_count': int(deploy_disc.get('negative_count') or over_deploy.get('negative_count') or 0),
+                  'auc': deploy_disc.get('auc'),
+                  'auc_lower_95': deploy_disc.get('auc_lower_95'),
+                  'brier_delta': over_deploy.get('brier_delta'),
+                  'log_loss_delta': over_deploy.get('log_loss_delta'),
+                  'eligible_for_phase16_research': over_deploy.get('eligible_for_phase16_research') is True,
+                  'calibrator_status': over_deploy.get('calibrator_status'),
+              },
+              'shadow_crosscell_reference': {
+                  't10_overall': ((cross.get('stages') or {}).get('T-10') or {}).get('overall'),
+                  't10_top_negative_selection_line_cells': (cross.get('diagnostics') or {}).get('t10_top_negative_selection_line_cells') or [],
+                  't20_small_sample_warning': (cross.get('diagnostics') or {}).get('t20_small_sample_warning'),
+              },
+              'interpretation_policy': (
+                  'This audit only checks calibration metadata/scope and OOS support. A non-2.5 row referencing '
+                  'the over_2_5 diagnostic is not by itself proof that the 2.5 calibrator was numerically applied; '
+                  'any runtime change requires tracing the probability source and adding line-specific OOS evidence.'
+              ),
+              'provider_requests_added': 0,
+              'thresholds_changed': False,
+              'model_weights_changed': False,
+              'canonical_bet_logic_changed': False,
+              'production_filter_changed': False,
+              'production_promotion_allowed': False,
+          }
+
+          out = base / 'analysis/ft_totals_calibration_scope_audit_v4.json'
+          out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps({
+              'visible_ft_totals_rows': len(rows),
+              'by_line': line_report,
+              'scope_diagnostics': report['scope_diagnostics'],
+              'oos_over_2_5_by_stage': oos_stages,
+              'current_over_2_5_deployment_calibrator': report['current_over_2_5_deployment_calibrator'],
+              'safety': {'thresholds_changed': False, 'production_filter_changed': False}
+          }, indent=2))
+          PY
+
+      - name: Validate audit safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=state/soccer_edge_state/analysis/ft_totals_calibration_scope_audit_v4.json
+          jq -e '.schema_version == "1.0.0"' "$R" >/dev/null
+          jq -e '.provider_requests_added == 0' "$R" >/dev/null
+          jq -e '.thresholds_changed == false and .model_weights_changed == false and .canonical_bet_logic_changed == false' "$R" >/dev/null
+          jq -e '.production_filter_changed == false and .production_promotion_allowed == false' "$R" >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/ft_totals_calibration_scope_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update FT Totals calibration scope audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
