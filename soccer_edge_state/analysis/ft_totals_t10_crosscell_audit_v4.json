@@ -1,0 +1,1402 @@
+{
+  "canonical_bet_logic_changed": false,
+  "diagnostics": {
+    "long_price_outlier_risk": true,
+    "t10_top_negative_selection_line_cells": [
+      {
+        "avg_decimal_price": 4.585769,
+        "avg_implied_probability_raw": 0.245378,
+        "cell": [
+          "UNDER",
+          "1.5"
+        ],
+        "hit_rate_ex_push": 0.153846,
+        "loss": 22,
+        "push": 0,
+        "roi_per_settled_unit": -0.373077,
+        "roi_units": -9.7,
+        "settled": 26,
+        "share_of_selection_line_negative_units": 0.382643,
+        "win": 4
+      },
+      {
+        "avg_decimal_price": 2.608571,
+        "avg_implied_probability_raw": 0.395929,
+        "cell": [
+          "OVER",
+          "3.5"
+        ],
+        "hit_rate_ex_push": 0.285714,
+        "loss": 15,
+        "push": 0,
+        "roi_per_settled_unit": -0.291429,
+        "roi_units": -6.12,
+        "settled": 21,
+        "share_of_selection_line_negative_units": 0.24142,
+        "win": 6
+      },
+      {
+        "avg_decimal_price": 1.661667,
+        "avg_implied_probability_raw": 0.610656,
+        "cell": [
+          "UNDER",
+          "3.5"
+        ],
+        "hit_rate_ex_push": 0.458333,
+        "loss": 13,
+        "push": 0,
+        "roi_per_settled_unit": -0.235833,
+        "roi_units": -5.66,
+        "settled": 24,
+        "share_of_selection_line_negative_units": 0.223274,
+        "win": 11
+      },
+      {
+        "avg_decimal_price": 2.883333,
+        "avg_implied_probability_raw": 0.352585,
+        "cell": [
+          "OVER",
+          "4.5"
+        ],
+        "hit_rate_ex_push": 0.0,
+        "loss": 3,
+        "push": 0,
+        "roi_per_settled_unit": -1.0,
+        "roi_units": -3.0,
+        "settled": 3,
+        "share_of_selection_line_negative_units": 0.118343,
+        "win": 0
+      },
+      {
+        "avg_decimal_price": 1.092,
+        "avg_implied_probability_raw": 0.920586,
+        "cell": [
+          "UNDER",
+          "4.5"
+        ],
+        "hit_rate_ex_push": 0.8,
+        "loss": 1,
+        "push": 0,
+        "roi_per_settled_unit": -0.148,
+        "roi_units": -0.74,
+        "settled": 5,
+        "share_of_selection_line_negative_units": 0.029191,
+        "win": 4
+      },
+      {
+        "avg_decimal_price": 1.306,
+        "avg_implied_probability_raw": 0.784602,
+        "cell": [
+          "OVER",
+          "1.5"
+        ],
+        "hit_rate_ex_push": 0.8,
+        "loss": 1,
+        "push": 0,
+        "roi_per_settled_unit": -0.026,
+        "roi_units": -0.13,
+        "settled": 5,
+        "share_of_selection_line_negative_units": 0.005128,
+        "win": 4
+      }
+    ],
+    "t10_top_negative_selection_line_units": -25.35,
+    "t10_total_roi_units": -19.06,
+    "t20_settled": 20,
+    "t20_small_sample_warning": true
+  },
+  "generated_at_utc": "2026-09-26T04:51:07.193715+00:00",
+  "interpretation_policy": "Cross-cell shadow results are exploratory diagnostics only. Minimum n=3 is for visibility, not statistical sufficiency. No cell may become a production exclusion or threshold change without strict true-CLV/OOS confirmation and the existing Phase19 gates.",
+  "market_family": "FT_TOTALS",
+  "model_weights_changed": false,
+  "production_filter_changed": false,
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "schema_version": "1.0.0",
+  "stages": {
+    "T-10": {
+      "line_x_price_min3": [
+        {
+          "avg_decimal_price": 4.778333,
+          "avg_implied_probability_raw": 0.228978,
+          "cell": [
+            "1.5",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.125,
+          "loss": 21,
+          "push": 0,
+          "roi_per_settled_unit": -0.408333,
+          "roi_units": -9.8,
+          "settled": 24,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 2.908462,
+          "avg_implied_probability_raw": 0.34862,
+          "cell": [
+            "3.5",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.230769,
+          "loss": 10,
+          "push": 0,
+          "roi_per_settled_unit": -0.363077,
+          "roi_units": -4.72,
+          "settled": 13,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 1.895714,
+          "avg_implied_probability_raw": 0.528533,
+          "cell": [
+            "3.5",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.285714,
+          "loss": 5,
+          "push": 0,
+          "roi_per_settled_unit": -0.455714,
+          "roi_units": -3.19,
+          "settled": 7,
+          "win": 2
+        },
+        {
+          "avg_decimal_price": 2.883333,
+          "avg_implied_probability_raw": 0.352585,
+          "cell": [
+            "4.5",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.0,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -1.0,
+          "roi_units": -3.0,
+          "settled": 3,
+          "win": 0
+        },
+        {
+          "avg_decimal_price": 1.43,
+          "avg_implied_probability_raw": 0.699492,
+          "cell": [
+            "3.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 0.25,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -0.6375,
+          "roi_units": -2.55,
+          "settled": 4,
+          "win": 1
+        },
+        {
+          "avg_decimal_price": 1.579231,
+          "avg_implied_probability_raw": 0.634081,
+          "cell": [
+            "3.5",
+            "1.50-1.74"
+          ],
+          "hit_rate_ex_push": 0.538462,
+          "loss": 6,
+          "push": 0,
+          "roi_per_settled_unit": -0.162308,
+          "roi_units": -2.11,
+          "settled": 13,
+          "win": 7
+        },
+        {
+          "avg_decimal_price": 1.875385,
+          "avg_implied_probability_raw": 0.534169,
+          "cell": [
+            "2.5",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.461538,
+          "loss": 7,
+          "push": 0,
+          "roi_per_settled_unit": -0.128462,
+          "roi_units": -1.67,
+          "settled": 13,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 1.092,
+          "avg_implied_probability_raw": 0.920586,
+          "cell": [
+            "4.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 0.8,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": -0.148,
+          "roi_units": -0.74,
+          "settled": 5,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.021667,
+          "avg_implied_probability_raw": 0.978899,
+          "cell": [
+            "0.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.021667,
+          "roi_units": 0.13,
+          "settled": 6,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 2.167647,
+          "avg_implied_probability_raw": 0.462912,
+          "cell": [
+            "2.5",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.470588,
+          "loss": 9,
+          "push": 0,
+          "roi_per_settled_unit": 0.010588,
+          "roi_units": 0.18,
+          "settled": 17,
+          "win": 8
+        },
+        {
+          "avg_decimal_price": 1.034286,
+          "avg_implied_probability_raw": 0.966924,
+          "cell": [
+            "5.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.034286,
+          "roi_units": 0.24,
+          "settled": 7,
+          "win": 7
+        },
+        {
+          "avg_decimal_price": 1.334,
+          "avg_implied_probability_raw": 0.755845,
+          "cell": [
+            "2.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 0.8,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": 0.09,
+          "roi_units": 0.45,
+          "settled": 5,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 2.16625,
+          "avg_implied_probability_raw": 0.462179,
+          "cell": [
+            "3.5",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.5,
+          "loss": 4,
+          "push": 0,
+          "roi_per_settled_unit": 0.09875,
+          "roi_units": 0.79,
+          "settled": 8,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.2175,
+          "avg_implied_probability_raw": 0.83015,
+          "cell": [
+            "1.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.2175,
+          "roi_units": 0.87,
+          "settled": 4,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.646667,
+          "avg_implied_probability_raw": 0.608495,
+          "cell": [
+            "2.5",
+            "1.50-1.74"
+          ],
+          "hit_rate_ex_push": 0.75,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": 0.235,
+          "roi_units": 2.82,
+          "settled": 12,
+          "win": 9
+        },
+        {
+          "avg_decimal_price": 2.995,
+          "avg_implied_probability_raw": 0.339984,
+          "cell": [
+            "2.5",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.5,
+          "loss": 4,
+          "push": 0,
+          "roi_per_settled_unit": 0.5125,
+          "roi_units": 4.1,
+          "settled": 8,
+          "win": 4
+        }
+      ],
+      "overall": {
+        "avg_decimal_price": 2.356601,
+        "avg_implied_probability_raw": 0.530405,
+        "hit_rate_ex_push": 0.48366,
+        "loss": 79,
+        "push": 0,
+        "roi_per_settled_unit": -0.124575,
+        "roi_units": -19.06,
+        "settled": 153,
+        "win": 74
+      },
+      "selection_x_line_min3": [
+        {
+          "avg_decimal_price": 4.585769,
+          "avg_implied_probability_raw": 0.245378,
+          "cell": [
+            "UNDER",
+            "1.5"
+          ],
+          "hit_rate_ex_push": 0.153846,
+          "loss": 22,
+          "push": 0,
+          "roi_per_settled_unit": -0.373077,
+          "roi_units": -9.7,
+          "settled": 26,
+          "share_of_selection_line_negative_units": 0.382643,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 2.608571,
+          "avg_implied_probability_raw": 0.395929,
+          "cell": [
+            "OVER",
+            "3.5"
+          ],
+          "hit_rate_ex_push": 0.285714,
+          "loss": 15,
+          "push": 0,
+          "roi_per_settled_unit": -0.291429,
+          "roi_units": -6.12,
+          "settled": 21,
+          "share_of_selection_line_negative_units": 0.24142,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 1.661667,
+          "avg_implied_probability_raw": 0.610656,
+          "cell": [
+            "UNDER",
+            "3.5"
+          ],
+          "hit_rate_ex_push": 0.458333,
+          "loss": 13,
+          "push": 0,
+          "roi_per_settled_unit": -0.235833,
+          "roi_units": -5.66,
+          "settled": 24,
+          "share_of_selection_line_negative_units": 0.223274,
+          "win": 11
+        },
+        {
+          "avg_decimal_price": 2.883333,
+          "avg_implied_probability_raw": 0.352585,
+          "cell": [
+            "OVER",
+            "4.5"
+          ],
+          "hit_rate_ex_push": 0.0,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -1.0,
+          "roi_units": -3.0,
+          "settled": 3,
+          "share_of_selection_line_negative_units": 0.118343,
+          "win": 0
+        },
+        {
+          "avg_decimal_price": 1.092,
+          "avg_implied_probability_raw": 0.920586,
+          "cell": [
+            "UNDER",
+            "4.5"
+          ],
+          "hit_rate_ex_push": 0.8,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": -0.148,
+          "roi_units": -0.74,
+          "settled": 5,
+          "share_of_selection_line_negative_units": 0.029191,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.306,
+          "avg_implied_probability_raw": 0.784602,
+          "cell": [
+            "OVER",
+            "1.5"
+          ],
+          "hit_rate_ex_push": 0.8,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": -0.026,
+          "roi_units": -0.13,
+          "settled": 5,
+          "share_of_selection_line_negative_units": 0.005128,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.021667,
+          "avg_implied_probability_raw": 0.978899,
+          "cell": [
+            "OVER",
+            "0.5"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.021667,
+          "roi_units": 0.13,
+          "settled": 6,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 1.034286,
+          "avg_implied_probability_raw": 0.966924,
+          "cell": [
+            "UNDER",
+            "5.5"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.034286,
+          "roi_units": 0.24,
+          "settled": 7,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 7
+        },
+        {
+          "avg_decimal_price": 2.104118,
+          "avg_implied_probability_raw": 0.501853,
+          "cell": [
+            "UNDER",
+            "2.5"
+          ],
+          "hit_rate_ex_push": 0.529412,
+          "loss": 16,
+          "push": 0,
+          "roi_per_settled_unit": 0.064118,
+          "roi_units": 2.18,
+          "settled": 34,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 18
+        },
+        {
+          "avg_decimal_price": 1.908571,
+          "avg_implied_probability_raw": 0.550084,
+          "cell": [
+            "OVER",
+            "2.5"
+          ],
+          "hit_rate_ex_push": 0.619048,
+          "loss": 8,
+          "push": 0,
+          "roi_per_settled_unit": 0.17619,
+          "roi_units": 3.7,
+          "settled": 21,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 13
+        }
+      ],
+      "selection_x_line_x_price_min3": [
+        {
+          "avg_decimal_price": 4.778333,
+          "avg_implied_probability_raw": 0.228978,
+          "cell": [
+            "UNDER",
+            "1.5",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.125,
+          "loss": 21,
+          "push": 0,
+          "roi_per_settled_unit": -0.408333,
+          "roi_units": -9.8,
+          "settled": 24,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 2.908462,
+          "avg_implied_probability_raw": 0.34862,
+          "cell": [
+            "OVER",
+            "3.5",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.230769,
+          "loss": 10,
+          "push": 0,
+          "roi_per_settled_unit": -0.363077,
+          "roi_units": -4.72,
+          "settled": 13,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 2.883333,
+          "avg_implied_probability_raw": 0.352585,
+          "cell": [
+            "OVER",
+            "4.5",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.0,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -1.0,
+          "roi_units": -3.0,
+          "settled": 3,
+          "win": 0
+        },
+        {
+          "avg_decimal_price": 1.43,
+          "avg_implied_probability_raw": 0.699492,
+          "cell": [
+            "UNDER",
+            "3.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 0.25,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -0.6375,
+          "roi_units": -2.55,
+          "settled": 4,
+          "win": 1
+        },
+        {
+          "avg_decimal_price": 2.187273,
+          "avg_implied_probability_raw": 0.459171,
+          "cell": [
+            "UNDER",
+            "2.5",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.363636,
+          "loss": 7,
+          "push": 0,
+          "roi_per_settled_unit": -0.22,
+          "roi_units": -2.42,
+          "settled": 11,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.579231,
+          "avg_implied_probability_raw": 0.634081,
+          "cell": [
+            "UNDER",
+            "3.5",
+            "1.50-1.74"
+          ],
+          "hit_rate_ex_push": 0.538462,
+          "loss": 6,
+          "push": 0,
+          "roi_per_settled_unit": -0.162308,
+          "roi_units": -2.11,
+          "settled": 13,
+          "win": 7
+        },
+        {
+          "avg_decimal_price": 1.865714,
+          "avg_implied_probability_raw": 0.536829,
+          "cell": [
+            "UNDER",
+            "2.5",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.428571,
+          "loss": 4,
+          "push": 0,
+          "roi_per_settled_unit": -0.198571,
+          "roi_units": -1.39,
+          "settled": 7,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 1.868,
+          "avg_implied_probability_raw": 0.536382,
+          "cell": [
+            "UNDER",
+            "3.5",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.4,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -0.238,
+          "roi_units": -1.19,
+          "settled": 5,
+          "win": 2
+        },
+        {
+          "avg_decimal_price": 1.092,
+          "avg_implied_probability_raw": 0.920586,
+          "cell": [
+            "UNDER",
+            "4.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 0.8,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": -0.148,
+          "roi_units": -0.74,
+          "settled": 5,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.26,
+          "avg_implied_probability_raw": 0.797932,
+          "cell": [
+            "OVER",
+            "2.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 0.666667,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": -0.146667,
+          "roi_units": -0.44,
+          "settled": 3,
+          "win": 2
+        },
+        {
+          "avg_decimal_price": 1.886667,
+          "avg_implied_probability_raw": 0.531066,
+          "cell": [
+            "OVER",
+            "2.5",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.5,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -0.046667,
+          "roi_units": -0.28,
+          "settled": 6,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 1.021667,
+          "avg_implied_probability_raw": 0.978899,
+          "cell": [
+            "OVER",
+            "0.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.021667,
+          "roi_units": 0.13,
+          "settled": 6,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 1.034286,
+          "avg_implied_probability_raw": 0.966924,
+          "cell": [
+            "UNDER",
+            "5.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.034286,
+          "roi_units": 0.24,
+          "settled": 7,
+          "win": 7
+        },
+        {
+          "avg_decimal_price": 2.173333,
+          "avg_implied_probability_raw": 0.46077,
+          "cell": [
+            "OVER",
+            "3.5",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.5,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": 0.1,
+          "roi_units": 0.6,
+          "settled": 6,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 1.2175,
+          "avg_implied_probability_raw": 0.83015,
+          "cell": [
+            "OVER",
+            "1.5",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.2175,
+          "roi_units": 0.87,
+          "settled": 4,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.64,
+          "avg_implied_probability_raw": 0.610316,
+          "cell": [
+            "OVER",
+            "2.5",
+            "1.50-1.74"
+          ],
+          "hit_rate_ex_push": 0.75,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": 0.2225,
+          "roi_units": 0.89,
+          "settled": 4,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 1.65,
+          "avg_implied_probability_raw": 0.607585,
+          "cell": [
+            "UNDER",
+            "2.5",
+            "1.50-1.74"
+          ],
+          "hit_rate_ex_push": 0.75,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": 0.24125,
+          "roi_units": 1.93,
+          "settled": 8,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 2.131667,
+          "avg_implied_probability_raw": 0.469772,
+          "cell": [
+            "OVER",
+            "2.5",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.666667,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": 0.433333,
+          "roi_units": 2.6,
+          "settled": 6,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 3.055,
+          "avg_implied_probability_raw": 0.334701,
+          "cell": [
+            "UNDER",
+            "2.5",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.5,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": 0.528333,
+          "roi_units": 3.17,
+          "settled": 6,
+          "win": 3
+        }
+      ],
+      "selection_x_price_min3": [
+        {
+          "avg_decimal_price": 2.893889,
+          "avg_implied_probability_raw": 0.350083,
+          "cell": [
+            "OVER",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.222222,
+          "loss": 14,
+          "push": 0,
+          "roi_per_settled_unit": -0.377222,
+          "roi_units": -6.79,
+          "settled": 18,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 4.433667,
+          "avg_implied_probability_raw": 0.250123,
+          "cell": [
+            "UNDER",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.2,
+          "loss": 24,
+          "push": 0,
+          "roi_per_settled_unit": -0.221,
+          "roi_units": -6.63,
+          "settled": 30,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 1.866667,
+          "avg_implied_probability_raw": 0.536643,
+          "cell": [
+            "UNDER",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.416667,
+          "loss": 7,
+          "push": 0,
+          "roi_per_settled_unit": -0.215,
+          "roi_units": -2.58,
+          "settled": 12,
+          "win": 5
+        },
+        {
+          "avg_decimal_price": 1.90625,
+          "avg_implied_probability_raw": 0.525527,
+          "cell": [
+            "OVER",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.375,
+          "loss": 5,
+          "push": 0,
+          "roi_per_settled_unit": -0.285,
+          "roi_units": -2.28,
+          "settled": 8,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 2.193333,
+          "avg_implied_probability_raw": 0.457869,
+          "cell": [
+            "UNDER",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.4,
+          "loss": 9,
+          "push": 0,
+          "roi_per_settled_unit": -0.142,
+          "roi_units": -2.13,
+          "settled": 15,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 1.176316,
+          "avg_implied_probability_raw": 0.869281,
+          "cell": [
+            "UNDER",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 0.789474,
+          "loss": 4,
+          "push": 0,
+          "roi_per_settled_unit": -0.111579,
+          "roi_units": -2.12,
+          "settled": 19,
+          "win": 15
+        },
+        {
+          "avg_decimal_price": 1.60619,
+          "avg_implied_probability_raw": 0.623987,
+          "cell": [
+            "UNDER",
+            "1.50-1.74"
+          ],
+          "hit_rate_ex_push": 0.619048,
+          "loss": 8,
+          "push": 0,
+          "roi_per_settled_unit": -0.008571,
+          "roi_units": -0.18,
+          "settled": 21,
+          "win": 13
+        },
+        {
+          "avg_decimal_price": 1.644,
+          "avg_implied_probability_raw": 0.608735,
+          "cell": [
+            "OVER",
+            "1.50-1.74"
+          ],
+          "hit_rate_ex_push": 0.6,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": -0.022,
+          "roi_units": -0.11,
+          "settled": 5,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 1.136923,
+          "avg_implied_probability_raw": 0.891369,
+          "cell": [
+            "OVER",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 0.923077,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": 0.043077,
+          "roi_units": 0.56,
+          "settled": 13,
+          "win": 12
+        },
+        {
+          "avg_decimal_price": 2.1525,
+          "avg_implied_probability_raw": 0.465271,
+          "cell": [
+            "OVER",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.583333,
+          "loss": 5,
+          "push": 0,
+          "roi_per_settled_unit": 0.266667,
+          "roi_units": 3.2,
+          "settled": 12,
+          "win": 7
+        }
+      ],
+      "top_negative_selection_line_cells": [
+        {
+          "avg_decimal_price": 4.585769,
+          "avg_implied_probability_raw": 0.245378,
+          "cell": [
+            "UNDER",
+            "1.5"
+          ],
+          "hit_rate_ex_push": 0.153846,
+          "loss": 22,
+          "push": 0,
+          "roi_per_settled_unit": -0.373077,
+          "roi_units": -9.7,
+          "settled": 26,
+          "share_of_selection_line_negative_units": 0.382643,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 2.608571,
+          "avg_implied_probability_raw": 0.395929,
+          "cell": [
+            "OVER",
+            "3.5"
+          ],
+          "hit_rate_ex_push": 0.285714,
+          "loss": 15,
+          "push": 0,
+          "roi_per_settled_unit": -0.291429,
+          "roi_units": -6.12,
+          "settled": 21,
+          "share_of_selection_line_negative_units": 0.24142,
+          "win": 6
+        },
+        {
+          "avg_decimal_price": 1.661667,
+          "avg_implied_probability_raw": 0.610656,
+          "cell": [
+            "UNDER",
+            "3.5"
+          ],
+          "hit_rate_ex_push": 0.458333,
+          "loss": 13,
+          "push": 0,
+          "roi_per_settled_unit": -0.235833,
+          "roi_units": -5.66,
+          "settled": 24,
+          "share_of_selection_line_negative_units": 0.223274,
+          "win": 11
+        },
+        {
+          "avg_decimal_price": 2.883333,
+          "avg_implied_probability_raw": 0.352585,
+          "cell": [
+            "OVER",
+            "4.5"
+          ],
+          "hit_rate_ex_push": 0.0,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -1.0,
+          "roi_units": -3.0,
+          "settled": 3,
+          "share_of_selection_line_negative_units": 0.118343,
+          "win": 0
+        },
+        {
+          "avg_decimal_price": 1.092,
+          "avg_implied_probability_raw": 0.920586,
+          "cell": [
+            "UNDER",
+            "4.5"
+          ],
+          "hit_rate_ex_push": 0.8,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": -0.148,
+          "roi_units": -0.74,
+          "settled": 5,
+          "share_of_selection_line_negative_units": 0.029191,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 1.306,
+          "avg_implied_probability_raw": 0.784602,
+          "cell": [
+            "OVER",
+            "1.5"
+          ],
+          "hit_rate_ex_push": 0.8,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": -0.026,
+          "roi_units": -0.13,
+          "settled": 5,
+          "share_of_selection_line_negative_units": 0.005128,
+          "win": 4
+        }
+      ],
+      "top_positive_selection_line_cells": [
+        {
+          "avg_decimal_price": 1.908571,
+          "avg_implied_probability_raw": 0.550084,
+          "cell": [
+            "OVER",
+            "2.5"
+          ],
+          "hit_rate_ex_push": 0.619048,
+          "loss": 8,
+          "push": 0,
+          "roi_per_settled_unit": 0.17619,
+          "roi_units": 3.7,
+          "settled": 21,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 13
+        },
+        {
+          "avg_decimal_price": 2.104118,
+          "avg_implied_probability_raw": 0.501853,
+          "cell": [
+            "UNDER",
+            "2.5"
+          ],
+          "hit_rate_ex_push": 0.529412,
+          "loss": 16,
+          "push": 0,
+          "roi_per_settled_unit": 0.064118,
+          "roi_units": 2.18,
+          "settled": 34,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 18
+        },
+        {
+          "avg_decimal_price": 1.034286,
+          "avg_implied_probability_raw": 0.966924,
+          "cell": [
+            "UNDER",
+            "5.5"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.034286,
+          "roi_units": 0.24,
+          "settled": 7,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 7
+        },
+        {
+          "avg_decimal_price": 1.021667,
+          "avg_implied_probability_raw": 0.978899,
+          "cell": [
+            "OVER",
+            "0.5"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.021667,
+          "roi_units": 0.13,
+          "settled": 6,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 6
+        }
+      ]
+    },
+    "T-20": {
+      "line_x_price_min3": [
+        {
+          "avg_decimal_price": 2.18,
+          "avg_implied_probability_raw": 0.459621,
+          "cell": [
+            "2.5",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.25,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": -0.495,
+          "roi_units": -1.98,
+          "settled": 4,
+          "win": 1
+        },
+        {
+          "avg_decimal_price": 1.846667,
+          "avg_implied_probability_raw": 0.542301,
+          "cell": [
+            "2.5",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.333333,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": -0.416667,
+          "roi_units": -1.25,
+          "settled": 3,
+          "win": 1
+        }
+      ],
+      "overall": {
+        "avg_decimal_price": 2.62,
+        "avg_implied_probability_raw": 0.536486,
+        "hit_rate_ex_push": 0.55,
+        "loss": 9,
+        "push": 0,
+        "roi_per_settled_unit": 0.436,
+        "roi_units": 8.72,
+        "settled": 20,
+        "win": 11
+      },
+      "selection_x_line_min3": [
+        {
+          "avg_decimal_price": 2.035,
+          "avg_implied_probability_raw": 0.49821,
+          "cell": [
+            "OVER",
+            "2.5"
+          ],
+          "hit_rate_ex_push": 0.5,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": -0.0775,
+          "roi_units": -0.31,
+          "settled": 4,
+          "share_of_selection_line_negative_units": 1.0,
+          "win": 2
+        },
+        {
+          "avg_decimal_price": 1.6975,
+          "avg_implied_probability_raw": 0.630123,
+          "cell": [
+            "UNDER",
+            "3.5"
+          ],
+          "hit_rate_ex_push": 0.75,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": 0.0625,
+          "roi_units": 0.25,
+          "settled": 4,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 3
+        },
+        {
+          "avg_decimal_price": 3.945,
+          "avg_implied_probability_raw": 0.415916,
+          "cell": [
+            "UNDER",
+            "2.5"
+          ],
+          "hit_rate_ex_push": 0.333333,
+          "loss": 4,
+          "push": 0,
+          "roi_per_settled_unit": 1.458333,
+          "roi_units": 8.75,
+          "settled": 6,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 2
+        }
+      ],
+      "selection_x_line_x_price_min3": [
+        {
+          "avg_decimal_price": 1.846667,
+          "avg_implied_probability_raw": 0.542301,
+          "cell": [
+            "UNDER",
+            "2.5",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.333333,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": -0.416667,
+          "roi_units": -1.25,
+          "settled": 3,
+          "win": 1
+        },
+        {
+          "avg_decimal_price": 2.156667,
+          "avg_implied_probability_raw": 0.46468,
+          "cell": [
+            "OVER",
+            "2.5",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.333333,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": -0.326667,
+          "roi_units": -0.98,
+          "settled": 3,
+          "win": 1
+        }
+      ],
+      "selection_x_price_min3": [
+        {
+          "avg_decimal_price": 1.846667,
+          "avg_implied_probability_raw": 0.542301,
+          "cell": [
+            "UNDER",
+            "1.75-1.99"
+          ],
+          "hit_rate_ex_push": 0.333333,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": -0.416667,
+          "roi_units": -1.25,
+          "settled": 3,
+          "win": 1
+        },
+        {
+          "avg_decimal_price": 2.156667,
+          "avg_implied_probability_raw": 0.46468,
+          "cell": [
+            "OVER",
+            "2.00-2.49"
+          ],
+          "hit_rate_ex_push": 0.333333,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": -0.326667,
+          "roi_units": -0.98,
+          "settled": 3,
+          "win": 1
+        },
+        {
+          "avg_decimal_price": 1.2325,
+          "avg_implied_probability_raw": 0.825647,
+          "cell": [
+            "UNDER",
+            "<1.50"
+          ],
+          "hit_rate_ex_push": 1.0,
+          "loss": 0,
+          "push": 0,
+          "roi_per_settled_unit": 0.2325,
+          "roi_units": 0.93,
+          "settled": 4,
+          "win": 4
+        },
+        {
+          "avg_decimal_price": 5.246,
+          "avg_implied_probability_raw": 0.274744,
+          "cell": [
+            "UNDER",
+            "2.50+"
+          ],
+          "hit_rate_ex_push": 0.4,
+          "loss": 3,
+          "push": 0,
+          "roi_per_settled_unit": 2.162,
+          "roi_units": 10.81,
+          "settled": 5,
+          "win": 2
+        }
+      ],
+      "top_negative_selection_line_cells": [
+        {
+          "avg_decimal_price": 2.035,
+          "avg_implied_probability_raw": 0.49821,
+          "cell": [
+            "OVER",
+            "2.5"
+          ],
+          "hit_rate_ex_push": 0.5,
+          "loss": 2,
+          "push": 0,
+          "roi_per_settled_unit": -0.0775,
+          "roi_units": -0.31,
+          "settled": 4,
+          "share_of_selection_line_negative_units": 1.0,
+          "win": 2
+        }
+      ],
+      "top_positive_selection_line_cells": [
+        {
+          "avg_decimal_price": 3.945,
+          "avg_implied_probability_raw": 0.415916,
+          "cell": [
+            "UNDER",
+            "2.5"
+          ],
+          "hit_rate_ex_push": 0.333333,
+          "loss": 4,
+          "push": 0,
+          "roi_per_settled_unit": 1.458333,
+          "roi_units": 8.75,
+          "settled": 6,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 2
+        },
+        {
+          "avg_decimal_price": 1.6975,
+          "avg_implied_probability_raw": 0.630123,
+          "cell": [
+            "UNDER",
+            "3.5"
+          ],
+          "hit_rate_ex_push": 0.75,
+          "loss": 1,
+          "push": 0,
+          "roi_per_settled_unit": 0.0625,
+          "roi_units": 0.25,
+          "settled": 4,
+          "share_of_selection_line_negative_units": 0.0,
+          "win": 3
+        }
+      ]
+    }
+  },
+  "status": "T10_CROSSCELL_AUDIT_AVAILABLE",
+  "thresholds_changed": false
+}
