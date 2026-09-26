@@ -14,7 +14,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence, research_derivative_postgres_audit as derivative_audit
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.17.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.18.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -2954,6 +2954,7 @@ async def resolve_payload(
         "primary_clv_maturation_source": primary_maturation.get("source"),
         "primary_clv_maturation_candidates": primary_maturation_candidates,
         "primary_clv_maturation_candidate_family_counts": dict(primary_maturation.get("candidate_family_counts") or {}),
+        "primary_clv_maturation_candidate_source_counts": dict(primary_maturation.get("candidate_source_counts") or {}),
         "primary_clv_maturation_max_calls_per_tick": PRIMARY_CLV_MATURATION_MAX_CALLS_PER_TICK,
         "primary_clv_maturation_api_calls_added": primary_maturation_api_calls_added,
         "primary_clv_maturation_fixtures_refreshed": primary_maturation_fixtures_refreshed,
@@ -2963,7 +2964,7 @@ async def resolve_payload(
         "primary_clv_maturation_budget_exhausted": primary_maturation_budget_exhausted,
         "primary_clv_maturation_primary_payload_reuse_fixtures": primary_maturation_primary_payload_reuse_fixtures,
         "primary_clv_maturation_synthetic_events_added": primary_maturation_synthetic_events_added,
-        "primary_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;THEN_1X2_FT_TOTALS_BTTS_LATER_REAL_QUOTE;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;SAME_GLOBAL_PRICE_BUDGET_ONLY",
+        "primary_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;THEN_PRICED_1X2_FT_TOTALS_BTTS_FROM_PHASE16_OR_MATCH_TABLE;RESEARCH_ONLY_ROWS_MAY_MATURE_CLOSE_WITH_ZERO_DECISION_WEIGHT;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;SAME_GLOBAL_PRICE_BUDGET_ONLY",
         "player_props_clv_maturation_source": player_props_maturation.get("source"),
         "player_props_clv_maturation_candidates": player_props_maturation_candidates,
         "player_props_clv_maturation_candidate_family_counts": dict(
