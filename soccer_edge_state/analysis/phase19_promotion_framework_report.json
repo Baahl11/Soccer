@@ -16,8 +16,6 @@
         "FAMILY_TRUE_CLV_MISSING",
         "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-        "VALIDATION:SETTLED_15_LT_DIRECTIONAL_20",
-        "VALIDATION:SETTLED_15_LT_ACTIONABLE_REVIEW_50",
         "VALIDATION:FT_TOTALS_TRUE_CLV_0_LT_50"
       ],
       "current_state": "RESEARCH",
@@ -51,11 +49,9 @@
       "true_clv_rows": 0,
       "unique_fixtures": 0,
       "validation_blockers": [
-        "SETTLED_15_LT_DIRECTIONAL_20",
-        "SETTLED_15_LT_ACTIONABLE_REVIEW_50",
         "FT_TOTALS_TRUE_CLV_0_LT_50"
       ],
-      "validation_model_version": "SOCCER_FT_TOTALS_VALIDATION_V4_1.0.0",
+      "validation_model_version": "SOCCER_FT_TOTALS_VALIDATION_V4_1.1.0",
       "validation_status": "RESEARCH_HOLD",
       "warnings": [],
       "watch_shadow_negative_directional_stages": [
@@ -74,7 +70,7 @@
         "SETTLED_10_LT_DIRECTIONAL_20",
         "SETTLED_10_LT_TIER_B_REVIEW_50",
         "STABILITY_DIRECTIONAL_ONLY",
-        "PROMOTION_SHADOW_SETTLED_6_LT_DIRECTIONAL_20",
+        "PROMOTION_SHADOW_SETTLED_9_LT_DIRECTIONAL_20",
         "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW",
         "VALIDATION:1X2_TRUE_CLV_47_LT_50"
       ],
@@ -128,25 +124,25 @@
       "promotion_shadow_not_ready_classes": [
         "DRAW"
       ],
-      "promotion_shadow_pending": 5,
-      "promotion_shadow_roi_per_settled_unit": 0.186667,
+      "promotion_shadow_pending": 3,
+      "promotion_shadow_roi_per_settled_unit": 0.502222,
       "promotion_shadow_sample_status": "DATA_BLOCKED",
       "promotion_shadow_selection_progress": {
         "AWAY": {
-          "directional_remaining": 15,
-          "hit_rate": 0.4,
-          "loss": 3,
-          "pending": 2,
+          "directional_remaining": 13,
+          "hit_rate": 0.428571,
+          "loss": 4,
+          "pending": 1,
           "push": 0,
-          "review_remaining": 45,
-          "roi_per_settled_unit": -0.13,
-          "roi_units": -0.65,
-          "rows": 7,
+          "review_remaining": 43,
+          "roi_per_settled_unit": 0.221429,
+          "roi_units": 1.55,
+          "rows": 8,
           "sample_status": "DATA_BLOCKED",
-          "settled": 5,
+          "settled": 7,
           "ungradable": 0,
-          "unique_fixtures": 7,
-          "win": 2
+          "unique_fixtures": 8,
+          "win": 3
         },
         "DRAW": {
           "directional_remaining": 20,
@@ -165,23 +161,23 @@
           "win": 0
         },
         "HOME": {
-          "directional_remaining": 19,
+          "directional_remaining": 18,
           "hit_rate": 1.0,
           "loss": 0,
-          "pending": 3,
+          "pending": 2,
           "push": 0,
-          "review_remaining": 49,
-          "roi_per_settled_unit": 1.77,
-          "roi_units": 1.77,
+          "review_remaining": 48,
+          "roi_per_settled_unit": 1.485,
+          "roi_units": 2.97,
           "rows": 4,
           "sample_status": "DATA_BLOCKED",
-          "settled": 1,
+          "settled": 2,
           "ungradable": 0,
           "unique_fixtures": 4,
-          "win": 1
+          "win": 2
         }
       },
-      "promotion_shadow_settled": 6,
+      "promotion_shadow_settled": 9,
       "recommended_state": "SHADOW",
       "roi_per_settled_unit": 1.12,
       "settled": 10,
@@ -268,16 +264,18 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 3.317468,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_2_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_2_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
-        "STABILITY_DATA_BLOCKED",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-        "VALIDATION:TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_2_LT_20"
+        "VALIDATION:TEAM_TOTALS_TRUE_CLV_0_LT_50",
+        "VALIDATION:TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -295,7 +293,7 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -307,10 +305,11 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 71,
-      "unique_fixtures": 2,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
-        "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_2_LT_20"
+        "TEAM_TOTALS_TRUE_CLV_0_LT_50",
+        "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20"
       ],
       "validation_model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.3.0",
       "validation_status": "RESEARCH_HOLD",
@@ -322,18 +321,19 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 2.252001,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_1_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_1_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
         "ROI_NOT_POSITIVE",
-        "STABILITY_DATA_BLOCKED",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
         "VALIDATION:CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
-        "VALIDATION:1H_TRUE_CLV_32_LT_50",
+        "VALIDATION:1H_TRUE_CLV_0_LT_50",
         "VALIDATION:SOURCE_1H_PROMOTION_GATE_DISABLED"
       ],
       "current_state": "RESEARCH",
@@ -352,7 +352,7 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": 0.0,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -364,12 +364,12 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 32,
-      "unique_fixtures": 1,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
         "CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
         "CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
-        "1H_TRUE_CLV_32_LT_50",
+        "1H_TRUE_CLV_0_LT_50",
         "SOURCE_1H_PROMOTION_GATE_DISABLED"
       ],
       "validation_model_version": "SOCCER_1H_OOS_VALIDATION_V4_1.0.0",
@@ -441,17 +441,18 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 18.060589,
+      "avg_true_clv_probability_pp": null,
       "blockers": [
-        "UNIQUE_FIXTURES_1_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_1_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
         "ROI_MISSING",
-        "STABILITY_DATA_BLOCKED",
+        "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
         "VALIDATION:FORMATION_ADJUSTED_39_LT_100",
-        "VALIDATION:FT_CORNERS_TRUE_CLV_15_LT_50",
+        "VALIDATION:FT_CORNERS_TRUE_CLV_0_LT_50",
         "VALIDATION:FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
       ],
       "current_state": "RESEARCH",
@@ -470,7 +471,7 @@
       "recommended_state": "RESEARCH",
       "roi_per_settled_unit": null,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "MISSING",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -482,11 +483,11 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 15,
-      "unique_fixtures": 1,
+      "true_clv_rows": 0,
+      "unique_fixtures": 0,
       "validation_blockers": [
         "FORMATION_ADJUSTED_39_LT_100",
-        "FT_CORNERS_TRUE_CLV_15_LT_50",
+        "FT_CORNERS_TRUE_CLV_0_LT_50",
         "FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
       ],
       "validation_model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.4.0",
@@ -798,16 +799,17 @@
     "families": {
       "1H": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_1_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_1_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
+          "FAMILY_TRUE_CLV_MISSING",
           "ROI_NOT_POSITIVE",
-          "STABILITY_DATA_BLOCKED",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
           "VALIDATION:CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
           "VALIDATION:CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
-          "VALIDATION:1H_TRUE_CLV_32_LT_50",
+          "VALIDATION:1H_TRUE_CLV_0_LT_50",
           "VALIDATION:SOURCE_1H_PROMOTION_GATE_DISABLED"
         ],
         "current_state": "RESEARCH",
@@ -824,7 +826,7 @@
         "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -833,8 +835,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 19
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -842,8 +844,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 99
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -851,8 +853,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 49
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -860,24 +862,24 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 199
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 2.252001,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 32,
-          "rows_remaining": 18,
+          "rows": 0,
+          "rows_remaining": 50,
           "sample_ready": false,
           "status": "COLLECTING"
         },
         "validation": {
           "numeric_deficits": [
             {
-              "actual": 32,
-              "gate": "1H_TRUE_CLV_32_LT_50",
-              "remaining": 18.0,
+              "actual": 0,
+              "gate": "1H_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
               "required": 50
             }
           ],
@@ -895,7 +897,7 @@
           "SETTLED_10_LT_DIRECTIONAL_20",
           "SETTLED_10_LT_TIER_B_REVIEW_50",
           "STABILITY_DIRECTIONAL_ONLY",
-          "PROMOTION_SHADOW_SETTLED_6_LT_DIRECTIONAL_20",
+          "PROMOTION_SHADOW_SETTLED_9_LT_DIRECTIONAL_20",
           "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW",
           "VALIDATION:1X2_TRUE_CLV_47_LT_50"
         ],
@@ -948,20 +950,20 @@
           ],
           "promotion_shadow_by_selection": {
             "AWAY": {
-              "directional_remaining": 15,
-              "hit_rate": 0.4,
-              "loss": 3,
-              "pending": 2,
+              "directional_remaining": 13,
+              "hit_rate": 0.428571,
+              "loss": 4,
+              "pending": 1,
               "push": 0,
-              "review_remaining": 45,
-              "roi_per_settled_unit": -0.13,
-              "roi_units": -0.65,
-              "rows": 7,
+              "review_remaining": 43,
+              "roi_per_settled_unit": 0.221429,
+              "roi_units": 1.55,
+              "rows": 8,
               "sample_status": "DATA_BLOCKED",
-              "settled": 5,
+              "settled": 7,
               "ungradable": 0,
-              "unique_fixtures": 7,
-              "win": 2
+              "unique_fixtures": 8,
+              "win": 3
             },
             "DRAW": {
               "directional_remaining": 20,
@@ -980,33 +982,33 @@
               "win": 0
             },
             "HOME": {
-              "directional_remaining": 19,
+              "directional_remaining": 18,
               "hit_rate": 1.0,
               "loss": 0,
-              "pending": 3,
+              "pending": 2,
               "push": 0,
-              "review_remaining": 49,
-              "roi_per_settled_unit": 1.77,
-              "roi_units": 1.77,
+              "review_remaining": 48,
+              "roi_per_settled_unit": 1.485,
+              "roi_units": 2.97,
               "rows": 4,
               "sample_status": "DATA_BLOCKED",
-              "settled": 1,
+              "settled": 2,
               "ungradable": 0,
               "unique_fixtures": 4,
-              "win": 1
+              "win": 2
             }
           }
         },
         "current_state": "RESEARCH",
         "promotion_shadow": {
-          "directional_remaining": 14,
+          "directional_remaining": 11,
           "directional_required": 20,
           "negative_directional_stages": [],
-          "review_remaining": 44,
+          "review_remaining": 41,
           "review_required": 50,
-          "roi_per_settled_unit": 0.186667,
+          "roi_per_settled_unit": 0.502222,
           "sample_status": "DATA_BLOCKED",
-          "settled": 6
+          "settled": 9
         },
         "recommended_state": "SHADOW",
         "stability": {
@@ -1373,15 +1375,16 @@
       },
       "FT_CORNERS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_1_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_1_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
+          "FAMILY_TRUE_CLV_MISSING",
           "ROI_MISSING",
-          "STABILITY_DATA_BLOCKED",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
           "VALIDATION:FORMATION_ADJUSTED_39_LT_100",
-          "VALIDATION:FT_CORNERS_TRUE_CLV_15_LT_50",
+          "VALIDATION:FT_CORNERS_TRUE_CLV_0_LT_50",
           "VALIDATION:FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
         ],
         "current_state": "RESEARCH",
@@ -1398,7 +1401,7 @@
         "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -1407,8 +1410,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 19
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -1416,8 +1419,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 99
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -1425,8 +1428,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 49
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -1434,15 +1437,15 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 1,
-            "unique_fixtures_remaining": 199
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 18.060589,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 15,
-          "rows_remaining": 35,
+          "rows": 0,
+          "rows_remaining": 50,
           "sample_ready": false,
           "status": "COLLECTING"
         },
@@ -1455,9 +1458,9 @@
               "required": 100
             },
             {
-              "actual": 15,
-              "gate": "FT_CORNERS_TRUE_CLV_15_LT_50",
-              "remaining": 35.0,
+              "actual": 0,
+              "gate": "FT_CORNERS_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
               "required": 50
             }
           ],
@@ -1476,8 +1479,6 @@
           "FAMILY_TRUE_CLV_MISSING",
           "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-          "VALIDATION:SETTLED_15_LT_DIRECTIONAL_20",
-          "VALIDATION:SETTLED_15_LT_ACTIONABLE_REVIEW_50",
           "VALIDATION:FT_TOTALS_TRUE_CLV_0_LT_50"
         ],
         "current_state": "RESEARCH",
@@ -1544,18 +1545,6 @@
         },
         "validation": {
           "numeric_deficits": [
-            {
-              "actual": 15,
-              "gate": "SETTLED_15_LT_DIRECTIONAL_20",
-              "remaining": 5.0,
-              "required": 20
-            },
-            {
-              "actual": 15,
-              "gate": "SETTLED_15_LT_ACTIONABLE_REVIEW_50",
-              "remaining": 35.0,
-              "required": 50
-            },
             {
               "actual": 0,
               "gate": "FT_TOTALS_TRUE_CLV_0_LT_50",
@@ -1906,14 +1895,16 @@
       },
       "TEAM_TOTALS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_2_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_2_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+          "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
+          "FAMILY_TRUE_CLV_MISSING",
           "ROI_MISSING",
-          "STABILITY_DATA_BLOCKED",
+          "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-          "VALIDATION:TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_2_LT_20"
+          "VALIDATION:TEAM_TOTALS_TRUE_CLV_0_LT_50",
+          "VALIDATION:TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20"
         ],
         "current_state": "RESEARCH",
         "promotion_shadow": {
@@ -1929,7 +1920,7 @@
         "recommended_state": "RESEARCH",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "MISSING"
         },
         "tier_samples": {
           "directional": {
@@ -1938,8 +1929,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 2,
-            "unique_fixtures_remaining": 18
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 20
           },
           "tier_a": {
             "required_settled": 100,
@@ -1947,8 +1938,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 2,
-            "unique_fixtures_remaining": 98
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 100
           },
           "tier_b": {
             "required_settled": 50,
@@ -1956,8 +1947,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 2,
-            "unique_fixtures_remaining": 48
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 50
           },
           "tier_s": {
             "required_settled": 200,
@@ -1965,24 +1956,30 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 2,
-            "unique_fixtures_remaining": 198
+            "unique_fixtures": 0,
+            "unique_fixtures_remaining": 200
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 2.414731,
+          "avg_probability_clv_pp": null,
           "minimum_rows": 50,
-          "rows": 71,
-          "rows_remaining": 0,
-          "sample_ready": true,
-          "status": "READY"
+          "rows": 0,
+          "rows_remaining": 50,
+          "sample_ready": false,
+          "status": "COLLECTING"
         },
         "validation": {
           "numeric_deficits": [
             {
-              "actual": 2,
-              "gate": "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_2_LT_20",
-              "remaining": 18.0,
+              "actual": 0,
+              "gate": "TEAM_TOTALS_TRUE_CLV_0_LT_50",
+              "remaining": 50.0,
+              "required": 50
+            },
+            {
+              "actual": 0,
+              "gate": "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_0_LT_20",
+              "remaining": 20.0,
               "required": 20
             }
           ],
