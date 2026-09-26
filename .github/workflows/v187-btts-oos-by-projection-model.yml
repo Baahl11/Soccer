@@ -1,0 +1,172 @@
+name: v187 BTTS OOS By Projection Model
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v187-btts-oos-by-projection-model.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Build BTTS OOS projection-model audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, math
+          from collections import defaultdict
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          base = Path('state/soccer_edge_state/analysis')
+          diag = json.loads((base/'oos_stage_diagnostics_v4.json').read_text(encoding='utf-8'))
+          current_model = str(diag.get('current_source_model_version') or '')
+
+          def ts(v):
+              if not v: return None
+              try: return datetime.fromisoformat(str(v).replace('Z','+00:00'))
+              except Exception: return None
+
+          sig_by_fixture = defaultdict(list)
+          for rawline in (base/'signal_ledger.jsonl').read_text(encoding='utf-8', errors='replace').splitlines():
+              if not rawline.strip(): continue
+              try: r=json.loads(rawline)
+              except Exception: continue
+              if str(r.get('model_version') or '') != current_model: continue
+              rp=r.get('raw_projection') if isinstance(r.get('raw_projection'),dict) else {}
+              try: p=float(rp.get('raw_btts_yes_prob'))
+              except Exception: continue
+              try: fid=int(r.get('fixture_id'))
+              except Exception: continue
+              sig_by_fixture[fid].append({
+                  'p':p,
+                  't':ts(r.get('generated_at_utc') or r.get('generated_at_local')),
+                  'projection_model':str(rp.get('projection_model') or 'UNKNOWN'),
+                  'raw_status':str(rp.get('status') or 'UNKNOWN'),
+              })
+
+          rows=[]; unmatched=0; ambiguous=0; exact_prob_matches=0
+          for rawline in (base/'oos_prediction_ledger_v4.jsonl').read_text(encoding='utf-8', errors='replace').splitlines():
+              if not rawline.strip(): continue
+              try: r=json.loads(rawline)
+              except Exception: continue
+              if str(r.get('model_version') or '') != current_model: continue
+              preds=r.get('predictions') if isinstance(r.get('predictions'),dict) else {}
+              outs=r.get('outcomes') if isinstance(r.get('outcomes'),dict) else {}
+              try: p=float(preds.get('btts')); fid=int(r.get('fixture_id'))
+              except Exception: continue
+              y=outs.get('btts')
+              if y not in (0,1) or not (0.0 <= p <= 1.0): continue
+              rt=ts(r.get('run_timestamp'))
+              cands=sig_by_fixture.get(fid,[])
+              if not cands:
+                  unmatched += 1; continue
+              exact=[c for c in cands if abs(c['p']-p) <= 1e-6]
+              pool=exact or cands
+              if exact: exact_prob_matches += 1
+              models={c['projection_model'] for c in pool}
+              if len(models)>1: ambiguous += 1
+              def key(c):
+                  pd=abs(c['p']-p)
+                  td=abs((c['t']-rt).total_seconds()) if c['t'] and rt else 10**18
+                  future=1 if c['t'] and rt and c['t'] > rt else 0
+                  return (0 if abs(c['p']-p)<=1e-6 else 1, pd, future, td)
+              best=min(pool,key=key)
+              rows.append({
+                  'fixture_id':fid,'p':p,'y':int(y),
+                  'projection_model':best['projection_model'],
+                  'raw_status':best['raw_status'],
+                  'probability_delta':abs(best['p']-p),
+                  'time_delta_seconds':abs((best['t']-rt).total_seconds()) if best['t'] and rt else None,
+              })
+
+          def auc(obs):
+              pos=[x for x in obs if x['y']==1]; neg=[x for x in obs if x['y']==0]
+              np_,nn=len(pos),len(neg)
+              if not np_ or not nn: return None
+              ranked=sorted((x['p'],x['y']) for x in obs)
+              rank=1; pos_ranks=0.0; i=0
+              while i<len(ranked):
+                  j=i+1
+                  while j<len(ranked) and ranked[j][0]==ranked[i][0]: j+=1
+                  av=(rank+(rank+(j-i)-1))/2.0
+                  pos_ranks += av*sum(y for _,y in ranked[i:j])
+                  rank += j-i; i=j
+              return (pos_ranks-np_*(np_+1)/2.0)/(np_*nn)
+
+          def metrics(g):
+              n=len(g)
+              if not n:return {'rows':0}
+              avgp=sum(x['p'] for x in g)/n; rate=sum(x['y'] for x in g)/n
+              brier=sum((x['p']-x['y'])**2 for x in g)/n
+              eps=1e-12
+              ll=-sum(x['y']*math.log(max(x['p'],eps))+(1-x['y'])*math.log(max(1-x['p'],eps)) for x in g)/n
+              a=auc(g)
+              return {'rows':n,'unique_fixtures':len({x['fixture_id'] for x in g}),
+                      'avg_probability':round(avgp,6),'observed_rate':round(rate,6),
+                      'observed_minus_predicted_pp':round((rate-avgp)*100,4),
+                      'brier':round(brier,8),'log_loss':round(ll,8),'auc':None if a is None else round(a,8)}
+
+          grouped=defaultdict(list)
+          for r in rows: grouped[r['projection_model']].append(r)
+          by_model={k:metrics(v) for k,v in sorted(grouped.items())}
+          total_oos=len(rows)+unmatched
+          report={
+              'schema_version':'1.0.0','generated_at_utc':datetime.now(timezone.utc).isoformat(),
+              'status':'BTTS_OOS_BY_PROJECTION_MODEL_AVAILABLE','market_family':'BTTS',
+              'source_model_version':current_model,'matched_rows':len(rows),'unmatched_rows':unmatched,
+              'match_coverage':round(len(rows)/total_oos,6) if total_oos else 0.0,
+              'exact_probability_match_rows':exact_prob_matches,'ambiguous_candidate_rows':ambiguous,
+              'overall_matched':metrics(rows),'by_projection_model':by_model,
+              'match_policy':'fixture_id + exact raw BTTS probability when available; otherwise minimum probability delta, then prefer non-future nearest timestamp. Ambiguity is reported and never changes production behavior.',
+              'provider_requests_added':0,'thresholds_changed':False,'model_weights_changed':False,
+              'canonical_bet_logic_changed':False,'production_filter_changed':False,'production_promotion_allowed':False,
+              'interpretation_policy':'Diagnostic provenance split only. Differences by projection_model cannot automatically change calibration, weights, thresholds, filters, close windows, or promotion gates.'
+          }
+          out=base/'btts_oos_by_projection_model_v4.json'
+          out.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+          print(json.dumps(report,indent=2,sort_keys=True))
+          PY
+
+      - name: Validate safety and join quality
+        shell: bash
+        run: |
+          set -euo pipefail
+          F=state/soccer_edge_state/analysis/btts_oos_by_projection_model_v4.json
+          jq -e '.provider_requests_added == 0' "$F" >/dev/null
+          jq -e '.thresholds_changed == false and .model_weights_changed == false and .canonical_bet_logic_changed == false' "$F" >/dev/null
+          jq -e '.production_filter_changed == false and .production_promotion_allowed == false' "$F" >/dev/null
+          jq -e '.matched_rows > 0' "$F" >/dev/null
+          jq -e '.match_coverage >= 0.90' "$F" >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/btts_oos_by_projection_model_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "v187 persist BTTS OOS projection-model audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
