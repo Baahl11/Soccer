@@ -425,3 +425,37 @@ def test_ft_totals_clv_funnel_separates_placeholders_from_real_close_gaps():
     assert funnel["selection_mismatch_at_close_rows"] == 0
     assert funnel["true_clv_rows"] == 0
     assert funnel["provider_requests_added"] == 0
+
+
+
+def test_team_totals_maturation_funnel_exposes_pending_kickoff_horizons():
+    now = datetime(2026, 9, 26, 4, 0, tzinfo=timezone.utc)
+    kickoffs = {
+        2: now - timedelta(minutes=5),
+        3: now + timedelta(minutes=40),
+        4: now + timedelta(minutes=90),
+        5: now + timedelta(hours=5),
+        6: now + timedelta(hours=20),
+        7: now + timedelta(hours=36),
+        8: now + timedelta(hours=60),
+    }
+    funnel = v._build_team_totals_maturation_funnel(
+        {2, 3, 4, 5, 6, 7, 8},
+        {2, 3, 4, 5, 6, 7, 8},
+        set(),
+        kickoffs,
+        now=now,
+    )
+
+    timing = funnel["pending_timing"]
+    assert timing["already_kicked_off"] == 1
+    assert timing["within_55m"] == 1
+    assert timing["within_2h"] == 2
+    assert timing["within_6h"] == 3
+    assert timing["within_12h"] == 3
+    assert timing["within_24h"] == 4
+    assert timing["within_48h"] == 5
+    assert timing["beyond_48h"] == 1
+    assert timing["missing_kickoff"] == 0
+    assert funnel["pending_future_fixtures"] == 6
+    assert funnel["next_pending_kickoff"] == kickoffs[3].isoformat()
