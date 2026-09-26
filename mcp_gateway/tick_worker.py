@@ -56,6 +56,41 @@ def _read_seeds() -> tuple[dict, dict]:
         fairness_seed = _remote_state(FAIRNESS_STATE_URL)
     return shortlist_seed, fairness_seed
 
+
+def _normalize_refresh_event_model_lineage(payload: dict) -> dict:
+    """Make persisted refresh-event lineage match the final runtime tick lineage.
+
+    Older refresh-event constructors still carry a legacy v1.0 literal. The
+    top-level tick model_version is the canonical runtime lineage used by the
+    OOS ledger, so normalize only metadata immediately before persistence.
+    This does not alter projections, decisions, thresholds, gates, or stages.
+    """
+    runtime_model_version = payload.get("model_version")
+    normalized = 0
+    mismatched = 0
+    if runtime_model_version:
+        for event in payload.get("events") or []:
+            if not isinstance(event, dict) or event.get("event_type") != "SOCCER_REFRESH":
+                continue
+            previous = event.get("model_version")
+            if previous != runtime_model_version:
+                mismatched += 1
+                event["model_version"] = runtime_model_version
+                normalized += 1
+
+    result = {
+        "status": "NORMALIZED_TO_RUNTIME_TICK" if normalized else "ALREADY_ALIGNED",
+        "runtime_model_version": runtime_model_version,
+        "mismatched_refresh_events": mismatched,
+        "normalized_refresh_events": normalized,
+        "prediction_logic_changed": False,
+        "thresholds_changed": False,
+        "gates_changed": False,
+    }
+    payload["model_lineage_normalization"] = result
+    return result
+
+
 async def _main() -> int:
     try:
         shortlist_seed, fairness_seed = _read_seeds()
@@ -65,6 +100,7 @@ async def _main() -> int:
         payload.setdefault("status", "ok")
         payload["shortlist_seed_imported"] = imported
         payload["fair_scheduler_seed_imported"] = fairness_imported
+        _normalize_refresh_event_model_lineage(payload)
         try:
             # Avoid retaining a second top-level payload mapping on the 512 MB
             # Render instance. shortlist_state is durable scheduler handoff data,
