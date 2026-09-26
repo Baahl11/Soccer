@@ -251,38 +251,8 @@ def manifest(rows: list[dict[str, Any]], *, cutoff: str | None = None) -> dict[s
     }
 
 
-def _audit_lineage_mismatches(conn: Any, *, limit: int) -> dict[str, int]:
-    """Read-only audit of historical snapshot lineage against the persisted tick envelope."""
-    with conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT
-                e.event_id,
-                e.generated_at,
-                e.payload,
-                p.payload->>'model_version' AS tick_model_version,
-                s.snapshot_id,
-                s.payload
-            FROM soccer_refresh_events e
-            JOIN soccer_pipeline_runs p
-              ON p.generated_at_utc = e.generated_at
-            JOIN soccer_feature_snapshots s
-              ON s.fixture_id = e.fixture_id
-             AND s.captured_at = e.generated_at
-             AND COALESCE(s.stage, '') = COALESCE(e.stage, '')
-             AND s.schema_version = %s
-            WHERE e.event_type = 'SOCCER_REFRESH'
-              AND e.stage <> 'POSTGAME'
-              AND NULLIF(p.payload->>'model_version', '') IS NOT NULL
-              AND s.model_version IS DISTINCT FROM (p.payload->>'model_version')
-            ORDER BY e.generated_at DESC, e.event_id DESC
-            LIMIT %s
-            """,
-            (feature_snapshot_v4.SCHEMA_VERSION, int(limit)),
-        )
-        rows = cur.fetchall()
-
-    stats = {
+def _empty_lineage_stats() -> dict[str, int]:
+    return {
         "lineage_mismatch_candidates": 0,
         "lineage_tick_v1_7_candidates": 0,
         "lineage_event_masks_tick": 0,
@@ -290,7 +260,66 @@ def _audit_lineage_mismatches(conn: Any, *, limit: int) -> dict[str, int]:
         "lineage_metadata_only_candidates": 0,
         "lineage_content_mismatch": 0,
         "lineage_invalid_rebuild": 0,
+        "lineage_audit_snapshot_count": 0,
     }
+
+
+def _audit_lineage_mismatches(
+    conn: Any,
+    *,
+    training_rows: list[dict[str, Any]],
+    limit: int,
+) -> dict[str, int]:
+    """Audit only snapshots selected into the current training cohort.
+
+    This deliberately starts from the bounded snapshot IDs produced by load_rows
+    instead of scanning all historical refresh events. Existing snapshots are
+    read-only: no historical model_version is changed by this audit.
+    """
+    snapshot_ids = [
+        int(row["snapshot_id"])
+        for row in training_rows
+        if row.get("snapshot_id") is not None
+    ][: max(0, int(limit))]
+    stats = _empty_lineage_stats()
+    stats["lineage_audit_snapshot_count"] = len(snapshot_ids)
+    if not snapshot_ids:
+        return stats
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                e.event_id,
+                e.generated_at,
+                e.payload,
+                p.tick_model_version,
+                s.snapshot_id,
+                s.payload
+            FROM soccer_feature_snapshots s
+            JOIN soccer_refresh_events e
+              ON e.fixture_id = s.fixture_id
+             AND e.generated_at = s.captured_at
+             AND COALESCE(e.stage, '') = COALESCE(s.stage, '')
+            LEFT JOIN LATERAL (
+                SELECT pr.payload->>'model_version' AS tick_model_version
+                FROM soccer_pipeline_runs pr
+                WHERE pr.generated_at_utc = e.generated_at
+                ORDER BY pr.run_id DESC
+                LIMIT 1
+            ) p ON TRUE
+            WHERE s.snapshot_id = ANY(%s)
+              AND e.event_type = 'SOCCER_REFRESH'
+              AND e.stage <> 'POSTGAME'
+              AND NULLIF(p.tick_model_version, '') IS NOT NULL
+              AND s.model_version IS DISTINCT FROM p.tick_model_version
+            ORDER BY e.generated_at DESC, e.event_id DESC
+            LIMIT %s
+            """,
+            (snapshot_ids, int(limit)),
+        )
+        rows = cur.fetchall()
+
     for _event_id, generated_at, event_payload, tick_model_version, _snapshot_id, existing_snapshot in rows:
         stats["lineage_mismatch_candidates"] += 1
         if str(tick_model_version) == "SOCCER EDGE ENGINE v1.7":
@@ -324,39 +353,46 @@ def _audit_lineage_mismatches(conn: Any, *, limit: int) -> dict[str, int]:
 
 
 def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int]:
-    """Derive missing v4 snapshots and audit lineage mismatches without rewriting history.
+    """Derive only missing v4 snapshots from point-in-time refresh payloads.
 
-    No provider calls and no future information are used. Missing snapshots are
-    rebuilt only from persisted point-in-time refresh payloads. The persisted
-    top-level tick model_version is preferred when an exact pipeline-run match
-    exists. Existing snapshots are NOT mutated here; lineage mismatches are
-    reported separately so a repair can require evidence that the reconstructed
-    snapshot is identical except for model_version.
+    The candidate refresh-event set is bounded before consulting pipeline_runs,
+    so historical volume cannot turn this maintenance path into an unbounded
+    timestamp join. Existing snapshots are never rewritten here.
     """
     scanned = valid = inserted = invalid = 0
     with conn.cursor() as cur:
         cur.execute(
             """
+            WITH source AS (
+                SELECT e.event_id, e.generated_at, e.payload
+                FROM soccer_refresh_events e
+                WHERE e.event_type = 'SOCCER_REFRESH'
+                  AND e.stage <> 'POSTGAME'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM soccer_feature_snapshots s
+                      WHERE s.fixture_id = e.fixture_id
+                        AND s.captured_at = e.generated_at
+                        AND COALESCE(s.stage, '') = COALESCE(e.stage, '')
+                        AND s.schema_version = %s
+                  )
+                ORDER BY e.generated_at DESC, e.event_id DESC
+                LIMIT %s
+            )
             SELECT
-                e.event_id,
-                e.generated_at,
-                e.payload,
-                p.payload->>'model_version' AS tick_model_version
-            FROM soccer_refresh_events e
-            LEFT JOIN soccer_pipeline_runs p
-              ON p.generated_at_utc = e.generated_at
-            WHERE e.event_type='SOCCER_REFRESH'
-              AND e.stage <> 'POSTGAME'
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM soccer_feature_snapshots s
-                  WHERE s.fixture_id = e.fixture_id
-                    AND s.captured_at = e.generated_at
-                    AND COALESCE(s.stage, '') = COALESCE(e.stage, '')
-                    AND s.schema_version = %s
-              )
-            ORDER BY e.generated_at DESC, e.event_id DESC
-            LIMIT %s
+                source.event_id,
+                source.generated_at,
+                source.payload,
+                p.tick_model_version
+            FROM source
+            LEFT JOIN LATERAL (
+                SELECT pr.payload->>'model_version' AS tick_model_version
+                FROM soccer_pipeline_runs pr
+                WHERE pr.generated_at_utc = source.generated_at
+                ORDER BY pr.run_id DESC
+                LIMIT 1
+            ) p ON TRUE
+            ORDER BY source.generated_at DESC, source.event_id DESC
             """,
             (feature_snapshot_v4.SCHEMA_VERSION, int(limit)),
         )
@@ -409,15 +445,13 @@ def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int
             )
             inserted = max(int(cur.rowcount or 0), 0)
 
-    result = {
+    return {
         "scanned_refresh_events": scanned,
         "valid_snapshots": valid,
         "inserted_snapshots": inserted,
         "invalid_snapshots": invalid,
         "backfill_limit": int(limit),
     }
-    result.update(_audit_lineage_mismatches(conn, limit=limit))
-    return result
 
 
 def persist_materialized_dataset(
@@ -499,6 +533,13 @@ def build_and_persist(*, cutoff: str | None = None, backfill_limit: int = 5000) 
     with persistence_base._connect() as conn:
         backfill = backfill_feature_snapshots(conn, limit=backfill_limit)
         rows = load_rows(conn, cutoff=build_cutoff)
+        backfill.update(
+            _audit_lineage_mismatches(
+                conn,
+                training_rows=rows,
+                limit=backfill_limit,
+            )
+        )
         dataset_manifest = manifest(rows, cutoff=build_cutoff)
         build_id = persist_materialized_dataset(conn, rows, dataset_manifest)
 
