@@ -1,0 +1,105 @@
+{
+  "comparison": {
+    "current_model_scope_should_be_evaluated_separately": true,
+    "mixed_minus_v1_7_intercept": -0.1743505133,
+    "mixed_minus_v1_7_slope": 0.0901537402,
+    "mixed_scope_contains_multiple_model_versions": true,
+    "v1_7_can_fit_independently": true
+  },
+  "generated_at_utc": "2026-09-26T05:21:08.377413+00:00",
+  "interpretation_policy": "Diagnostic only. Model-version scope differences cannot change runtime prediction weights, thresholds, promotion gates, close windows, or production filters without a separate validated change.",
+  "ledger_rows": 703,
+  "model_version": "SOCCER_BTTS_CALIBRATION_SCOPE_AUDIT_V4_1.0.0",
+  "model_version_counts": {
+    "SOCCER EDGE ENGINE v1.0": 286,
+    "SOCCER EDGE ENGINE v1.1": 7,
+    "SOCCER EDGE ENGINE v1.2": 1,
+    "SOCCER EDGE ENGINE v1.5": 1,
+    "SOCCER EDGE ENGINE v1.6": 1,
+    "SOCCER EDGE ENGINE v1.7": 407
+  },
+  "production_filter_changed": false,
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "runtime_prediction_weight_changed": false,
+  "schema_version": "1.0.0",
+  "scopes": {
+    "mixed": {
+      "brier_delta": -0.0348686,
+      "calibrated_brier": 0.24599803,
+      "calibrated_ece": 0.01396749,
+      "calibrated_log_loss": 0.68508584,
+      "calibrator_parameters": {
+        "intercept": 0.2594143238,
+        "slope": 0.1089141203
+      },
+      "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+      "log_loss_delta": -0.11273658,
+      "negatives": 311,
+      "positives": 392,
+      "production_promotion_allowed": false,
+      "raw_brier": 0.28086663,
+      "raw_ece": 0.12096793,
+      "raw_log_loss": 0.79782242,
+      "rows": 703,
+      "scope": "ALL_MODEL_VERSIONS_MIXED",
+      "source_counts": {
+        "HISTORICAL_SIGNAL_LEDGER": 494,
+        "POSTGRES_NATIVE": 209
+      },
+      "status": "RESEARCH_CALIBRATION_AVAILABLE"
+    },
+    "v1_0_only": {
+      "brier_delta": -0.03574422,
+      "calibrated_brier": 0.24934438,
+      "calibrated_ece": 0.05148595,
+      "calibrated_log_loss": 0.69184729,
+      "calibrator_parameters": {
+        "intercept": -0.0098900325,
+        "slope": 0.0796024383
+      },
+      "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+      "log_loss_delta": -0.13560907,
+      "negatives": 147,
+      "positives": 139,
+      "production_promotion_allowed": false,
+      "raw_brier": 0.2850886,
+      "raw_ece": 0.12532904,
+      "raw_log_loss": 0.82745636,
+      "rows": 286,
+      "scope": "SOCCER_EDGE_ENGINE_V1_0_ONLY",
+      "source_counts": {
+        "HISTORICAL_SIGNAL_LEDGER": 77,
+        "POSTGRES_NATIVE": 209
+      },
+      "status": "RESEARCH_CALIBRATION_AVAILABLE"
+    },
+    "v1_7_only": {
+      "brier_delta": -0.04088129,
+      "calibrated_brier": 0.23857749,
+      "calibrated_ece": 0.01099599,
+      "calibrated_log_loss": 0.67012344,
+      "calibrator_parameters": {
+        "intercept": 0.4337648371,
+        "slope": 0.0187603801
+      },
+      "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+      "log_loss_delta": -0.11119782,
+      "negatives": 160,
+      "positives": 247,
+      "production_promotion_allowed": false,
+      "raw_brier": 0.27945878,
+      "raw_ece": 0.13946018,
+      "raw_log_loss": 0.78132126,
+      "rows": 407,
+      "scope": "SOCCER_EDGE_ENGINE_V1_7_ONLY",
+      "source_counts": {
+        "HISTORICAL_SIGNAL_LEDGER": 407
+      },
+      "status": "RESEARCH_CALIBRATION_AVAILABLE"
+    }
+  },
+  "status": "BTTS_CALIBRATION_SCOPE_AUDIT_AVAILABLE",
+  "target": "btts",
+  "thresholds_changed": false
+}
