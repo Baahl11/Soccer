@@ -26,23 +26,26 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
+          import re
           from pathlib import Path
 
           path = Path("mcp_gateway/server.py")
           text = path.read_text(encoding="utf-8")
-          old = '''            {
-                ".github/workflows/v4-011-lightgbm-validation.yml",
-                ".github/workflows/phase19-promotion-framework-validation.yml",
-            },'''
-          new = '''            {
-                ".github/workflows/v4-011-lightgbm-validation.yml",
-                ".github/workflows/phase19-promotion-framework-validation.yml",
-                ".github/workflows/v190-btts-aligned-ranking-audit.yml",
-            },'''
-          count = text.count(old)
-          if count != 1:
-              raise SystemExit(f"EXPECTED_EXACTLY_ONE_EXPORT_ALLOWLIST_MATCH got={count}")
-          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          v190 = '.github/workflows/v190-btts-aligned-ranking-audit.yml'
+          if v190 in text:
+              raise SystemExit("V190_ALREADY_PRESENT")
+
+          pattern = re.compile(
+              r'(?m)^(?P<indent>[ \t]*)"\.github/workflows/phase19-promotion-framework-validation\.yml",[ \t]*$'
+          )
+          matches = list(pattern.finditer(text))
+          if len(matches) != 1:
+              raise SystemExit(f"EXPECTED_EXACTLY_ONE_PHASE19_EXPORT_ALLOWLIST_ENTRY got={len(matches)}")
+
+          match = matches[0]
+          replacement = match.group(0) + "\n" + match.group("indent") + f'"{v190}",'
+          updated = text[:match.start()] + replacement + text[match.end():]
+          path.write_text(updated, encoding="utf-8")
           PY
 
           git diff --check
