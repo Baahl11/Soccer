@@ -222,6 +222,9 @@ def _build_team_totals_maturation_funnel(
     strict_capture_fixture_ids: set[int],
     modeled_signal_fixture_ids: set[int],
     true_clv_fixture_ids: set[int],
+    modeled_signal_kickoffs: dict[int, datetime] | None = None,
+    *,
+    now: datetime | None = None,
 ) -> dict[str, Any]:
     captures = set(strict_capture_fixture_ids)
     signals = set(modeled_signal_fixture_ids) & captures if captures else set(modeled_signal_fixture_ids)
@@ -230,6 +233,54 @@ def _build_team_totals_maturation_funnel(
     capture_without_signal = captures - signals
     signal_without_true_clv = signals - true_clv
     directional_target = 20
+    modeled_signal_kickoffs = modeled_signal_kickoffs if isinstance(modeled_signal_kickoffs, dict) else {}
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    else:
+        now = now.astimezone(timezone.utc)
+
+    timing = {
+        "already_kicked_off": 0,
+        "within_55m": 0,
+        "within_2h": 0,
+        "within_6h": 0,
+        "within_12h": 0,
+        "within_24h": 0,
+        "within_48h": 0,
+        "beyond_48h": 0,
+        "missing_kickoff": 0,
+    }
+    future_kickoffs: list[datetime] = []
+    for fixture_id in signal_without_true_clv:
+        kickoff = modeled_signal_kickoffs.get(int(fixture_id))
+        if not isinstance(kickoff, datetime):
+            timing["missing_kickoff"] += 1
+            continue
+        if kickoff.tzinfo is None:
+            kickoff = kickoff.replace(tzinfo=timezone.utc)
+        else:
+            kickoff = kickoff.astimezone(timezone.utc)
+        delta = kickoff - now
+        if delta.total_seconds() <= 0:
+            timing["already_kicked_off"] += 1
+            continue
+        future_kickoffs.append(kickoff)
+        minutes = delta.total_seconds() / 60.0
+        if minutes <= 55:
+            timing["within_55m"] += 1
+        if minutes <= 120:
+            timing["within_2h"] += 1
+        if minutes <= 360:
+            timing["within_6h"] += 1
+        if minutes <= 720:
+            timing["within_12h"] += 1
+        if minutes <= 1440:
+            timing["within_24h"] += 1
+        if minutes <= 2880:
+            timing["within_48h"] += 1
+        else:
+            timing["beyond_48h"] += 1
 
     return {
         "strict_capture_unique_fixtures": len(captures),
@@ -244,6 +295,9 @@ def _build_team_totals_maturation_funnel(
         "true_clv_fixture_ids": sorted(true_clv),
         "capture_without_modeled_signal_fixture_ids": sorted(capture_without_signal),
         "modeled_signal_without_later_real_close_fixture_ids": sorted(signal_without_true_clv),
+        "pending_timing": timing,
+        "pending_future_fixtures": len(future_kickoffs),
+        "next_pending_kickoff": min(future_kickoffs).isoformat() if future_kickoffs else None,
         "provider_requests_added": 0,
         "policy": (
             "STRICT_CAPTURE_MARKER -> DERIVATIVE_TEAM_TOTALS_MODELED_SIGNAL -> "
@@ -665,6 +719,15 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             if str(signal.get("signal_source") or "") == "DERIVATIVE_INTELLIGENCE:team_totals_intelligence"
             and signal.get("fixture_id") is not None
         }
+        team_totals_modeled_signal_kickoffs: dict[int, datetime] = {}
+        for signal in derivative_signals:
+            if str(signal.get("signal_source") or "") != "DERIVATIVE_INTELLIGENCE:team_totals_intelligence":
+                continue
+            fixture_id = signal.get("fixture_id")
+            kickoff = signal.get("kickoff")
+            if fixture_id is None or not isinstance(kickoff, datetime):
+                continue
+            team_totals_modeled_signal_kickoffs[int(fixture_id)] = kickoff
         derivative_family_counts = Counter(
             str(_family(signal.get("market_candidate") or {}) or "UNMAPPED")
             for signal in derivative_signals
@@ -944,6 +1007,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         strict_team_totals_capture_fixture_ids,
         team_totals_modeled_signal_fixture_ids,
         team_totals_true_clv_fixture_ids,
+        team_totals_modeled_signal_kickoffs,
     )
     return {
         "schema_version": SCHEMA_VERSION,
