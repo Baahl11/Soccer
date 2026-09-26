@@ -1,0 +1,114 @@
+name: v186 BTTS Projection Lineage Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v186-btts-projection-lineage-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Build projection lineage audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          src = Path('state/soccer_edge_state/analysis/signal_ledger.jsonl')
+          out = Path('state/soccer_edge_state/analysis/btts_projection_lineage_audit_v4.json')
+          rows = []
+          for line in src.read_text(encoding='utf-8').splitlines():
+              if not line.strip():
+                  continue
+              row = json.loads(line)
+              raw = row.get('raw_projection') if isinstance(row.get('raw_projection'), dict) else None
+              if not raw or raw.get('raw_btts_yes_prob') is None:
+                  continue
+              rows.append({
+                  'row_model_version': str(row.get('model_version') or 'UNKNOWN'),
+                  'raw_model_version': str(raw.get('model_version') or 'UNKNOWN'),
+                  'projection_model': str(raw.get('projection_model') or 'UNKNOWN'),
+                  'raw_status': str(raw.get('status') or 'UNKNOWN'),
+                  'stage': str(row.get('stage') or 'UNKNOWN'),
+              })
+
+          v17 = [r for r in rows if r['row_model_version'] == 'SOCCER EDGE ENGINE v1.7']
+          def counts(subset, key):
+              return dict(sorted(Counter(r[key] for r in subset).items()))
+
+          report = {
+              'schema_version': '1.0.0',
+              'model_version': 'SOCCER_BTTS_PROJECTION_LINEAGE_AUDIT_V4_1.0.0',
+              'status': 'BTTS_PROJECTION_LINEAGE_AUDIT_AVAILABLE',
+              'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+              'rows_with_btts_raw_projection': len(rows),
+              'all_row_model_versions': counts(rows, 'row_model_version'),
+              'all_raw_model_versions': counts(rows, 'raw_model_version'),
+              'all_projection_models': counts(rows, 'projection_model'),
+              'v1_7': {
+                  'rows': len(v17),
+                  'raw_model_versions': counts(v17, 'raw_model_version'),
+                  'projection_models': counts(v17, 'projection_model'),
+                  'raw_statuses': counts(v17, 'raw_status'),
+                  'stages': counts(v17, 'stage'),
+              },
+              'diagnostics': {
+                  'v1_7_has_single_raw_model_version': len(set(r['raw_model_version'] for r in v17)) == 1 if v17 else False,
+                  'v1_7_has_single_projection_model': len(set(r['projection_model'] for r in v17)) == 1 if v17 else False,
+                  'v1_7_raw_model_matches_row_label': all(r['raw_model_version'] == r['row_model_version'] for r in v17) if v17 else False,
+              },
+              'provider_requests_added': 0,
+              'model_weights_changed': False,
+              'thresholds_changed': False,
+              'production_filter_changed': False,
+              'production_promotion_allowed': False,
+              'interpretation_policy': 'Lineage audit only. Version-label mismatches describe provenance and cannot alter runtime probabilities, weights, thresholds, filters, or promotion gates.',
+          }
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps(report, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps(report, indent=2, sort_keys=True))
+          PY
+
+      - name: Validate safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          F=state/soccer_edge_state/analysis/btts_projection_lineage_audit_v4.json
+          jq -e '.provider_requests_added == 0' "$F" >/dev/null
+          jq -e '.model_weights_changed == false' "$F" >/dev/null
+          jq -e '.thresholds_changed == false' "$F" >/dev/null
+          jq -e '.production_filter_changed == false' "$F" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$F" >/dev/null
+          jq -e '.v1_7.rows > 0' "$F" >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "soccer-edge-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f soccer_edge_state/analysis/btts_projection_lineage_audit_v4.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "v186 persist BTTS projection lineage audit"
+          git push origin HEAD:soccer-edge-state
