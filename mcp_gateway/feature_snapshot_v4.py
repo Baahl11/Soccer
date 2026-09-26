@@ -183,7 +183,7 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
         "fixture_id": fx.get("fixture_id"),
         "captured_at": captured_at,
         "stage": event.get("stage"),
-        "model_version": event.get("model_version") or tick.get("model_version"),
+        "model_version": tick.get("model_version") or event.get("model_version"),
         "data_tier": coverage.get("data_tier"),
         "sport_first": True,
         "market_fields_included": False,
