@@ -1,0 +1,256 @@
+name: v179 FT Totals Historical Calibration Lineage Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v179-ft-totals-historical-calibration-lineage-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout state history and shadow ledger
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/history
+            soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl
+            soccer_edge_state/analysis/ft_totals_historical_calibration_lineage_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Trace exact historical calibration metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import glob
+          import json
+          from collections import Counter, defaultdict
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path('state/soccer_edge_state')
+          shadow_path = root / 'analysis/shadow_settlement_ledger_v4.jsonl'
+
+          def fnum(v):
+              try: return round(float(v), 6)
+              except Exception: return None
+
+          def norm(v):
+              return ' '.join(str(v or '').strip().upper().split())
+
+          shadows = []
+          target_tick_keys = set()
+          for raw in shadow_path.read_text(encoding='utf-8', errors='replace').splitlines():
+              if not raw.strip():
+                  continue
+              try: row = json.loads(raw)
+              except Exception: continue
+              if not isinstance(row, dict): continue
+              if norm(row.get('market_family')) != 'FT_TOTALS': continue
+              if norm(row.get('stage')) != 'T-10': continue
+              shadows.append(row)
+              target_tick_keys.add(str(row.get('generated_at_local') or ''))
+
+          tick_rows = {}
+          history_files = 0
+          ticks_scanned = 0
+          for path in sorted(glob.glob(str(root / 'history/*.jsonl'))):
+              history_files += 1
+              with open(path, encoding='utf-8', errors='replace') as fh:
+                  for raw in fh:
+                      if not raw.strip(): continue
+                      try: tick = json.loads(raw)
+                      except Exception: continue
+                      ticks_scanned += 1
+                      key = str(tick.get('generated_at_local') or '')
+                      if key not in target_tick_keys:
+                          continue
+                      tick_rows[key] = tick
+
+          matched = []
+          unmatched = []
+          for s in shadows:
+              tick_key = str(s.get('generated_at_local') or '')
+              tick = tick_rows.get(tick_key)
+              if not isinstance(tick, dict):
+                  unmatched.append({'fixture_id': s.get('fixture_id'), 'generated_at_local': tick_key, 'reason': 'TICK_NOT_FOUND'})
+                  continue
+              candidates = []
+              for row in tick.get('match_table_rows') or []:
+                  if not isinstance(row, dict): continue
+                  try:
+                      same_fixture = int(row.get('fixture_id')) == int(s.get('fixture_id'))
+                  except Exception:
+                      same_fixture = False
+                  if not same_fixture: continue
+                  family = norm(row.get('market_family'))
+                  market = norm(row.get('market'))
+                  if family not in {'FT_TOTALS','TOTAL','FT_TOTALS_RESEARCH'} and 'GOALS OVER/UNDER' not in market:
+                      continue
+                  if fnum(row.get('line')) != fnum(s.get('line')):
+                      continue
+                  rs = norm(row.get('selection'))
+                  ss = norm(s.get('selection'))
+                  if rs and ss and ('OVER' in rs) != ('OVER' in ss):
+                      continue
+                  if rs and ss and ('UNDER' in rs) != ('UNDER' in ss):
+                      continue
+                  candidates.append(row)
+              if not candidates:
+                  unmatched.append({'fixture_id': s.get('fixture_id'), 'generated_at_local': tick_key, 'line': s.get('line'), 'selection': s.get('selection'), 'reason': 'MATCH_TABLE_ROW_NOT_FOUND'})
+                  continue
+              # If several books/rows survive, keep the row closest to the shadow price.
+              sp = fnum(s.get('decimal_price'))
+              def distance(row):
+                  rp = fnum(row.get('price'))
+                  if sp is None or rp is None: return 999999
+                  return abs(rp - sp)
+              row = min(candidates, key=distance)
+              diag = row.get('phase16_binary_calibration_diagnostics')
+              diag = diag if isinstance(diag, dict) else {}
+              calibrated = {}
+              for key in ('p_model_calibrated','p_calibrated','calibrated_probability','model_probability_calibrated'):
+                  value = row.get(key)
+                  if isinstance(value, (int,float)) and 0 <= float(value) <= 1:
+                      calibrated[key] = float(value)
+              matched.append({
+                  'fixture_id': s.get('fixture_id'),
+                  'generated_at_local': tick_key,
+                  'league': s.get('league'),
+                  'selection': s.get('selection'),
+                  'line': fnum(s.get('line')),
+                  'shadow_price': sp,
+                  'matched_price': fnum(row.get('price')),
+                  'bookmaker': row.get('bookmaker'),
+                  'calibration_target': diag.get('target') or row.get('phase16_calibration_target'),
+                  'calibration_status': row.get('phase16_calibration_status'),
+                  'promotion_shadow_eligible': row.get('phase16_calibration_promotion_shadow_eligible') is True,
+                  'calibrated_probability_fields': calibrated,
+                  'raw_probability': row.get('p_raw'),
+                  'shrunk_probability': row.get('p_shrunk'),
+                  'market_fair_probability': row.get('p_market_fair'),
+                  'prob_edge_pp': row.get('prob_edge_pp'),
+                  'shadow_result': s.get('shadow_settlement_status'),
+                  'shadow_roi_units': s.get('shadow_roi_hypothetical_units'),
+              })
+
+          by_line = defaultdict(list)
+          for row in matched:
+              line = 'MISSING' if row['line'] is None else f"{row['line']:g}"
+              by_line[line].append(row)
+
+          line_summary = {}
+          for line, group in sorted(by_line.items()):
+              targets = Counter(str(r.get('calibration_target') or 'MISSING') for r in group)
+              statuses = Counter(str(r.get('calibration_status') or 'MISSING') for r in group)
+              calibrated = sum(bool(r.get('calibrated_probability_fields')) for r in group)
+              eligible = sum(bool(r.get('promotion_shadow_eligible')) for r in group)
+              wins = sum(r.get('shadow_result') == 'WIN' for r in group)
+              losses = sum(r.get('shadow_result') == 'LOSS' for r in group)
+              roi = sum(float(r.get('shadow_roi_units') or 0) for r in group)
+              line_summary[line] = {
+                  'matched_rows': len(group),
+                  'calibration_targets': dict(targets),
+                  'calibration_statuses': dict(statuses),
+                  'rows_with_calibrated_probability': calibrated,
+                  'promotion_shadow_eligible_rows': eligible,
+                  'wins': wins,
+                  'losses': losses,
+                  'roi_units': round(roi, 6),
+                  'roi_per_row': round(roi / len(group), 6) if group else None,
+              }
+
+          non25 = [r for r in matched if r.get('line') not in (None, 2.5)]
+          non25_over25_target = [r for r in non25 if str(r.get('calibration_target') or '') == 'over_2_5']
+          non25_calibrated = [r for r in non25 if r.get('calibrated_probability_fields')]
+
+          report = {
+              'schema_version': '1.0.0',
+              'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+              'status': 'HISTORICAL_CALIBRATION_LINEAGE_AVAILABLE',
+              'market_family': 'FT_TOTALS',
+              'stage': 'T-10',
+              'history_files_scanned': history_files,
+              'ticks_scanned': ticks_scanned,
+              'shadow_rows_targeted': len(shadows),
+              'matched_shadow_rows': len(matched),
+              'unmatched_shadow_rows': len(unmatched),
+              'match_rate': round(len(matched) / len(shadows), 6) if shadows else None,
+              'by_line': line_summary,
+              'lineage_diagnostics': {
+                  'non_2_5_matched_rows': len(non25),
+                  'non_2_5_rows_tagged_over_2_5_target': len(non25_over25_target),
+                  'non_2_5_rows_with_calibrated_probability': len(non25_calibrated),
+                  'non_2_5_rows_promotion_shadow_eligible': sum(bool(r.get('promotion_shadow_eligible')) for r in non25),
+                  'scope_flag': (
+                      'NON_2_5_CALIBRATED_WITH_OVER_2_5_SCOPE'
+                      if non25_calibrated and non25_over25_target
+                      else 'NON_2_5_REFERENCES_OVER_2_5_DIAGNOSTIC_ONLY'
+                      if non25_over25_target
+                      else 'NO_HISTORICAL_SCOPE_MISMATCH_FOUND'
+                  ),
+              },
+              'matched_rows': matched,
+              'unmatched_rows': unmatched[:100],
+              'interpretation_policy': (
+                  'Historical metadata is reconstructed by exact tick timestamp + fixture + line + selection. '
+                  'Rows tagged over_2_5 without a calibrated probability are diagnostic references only; '
+                  'they are not evidence that the 2.5 calibrator was numerically applied to another line.'
+              ),
+              'provider_requests_added': 0,
+              'thresholds_changed': False,
+              'model_weights_changed': False,
+              'canonical_bet_logic_changed': False,
+              'production_filter_changed': False,
+              'production_promotion_allowed': False,
+          }
+          out = root / 'analysis/ft_totals_historical_calibration_lineage_v4.json'
+          out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps({
+              'shadow_rows_targeted': len(shadows),
+              'matched_shadow_rows': len(matched),
+              'match_rate': report['match_rate'],
+              'by_line': line_summary,
+              'lineage_diagnostics': report['lineage_diagnostics'],
+              'safety': {'thresholds_changed': False, 'production_filter_changed': False}
+          }, indent=2))
+          PY
+
+      - name: Validate lineage safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=state/soccer_edge_state/analysis/ft_totals_historical_calibration_lineage_v4.json
+          jq -e '.schema_version == "1.0.0" and .market_family == "FT_TOTALS" and .stage == "T-10"' "$R" >/dev/null
+          jq -e '.shadow_rows_targeted >= 100' "$R" >/dev/null
+          jq -e '.provider_requests_added == 0' "$R" >/dev/null
+          jq -e '.thresholds_changed == false and .model_weights_changed == false and .canonical_bet_logic_changed == false' "$R" >/dev/null
+          jq -e '.production_filter_changed == false and .production_promotion_allowed == false' "$R" >/dev/null
+
+      - name: Persist lineage audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/ft_totals_historical_calibration_lineage_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update FT Totals historical calibration lineage"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
