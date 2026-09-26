@@ -86,6 +86,8 @@ def main() -> None:
         "source_player_trends_schema": source.get("schema_version"),
         "goalkeepers": profiles,
         "goalkeeper_count": len(profiles),
+        "goalkeepers_with_1plus_matches": sum((p["windows"]["last_20"]["gk_matches"] >= 1) for p in profiles.values()),
+        "goalkeepers_prior_only": sum((p["windows"]["last_20"]["gk_matches"] == 0) for p in profiles.values()),
         "goalkeepers_with_5plus_matches": sum((p["windows"]["last_20"]["gk_matches"] >= 5) for p in profiles.values()),
         "goalkeepers_with_10plus_matches": sum((p["windows"]["last_20"]["gk_matches"] >= 10) for p in profiles.values()),
         "policy": [
@@ -99,7 +101,14 @@ def main() -> None:
     with open(args.output, "w", encoding="utf-8") as fh:
         json.dump(report, fh, ensure_ascii=False, indent=2, sort_keys=True)
         fh.write("\n")
-    print(json.dumps({k: report[k] for k in ("status", "goalkeeper_count", "goalkeepers_with_5plus_matches", "goalkeepers_with_10plus_matches")}, indent=2))
+    print(json.dumps({k: report[k] for k in (
+        "status",
+        "goalkeeper_count",
+        "goalkeepers_with_1plus_matches",
+        "goalkeepers_prior_only",
+        "goalkeepers_with_5plus_matches",
+        "goalkeepers_with_10plus_matches",
+    )}, indent=2))
 
 
 if __name__ == "__main__":
