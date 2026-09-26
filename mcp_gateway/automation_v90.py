@@ -241,7 +241,9 @@ async def _future_date_slate(
     ttl = timedelta(hours=FUTURE_SLATE_PREFETCH_TTL_HOURS)
     cached = base._cache_get("future_fixture_slate", key, ttl, now_utc)
     if isinstance(cached, dict) and isinstance(cached.get("fixtures"), list):
-        return [dict(row) for row in cached["fixtures"] if isinstance(row, dict)], dict(cached.get("quota") or {}), True
+        # Fixture identities may be cached for future dates, but quota headers
+        # are never replayed because the current-day request is authoritative.
+        return [dict(row) for row in cached["fixtures"] if isinstance(row, dict)], {}, True
 
     payload = await base._api_get(
         "fixtures", {"date": key, "timezone": base.TIMEZONE_NAME}
