@@ -195,6 +195,11 @@ def _validation_gates(payload: dict[str, Any], rows: list[dict[str, Any]]) -> li
 
 def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, Any]:
     errors = _pipeline_errors(rows)
+    slate = (
+        payload.get("core_slate_floor_reconciliation")
+        if isinstance(payload.get("core_slate_floor_reconciliation"), dict)
+        else {}
+    )
     db_ok = bool(payload.get("database_persisted")) and not payload.get("database_error")
     tick_ok = str(payload.get("status") or "").lower() == "ok"
     daily_remaining = _int_or_none(payload.get("last_daily_remaining"))
@@ -230,6 +235,16 @@ def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[
             "api_call_cap": effective_cap,
             "deferred_budget": _int_or_none(payload.get("deferred_due_to_budget")),
             "deferred_priority": _int_or_none(payload.get("deferred_due_to_priority")),
+            "unique_leagues_scanned": _int_or_none(slate.get("unique_leagues_scanned")),
+            "unique_countries_scanned": _int_or_none(slate.get("unique_countries_scanned")),
+            "scan_dates": list(slate.get("scan_dates") or []),
+            "scan_date_counts": dict(slate.get("scan_date_counts") or {}),
+            "future_prefetch_fixture_count": _int_or_none(slate.get("future_prefetch_fixture_count")),
+            "future_prefetch_cache_hits": _int_or_none(slate.get("future_prefetch_cache_hits")),
+            "future_prefetch_cache_misses": _int_or_none(slate.get("future_prefetch_cache_misses")),
+            "market_capture_handoff_fixture_count": _int_or_none(slate.get("market_capture_handoff_fixture_count")),
+            "market_capture_handoff_tier_counts": dict(slate.get("market_capture_handoff_tier_counts") or {}),
+            "league_allowlist_applied": bool(slate.get("league_allowlist_applied")),
         },
         "errors": {
             "count": len(errors),
