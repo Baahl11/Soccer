@@ -56,16 +56,99 @@ jobs:
           echo "::add-mask::$token"
 
           cutoff=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          http_code=$(curl -sS --max-time 430 -o /tmp/v190_training_dataset.json -w "%{http_code}" \
+          request_payload=$(jq -nc --arg cutoff "$cutoff" '{cutoff:$cutoff,row_limit:20000}')
+          printf 'v190 export request payload: %s\n' "$request_payload"
+
+          set +e
+          http_code=$(curl -sS --max-time 430 \
+            -D /tmp/v190_training_dataset_headers.txt \
+            -o /tmp/v190_training_dataset.json \
+            -w "%{http_code}" \
             -X POST \
             -H "Authorization: Bearer ${token}" \
             -H "Content-Type: application/json" \
-            -d "$(jq -nc --arg cutoff "$cutoff" '{cutoff:$cutoff,row_limit:20000}')" \
+            -d "$request_payload" \
             https://soccer-edge-api.onrender.com/internal/training-dataset/export)
+          curl_exit=$?
+          set -e
 
-          test "$http_code" = "200"
-          jq -e '.status == "OK" and .market_fields_included == false and (.rows | type == "array")' \
-            /tmp/v190_training_dataset.json >/dev/null
+          content_type=$(awk 'BEGIN{IGNORECASE=1} /^content-type:/ {sub(/\r$/," "); sub(/^[^:]+:[[:space:]]*/,""); value=$0} END{print value}' \
+            /tmp/v190_training_dataset_headers.txt 2>/dev/null || true)
+
+          if jq -e . /tmp/v190_training_dataset.json >/dev/null 2>&1; then
+            response_schema=$(jq -c '
+              if type == "object" then
+                {
+                  json_type: type,
+                  keys: (keys | sort),
+                  status: (.status // null),
+                  error: (.error // null),
+                  detail: (.detail // null),
+                  message: (.message // null),
+                  code: (.code // null),
+                  market_fields_included: (.market_fields_included // null),
+                  row_count: (.row_count // null),
+                  rows_type: (if has("rows") then (.rows | type) else null end)
+                }
+              else
+                {json_type: type}
+              end
+            ' /tmp/v190_training_dataset.json)
+          else
+            response_schema='{"json_type":"NON_JSON"}'
+          fi
+
+          jq -nc \
+            --arg cutoff "$cutoff" \
+            --argjson request_payload "$request_payload" \
+            --argjson curl_exit "$curl_exit" \
+            --arg http_status "$http_code" \
+            --arg content_type "$content_type" \
+            --argjson response_schema "$response_schema" \
+            '{
+              cutoff: $cutoff,
+              request_payload: $request_payload,
+              curl_exit: $curl_exit,
+              http_status: $http_status,
+              content_type: $content_type,
+              response_schema: $response_schema
+            }' > /tmp/v190_export_diagnostic.json
+
+          echo "v190 training-dataset export diagnostic:"
+          jq . /tmp/v190_export_diagnostic.json
+
+          if [ "$curl_exit" -ne 0 ]; then
+            echo "::error::training-dataset export transport failure (curl_exit=${curl_exit})"
+            exit "$curl_exit"
+          fi
+
+          if [ "$http_code" != "200" ]; then
+            echo "::error::training-dataset export returned HTTP ${http_code}"
+            if jq -e . /tmp/v190_training_dataset.json >/dev/null 2>&1; then
+              jq '{status, error, detail, message, code}' /tmp/v190_training_dataset.json
+            else
+              echo "Non-JSON response body (first 2000 bytes):"
+              head -c 2000 /tmp/v190_training_dataset.json || true
+              echo
+            fi
+            exit 1
+          fi
+
+          if ! jq -e '.status == "OK" and .market_fields_included == false and (.rows | type == "array")' \
+            /tmp/v190_training_dataset.json >/dev/null; then
+            echo "::error::training-dataset export HTTP 200 but response schema is not the expected V4-011 contract"
+            jq . /tmp/v190_export_diagnostic.json
+            exit 1
+          fi
+
+      - name: Upload v190 export diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v190-training-dataset-export-diagnostic
+          path: /tmp/v190_export_diagnostic.json
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Build aligned BTTS runtime vs Poisson audit
         shell: bash
