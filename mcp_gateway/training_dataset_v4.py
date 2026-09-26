@@ -264,27 +264,19 @@ def _empty_lineage_stats() -> dict[str, int]:
     }
 
 
-def _audit_lineage_mismatches(
+def _lineage_mismatch_rows(
     conn: Any,
     *,
     training_rows: list[dict[str, Any]],
     limit: int,
-) -> dict[str, int]:
-    """Audit only snapshots selected into the current training cohort.
-
-    This deliberately starts from the bounded snapshot IDs produced by load_rows
-    instead of scanning all historical refresh events. Existing snapshots are
-    read-only: no historical model_version is changed by this audit.
-    """
+) -> list[tuple[Any, ...]]:
     snapshot_ids = [
         int(row["snapshot_id"])
         for row in training_rows
         if row.get("snapshot_id") is not None
     ][: max(0, int(limit))]
-    stats = _empty_lineage_stats()
-    stats["lineage_audit_snapshot_count"] = len(snapshot_ids)
     if not snapshot_ids:
-        return stats
+        return []
 
     with conn.cursor() as cur:
         cur.execute(
@@ -318,7 +310,19 @@ def _audit_lineage_mismatches(
             """,
             (snapshot_ids, int(limit)),
         )
-        rows = cur.fetchall()
+        return list(cur.fetchall())
+
+
+def _audit_lineage_mismatches(
+    conn: Any,
+    *,
+    training_rows: list[dict[str, Any]],
+    limit: int,
+) -> dict[str, int]:
+    """Audit only snapshots selected into the current training cohort."""
+    stats = _empty_lineage_stats()
+    stats["lineage_audit_snapshot_count"] = min(len(training_rows), max(0, int(limit)))
+    rows = _lineage_mismatch_rows(conn, training_rows=training_rows, limit=limit)
 
     for _event_id, generated_at, event_payload, tick_model_version, _snapshot_id, existing_snapshot in rows:
         stats["lineage_mismatch_candidates"] += 1
@@ -352,13 +356,93 @@ def _audit_lineage_mismatches(
     return stats
 
 
-def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int]:
-    """Derive only missing v4 snapshots from point-in-time refresh payloads.
+def _repair_proven_metadata_only_lineage(
+    conn: Any,
+    *,
+    training_rows: list[dict[str, Any]],
+    limit: int,
+    audit: dict[str, int],
+) -> dict[str, int | bool]:
+    """Repair only the proven v1.0-event/v1.7-tick metadata mismatch cohort."""
+    mismatch_count = int(audit.get("lineage_mismatch_candidates") or 0)
+    gate_passed = (
+        mismatch_count > 0
+        and int(audit.get("lineage_tick_v1_7_candidates") or 0) == mismatch_count
+        and int(audit.get("lineage_event_masks_tick") or 0) == mismatch_count
+        and int(audit.get("lineage_rebuild_valid") or 0) == mismatch_count
+        and int(audit.get("lineage_metadata_only_candidates") or 0) == mismatch_count
+        and int(audit.get("lineage_content_mismatch") or 0) == 0
+        and int(audit.get("lineage_invalid_rebuild") or 0) == 0
+    )
+    result: dict[str, int | bool] = {
+        "lineage_repair_gate_passed": gate_passed,
+        "lineage_repair_candidates": mismatch_count,
+        "lineage_repaired_snapshots": 0,
+        "lineage_repair_skipped_version_guard": 0,
+        "lineage_repair_skipped_content_guard": 0,
+        "lineage_repair_skipped_invalid": 0,
+    }
+    if not gate_passed:
+        return result
 
-    The candidate refresh-event set is bounded before consulting pipeline_runs,
-    so historical volume cannot turn this maintenance path into an unbounded
-    timestamp join. Existing snapshots are never rewritten here.
-    """
+    updates: list[tuple[Any, ...]] = []
+    for _event_id, generated_at, event_payload, tick_model_version, snapshot_id, existing_snapshot in _lineage_mismatch_rows(
+        conn,
+        training_rows=training_rows,
+        limit=limit,
+    ):
+        if not isinstance(event_payload, dict) or not isinstance(existing_snapshot, dict):
+            result["lineage_repair_skipped_invalid"] = int(result["lineage_repair_skipped_invalid"]) + 1
+            continue
+        if (
+            str(tick_model_version) != "SOCCER EDGE ENGINE v1.7"
+            or str(event_payload.get("model_version")) != "SOCCER EDGE ENGINE v1.0"
+            or str(existing_snapshot.get("model_version")) != "SOCCER EDGE ENGINE v1.0"
+        ):
+            result["lineage_repair_skipped_version_guard"] = int(result["lineage_repair_skipped_version_guard"]) + 1
+            continue
+
+        captured_at = generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at)
+        rebuilt = feature_snapshot_v4.build(
+            {
+                "generated_at_utc": captured_at,
+                "model_version": tick_model_version,
+            },
+            event_payload,
+        )
+        if feature_snapshot_v4.validate(rebuilt):
+            result["lineage_repair_skipped_invalid"] = int(result["lineage_repair_skipped_invalid"]) + 1
+            continue
+        if _canonical_json(_snapshot_without_model_version(existing_snapshot)) != _canonical_json(
+            _snapshot_without_model_version(rebuilt)
+        ):
+            result["lineage_repair_skipped_content_guard"] = int(result["lineage_repair_skipped_content_guard"]) + 1
+            continue
+        updates.append((
+            str(tick_model_version),
+            _canonical_json(rebuilt),
+            int(snapshot_id),
+            "SOCCER EDGE ENGINE v1.0",
+        ))
+
+    if updates:
+        with conn.cursor() as cur:
+            cur.executemany(
+                """
+                UPDATE soccer_feature_snapshots
+                SET model_version = %s,
+                    payload = %s::jsonb
+                WHERE snapshot_id = %s
+                  AND model_version = %s
+                """,
+                updates,
+            )
+            result["lineage_repaired_snapshots"] = max(int(cur.rowcount or 0), 0)
+    return result
+
+
+def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int]:
+    """Derive only missing v4 snapshots from point-in-time refresh payloads."""
     scanned = valid = inserted = invalid = 0
     with conn.cursor() as cur:
         cur.execute(
@@ -533,13 +617,42 @@ def build_and_persist(*, cutoff: str | None = None, backfill_limit: int = 5000) 
     with persistence_base._connect() as conn:
         backfill = backfill_feature_snapshots(conn, limit=backfill_limit)
         rows = load_rows(conn, cutoff=build_cutoff)
-        backfill.update(
-            _audit_lineage_mismatches(
+
+        audit = _audit_lineage_mismatches(
+            conn,
+            training_rows=rows,
+            limit=backfill_limit,
+        )
+        backfill.update(audit)
+        repair = _repair_proven_metadata_only_lineage(
+            conn,
+            training_rows=rows,
+            limit=backfill_limit,
+            audit=audit,
+        )
+        backfill.update(repair)
+
+        if int(repair.get("lineage_repaired_snapshots") or 0) > 0:
+            rows = load_rows(conn, cutoff=build_cutoff)
+            post_audit = _audit_lineage_mismatches(
                 conn,
                 training_rows=rows,
                 limit=backfill_limit,
             )
-        )
+            backfill["lineage_post_repair_mismatch_candidates"] = int(
+                post_audit.get("lineage_mismatch_candidates") or 0
+            )
+            backfill["lineage_post_repair_metadata_only_candidates"] = int(
+                post_audit.get("lineage_metadata_only_candidates") or 0
+            )
+        else:
+            backfill["lineage_post_repair_mismatch_candidates"] = int(
+                audit.get("lineage_mismatch_candidates") or 0
+            )
+            backfill["lineage_post_repair_metadata_only_candidates"] = int(
+                audit.get("lineage_metadata_only_candidates") or 0
+            )
+
         dataset_manifest = manifest(rows, cutoff=build_cutoff)
         build_id = persist_materialized_dataset(conn, rows, dataset_manifest)
 
