@@ -4,8 +4,8 @@ from typing import Any
 
 from mcp_gateway import market_mismatch_v4
 
-SCHEMA_VERSION = "1.1.0"
-MODEL_VERSION = "SOCCER_PRODUCT_VIEWS_V4_1.1.0"
+SCHEMA_VERSION = "1.2.0"
+MODEL_VERSION = "SOCCER_PRODUCT_VIEWS_V4_1.2.0"
 MAX_ROWS_PER_VIEW = 25
 
 VIEW_NAMES = (
