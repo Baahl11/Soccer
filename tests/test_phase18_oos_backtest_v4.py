@@ -205,3 +205,48 @@ def test_phase18_blocks_oos_if_anti_leakage_contract_breaks():
         oos,
     )
     assert "OOS_ANTI_LEAKAGE_CONTRACT_INCOMPLETE" in report["blockers"]
+
+
+
+def test_phase18_normalizes_strict_postgres_clv_tracking():
+    rows = [_row(i, "WIN", 1.0) for i in range(60)]
+    tracking = [
+        {
+            "fixture_id": 100,
+            "market_family": "1X2",
+            "is_true_closing_line": True,
+            "probability_clv": 1.0,
+            "price_clv": 2.0,
+        },
+        {
+            "fixture_id": 101,
+            "market_family": "BTTS",
+            "is_true_closing_line": True,
+            "probability_clv": -0.5,
+            "price_clv": -1.0,
+        },
+    ]
+    report = v.build_report(
+        rows,
+        {
+            "status": "ACTIVE_TRUE_CLV_SAMPLE",
+            "model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10",
+            "comparable_true_clv_rows": 2,
+            "family_counts": {"1X2": 1, "BTTS": 1},
+            "ft_totals_maturation_funnel": {
+                "priced_entry_rows": 108,
+                "true_clv_rows": 0,
+            },
+        },
+        _oos_report(),
+        tracking,
+    )
+
+    assert "CLV_ENGINE_NOT_COMPLETE" not in report["blockers"]
+    assert report["clv_context"]["source"] == "STRICT_POSTGRES_CLV_V4_TRACKING"
+    assert report["clv_context"]["rows"] == 2
+    assert report["clv_context"]["true_closing_line_rows"] == 2
+    assert report["clv_context"]["family_counts"] == {"1X2": 1, "BTTS": 1}
+    assert report["clv_context"]["overall"]["avg_probability_clv_pp"] == 0.25
+    assert report["clv_context"]["overall"]["avg_price_clv_pct"] == 0.5
+    assert report["clv_context"]["ft_totals_maturation_funnel"]["true_clv_rows"] == 0
