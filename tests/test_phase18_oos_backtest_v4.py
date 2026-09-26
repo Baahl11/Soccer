@@ -66,7 +66,7 @@ def test_phase18_blocks_missing_timestamp_discipline():
     assert "BOOKMAKER_TIMESTAMP_DISCIPLINE_INCOMPLETE" in report["blockers"]
     assert "LINEUP_TIMESTAMP_DISCIPLINE_INCOMPLETE" in report["blockers"]
     assert "FEATURE_TIMESTAMP_DISCIPLINE_INCOMPLETE" in report["blockers"]
-    assert "SETTLED_30_LT_50" in report["blockers"]
+    assert "REAL_BET_SETTLEMENT_30_LT_50_COMMERCIAL_PERFORMANCE_ONLY" in report["warnings"]
     assert report["production_promotion_allowed"] is False
 
 
