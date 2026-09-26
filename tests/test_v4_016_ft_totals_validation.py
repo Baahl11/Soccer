@@ -19,7 +19,9 @@ def test_quarter_line_half_win_under():
 def test_report_blocks_current_small_sample_and_no_ft_true_clv():
     report = v.build_report(
         {
+            "evaluated_decisions": 228,
             "actionable": {"n": 15, "mean_brier": 0.15, "mean_log_loss": 0.49},
+            "watch_research": {"n": 213, "mean_brier": 0.20, "mean_log_loss": 0.58},
             "by_line": {
                 "1.5": {"n": 5},
                 "2.5": {"n": 7},
@@ -45,6 +47,10 @@ def test_report_blocks_current_small_sample_and_no_ft_true_clv():
     )
     assert report["status"] == "RESEARCH_HOLD"
     assert report["true_clv"]["rows"] == 0
+    assert report["sample"]["model_settled"] == 228
+    assert report["sample"]["commercial_settled"] == 15
+    assert not any(blocker.startswith("MODEL_SETTLED_") for blocker in report["blockers"])
+    assert "COMMERCIAL_SETTLED_15_LT_50" in report["warnings"]
     assert "V4_OOS_CALIBRATION_NOT_MATERIALIZED" in report["blockers"]
     assert report["production_promotion_allowed"] is False
 
@@ -58,3 +64,22 @@ def test_ft_true_clv_is_family_specific():
     assert summary["rows"] == 2
     assert summary["unique_fixtures"] == 2
     assert summary["avg_probability_clv_pp"] == 0.01
+
+
+
+def test_ft_totals_small_model_sample_still_blocks_even_if_commercial_sample_exists():
+    report = v.build_report(
+        {
+            "evaluated_decisions": 12,
+            "actionable": {"n": 12},
+            "watch_research": {"n": 0},
+            "by_line": {"2.5": {"n": 12}},
+        },
+        {"by_market_family": {"FT_TOTALS": {"settled": 12}}},
+        [],
+        v4_oos_calibration_available=True,
+    )
+    assert "MODEL_SETTLED_12_LT_DIRECTIONAL_20" in report["blockers"]
+    assert "MODEL_SETTLED_12_LT_REVIEW_50" in report["blockers"]
+    assert "COMMERCIAL_SETTLED_12_LT_50" in report["warnings"]
+    assert report["production_promotion_allowed"] is False
