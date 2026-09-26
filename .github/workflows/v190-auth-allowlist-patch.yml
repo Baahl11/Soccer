@@ -1,0 +1,60 @@
+name: v190 Auth Allowlist Patch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v190-auth-allowlist-patch.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          fetch-depth: 1
+
+      - name: Add v190 to exact export allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("mcp_gateway/server.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''            {
+                ".github/workflows/v4-011-lightgbm-validation.yml",
+                ".github/workflows/phase19-promotion-framework-validation.yml",
+            },'''
+          new = '''            {
+                ".github/workflows/v4-011-lightgbm-validation.yml",
+                ".github/workflows/phase19-promotion-framework-validation.yml",
+                ".github/workflows/v190-btts-aligned-ranking-audit.yml",
+            },'''
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f"EXPECTED_EXACTLY_ONE_EXPORT_ALLOWLIST_MATCH got={count}")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+
+          git diff --check
+          git diff -- mcp_gateway/server.py
+
+      - name: Commit runtime auth-only change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/server.py
+          git diff --cached --quiet && exit 0
+          git commit -m "Allow v190 aligned BTTS audit dataset export"
+          git push origin HEAD:soccer-edge-mcp-v1
