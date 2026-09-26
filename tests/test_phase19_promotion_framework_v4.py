@@ -651,3 +651,91 @@ def test_combined_team_totals_legacy_report_keeps_conservative_max_fallback():
     combined = v._stability_for_family(stability, ("TEAM_TOTALS", "HOME_TT", "AWAY_TT"))
     assert combined["overall"]["unique_fixtures"] == 3
     assert combined["overall"]["unique_fixture_count_source"] == "LEGACY_CONSERVATIVE_MAX"
+
+
+
+def test_phase19_exposes_1x2_selection_readiness_without_relaxing_family_gate():
+    promotion_shadow = {
+        "promotion_evaluable": {
+            "1X2": {
+                "settled": 9,
+                "pending": 3,
+                "roi_per_settled_unit": 0.50,
+                "sample_status": "DATA_BLOCKED",
+                "family_discrimination_ready": False,
+                "not_ready_classes": ["DRAW"],
+                "class_discrimination_diagnostics": {
+                    "home_win": {
+                        "ready": True,
+                        "rows": 407,
+                        "auc": 0.607,
+                        "auc_lower_95": 0.552,
+                        "brier_delta": -0.0037,
+                        "log_loss_delta": -0.014,
+                    },
+                    "draw": {
+                        "ready": False,
+                        "rows": 407,
+                        "auc": 0.499,
+                        "auc_lower_95": 0.433,
+                        "brier_delta": -0.0074,
+                        "log_loss_delta": -0.015,
+                    },
+                    "away_win": {
+                        "ready": True,
+                        "rows": 407,
+                        "auc": 0.614,
+                        "auc_lower_95": 0.554,
+                        "brier_delta": -0.0032,
+                        "log_loss_delta": -0.008,
+                    },
+                },
+                "selection_progress": {
+                    "HOME": {
+                        "rows": 4,
+                        "settled": 2,
+                        "pending": 2,
+                        "roi_per_settled_unit": 1.485,
+                        "directional_remaining": 18,
+                        "review_remaining": 48,
+                    },
+                    "DRAW": {
+                        "rows": 0,
+                        "settled": 0,
+                        "pending": 0,
+                        "roi_per_settled_unit": None,
+                        "directional_remaining": 20,
+                        "review_remaining": 50,
+                    },
+                    "AWAY": {
+                        "rows": 8,
+                        "settled": 7,
+                        "pending": 1,
+                        "roi_per_settled_unit": 0.221,
+                        "directional_remaining": 13,
+                        "review_remaining": 43,
+                    },
+                },
+            }
+        }
+    }
+    report = v.build_report(
+        {"by_market_family": {"FT_1X2": {"n": 10, "settled": 10, "roi_units": 2.0}}},
+        {"market_families": {"1X2": {"unique_fixtures": 47, "true_clv_rows": 47, "avg_probability_clv_pp": 0.13}}},
+        {"1X2": {"status": "RESEARCH_HOLD", "blockers": ["1X2_TRUE_CLV_47_LT_50"]}},
+        {"FT_1X2": {"status": "DIRECTIONAL_ONLY"}},
+        promotion_shadow_report=promotion_shadow,
+    )
+    readiness = report["promotion_readiness"]["families"]["1X2"]["class_discrimination"]
+    selections = readiness["selection_readiness"]
+
+    assert readiness["family_ready"] is False
+    assert readiness["selection_readiness_is_diagnostic_only"] is True
+    assert selections["HOME"]["discrimination_ready"] is True
+    assert selections["HOME"]["diagnostic_state"] == "CLASS_READY_SAMPLE_COLLECTING"
+    assert selections["AWAY"]["discrimination_ready"] is True
+    assert selections["DRAW"]["discrimination_ready"] is False
+    assert selections["DRAW"]["diagnostic_state"] == "RESEARCH_CLASS_BLOCKED"
+    assert selections["HOME"]["shadow_settled"] == 2
+    assert selections["AWAY"]["shadow_settled"] == 7
+    assert selections["DRAW"]["production_promotion_allowed"] is False
