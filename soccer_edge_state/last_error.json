@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-09-26T02:51:33Z",
+  "http_code": "500",
+  "response": {
+    "error": "tick_failed",
+    "detail": "tick_failed: unterminated quoted string at or near \"'^[0-9]+([.][0-9]+)?                SELECT ls.*\n                FROM latest_signal ls\n                WHERE NOT EXISTS (\n                    SELECT 1\n                    FROM soccer_market_snapshots m\n                    WHERE m.fixture_id = ls.fixture_id\n                      AND m.captured_at > ls.signal_generated_at\n                      AND m.captured_at < ls.kickoff\n                      AND m.provider_update IS NOT NULL\n                      AND m.pro"
+  }
+}
