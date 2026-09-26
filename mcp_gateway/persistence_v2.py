@@ -64,7 +64,7 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                     """,
                     (
                         fixture_id,
-                        event.get("model_version") or tick.get("model_version") or "SOCCER EDGE ENGINE v1.0",
+                        tick.get("model_version") or event.get("model_version") or "SOCCER EDGE ENGINE v1.0",
                         event.get("stage") or "UNKNOWN",
                         tick.get("generated_at_utc"),
                         json.dumps(raw),
