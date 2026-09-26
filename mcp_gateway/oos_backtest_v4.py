@@ -5,10 +5,15 @@ import json
 import math
 import os
 import statistics
+from collections import Counter
 from datetime import datetime
 from typing import Any, Iterable
 
-CLV_COMPLETE_STATUSES = {"CLV_ANALYSIS_AVAILABLE", "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE"}
+CLV_COMPLETE_STATUSES = {
+    "CLV_ANALYSIS_AVAILABLE",
+    "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE",
+    "ACTIVE_TRUE_CLV_SAMPLE",
+}
 
 SCHEMA_VERSION = "1.2.0"
 MODEL_VERSION = "SOCCER_OOS_BACKTEST_V4_1.2.0"
@@ -217,10 +222,90 @@ def timestamp_discipline(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         ),
     }
 
+def canonical_clv_context(
+    clv_report: dict[str, Any] | None,
+    tracking_rows: Iterable[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Normalize legacy and strict Postgres CLV reports into one Phase18 context."""
+    report = clv_report if isinstance(clv_report, dict) else {}
+    tracking = [row for row in (tracking_rows or []) if isinstance(row, dict)]
+
+    strict_rows = report.get("comparable_true_clv_rows")
+    if strict_rows is None:
+        strict_rows = report.get("rows")
+    try:
+        row_count = int(strict_rows or 0)
+    except (TypeError, ValueError):
+        row_count = len(tracking)
+    if tracking:
+        row_count = len(tracking)
+
+    true_close_count = report.get("true_closing_line_rows")
+    if true_close_count is None and tracking:
+        true_close_count = sum(1 for row in tracking if bool(row.get("is_true_closing_line")))
+    if true_close_count is None:
+        true_close_count = row_count
+    try:
+        true_close_count = int(true_close_count or 0)
+    except (TypeError, ValueError):
+        true_close_count = 0
+
+    overall = report.get("overall") if isinstance(report.get("overall"), dict) else {}
+    if tracking:
+        probability_values = [
+            value
+            for value in (_num(row.get("probability_clv") if row.get("probability_clv") is not None else row.get("clv_probability_pp")) for row in tracking)
+            if value is not None
+        ]
+        price_values = [
+            value
+            for value in (_num(row.get("price_clv") if row.get("price_clv") is not None else row.get("clv_price_pct")) for row in tracking)
+            if value is not None
+        ]
+        overall = {
+            "avg_price_clv_pct": round(statistics.fmean(price_values), 6) if price_values else None,
+            "avg_probability_clv_pp": round(statistics.fmean(probability_values), 6) if probability_values else None,
+            "positive_probability_clv_rate": (
+                round(sum(1 for value in probability_values if value > 0) / len(probability_values), 6)
+                if probability_values else None
+            ),
+        }
+
+    family_counts = (
+        report.get("family_counts")
+        if isinstance(report.get("family_counts"), dict)
+        else {}
+    )
+    if tracking:
+        family_counts = dict(
+            Counter(str(row.get("market_family") or "UNKNOWN") for row in tracking)
+        )
+
+    return {
+        "status": report.get("status"),
+        "model_version": report.get("model_version"),
+        "rows": row_count,
+        "true_closing_line_rows": true_close_count,
+        "overall": overall,
+        "family_counts": family_counts,
+        "ft_totals_maturation_funnel": (
+            report.get("ft_totals_maturation_funnel")
+            if isinstance(report.get("ft_totals_maturation_funnel"), dict)
+            else {}
+        ),
+        "source": (
+            "STRICT_POSTGRES_CLV_V4_TRACKING"
+            if report.get("comparable_true_clv_rows") is not None
+            else "LEGACY_PHASE17_CLV_REPORT"
+        ),
+    }
+
+
 def build_report(
     settlement_rows: Iterable[dict[str, Any]],
     clv_report: dict[str, Any] | None = None,
     oos_calibration_report: dict[str, Any] | None = None,
+    clv_tracking_rows: Iterable[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     rows = [row for row in settlement_rows if isinstance(row, dict)]
     splits = chronological_splits(rows)
@@ -228,6 +313,7 @@ def build_report(
     realized = settlement_metrics(rows)
     rolling = rolling_settlement_metrics(rows)
     clv_report = clv_report if isinstance(clv_report, dict) else {}
+    clv_context = canonical_clv_context(clv_report, clv_tracking_rows)
     oos_calibration_report = (
         oos_calibration_report if isinstance(oos_calibration_report, dict) else {}
     )
@@ -299,7 +385,7 @@ def build_report(
         blockers.append("NO_OOS_CALIBRATION_TARGET_READY")
     if not anti_leakage_ok:
         blockers.append("OOS_ANTI_LEAKAGE_CONTRACT_INCOMPLETE")
-    if str(clv_report.get("status") or "") not in CLV_COMPLETE_STATUSES:
+    if str(clv_context.get("status") or "") not in CLV_COMPLETE_STATUSES:
         blockers.append("CLV_ENGINE_NOT_COMPLETE")
 
     if realized["settled_rows"] < 50:
@@ -317,7 +403,7 @@ def build_report(
         "rmse": False,
         "hit_rate": realized["hit_rate_ex_push"] is not None,
         "roi": realized["roi_per_staked_unit"] is not None,
-        "clv": (clv_report.get("overall") or {}).get("avg_probability_clv_pp") is not None,
+        "clv": (clv_context.get("overall") or {}).get("avg_probability_clv_pp") is not None,
         "drawdown": realized["settled_rows"] > 0,
         "max_losing_streak": realized["settled_rows"] > 0,
         "volatility": realized["return_volatility_stddev"] is not None,
@@ -358,12 +444,7 @@ def build_report(
         "realized_settlement_metrics": realized,
         "rolling_settlement_metrics": rolling,
         "metric_availability_on_current_settlement_ledger": metric_availability,
-        "clv_context": {
-            "status": clv_report.get("status"),
-            "rows": clv_report.get("rows"),
-            "true_closing_line_rows": clv_report.get("true_closing_line_rows"),
-            "overall": clv_report.get("overall"),
-        },
+        "clv_context": clv_context,
         "blockers": blockers,
         "warnings": warnings,
         "notes": [
@@ -407,6 +488,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Phase 18 OOS/backtest framework report.")
     parser.add_argument("--settlement-ledger", required=True)
     parser.add_argument("--clv-report", required=True)
+    parser.add_argument("--clv-tracking", required=False)
     parser.add_argument("--oos-calibration-report", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
@@ -414,6 +496,7 @@ def main() -> None:
         _load_jsonl(args.settlement_ledger),
         _load_json(args.clv_report),
         _load_json(args.oos_calibration_report),
+        _load_jsonl(args.clv_tracking) if args.clv_tracking else None,
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
