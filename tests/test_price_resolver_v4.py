@@ -1959,6 +1959,10 @@ def test_primary_clv_backlog_accepts_priced_ft_totals_research_without_phase16_r
     assert "MATCH_TABLE_PRICED_RESEARCH" in sql
     assert "PHASE16_RANKABLE" in sql
     assert "NULLIF(mt.row ->> 'price', '') IS NOT NULL" in sql
+    assert "jsonb_typeof(mt.row -> 'price') = 'number'" in sql
+    assert "(mt.row ->> 'price')::DOUBLE PRECISION > 1.0" in sql
+    assert "latest_signal AS (" in sql
+    assert "SELECT ls.* FROM latest_signal ls" in sql
 
 
 def test_primary_clv_backlog_match_table_branch_normalizes_research_aliases_in_sql():
