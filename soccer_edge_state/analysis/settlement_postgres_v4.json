@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0.0",
-  "model_version": "SOCCER_SETTLEMENT_POSTGRES_V4_1.0.0",
+  "schema_version": "1.1.0",
+  "model_version": "SOCCER_SETTLEMENT_POSTGRES_V4_1.1.0",
   "status": "POSTGRES_SETTLEMENT_ACTIVE",
   "source": "soccer_refresh_events + soccer_fixtures + soccer_results",
   "raw_actionable_rows_loaded": 0,
@@ -30,7 +30,8 @@
     "Only persisted BET/LEAN refresh events captured strictly before kickoff are eligible.",
     "The latest snapshot per fixture/classification/market family/market/selection/line is retained, matching legacy settlement dedupe semantics.",
     "Final results are joined from soccer_results solely for grading; they never feed pre-kickoff candidate generation.",
-    "This source remains complete after Git history switched to compact operational envelopes without events."
+    "This source remains complete after Git history switched to compact operational envelopes without events.",
+    "Quote, lineup and feature timestamps are recovered only from persisted snapshots captured at or before the decision timestamp; no post-decision provenance is allowed."
   ],
   "lookback_days": 180,
   "source_diagnostics": {
