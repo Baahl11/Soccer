@@ -17,7 +17,7 @@ from mcp_gateway import automation_v6 as v6
 from mcp_gateway import automation_v89 as v89
 
 MODEL_VERSION = v89.MODEL_VERSION
-AUTOMATION_VERSION = "3.63.1-weekend-horizon-observed"
+AUTOMATION_VERSION = "3.63.2-hard-initial-price-reserve"
 
 CORE_SLATE_FLOOR_MIN_FIXTURES = int(os.getenv("SOCCER_EDGE_SLATE_FLOOR_MIN_FIXTURES", "12"))
 CORE_SLATE_FLOOR_MIN_DAILY_REMAINING = int(
@@ -750,9 +750,22 @@ async def run_tick() -> dict[str, Any]:
         return payload
 
     # v7 resets to v6._BASE_MAX_API_CALLS_PER_TICK before its first provider call.
-    # Start permissive, then immediately tighten/expand from the verified quota
-    # returned by that first API-Football response.
-    v6._BASE_MAX_API_CALLS_PER_TICK = 70
+    # Apply the requested price reserve to the INITIAL hard cap too. This makes
+    # the reserve effective even for provider paths that run before the first
+    # quota response reaches the elastic wrapper.
+    initial_global_cap = 70
+    initial_upstream_cap, initial_reserve = _request_cap_with_reserve(initial_global_cap)
+    v6._BASE_MAX_API_CALLS_PER_TICK = initial_upstream_cap
+    elastic_state.update({
+        "global_request_cap": initial_global_cap,
+        "request_cap": initial_upstream_cap,
+        "request_reserve": initial_reserve,
+        "request_reason": (
+            f"INITIAL_PRICE_RESERVE_{initial_reserve}"
+            if initial_reserve
+            else "INITIAL_NO_RESERVE"
+        ),
+    })
     v6._adaptive_paced_api_get = elastic_adaptive_api_get
     # Safe before the first slate call: no deep-dive loop starts until the first
     # provider response has had a chance to tighten this from verified quota.
