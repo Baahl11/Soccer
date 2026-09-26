@@ -1,8 +1,6 @@
 {
   "asian_quarter_settlement_supported": true,
   "blockers": [
-    "SETTLED_15_LT_DIRECTIONAL_20",
-    "SETTLED_15_LT_ACTIONABLE_REVIEW_50",
     "FT_TOTALS_TRUE_CLV_0_LT_50"
   ],
   "canonical_bet_logic_changed": false,
@@ -48,9 +46,10 @@
     3.0,
     3.25
   ],
-  "model_version": "SOCCER_FT_TOTALS_VALIDATION_V4_1.0.0",
+  "model_version": "SOCCER_FT_TOTALS_VALIDATION_V4_1.1.0",
   "model_weights_changed": false,
   "notes": [
+    "Resolved WATCH/RESEARCH FT Totals decisions are valid model-evidence outcomes and may satisfy sample-size gates; BET/LEAN settlements remain a separate commercial-performance metric.",
     "Legacy p_shrunk Brier/log-loss are descriptive and are not treated as V4 ensemble OOS calibration evidence.",
     "True CLV is counted only for canonical FT totals rows; 1X2/BTTS close observations cannot satisfy this gate.",
     "Quarter-goal lines use half-stake Asian settlement across adjacent integer/half lines.",
@@ -59,15 +58,19 @@
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
   "sample": {
-    "hit_rate_ex_push": 0.7333,
-    "mean_brier_legacy_signal_probability": 0.1563,
-    "mean_log_loss_legacy_signal_probability": 0.4962,
-    "minimum_actionable_review_settled": 50,
-    "minimum_directional_settled": 20,
-    "roi_units": 3.3448,
-    "settled": 15
+    "actionable_settled": 15,
+    "commercial_settled": 15,
+    "hit_rate_ex_push_commercial": 0.7333,
+    "mean_brier_legacy_actionable_signal_probability": 0.1563,
+    "mean_log_loss_legacy_actionable_signal_probability": 0.4962,
+    "minimum_directional_model_settled": 20,
+    "minimum_model_review_settled": 50,
+    "model_settled": 228,
+    "research_settled": 213,
+    "roi_units_commercial": 3.3448,
+    "sample_policy": "MODEL_VALIDATION_USES_ALL_RESOLVED_FT_TOTALS_RESEARCH_AND_ACTIONABLE_DECISIONS; COMMERCIAL_PERFORMANCE_REMAINS_BET_LEAN_ONLY"
   },
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "status": "RESEARCH_HOLD",
   "supported_lines": [
     1.5,
@@ -92,6 +95,7 @@
   },
   "v4_oos_calibration_available": true,
   "warnings": [
-    "ASIAN_TOTAL_LINE_COVERAGE_INCOMPLETE"
+    "ASIAN_TOTAL_LINE_COVERAGE_INCOMPLETE",
+    "COMMERCIAL_SETTLED_15_LT_50"
   ]
 }
