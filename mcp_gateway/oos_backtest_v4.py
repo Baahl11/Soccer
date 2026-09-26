@@ -8,6 +8,8 @@ import statistics
 from datetime import datetime
 from typing import Any, Iterable
 
+CLV_COMPLETE_STATUSES = {"CLV_ANALYSIS_AVAILABLE", "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE"}
+
 SCHEMA_VERSION = "1.0.0"
 MODEL_VERSION = "SOCCER_OOS_BACKTEST_V4_1.0.0"
 ROLLING_WINDOWS = (20, 50, 100)
@@ -207,7 +209,7 @@ def build_report(
         blockers.append("POST_KICKOFF_DECISION_ROWS_DETECTED")
     if realized["settled_rows"] < 50:
         blockers.append(f"SETTLED_{realized['settled_rows']}_LT_50")
-    if clv_report.get("status") != "CLV_ANALYSIS_AVAILABLE":
+    if str(clv_report.get("status") or "") not in CLV_COMPLETE_STATUSES:
         blockers.append("CLV_ENGINE_NOT_COMPLETE")
 
     if len(splits["test"]) < 10:
