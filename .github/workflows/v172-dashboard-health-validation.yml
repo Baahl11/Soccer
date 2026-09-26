@@ -1,0 +1,41 @@
+name: v172 Dashboard Health Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v172-dashboard-health-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: python -m pip install --disable-pip-version-check pytest httpx psycopg[binary]
+
+      - name: Compile health path
+        run: |
+          python -m py_compile runtime/mcp_gateway/tick_worker.py
+          python -m py_compile runtime/mcp_gateway/server.py
+          python -m py_compile runtime/mcp_gateway/product_views_v4.py
+
+      - name: Run Phase24 tests
+        working-directory: runtime
+        run: python -m pytest -q tests/test_phase24_product_views_v4.py tests/test_phase24_product_dashboard_v4.py
