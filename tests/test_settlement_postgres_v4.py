@@ -15,6 +15,10 @@ def _row(
     price: float = 2.0,
     home_goals: int = 2,
     away_goals: int = 1,
+    quote_timestamp=None,
+    quote_provider_update=None,
+    lineup_timestamp=None,
+    feature_timestamp=None,
 ):
     best = {
         "market": market,
@@ -32,6 +36,10 @@ def _row(
         "availability_confidence": 0.9,
         "bet_eligible": True,
         "data_tier": "A",
+        "quote_timestamp": quote_timestamp,
+        "quote_provider_update": quote_provider_update,
+        "lineup_timestamp": lineup_timestamp,
+        "feature_timestamp": feature_timestamp,
         "event_payload": {
             "tier": "B",
             "stake_units": 1.0,
@@ -162,3 +170,72 @@ def test_market_performance_summary_matches_existing_contract():
     assert summary["by_market_family"]["FT_TOTALS"]["settled"] == 2
     assert set(summary["by_market_family_and_classification"]["FT_TOTALS"]) == {"BET", "LEAN"}
     assert summary["promotion_gate_review"]["FT_TOTALS"]["settled"] == 2
+
+
+
+def test_postgres_settlement_preserves_point_in_time_provenance():
+    report = build_report_from_rows([
+        _row(
+            fixture_id=6,
+            generated_at="2026-09-24T17:30:00+00:00",
+            kickoff="2026-09-24T18:00:00+00:00",
+            classification="BET",
+            market="Goals Over/Under",
+            selection="Over 2.5",
+            line=2.5,
+            price=1.95,
+            quote_timestamp="2026-09-24T17:29:00+00:00",
+            quote_provider_update="2026-09-24T17:28:30+00:00",
+            lineup_timestamp="2026-09-24T17:20:00+00:00",
+            feature_timestamp="2026-09-24T17:30:00+00:00",
+        )
+    ])
+
+    row = report["rows"][0]
+    assert report["schema_version"] == "1.1.0"
+    assert report["model_version"] == "SOCCER_SETTLEMENT_POSTGRES_V4_1.1.0"
+    assert row["quote_timestamp"] == "2026-09-24T17:29:00+00:00"
+    assert row["bookmaker_timestamp"] == "2026-09-24T17:29:00+00:00"
+    assert row["lineup_captured_at"] == "2026-09-24T17:20:00+00:00"
+    assert row["feature_captured_at"] == "2026-09-24T17:30:00+00:00"
+
+
+class _FakeCursor:
+    def __init__(self):
+        self.query = ""
+        self.description = []
+
+    def execute(self, query, params):
+        self.query = query
+
+    def fetchall(self):
+        return []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+class _FakeConn:
+    def __init__(self):
+        self.cursor_instance = _FakeCursor()
+
+    def cursor(self):
+        return self.cursor_instance
+
+
+def test_postgres_settlement_snapshot_joins_are_strictly_point_in_time():
+    from mcp_gateway import settlement_postgres_v4 as v
+
+    conn = _FakeConn()
+    assert v._load_rows(conn, lookback_days=30, max_rows=100) == []
+    query = " ".join(conn.cursor_instance.query.split())
+
+    assert "m.captured_at <= e.generated_at" in query
+    assert "l.captured_at <= e.generated_at" in query
+    assert "s.captured_at <= e.generated_at" in query
+    assert "soccer_market_snapshots" in query
+    assert "soccer_lineup_snapshots" in query
+    assert "soccer_feature_snapshots" in query
