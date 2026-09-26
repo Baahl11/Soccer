@@ -1,0 +1,265 @@
+name: v180 FT Totals WATCH Source Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v180-ft-totals-watch-source-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout signal and shadow ledgers
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/signal_ledger.jsonl
+            soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl
+            soccer_edge_state/analysis/ft_totals_watch_source_audit_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Build WATCH source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from collections import Counter, defaultdict
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          base = Path('state/soccer_edge_state/analysis')
+
+          def norm(v):
+              return ' '.join(str(v or '').strip().upper().split())
+
+          def fnum(v):
+              try: return float(v)
+              except Exception: return None
+
+          def direction(v):
+              s = norm(v)
+              if 'OVER' in s: return 'OVER'
+              if 'UNDER' in s: return 'UNDER'
+              return s or 'UNKNOWN'
+
+          shadow = []
+          for raw in (base / 'shadow_settlement_ledger_v4.jsonl').read_text(encoding='utf-8', errors='replace').splitlines():
+              if not raw.strip(): continue
+              try: r = json.loads(raw)
+              except Exception: continue
+              if not isinstance(r, dict): continue
+              if norm(r.get('market_family')) != 'FT_TOTALS' or norm(r.get('stage')) != 'T-10': continue
+              shadow.append(r)
+
+          # Exact signal lookup. The shadow ledger is itself produced from this signal ledger,
+          # so generated_at_local + fixture + stage + line + direction is the canonical lineage key.
+          signals = defaultdict(list)
+          for raw in (base / 'signal_ledger.jsonl').read_text(encoding='utf-8', errors='replace').splitlines():
+              if not raw.strip(): continue
+              try: r = json.loads(raw)
+              except Exception: continue
+              if not isinstance(r, dict): continue
+              if norm(r.get('classification')) != 'WATCH' or norm(r.get('stage')) != 'T-10': continue
+              best = r.get('best_market') if isinstance(r.get('best_market'), dict) else {}
+              family = norm(best.get('family'))
+              market = norm(best.get('market'))
+              if family not in {'FT_TOTALS','TOTAL','FT_TOTALS_RESEARCH'} and 'GOALS OVER/UNDER' not in market:
+                  continue
+              key = (str(r.get('generated_at_local') or ''), int(r.get('fixture_id') or 0))
+              signals[key].append(r)
+
+          matched = []
+          unmatched = []
+          for s in shadow:
+              key = (str(s.get('generated_at_local') or ''), int(s.get('fixture_id') or 0))
+              candidates = []
+              for r in signals.get(key, []):
+                  best = r.get('best_market') if isinstance(r.get('best_market'), dict) else {}
+                  if fnum(best.get('line')) != fnum(s.get('line')): continue
+                  if direction(best.get('selection')) != direction(s.get('selection')): continue
+                  candidates.append(r)
+              if not candidates:
+                  unmatched.append({'fixture_id': s.get('fixture_id'), 'generated_at_local': s.get('generated_at_local'), 'line': s.get('line'), 'selection': s.get('selection')})
+                  continue
+              sp = fnum(s.get('decimal_price'))
+              def dist(r):
+                  p = fnum((r.get('best_market') or {}).get('decimal_price'))
+                  return abs(p - sp) if p is not None and sp is not None else 999999
+              r = min(candidates, key=dist)
+              best = r.get('best_market') if isinstance(r.get('best_market'), dict) else {}
+              rawp = r.get('raw_projection') if isinstance(r.get('raw_projection'), dict) else {}
+              shortlist = r.get('sporting_shortlist') if isinstance(r.get('sporting_shortlist'), dict) else {}
+              md = r.get('market_decision') if isinstance(r.get('market_decision'), dict) else {}
+              matched.append({
+                  'fixture_id': s.get('fixture_id'),
+                  'league': s.get('league'),
+                  'line': fnum(s.get('line')),
+                  'direction': direction(s.get('selection')),
+                  'price': fnum(s.get('decimal_price')),
+                  'result': s.get('shadow_settlement_status'),
+                  'roi_units': fnum(s.get('shadow_roi_hypothetical_units')) or 0.0,
+                  'p_raw': fnum(best.get('p_raw')),
+                  'p_shrunk': fnum(best.get('p_shrunk')),
+                  'p_breakeven': fnum(best.get('p_breakeven')),
+                  'p_market_fair': fnum(best.get('p_market_fair')),
+                  'prob_edge_pp': fnum(best.get('prob_edge_pp')),
+                  'ev_pct': fnum(best.get('ev_pct')),
+                  'raw_total_goals': fnum(rawp.get('raw_total_goals')),
+                  'raw_over_2_5_prob': fnum(rawp.get('raw_over_2_5_prob')),
+                  'projection_model': rawp.get('projection_model'),
+                  'sport_source': rawp.get('sport_source'),
+                  'shortlisted': shortlist.get('shortlisted'),
+                  'shortlist_rank': fnum(shortlist.get('rank')),
+                  'side_edge_score': fnum(shortlist.get('side_edge_score')),
+                  'goal_environment_score': fnum(shortlist.get('goal_environment_score')),
+                  'two_way_scoring_score': fnum(shortlist.get('two_way_scoring_score')),
+                  'tracks': list(shortlist.get('tracks') or []),
+                  'shortlist_reason': shortlist.get('reason'),
+                  'data_tier': r.get('data_tier'),
+                  'market_decision_status': md.get('status'),
+                  'market_decision_reason': md.get('reason'),
+              })
+
+          def avg(vals):
+              vals = [float(x) for x in vals if x is not None]
+              return round(sum(vals)/len(vals), 6) if vals else None
+
+          def summarize(group):
+              n = len(group)
+              wins = sum(r['result'] == 'WIN' for r in group)
+              losses = sum(r['result'] == 'LOSS' for r in group)
+              pushes = sum(r['result'] == 'PUSH' for r in group)
+              roi = sum(float(r['roi_units']) for r in group)
+              decided = wins + losses
+              probs = [r['p_shrunk'] if r['p_shrunk'] is not None else r['p_raw'] for r in group]
+              observed = wins / decided if decided else None
+              mean_prob = avg(probs)
+              return {
+                  'rows': n,
+                  'wins': wins,
+                  'losses': losses,
+                  'pushes': pushes,
+                  'hit_rate_ex_push': round(observed, 6) if observed is not None else None,
+                  'roi_units': round(roi, 6),
+                  'roi_per_row': round(roi/n, 6) if n else None,
+                  'avg_price': avg([r['price'] for r in group]),
+                  'avg_p_raw': avg([r['p_raw'] for r in group]),
+                  'avg_p_shrunk': avg([r['p_shrunk'] for r in group]),
+                  'avg_probability_used_for_diagnostic': mean_prob,
+                  'observed_minus_avg_probability_pp': round((observed-mean_prob)*100, 4) if observed is not None and mean_prob is not None else None,
+                  'avg_p_market_fair': avg([r['p_market_fair'] for r in group]),
+                  'avg_prob_edge_pp': avg([r['prob_edge_pp'] for r in group]),
+                  'avg_ev_pct': avg([r['ev_pct'] for r in group]),
+                  'avg_raw_total_goals': avg([r['raw_total_goals'] for r in group]),
+                  'avg_raw_over_2_5_prob': avg([r['raw_over_2_5_prob'] for r in group]),
+                  'avg_goal_environment_score': avg([r['goal_environment_score'] for r in group]),
+                  'avg_two_way_scoring_score': avg([r['two_way_scoring_score'] for r in group]),
+                  'avg_side_edge_score': avg([r['side_edge_score'] for r in group]),
+                  'missing_p_raw': sum(r['p_raw'] is None for r in group),
+                  'missing_p_shrunk': sum(r['p_shrunk'] is None for r in group),
+                  'shortlisted_true': sum(r['shortlisted'] is True for r in group),
+                  'track_counts': dict(Counter(t for r in group for t in r['tracks'])),
+                  'shortlist_reason_counts': dict(Counter(str(r['shortlist_reason'] or 'MISSING') for r in group)),
+                  'market_decision_status_counts': dict(Counter(str(r['market_decision_status'] or 'MISSING') for r in group)),
+                  'market_decision_reason_counts': dict(Counter(str(r['market_decision_reason'] or 'MISSING') for r in group)),
+                  'data_tier_counts': dict(Counter(str(r['data_tier'] or 'MISSING') for r in group)),
+              }
+
+          cells = {
+              'UNDER_1.5': lambda r: r['direction']=='UNDER' and r['line']==1.5,
+              'OVER_3.5': lambda r: r['direction']=='OVER' and r['line']==3.5,
+              'UNDER_3.5': lambda r: r['direction']=='UNDER' and r['line']==3.5,
+              'OVER_2.5': lambda r: r['direction']=='OVER' and r['line']==2.5,
+              'UNDER_2.5': lambda r: r['direction']=='UNDER' and r['line']==2.5,
+              'ALL_2.5': lambda r: r['line']==2.5,
+              'ALL_NON_2.5': lambda r: r['line']!=2.5,
+              'ALL_T10': lambda r: True,
+          }
+          summaries = {name: summarize([r for r in matched if pred(r)]) for name,pred in cells.items()}
+
+          # Surface the worst probability-vs-outcome gaps among cells with >=5 observations.
+          by_dir_line = defaultdict(list)
+          for r in matched:
+              by_dir_line[(r['direction'], r['line'])].append(r)
+          cell_rows = []
+          for key, group in by_dir_line.items():
+              if len(group) < 5: continue
+              sm = summarize(group)
+              cell_rows.append({'direction': key[0], 'line': key[1], **sm})
+          cell_rows.sort(key=lambda x: (x['observed_minus_avg_probability_pp'] if x['observed_minus_avg_probability_pp'] is not None else 999, x['roi_units']))
+
+          report = {
+              'schema_version': '1.0.0',
+              'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+              'status': 'FT_TOTALS_WATCH_SOURCE_AUDIT_AVAILABLE',
+              'market_family': 'FT_TOTALS',
+              'stage': 'T-10',
+              'shadow_rows_targeted': len(shadow),
+              'matched_signal_rows': len(matched),
+              'unmatched_signal_rows': len(unmatched),
+              'match_rate': round(len(matched)/len(shadow), 6) if shadow else None,
+              'focus_cells': summaries,
+              'direction_line_cells_min5': cell_rows,
+              'worst_probability_outcome_gaps': cell_rows[:8],
+              'matched_rows': matched,
+              'unmatched_rows': unmatched[:100],
+              'diagnostic_policy': (
+                  'WATCH shadow is the latest pre-kickoff WATCH best_market per fixture/family, independent of Phase16 rankability. '
+                  'This audit measures original sporting/market inputs only. No shadow finding can change production filters, thresholds, '
+                  'weights or promotion without strict true-CLV/OOS confirmation.'
+              ),
+              'provider_requests_added': 0,
+              'thresholds_changed': False,
+              'model_weights_changed': False,
+              'canonical_bet_logic_changed': False,
+              'production_filter_changed': False,
+              'production_promotion_allowed': False,
+          }
+          out = base / 'ft_totals_watch_source_audit_v4.json'
+          out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps({
+              'match_rate': report['match_rate'],
+              'focus_cells': summaries,
+              'worst_probability_outcome_gaps': report['worst_probability_outcome_gaps'],
+              'safety': {'thresholds_changed': False, 'production_filter_changed': False}
+          }, indent=2))
+          PY
+
+      - name: Validate diagnostic safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=state/soccer_edge_state/analysis/ft_totals_watch_source_audit_v4.json
+          jq -e '.schema_version == "1.0.0" and .market_family == "FT_TOTALS" and .stage == "T-10"' "$R" >/dev/null
+          jq -e '.shadow_rows_targeted >= 100' "$R" >/dev/null
+          jq -e '.provider_requests_added == 0' "$R" >/dev/null
+          jq -e '.thresholds_changed == false and .model_weights_changed == false and .canonical_bet_logic_changed == false' "$R" >/dev/null
+          jq -e '.production_filter_changed == false and .production_promotion_allowed == false' "$R" >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/ft_totals_watch_source_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update FT Totals WATCH source audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
