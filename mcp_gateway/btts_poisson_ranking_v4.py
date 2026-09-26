@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from mcp_gateway import calibration_v4
@@ -216,6 +219,131 @@ def walk_forward(
     }
 
 
+def _parse_dt(value: Any) -> datetime | None:
+    if value in (None, ""):
+        return None
+    try:
+        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except Exception:
+        return None
+
+
+def _lineage_diagnostic(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    dataset_fixtures = {
+        int(row["fixture_id"])
+        for row in rows
+        if isinstance(row, dict) and row.get("fixture_id") is not None
+    }
+    dataset_model_counts = Counter(
+        str(row.get("model_version") or "UNKNOWN")
+        for row in rows
+        if isinstance(row, dict)
+    )
+    dataset_stage_counts = Counter(
+        str(row.get("stage") or "UNKNOWN").upper()
+        for row in rows
+        if isinstance(row, dict)
+    )
+
+    ledger_path = Path("state/soccer_edge_state/analysis/oos_prediction_ledger_v4.jsonl")
+    diagnostics_path = Path("state/soccer_edge_state/analysis/oos_stage_diagnostics_v4.json")
+    if not ledger_path.exists():
+        return {
+            "status": "LEDGER_NOT_AVAILABLE",
+            "dataset_fixture_count": len(dataset_fixtures),
+            "dataset_model_version_counts": dict(sorted(dataset_model_counts.items())),
+            "dataset_stage_counts": dict(sorted(dataset_stage_counts.items())),
+        }
+
+    current_model = None
+    if diagnostics_path.exists():
+        try:
+            diag = json.loads(diagnostics_path.read_text(encoding="utf-8"))
+            current_model = str(diag.get("current_source_model_version") or "").strip() or None
+        except Exception:
+            current_model = None
+
+    ledger_model_counts: Counter[str] = Counter()
+    ledger_fixture_sets: dict[str, set[int]] = defaultdict(set)
+    ledger_stage_counts: Counter[str] = Counter()
+    exact_model_fixture_overlap = 0
+    exact_model_stage_fixture_overlap = 0
+    current_model_valid_rows = 0
+
+    dataset_by_fixture = {
+        int(row["fixture_id"]): row
+        for row in rows
+        if isinstance(row, dict) and row.get("fixture_id") is not None
+    }
+
+    for raw in ledger_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if not raw.strip():
+            continue
+        try:
+            row = json.loads(raw)
+        except Exception:
+            continue
+        if not isinstance(row, dict) or row.get("anti_leakage") is not True:
+            continue
+        try:
+            fixture_id = int(row.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        kickoff = _parse_dt(row.get("kickoff"))
+        run_dt = _parse_dt(row.get("run_timestamp"))
+        if kickoff is None or run_dt is None or run_dt >= kickoff:
+            continue
+
+        model_version = str(row.get("model_version") or "UNKNOWN")
+        stage = str(row.get("run_type") or "UNKNOWN").upper()
+        ledger_model_counts[model_version] += 1
+        ledger_fixture_sets[model_version].add(fixture_id)
+        ledger_stage_counts[stage] += 1
+        if current_model and model_version == current_model:
+            current_model_valid_rows += 1
+
+        drow = dataset_by_fixture.get(fixture_id)
+        if drow is None:
+            continue
+        if str(drow.get("model_version") or "UNKNOWN") == model_version:
+            exact_model_fixture_overlap += 1
+            if str(drow.get("stage") or "UNKNOWN").upper() == stage:
+                exact_model_stage_fixture_overlap += 1
+
+    overlap_by_model = {
+        model: len(fixtures & dataset_fixtures)
+        for model, fixtures in sorted(ledger_fixture_sets.items())
+    }
+    current_model_overlap = (
+        overlap_by_model.get(current_model, 0)
+        if current_model is not None
+        else None
+    )
+
+    return {
+        "status": "DIAGNOSTIC_ONLY",
+        "current_source_model_version": current_model,
+        "dataset_fixture_count": len(dataset_fixtures),
+        "dataset_model_version_counts": dict(sorted(dataset_model_counts.items())),
+        "dataset_stage_counts": dict(sorted(dataset_stage_counts.items())),
+        "ledger_valid_prekickoff_rows": int(sum(ledger_model_counts.values())),
+        "ledger_model_version_counts": dict(sorted(ledger_model_counts.items())),
+        "ledger_stage_counts": dict(sorted(ledger_stage_counts.items())),
+        "fixture_overlap_by_ledger_model_version": overlap_by_model,
+        "current_model_valid_prekickoff_rows": current_model_valid_rows,
+        "current_model_fixture_overlap": current_model_overlap,
+        "exact_dataset_model_and_ledger_model_overlap_rows": exact_model_fixture_overlap,
+        "exact_dataset_model_stage_and_ledger_model_stage_overlap_rows": exact_model_stage_fixture_overlap,
+        "model_weights_changed": False,
+        "thresholds_changed": False,
+        "canonical_bet_logic_changed": False,
+        "production_promotion_allowed": False,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="BTTS Poisson ranking + train-only Platt calibration audit.")
     parser.add_argument("--dataset", required=True)
@@ -224,11 +352,13 @@ def main() -> None:
     with open(args.dataset, "r", encoding="utf-8") as handle:
         payload = json.load(handle)
     rows = payload.get("rows") if isinstance(payload, dict) else []
-    report = walk_forward(rows if isinstance(rows, list) else [])
+    safe_rows = rows if isinstance(rows, list) else []
+    report = walk_forward(safe_rows)
     report["dataset_version"] = payload.get("dataset_version") if isinstance(payload, dict) else None
     report["feature_schema_version"] = payload.get("feature_schema_version") if isinstance(payload, dict) else None
     report["dataset_fingerprint"] = payload.get("dataset_fingerprint") if isinstance(payload, dict) else None
     report["dataset_row_count"] = payload.get("row_count") if isinstance(payload, dict) else None
+    report["lineage_diagnostic"] = _lineage_diagnostic(safe_rows)
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2, sort_keys=True)
         handle.write("\n")
