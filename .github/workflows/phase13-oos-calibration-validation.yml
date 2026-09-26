@@ -1,4 +1,4 @@
-# v160 refresh OOS calibration after v159
+# v189 current-model-only canonical calibration scope
 # Phase13 stage discrimination audit: 2026-09-24
 name: Phase 13 OOS Calibration Validation
 
@@ -90,6 +90,43 @@ jobs:
             provider_requests_added
           }' /tmp/oos_calibration_v4.json
           jq -e '.schema_version == "1.0.0" and (.rows | type == "array") and (.targets | type == "object") and (.provider_requests_added == 0)' /tmp/oos_calibration_v4.json >/dev/null
+
+      - name: Scope canonical calibration to current source model
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python -m mcp_gateway.oos_calibration_scope_v4 \
+            --input /tmp/oos_calibration_v4.json \
+            --output /tmp/oos_calibration_v4_scoped.json
+          mv /tmp/oos_calibration_v4_scoped.json /tmp/oos_calibration_v4.json
+
+          jq '{
+            calibration_scope_model_version,
+            canonical_target_scope,
+            current_source_model_version,
+            all_model_rows,
+            current_model_rows,
+            ready_target_count,
+            targets_improving_brier_and_log_loss,
+            btts_rows: .targets.btts.rows,
+            btts_source_model_version: .targets.btts.source_model_version,
+            historical_btts_rows: .historical_all_models_targets.btts.rows,
+            provider_requests_added
+          }' /tmp/oos_calibration_v4.json
+
+          jq -e '
+            .canonical_target_scope == "CURRENT_SOURCE_MODEL_VERSION_ONLY"
+            and .current_source_model_version != null
+            and .all_model_rows >= .current_model_rows
+            and .current_model_rows > 0
+            and .targets.btts.source_model_version == .current_source_model_version
+            and .targets.btts.rows <= .current_model_rows
+            and .historical_all_models_targets.btts.rows >= .targets.btts.rows
+            and .provider_requests_added == 0
+            and .production_promotion_allowed == false
+            and .runtime_prediction_weight == 0
+            and .canonical_bet_logic_changed == false
+          ' /tmp/oos_calibration_v4.json >/dev/null
 
       - name: Build 1X2 multiclass walk-forward calibration
         shell: bash
