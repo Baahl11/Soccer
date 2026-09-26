@@ -77,8 +77,6 @@ CREATE TABLE IF NOT EXISTS soccer_market_snapshots (
     provider_update TIMESTAMPTZ
 );
 
-
-
 CREATE TABLE IF NOT EXISTS soccer_feature_snapshots (
     snapshot_id BIGSERIAL PRIMARY KEY,
     fixture_id BIGINT NOT NULL,
@@ -111,8 +109,6 @@ CREATE TABLE IF NOT EXISTS soccer_model_runs (
     tier TEXT,
     payload JSONB NOT NULL
 );
-
-
 
 CREATE TABLE IF NOT EXISTS soccer_training_dataset_builds (
     build_id TEXT PRIMARY KEY,
@@ -173,14 +169,13 @@ CREATE TABLE IF NOT EXISTS soccer_alerts (
     notification_ready BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+CREATE INDEX IF NOT EXISTS idx_soccer_pipeline_runs_generated ON soccer_pipeline_runs (generated_at_utc DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_fixtures_kickoff ON soccer_fixtures (kickoff);
 CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_generated ON soccer_refresh_events (generated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_market_fixture_time ON soccer_market_snapshots (fixture_id, captured_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_created ON soccer_alerts (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_notification ON soccer_alerts (notification_ready, created_at DESC);
-
 CREATE INDEX IF NOT EXISTS idx_soccer_feature_fixture_time ON soccer_feature_snapshots (fixture_id, captured_at DESC);
-
 CREATE INDEX IF NOT EXISTS idx_soccer_training_rows_fixture ON soccer_training_dataset_rows (fixture_id);
 CREATE INDEX IF NOT EXISTS idx_soccer_training_builds_asof ON soccer_training_dataset_builds (as_of DESC);
 
