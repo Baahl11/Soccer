@@ -1,0 +1,234 @@
+name: v191 Feature Snapshot Persistence Fix
+
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/v191-feature-snapshot-persistence-fix.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          fetch-depth: 1
+
+      - name: Patch feature snapshot persistence and incremental backfill
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          td = Path('mcp_gateway/training_dataset_v4.py')
+          s = td.read_text(encoding='utf-8')
+          old_query = '''            SELECT event_id, generated_at, payload
+            FROM soccer_refresh_events
+            WHERE event_type='SOCCER_REFRESH'
+              AND stage <> 'POSTGAME'
+            ORDER BY generated_at ASC, event_id ASC
+            LIMIT %s
+            """,
+            (int(limit),),
+'''
+          new_query = '''            SELECT e.event_id, e.generated_at, e.payload
+            FROM soccer_refresh_events e
+            WHERE e.event_type='SOCCER_REFRESH'
+              AND e.stage <> 'POSTGAME'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM soccer_feature_snapshots s
+                  WHERE s.fixture_id = e.fixture_id
+                    AND s.captured_at = e.generated_at
+                    AND COALESCE(s.stage, '') = COALESCE(e.stage, '')
+                    AND s.schema_version = %s
+              )
+            ORDER BY e.generated_at DESC, e.event_id DESC
+            LIMIT %s
+            """,
+            (feature_snapshot_v4.SCHEMA_VERSION, int(limit)),
+'''
+          if old_query not in s:
+              raise SystemExit('training_dataset_v4 query anchor not found')
+          s = s.replace(old_query, new_query, 1)
+
+          old_loop = '''    for _event_id, generated_at, payload in source_rows:
+        scanned += 1
+        if not isinstance(payload, dict):
+            invalid += 1
+            continue
+        tick = {
+            "generated_at_utc": generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at),
+            "model_version": payload.get("model_version"),
+        }
+        snapshot = feature_snapshot_v4.build(tick, payload)
+        errors = feature_snapshot_v4.validate(snapshot)
+        if errors:
+            invalid += 1
+            continue
+        valid += 1
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO soccer_feature_snapshots (
+                    fixture_id, captured_at, stage, schema_version,
+                    model_version, data_tier, feature_count,
+                    missing_feature_count, payload
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+                ON CONFLICT (fixture_id, captured_at, stage, schema_version) DO NOTHING
+                """,
+                (
+                    snapshot.get("fixture_id"),
+                    snapshot.get("captured_at"),
+                    snapshot.get("stage"),
+                    snapshot.get("schema_version"),
+                    snapshot.get("model_version"),
+                    snapshot.get("data_tier"),
+                    snapshot.get("feature_count", 0),
+                    snapshot.get("missing_feature_count", 0),
+                    _canonical_json(snapshot),
+                ),
+            )
+            inserted += max(int(cur.rowcount or 0), 0)
+
+    return {
+        "scanned_refresh_events": scanned,
+        "valid_snapshots": valid,
+        "inserted_snapshots": inserted,
+        "invalid_snapshots": invalid,
+    }
+'''
+          new_loop = '''    insert_rows: list[tuple[Any, ...]] = []
+    for _event_id, generated_at, payload in source_rows:
+        scanned += 1
+        if not isinstance(payload, dict):
+            invalid += 1
+            continue
+        tick = {
+            "generated_at_utc": generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at),
+            "model_version": payload.get("model_version"),
+        }
+        snapshot = feature_snapshot_v4.build(tick, payload)
+        errors = feature_snapshot_v4.validate(snapshot)
+        if errors:
+            invalid += 1
+            continue
+        valid += 1
+        insert_rows.append((
+            snapshot.get("fixture_id"),
+            snapshot.get("captured_at"),
+            snapshot.get("stage"),
+            snapshot.get("schema_version"),
+            snapshot.get("model_version"),
+            snapshot.get("data_tier"),
+            snapshot.get("feature_count", 0),
+            snapshot.get("missing_feature_count", 0),
+            _canonical_json(snapshot),
+        ))
+
+    if insert_rows:
+        with conn.cursor() as cur:
+            cur.executemany(
+                """
+                INSERT INTO soccer_feature_snapshots (
+                    fixture_id, captured_at, stage, schema_version,
+                    model_version, data_tier, feature_count,
+                    missing_feature_count, payload
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+                ON CONFLICT (fixture_id, captured_at, stage, schema_version) DO NOTHING
+                """,
+                insert_rows,
+            )
+            inserted = max(int(cur.rowcount or 0), 0)
+
+    return {
+        "scanned_refresh_events": scanned,
+        "valid_snapshots": valid,
+        "inserted_snapshots": inserted,
+        "invalid_snapshots": invalid,
+        "backfill_limit": int(limit),
+    }
+'''
+          if old_loop not in s:
+              raise SystemExit('training_dataset_v4 loop anchor not found')
+          td.write_text(s.replace(old_loop, new_loop, 1), encoding='utf-8')
+
+          pp = Path('mcp_gateway/persistence.py')
+          p = pp.read_text(encoding='utf-8')
+          import_anchor = 'from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit\n'
+          if 'from mcp_gateway import feature_snapshot_v4\n' not in p:
+              if import_anchor not in p:
+                  raise SystemExit('persistence import anchor not found')
+              p = p.replace(import_anchor, import_anchor + '\nfrom mcp_gateway import feature_snapshot_v4\n', 1)
+
+          helper_anchor = '\n\ndef _persist_refresh_event(cur, tick: dict[str, Any], event: dict[str, Any]) -> None:\n'
+          helper = '''\n\ndef _persist_feature_snapshot(cur, tick: dict[str, Any], event: dict[str, Any], fixture_id: Any) -> None:
+    if not fixture_id:
+        return
+    if str(event.get("event_type") or "").upper() != "SOCCER_REFRESH":
+        return
+    if str(event.get("stage") or "").upper() == "POSTGAME":
+        return
+
+    snapshot = feature_snapshot_v4.build(tick, event)
+    if feature_snapshot_v4.validate(snapshot):
+        return
+
+    cur.execute(
+        """
+        INSERT INTO soccer_feature_snapshots (
+            fixture_id, captured_at, stage, schema_version,
+            model_version, data_tier, feature_count,
+            missing_feature_count, payload
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+        ON CONFLICT (fixture_id, captured_at, stage, schema_version) DO NOTHING
+        """,
+        (
+            snapshot.get("fixture_id"),
+            snapshot.get("captured_at"),
+            snapshot.get("stage"),
+            snapshot.get("schema_version"),
+            snapshot.get("model_version"),
+            snapshot.get("data_tier"),
+            snapshot.get("feature_count", 0),
+            snapshot.get("missing_feature_count", 0),
+            json.dumps(snapshot),
+        ),
+    )
+'''
+          if '_persist_feature_snapshot(' not in p:
+              if helper_anchor not in p:
+                  raise SystemExit('persistence helper anchor not found')
+              p = p.replace(helper_anchor, helper + helper_anchor, 1)
+
+          call_anchor = '''    )
+
+    lineup = event.get("lineups")
+'''
+          call_replacement = '''    )
+
+    _persist_feature_snapshot(cur, tick, event, fixture_id)
+
+    lineup = event.get("lineups")
+'''
+          if '_persist_feature_snapshot(cur, tick, event, fixture_id)' not in p:
+              if call_anchor not in p:
+                  raise SystemExit('persistence call anchor not found')
+              p = p.replace(call_anchor, call_replacement, 1)
+
+          pp.write_text(p, encoding='utf-8')
+          PY
+
+          python -m py_compile mcp_gateway/training_dataset_v4.py mcp_gateway/persistence.py mcp_gateway/feature_snapshot_v4.py
+          git diff --check
+          git diff -- mcp_gateway/training_dataset_v4.py mcp_gateway/persistence.py
+
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/training_dataset_v4.py mcp_gateway/persistence.py
+          git commit -m "Fix incremental feature snapshot persistence"
+          git push origin HEAD:soccer-edge-mcp-v1
