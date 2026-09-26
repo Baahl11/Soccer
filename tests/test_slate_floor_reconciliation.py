@@ -275,3 +275,134 @@ def test_v89_future_prefetch_cache_reuses_raw_slate_without_replaying_quota(monk
     assert provider_calls["count"] == 1
     assert first["quota"]["daily_remaining"] == "7199"
     assert "quota" not in second
+
+
+
+def test_v89_active_hook_expands_today_into_cached_48h_horizon(monkeypatch):
+    cache = {}
+    calls = []
+    now_utc = datetime(2026, 9, 25, 21, 0, tzinfo=dt_timezone.utc)
+    local_now = now_utc.astimezone(v89.base.TIMEZONE)
+    today = local_now.date()
+    tomorrow = (today + v89.timedelta(days=1)).isoformat()
+    day_after = (today + v89.timedelta(days=2)).isoformat()
+
+    def fake_cache_get(namespace, key, ttl, now):
+        return cache.get((namespace, key))
+
+    def fake_cache_set(namespace, key, value, now):
+        cache[(namespace, key)] = value
+
+    async def fake_api_get(endpoint, params):
+        calls.append((endpoint, dict(params)))
+        date = str(params.get("date"))
+        if date == today.isoformat():
+            return {
+                "response": [_fixture_row(1), _fixture_row(2)],
+                "quota": {"daily_remaining": "7200"},
+            }
+        if date == tomorrow:
+            return {
+                "response": [_fixture_row(2), _fixture_row(3)],
+                "quota": {"daily_remaining": "7199"},
+            }
+        if date == day_after:
+            return {
+                "response": [_fixture_row(4)],
+                "quota": {"daily_remaining": "7198"},
+            }
+        raise AssertionError(date)
+
+    async def fake_downstream_tick():
+        payload = await v89.v6._ORIGINAL_PACED_API_GET(
+            "fixtures",
+            {"date": today.isoformat(), "timezone": "America/Mexico_City"},
+        )
+        return {
+            "fixture_scan_count": v89._payload_fixture_count(payload),
+            "events": [],
+        }
+
+    monkeypatch.setattr(v89.base, "_cache_get", fake_cache_get)
+    monkeypatch.setattr(v89.base, "_cache_set", fake_cache_set)
+    monkeypatch.setattr(v89.v6, "_ORIGINAL_PACED_API_GET", fake_api_get)
+    monkeypatch.setattr(v89.v88, "run_tick", fake_downstream_tick)
+    monkeypatch.setattr(v89.v2, "_LAST_DAILY_REMAINING", 7200)
+    monkeypatch.setattr(v89.v2, "_API_CALLS_THIS_TICK", 1)
+    monkeypatch.setattr(v89.v2, "MAX_API_CALLS_PER_TICK", 70)
+
+    class _FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            value = now_utc
+            return value if tz is None else value.astimezone(tz)
+
+    monkeypatch.setattr(v89, "datetime", _FixedDateTime)
+
+    result = asyncio.run(v89.run_tick())
+    metrics = result["slate_floor_reconciliation"]
+
+    assert result["fixture_scan_count"] == 4
+    assert metrics["scan_dates"] == [today.isoformat(), tomorrow, day_after]
+    assert metrics["scan_date_counts"] == {
+        today.isoformat(): 2,
+        tomorrow: 2,
+        day_after: 1,
+    }
+    assert metrics["merged_slate_count"] == 4
+    assert metrics["future_prefetch_cache_misses"] == 2
+    assert metrics["future_prefetch_provider_requests_added"] == 2
+    assert metrics["league_allowlist_applied"] is False
+    assert [params["date"] for _, params in calls] == [
+        today.isoformat(),
+        tomorrow,
+        day_after,
+    ]
+
+
+def test_v89_future_prefetch_uses_cache_without_replaying_quota(monkeypatch):
+    cache = {}
+    calls = []
+    now_utc = datetime(2026, 9, 25, 21, 0, tzinfo=dt_timezone.utc)
+    future_date = "2026-09-26"
+
+    def fake_cache_get(namespace, key, ttl, now):
+        return cache.get((namespace, key))
+
+    def fake_cache_set(namespace, key, value, now):
+        cache[(namespace, key)] = value
+
+    async def fake_api_get(endpoint, params):
+        calls.append((endpoint, dict(params)))
+        return {
+            "response": [_fixture_row(101)],
+            "quota": {"daily_remaining": "7199"},
+        }
+
+    monkeypatch.setattr(v89.base, "_cache_get", fake_cache_get)
+    monkeypatch.setattr(v89.base, "_cache_set", fake_cache_set)
+
+    first, first_hit = asyncio.run(
+        v89._future_date_payload(
+            fake_api_get,
+            "fixtures",
+            {"date": "2026-09-25", "timezone": "America/Mexico_City"},
+            future_date,
+            now_utc,
+        )
+    )
+    second, second_hit = asyncio.run(
+        v89._future_date_payload(
+            fake_api_get,
+            "fixtures",
+            {"date": "2026-09-25", "timezone": "America/Mexico_City"},
+            future_date,
+            now_utc,
+        )
+    )
+
+    assert first_hit is False
+    assert second_hit is True
+    assert len(calls) == 1
+    assert "quota" in first
+    assert "quota" not in second
