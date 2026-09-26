@@ -1,0 +1,38 @@
+name: v172 Live Dashboard Route Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v172-live-dashboard-route-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate live product views
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 2             https://soccer-edge-api.onrender.com/product/views > /tmp/product_views.json
+
+          jq '{
+            status,
+            control_tower: .views.control_tower.status,
+            runtime: .views.control_tower.system_health.runtime,
+            postgres: .views.control_tower.system_health.postgres,
+            scheduler_mode: .views.control_tower.pipeline.scheduler_mode,
+            team_totals_candidates: .views.control_tower.pipeline.team_totals_maturation_candidates,
+            team_totals_calls: .views.control_tower.pipeline.team_totals_maturation_api_calls_added
+          }' /tmp/product_views.json
+
+          test "$(jq -r '.views.control_tower.status' /tmp/product_views.json)" = "LIVE"
+          test "$(jq -r '.views.control_tower.system_health.runtime' /tmp/product_views.json)" = "HEALTHY"
+          test "$(jq -r '.views.control_tower.system_health.postgres' /tmp/product_views.json)" = "HEALTHY"
+          test "$(jq -r '.views.control_tower.pipeline.scheduler_mode' /tmp/product_views.json)" = "COVERAGE_CATCHUP"
+          test "$(jq -r '.views.control_tower.pipeline.team_totals_maturation_candidates' /tmp/product_views.json)" != "null"
