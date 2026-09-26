@@ -1,0 +1,181 @@
+{
+  "alignment_policy": {
+    "broad_cohort_role": "LINEAGE_MATCHED_DIAGNOSTIC_CONTEXT_ONLY_NOT_PROMOTION_EVIDENCE",
+    "primary_cohort": "LINEAGE_MATCHED_STAGE_TIME_ALIGNED",
+    "strict_requirements": [
+      "same_fixture_id",
+      "same_model_version",
+      "same_btts_outcome",
+      "same_stage",
+      "same_kickoff",
+      "feature_captured_at < kickoff",
+      "runtime_run_timestamp < kickoff",
+      "feature_captured_at <= runtime_run_timestamp",
+      "anti_leakage_true",
+      "no_market_fields"
+    ]
+  },
+  "canonical_bet_logic_changed": false,
+  "current_deployment_reference_unaligned": {
+    "auc": 0.51404352,
+    "auc_lower_95": 0.45669676,
+    "brier_delta_after_platt": -0.04088129,
+    "eligible_for_phase16_research": false,
+    "log_loss_delta_after_platt": -0.11119782,
+    "rows": 407
+  },
+  "current_model_dataset_fixture_overlap": 0,
+  "current_model_ledger_rows_valid_prekickoff": 407,
+  "current_model_ledger_unique_fixtures": 407,
+  "current_source_model_version": "SOCCER EDGE ENGINE v1.7",
+  "dataset_fingerprint": "2ed4a3bf4c474e1d149bbf370f72a9e1163adf2221949a0d6afa7773cfa6f2bc",
+  "dataset_model_version_counts": {
+    "SOCCER EDGE ENGINE v1.0": 224
+  },
+  "dataset_rows": 224,
+  "dataset_version": "4.0.0",
+  "decision_policy": "Diagnostic comparison only. No challenger can be promoted from this audit. Lineage-matched stage/time alignment is required for ranking-lift interpretation. Historical lineage evidence must not be relabeled as current-model evidence.",
+  "evidence_scope": {
+    "current_model_evidence": false,
+    "historical_lineage_audit": true,
+    "reason": "STRICT_COHORT_IS_HISTORICAL_LINEAGE_NOT_CURRENT_MODEL",
+    "strict_model_versions": [
+      "SOCCER EDGE ENGINE v1.0"
+    ],
+    "unlock_interpretation_allowed": false
+  },
+  "exclusion_counts": {
+    "no_lineage_matched_ledger_fixture": 5
+  },
+  "ledger_model_version_counts": {
+    "SOCCER EDGE ENGINE v1.0": 296,
+    "SOCCER EDGE ENGINE v1.1": 7,
+    "SOCCER EDGE ENGINE v1.2": 1,
+    "SOCCER EDGE ENGINE v1.5": 1,
+    "SOCCER EDGE ENGINE v1.6": 1,
+    "SOCCER EDGE ENGINE v1.7": 407
+  },
+  "ledger_valid_prekickoff_rows": 713,
+  "lineage_matched_fixture_prekickoff": {
+    "comparison_poisson_minus_runtime": {
+      "auc_delta": 0.0,
+      "auc_lower_95_delta": 0.0,
+      "brier_delta": 2.6e-07,
+      "log_loss_delta": 4.6e-07
+    },
+    "model_version_counts": {
+      "SOCCER EDGE ENGINE v1.0": 219
+    },
+    "negative_count": 116,
+    "poisson_metrics": {
+      "brier": 0.28900749,
+      "discrimination": {
+        "auc": 0.5525611,
+        "auc_lower_95": 0.47614416,
+        "auc_standard_error": 0.03898823,
+        "discrimination_ready": false,
+        "negative_count": 116,
+        "positive_count": 103
+      },
+      "log_loss": 0.84970164,
+      "negative_count": 116,
+      "positive_count": 103,
+      "rows": 219
+    },
+    "positive_count": 103,
+    "rows": 219,
+    "runtime_metrics": {
+      "brier": 0.28900723,
+      "discrimination": {
+        "auc": 0.5525611,
+        "auc_lower_95": 0.47614416,
+        "auc_standard_error": 0.03898823,
+        "discrimination_ready": false,
+        "negative_count": 116,
+        "positive_count": 103
+      },
+      "log_loss": 0.84970118,
+      "negative_count": 116,
+      "positive_count": 103,
+      "rows": 219
+    },
+    "sample_ready": true,
+    "stage_counts": {
+      "CLOSE": 22,
+      "EARLY_RESEARCH": 74,
+      "T-10": 78,
+      "T-20": 7,
+      "T-30": 23,
+      "T-40": 3,
+      "T-60": 7,
+      "T-90": 5
+    },
+    "unique_fixtures": 219
+  },
+  "lineage_matched_stage_time_aligned": {
+    "comparison_poisson_minus_runtime": {
+      "auc_delta": 0.0,
+      "auc_lower_95_delta": 0.0,
+      "brier_delta": 2.6e-07,
+      "log_loss_delta": 4.6e-07
+    },
+    "model_version_counts": {
+      "SOCCER EDGE ENGINE v1.0": 219
+    },
+    "negative_count": 116,
+    "poisson_metrics": {
+      "brier": 0.28900749,
+      "discrimination": {
+        "auc": 0.5525611,
+        "auc_lower_95": 0.47614416,
+        "auc_standard_error": 0.03898823,
+        "discrimination_ready": false,
+        "negative_count": 116,
+        "positive_count": 103
+      },
+      "log_loss": 0.84970164,
+      "negative_count": 116,
+      "positive_count": 103,
+      "rows": 219
+    },
+    "positive_count": 103,
+    "rows": 219,
+    "runtime_metrics": {
+      "brier": 0.28900723,
+      "discrimination": {
+        "auc": 0.5525611,
+        "auc_lower_95": 0.47614416,
+        "auc_standard_error": 0.03898823,
+        "discrimination_ready": false,
+        "negative_count": 116,
+        "positive_count": 103
+      },
+      "log_loss": 0.84970118,
+      "negative_count": 116,
+      "positive_count": 103,
+      "rows": 219
+    },
+    "sample_ready": true,
+    "stage_counts": {
+      "CLOSE": 22,
+      "EARLY_RESEARCH": 74,
+      "T-10": 78,
+      "T-20": 7,
+      "T-30": 23,
+      "T-40": 3,
+      "T-60": 7,
+      "T-90": 5
+    },
+    "unique_fixtures": 219
+  },
+  "market_fields_used": false,
+  "model_version": "BTTS_ALIGNED_RANKING_AUDIT_V4_1.1.0",
+  "model_weights_changed": false,
+  "post_kickoff_features_used": false,
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "runtime_prediction_weight": 0.0,
+  "schema_version": "1.1.0",
+  "status": "RESEARCH_ONLY",
+  "thresholds_changed": false
+}
