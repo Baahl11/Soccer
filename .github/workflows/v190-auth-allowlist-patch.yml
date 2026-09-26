@@ -36,29 +36,30 @@ jobs:
               raise SystemExit("EXPECTED_UNIQUE_V190_WARM_AND_EXPORT_MARKERS")
           start = text.index(start_marker)
           end = text.index(end_marker, start)
-          new_block = '''      - name: Warm Render and wait for checked-out runtime revision
-        shell: bash
-        run: |
-          set -euo pipefail
-          expected_commit=$(git -C runtime rev-parse HEAD)
-          echo "v190 expected Render revision: ${expected_commit}"
-          for attempt in $(seq 1 36); do
-            if curl -sS --max-time 30 --retry 1 --retry-delay 2 --retry-all-errors \\
-              https://soccer-edge-api.onrender.com/health >/tmp/health.json; then
-              cat /tmp/health.json
-              deployed_commit=$(jq -r '.render_git_commit // empty' /tmp/health.json)
-              echo "v190 Render revision attempt ${attempt}: ${deployed_commit:-UNKNOWN}"
-              if [ "$deployed_commit" = "$expected_commit" ]; then
-                echo "v190 Render revision aligned"
-                exit 0
-              fi
-            fi
-            sleep 10
-          done
-          echo "::error::Render did not materialize checked-out runtime revision ${expected_commit}"
-          exit 1
-
-'''
+          new_lines = [
+              "      - name: Warm Render and wait for checked-out runtime revision",
+              "        shell: bash",
+              "        run: |",
+              "          set -euo pipefail",
+              "          expected_commit=$(git -C runtime rev-parse HEAD)",
+              "          echo \"v190 expected Render revision: ${expected_commit}\"",
+              "          for attempt in $(seq 1 36); do",
+              "            if curl -sS --max-time 30 --retry 1 --retry-delay 2 --retry-all-errors \\\\",
+              "              https://soccer-edge-api.onrender.com/health >/tmp/health.json; then",
+              "              cat /tmp/health.json",
+              "              deployed_commit=$(jq -r '.render_git_commit // empty' /tmp/health.json)",
+              "              echo \"v190 Render revision attempt ${attempt}: ${deployed_commit:-UNKNOWN}\"",
+              "              if [ \"$deployed_commit\" = \"$expected_commit\" ]; then",
+              "                echo \"v190 Render revision aligned\"",
+              "                exit 0",
+              "              fi",
+              "            fi",
+              "            sleep 10",
+              "          done",
+              "          echo \"::error::Render did not materialize checked-out runtime revision ${expected_commit}\"",
+              "          exit 1",
+          ]
+          new_block = "\n".join(new_lines) + "\n\n"
           path.write_text(text[:start] + new_block + text[end:], encoding="utf-8")
           PY
           git diff --check
