@@ -1,0 +1,142 @@
+{
+  "canonical_bet_logic_changed": false,
+  "close_window_changed": false,
+  "current_deployment_calibrator": {
+    "auc": 0.51404352,
+    "auc_lower_95": 0.45669676,
+    "brier_delta": -0.04088129,
+    "calibrator_status": null,
+    "eligible_for_phase16_research": false,
+    "log_loss_delta": -0.11119782,
+    "rows": 407
+  },
+  "current_visible_btts": {
+    "bookmaker_counts": {
+      "1xBet": 3
+    },
+    "next_kickoff": "2026-09-26T08:00:00+00:00",
+    "pending_timing": {
+      "already_kicked_off": 0,
+      "beyond_48h": 0,
+      "missing_kickoff": 0,
+      "within_12h": 2,
+      "within_24h": 2,
+      "within_2h": 0,
+      "within_48h": 2,
+      "within_55m": 0,
+      "within_6h": 1
+    },
+    "priced_rows": 3,
+    "selection_counts": {
+      "Yes": 3
+    },
+    "unique_fixtures": 2
+  },
+  "generated_at_utc": "2026-09-26T05:06:26.083813+00:00",
+  "interpretation_policy": "BTTS maturation/OOS audit is diagnostic only. No close-window, sample gate, threshold, model weight or promotion state is changed.",
+  "latest_primary_maturation": {
+    "btts_candidates": 0,
+    "btts_evaluations": 0,
+    "btts_not_matured": 0,
+    "btts_refreshes": 0
+  },
+  "market_family": "BTTS",
+  "model_weights_changed": false,
+  "oos_by_stage": {
+    "CLOSE": {
+      "auc": 0.5364539,
+      "auc_lower_95": 0.43169033,
+      "brier": 0.29621887,
+      "discrimination_ready": false,
+      "ece": 0.18823127,
+      "log_loss": 0.85320018,
+      "negative_count": 47,
+      "positive_count": 75,
+      "rows": 122,
+      "sample_status": "REVIEW_SAMPLE"
+    },
+    "EARLY_RESEARCH": {
+      "auc": 0.56016178,
+      "auc_lower_95": 0.44069556,
+      "brier": 0.29171346,
+      "discrimination_ready": false,
+      "ece": 0.18334021,
+      "log_loss": 0.86048104,
+      "negative_count": 43,
+      "positive_count": 46,
+      "rows": 89,
+      "sample_status": "REVIEW_SAMPLE"
+    },
+    "T-10": {
+      "auc": 0.53749077,
+      "auc_lower_95": 0.47720323,
+      "brier": 0.27765851,
+      "discrimination_ready": false,
+      "ece": 0.1345448,
+      "log_loss": 0.78183533,
+      "negative_count": 149,
+      "positive_count": 209,
+      "rows": 358,
+      "sample_status": "REVIEW_SAMPLE"
+    },
+    "T-20": {
+      "auc": 0.60190476,
+      "auc_lower_95": 0.43592366,
+      "brier": 0.23822186,
+      "discrimination_ready": false,
+      "ece": 0.15051124,
+      "log_loss": 0.67098423,
+      "negative_count": 25,
+      "positive_count": 21,
+      "rows": 46,
+      "sample_status": "DIRECTIONAL_SAMPLE"
+    },
+    "T-40": {
+      "auc": 0.42780749,
+      "auc_lower_95": 0.21000335,
+      "brier": 0.30904001,
+      "discrimination_ready": false,
+      "ece": 0.33880371,
+      "log_loss": 0.84858348,
+      "negative_count": 17,
+      "positive_count": 11,
+      "rows": 28,
+      "sample_status": "DIRECTIONAL_SAMPLE"
+    }
+  },
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "recent_primary_maturation": {
+    "btts_candidate_ticks": 1,
+    "btts_refresh_ticks": 1,
+    "candidate_family_counts": {
+      "1X2": 18,
+      "BTTS": 1,
+      "FT_TOTALS": 8
+    },
+    "evaluation_family_counts": {},
+    "not_matured_family_counts": {},
+    "recent_ticks_analyzed": 120,
+    "refresh_family_counts": {
+      "1X2": 1,
+      "BTTS": 1
+    },
+    "ticks_with_family_telemetry_v182": 0
+  },
+  "schema_version": "1.0.0",
+  "status": "MATURATION_ACTIVE_SAMPLE_COLLECTING",
+  "thresholds_changed": false,
+  "true_clv": {
+    "avg_probability_clv_pp": 0.814574,
+    "flat_rows": 12,
+    "minimum_rows": 50,
+    "negative_rows": 0,
+    "positive_rows": 2,
+    "remaining": 36,
+    "rows": 14
+  },
+  "validation_blockers": [
+    "BTTS_TRUE_CLV_14_LT_50"
+  ],
+  "validation_status": "RESEARCH_HOLD"
+}
