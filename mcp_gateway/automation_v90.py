@@ -25,6 +25,21 @@ CORE_SLATE_FLOOR_MIN_DAILY_REMAINING = int(
 )
 ELASTIC_GC_BATCH_SIZE = max(1, int(os.getenv("SOCCER_EDGE_ELASTIC_GC_BATCH_SIZE", "4")))
 POSTGAME_STATS_MAX_ROWS = max(1, int(os.getenv("SOCCER_EDGE_POSTGAME_STATS_MAX_ROWS", "2")))
+FUTURE_SLATE_PREFETCH_HORIZON_DAYS = max(
+    0, min(2, int(os.getenv("SOCCER_EDGE_FUTURE_SLATE_HORIZON_DAYS", "2")))
+)
+FUTURE_SLATE_PREFETCH_TTL_HOURS = max(
+    1, int(os.getenv("SOCCER_EDGE_FUTURE_SLATE_TTL_HOURS", "4"))
+)
+FUTURE_SLATE_DAY1_MIN_DAILY_REMAINING = int(
+    os.getenv("SOCCER_EDGE_FUTURE_SLATE_DAY1_MIN_DAILY_REMAINING", "4500")
+)
+FUTURE_SLATE_DAY2_MIN_DAILY_REMAINING = int(
+    os.getenv("SOCCER_EDGE_FUTURE_SLATE_DAY2_MIN_DAILY_REMAINING", "6000")
+)
+MARKET_CAPTURE_HANDOFF_MAX_FIXTURES = max(
+    100, int(os.getenv("SOCCER_EDGE_MARKET_CAPTURE_HANDOFF_MAX_FIXTURES", "2500"))
+)
 
 # A higher orchestration layer may temporarily reserve part of the SAME global
 # elastic tick ceiling for post-upstream price resolution. The reserve is
@@ -98,8 +113,8 @@ def _enforce_live_request_cap(
 
 def _new_core_metrics() -> dict[str, Any]:
     return {
-        "schema_version": "1.0.0",
-        "policy": "CORE_SCHEDULER_DATE_SLATE_FLOOR_AFTER_SOURCE_SELECTION",
+        "schema_version": "1.1.0",
+        "policy": "CORE_SCHEDULER_ROLLING_DATE_SLATE_WITH_CACHED_FUTURE_PREFETCH",
         "min_fixture_count": CORE_SLATE_FLOOR_MIN_FIXTURES,
         "min_daily_remaining": CORE_SLATE_FLOOR_MIN_DAILY_REMAINING,
         "triggered": False,
@@ -109,9 +124,20 @@ def _new_core_metrics() -> dict[str, Any]:
         "primary_slate_count": None,
         "reconciliation_slate_count": 0,
         "merged_slate_count": None,
-        "provider_requests_added_max": 1,
+        "provider_requests_added_max": 3,
         "provider_requests_added": 0,
-        "scope": "core scheduler fixtures?date slate only; no odds request; no market/tier/stake/model-weight change",
+        "future_prefetch_horizon_days": FUTURE_SLATE_PREFETCH_HORIZON_DAYS,
+        "future_prefetch_ttl_hours": FUTURE_SLATE_PREFETCH_TTL_HOURS,
+        "future_prefetch_cache_hits": 0,
+        "future_prefetch_cache_misses": 0,
+        "future_prefetch_provider_requests_added": 0,
+        "future_prefetch_fixture_count": 0,
+        "scan_dates": [],
+        "scan_date_counts": {},
+        "unique_leagues_scanned": 0,
+        "unique_countries_scanned": 0,
+        "league_allowlist_applied": False,
+        "scope": "all provider fixtures for selected dates; no league allowlist; future dates cached; no model/tier/stake threshold change",
     }
 
 
@@ -184,6 +210,110 @@ def _append_fixture_payload(
     return added
 
 
+def _future_prefetch_offsets(local_now: datetime, daily_remaining: Any) -> list[int]:
+    offsets: list[int] = []
+    try:
+        remaining = int(daily_remaining) if daily_remaining is not None else None
+    except (TypeError, ValueError):
+        remaining = None
+
+    if FUTURE_SLATE_PREFETCH_HORIZON_DAYS >= 1 and (
+        local_now.hour >= 22
+        or (remaining is not None and remaining > FUTURE_SLATE_DAY1_MIN_DAILY_REMAINING)
+    ):
+        offsets.append(1)
+
+    if (
+        FUTURE_SLATE_PREFETCH_HORIZON_DAYS >= 2
+        and remaining is not None
+        and remaining > FUTURE_SLATE_DAY2_MIN_DAILY_REMAINING
+    ):
+        offsets.append(2)
+
+    return offsets
+
+
+async def _future_date_slate(
+    slate_date: Any,
+    now_utc: datetime,
+) -> tuple[list[dict[str, Any]], dict[str, Any], bool]:
+    key = slate_date.isoformat()
+    ttl = timedelta(hours=FUTURE_SLATE_PREFETCH_TTL_HOURS)
+    cached = base._cache_get("future_fixture_slate", key, ttl, now_utc)
+    if isinstance(cached, dict) and isinstance(cached.get("fixtures"), list):
+        return [dict(row) for row in cached["fixtures"] if isinstance(row, dict)], dict(cached.get("quota") or {}), True
+
+    payload = await base._api_get(
+        "fixtures", {"date": key, "timezone": base.TIMEZONE_NAME}
+    )
+    compact: list[dict[str, Any]] = []
+    for row in payload.get("response", []) or []:
+        fx = _compact_valid_fixture(row)
+        if fx:
+            compact.append(fx)
+
+    cached_payload = {
+        "fixtures": compact,
+        "quota": dict(payload.get("quota") or {}),
+    }
+    base._cache_set("future_fixture_slate", key, cached_payload, now_utc)
+    return compact, dict(payload.get("quota") or {}), False
+
+
+def _append_compact_fixtures(
+    fixtures: list[dict[str, Any]],
+    seen_fixture_ids: set[int],
+    rows: list[dict[str, Any]],
+) -> int:
+    added = 0
+    for fx in rows:
+        if not isinstance(fx, dict) or not fx.get("fixture_id"):
+            continue
+        fixture_id = int(fx["fixture_id"])
+        if fixture_id in seen_fixture_ids:
+            continue
+        seen_fixture_ids.add(fixture_id)
+        fixtures.append(dict(fx))
+        added += 1
+    return added
+
+
+async def _market_capture_handoff(
+    fixtures: list[dict[str, Any]],
+    now_utc: datetime,
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    try:
+        coverage_map = await v3._bulk_coverage(now_utc)
+    except v2.TickBudgetExceeded:
+        return [], {}
+
+    tier_counts: Counter[str] = Counter()
+    eligible: list[dict[str, Any]] = []
+    for fx in fixtures:
+        try:
+            kickoff = base._dt(fx["kickoff"])
+        except Exception:
+            continue
+        if kickoff <= now_utc:
+            continue
+        if fx.get("status") in base.CANCELLED_STATUSES | base.POSTPONED_STATUSES:
+            continue
+
+        coverage = coverage_map.get(f"{fx.get('league_id')}:{fx.get('season')}") or {
+            "data_tier": "D"
+        }
+        tier = str(coverage.get("data_tier") or "D")
+        tier_counts[tier] += 1
+        if tier not in {"A", "B", "C"}:
+            continue
+        item = dict(fx)
+        item["data_tier"] = tier
+        eligible.append(item)
+
+    eligible.sort(key=lambda row: (row.get("kickoff") or "", int(row.get("fixture_id") or 0)))
+    return eligible[:MARKET_CAPTURE_HANDOFF_MAX_FIXTURES], dict(tier_counts)
+
+
 async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
     v2._API_CALLS_THIS_TICK = 0
     v2._LAST_DAILY_REMAINING = None
@@ -199,8 +329,6 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
     base._prune_cache(now_utc)
 
     dates = [local_now.date()]
-    if local_now.hour >= 22:
-        dates.append((local_now + timedelta(days=1)).date())
 
     fixtures: list[dict[str, Any]] = []
     seen_fixture_ids: set[int] = set()
@@ -216,52 +344,95 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
         limits=httpx.Limits(max_connections=1, max_keepalive_connections=1),
     )
     try:
-        for index, d in enumerate(dates):
-            payload = await base._api_get(
-                "fixtures", {"date": d.isoformat(), "timezone": base.TIMEZONE_NAME}
-            )
-            quota = payload.get("quota", quota)
-            # The primary slate is the first real API-Football request in this path.
-            # Capture its verified header quota immediately so elastic caps are based
-            # on the live provider budget rather than the unknown-safe fallback.
-            if v2._LAST_DAILY_REMAINING is None:
-                try:
-                    remaining = (quota or {}).get("daily_remaining")
-                    if remaining is not None:
-                        v2._LAST_DAILY_REMAINING = int(remaining)
-                except (TypeError, ValueError):
-                    pass
-            added = _append_fixture_payload(fixtures, seen_fixture_ids, payload)
-            if index == 0:
-                core_metrics["primary_slate_count"] = added
-                core_metrics["merged_slate_count"] = len(fixtures)
+        primary_date = local_now.date()
+        payload = await base._api_get(
+            "fixtures", {"date": primary_date.isoformat(), "timezone": base.TIMEZONE_NAME}
+        )
+        quota = payload.get("quota", quota)
+        if v2._LAST_DAILY_REMAINING is None:
+            try:
+                remaining = (quota or {}).get("daily_remaining")
+                if remaining is not None:
+                    v2._LAST_DAILY_REMAINING = int(remaining)
+            except (TypeError, ValueError):
+                pass
 
-        if len(dates) == 1:
-            primary_count = int(core_metrics.get("primary_slate_count") or 0)
-            if primary_count >= CORE_SLATE_FLOOR_MIN_FIXTURES:
-                core_metrics["reason"] = "PRIMARY_SLATE_MEETS_FLOOR"
-            elif local_now.hour >= 22:
-                core_metrics["reason"] = "LEGACY_LATE_DAY_NEXT_DATE_ALREADY_ENABLED"
-            elif not _tick_budget_allows_extra_call():
-                core_metrics["reason"] = "TICK_BUDGET_BLOCKED"
-            elif not _daily_remaining_allows(v2._LAST_DAILY_REMAINING):
-                core_metrics["reason"] = "DAILY_BUDGET_BLOCKED"
-            else:
-                tomorrow = (local_now.date() + timedelta(days=1)).isoformat()
-                reconciliation = await base._api_get(
-                    "fixtures", {"date": tomorrow, "timezone": base.TIMEZONE_NAME}
+        added = _append_fixture_payload(fixtures, seen_fixture_ids, payload)
+        core_metrics["primary_slate_count"] = added
+        core_metrics["scan_dates"].append(primary_date.isoformat())
+        core_metrics["scan_date_counts"][primary_date.isoformat()] = added
+        core_metrics["merged_slate_count"] = len(fixtures)
+
+        scanned_dates = {primary_date.isoformat()}
+        for offset in _future_prefetch_offsets(local_now, v2._LAST_DAILY_REMAINING):
+            future_date = (local_now + timedelta(days=offset)).date()
+            future_key = future_date.isoformat()
+            if future_key in scanned_dates or not _tick_budget_allows_extra_call():
+                continue
+            try:
+                compact_rows, future_quota, cache_hit = await _future_date_slate(
+                    future_date, now_utc
                 )
-                quota = reconciliation.get("quota", quota)
-                added = _append_fixture_payload(fixtures, seen_fixture_ids, reconciliation)
-                core_metrics["triggered"] = True
-                core_metrics["reason"] = "PRIMARY_SLATE_BELOW_FLOOR_RECONCILED_WITH_NEXT_DATE"
-                core_metrics["reconciliation_date"] = tomorrow
-                core_metrics["reconciliation_slate_count"] = added
-                core_metrics["merged_slate_count"] = len(fixtures)
-                core_metrics["provider_requests_added"] = 1
+            except v2.TickBudgetExceeded:
+                break
+            if future_quota:
+                quota = future_quota
+            added = _append_compact_fixtures(
+                fixtures, seen_fixture_ids, compact_rows
+            )
+            scanned_dates.add(future_key)
+            core_metrics["scan_dates"].append(future_key)
+            core_metrics["scan_date_counts"][future_key] = added
+            core_metrics["future_prefetch_fixture_count"] += added
+            if cache_hit:
+                core_metrics["future_prefetch_cache_hits"] += 1
+            else:
+                core_metrics["future_prefetch_cache_misses"] += 1
+                core_metrics["future_prefetch_provider_requests_added"] += 1
+                core_metrics["provider_requests_added"] += 1
+
+        primary_count = int(core_metrics.get("primary_slate_count") or 0)
+        tomorrow_key = (local_now.date() + timedelta(days=1)).isoformat()
+        if primary_count >= CORE_SLATE_FLOOR_MIN_FIXTURES:
+            core_metrics["reason"] = (
+                "PRIMARY_SLATE_MEETS_FLOOR_WITH_FUTURE_PREFETCH"
+                if len(scanned_dates) > 1
+                else "PRIMARY_SLATE_MEETS_FLOOR"
+            )
+        elif tomorrow_key in scanned_dates:
+            core_metrics["reason"] = "PRIMARY_SLATE_BELOW_FLOOR_FUTURE_PREFETCH_ALREADY_INCLUDED"
+        elif not _tick_budget_allows_extra_call():
+            core_metrics["reason"] = "TICK_BUDGET_BLOCKED"
+        elif not _daily_remaining_allows(v2._LAST_DAILY_REMAINING):
+            core_metrics["reason"] = "DAILY_BUDGET_BLOCKED"
         else:
-            core_metrics["reason"] = "LEGACY_MULTI_DATE_SLATE_ALREADY_ENABLED"
+            reconciliation_date = (local_now.date() + timedelta(days=1))
+            try:
+                compact_rows, reconciliation_quota, cache_hit = await _future_date_slate(
+                    reconciliation_date, now_utc
+                )
+            except v2.TickBudgetExceeded:
+                compact_rows, reconciliation_quota, cache_hit = [], {}, True
+            if reconciliation_quota:
+                quota = reconciliation_quota
+            added = _append_compact_fixtures(fixtures, seen_fixture_ids, compact_rows)
+            core_metrics["triggered"] = True
+            core_metrics["reason"] = "PRIMARY_SLATE_BELOW_FLOOR_RECONCILED_WITH_NEXT_DATE"
+            core_metrics["reconciliation_date"] = reconciliation_date.isoformat()
+            core_metrics["reconciliation_slate_count"] = added
+            core_metrics["scan_dates"].append(reconciliation_date.isoformat())
+            core_metrics["scan_date_counts"][reconciliation_date.isoformat()] = added
             core_metrics["merged_slate_count"] = len(fixtures)
+            if not cache_hit:
+                core_metrics["provider_requests_added"] += 1
+
+        core_metrics["merged_slate_count"] = len(fixtures)
+        core_metrics["unique_leagues_scanned"] = len({
+            int(fx["league_id"]) for fx in fixtures if fx.get("league_id") is not None
+        })
+        core_metrics["unique_countries_scanned"] = len({
+            str(fx.get("country") or "") for fx in fixtures if fx.get("country")
+        })
 
         events: list[dict[str, Any]] = []
         discovery = await v3._daily_discovery_event(fixtures, now_utc, local_now)
@@ -423,6 +594,14 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
         ]
         bets = [e for e in events if e.get("classification") == "BET"]
 
+        upcoming_market_capture_fixtures, handoff_tier_counts = await _market_capture_handoff(
+            fixtures, now_utc
+        )
+        core_metrics["market_capture_handoff_fixture_count"] = len(
+            upcoming_market_capture_fixtures
+        )
+        core_metrics["market_capture_handoff_tier_counts"] = handoff_tier_counts
+
         return {
             "service": "soccer-edge-automation",
             "version": v5.AUTOMATION_VERSION,
@@ -460,6 +639,7 @@ async def _run_tick_with_core_slate_floor() -> dict[str, Any]:
             "first_half_market_model": "BLOCKED_PENDING_EXPLICIT_1H_MODEL",
             "quota": quota,
             "events": events,
+            "upcoming_market_capture_fixtures": upcoming_market_capture_fixtures,
             "database_persistence": "OPTIONAL_NOT_REQUIRED_FOR_SCHEDULER",
             "core_slate_floor_reconciliation": core_metrics,
         }
