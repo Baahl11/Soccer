@@ -1,0 +1,100 @@
+name: v182 Primary Maturation Family Telemetry Patch
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v182-primary-maturation-family-telemetry-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Patch family-level maturation telemetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          src = Path('runtime/mcp_gateway/price_resolver_v4.py')
+          text = src.read_text(encoding='utf-8')
+
+          text = text.replace(
+              'MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.18.0"',
+              'MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.19.0"',
+              1,
+          )
+
+          anchor = '''    return matured\n\n\ndef _load_primary_clv_maturation_backlog('''
+          helper = '''    return matured\n\n\ndef _primary_maturation_family_accounting(\n    signals: list[dict[str, Any]],\n    matured_families: set[str],\n) -> tuple[set[str], set[str]]:\n    \"\"\"Return valid primary families evaluated and those still lacking a later quote.\n\n    Observability only: this never changes selection, price, probability, budget,\n    close-window semantics or maturation eligibility.\n    \"\"\"\n    evaluated = {\n        str(signal.get(\"market_family\") or \"\").upper()\n        for signal in signals\n        if str(signal.get(\"market_family\") or \"\").upper() in {\"1X2\", \"FT_TOTALS\", \"BTTS\"}\n    }\n    matured = {str(value).upper() for value in matured_families if str(value).upper() in evaluated}\n    return evaluated, evaluated - matured\n\n\ndef _load_primary_clv_maturation_backlog('''
+          if anchor not in text:
+              raise SystemExit('helper anchor missing')
+          text = text.replace(anchor, helper, 1)
+
+          vars_anchor = '''    primary_maturation_fixtures_refreshed = 0\n    primary_maturation_family_refresh_counts: dict[str, int] = defaultdict(int)\n    primary_maturation_cache_replays_ignored = 0\n    primary_maturation_unchanged_provider_updates = 0\n'''
+          vars_new = '''    primary_maturation_fixtures_refreshed = 0\n    primary_maturation_family_refresh_counts: dict[str, int] = defaultdict(int)\n    primary_maturation_family_evaluation_counts: dict[str, int] = defaultdict(int)\n    primary_maturation_not_matured_family_counts: dict[str, int] = defaultdict(int)\n    primary_maturation_cache_replays_ignored = 0\n    primary_maturation_unchanged_provider_updates = 0\n'''
+          if vars_anchor not in text:
+              raise SystemExit('counter anchor missing')
+          text = text.replace(vars_anchor, vars_new, 1)
+
+          mature_anchor = '''                matured_families = _primary_signals_with_later_provider_quote(markets, signals)\n                if not matured_families:\n                    primary_maturation_unchanged_provider_updates += 1\n                    continue\n'''
+          mature_new = '''                matured_families = _primary_signals_with_later_provider_quote(markets, signals)\n                evaluated_families, not_matured_families = _primary_maturation_family_accounting(\n                    signals, matured_families\n                )\n                for family in evaluated_families:\n                    primary_maturation_family_evaluation_counts[family] += 1\n                for family in not_matured_families:\n                    primary_maturation_not_matured_family_counts[family] += 1\n                if not matured_families:\n                    primary_maturation_unchanged_provider_updates += 1\n                    continue\n'''
+          if mature_anchor not in text:
+              raise SystemExit('maturation anchor missing')
+          text = text.replace(mature_anchor, mature_new, 1)
+
+          output_anchor = '''        "primary_clv_maturation_family_refresh_counts": dict(sorted(primary_maturation_family_refresh_counts.items())),\n        "primary_clv_maturation_cache_replays_ignored": primary_maturation_cache_replays_ignored,\n        "primary_clv_maturation_unchanged_provider_updates": primary_maturation_unchanged_provider_updates,\n'''
+          output_new = '''        "primary_clv_maturation_family_refresh_counts": dict(sorted(primary_maturation_family_refresh_counts.items())),\n        "primary_clv_maturation_family_evaluation_counts": dict(sorted(primary_maturation_family_evaluation_counts.items())),\n        "primary_clv_maturation_not_matured_family_counts": dict(sorted(primary_maturation_not_matured_family_counts.items())),\n        "primary_clv_maturation_cache_replays_ignored": primary_maturation_cache_replays_ignored,\n        "primary_clv_maturation_unchanged_provider_updates": primary_maturation_unchanged_provider_updates,\n'''
+          if output_anchor not in text:
+              raise SystemExit('output anchor missing')
+          text = text.replace(output_anchor, output_new, 1)
+
+          src.write_text(text, encoding='utf-8')
+
+          test = Path('runtime/tests/test_price_resolver_v4.py')
+          t = test.read_text(encoding='utf-8')
+          marker = 'def test_primary_maturation_family_accounting_tracks_partial_maturation():'
+          if marker not in t:
+              t += '''\n\n\ndef test_primary_maturation_family_accounting_tracks_partial_maturation():\n    signals = [\n        {"market_family": "FT_TOTALS"},\n        {"market_family": "BTTS"},\n        {"market_family": "BTTS"},\n        {"market_family": "OTHER"},\n    ]\n\n    evaluated, not_matured = v._primary_maturation_family_accounting(signals, {"BTTS"})\n\n    assert evaluated == {"FT_TOTALS", "BTTS"}\n    assert not_matured == {"FT_TOTALS"}\n\n\ndef test_primary_maturation_family_accounting_all_unchanged():\n    signals = [\n        {"market_family": "1X2"},\n        {"market_family": "FT_TOTALS"},\n        {"market_family": "BTTS"},\n    ]\n\n    evaluated, not_matured = v._primary_maturation_family_accounting(signals, set())\n\n    assert evaluated == {"1X2", "FT_TOTALS", "BTTS"}\n    assert not_matured == evaluated\n'''
+              test.write_text(t, encoding='utf-8')
+          PY
+
+      - name: Validate patch
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pytest httpx psycopg[binary]
+          python -m py_compile mcp_gateway/price_resolver_v4.py
+          python -m pytest -q tests/test_price_resolver_v4.py
+          grep -q 'SOCCER_PRICE_RESOLVER_V4_1.19.0' mcp_gateway/price_resolver_v4.py
+          grep -q 'primary_clv_maturation_not_matured_family_counts' mcp_gateway/price_resolver_v4.py
+
+      - name: Commit validated runtime patch
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/price_resolver_v4.py tests/test_price_resolver_v4.py
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "v182 expose primary maturation family telemetry"
+          git push origin HEAD:soccer-edge-mcp-v1
