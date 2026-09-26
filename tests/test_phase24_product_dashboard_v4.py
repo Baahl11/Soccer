@@ -27,6 +27,18 @@ def test_dashboard_renders_control_tower_master_sections_and_escapes_content():
                     "research_visible": 19,
                     "api_calls": 70,
                     "api_call_cap": 70,
+                    "scheduler_schema_version": "1.2.0",
+                    "scheduler_mode": "COVERAGE_CATCHUP",
+                    "scheduler_unseen_processed": 8,
+                    "scheduler_actionable_processed": 4,
+                    "scheduler_starvation_count": 406,
+                    "scheduler_due_analyzed_pct": 14.71,
+                    "scheduler_planned_unique_leagues": 42,
+                    "scheduler_urgent_actionable_count": 3,
+                    "team_totals_maturation_candidates": 2,
+                    "team_totals_later_quote_refreshes": 1,
+                    "primary_clv_maturation_candidates": 1,
+                    "primary_clv_maturation_refreshed": 0,
                 },
                 "errors": {"count": 0, "rows": []},
                 "validation_gates": [
@@ -92,3 +104,9 @@ def test_dashboard_renders_control_tower_master_sections_and_escapes_content():
     assert "Read-only operational view" in html
     assert "N/V / 50" in html
     assert "Production-valid markets: 0" in html
+    assert "Scheduler mode" in html
+    assert "COVERAGE_CATCHUP" in html
+    assert "Unseen processed" in html
+    assert "Starvation" in html
+    assert "TT close candidates" in html
+    assert "Primary close candidates" in html
