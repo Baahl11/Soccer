@@ -10,9 +10,10 @@ from typing import Any, Iterable
 
 CLV_COMPLETE_STATUSES = {"CLV_ANALYSIS_AVAILABLE", "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE"}
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_OOS_BACKTEST_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_OOS_BACKTEST_V4_1.1.0"
 ROLLING_WINDOWS = (20, 50, 100)
+MODERN_SETTLEMENT_SOURCES = {"POSTGRES_REFRESH_EVENT"}
 
 
 def _num(value: Any) -> float | None:
@@ -151,6 +152,25 @@ def timestamp_discipline(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     lineup_timestamp_rows = 0
     feature_timestamp_rows = 0
 
+    modern = [
+        row for row in source
+        if str(row.get("source") or "").upper() in MODERN_SETTLEMENT_SOURCES
+    ]
+    legacy = [row for row in source if row not in modern]
+
+    def _bookmaker_ts(row: dict[str, Any]) -> datetime | None:
+        return _parse_dt(row.get("bookmaker_timestamp") or row.get("quote_timestamp"))
+
+    def _lineup_ts(row: dict[str, Any]) -> datetime | None:
+        return _parse_dt(
+            row.get("lineup_timestamp")
+            or row.get("lineup_captured_at")
+            or row.get("lineup_observation_timestamp")
+        )
+
+    def _feature_ts(row: dict[str, Any]) -> datetime | None:
+        return _parse_dt(row.get("feature_timestamp") or row.get("feature_captured_at"))
+
     for row in source:
         generated = _parse_dt(row.get("generated_at_local") or row.get("prediction_timestamp"))
         kickoff = _parse_dt(row.get("kickoff_local"))
@@ -158,14 +178,20 @@ def timestamp_discipline(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
             decision_timestamp_rows += 1
             if kickoff is not None and generated <= kickoff:
                 pre_kickoff_rows += 1
-        if _parse_dt(row.get("bookmaker_timestamp") or row.get("quote_timestamp")) is not None:
+        if _bookmaker_ts(row) is not None:
             bookmaker_timestamp_rows += 1
-        if _parse_dt(row.get("lineup_timestamp") or row.get("lineup_captured_at")) is not None:
+        if _lineup_ts(row) is not None:
             lineup_timestamp_rows += 1
-        if _parse_dt(row.get("feature_timestamp") or row.get("feature_captured_at")) is not None:
+        if _feature_ts(row) is not None:
             feature_timestamp_rows += 1
 
+    modern_bookmaker = sum(1 for row in modern if _bookmaker_ts(row) is not None)
+    modern_lineup = sum(1 for row in modern if _lineup_ts(row) is not None)
+    modern_feature = sum(1 for row in modern if _feature_ts(row) is not None)
+
     n = len(source)
+    modern_n = len(modern)
+    legacy_n = len(legacy)
     return {
         "rows": n,
         "decision_timestamp_coverage": round(decision_timestamp_rows / n, 6) if n else 0.0,
@@ -173,8 +199,23 @@ def timestamp_discipline(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "bookmaker_timestamp_coverage": round(bookmaker_timestamp_rows / n, 6) if n else 0.0,
         "lineup_timestamp_coverage": round(lineup_timestamp_rows / n, 6) if n else 0.0,
         "feature_timestamp_coverage": round(feature_timestamp_rows / n, 6) if n else 0.0,
+        "modern_rows": modern_n,
+        "legacy_rows": legacy_n,
+        "modern_bookmaker_timestamp_coverage": round(modern_bookmaker / modern_n, 6) if modern_n else None,
+        "modern_lineup_timestamp_coverage": round(modern_lineup / modern_n, 6) if modern_n else None,
+        "modern_feature_timestamp_coverage": round(modern_feature / modern_n, 6) if modern_n else None,
+        "modern_bookmaker_timestamp_present": modern_bookmaker,
+        "modern_lineup_timestamp_present": modern_lineup,
+        "modern_feature_timestamp_present": modern_feature,
+        "legacy_bookmaker_timestamp_unknown": sum(1 for row in legacy if _bookmaker_ts(row) is None),
+        "legacy_lineup_timestamp_unknown": sum(1 for row in legacy if _lineup_ts(row) is None),
+        "legacy_feature_timestamp_unknown": sum(1 for row in legacy if _feature_ts(row) is None),
+        "policy": (
+            "Modern Postgres settlement rows require explicit point-in-time quote, lineup-state observation "
+            "and feature timestamps. Legacy Git-history rows keep unknown provenance visible as warnings and "
+            "are never assigned fabricated timestamps."
+        ),
     }
-
 
 def build_report(
     settlement_rows: Iterable[dict[str, Any]],
@@ -199,12 +240,32 @@ def build_report(
 
     blockers: list[str] = []
     warnings: list[str] = []
-    if discipline["bookmaker_timestamp_coverage"] < 1.0:
-        blockers.append("BOOKMAKER_TIMESTAMP_DISCIPLINE_INCOMPLETE")
-    if discipline["lineup_timestamp_coverage"] < 1.0:
-        blockers.append("LINEUP_TIMESTAMP_DISCIPLINE_INCOMPLETE")
-    if discipline["feature_timestamp_coverage"] < 1.0:
-        blockers.append("FEATURE_TIMESTAMP_DISCIPLINE_INCOMPLETE")
+
+    modern_rows = int(discipline.get("modern_rows") or 0)
+    if modern_rows:
+        if discipline["modern_bookmaker_timestamp_coverage"] < 1.0:
+            blockers.append("BOOKMAKER_TIMESTAMP_DISCIPLINE_INCOMPLETE")
+        if discipline["modern_lineup_timestamp_coverage"] < 1.0:
+            blockers.append("LINEUP_TIMESTAMP_DISCIPLINE_INCOMPLETE")
+        if discipline["modern_feature_timestamp_coverage"] < 1.0:
+            blockers.append("FEATURE_TIMESTAMP_DISCIPLINE_INCOMPLETE")
+    else:
+        warnings.append("NO_MODERN_SETTLEMENT_ROWS_FOR_TIMESTAMP_VALIDATION")
+
+    legacy_rows = int(discipline.get("legacy_rows") or 0)
+    if legacy_rows:
+        if discipline.get("legacy_bookmaker_timestamp_unknown"):
+            warnings.append(
+                f"LEGACY_BOOKMAKER_TIMESTAMP_UNKNOWN_{discipline['legacy_bookmaker_timestamp_unknown']}"
+            )
+        if discipline.get("legacy_lineup_timestamp_unknown"):
+            warnings.append(
+                f"LEGACY_LINEUP_TIMESTAMP_UNKNOWN_{discipline['legacy_lineup_timestamp_unknown']}"
+            )
+        if discipline.get("legacy_feature_timestamp_unknown"):
+            warnings.append(
+                f"LEGACY_FEATURE_TIMESTAMP_UNKNOWN_{discipline['legacy_feature_timestamp_unknown']}"
+            )
     if discipline["pre_kickoff_decision_rate"] is not None and discipline["pre_kickoff_decision_rate"] < 1.0:
         blockers.append("POST_KICKOFF_DECISION_ROWS_DETECTED")
     if realized["settled_rows"] < 50:
@@ -263,7 +324,8 @@ def build_report(
             "The settlement ledger can measure realized hit rate, ROI, drawdown, losing streak and volatility.",
             "Brier/log-loss/calibration/MAE/RMSE require point-in-time model predictions joined to final outcomes; settlement ROI alone cannot substitute for those metrics.",
             "Chronological split preview is diagnostic only. Production model evaluation must use frozen prediction snapshots and walk-forward/rolling retraining without leakage.",
-            "Bookmaker, lineup and feature timestamps must be explicit per prediction row before production promotion.",
+            "Bookmaker, lineup-state observation and feature timestamps must be explicit for modern Postgres prediction rows before production promotion.",
+            "Legacy rows with unavailable provenance remain visible as warnings and are never assigned fabricated timestamps.",
         ],
     }
 
