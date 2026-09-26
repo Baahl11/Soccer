@@ -1,0 +1,369 @@
+name: v190 BTTS Aligned Ranking Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v190-btts-aligned-ranking-audit.yml"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout state evidence
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/oos_prediction_ledger_v4.jsonl
+            soccer_edge_state/analysis/oos_stage_diagnostics_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Checkout runtime research code
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Warm Render
+        run: |
+          curl -sS --max-time 240 --retry 2 --retry-delay 5 --retry-all-errors \
+            https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+          cat /tmp/health.json || true
+
+      - name: Export current point-in-time training dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+          response=$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          token=$(echo "$response" | jq -r '.value // empty')
+          test -n "$token"
+          echo "::add-mask::$token"
+
+          cutoff=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          http_code=$(curl -sS --max-time 430 -o /tmp/v190_training_dataset.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${token}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg cutoff "$cutoff" '{cutoff:$cutoff,row_limit:20000}')" \
+            https://soccer-edge-api.onrender.com/internal/training-dataset/export)
+
+          test "$http_code" = "200"
+          jq -e '.status == "OK" and .market_fields_included == false and (.rows | type == "array")' \
+            /tmp/v190_training_dataset.json >/dev/null
+
+      - name: Build aligned BTTS runtime vs Poisson audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python - <<'PY'
+          import json
+          from collections import Counter, defaultdict
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          from mcp_gateway.goals_binary_challenger_v4 import (
+              MIN_CLASS_ROWS,
+              MIN_OOS_ROWS,
+              _binary_metrics,
+              _goal_rates,
+              poisson_probability,
+          )
+
+          dataset = json.loads(Path('/tmp/v190_training_dataset.json').read_text(encoding='utf-8'))
+          diagnostics = json.loads(Path('state/soccer_edge_state/analysis/oos_stage_diagnostics_v4.json').read_text(encoding='utf-8'))
+          ledger_path = Path('state/soccer_edge_state/analysis/oos_prediction_ledger_v4.jsonl')
+          current_model = str(diagnostics.get('current_source_model_version') or '').strip()
+          if not current_model:
+              raise SystemExit('CURRENT_SOURCE_MODEL_VERSION_MISSING')
+
+          def parse_dt(value):
+              if value in (None, ''):
+                  return None
+              try:
+                  dt = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+                  if dt.tzinfo is None:
+                      dt = dt.replace(tzinfo=timezone.utc)
+                  return dt.astimezone(timezone.utc)
+              except Exception:
+                  return None
+
+          ledger_rows = []
+          for raw in ledger_path.read_text(encoding='utf-8', errors='replace').splitlines():
+              if not raw.strip():
+                  continue
+              try:
+                  row = json.loads(raw)
+              except Exception:
+                  continue
+              if not isinstance(row, dict):
+                  continue
+              if str(row.get('model_version') or '') != current_model:
+                  continue
+              if row.get('anti_leakage') is not True:
+                  continue
+              try:
+                  fid = int(row.get('fixture_id'))
+                  p = float((row.get('predictions') or {}).get('btts'))
+                  y = int((row.get('outcomes') or {}).get('btts'))
+              except (TypeError, ValueError):
+                  continue
+              if not 0.0 <= p <= 1.0 or y not in (0, 1):
+                  continue
+              kickoff = parse_dt(row.get('kickoff'))
+              run_dt = parse_dt(row.get('run_timestamp'))
+              if kickoff is None or run_dt is None or run_dt >= kickoff:
+                  continue
+              copy = dict(row)
+              copy['_fixture_id'] = fid
+              copy['_p_btts'] = p
+              copy['_y_btts'] = y
+              copy['_kickoff_dt'] = kickoff
+              copy['_run_dt'] = run_dt
+              copy['_stage'] = str(row.get('run_type') or '').upper()
+              ledger_rows.append(copy)
+
+          by_fixture = defaultdict(list)
+          for row in ledger_rows:
+              by_fixture[row['_fixture_id']].append(row)
+          for rows in by_fixture.values():
+              rows.sort(key=lambda item: item['_run_dt'])
+
+          exclusions = Counter()
+          broad_pairs = []
+          strict_pairs = []
+          dataset_rows = dataset.get('rows') or []
+
+          for drow in dataset_rows:
+              if not isinstance(drow, dict):
+                  exclusions['dataset_non_object'] += 1
+                  continue
+              try:
+                  fid = int(drow.get('fixture_id'))
+                  target = int((drow.get('targets') or {}).get('btts'))
+              except (TypeError, ValueError):
+                  exclusions['dataset_missing_fixture_or_target'] += 1
+                  continue
+              if target not in (0, 1):
+                  exclusions['dataset_invalid_target'] += 1
+                  continue
+
+              candidates = by_fixture.get(fid) or []
+              if not candidates:
+                  exclusions['no_current_model_ledger_fixture'] += 1
+                  continue
+
+              feature_dt = parse_dt(drow.get('feature_captured_at'))
+              kickoff_dt = parse_dt(drow.get('kickoff'))
+              if feature_dt is None or kickoff_dt is None or feature_dt >= kickoff_dt:
+                  exclusions['dataset_timestamp_invalid'] += 1
+                  continue
+
+              home_rate, away_rate = _goal_rates(drow)
+              if home_rate is None or away_rate is None:
+                  exclusions['poisson_goal_rates_missing'] += 1
+                  continue
+              poisson_p = poisson_probability(home_rate, away_rate, 'btts')
+              if poisson_p is None:
+                  exclusions['poisson_probability_missing'] += 1
+                  continue
+
+              outcome_candidates = [r for r in candidates if r['_y_btts'] == target]
+              if not outcome_candidates:
+                  exclusions['outcome_mismatch'] += 1
+                  continue
+
+              # Broad diagnostic cohort: same fixture/outcome, both inputs strictly
+              # pre-kickoff. Choose the latest current-model runtime prediction.
+              broad = outcome_candidates[-1]
+              broad_pairs.append({
+                  'fixture_id': fid,
+                  'stage_dataset': str(drow.get('stage') or '').upper(),
+                  'stage_runtime': broad['_stage'],
+                  'feature_captured_at': feature_dt.isoformat(),
+                  'runtime_run_timestamp': broad['_run_dt'].isoformat(),
+                  'runtime_probability': broad['_p_btts'],
+                  'poisson_probability': float(poisson_p),
+                  'outcome': target,
+              })
+
+              dataset_stage = str(drow.get('stage') or '').upper()
+              strict_candidates = [
+                  r for r in outcome_candidates
+                  if r['_stage'] == dataset_stage and r['_run_dt'] >= feature_dt
+              ]
+              if not strict_candidates:
+                  if not any(r['_stage'] == dataset_stage for r in outcome_candidates):
+                      exclusions['strict_stage_mismatch'] += 1
+                  else:
+                      exclusions['strict_feature_snapshot_after_runtime'] += 1
+                  continue
+
+              # Nearest runtime prediction at/after the feature snapshot minimizes
+              # temporal separation without ever letting the challenger use a later
+              # feature snapshot than the baseline run.
+              strict = min(strict_candidates, key=lambda r: (r['_run_dt'] - feature_dt).total_seconds())
+              strict_pairs.append({
+                  'fixture_id': fid,
+                  'stage': dataset_stage,
+                  'feature_captured_at': feature_dt.isoformat(),
+                  'runtime_run_timestamp': strict['_run_dt'].isoformat(),
+                  'time_gap_seconds': round((strict['_run_dt'] - feature_dt).total_seconds(), 3),
+                  'runtime_probability': strict['_p_btts'],
+                  'poisson_probability': float(poisson_p),
+                  'outcome': target,
+              })
+
+          def cohort_report(rows):
+              runtime_probs = [float(r['runtime_probability']) for r in rows]
+              poisson_probs = [float(r['poisson_probability']) for r in rows]
+              outcomes = [int(r['outcome']) for r in rows]
+              runtime = _binary_metrics(runtime_probs, outcomes)
+              poisson = _binary_metrics(poisson_probs, outcomes)
+              rdisc = runtime.get('discrimination') or {}
+              pdisc = poisson.get('discrimination') or {}
+              def delta(a, b):
+                  return round(float(a) - float(b), 8) if a is not None and b is not None else None
+              stages = Counter(str(r.get('stage') or r.get('stage_dataset') or 'UNKNOWN') for r in rows)
+              fixtures = {int(r['fixture_id']) for r in rows}
+              return {
+                  'rows': len(rows),
+                  'unique_fixtures': len(fixtures),
+                  'positive_count': sum(outcomes),
+                  'negative_count': len(outcomes) - sum(outcomes),
+                  'stage_counts': dict(sorted(stages.items())),
+                  'runtime_metrics': runtime,
+                  'poisson_metrics': poisson,
+                  'comparison_poisson_minus_runtime': {
+                      'auc_delta': delta(pdisc.get('auc'), rdisc.get('auc')),
+                      'auc_lower_95_delta': delta(pdisc.get('auc_lower_95'), rdisc.get('auc_lower_95')),
+                      'brier_delta': delta(poisson.get('brier'), runtime.get('brier')),
+                      'log_loss_delta': delta(poisson.get('log_loss'), runtime.get('log_loss')),
+                  },
+                  'sample_ready': (
+                      len(rows) >= int(MIN_OOS_ROWS)
+                      and sum(outcomes) >= int(MIN_CLASS_ROWS)
+                      and (len(outcomes) - sum(outcomes)) >= int(MIN_CLASS_ROWS)
+                  ),
+              }
+
+          strict_report = cohort_report(strict_pairs)
+          broad_report = cohort_report(broad_pairs)
+          deployment = ((diagnostics.get('current_model_deployment_calibrators') or {}).get('btts') or {})
+          deployment_disc = deployment.get('discrimination') or {}
+
+          output = {
+              'schema_version': '1.0.0',
+              'model_version': 'BTTS_ALIGNED_RANKING_AUDIT_V4_1.0.0',
+              'status': 'RESEARCH_ONLY',
+              'current_source_model_version': current_model,
+              'dataset_version': dataset.get('dataset_version'),
+              'dataset_fingerprint': dataset.get('dataset_fingerprint'),
+              'dataset_rows': int(dataset.get('row_count') or len(dataset_rows)),
+              'current_model_ledger_rows_valid_prekickoff': len(ledger_rows),
+              'current_model_ledger_unique_fixtures': len(by_fixture),
+              'alignment_policy': {
+                  'primary_cohort': 'STRICT_STAGE_TIME_ALIGNED',
+                  'strict_requirements': [
+                      'same_fixture_id',
+                      'same_btts_outcome',
+                      'same_stage',
+                      'feature_captured_at < kickoff',
+                      'runtime_run_timestamp < kickoff',
+                      'feature_captured_at <= runtime_run_timestamp',
+                      'current_source_model_version_only',
+                      'anti_leakage_true',
+                      'no_market_fields',
+                  ],
+                  'broad_cohort_role': 'DIAGNOSTIC_CONTEXT_ONLY_NOT_PROMOTION_EVIDENCE',
+              },
+              'strict_stage_time_aligned': strict_report,
+              'fixture_aligned_prekickoff': broad_report,
+              'exclusion_counts': dict(sorted(exclusions.items())),
+              'current_deployment_reference_unaligned': {
+                  'rows': int(deployment.get('rows') or 0),
+                  'auc': deployment_disc.get('auc'),
+                  'auc_lower_95': deployment_disc.get('auc_lower_95'),
+                  'brier_delta_after_platt': deployment.get('brier_delta'),
+                  'log_loss_delta_after_platt': deployment.get('log_loss_delta'),
+                  'eligible_for_phase16_research': deployment.get('eligible_for_phase16_research') is True,
+              },
+              'decision_policy': (
+                  'Diagnostic comparison only. No challenger can be promoted from this audit. '
+                  'Strict aligned cohort is required for any ranking-lift interpretation; '
+                  'fixture-only broad cohort is context only.'
+              ),
+              'provider_requests_added': 0,
+              'market_fields_used': False,
+              'post_kickoff_features_used': False,
+              'thresholds_changed': False,
+              'model_weights_changed': False,
+              'canonical_bet_logic_changed': False,
+              'production_promotion_allowed': False,
+              'runtime_prediction_weight': 0.0,
+          }
+
+          out = Path('state/soccer_edge_state/analysis/btts_aligned_ranking_audit_v4.json')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps(output, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps({
+              'status': output['status'],
+              'current_source_model_version': current_model,
+              'strict_stage_time_aligned': strict_report,
+              'fixture_aligned_prekickoff': broad_report,
+              'exclusion_counts': output['exclusion_counts'],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Validate v190 safety and lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=state/soccer_edge_state/analysis/btts_aligned_ranking_audit_v4.json
+          jq -e '
+            .schema_version == "1.0.0"
+            and .model_version == "BTTS_ALIGNED_RANKING_AUDIT_V4_1.0.0"
+            and .status == "RESEARCH_ONLY"
+            and .current_source_model_version != null
+            and .market_fields_used == false
+            and .post_kickoff_features_used == false
+            and .provider_requests_added == 0
+            and .thresholds_changed == false
+            and .model_weights_changed == false
+            and .canonical_bet_logic_changed == false
+            and .production_promotion_allowed == false
+            and .runtime_prediction_weight == 0
+          ' "$R" >/dev/null
+
+      - name: Persist aligned BTTS audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/btts_aligned_ranking_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update v190 BTTS aligned ranking audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase --autostash origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
