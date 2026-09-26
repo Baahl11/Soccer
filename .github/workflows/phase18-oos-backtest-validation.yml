@@ -1,4 +1,4 @@
-name: Phase 18 OOS Backtest Validation - v161 CLV Complete
+name: Phase 18 OOS Backtest Validation - v160 Frozen OOS Evidence
 
 on:
   workflow_dispatch:
@@ -46,6 +46,7 @@ jobs:
           PYTHONPATH=. python -m mcp_gateway.oos_backtest_v4 \
             --settlement-ledger ../state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
             --clv-report ../state/soccer_edge_state/analysis/phase17_clv_engine_report.json \
+            --oos-calibration-report ../state/soccer_edge_state/analysis/oos_calibration_v4_report.json \
             --output ../state/soccer_edge_state/analysis/phase18_oos_backtest_report.json
 
       - name: Validate safety gates
