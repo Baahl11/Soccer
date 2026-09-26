@@ -1,3 +1,4 @@
+# v160 settlement provenance refresh
 # v160 refresh settlement after v159
 # Settlement freshness audit trigger: 2026-09-24-autostash-checkpoints
 name: Soccer Edge Settlement Review
@@ -70,7 +71,7 @@ jobs:
               https://soccer-edge-api.onrender.com/internal/settlement-v4/build)
 
             MODEL_VERSION=$(jq -r '.model_version // empty' /tmp/settlement_v4.json 2>/dev/null || true)
-            if [ "$HTTP_CODE" = "200" ] && [ "$MODEL_VERSION" = "SOCCER_SETTLEMENT_POSTGRES_V4_1.0.0" ]; then
+            if [ "$HTTP_CODE" = "200" ] && [ "$MODEL_VERSION" = "SOCCER_SETTLEMENT_POSTGRES_V4_1.1.0" ]; then
               READY=1
               break
             fi
@@ -81,7 +82,7 @@ jobs:
           test "$READY" = "1"
           jq -e '
             .schema_version == "1.0.0"
-            and .model_version == "SOCCER_SETTLEMENT_POSTGRES_V4_1.0.0"
+            and .model_version == "SOCCER_SETTLEMENT_POSTGRES_V4_1.1.0"
             and (.rows | type == "array")
             and (.market_performance_summary | type == "object")
             and (.provider_requests_added == 0)
