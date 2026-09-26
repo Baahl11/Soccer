@@ -1,0 +1,318 @@
+name: v173 FT Totals Maturation Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v173-ft-totals-maturation-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout state report paths
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/latest.json
+            soccer_edge_state/analysis/clv_v4_postgres_report.json
+            soccer_edge_state/analysis/ft_totals_maturation_audit_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Fetch recent compact history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ft_totals_audit
+          cp state/soccer_edge_state/latest.json /tmp/ft_totals_audit/latest.json
+          cp state/soccer_edge_state/analysis/clv_v4_postgres_report.json /tmp/ft_totals_audit/clv.json
+
+          LOCAL_DATE=$(jq -r '.generated_at_local[0:10]' /tmp/ft_totals_audit/latest.json)
+          PREV_DATE=$(date -u -d "$LOCAL_DATE -1 day" +%F)
+          for D in "$PREV_DATE" "$LOCAL_DATE"; do
+            URL="https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-state/soccer_edge_state/history/${D}.jsonl"
+            curl -fsSL --retry 2 --retry-delay 1 "$URL" -o "/tmp/ft_totals_audit/${D}.jsonl" || true
+          done
+
+      - name: Build FT Totals maturation audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          ROOT = Path('/tmp/ft_totals_audit')
+          latest = json.loads((ROOT / 'latest.json').read_text(encoding='utf-8'))
+          clv = json.loads((ROOT / 'clv.json').read_text(encoding='utf-8'))
+
+          def dt(value):
+              if not value:
+                  return None
+              try:
+                  return datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+              except Exception:
+                  return None
+
+          generated = dt(latest.get('generated_at_utc')) or dt(latest.get('generated_at_local')) or datetime.now(timezone.utc)
+          if generated.tzinfo is None:
+              generated = generated.replace(tzinfo=timezone.utc)
+          generated_utc = generated.astimezone(timezone.utc)
+
+          history = []
+          for path in sorted(ROOT.glob('*.jsonl')):
+              for raw in path.read_text(encoding='utf-8', errors='replace').splitlines():
+                  raw = raw.strip()
+                  if not raw:
+                      continue
+                  try:
+                      row = json.loads(raw)
+                  except Exception:
+                      continue
+                  if isinstance(row, dict):
+                      history.append(row)
+
+          history.sort(key=lambda r: str(r.get('generated_at_utc') or r.get('generated_at_local') or ''))
+          recent = history[-120:]
+
+          candidate_counts = Counter()
+          refresh_counts = Counter()
+          total_primary_candidates = 0
+          total_primary_calls = 0
+          total_primary_refreshed = 0
+          total_primary_unchanged = 0
+          ft_candidate_ticks = 0
+          ft_refresh_ticks = 0
+          observed_ticks = 0
+
+          for row in recent:
+              cp = row.get('price_resolution_checkpoint') if isinstance(row.get('price_resolution_checkpoint'), dict) else {}
+              if not cp:
+                  continue
+              observed_ticks += 1
+              families = cp.get('primary_clv_maturation_candidate_family_counts')
+              families = families if isinstance(families, dict) else {}
+              refreshed = cp.get('primary_clv_maturation_family_refresh_counts')
+              refreshed = refreshed if isinstance(refreshed, dict) else {}
+              for family, count in families.items():
+                  try:
+                      candidate_counts[str(family)] += int(count or 0)
+                  except Exception:
+                      pass
+              for family, count in refreshed.items():
+                  try:
+                      refresh_counts[str(family)] += int(count or 0)
+                  except Exception:
+                      pass
+              if int(families.get('FT_TOTALS') or 0) > 0:
+                  ft_candidate_ticks += 1
+              if int(refreshed.get('FT_TOTALS') or 0) > 0:
+                  ft_refresh_ticks += 1
+              total_primary_candidates += int(cp.get('primary_clv_maturation_candidates') or 0)
+              total_primary_calls += int(cp.get('primary_clv_maturation_api_calls_added') or 0)
+              total_primary_refreshed += int(cp.get('primary_clv_maturation_fixtures_refreshed') or 0)
+              total_primary_unchanged += int(cp.get('primary_clv_maturation_unchanged_provider_updates') or 0)
+
+          latest_cp = latest.get('price_resolution_checkpoint') if isinstance(latest.get('price_resolution_checkpoint'), dict) else {}
+          latest_family_counts = latest_cp.get('primary_clv_maturation_candidate_family_counts')
+          latest_family_counts = latest_family_counts if isinstance(latest_family_counts, dict) else {}
+          latest_refresh_counts = latest_cp.get('primary_clv_maturation_family_refresh_counts')
+          latest_refresh_counts = latest_refresh_counts if isinstance(latest_refresh_counts, dict) else {}
+
+          family_aliases = {'FT_TOTALS', 'TOTAL', 'FT_TOTALS_RESEARCH'}
+          visible = []
+          for row in latest.get('match_table_rows') or []:
+              if not isinstance(row, dict):
+                  continue
+              family = str(row.get('market_family') or '').upper()
+              market = str(row.get('market') or '').lower()
+              if family not in family_aliases and 'goal' not in market and 'total' not in market:
+                  continue
+              price = row.get('price')
+              try:
+                  price_num = float(price)
+              except Exception:
+                  price_num = None
+              if price_num is None or price_num <= 1.0:
+                  continue
+              kickoff = dt(row.get('kickoff'))
+              if kickoff and kickoff.tzinfo is None:
+                  kickoff = kickoff.replace(tzinfo=timezone.utc)
+              visible.append((row, kickoff.astimezone(timezone.utc) if kickoff else None))
+
+          horizons = {
+              'already_kicked_off': set(),
+              'within_55m': set(),
+              'within_2h': set(),
+              'within_6h': set(),
+              'within_12h': set(),
+              'within_24h': set(),
+              'within_48h': set(),
+              'beyond_48h': set(),
+              'missing_kickoff': set(),
+          }
+          bookmakers = Counter()
+          lines = Counter()
+          fixture_ids = set()
+          next_kickoff = None
+          for row, kickoff in visible:
+              fixture_id = row.get('fixture_id')
+              try:
+                  fixture_id = int(fixture_id)
+              except Exception:
+                  fixture_id = str(fixture_id or 'unknown')
+              fixture_ids.add(fixture_id)
+              if row.get('bookmaker'):
+                  bookmakers[str(row.get('bookmaker'))] += 1
+              if row.get('line') is not None:
+                  lines[str(row.get('line'))] += 1
+              if kickoff is None:
+                  horizons['missing_kickoff'].add(fixture_id)
+                  continue
+              delta_min = (kickoff - generated_utc).total_seconds() / 60.0
+              if delta_min <= 0:
+                  horizons['already_kicked_off'].add(fixture_id)
+                  continue
+              next_kickoff = kickoff if next_kickoff is None or kickoff < next_kickoff else next_kickoff
+              if delta_min <= 55: horizons['within_55m'].add(fixture_id)
+              if delta_min <= 120: horizons['within_2h'].add(fixture_id)
+              if delta_min <= 360: horizons['within_6h'].add(fixture_id)
+              if delta_min <= 720: horizons['within_12h'].add(fixture_id)
+              if delta_min <= 1440: horizons['within_24h'].add(fixture_id)
+              if delta_min <= 2880: horizons['within_48h'].add(fixture_id)
+              else: horizons['beyond_48h'].add(fixture_id)
+
+          horizon_counts = {key: len(value) for key, value in horizons.items()}
+          ft_recent_candidates = int(candidate_counts.get('FT_TOTALS') or 0)
+          ft_recent_refreshes = int(refresh_counts.get('FT_TOTALS') or 0)
+          latest_ft_candidates = int(latest_family_counts.get('FT_TOTALS') or 0)
+          latest_ft_refreshes = int(latest_refresh_counts.get('FT_TOTALS') or 0)
+          latest_unchanged = int(latest_cp.get('primary_clv_maturation_unchanged_provider_updates') or 0)
+
+          if horizon_counts['within_55m'] > 0 and ft_recent_candidates == 0:
+              status = 'SELECTOR_GAP_SUSPECTED'
+          elif ft_recent_candidates > 0 and ft_recent_refreshes > 0:
+              status = 'MATURATION_ACTIVE'
+          elif latest_ft_candidates > 0 and latest_ft_refreshes == 0 and latest_unchanged > 0:
+              status = 'PROVIDER_UPDATE_WAIT'
+          elif horizon_counts['within_55m'] == 0:
+              status = 'WAITING_FOR_CLOSE_WINDOW'
+          else:
+              status = 'Maturation_OBSERVATION_REQUIRED'.upper()
+
+          funnel = clv.get('ft_totals_maturation_funnel') if isinstance(clv.get('ft_totals_maturation_funnel'), dict) else {}
+          audit = {
+              'schema_version': '1.0.0',
+              'status': status,
+              'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+              'source_tick_generated_at_utc': latest.get('generated_at_utc'),
+              'source_tick_generated_at_local': latest.get('generated_at_local'),
+              'canonical_clv_model_version': clv.get('model_version'),
+              'canonical_funnel': funnel,
+              'recent_primary_maturation': {
+                  'history_ticks_loaded': len(history),
+                  'recent_ticks_analyzed': len(recent),
+                  'ticks_with_price_resolution_checkpoint': observed_ticks,
+                  'candidate_family_counts': dict(candidate_counts),
+                  'refresh_family_counts': dict(refresh_counts),
+                  'ft_totals_candidate_ticks': ft_candidate_ticks,
+                  'ft_totals_refresh_ticks': ft_refresh_ticks,
+                  'primary_candidates_total': total_primary_candidates,
+                  'primary_api_calls_total': total_primary_calls,
+                  'primary_refreshed_total': total_primary_refreshed,
+                  'primary_unchanged_provider_updates_total': total_primary_unchanged,
+              },
+              'latest_primary_maturation': {
+                  'candidates': int(latest_cp.get('primary_clv_maturation_candidates') or 0),
+                  'candidate_family_counts': latest_family_counts,
+                  'api_calls_added': int(latest_cp.get('primary_clv_maturation_api_calls_added') or 0),
+                  'fixtures_refreshed': int(latest_cp.get('primary_clv_maturation_fixtures_refreshed') or 0),
+                  'family_refresh_counts': latest_refresh_counts,
+                  'unchanged_provider_updates': latest_unchanged,
+              },
+              'current_visible_ft_totals': {
+                  'priced_rows': len(visible),
+                  'unique_fixtures': len(fixture_ids),
+                  'pending_timing': horizon_counts,
+                  'next_kickoff': next_kickoff.isoformat() if next_kickoff else None,
+                  'line_counts': dict(lines),
+                  'bookmaker_counts': dict(bookmakers),
+              },
+              'diagnostic': {
+                  'ft_totals_recent_candidates': ft_recent_candidates,
+                  'ft_totals_recent_refreshes': ft_recent_refreshes,
+                  'latest_ft_totals_candidates': latest_ft_candidates,
+                  'latest_ft_totals_refreshes': latest_ft_refreshes,
+                  'close_window_minutes': 55,
+                  'interpretation': {
+                      'WAITING_FOR_CLOSE_WINDOW': 'No currently visible priced FT Totals fixture is yet inside the strict T-55 close-capture window.',
+                      'SELECTOR_GAP_SUSPECTED': 'At least one visible priced FT Totals fixture is inside T-55 but recent primary maturation has not selected FT Totals.',
+                      'PROVIDER_UPDATE_WAIT': 'FT Totals is selected for maturation but API-Football has not produced a strictly newer provider_update yet.',
+                      'MATURATION_ACTIVE': 'Recent FT Totals maturation produced at least one later real provider quote.',
+                      'MATURATION_OBSERVATION_REQUIRED': 'FT Totals is inside the close window; observe the next scheduler tick before changing policy.',
+                  }.get(status),
+              },
+              'provider_requests_added': 0,
+              'thresholds_changed': False,
+              'close_window_changed': False,
+              'model_weights_changed': False,
+              'canonical_bet_logic_changed': False,
+              'production_promotion_allowed': False,
+          }
+
+          out = Path('state/soccer_edge_state/analysis/ft_totals_maturation_audit_v4.json')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps(audit, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps({
+              'status': status,
+              'canonical_funnel': funnel,
+              'recent_candidate_family_counts': dict(candidate_counts),
+              'recent_refresh_family_counts': dict(refresh_counts),
+              'visible_ft_totals': audit['current_visible_ft_totals'],
+              'provider_requests_added': 0,
+              'thresholds_changed': False,
+          }, indent=2))
+          PY
+
+      - name: Validate audit safety and schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT=state/soccer_edge_state/analysis/ft_totals_maturation_audit_v4.json
+          jq -e '.schema_version == "1.0.0"' "$REPORT" >/dev/null
+          jq -e '.canonical_funnel.priced_entry_rows >= 0' "$REPORT" >/dev/null
+          jq -e '.provider_requests_added == 0' "$REPORT" >/dev/null
+          jq -e '.thresholds_changed == false' "$REPORT" >/dev/null
+          jq -e '.close_window_changed == false' "$REPORT" >/dev/null
+          jq -e '.model_weights_changed == false' "$REPORT" >/dev/null
+          jq -e '.canonical_bet_logic_changed == false' "$REPORT" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$REPORT" >/dev/null
+          jq -e '.status == "WAITING_FOR_CLOSE_WINDOW" or .status == "SELECTOR_GAP_SUSPECTED" or .status == "PROVIDER_UPDATE_WAIT" or .status == "MATURATION_ACTIVE" or .status == "MATURATION_OBSERVATION_REQUIRED"' "$REPORT" >/dev/null
+
+      - name: Persist audit to state branch
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/ft_totals_maturation_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update FT Totals maturation audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
