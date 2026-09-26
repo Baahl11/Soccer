@@ -38,11 +38,27 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Warm Render
+      - name: Warm Render and wait for checked-out runtime revision
+        shell: bash
         run: |
-          curl -sS --max-time 240 --retry 2 --retry-delay 5 --retry-all-errors \
-            https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
-          cat /tmp/health.json || true
+          set -euo pipefail
+          expected_commit=$(git -C runtime rev-parse HEAD)
+          echo "v190 expected Render revision: ${expected_commit}"
+          for attempt in $(seq 1 36); do
+            if curl -sS --max-time 30 --retry 1 --retry-delay 2 --retry-all-errors \
+              https://soccer-edge-api.onrender.com/health >/tmp/health.json; then
+              cat /tmp/health.json
+              deployed_commit=$(jq -r '.render_git_commit // empty' /tmp/health.json)
+              echo "v190 Render revision attempt ${attempt}: ${deployed_commit:-UNKNOWN}"
+              if [ "$deployed_commit" = "$expected_commit" ]; then
+                echo "v190 Render revision aligned"
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo "::error::Render did not materialize checked-out runtime revision ${expected_commit}"
+          exit 1
 
       - name: Export current point-in-time training dataset
         shell: bash
