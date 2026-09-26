@@ -17,7 +17,7 @@ from mcp_gateway import automation_v6 as v6
 from mcp_gateway import automation_v89 as v89
 
 MODEL_VERSION = v89.MODEL_VERSION
-AUTOMATION_VERSION = "3.62.1"
+AUTOMATION_VERSION = "3.63.1-weekend-horizon-observed"
 
 CORE_SLATE_FLOOR_MIN_FIXTURES = int(os.getenv("SOCCER_EDGE_SLATE_FLOOR_MIN_FIXTURES", "12"))
 CORE_SLATE_FLOOR_MIN_DAILY_REMAINING = int(
@@ -680,9 +680,15 @@ def _apply_top_level_metrics(payload: dict[str, Any]) -> None:
         payload["api_raw_reconciliation_slate_count"] = core.get("reconciliation_slate_count")
         payload["merged_slate_count"] = core.get("merged_slate_count")
 
-    payload["api_slate_reconciliation_calls"] = raw_calls + core_calls
+    active_v89_source = str(core.get("source") or "") == "V89_ACTIVE_RAW_SLATE_HOOK"
+    payload["api_slate_reconciliation_calls"] = (
+        max(raw_calls, core_calls)
+        if active_v89_source
+        else raw_calls + core_calls
+    )
     payload["slate_source_policy"] = (
-        "CORE_SCHEDULER_TODAY_FIRST; IF_SOURCE_SELECTED_FIXTURE_COUNT_BELOW_FLOOR_AND_BUDGET_ALLOWS_ADD_TOMORROW"
+        "CORE_SCHEDULER_TODAY_FIRST; HIGH_QUOTA_CACHED_48H_PREFETCH; "
+        "NO_LEAGUE_ALLOWLIST; LOW_SLATE_FALLBACK_TOMORROW"
     )
 
 
@@ -757,6 +763,16 @@ async def run_tick() -> dict[str, Any]:
         v6._adaptive_paced_api_get = original_adaptive
         v6._BASE_MAX_API_CALLS_PER_TICK = original_base_cap
         v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK = original_deep_cap
+
+    if not isinstance(payload.get("core_slate_floor_reconciliation"), dict):
+        active_slate = payload.get("slate_floor_reconciliation")
+        if isinstance(active_slate, dict):
+            core = dict(active_slate)
+            core["provider_requests_added"] = int(
+                active_slate.get("api_slate_reconciliation_calls") or 0
+            )
+            core["source"] = "V89_ACTIVE_RAW_SLATE_HOOK"
+            payload["core_slate_floor_reconciliation"] = core
 
     runtime_deep_cap_observed = payload.get("max_deep_dive_fixtures_per_tick")
     runtime_request_cap_observed = payload.get("max_api_calls_per_tick")
