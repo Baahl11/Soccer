@@ -32,32 +32,43 @@ jobs:
         with:
           ref: soccer-edge-mcp-v1
           path: runtime
-          fetch-depth: 1
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Warm Render and wait for checked-out runtime revision
+      - name: Warm Render and verify v190 auth-compatible runtime
         shell: bash
         run: |
           set -euo pipefail
-          expected_commit=$(git -C runtime rev-parse HEAD)
-          echo "v190 expected Render revision: ${expected_commit}"
-          for attempt in $(seq 1 36); do
+          auth_baseline="1d9f788675c8e805f6ee7eaa3c38327cd10aacd5"
+          research_head=$(git -C runtime rev-parse HEAD)
+          echo "v190 local research HEAD: ${research_head}"
+          echo "v190 minimum Render auth baseline: ${auth_baseline}"
+
+          if ! git -C runtime cat-file -e "${auth_baseline}^{commit}" 2>/dev/null; then
+            echo "::error::v190 auth baseline is not present in runtime history"
+            exit 1
+          fi
+
+          for attempt in $(seq 1 18); do
             if curl -sS --max-time 30 --retry 1 --retry-delay 2 --retry-all-errors \
               https://soccer-edge-api.onrender.com/health >/tmp/health.json; then
               cat /tmp/health.json
               deployed_commit=$(jq -r '.render_git_commit // empty' /tmp/health.json)
               echo "v190 Render revision attempt ${attempt}: ${deployed_commit:-UNKNOWN}"
-              if [ "$deployed_commit" = "$expected_commit" ]; then
-                echo "v190 Render revision aligned"
-                exit 0
+              if [ -n "$deployed_commit" ] && git -C runtime cat-file -e "${deployed_commit}^{commit}" 2>/dev/null; then
+                if git -C runtime merge-base --is-ancestor "$auth_baseline" "$deployed_commit"; then
+                  echo "v190 Render includes auth baseline; research-only HEAD parity is not required"
+                  exit 0
+                fi
               fi
             fi
             sleep 10
           done
-          echo "::error::Render did not materialize checked-out runtime revision ${expected_commit}"
+
+          echo "::error::Render revision does not include required v190 auth baseline ${auth_baseline}"
           exit 1
 
       - name: Export current point-in-time training dataset
@@ -166,7 +177,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Build aligned BTTS runtime vs Poisson audit
+      - name: Build lineage-matched BTTS runtime vs Poisson audit
         shell: bash
         run: |
           set -euo pipefail
@@ -185,7 +196,9 @@ jobs:
           )
 
           dataset = json.loads(Path('/tmp/v190_training_dataset.json').read_text(encoding='utf-8'))
-          diagnostics = json.loads(Path('state/soccer_edge_state/analysis/oos_stage_diagnostics_v4.json').read_text(encoding='utf-8'))
+          diagnostics = json.loads(
+              Path('state/soccer_edge_state/analysis/oos_stage_diagnostics_v4.json').read_text(encoding='utf-8')
+          )
           ledger_path = Path('state/soccer_edge_state/analysis/oos_prediction_ledger_v4.jsonl')
           current_model = str(diagnostics.get('current_source_model_version') or '').strip()
           if not current_model:
@@ -203,6 +216,9 @@ jobs:
                   return None
 
           ledger_rows = []
+          ledger_model_counts = Counter()
+          ledger_fixture_sets = defaultdict(set)
+
           for raw in ledger_path.read_text(encoding='utf-8', errors='replace').splitlines():
               if not raw.strip():
                   continue
@@ -210,11 +226,7 @@ jobs:
                   row = json.loads(raw)
               except Exception:
                   continue
-              if not isinstance(row, dict):
-                  continue
-              if str(row.get('model_version') or '') != current_model:
-                  continue
-              if row.get('anti_leakage') is not True:
+              if not isinstance(row, dict) or row.get('anti_leakage') is not True:
                   continue
               try:
                   fid = int(row.get('fixture_id'))
@@ -224,10 +236,16 @@ jobs:
                   continue
               if not 0.0 <= p <= 1.0 or y not in (0, 1):
                   continue
+
               kickoff = parse_dt(row.get('kickoff'))
               run_dt = parse_dt(row.get('run_timestamp'))
               if kickoff is None or run_dt is None or run_dt >= kickoff:
                   continue
+
+              model_version = str(row.get('model_version') or '').strip()
+              if not model_version:
+                  continue
+
               copy = dict(row)
               copy['_fixture_id'] = fid
               copy['_p_btts'] = p
@@ -235,18 +253,26 @@ jobs:
               copy['_kickoff_dt'] = kickoff
               copy['_run_dt'] = run_dt
               copy['_stage'] = str(row.get('run_type') or '').upper()
+              copy['_model_version'] = model_version
               ledger_rows.append(copy)
+              ledger_model_counts[model_version] += 1
+              ledger_fixture_sets[model_version].add(fid)
 
-          by_fixture = defaultdict(list)
+          by_fixture_model = defaultdict(list)
           for row in ledger_rows:
-              by_fixture[row['_fixture_id']].append(row)
-          for rows in by_fixture.values():
+              by_fixture_model[(row['_fixture_id'], row['_model_version'])].append(row)
+          for rows in by_fixture_model.values():
               rows.sort(key=lambda item: item['_run_dt'])
 
           exclusions = Counter()
           broad_pairs = []
           strict_pairs = []
           dataset_rows = dataset.get('rows') or []
+          dataset_model_counts = Counter(
+              str(row.get('model_version') or 'UNKNOWN')
+              for row in dataset_rows
+              if isinstance(row, dict)
+          )
 
           for drow in dataset_rows:
               if not isinstance(drow, dict):
@@ -262,15 +288,24 @@ jobs:
                   exclusions['dataset_invalid_target'] += 1
                   continue
 
-              candidates = by_fixture.get(fid) or []
-              if not candidates:
-                  exclusions['no_current_model_ledger_fixture'] += 1
+              dataset_model = str(drow.get('model_version') or '').strip()
+              if not dataset_model:
+                  exclusions['dataset_model_version_missing'] += 1
                   continue
 
               feature_dt = parse_dt(drow.get('feature_captured_at'))
               kickoff_dt = parse_dt(drow.get('kickoff'))
               if feature_dt is None or kickoff_dt is None or feature_dt >= kickoff_dt:
                   exclusions['dataset_timestamp_invalid'] += 1
+                  continue
+
+              candidates = [
+                  row
+                  for row in (by_fixture_model.get((fid, dataset_model)) or [])
+                  if row['_kickoff_dt'] == kickoff_dt
+              ]
+              if not candidates:
+                  exclusions['no_lineage_matched_ledger_fixture'] += 1
                   continue
 
               home_rate, away_rate = _goal_rates(drow)
@@ -287,11 +322,10 @@ jobs:
                   exclusions['outcome_mismatch'] += 1
                   continue
 
-              # Broad diagnostic cohort: same fixture/outcome, both inputs strictly
-              # pre-kickoff. Choose the latest current-model runtime prediction.
               broad = outcome_candidates[-1]
               broad_pairs.append({
                   'fixture_id': fid,
+                  'model_version': dataset_model,
                   'stage_dataset': str(drow.get('stage') or '').upper(),
                   'stage_runtime': broad['_stage'],
                   'feature_captured_at': feature_dt.isoformat(),
@@ -313,12 +347,13 @@ jobs:
                       exclusions['strict_feature_snapshot_after_runtime'] += 1
                   continue
 
-              # Nearest runtime prediction at/after the feature snapshot minimizes
-              # temporal separation without ever letting the challenger use a later
-              # feature snapshot than the baseline run.
-              strict = min(strict_candidates, key=lambda r: (r['_run_dt'] - feature_dt).total_seconds())
+              strict = min(
+                  strict_candidates,
+                  key=lambda r: (r['_run_dt'] - feature_dt).total_seconds(),
+              )
               strict_pairs.append({
                   'fixture_id': fid,
+                  'model_version': dataset_model,
                   'stage': dataset_stage,
                   'feature_captured_at': feature_dt.isoformat(),
                   'runtime_run_timestamp': strict['_run_dt'].isoformat(),
@@ -336,9 +371,12 @@ jobs:
               poisson = _binary_metrics(poisson_probs, outcomes)
               rdisc = runtime.get('discrimination') or {}
               pdisc = poisson.get('discrimination') or {}
+
               def delta(a, b):
                   return round(float(a) - float(b), 8) if a is not None and b is not None else None
+
               stages = Counter(str(r.get('stage') or r.get('stage_dataset') or 'UNKNOWN') for r in rows)
+              models = Counter(str(r.get('model_version') or 'UNKNOWN') for r in rows)
               fixtures = {int(r['fixture_id']) for r in rows}
               return {
                   'rows': len(rows),
@@ -346,6 +384,7 @@ jobs:
                   'positive_count': sum(outcomes),
                   'negative_count': len(outcomes) - sum(outcomes),
                   'stage_counts': dict(sorted(stages.items())),
+                  'model_version_counts': dict(sorted(models.items())),
                   'runtime_metrics': runtime,
                   'poisson_metrics': poisson,
                   'comparison_poisson_minus_runtime': {
@@ -363,37 +402,73 @@ jobs:
 
           strict_report = cohort_report(strict_pairs)
           broad_report = cohort_report(broad_pairs)
+          strict_models = {
+              str(row.get('model_version') or '')
+              for row in strict_pairs
+              if str(row.get('model_version') or '')
+          }
+          current_model_evidence = bool(strict_pairs) and strict_models == {current_model}
+          historical_lineage_audit = bool(strict_pairs) and not current_model_evidence
+
+          dataset_current_fixtures = {
+              int(row.get('fixture_id'))
+              for row in dataset_rows
+              if isinstance(row, dict)
+              and row.get('fixture_id') is not None
+              and str(row.get('model_version') or '').strip() == current_model
+          }
+          ledger_current_fixtures = set(ledger_fixture_sets.get(current_model, set()))
+          current_model_fixture_overlap = len(dataset_current_fixtures & ledger_current_fixtures)
+
           deployment = ((diagnostics.get('current_model_deployment_calibrators') or {}).get('btts') or {})
           deployment_disc = deployment.get('discrimination') or {}
 
           output = {
-              'schema_version': '1.0.0',
-              'model_version': 'BTTS_ALIGNED_RANKING_AUDIT_V4_1.0.0',
+              'schema_version': '1.1.0',
+              'model_version': 'BTTS_ALIGNED_RANKING_AUDIT_V4_1.1.0',
               'status': 'RESEARCH_ONLY',
               'current_source_model_version': current_model,
               'dataset_version': dataset.get('dataset_version'),
               'dataset_fingerprint': dataset.get('dataset_fingerprint'),
               'dataset_rows': int(dataset.get('row_count') or len(dataset_rows)),
-              'current_model_ledger_rows_valid_prekickoff': len(ledger_rows),
-              'current_model_ledger_unique_fixtures': len(by_fixture),
+              'dataset_model_version_counts': dict(sorted(dataset_model_counts.items())),
+              'ledger_valid_prekickoff_rows': len(ledger_rows),
+              'ledger_model_version_counts': dict(sorted(ledger_model_counts.items())),
+              'current_model_ledger_rows_valid_prekickoff': int(ledger_model_counts.get(current_model, 0)),
+              'current_model_ledger_unique_fixtures': len(ledger_current_fixtures),
+              'current_model_dataset_fixture_overlap': current_model_fixture_overlap,
               'alignment_policy': {
-                  'primary_cohort': 'STRICT_STAGE_TIME_ALIGNED',
+                  'primary_cohort': 'LINEAGE_MATCHED_STAGE_TIME_ALIGNED',
                   'strict_requirements': [
                       'same_fixture_id',
+                      'same_model_version',
                       'same_btts_outcome',
                       'same_stage',
+                      'same_kickoff',
                       'feature_captured_at < kickoff',
                       'runtime_run_timestamp < kickoff',
                       'feature_captured_at <= runtime_run_timestamp',
-                      'current_source_model_version_only',
                       'anti_leakage_true',
                       'no_market_fields',
                   ],
-                  'broad_cohort_role': 'DIAGNOSTIC_CONTEXT_ONLY_NOT_PROMOTION_EVIDENCE',
+                  'broad_cohort_role': 'LINEAGE_MATCHED_DIAGNOSTIC_CONTEXT_ONLY_NOT_PROMOTION_EVIDENCE',
               },
-              'strict_stage_time_aligned': strict_report,
-              'fixture_aligned_prekickoff': broad_report,
+              'lineage_matched_stage_time_aligned': strict_report,
+              'lineage_matched_fixture_prekickoff': broad_report,
               'exclusion_counts': dict(sorted(exclusions.items())),
+              'evidence_scope': {
+                  'current_model_evidence': current_model_evidence,
+                  'historical_lineage_audit': historical_lineage_audit,
+                  'strict_model_versions': sorted(strict_models),
+                  'unlock_interpretation_allowed': current_model_evidence,
+                  'reason': (
+                      'STRICT_COHORT_IS_CURRENT_MODEL'
+                      if current_model_evidence
+                      else 'STRICT_COHORT_IS_HISTORICAL_LINEAGE_NOT_CURRENT_MODEL'
+                      if historical_lineage_audit
+                      else 'NO_STRICT_ALIGNED_COHORT'
+                  ),
+              },
               'current_deployment_reference_unaligned': {
                   'rows': int(deployment.get('rows') or 0),
                   'auc': deployment_disc.get('auc'),
@@ -404,8 +479,8 @@ jobs:
               },
               'decision_policy': (
                   'Diagnostic comparison only. No challenger can be promoted from this audit. '
-                  'Strict aligned cohort is required for any ranking-lift interpretation; '
-                  'fixture-only broad cohort is context only.'
+                  'Lineage-matched stage/time alignment is required for ranking-lift interpretation. '
+                  'Historical lineage evidence must not be relabeled as current-model evidence.'
               ),
               'provider_requests_added': 0,
               'market_fields_used': False,
@@ -423,8 +498,10 @@ jobs:
           print(json.dumps({
               'status': output['status'],
               'current_source_model_version': current_model,
-              'strict_stage_time_aligned': strict_report,
-              'fixture_aligned_prekickoff': broad_report,
+              'dataset_model_version_counts': output['dataset_model_version_counts'],
+              'current_model_dataset_fixture_overlap': current_model_fixture_overlap,
+              'lineage_matched_stage_time_aligned': strict_report,
+              'evidence_scope': output['evidence_scope'],
               'exclusion_counts': output['exclusion_counts'],
           }, indent=2, sort_keys=True))
           PY
@@ -435,10 +512,11 @@ jobs:
           set -euo pipefail
           R=state/soccer_edge_state/analysis/btts_aligned_ranking_audit_v4.json
           jq -e '
-            .schema_version == "1.0.0"
-            and .model_version == "BTTS_ALIGNED_RANKING_AUDIT_V4_1.0.0"
+            .schema_version == "1.1.0"
+            and .model_version == "BTTS_ALIGNED_RANKING_AUDIT_V4_1.1.0"
             and .status == "RESEARCH_ONLY"
             and .current_source_model_version != null
+            and .alignment_policy.primary_cohort == "LINEAGE_MATCHED_STAGE_TIME_ALIGNED"
             and .market_fields_used == false
             and .post_kickoff_features_used == false
             and .provider_requests_added == 0
@@ -447,6 +525,11 @@ jobs:
             and .canonical_bet_logic_changed == false
             and .production_promotion_allowed == false
             and .runtime_prediction_weight == 0
+            and (
+              (.evidence_scope.current_model_evidence == true and .evidence_scope.unlock_interpretation_allowed == true)
+              or
+              (.evidence_scope.current_model_evidence == false and .evidence_scope.unlock_interpretation_allowed == false)
+            )
           ' "$R" >/dev/null
 
       - name: Persist aligned BTTS audit
@@ -458,7 +541,7 @@ jobs:
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add -f soccer_edge_state/analysis/btts_aligned_ranking_audit_v4.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Update v190 BTTS aligned ranking audit"
+          git commit -m "Update v190 BTTS lineage-matched ranking audit"
           for attempt in 1 2 3; do
             git fetch origin soccer-edge-state
             git rebase --autostash origin/soccer-edge-state
