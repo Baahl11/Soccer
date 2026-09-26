@@ -5,7 +5,7 @@ import sys
 
 import httpx
 
-from mcp_gateway import automation_v6, automation_v7, automation_v123
+from mcp_gateway import automation_v6, automation_v7, automation_v123, product_views_v4
 from mcp_gateway.persistence_v2 import persist_tick
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -80,6 +80,22 @@ async def _main() -> int:
         except Exception as db_exc:
             payload["database_persisted"] = False
             payload["database_error"] = str(db_exc)[:300]
+
+        # Phase24 views were initially assembled upstream before the final
+        # price-resolver/CLV annotations and before persistence completed.
+        # Rebuild once here from the final payload so the returned/state-branch
+        # snapshot reflects final API caps, maturation counters and DB health.
+        try:
+            product = product_views_v4.build_views(payload, limit=product_views_v4.MAX_ROWS_PER_VIEW)
+            payload["dashboard_views"] = product["views"]
+            phase24 = payload.get("phase24_final_product_experience")
+            if isinstance(phase24, dict):
+                phase24["model_version"] = product_views_v4.MODEL_VERSION
+                phase24["row_limit_per_view"] = product["row_limit_per_view"]
+                phase24["dashboard_views_refreshed_after_persistence"] = True
+        except Exception as dashboard_exc:
+            payload["dashboard_refresh_error"] = str(dashboard_exc)[:300]
+
         encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         sys.stdout.write(encoded)
         sys.stdout.flush()
