@@ -180,3 +180,48 @@ CREATE INDEX IF NOT EXISTS idx_soccer_training_builds_asof ON soccer_training_da
 
 ALTER TABLE soccer_training_dataset_rows ADD COLUMN IF NOT EXISTS provenance JSONB;
 ALTER TABLE soccer_training_dataset_rows ADD COLUMN IF NOT EXISTS row_payload JSONB;
+
+-- One-time v190 metadata reconciliation. This only touches the exact model run
+-- paired to the latest materialized training snapshot after that snapshot's
+-- lineage was independently proven and repaired to v1.7. Projection payloads,
+-- probabilities, outcomes and timestamps are not changed.
+WITH latest_build AS (
+    SELECT build_id
+    FROM soccer_training_dataset_builds
+    ORDER BY as_of DESC, created_at DESC
+    LIMIT 1
+), cohort AS (
+    SELECT t.fixture_id, t.snapshot_id, t.kickoff
+    FROM soccer_training_dataset_rows t
+    JOIN latest_build b ON b.build_id = t.build_id
+    WHERE t.row_payload->>'model_version' = 'SOCCER EDGE ENGINE v1.7'
+), repairable AS (
+    SELECT DISTINCT m.model_run_id
+    FROM cohort c
+    JOIN soccer_feature_snapshots s
+      ON s.snapshot_id = c.snapshot_id
+     AND s.fixture_id = c.fixture_id
+     AND s.schema_version = '4.0.0'
+     AND s.model_version = 'SOCCER EDGE ENGINE v1.7'
+     AND s.payload->>'model_version' = 'SOCCER EDGE ENGINE v1.7'
+    JOIN soccer_model_runs m
+      ON m.fixture_id = s.fixture_id
+     AND m.run_timestamp = s.captured_at
+     AND COALESCE(m.run_type, '') = COALESCE(s.stage, '')
+    JOIN soccer_refresh_events e
+      ON e.fixture_id = m.fixture_id
+     AND e.generated_at = m.run_timestamp
+     AND COALESCE(e.stage, '') = COALESCE(m.run_type, '')
+     AND e.event_type = 'SOCCER_REFRESH'
+    WHERE m.model_version = 'SOCCER EDGE ENGINE v1.0'
+      AND m.run_timestamp < c.kickoff
+      AND e.payload->>'model_version' = 'SOCCER EDGE ENGINE v1.0'
+      AND m.raw_projection IS NOT NULL
+      AND e.payload->'raw_projection' IS NOT NULL
+      AND m.raw_projection = e.payload->'raw_projection'
+)
+UPDATE soccer_model_runs m
+SET model_version = 'SOCCER EDGE ENGINE v1.7'
+FROM repairable r
+WHERE m.model_run_id = r.model_run_id
+  AND m.model_version = 'SOCCER EDGE ENGINE v1.0';
