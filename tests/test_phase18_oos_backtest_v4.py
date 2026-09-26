@@ -14,11 +14,13 @@ def _row(i: int, status: str, roi: float, *, quote_ts=True, lineup_ts=True, feat
         "settlement_status": status,
         "roi_units": roi,
         "stake_units": 1.0,
+        "source": "POSTGRES_REFRESH_EVENT",
     }
     if quote_ts:
         row["quote_timestamp"] = (base - timedelta(minutes=5)).isoformat()
     if lineup_ts:
         row["lineup_captured_at"] = (base - timedelta(minutes=10)).isoformat()
+        row["lineup_observation_timestamp"] = row["lineup_captured_at"]
     if feature_ts:
         row["feature_captured_at"] = (base - timedelta(minutes=15)).isoformat()
     return row
@@ -102,3 +104,44 @@ def test_phase18_accepts_v159_capture_complete_clv_status():
     )
     assert "CLV_ENGINE_NOT_COMPLETE" not in report["blockers"]
     assert report["clv_context"]["status"] == "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE"
+
+
+
+def test_phase18_legacy_missing_timestamps_are_warnings_not_modern_blockers():
+    rows = []
+    for i in range(60):
+        row = _row(
+            i,
+            "WIN" if i % 2 == 0 else "LOSS",
+            1.0 if i % 2 == 0 else -1.0,
+            quote_ts=False,
+            lineup_ts=False,
+            feature_ts=False,
+        )
+        row.pop("source", None)
+        rows.append(row)
+
+    report = v.build_report(
+        rows,
+        {
+            "status": "CLV_CAPTURE_COMPLETE_ANALYSIS_AVAILABLE",
+            "rows": 179,
+            "true_closing_line_rows": 179,
+            "overall": {"avg_probability_clv_pp": 0.1},
+        },
+    )
+
+    assert "BOOKMAKER_TIMESTAMP_DISCIPLINE_INCOMPLETE" not in report["blockers"]
+    assert "LINEUP_TIMESTAMP_DISCIPLINE_INCOMPLETE" not in report["blockers"]
+    assert "FEATURE_TIMESTAMP_DISCIPLINE_INCOMPLETE" not in report["blockers"]
+    assert "NO_MODERN_SETTLEMENT_ROWS_FOR_TIMESTAMP_VALIDATION" in report["warnings"]
+    assert "LEGACY_BOOKMAKER_TIMESTAMP_UNKNOWN_60" in report["warnings"]
+    assert report["timestamp_discipline"]["modern_rows"] == 0
+    assert report["timestamp_discipline"]["legacy_rows"] == 60
+
+
+def test_phase18_accepts_lineup_observation_timestamp_without_claiming_confirmed_lineup():
+    row = _row(1, "WIN", 1.0, lineup_ts=False)
+    row["lineup_observation_timestamp"] = row["feature_captured_at"]
+    discipline = v.timestamp_discipline([row])
+    assert discipline["modern_lineup_timestamp_coverage"] == 1.0
