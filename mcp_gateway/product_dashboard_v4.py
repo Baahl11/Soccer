@@ -4,8 +4,8 @@ import html
 import json
 from typing import Any
 
-SCHEMA_VERSION = "1.1.0"
-MODEL_VERSION = "SOCCER_PRODUCT_DASHBOARD_V4_1.1.0"
+SCHEMA_VERSION = "1.2.0"
+MODEL_VERSION = "SOCCER_PRODUCT_DASHBOARD_V4_1.2.0"
 
 DISPLAY_VIEWS = (
     ("strong_sport_signals", "Strong Sport Signals"),
@@ -223,6 +223,32 @@ def render_dashboard(product_payload: dict[str, Any]) -> str:
         _metric("Events", pipeline.get("events")),
         _metric("Research visible", pipeline.get("research_visible")),
         _metric("API calls", pipeline.get("api_calls"), f"cap {_num(pipeline.get('api_call_cap'))}"),
+        _metric("Scheduler mode", pipeline.get("scheduler_mode"), f"schema {_esc(pipeline.get('scheduler_schema_version'))}"),
+        _metric(
+            "Unseen processed",
+            pipeline.get("scheduler_unseen_processed"),
+            f"actionable {_num(pipeline.get('scheduler_actionable_processed'))}",
+        ),
+        _metric(
+            "Starvation",
+            pipeline.get("scheduler_starvation_count"),
+            f"{_esc(pipeline.get('scheduler_due_analyzed_pct'))}% analyzed",
+        ),
+        _metric(
+            "Planned leagues",
+            pipeline.get("scheduler_planned_unique_leagues"),
+            f"urgent {_num(pipeline.get('scheduler_urgent_actionable_count'))}",
+        ),
+        _metric(
+            "TT close candidates",
+            pipeline.get("team_totals_maturation_candidates"),
+            f"matured {_num(pipeline.get('team_totals_later_quote_refreshes'))}",
+        ),
+        _metric(
+            "Primary close candidates",
+            pipeline.get("primary_clv_maturation_candidates"),
+            f"refreshed {_num(pipeline.get('primary_clv_maturation_refreshed'))}",
+        ),
     ))
 
     gate_rows = "".join(_gate_html(g) for g in gates if isinstance(g, dict))
