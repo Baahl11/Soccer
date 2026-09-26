@@ -1,0 +1,204 @@
+name: v175 FT Totals Shadow Stage Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v175-ft-totals-shadow-stage-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout state evidence
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/shadow_performance_summary_v4.json
+            soccer_edge_state/analysis/league_stage_stability_v4.json
+            soccer_edge_state/analysis/phase19_promotion_framework_report.json
+            soccer_edge_state/analysis/ft_totals_shadow_stage_audit_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Build FT Totals shadow stage audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          base = Path('state/soccer_edge_state/analysis')
+          shadow = json.loads((base / 'shadow_performance_summary_v4.json').read_text(encoding='utf-8'))
+          stability = json.loads((base / 'league_stage_stability_v4.json').read_text(encoding='utf-8'))
+          phase19 = json.loads((base / 'phase19_promotion_framework_report.json').read_text(encoding='utf-8'))
+
+          aliases = ('FT_TOTALS', 'TOTAL', 'FT_TOTALS_RESEARCH')
+          shadow_families = shadow.get('by_market_family') if isinstance(shadow.get('by_market_family'), dict) else {}
+          source_key = next((key for key in aliases if isinstance(shadow_families.get(key), dict)), None)
+          family = shadow_families.get(source_key, {}) if source_key else {}
+
+          stage_rows = []
+          for stage, metrics in (family.get('by_stage') or {}).items():
+              if not isinstance(metrics, dict):
+                  continue
+              settled = int(metrics.get('settled') or 0)
+              roi = metrics.get('shadow_roi_per_settled_unit')
+              if settled < 20:
+                  diagnostic_state = 'SMALL_SAMPLE'
+              elif roi is not None and float(roi) < 0:
+                  diagnostic_state = 'NEGATIVE_DIRECTIONAL'
+              else:
+                  diagnostic_state = 'NONNEGATIVE_DIRECTIONAL'
+              stage_rows.append({
+                  'stage': stage,
+                  'rows': int(metrics.get('rows') or 0),
+                  'settled': settled,
+                  'unique_fixtures': int(metrics.get('unique_fixtures') or 0),
+                  'hit_rate_ex_push': metrics.get('hit_rate_ex_push'),
+                  'roi_per_settled_unit': roi,
+                  'roi_units': metrics.get('shadow_roi_hypothetical_units'),
+                  'sample_status': metrics.get('sample_status'),
+                  'diagnostic_state': diagnostic_state,
+              })
+          stage_rows.sort(key=lambda x: (-x['settled'], x['stage']))
+
+          league_rows = []
+          for league, metrics in (family.get('by_league') or {}).items():
+              if not isinstance(metrics, dict):
+                  continue
+              league_rows.append({
+                  'league': league,
+                  'rows': int(metrics.get('rows') or 0),
+                  'settled': int(metrics.get('settled') or 0),
+                  'unique_fixtures': int(metrics.get('unique_fixtures') or 0),
+                  'hit_rate_ex_push': metrics.get('hit_rate_ex_push'),
+                  'roi_per_settled_unit': metrics.get('shadow_roi_per_settled_unit'),
+                  'roi_units': metrics.get('shadow_roi_hypothetical_units'),
+                  'sample_status': metrics.get('sample_status'),
+              })
+          league_rows.sort(key=lambda x: (-x['settled'], x['league']))
+
+          review = next(
+              (row for row in (phase19.get('market_family_reviews') or [])
+               if isinstance(row, dict) and row.get('market_family') == 'FT_TOTALS'),
+              {},
+          )
+
+          stability_families = stability.get('families') if isinstance(stability.get('families'), dict) else {}
+          stability_key = next((key for key in aliases if isinstance(stability_families.get(key), dict)), None)
+          stability_family = stability_families.get(stability_key, {}) if stability_key else {}
+
+          total_settled = int(family.get('settled') or 0)
+          stage_settled = sum(row['settled'] for row in stage_rows)
+          negative_directional = [row['stage'] for row in stage_rows if row['diagnostic_state'] == 'NEGATIVE_DIRECTIONAL']
+          small_sample = [row['stage'] for row in stage_rows if row['diagnostic_state'] == 'SMALL_SAMPLE']
+
+          report = {
+              'schema_version': '1.0.0',
+              'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+              'market_family': 'FT_TOTALS',
+              'shadow_source_key': source_key,
+              'status': 'SHADOW_STAGE_AUDIT_AVAILABLE' if source_key else 'SHADOW_FT_TOTALS_MISSING',
+              'overall': {
+                  'rows': int(family.get('rows') or 0),
+                  'settled': total_settled,
+                  'unique_fixtures': int(family.get('unique_fixtures') or 0),
+                  'hit_rate_ex_push': family.get('hit_rate_ex_push'),
+                  'roi_per_settled_unit': family.get('shadow_roi_per_settled_unit'),
+                  'roi_units': family.get('shadow_roi_hypothetical_units'),
+                  'sample_status': family.get('sample_status'),
+              },
+              'by_stage': stage_rows,
+              'stage_consistency': {
+                  'overall_settled': total_settled,
+                  'sum_stage_settled': stage_settled,
+                  'settled_counts_match': total_settled == stage_settled,
+                  'negative_directional_stages': negative_directional,
+                  'small_sample_stages': small_sample,
+              },
+              'by_league_top_by_sample': league_rows[:30],
+              'descriptive_negative_leagues_min_5_settled': [
+                  row for row in league_rows
+                  if row['settled'] >= 5
+                  and row['roi_per_settled_unit'] is not None
+                  and float(row['roi_per_settled_unit']) < 0
+              ],
+              'phase19_crosscheck': {
+                  'recommended_state': review.get('recommended_state'),
+                  'watch_shadow_settled': review.get('watch_shadow_settled'),
+                  'watch_shadow_roi_per_settled_unit': review.get('watch_shadow_roi_per_settled_unit'),
+                  'watch_shadow_negative_directional_stages': review.get('watch_shadow_negative_directional_stages') or [],
+                  'true_clv_rows': review.get('true_clv_rows'),
+                  'validation_status': review.get('validation_status'),
+              },
+              'true_clv_stability': {
+                  'source_key': stability_key,
+                  'available': bool(stability_family),
+                  'status': stability_family.get('status') if stability_family else 'MISSING_UNTIL_TRUE_CLV_SAMPLE',
+                  'negative_directional_stages': stability_family.get('negative_directional_stages') or [],
+                  'negative_directional_leagues': stability_family.get('negative_directional_leagues') or [],
+              },
+              'interpretation_policy': (
+                  'Shadow stage/league performance is diagnostic only. It may identify segments for review, '
+                  'but cannot substitute for strict true CLV, OOS calibration, Phase19 sample gates or manual approval.'
+              ),
+              'provider_requests_added': 0,
+              'thresholds_changed': False,
+              'model_weights_changed': False,
+              'canonical_bet_logic_changed': False,
+              'production_promotion_allowed': False,
+          }
+
+          out = base / 'ft_totals_shadow_stage_audit_v4.json'
+          out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps({
+              'status': report['status'],
+              'overall': report['overall'],
+              'by_stage': report['by_stage'],
+              'negative_leagues_min_5': report['descriptive_negative_leagues_min_5_settled'],
+              'phase19_crosscheck': report['phase19_crosscheck'],
+              'true_clv_stability': report['true_clv_stability'],
+          }, indent=2))
+          PY
+
+      - name: Validate audit safety gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT=state/soccer_edge_state/analysis/ft_totals_shadow_stage_audit_v4.json
+          jq -e '.schema_version == "1.0.0"' "$REPORT" >/dev/null
+          jq -e '.market_family == "FT_TOTALS"' "$REPORT" >/dev/null
+          jq -e '.provider_requests_added == 0' "$REPORT" >/dev/null
+          jq -e '.thresholds_changed == false' "$REPORT" >/dev/null
+          jq -e '.model_weights_changed == false' "$REPORT" >/dev/null
+          jq -e '.canonical_bet_logic_changed == false' "$REPORT" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$REPORT" >/dev/null
+          jq -e '.stage_consistency.settled_counts_match == true' "$REPORT" >/dev/null
+
+      - name: Persist audit to state branch
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/ft_totals_shadow_stage_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update FT Totals shadow stage audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
