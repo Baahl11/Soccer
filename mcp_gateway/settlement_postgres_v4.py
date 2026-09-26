@@ -111,6 +111,10 @@ def _normalized_actionable_rows(raw_rows: Iterable[dict[str, Any]]) -> list[dict
             "quote_timestamp": _parse_dt(raw.get("quote_timestamp")),
             "quote_provider_update": _parse_dt(raw.get("quote_provider_update")),
             "lineup_timestamp": _parse_dt(raw.get("lineup_timestamp")),
+            "lineup_observation_timestamp": (
+                _parse_dt(raw.get("lineup_timestamp"))
+                or _parse_dt(raw.get("feature_timestamp"))
+            ),
             "feature_timestamp": _parse_dt(raw.get("feature_timestamp")),
             "best_market": best,
             "result": result,
@@ -172,6 +176,7 @@ def _settlement_row(row: dict[str, Any]) -> dict[str, Any]:
         "quote_provider_update": row.get("quote_provider_update").isoformat() if isinstance(row.get("quote_provider_update"), datetime) else row.get("quote_provider_update"),
         "lineup_timestamp": row.get("lineup_timestamp").isoformat() if isinstance(row.get("lineup_timestamp"), datetime) else row.get("lineup_timestamp"),
         "lineup_captured_at": row.get("lineup_timestamp").isoformat() if isinstance(row.get("lineup_timestamp"), datetime) else row.get("lineup_timestamp"),
+        "lineup_observation_timestamp": row.get("lineup_observation_timestamp").isoformat() if isinstance(row.get("lineup_observation_timestamp"), datetime) else row.get("lineup_observation_timestamp"),
         "feature_timestamp": row.get("feature_timestamp").isoformat() if isinstance(row.get("feature_timestamp"), datetime) else row.get("feature_timestamp"),
         "feature_captured_at": row.get("feature_timestamp").isoformat() if isinstance(row.get("feature_timestamp"), datetime) else row.get("feature_timestamp"),
         "stake_units": stake,
