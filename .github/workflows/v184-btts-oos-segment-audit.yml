@@ -1,0 +1,207 @@
+name: v184 BTTS OOS Segment Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v184-btts-oos-segment-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout OOS and signal ledgers
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/oos_prediction_ledger_v4.jsonl
+            soccer_edge_state/analysis/oos_stage_diagnostics_v4.json
+            soccer_edge_state/analysis/signal_ledger.jsonl
+            soccer_edge_state/analysis/btts_oos_segment_audit_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Build BTTS OOS segment audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, math
+          from collections import defaultdict, Counter
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          base = Path('state/soccer_edge_state/analysis')
+          diag = json.loads((base/'oos_stage_diagnostics_v4.json').read_text(encoding='utf-8'))
+          current_model = str(diag.get('current_source_model_version') or '')
+
+          fixture_meta = {}
+          for raw in (base/'signal_ledger.jsonl').read_text(encoding='utf-8',errors='replace').splitlines():
+              if not raw.strip(): continue
+              try: r=json.loads(raw)
+              except Exception: continue
+              if not isinstance(r,dict) or r.get('fixture_id') is None: continue
+              try: fid=int(r['fixture_id'])
+              except Exception: continue
+              stamp=str(r.get('generated_at_utc') or r.get('generated_at_local') or '')
+              prev=fixture_meta.get(fid)
+              if prev is None or stamp >= prev['stamp']:
+                  fixture_meta[fid]={
+                      'stamp':stamp,
+                      'league':r.get('league'),
+                      'country':r.get('country'),
+                      'data_tier':r.get('data_tier'),
+                  }
+
+          rows=[]
+          for raw in (base/'oos_prediction_ledger_v4.jsonl').read_text(encoding='utf-8',errors='replace').splitlines():
+              if not raw.strip(): continue
+              try: r=json.loads(raw)
+              except Exception: continue
+              if not isinstance(r,dict): continue
+              if str(r.get('model_version') or '') != current_model: continue
+              preds=r.get('predictions') if isinstance(r.get('predictions'),dict) else {}
+              outs=r.get('outcomes') if isinstance(r.get('outcomes'),dict) else {}
+              try: p=float(preds.get('btts'))
+              except Exception: continue
+              y=outs.get('btts')
+              if not (0.0 <= p <= 1.0) or y not in (0,1): continue
+              try: fid=int(r.get('fixture_id'))
+              except Exception: fid=None
+              meta=fixture_meta.get(fid,{}) if fid is not None else {}
+              rows.append({
+                  'fixture_id':fid,'p':p,'y':int(y),
+                  'stage':str(r.get('run_type') or 'UNKNOWN').upper(),
+                  'source':str(r.get('source') or 'UNKNOWN'),
+                  'league':str(meta.get('league') or 'UNKNOWN'),
+                  'country':str(meta.get('country') or 'UNKNOWN'),
+                  'data_tier':str(meta.get('data_tier') or 'UNKNOWN').upper(),
+              })
+
+          def auc_stats(obs):
+              pos=[r for r in obs if r['y']==1]; neg=[r for r in obs if r['y']==0]
+              np_, nn=len(pos),len(neg)
+              if not np_ or not nn:
+                  return {'auc':None,'auc_lower_95':None,'positive_count':np_,'negative_count':nn}
+              ranked=sorted((r['p'],r['y']) for r in obs)
+              rank=1; pos_ranks=0.0; i=0
+              while i<len(ranked):
+                  j=i+1
+                  while j<len(ranked) and ranked[j][0]==ranked[i][0]: j+=1
+                  n=j-i; av=(rank+(rank+n-1))/2.0
+                  pos_ranks += av*sum(y for _,y in ranked[i:j])
+                  rank += n; i=j
+              auc=(pos_ranks - np_*(np_+1)/2.0)/(np_*nn)
+              q1=auc/(2-auc) if auc<2 else 0.0
+              q2=(2*auc*auc)/(1+auc) if auc>-1 else 0.0
+              var=(auc*(1-auc)+(np_-1)*(q1-auc*auc)+(nn-1)*(q2-auc*auc))/(np_*nn)
+              se=math.sqrt(max(var,0.0)); lo=max(0.0,auc-1.96*se)
+              return {'auc':round(auc,8),'auc_lower_95':round(lo,8),'positive_count':np_,'negative_count':nn}
+
+          def metrics(group):
+              n=len(group)
+              if not n: return {'rows':0}
+              avgp=sum(r['p'] for r in group)/n; rate=sum(r['y'] for r in group)/n
+              brier=sum((r['p']-r['y'])**2 for r in group)/n
+              eps=1e-12
+              ll=-sum(r['y']*math.log(max(r['p'],eps))+(1-r['y'])*math.log(max(1-r['p'],eps)) for r in group)/n
+              return {
+                  'rows':n,'unique_fixtures':len({r['fixture_id'] for r in group if r['fixture_id'] is not None}),
+                  'avg_probability':round(avgp,6),'observed_rate':round(rate,6),
+                  'observed_minus_predicted_pp':round((rate-avgp)*100,4),
+                  'brier':round(brier,8),'log_loss':round(ll,8),**auc_stats(group),
+              }
+
+          def groups(keyfn,min_n=1):
+              d=defaultdict(list)
+              for r in rows: d[str(keyfn(r))].append(r)
+              out=[]
+              for k,g in d.items():
+                  if len(g)<min_n: continue
+                  out.append({'key':k,**metrics(g)})
+              out.sort(key=lambda x:(-x['rows'],x['key']))
+              return out
+
+          def prob_bucket(p):
+              if p<0.35:return '<0.35'
+              if p<0.45:return '0.35-0.449'
+              if p<0.55:return '0.45-0.549'
+              if p<0.65:return '0.55-0.649'
+              return '0.65+'
+
+          by_prob=groups(lambda r:prob_bucket(r['p']),10)
+          by_stage=groups(lambda r:r['stage'],20)
+          by_tier=groups(lambda r:r['data_tier'],20)
+          by_league=groups(lambda r:r['league'],20)
+          by_source=groups(lambda r:r['source'],20)
+
+          # Conservative descriptive flags only; no automatic filtering.
+          weak_leagues=[x for x in by_league if x['auc_lower_95'] is not None and x['auc_lower_95']<=0.5]
+          probability_bias=[x for x in by_prob if abs(x.get('observed_minus_predicted_pp') or 0)>=5]
+
+          report={
+              'schema_version':'1.0.0','generated_at_utc':datetime.now(timezone.utc).isoformat(),
+              'status':'BTTS_OOS_SEGMENT_AUDIT_AVAILABLE','market_family':'BTTS',
+              'source_model_version':current_model,'rows':len(rows),'overall':metrics(rows),
+              'metadata_enrichment':{
+                  'fixtures_with_signal_metadata':sum(r['league']!='UNKNOWN' or r['data_tier']!='UNKNOWN' for r in rows),
+                  'league_unknown_rows':sum(r['league']=='UNKNOWN' for r in rows),
+                  'data_tier_unknown_rows':sum(r['data_tier']=='UNKNOWN' for r in rows),
+                  'policy':'fixture_id join to latest available signal-ledger metadata; predictions/outcomes remain canonical OOS ledger values',
+              },
+              'by_probability_bucket':by_prob,'by_stage':by_stage,'by_data_tier':by_tier,
+              'by_league_min20':by_league,'by_source':by_source,
+              'diagnostics':{
+                  'probability_buckets_abs_calibration_gap_ge_5pp':probability_bias,
+                  'leagues_min20_not_discrimination_ready':weak_leagues,
+                  'overall_discrimination_ready':(metrics(rows).get('auc_lower_95') or 0)>0.5,
+              },
+              'interpretation_policy':'Segment diagnostics describe where current-model BTTS OOS discrimination/calibration is weak. They cannot create league/tier/probability production filters or alter calibration, thresholds, weights, close windows, or promotion gates.',
+              'provider_requests_added':0,'thresholds_changed':False,'model_weights_changed':False,
+              'canonical_bet_logic_changed':False,'production_filter_changed':False,'production_promotion_allowed':False,
+          }
+          out=base/'btts_oos_segment_audit_v4.json'
+          out.write_text(json.dumps(report,indent=2,sort_keys=True),encoding='utf-8')
+          print(json.dumps({
+              'source_model_version':current_model,'rows':len(rows),'overall':report['overall'],
+              'by_probability_bucket':by_prob,'by_stage':by_stage,'by_data_tier':by_tier,
+              'by_league_min20':by_league,'diagnostics':report['diagnostics'],
+              'metadata_enrichment':report['metadata_enrichment']
+          },indent=2))
+          PY
+
+      - name: Validate safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=state/soccer_edge_state/analysis/btts_oos_segment_audit_v4.json
+          jq -e '.schema_version == "1.0.0" and .market_family == "BTTS"' "$R" >/dev/null
+          jq -e '.rows >= 300' "$R" >/dev/null
+          jq -e '.provider_requests_added == 0' "$R" >/dev/null
+          jq -e '.thresholds_changed == false and .model_weights_changed == false and .canonical_bet_logic_changed == false' "$R" >/dev/null
+          jq -e '.production_filter_changed == false and .production_promotion_allowed == false' "$R" >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/btts_oos_segment_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update BTTS OOS segment audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
