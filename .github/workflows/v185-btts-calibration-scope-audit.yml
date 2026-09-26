@@ -1,0 +1,176 @@
+name: v185 BTTS Calibration Scope Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v185-btts-calibration-scope-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build BTTS calibration scope audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python - <<'PY'
+          import json
+          from collections import Counter
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from mcp_gateway import calibration_v4
+
+          src = Path("state/soccer_edge_state/analysis/oos_prediction_ledger_v4.jsonl")
+          out = Path("state/soccer_edge_state/analysis/btts_calibration_scope_audit_v4.json")
+
+          rows = []
+          for line in src.read_text(encoding="utf-8").splitlines():
+              if not line.strip():
+                  continue
+              row = json.loads(line)
+              preds = row.get("predictions") if isinstance(row.get("predictions"), dict) else {}
+              outcomes = row.get("outcomes") if isinstance(row.get("outcomes"), dict) else {}
+              p = preds.get("btts")
+              y = outcomes.get("btts")
+              if p is None or y not in (0, 1):
+                  continue
+              try:
+                  p = float(p)
+              except (TypeError, ValueError):
+                  continue
+              if not 0.0 <= p <= 1.0:
+                  continue
+              rows.append({
+                  "probability": p,
+                  "outcome": int(y),
+                  "model_version": str(row.get("model_version") or "UNKNOWN"),
+                  "source": str(row.get("source") or "UNKNOWN"),
+              })
+
+          def summarize(label, subset):
+              obs = [{"probability": r["probability"], "outcome": r["outcome"]} for r in subset]
+              report = calibration_v4.calibration_report(obs)
+              raw = report.get("raw_metrics") or {}
+              cal = report.get("calibrated_metrics") or {}
+              calibrator = report.get("calibrator") or {}
+              params = calibrator.get("parameters") if isinstance(calibrator.get("parameters"), dict) else None
+              positives = sum(r["outcome"] for r in subset)
+              return {
+                  "scope": label,
+                  "rows": len(subset),
+                  "positives": positives,
+                  "negatives": len(subset) - positives,
+                  "source_counts": dict(sorted(Counter(r["source"] for r in subset).items())),
+                  "status": report.get("status"),
+                  "calibrator_status": calibrator.get("status"),
+                  "calibrator_parameters": params,
+                  "raw_brier": raw.get("brier"),
+                  "raw_log_loss": raw.get("log_loss"),
+                  "raw_ece": raw.get("ece"),
+                  "calibrated_brier": cal.get("brier"),
+                  "calibrated_log_loss": cal.get("log_loss"),
+                  "calibrated_ece": cal.get("ece"),
+                  "brier_delta": report.get("brier_delta"),
+                  "log_loss_delta": report.get("log_loss_delta"),
+                  "production_promotion_allowed": False,
+              }
+
+          versions = Counter(r["model_version"] for r in rows)
+          mixed = summarize("ALL_MODEL_VERSIONS_MIXED", rows)
+          v17_rows = [r for r in rows if r["model_version"] == "SOCCER EDGE ENGINE v1.7"]
+          v10_rows = [r for r in rows if r["model_version"] == "SOCCER EDGE ENGINE v1.0"]
+          v17 = summarize("SOCCER_EDGE_ENGINE_V1_7_ONLY", v17_rows)
+          v10 = summarize("SOCCER_EDGE_ENGINE_V1_0_ONLY", v10_rows)
+
+          def param_delta(a, b, key):
+              ap = a.get("calibrator_parameters") or {}
+              bp = b.get("calibrator_parameters") or {}
+              if ap.get(key) is None or bp.get(key) is None:
+                  return None
+              return round(float(ap[key]) - float(bp[key]), 10)
+
+          report = {
+              "schema_version": "1.0.0",
+              "model_version": "SOCCER_BTTS_CALIBRATION_SCOPE_AUDIT_V4_1.0.0",
+              "status": "BTTS_CALIBRATION_SCOPE_AUDIT_AVAILABLE",
+              "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+              "target": "btts",
+              "ledger_rows": len(rows),
+              "model_version_counts": dict(sorted(versions.items())),
+              "scopes": {
+                  "mixed": mixed,
+                  "v1_7_only": v17,
+                  "v1_0_only": v10,
+              },
+              "comparison": {
+                  "mixed_minus_v1_7_intercept": param_delta(mixed, v17, "intercept"),
+                  "mixed_minus_v1_7_slope": param_delta(mixed, v17, "slope"),
+                  "v1_7_can_fit_independently": v17.get("calibrator_status") == "RESEARCH_CALIBRATOR_FITTED",
+                  "mixed_scope_contains_multiple_model_versions": len(versions) > 1,
+                  "current_model_scope_should_be_evaluated_separately": True,
+              },
+              "interpretation_policy": "Diagnostic only. Model-version scope differences cannot change runtime prediction weights, thresholds, promotion gates, close windows, or production filters without a separate validated change.",
+              "provider_requests_added": 0,
+              "runtime_prediction_weight_changed": False,
+              "thresholds_changed": False,
+              "production_filter_changed": False,
+              "production_promotion_allowed": False,
+          }
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(json.dumps(report, indent=2, sort_keys=True))
+          PY
+
+      - name: Validate safety and scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          F=state/soccer_edge_state/analysis/btts_calibration_scope_audit_v4.json
+          jq -e '.provider_requests_added == 0' "$F" >/dev/null
+          jq -e '.runtime_prediction_weight_changed == false' "$F" >/dev/null
+          jq -e '.thresholds_changed == false' "$F" >/dev/null
+          jq -e '.production_filter_changed == false' "$F" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$F" >/dev/null
+          jq -e '.scopes.v1_7_only.rows == 407' "$F" >/dev/null
+          jq -e '.comparison.v1_7_can_fit_independently == true' "$F" >/dev/null
+          jq -e '.comparison.mixed_scope_contains_multiple_model_versions == true' "$F" >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "soccer-edge-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f soccer_edge_state/analysis/btts_calibration_scope_audit_v4.json
+          if git diff --cached --quiet; then
+            echo "No state changes"
+            exit 0
+          fi
+          git commit -m "v185 persist BTTS calibration scope audit"
+          git push origin HEAD:soccer-edge-state
