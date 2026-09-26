@@ -635,12 +635,53 @@ def _promotion_readiness(
 
         if family == "1X2":
             class_diagnostics = dict(review.get("promotion_shadow_class_discrimination_diagnostics") or {})
+            selection_progress = dict(review.get("promotion_shadow_selection_progress") or {})
+            selection_class_keys = {
+                "HOME": "home_win",
+                "DRAW": "draw",
+                "AWAY": "away_win",
+            }
+            selection_readiness: dict[str, Any] = {}
+            for selection, class_key in selection_class_keys.items():
+                diagnostic = (
+                    class_diagnostics.get(class_key)
+                    if isinstance(class_diagnostics.get(class_key), dict)
+                    else {}
+                )
+                progress = (
+                    selection_progress.get(selection)
+                    if isinstance(selection_progress.get(selection), dict)
+                    else {}
+                )
+                discrimination_ready = diagnostic.get("ready") is True
+                selection_readiness[selection] = {
+                    "discrimination_ready": discrimination_ready,
+                    "oos_rows": int(diagnostic.get("rows") or 0),
+                    "auc": diagnostic.get("auc"),
+                    "auc_lower_95": diagnostic.get("auc_lower_95"),
+                    "brier_delta": diagnostic.get("brier_delta"),
+                    "log_loss_delta": diagnostic.get("log_loss_delta"),
+                    "shadow_rows": int(progress.get("rows") or 0),
+                    "shadow_settled": int(progress.get("settled") or 0),
+                    "shadow_pending": int(progress.get("pending") or 0),
+                    "shadow_roi_per_settled_unit": progress.get("roi_per_settled_unit"),
+                    "directional_remaining": int(progress.get("directional_remaining") or DIRECTIONAL_READ_MIN),
+                    "review_remaining": int(progress.get("review_remaining") or TIER_B_REVIEW_MIN),
+                    "diagnostic_state": (
+                        "CLASS_READY_SAMPLE_COLLECTING"
+                        if discrimination_ready
+                        else "RESEARCH_CLASS_BLOCKED"
+                    ),
+                    "production_promotion_allowed": False,
+                }
             readiness["class_discrimination"] = {
                 "family_ready": review.get("promotion_shadow_family_discrimination_ready") is True,
                 "not_ready_classes": list(review.get("promotion_shadow_not_ready_classes") or []),
                 "classes": class_diagnostics,
-                "promotion_shadow_by_selection": dict(review.get("promotion_shadow_selection_progress") or {}),
+                "promotion_shadow_by_selection": selection_progress,
+                "selection_readiness": selection_readiness,
                 "gate": "AUC_LOWER_95_GT_0_50 + BRIER_LOGLOSS_IMPROVEMENT + FITTED_CALIBRATOR",
+                "selection_readiness_is_diagnostic_only": True,
             }
 
         families[family] = readiness
