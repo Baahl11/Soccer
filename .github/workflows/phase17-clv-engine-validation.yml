@@ -1,4 +1,4 @@
-name: Phase 17 CLV Engine Validation - Confidence Fix
+name: Phase 17 CLV Engine Validation - v159 True Close Completeness
 
 on:
   workflow_dispatch:
@@ -43,13 +43,18 @@ jobs:
         working-directory: runtime
         run: |
           set -euo pipefail
-          PYTHONPATH=. python -m mcp_gateway.clv_engine_v4             --tracking ../state/soccer_edge_state/analysis/true_clv_tracking.jsonl             --output ../state/soccer_edge_state/analysis/phase17_clv_engine_report.json
+          PYTHONPATH=. python -m mcp_gateway.clv_engine_v4 \
+            --tracking ../state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl \
+            --output ../state/soccer_edge_state/analysis/phase17_clv_engine_report.json
 
       - name: Validate safety gates
         run: |
           set -euo pipefail
           jq -e '.phase == "FASE_17_CLV_ENGINE"' state/soccer_edge_state/analysis/phase17_clv_engine_report.json >/dev/null
+          jq -e '.schema_version == "1.1.0"' state/soccer_edge_state/analysis/phase17_clv_engine_report.json >/dev/null
+          jq -e '.model_version == "SOCCER_CLV_ENGINE_V4_1.1.0"' state/soccer_edge_state/analysis/phase17_clv_engine_report.json >/dev/null
           jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/phase17_clv_engine_report.json >/dev/null
+          jq -e '.capture_completeness | type == "object"' state/soccer_edge_state/analysis/phase17_clv_engine_report.json >/dev/null
 
       - name: Persist report to state branch
         working-directory: state
