@@ -1,0 +1,259 @@
+name: v183 BTTS Maturation and OOS Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v183-btts-maturation-oos-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout state evidence
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/latest.json
+            soccer_edge_state/analysis/clv_v4_postgres_report.json
+            soccer_edge_state/analysis/v4_018_btts_calibration_validation.json
+            soccer_edge_state/analysis/oos_stage_diagnostics_v4.json
+            soccer_edge_state/analysis/btts_maturation_oos_audit_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Fetch recent compact history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/btts_audit
+          cp state/soccer_edge_state/latest.json /tmp/btts_audit/latest.json
+          cp state/soccer_edge_state/analysis/clv_v4_postgres_report.json /tmp/btts_audit/clv.json
+          cp state/soccer_edge_state/analysis/v4_018_btts_calibration_validation.json /tmp/btts_audit/validation.json
+          cp state/soccer_edge_state/analysis/oos_stage_diagnostics_v4.json /tmp/btts_audit/oos.json
+
+          LOCAL_DATE=$(jq -r '.generated_at_local[0:10]' /tmp/btts_audit/latest.json)
+          PREV_DATE=$(date -u -d "$LOCAL_DATE -1 day" +%F)
+          for D in "$PREV_DATE" "$LOCAL_DATE"; do
+            URL="https://raw.githubusercontent.com/Baahl11/Soccer/soccer-edge-state/soccer_edge_state/history/${D}.jsonl"
+            curl -fsSL --retry 2 --retry-delay 1 "$URL" -o "/tmp/btts_audit/${D}.jsonl" || true
+          done
+
+      - name: Build BTTS audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path('/tmp/btts_audit')
+          latest = json.loads((root/'latest.json').read_text(encoding='utf-8'))
+          clv = json.loads((root/'clv.json').read_text(encoding='utf-8'))
+          validation = json.loads((root/'validation.json').read_text(encoding='utf-8'))
+          oos = json.loads((root/'oos.json').read_text(encoding='utf-8'))
+
+          def parse_dt(value):
+              if not value:
+                  return None
+              try:
+                  return datetime.fromisoformat(str(value).replace('Z','+00:00'))
+              except Exception:
+                  return None
+
+          now = parse_dt(latest.get('generated_at_utc')) or parse_dt(latest.get('generated_at_local')) or datetime.now(timezone.utc)
+          if now.tzinfo is None:
+              now = now.replace(tzinfo=timezone.utc)
+          now = now.astimezone(timezone.utc)
+
+          history=[]
+          for path in sorted(root.glob('*.jsonl')):
+              for raw in path.read_text(encoding='utf-8',errors='replace').splitlines():
+                  if not raw.strip(): continue
+                  try: row=json.loads(raw)
+                  except Exception: continue
+                  if isinstance(row,dict): history.append(row)
+          history.sort(key=lambda r: str(r.get('generated_at_utc') or r.get('generated_at_local') or ''))
+          recent=history[-120:]
+
+          candidate_counts=Counter(); refresh_counts=Counter(); evaluation_counts=Counter(); not_matured_counts=Counter()
+          ticks_with_bt_candidate=0; ticks_with_bt_refresh=0; ticks_with_family_telemetry=0
+          for row in recent:
+              cp=row.get('price_resolution_checkpoint') if isinstance(row.get('price_resolution_checkpoint'),dict) else {}
+              if not cp: continue
+              candidates=cp.get('primary_clv_maturation_candidate_family_counts') if isinstance(cp.get('primary_clv_maturation_candidate_family_counts'),dict) else {}
+              refreshes=cp.get('primary_clv_maturation_family_refresh_counts') if isinstance(cp.get('primary_clv_maturation_family_refresh_counts'),dict) else {}
+              evaluations=cp.get('primary_clv_maturation_family_evaluation_counts') if isinstance(cp.get('primary_clv_maturation_family_evaluation_counts'),dict) else {}
+              not_matured=cp.get('primary_clv_maturation_not_matured_family_counts') if isinstance(cp.get('primary_clv_maturation_not_matured_family_counts'),dict) else {}
+              if evaluations or not_matured: ticks_with_family_telemetry += 1
+              for k,v in candidates.items(): candidate_counts[str(k)] += int(v or 0)
+              for k,v in refreshes.items(): refresh_counts[str(k)] += int(v or 0)
+              for k,v in evaluations.items(): evaluation_counts[str(k)] += int(v or 0)
+              for k,v in not_matured.items(): not_matured_counts[str(k)] += int(v or 0)
+              if int(candidates.get('BTTS') or 0)>0: ticks_with_bt_candidate += 1
+              if int(refreshes.get('BTTS') or 0)>0: ticks_with_bt_refresh += 1
+
+          latest_cp=latest.get('price_resolution_checkpoint') if isinstance(latest.get('price_resolution_checkpoint'),dict) else {}
+
+          visible=[]
+          for row in latest.get('match_table_rows') or []:
+              if not isinstance(row,dict): continue
+              family=str(row.get('market_family') or '').upper()
+              market=str(row.get('market') or '').upper()
+              if family not in {'BTTS','FT_BTTS','FT_BTTS_RESEARCH'} and 'BOTH TEAMS' not in market:
+                  continue
+              try: price=float(row.get('price'))
+              except Exception: continue
+              if price <= 1.0: continue
+              kickoff=parse_dt(row.get('kickoff'))
+              if kickoff and kickoff.tzinfo is None: kickoff=kickoff.replace(tzinfo=timezone.utc)
+              visible.append((row,kickoff.astimezone(timezone.utc) if kickoff else None))
+
+          horizons={k:set() for k in ['already_kicked_off','within_55m','within_2h','within_6h','within_12h','within_24h','within_48h','beyond_48h','missing_kickoff']}
+          next_kickoff=None; fixtures=set(); selections=Counter(); books=Counter()
+          for row,kickoff in visible:
+              fid=row.get('fixture_id')
+              try: fid=int(fid)
+              except Exception: fid=str(fid or 'unknown')
+              fixtures.add(fid); selections[str(row.get('selection') or 'UNKNOWN')]+=1
+              if row.get('bookmaker'): books[str(row.get('bookmaker'))]+=1
+              if kickoff is None:
+                  horizons['missing_kickoff'].add(fid); continue
+              mins=(kickoff-now).total_seconds()/60.0
+              if mins<=0:
+                  horizons['already_kicked_off'].add(fid); continue
+              next_kickoff=kickoff if next_kickoff is None or kickoff<next_kickoff else next_kickoff
+              if mins<=55: horizons['within_55m'].add(fid)
+              if mins<=120: horizons['within_2h'].add(fid)
+              if mins<=360: horizons['within_6h'].add(fid)
+              if mins<=720: horizons['within_12h'].add(fid)
+              if mins<=1440: horizons['within_24h'].add(fid)
+              if mins<=2880: horizons['within_48h'].add(fid)
+              else: horizons['beyond_48h'].add(fid)
+          horizon_counts={k:len(v) for k,v in horizons.items()}
+
+          all_by_stage=oos.get('all_models_by_stage') if isinstance(oos.get('all_models_by_stage'),dict) else {}
+          oos_by_stage={}
+          for stage in ('EARLY_RESEARCH','T-40','T-20','T-10','CLOSE'):
+              obj=all_by_stage.get(stage) if isinstance(all_by_stage.get(stage),dict) else {}
+              targets=obj.get('binary_targets') if isinstance(obj.get('binary_targets'),dict) else {}
+              bt=targets.get('btts') if isinstance(targets.get('btts'),dict) else {}
+              disc=bt.get('discrimination') if isinstance(bt.get('discrimination'),dict) else {}
+              oos_by_stage[stage]={
+                  'rows':int(bt.get('rows') or 0),
+                  'positive_count':int(bt.get('positive_count') or 0),
+                  'negative_count':int(bt.get('negative_count') or 0),
+                  'brier':bt.get('brier'),'log_loss':bt.get('log_loss'),'ece':bt.get('ece'),
+                  'auc':disc.get('auc'),'auc_lower_95':disc.get('auc_lower_95'),
+                  'discrimination_ready':disc.get('discrimination_ready') is True,
+                  'sample_status':bt.get('sample_status'),
+              }
+
+          deploy=oos.get('current_model_deployment_calibrators') if isinstance(oos.get('current_model_deployment_calibrators'),dict) else {}
+          btdeploy=deploy.get('btts') if isinstance(deploy.get('btts'),dict) else {}
+          ddisc=btdeploy.get('discrimination') if isinstance(btdeploy.get('discrimination'),dict) else {}
+
+          fam_counts=clv.get('family_counts') if isinstance(clv.get('family_counts'),dict) else {}
+          true_rows=int(fam_counts.get('BTTS') or 0)
+          minimum=int((validation.get('true_clv') or {}).get('minimum_rows') or 50)
+          latest_candidates=(latest_cp.get('primary_clv_maturation_candidate_family_counts') or {}).get('BTTS') if isinstance(latest_cp.get('primary_clv_maturation_candidate_family_counts'),dict) else 0
+          latest_eval=(latest_cp.get('primary_clv_maturation_family_evaluation_counts') or {}).get('BTTS') if isinstance(latest_cp.get('primary_clv_maturation_family_evaluation_counts'),dict) else 0
+          latest_not=(latest_cp.get('primary_clv_maturation_not_matured_family_counts') or {}).get('BTTS') if isinstance(latest_cp.get('primary_clv_maturation_not_matured_family_counts'),dict) else 0
+          latest_refresh=(latest_cp.get('primary_clv_maturation_family_refresh_counts') or {}).get('BTTS') if isinstance(latest_cp.get('primary_clv_maturation_family_refresh_counts'),dict) else 0
+
+          if true_rows >= minimum:
+              state='TRUE_CLV_SAMPLE_READY'
+          elif horizon_counts['within_55m']>0 and int(latest_candidates or 0)==0:
+              state='SELECTOR_GAP_SUSPECTED'
+          elif int(latest_eval or 0)>0 and int(latest_refresh or 0)==0 and int(latest_not or 0)>0:
+              state='PROVIDER_UPDATE_WAIT'
+          elif int(refresh_counts.get('BTTS') or 0)>0:
+              state='MATURATION_ACTIVE_SAMPLE_COLLECTING'
+          elif horizon_counts['within_55m']==0:
+              state='WAITING_FOR_CLOSE_WINDOW'
+          else:
+              state='SAMPLE_COLLECTING'
+
+          report={
+              'schema_version':'1.0.0','generated_at_utc':datetime.now(timezone.utc).isoformat(),
+              'market_family':'BTTS','status':state,
+              'true_clv':{
+                  'rows':true_rows,'minimum_rows':minimum,'remaining':max(minimum-true_rows,0),
+                  'avg_probability_clv_pp':(validation.get('true_clv') or {}).get('avg_probability_clv_pp'),
+                  'positive_rows':(validation.get('true_clv') or {}).get('positive_rows'),
+                  'flat_rows':(validation.get('true_clv') or {}).get('flat_rows'),
+                  'negative_rows':(validation.get('true_clv') or {}).get('negative_rows'),
+              },
+              'recent_primary_maturation':{
+                  'recent_ticks_analyzed':len(recent),'ticks_with_family_telemetry_v182':ticks_with_family_telemetry,
+                  'candidate_family_counts':dict(candidate_counts),'refresh_family_counts':dict(refresh_counts),
+                  'evaluation_family_counts':dict(evaluation_counts),'not_matured_family_counts':dict(not_matured_counts),
+                  'btts_candidate_ticks':ticks_with_bt_candidate,'btts_refresh_ticks':ticks_with_bt_refresh,
+              },
+              'latest_primary_maturation':{
+                  'btts_candidates':int(latest_candidates or 0),'btts_evaluations':int(latest_eval or 0),
+                  'btts_not_matured':int(latest_not or 0),'btts_refreshes':int(latest_refresh or 0),
+              },
+              'current_visible_btts':{
+                  'priced_rows':len(visible),'unique_fixtures':len(fixtures),'pending_timing':horizon_counts,
+                  'next_kickoff':next_kickoff.isoformat() if next_kickoff else None,
+                  'selection_counts':dict(selections),'bookmaker_counts':dict(books),
+              },
+              'oos_by_stage':oos_by_stage,
+              'current_deployment_calibrator':{
+                  'rows':int(btdeploy.get('rows') or 0),'auc':ddisc.get('auc'),'auc_lower_95':ddisc.get('auc_lower_95'),
+                  'brier_delta':btdeploy.get('brier_delta'),'log_loss_delta':btdeploy.get('log_loss_delta'),
+                  'eligible_for_phase16_research':btdeploy.get('eligible_for_phase16_research') is True,
+                  'calibrator_status':btdeploy.get('calibrator_status'),
+              },
+              'validation_status':validation.get('status'),'validation_blockers':validation.get('blockers') or [],
+              'interpretation_policy':'BTTS maturation/OOS audit is diagnostic only. No close-window, sample gate, threshold, model weight or promotion state is changed.',
+              'provider_requests_added':0,'close_window_changed':False,'thresholds_changed':False,
+              'model_weights_changed':False,'canonical_bet_logic_changed':False,'production_promotion_allowed':False,
+          }
+          out=Path('state/soccer_edge_state/analysis/btts_maturation_oos_audit_v4.json')
+          out.write_text(json.dumps(report,indent=2,sort_keys=True),encoding='utf-8')
+          print(json.dumps({
+              'status':state,'true_clv':report['true_clv'],'recent_primary_maturation':report['recent_primary_maturation'],
+              'current_visible_btts':report['current_visible_btts'],'oos_by_stage':oos_by_stage,
+              'current_deployment_calibrator':report['current_deployment_calibrator']
+          },indent=2))
+          PY
+
+      - name: Validate diagnostic safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=state/soccer_edge_state/analysis/btts_maturation_oos_audit_v4.json
+          jq -e '.schema_version == "1.0.0" and .market_family == "BTTS"' "$R" >/dev/null
+          jq -e '.true_clv.rows >= 0 and .true_clv.minimum_rows == 50' "$R" >/dev/null
+          jq -e '.provider_requests_added == 0 and .close_window_changed == false' "$R" >/dev/null
+          jq -e '.thresholds_changed == false and .model_weights_changed == false and .canonical_bet_logic_changed == false' "$R" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$R" >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/btts_maturation_oos_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update BTTS maturation OOS audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
