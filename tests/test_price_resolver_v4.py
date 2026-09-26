@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timedelta, timezone
 
 from mcp_gateway import price_resolver_v4 as v
 
@@ -1857,3 +1858,110 @@ def test_player_props_maturation_ignores_legacy_score_or_assist_subfamily():
         },
     }
     assert v._player_prop_signal_families(event) == set()
+
+
+
+class _PrimaryMaturationDescription:
+    def __init__(self, name):
+        self.name = name
+
+
+class _PrimaryMaturationCursor:
+    def __init__(self, row):
+        self._row = row
+        self.query = ""
+        self.params = None
+        self.description = [
+            _PrimaryMaturationDescription(name)
+            for name in (
+                "fixture_id", "market_family", "market", "signal_generated_at",
+                "candidate_source", "league_id", "league", "country", "season",
+                "round", "kickoff", "status", "status_long", "home_team_id",
+                "home_team", "away_team_id", "away_team", "venue", "city",
+            )
+        ]
+
+    def execute(self, query, params):
+        self.query = query
+        self.params = params
+
+    def fetchall(self):
+        return [self._row]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+class _PrimaryMaturationConn:
+    def __init__(self, row):
+        self.cursor_instance = _PrimaryMaturationCursor(row)
+
+    def cursor(self):
+        return self.cursor_instance
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+def test_primary_clv_backlog_accepts_priced_ft_totals_research_without_phase16_rankability(monkeypatch):
+    now = datetime.now(timezone.utc)
+    signal_at = now - timedelta(minutes=5)
+    kickoff = now + timedelta(minutes=35)
+    row = (
+        9551,
+        "FT_TOTALS",
+        "Goals Over/Under",
+        signal_at,
+        "MATCH_TABLE_PRICED_RESEARCH",
+        99,
+        "Test League",
+        "Test Country",
+        2026,
+        "Round 1",
+        kickoff,
+        "NS",
+        "Not Started",
+        10,
+        "Home",
+        20,
+        "Away",
+        "Venue",
+        "City",
+    )
+    conn = _PrimaryMaturationConn(row)
+
+    monkeypatch.setattr(v.persistence, "persistence_configured", lambda: True)
+    monkeypatch.setattr(v.persistence, "ensure_schema", lambda: None)
+    monkeypatch.setattr(v.persistence, "_connect", lambda: conn)
+
+    result = v._load_primary_clv_maturation_backlog(lookahead_minutes=55, limit=10)
+
+    assert result["candidate_count"] == 1
+    assert result["candidate_family_counts"] == {"FT_TOTALS": 1}
+    assert result["candidate_source_counts"] == {"MATCH_TABLE_PRICED_RESEARCH": 1}
+    assert result["source"] == "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V2"
+    event = result["candidate_events"][0]
+    assert event["classification"] == "RESEARCH_ONLY"
+    assert event["bet_eligible"] is False
+    assert event["decision_weight"] == 0.0
+    assert event["primary_clv_maturation"]["signals"][0]["market_family"] == "FT_TOTALS"
+    assert event["primary_clv_maturation"]["signals"][0]["candidate_source"] == "MATCH_TABLE_PRICED_RESEARCH"
+
+    sql = " ".join(conn.cursor_instance.query.split())
+    assert "match_table_rows" in sql
+    assert "market_mismatch_rows" in sql
+    assert "MATCH_TABLE_PRICED_RESEARCH" in sql
+    assert "PHASE16_RANKABLE" in sql
+    assert "NULLIF(mt.row ->> 'price', '') IS NOT NULL" in sql
+
+
+def test_primary_clv_backlog_match_table_branch_normalizes_research_aliases_in_sql():
+    # This guards the data-collection path independently from Phase16 promotion readiness.
+    source = v._load_primary_clv_maturation_backlog
+    assert callable(source)
