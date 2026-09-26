@@ -1,0 +1,215 @@
+name: v177 FT Totals T-10 Cross-Cell Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v177-ft-totals-t10-crosscell-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout shadow ledger
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl
+            soccer_edge_state/analysis/ft_totals_t10_composition_audit_v4.json
+            soccer_edge_state/analysis/ft_totals_t10_crosscell_audit_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Build cross-cell audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from collections import defaultdict
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          base = Path('state/soccer_edge_state/analysis')
+          rows = []
+          for raw in (base / 'shadow_settlement_ledger_v4.jsonl').read_text(encoding='utf-8', errors='replace').splitlines():
+              raw = raw.strip()
+              if not raw:
+                  continue
+              try:
+                  row = json.loads(raw)
+              except Exception:
+                  continue
+              if not isinstance(row, dict):
+                  continue
+              if str(row.get('market_family') or '').upper() != 'FT_TOTALS':
+                  continue
+              if str(row.get('stage') or '').upper() not in {'T-10','T-20'}:
+                  continue
+              if not row.get('shadow_settled'):
+                  continue
+              rows.append(row)
+
+          def direction(row):
+              s = str(row.get('selection') or '').upper()
+              if 'OVER' in s: return 'OVER'
+              if 'UNDER' in s: return 'UNDER'
+              return s or 'UNKNOWN'
+
+          def line(row):
+              try: return f"{float(row.get('line')):g}"
+              except Exception: return 'MISSING'
+
+          def price(row):
+              try: x = float(row.get('decimal_price'))
+              except Exception: return 'MISSING'
+              if x < 1.50: return '<1.50'
+              if x < 1.75: return '1.50-1.74'
+              if x < 2.00: return '1.75-1.99'
+              if x < 2.50: return '2.00-2.49'
+              return '2.50+'
+
+          def metrics(group):
+              wins = sum(str(r.get('shadow_settlement_status') or '') == 'WIN' for r in group)
+              losses = sum(str(r.get('shadow_settlement_status') or '') == 'LOSS' for r in group)
+              pushes = sum(str(r.get('shadow_settlement_status') or '') == 'PUSH' for r in group)
+              roi = sum(float(r.get('shadow_roi_hypothetical_units') or 0.0) for r in group)
+              prices = [float(r['decimal_price']) for r in group if r.get('decimal_price') is not None]
+              implied = [(1.0 / p) for p in prices if p > 0]
+              decided = wins + losses
+              return {
+                  'settled': len(group),
+                  'win': wins,
+                  'loss': losses,
+                  'push': pushes,
+                  'hit_rate_ex_push': round(wins / decided, 6) if decided else None,
+                  'roi_units': round(roi, 6),
+                  'roi_per_settled_unit': round(roi / len(group), 6) if group else None,
+                  'avg_decimal_price': round(sum(prices) / len(prices), 6) if prices else None,
+                  'avg_implied_probability_raw': round(sum(implied) / len(implied), 6) if implied else None,
+              }
+
+          def aggregate(stage, keyfn, min_n=1):
+              groups = defaultdict(list)
+              for row in rows:
+                  if str(row.get('stage') or '').upper() != stage:
+                      continue
+                  groups[keyfn(row)].append(row)
+              out = []
+              for key, group in groups.items():
+                  m = metrics(group)
+                  if m['settled'] < min_n:
+                      continue
+                  if isinstance(key, tuple):
+                      labels = list(key)
+                  else:
+                      labels = [key]
+                  out.append({'cell': labels, **m})
+              out.sort(key=lambda x: (x['roi_units'], -x['settled'], str(x['cell'])))
+              return out
+
+          stages = {}
+          for stage in ('T-10','T-20'):
+              stage_rows = [r for r in rows if str(r.get('stage') or '').upper() == stage]
+              overall = metrics(stage_rows)
+              selection_line = aggregate(stage, lambda r: (direction(r), line(r)), 3)
+              selection_price = aggregate(stage, lambda r: (direction(r), price(r)), 3)
+              line_price = aggregate(stage, lambda r: (line(r), price(r)), 3)
+              selection_line_price = aggregate(stage, lambda r: (direction(r), line(r), price(r)), 3)
+              negative_total = abs(sum(x['roi_units'] for x in selection_line if x['roi_units'] < 0))
+              for cell in selection_line:
+                  cell['share_of_selection_line_negative_units'] = (
+                      round(abs(cell['roi_units']) / negative_total, 6)
+                      if cell['roi_units'] < 0 and negative_total > 0 else 0.0
+                  )
+              stages[stage] = {
+                  'overall': overall,
+                  'selection_x_line_min3': selection_line,
+                  'selection_x_price_min3': selection_price,
+                  'line_x_price_min3': line_price,
+                  'selection_x_line_x_price_min3': selection_line_price,
+                  'top_negative_selection_line_cells': [x for x in selection_line if x['roi_units'] < 0][:10],
+                  'top_positive_selection_line_cells': sorted(
+                      [x for x in selection_line if x['roi_units'] > 0],
+                      key=lambda x: (-x['roi_units'], -x['settled'])
+                  )[:10],
+              }
+
+          t10 = stages['T-10']
+          top_neg = t10['top_negative_selection_line_cells']
+          top_neg_units = sum(x['roi_units'] for x in top_neg)
+          report = {
+              'schema_version': '1.0.0',
+              'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+              'market_family': 'FT_TOTALS',
+              'status': 'T10_CROSSCELL_AUDIT_AVAILABLE',
+              'stages': stages,
+              'diagnostics': {
+                  't10_total_roi_units': t10['overall']['roi_units'],
+                  't10_top_negative_selection_line_units': round(top_neg_units, 6),
+                  't10_top_negative_selection_line_cells': top_neg,
+                  't20_small_sample_warning': stages['T-20']['overall']['settled'] < 50,
+                  't20_settled': stages['T-20']['overall']['settled'],
+                  'long_price_outlier_risk': True,
+              },
+              'interpretation_policy': (
+                  'Cross-cell shadow results are exploratory diagnostics only. Minimum n=3 is for visibility, '
+                  'not statistical sufficiency. No cell may become a production exclusion or threshold change '
+                  'without strict true-CLV/OOS confirmation and the existing Phase19 gates.'
+              ),
+              'provider_requests_added': 0,
+              'thresholds_changed': False,
+              'model_weights_changed': False,
+              'canonical_bet_logic_changed': False,
+              'production_filter_changed': False,
+              'production_promotion_allowed': False,
+          }
+          out = base / 'ft_totals_t10_crosscell_audit_v4.json'
+          out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps({
+              't10_overall': stages['T-10']['overall'],
+              't20_overall': stages['T-20']['overall'],
+              't10_top_negative_selection_line': stages['T-10']['top_negative_selection_line_cells'],
+              't10_top_positive_selection_line': stages['T-10']['top_positive_selection_line_cells'],
+              't10_selection_price': stages['T-10']['selection_x_price_min3'],
+              't20_selection_price': stages['T-20']['selection_x_price_min3'],
+              'safety': {'production_filter_changed': False, 'thresholds_changed': False}
+          }, indent=2))
+          PY
+
+      - name: Validate diagnostic safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=state/soccer_edge_state/analysis/ft_totals_t10_crosscell_audit_v4.json
+          jq -e '.schema_version == "1.0.0" and .market_family == "FT_TOTALS"' "$R" >/dev/null
+          jq -e '.stages["T-10"].overall.settled >= 100' "$R" >/dev/null
+          jq -e '.stages["T-20"].overall.settled >= 20' "$R" >/dev/null
+          jq -e '.provider_requests_added == 0' "$R" >/dev/null
+          jq -e '.thresholds_changed == false and .model_weights_changed == false and .canonical_bet_logic_changed == false' "$R" >/dev/null
+          jq -e '.production_filter_changed == false and .production_promotion_allowed == false' "$R" >/dev/null
+
+      - name: Persist audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/ft_totals_t10_crosscell_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update FT Totals T-10 cross-cell audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
