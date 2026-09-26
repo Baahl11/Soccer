@@ -400,3 +400,28 @@ def test_team_totals_maturation_funnel_uses_unique_fixture_intersections():
     assert funnel["modeled_signal_fixture_ids"] == [2, 3]
     assert funnel["true_clv_fixture_ids"] == [3]
     assert funnel["provider_requests_added"] == 0
+
+
+
+def test_ft_totals_clv_funnel_separates_placeholders_from_real_close_gaps():
+    from collections import Counter, defaultdict
+
+    skip = defaultdict(Counter)
+    skip["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"]["FT_TOTALS"] = 39
+    skip["NO_LATER_PROVIDER_UPDATE"]["FT_TOTALS"] = 64
+    funnel = v._build_ft_totals_clv_funnel(
+        Counter({"FT_TOTALS": 162}),
+        Counter({"FT_TOTALS": 103}),
+        skip,
+        Counter(),
+        59,
+    )
+
+    assert funnel["mapped_signal_rows"] == 162
+    assert funnel["unpriced_research_placeholders_ignored"] == 59
+    assert funnel["priced_entry_rows"] == 103
+    assert funnel["no_later_prekickoff_snapshot_rows"] == 39
+    assert funnel["later_snapshot_without_later_provider_update_rows"] == 64
+    assert funnel["selection_mismatch_at_close_rows"] == 0
+    assert funnel["true_clv_rows"] == 0
+    assert funnel["provider_requests_added"] == 0
