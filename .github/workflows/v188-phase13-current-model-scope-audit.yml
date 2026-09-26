@@ -36,6 +36,7 @@ jobs:
       - name: Unit test scope correction
         working-directory: runtime
         run: |
+          python -m pip install -q pytest
           python -m pytest -q tests/test_oos_calibration_scope_v4.py
 
       - name: Rehydrate persisted OOS report with ledger rows
