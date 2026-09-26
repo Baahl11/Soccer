@@ -28,6 +28,12 @@ def _canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _snapshot_without_model_version(snapshot: dict[str, Any]) -> dict[str, Any]:
+    value = dict(snapshot)
+    value.pop("model_version", None)
+    return value
+
+
 def row_fingerprint(row: dict[str, Any]) -> str:
     payload = {key: value for key, value in row.items() if key != "row_fingerprint"}
     return hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest()
@@ -95,7 +101,7 @@ def build_row(
             "total_goals": total,
             "home_win": int(home > away),
             "draw": int(home == away),
-            "away_win": int(away > home),
+            "away_win": int(home < away),
             "btts": int(home > 0 and away > 0),
             "over_1_5": int(total >= 2),
             "over_2_5": int(total >= 3),
@@ -140,7 +146,13 @@ def validate_row(row: dict[str, Any]) -> list[str]:
 def dataset_fingerprint(rows: Iterable[dict[str, Any]]) -> str:
     canonical = [
         {key: value for key, value in row.items() if key != "row_fingerprint"}
-        for row in sorted(rows, key=lambda item: (int(item.get("fixture_id") or 0), str(item.get("feature_captured_at") or "")))
+        for row in sorted(
+            rows,
+            key=lambda item: (
+                int(item.get("fixture_id") or 0),
+                str(item.get("feature_captured_at") or ""),
+            ),
+        )
     ]
     return hashlib.sha256(_canonical_json(canonical).encode("utf-8")).hexdigest()
 
@@ -199,11 +211,13 @@ def load_rows(conn: Any, *, cutoff: str | None = None) -> list[dict[str, Any]]:
 
 
 def manifest(rows: list[dict[str, Any]], *, cutoff: str | None = None) -> dict[str, Any]:
-    feature_names = sorted({
-        key
-        for row in rows
-        for key in (row.get("features") or {}).keys()
-    })
+    feature_names = sorted(
+        {
+            key
+            for row in rows
+            for key in (row.get("features") or {}).keys()
+        }
+    )
     missing_counts = {
         key: sum(1 for row in rows if (row.get("features") or {}).get(key) is None)
         for key in feature_names
@@ -237,20 +251,100 @@ def manifest(rows: list[dict[str, Any]], *, cutoff: str | None = None) -> dict[s
     }
 
 
-def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int]:
-    """Derive missing v4 snapshots from historical point-in-time refresh payloads.
+def _audit_lineage_mismatches(conn: Any, *, limit: int) -> dict[str, int]:
+    """Read-only audit of historical snapshot lineage against the persisted tick envelope."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                e.event_id,
+                e.generated_at,
+                e.payload,
+                p.payload->>'model_version' AS tick_model_version,
+                s.snapshot_id,
+                s.payload
+            FROM soccer_refresh_events e
+            JOIN soccer_pipeline_runs p
+              ON p.generated_at_utc = e.generated_at
+            JOIN soccer_feature_snapshots s
+              ON s.fixture_id = e.fixture_id
+             AND s.captured_at = e.generated_at
+             AND COALESCE(s.stage, '') = COALESCE(e.stage, '')
+             AND s.schema_version = %s
+            WHERE e.event_type = 'SOCCER_REFRESH'
+              AND e.stage <> 'POSTGAME'
+              AND NULLIF(p.payload->>'model_version', '') IS NOT NULL
+              AND s.model_version IS DISTINCT FROM (p.payload->>'model_version')
+            ORDER BY e.generated_at DESC, e.event_id DESC
+            LIMIT %s
+            """,
+            (feature_snapshot_v4.SCHEMA_VERSION, int(limit)),
+        )
+        rows = cur.fetchall()
 
-    No provider calls and no future information are used. Only refresh events
-    without an equivalent v4 feature snapshot are selected, newest first, so
-    current OOS evidence cannot be starved by an old fixed prefix of events.
-    Missing advanced features remain explicitly missing under feature_snapshot_v4.
+    stats = {
+        "lineage_mismatch_candidates": 0,
+        "lineage_tick_v1_7_candidates": 0,
+        "lineage_event_masks_tick": 0,
+        "lineage_rebuild_valid": 0,
+        "lineage_metadata_only_candidates": 0,
+        "lineage_content_mismatch": 0,
+        "lineage_invalid_rebuild": 0,
+    }
+    for _event_id, generated_at, event_payload, tick_model_version, _snapshot_id, existing_snapshot in rows:
+        stats["lineage_mismatch_candidates"] += 1
+        if str(tick_model_version) == "SOCCER EDGE ENGINE v1.7":
+            stats["lineage_tick_v1_7_candidates"] += 1
+        if not isinstance(event_payload, dict) or not isinstance(existing_snapshot, dict):
+            stats["lineage_invalid_rebuild"] += 1
+            continue
+        if event_payload.get("model_version") != tick_model_version:
+            stats["lineage_event_masks_tick"] += 1
+
+        captured_at = generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at)
+        rebuilt = feature_snapshot_v4.build(
+            {
+                "generated_at_utc": captured_at,
+                "model_version": tick_model_version,
+            },
+            event_payload,
+        )
+        if feature_snapshot_v4.validate(rebuilt):
+            stats["lineage_invalid_rebuild"] += 1
+            continue
+        stats["lineage_rebuild_valid"] += 1
+
+        if _canonical_json(_snapshot_without_model_version(existing_snapshot)) == _canonical_json(
+            _snapshot_without_model_version(rebuilt)
+        ):
+            stats["lineage_metadata_only_candidates"] += 1
+        else:
+            stats["lineage_content_mismatch"] += 1
+    return stats
+
+
+def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int]:
+    """Derive missing v4 snapshots and audit lineage mismatches without rewriting history.
+
+    No provider calls and no future information are used. Missing snapshots are
+    rebuilt only from persisted point-in-time refresh payloads. The persisted
+    top-level tick model_version is preferred when an exact pipeline-run match
+    exists. Existing snapshots are NOT mutated here; lineage mismatches are
+    reported separately so a repair can require evidence that the reconstructed
+    snapshot is identical except for model_version.
     """
     scanned = valid = inserted = invalid = 0
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT e.event_id, e.generated_at, e.payload
+            SELECT
+                e.event_id,
+                e.generated_at,
+                e.payload,
+                p.payload->>'model_version' AS tick_model_version
             FROM soccer_refresh_events e
+            LEFT JOIN soccer_pipeline_runs p
+              ON p.generated_at_utc = e.generated_at
             WHERE e.event_type='SOCCER_REFRESH'
               AND e.stage <> 'POSTGAME'
               AND NOT EXISTS (
@@ -269,14 +363,16 @@ def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int
         source_rows = cur.fetchall()
 
     insert_rows: list[tuple[Any, ...]] = []
-    for _event_id, generated_at, payload in source_rows:
+    for _event_id, generated_at, payload, tick_model_version in source_rows:
         scanned += 1
         if not isinstance(payload, dict):
             invalid += 1
             continue
         tick = {
-            "generated_at_utc": generated_at.isoformat() if hasattr(generated_at, "isoformat") else str(generated_at),
-            "model_version": payload.get("model_version"),
+            "generated_at_utc": generated_at.isoformat()
+            if hasattr(generated_at, "isoformat")
+            else str(generated_at),
+            "model_version": tick_model_version or payload.get("model_version"),
         }
         snapshot = feature_snapshot_v4.build(tick, payload)
         errors = feature_snapshot_v4.validate(snapshot)
@@ -284,17 +380,19 @@ def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int
             invalid += 1
             continue
         valid += 1
-        insert_rows.append((
-            snapshot.get("fixture_id"),
-            snapshot.get("captured_at"),
-            snapshot.get("stage"),
-            snapshot.get("schema_version"),
-            snapshot.get("model_version"),
-            snapshot.get("data_tier"),
-            snapshot.get("feature_count", 0),
-            snapshot.get("missing_feature_count", 0),
-            _canonical_json(snapshot),
-        ))
+        insert_rows.append(
+            (
+                snapshot.get("fixture_id"),
+                snapshot.get("captured_at"),
+                snapshot.get("stage"),
+                snapshot.get("schema_version"),
+                snapshot.get("model_version"),
+                snapshot.get("data_tier"),
+                snapshot.get("feature_count", 0),
+                snapshot.get("missing_feature_count", 0),
+                _canonical_json(snapshot),
+            )
+        )
 
     if insert_rows:
         with conn.cursor() as cur:
@@ -311,13 +409,15 @@ def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int
             )
             inserted = max(int(cur.rowcount or 0), 0)
 
-    return {
+    result = {
         "scanned_refresh_events": scanned,
         "valid_snapshots": valid,
         "inserted_snapshots": inserted,
         "invalid_snapshots": invalid,
         "backfill_limit": int(limit),
     }
+    result.update(_audit_lineage_mismatches(conn, limit=limit))
+    return result
 
 
 def persist_materialized_dataset(
