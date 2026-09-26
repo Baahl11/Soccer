@@ -164,6 +164,35 @@ def _candidate_label(market_candidate: dict[str, Any]) -> str:
     return f"{raw_family} | {market}"
 
 
+def _build_ft_totals_clv_funnel(
+    mapped_family_counts: Counter[str],
+    priced_entry_family_counts: Counter[str],
+    skip_reason_family_counts: dict[str, Counter[str]],
+    family_counts: Counter[str],
+    unpriced_research_placeholders_ignored: int,
+) -> dict[str, Any]:
+    return {
+        "mapped_signal_rows": int(mapped_family_counts.get("FT_TOTALS", 0)),
+        "unpriced_research_placeholders_ignored": int(unpriced_research_placeholders_ignored),
+        "priced_entry_rows": int(priced_entry_family_counts.get("FT_TOTALS", 0)),
+        "no_later_prekickoff_snapshot_rows": int(
+            skip_reason_family_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"].get("FT_TOTALS", 0)
+        ),
+        "later_snapshot_without_later_provider_update_rows": int(
+            skip_reason_family_counts["NO_LATER_PROVIDER_UPDATE"].get("FT_TOTALS", 0)
+        ),
+        "selection_mismatch_at_close_rows": int(
+            skip_reason_family_counts["NO_SELECTION_MATCH_AT_CLOSE"].get("FT_TOTALS", 0)
+        ),
+        "true_clv_rows": int(family_counts.get("FT_TOTALS", 0)),
+        "provider_requests_added": 0,
+        "policy": (
+            "UNPRICED_FT_TOTALS_RESEARCH_PLACEHOLDERS_ARE_DIAGNOSTIC_ONLY; "
+            "PRICED_ENTRIES_REQUIRE_STRICTLY_LATER_PREKICKOFF_PROVIDER_UPDATE_AND_SELECTION_MATCH"
+        ),
+    }
+
+
 def _load_strict_team_totals_capture_fixture_ids(conn, *, lookback_days: int) -> set[int]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
     with conn.cursor() as cur:
@@ -950,26 +979,13 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         },
         "mapped_family_counts": dict(sorted(mapped_family_counts.items())),
         "priced_entry_family_counts": dict(sorted(priced_entry_family_counts.items())),
-        "ft_totals_maturation_funnel": {
-            "mapped_signal_rows": int(mapped_family_counts.get("FT_TOTALS", 0)),
-            "unpriced_research_placeholders_ignored": int(ft_totals_unpriced_research_placeholders_ignored),
-            "priced_entry_rows": int(priced_entry_family_counts.get("FT_TOTALS", 0)),
-            "no_later_prekickoff_snapshot_rows": int(
-                skip_reason_family_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"].get("FT_TOTALS", 0)
-            ),
-            "later_snapshot_without_later_provider_update_rows": int(
-                skip_reason_family_counts["NO_LATER_PROVIDER_UPDATE"].get("FT_TOTALS", 0)
-            ),
-            "selection_mismatch_at_close_rows": int(
-                skip_reason_family_counts["NO_SELECTION_MATCH_AT_CLOSE"].get("FT_TOTALS", 0)
-            ),
-            "true_clv_rows": int(family_counts.get("FT_TOTALS", 0)),
-            "provider_requests_added": 0,
-            "policy": (
-                "UNPRICED_FT_TOTALS_RESEARCH_PLACEHOLDERS_ARE_DIAGNOSTIC_ONLY; "
-                "PRICED_ENTRIES_REQUIRE_STRICTLY_LATER_PREKICKOFF_PROVIDER_UPDATE_AND_SELECTION_MATCH"
-            ),
-        },
+        "ft_totals_maturation_funnel": _build_ft_totals_clv_funnel(
+            mapped_family_counts,
+            priced_entry_family_counts,
+            skip_reason_family_counts,
+            family_counts,
+            ft_totals_unpriced_research_placeholders_ignored,
+        ),
         "rows": tracked,
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
