@@ -1,0 +1,38 @@
+name: v165 Weekend Coverage Scheduler Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v165-weekend-coverage-scheduler-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install minimal test dependencies
+        run: python -m pip install --disable-pip-version-check pytest httpx
+
+      - name: Compile scheduler
+        run: python -m py_compile runtime/mcp_gateway/fair_scheduler.py
+
+      - name: Run fair scheduler tests
+        working-directory: runtime
+        run: python -m pytest -q tests/test_v4_006_fair_scheduler.py
