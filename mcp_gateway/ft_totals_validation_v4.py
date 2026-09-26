@@ -7,8 +7,8 @@ import os
 import re
 from typing import Any, Iterable
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_FT_TOTALS_VALIDATION_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_FT_TOTALS_VALIDATION_V4_1.1.0"
 SUPPORTED_LINES = (1.5, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5)
 MIN_DIRECTIONAL_SETTLED = 20
 MIN_ACTIONABLE_REVIEW_SETTLED = 50
@@ -122,6 +122,7 @@ def build_report(
     v4_oos_calibration_available: bool = False,
 ) -> dict[str, Any]:
     actionable = ft_validation.get("actionable") if isinstance(ft_validation.get("actionable"), dict) else {}
+    research = ft_validation.get("watch_research") if isinstance(ft_validation.get("watch_research"), dict) else {}
     market_ft = (
         (market_summary.get("by_market_family") or {}).get("FT_TOTALS")
         if isinstance(market_summary.get("by_market_family"), dict)
@@ -129,7 +130,14 @@ def build_report(
     )
     market_ft = market_ft if isinstance(market_ft, dict) else {}
 
-    settled = int(market_ft.get("settled") or actionable.get("n") or 0)
+    commercial_settled = int(market_ft.get("settled") or actionable.get("n") or 0)
+    actionable_n = int(actionable.get("n") or 0)
+    research_n = int(research.get("n") or 0)
+    model_settled = int(
+        ft_validation.get("evaluated_decisions")
+        or (actionable_n + research_n)
+        or 0
+    )
     roi_units = _num(market_ft.get("roi_units"))
     hit_rate = _num(market_ft.get("hit_rate_ex_push"))
     brier = _num(actionable.get("mean_brier"))
@@ -158,16 +166,24 @@ def build_report(
     blockers: list[str] = []
     warnings: list[str] = []
 
-    if settled < MIN_DIRECTIONAL_SETTLED:
-        blockers.append(f"SETTLED_{settled}_LT_DIRECTIONAL_{MIN_DIRECTIONAL_SETTLED}")
-    if settled < MIN_ACTIONABLE_REVIEW_SETTLED:
-        blockers.append(f"SETTLED_{settled}_LT_ACTIONABLE_REVIEW_{MIN_ACTIONABLE_REVIEW_SETTLED}")
+    if model_settled < MIN_DIRECTIONAL_SETTLED:
+        blockers.append(
+            f"MODEL_SETTLED_{model_settled}_LT_DIRECTIONAL_{MIN_DIRECTIONAL_SETTLED}"
+        )
+    if model_settled < MIN_ACTIONABLE_REVIEW_SETTLED:
+        blockers.append(
+            f"MODEL_SETTLED_{model_settled}_LT_REVIEW_{MIN_ACTIONABLE_REVIEW_SETTLED}"
+        )
     if clv["rows"] < MIN_TRUE_CLV_ROWS:
         blockers.append(f"FT_TOTALS_TRUE_CLV_{clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
     if not v4_oos_calibration_available:
         blockers.append("V4_OOS_CALIBRATION_NOT_MATERIALIZED")
     if missing_required_lines:
         warnings.append("ASIAN_TOTAL_LINE_COVERAGE_INCOMPLETE")
+    if commercial_settled < MIN_ACTIONABLE_REVIEW_SETTLED:
+        warnings.append(
+            f"COMMERCIAL_SETTLED_{commercial_settled}_LT_{MIN_ACTIONABLE_REVIEW_SETTLED}"
+        )
     if roi_units is not None and roi_units <= 0:
         warnings.append("NON_POSITIVE_SETTLED_ROI")
 
@@ -185,13 +201,20 @@ def build_report(
         "supported_lines": list(SUPPORTED_LINES),
         "asian_quarter_settlement_supported": True,
         "sample": {
-            "settled": settled,
-            "minimum_directional_settled": MIN_DIRECTIONAL_SETTLED,
-            "minimum_actionable_review_settled": MIN_ACTIONABLE_REVIEW_SETTLED,
-            "hit_rate_ex_push": hit_rate,
-            "roi_units": roi_units,
-            "mean_brier_legacy_signal_probability": brier,
-            "mean_log_loss_legacy_signal_probability": log_loss,
+            "model_settled": model_settled,
+            "actionable_settled": actionable_n,
+            "research_settled": research_n,
+            "commercial_settled": commercial_settled,
+            "minimum_directional_model_settled": MIN_DIRECTIONAL_SETTLED,
+            "minimum_model_review_settled": MIN_ACTIONABLE_REVIEW_SETTLED,
+            "hit_rate_ex_push_commercial": hit_rate,
+            "roi_units_commercial": roi_units,
+            "mean_brier_legacy_actionable_signal_probability": brier,
+            "mean_log_loss_legacy_actionable_signal_probability": log_loss,
+            "sample_policy": (
+                "MODEL_VALIDATION_USES_ALL_RESOLVED_FT_TOTALS_RESEARCH_AND_ACTIONABLE_DECISIONS; "
+                "COMMERCIAL_PERFORMANCE_REMAINS_BET_LEAN_ONLY"
+            ),
         },
         "line_coverage": required_line_coverage,
         "missing_required_lines": missing_required_lines,
@@ -204,6 +227,7 @@ def build_report(
         "blockers": blockers,
         "warnings": warnings,
         "notes": [
+            "Resolved WATCH/RESEARCH FT Totals decisions are valid model-evidence outcomes and may satisfy sample-size gates; BET/LEAN settlements remain a separate commercial-performance metric.",
             "Legacy p_shrunk Brier/log-loss are descriptive and are not treated as V4 ensemble OOS calibration evidence.",
             "True CLV is counted only for canonical FT totals rows; 1X2/BTTS close observations cannot satisfy this gate.",
             "Quarter-goal lines use half-stake Asian settlement across adjacent integer/half lines.",
