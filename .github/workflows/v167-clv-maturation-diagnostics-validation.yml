@@ -1,0 +1,38 @@
+name: v167 CLV Maturation Diagnostics Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v167-clv-maturation-diagnostics-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install minimal test dependencies
+        run: python -m pip install --disable-pip-version-check pytest psycopg[binary] httpx
+
+      - name: Compile CLV module
+        run: python -m py_compile runtime/mcp_gateway/clv_postgres_v4.py
+
+      - name: Run CLV Postgres tests
+        working-directory: runtime
+        run: python -m pytest -q tests/test_clv_postgres_v4.py
