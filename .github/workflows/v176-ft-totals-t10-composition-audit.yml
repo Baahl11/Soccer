@@ -1,0 +1,261 @@
+name: v176 FT Totals T-10 Composition Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v176-ft-totals-t10-composition-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout state evidence
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl
+            soccer_edge_state/analysis/shadow_performance_summary_v4.json
+            soccer_edge_state/analysis/ft_totals_shadow_stage_audit_v4.json
+            soccer_edge_state/analysis/ft_totals_t10_composition_audit_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Build FT Totals T-10 composition audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from collections import defaultdict
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          base = Path('state/soccer_edge_state/analysis')
+          ledger_path = base / 'shadow_settlement_ledger_v4.jsonl'
+          summary = json.loads((base / 'shadow_performance_summary_v4.json').read_text(encoding='utf-8'))
+          stage_audit = json.loads((base / 'ft_totals_shadow_stage_audit_v4.json').read_text(encoding='utf-8'))
+
+          rows = []
+          for raw in ledger_path.read_text(encoding='utf-8', errors='replace').splitlines():
+              raw = raw.strip()
+              if not raw:
+                  continue
+              try:
+                  row = json.loads(raw)
+              except Exception:
+                  continue
+              if not isinstance(row, dict):
+                  continue
+              if str(row.get('market_family') or '').upper() != 'FT_TOTALS':
+                  continue
+              rows.append(row)
+
+          def price_bucket(value):
+              try:
+                  x = float(value)
+              except Exception:
+                  return 'MISSING'
+              if x < 1.50: return '<1.50'
+              if x < 1.75: return '1.50-1.74'
+              if x < 2.00: return '1.75-1.99'
+              if x < 2.50: return '2.00-2.49'
+              return '2.50+'
+
+          def selection_group(value):
+              s = str(value or '').strip().upper()
+              if 'OVER' in s: return 'OVER'
+              if 'UNDER' in s: return 'UNDER'
+              return s or 'UNKNOWN'
+
+          def line_group(value):
+              try:
+                  x = float(value)
+              except Exception:
+                  return 'MISSING'
+              return f'{x:g}'
+
+          def segment(group):
+              settled = [r for r in group if r.get('shadow_settled')]
+              wins = sum(1 for r in settled if str(r.get('shadow_settlement_status') or '') == 'WIN')
+              losses = sum(1 for r in settled if str(r.get('shadow_settlement_status') or '') == 'LOSS')
+              pushes = sum(1 for r in settled if str(r.get('shadow_settlement_status') or '') == 'PUSH')
+              roi_values = []
+              prices = []
+              for r in settled:
+                  try:
+                      roi_values.append(float(r.get('shadow_roi_hypothetical_units') or 0.0))
+                  except Exception:
+                      pass
+                  try:
+                      prices.append(float(r.get('decimal_price')))
+                  except Exception:
+                      pass
+              decided = wins + losses
+              return {
+                  'rows': len(group),
+                  'unique_fixtures': len({r.get('fixture_id') for r in group}),
+                  'settled': len(settled),
+                  'win': wins,
+                  'loss': losses,
+                  'push': pushes,
+                  'hit_rate_ex_push': round(wins / decided, 6) if decided else None,
+                  'roi_units': round(sum(roi_values), 6),
+                  'roi_per_settled_unit': round(sum(roi_values) / len(settled), 6) if settled else None,
+                  'avg_decimal_price': round(sum(prices) / len(prices), 6) if prices else None,
+              }
+
+          def grouped(stage_rows, keyfn, min_settled=0):
+              buckets = defaultdict(list)
+              for r in stage_rows:
+                  buckets[str(keyfn(r))].append(r)
+              out = []
+              for key, group in buckets.items():
+                  item = {'key': key, **segment(group)}
+                  if item['settled'] >= min_settled:
+                      out.append(item)
+              out.sort(key=lambda x: (-x['settled'], x['key']))
+              return out
+
+          by_stage = {}
+          for stage in ('T-10', 'T-20', 'T-40'):
+              sr = [r for r in rows if str(r.get('stage') or '').upper() == stage]
+              by_stage[stage] = {
+                  'overall': segment(sr),
+                  'by_selection': grouped(sr, lambda r: selection_group(r.get('selection'))),
+                  'by_line': grouped(sr, lambda r: line_group(r.get('line'))),
+                  'by_price_bucket': grouped(sr, lambda r: price_bucket(r.get('decimal_price'))),
+                  'by_bookmaker_min_5_settled': grouped(sr, lambda r: r.get('bookmaker') or 'UNKNOWN', min_settled=5),
+                  'by_league_min_5_settled': grouped(sr, lambda r: r.get('league') or 'UNKNOWN', min_settled=5),
+              }
+
+          t10 = [r for r in rows if str(r.get('stage') or '').upper() == 'T-10']
+          t20 = [r for r in rows if str(r.get('stage') or '').upper() == 'T-20']
+
+          def map_rows(items):
+              return {item['key']: item for item in items}
+
+          contrasts = {}
+          for dim in ('by_selection', 'by_line', 'by_price_bucket'):
+              a = map_rows(by_stage['T-10'][dim])
+              b = map_rows(by_stage['T-20'][dim])
+              keys = sorted(set(a) | set(b))
+              out = []
+              for key in keys:
+                  aa = a.get(key, {})
+                  bb = b.get(key, {})
+                  roi10 = aa.get('roi_per_settled_unit')
+                  roi20 = bb.get('roi_per_settled_unit')
+                  delta = None
+                  if roi10 is not None and roi20 is not None:
+                      delta = round(float(roi10) - float(roi20), 6)
+                  out.append({
+                      'key': key,
+                      't10_settled': int(aa.get('settled') or 0),
+                      't10_roi_per_settled_unit': roi10,
+                      't20_settled': int(bb.get('settled') or 0),
+                      't20_roi_per_settled_unit': roi20,
+                      't10_minus_t20_roi': delta,
+                  })
+              contrasts[dim] = out
+
+          t10_leagues = by_stage['T-10']['by_league_min_5_settled']
+          t10_negative_leagues = [
+              row for row in t10_leagues
+              if row.get('roi_per_settled_unit') is not None and float(row['roi_per_settled_unit']) < 0
+          ]
+          t10_negative_leagues.sort(key=lambda x: (x['roi_per_settled_unit'], -x['settled'], x['key']))
+
+          t10_selection = map_rows(by_stage['T-10']['by_selection'])
+          t20_selection = map_rows(by_stage['T-20']['by_selection'])
+          diagnostics = {
+              't10_over': t10_selection.get('OVER'),
+              't10_under': t10_selection.get('UNDER'),
+              't20_over': t20_selection.get('OVER'),
+              't20_under': t20_selection.get('UNDER'),
+              't10_negative_leagues_min_5_settled': t10_negative_leagues,
+              'stage_gap_is_descriptive_only': True,
+          }
+
+          report = {
+              'schema_version': '1.0.0',
+              'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+              'market_family': 'FT_TOTALS',
+              'focus_stage': 'T-10',
+              'comparison_stage': 'T-20',
+              'status': 'T10_COMPOSITION_AUDIT_AVAILABLE',
+              'source_ledger_rows_ft_totals': len(rows),
+              'source_shadow_model_version': summary.get('model_version'),
+              'stage_crosscheck': stage_audit.get('by_stage') or [],
+              'by_stage': by_stage,
+              't10_vs_t20': contrasts,
+              'diagnostics': diagnostics,
+              'interpretation_policy': (
+                  'All ROI is hypothetical WATCH shadow performance. Composition findings are descriptive only; '
+                  'they cannot create production filters, change thresholds, alter model weights, or substitute '
+                  'for strict true CLV/OOS evidence.'
+              ),
+              'provider_requests_added': 0,
+              'thresholds_changed': False,
+              'model_weights_changed': False,
+              'canonical_bet_logic_changed': False,
+              'production_filter_changed': False,
+              'production_promotion_allowed': False,
+          }
+
+          out = base / 'ft_totals_t10_composition_audit_v4.json'
+          out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps({
+              'status': report['status'],
+              't10_overall': by_stage['T-10']['overall'],
+              't20_overall': by_stage['T-20']['overall'],
+              't10_by_selection': by_stage['T-10']['by_selection'],
+              't20_by_selection': by_stage['T-20']['by_selection'],
+              't10_by_line': by_stage['T-10']['by_line'],
+              't20_by_line': by_stage['T-20']['by_line'],
+              't10_by_price_bucket': by_stage['T-10']['by_price_bucket'],
+              't20_by_price_bucket': by_stage['T-20']['by_price_bucket'],
+              't10_negative_leagues_min_5': t10_negative_leagues,
+          }, indent=2))
+          PY
+
+      - name: Validate diagnostic-only safety gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT=state/soccer_edge_state/analysis/ft_totals_t10_composition_audit_v4.json
+          jq -e '.schema_version == "1.0.0"' "$REPORT" >/dev/null
+          jq -e '.market_family == "FT_TOTALS" and .focus_stage == "T-10"' "$REPORT" >/dev/null
+          jq -e '.source_ledger_rows_ft_totals >= 200' "$REPORT" >/dev/null
+          jq -e '.by_stage["T-10"].overall.settled >= 100' "$REPORT" >/dev/null
+          jq -e '.provider_requests_added == 0' "$REPORT" >/dev/null
+          jq -e '.thresholds_changed == false' "$REPORT" >/dev/null
+          jq -e '.model_weights_changed == false' "$REPORT" >/dev/null
+          jq -e '.canonical_bet_logic_changed == false' "$REPORT" >/dev/null
+          jq -e '.production_filter_changed == false' "$REPORT" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$REPORT" >/dev/null
+
+      - name: Persist audit to state branch
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/ft_totals_t10_composition_audit_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update FT Totals T-10 composition audit"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
