@@ -197,6 +197,7 @@ def load_rows(conn: Any, *, cutoff: str | None = None) -> list[dict[str, Any]]:
     rows.sort(key=lambda item: (int(item.get("fixture_id") or 0), int(item.get("snapshot_id") or 0)))
     return rows
 
+
 def manifest(rows: list[dict[str, Any]], *, cutoff: str | None = None) -> dict[str, Any]:
     feature_names = sorted({
         key
@@ -237,26 +238,37 @@ def manifest(rows: list[dict[str, Any]], *, cutoff: str | None = None) -> dict[s
 
 
 def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int]:
-    """Derive v4 snapshots only from historical point-in-time refresh payloads.
+    """Derive missing v4 snapshots from historical point-in-time refresh payloads.
 
-    No provider calls and no future information are used. Missing advanced
-    features remain explicitly missing under feature_snapshot_v4.
+    No provider calls and no future information are used. Only refresh events
+    without an equivalent v4 feature snapshot are selected, newest first, so
+    current OOS evidence cannot be starved by an old fixed prefix of events.
+    Missing advanced features remain explicitly missing under feature_snapshot_v4.
     """
     scanned = valid = inserted = invalid = 0
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT event_id, generated_at, payload
-            FROM soccer_refresh_events
-            WHERE event_type='SOCCER_REFRESH'
-              AND stage <> 'POSTGAME'
-            ORDER BY generated_at ASC, event_id ASC
+            SELECT e.event_id, e.generated_at, e.payload
+            FROM soccer_refresh_events e
+            WHERE e.event_type='SOCCER_REFRESH'
+              AND e.stage <> 'POSTGAME'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM soccer_feature_snapshots s
+                  WHERE s.fixture_id = e.fixture_id
+                    AND s.captured_at = e.generated_at
+                    AND COALESCE(s.stage, '') = COALESCE(e.stage, '')
+                    AND s.schema_version = %s
+              )
+            ORDER BY e.generated_at DESC, e.event_id DESC
             LIMIT %s
             """,
-            (int(limit),),
+            (feature_snapshot_v4.SCHEMA_VERSION, int(limit)),
         )
         source_rows = cur.fetchall()
 
+    insert_rows: list[tuple[Any, ...]] = []
     for _event_id, generated_at, payload in source_rows:
         scanned += 1
         if not isinstance(payload, dict):
@@ -272,8 +284,21 @@ def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int
             invalid += 1
             continue
         valid += 1
+        insert_rows.append((
+            snapshot.get("fixture_id"),
+            snapshot.get("captured_at"),
+            snapshot.get("stage"),
+            snapshot.get("schema_version"),
+            snapshot.get("model_version"),
+            snapshot.get("data_tier"),
+            snapshot.get("feature_count", 0),
+            snapshot.get("missing_feature_count", 0),
+            _canonical_json(snapshot),
+        ))
+
+    if insert_rows:
         with conn.cursor() as cur:
-            cur.execute(
+            cur.executemany(
                 """
                 INSERT INTO soccer_feature_snapshots (
                     fixture_id, captured_at, stage, schema_version,
@@ -282,25 +307,16 @@ def backfill_feature_snapshots(conn: Any, *, limit: int = 5000) -> dict[str, int
                 ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
                 ON CONFLICT (fixture_id, captured_at, stage, schema_version) DO NOTHING
                 """,
-                (
-                    snapshot.get("fixture_id"),
-                    snapshot.get("captured_at"),
-                    snapshot.get("stage"),
-                    snapshot.get("schema_version"),
-                    snapshot.get("model_version"),
-                    snapshot.get("data_tier"),
-                    snapshot.get("feature_count", 0),
-                    snapshot.get("missing_feature_count", 0),
-                    _canonical_json(snapshot),
-                ),
+                insert_rows,
             )
-            inserted += max(int(cur.rowcount or 0), 0)
+            inserted = max(int(cur.rowcount or 0), 0)
 
     return {
         "scanned_refresh_events": scanned,
         "valid_snapshots": valid,
         "inserted_snapshots": inserted,
         "invalid_snapshots": invalid,
+        "backfill_limit": int(limit),
     }
 
 
