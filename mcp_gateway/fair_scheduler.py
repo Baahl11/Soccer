@@ -7,7 +7,7 @@ from typing import Any
 
 from mcp_gateway import automation as base
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 STATE_NAMESPACE = "fair_scheduler_state"
 STATE_TTL = timedelta(hours=72)
 EXPORT_MAX_AGE = timedelta(hours=72)
@@ -91,6 +91,39 @@ def _sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
     return (last, *priority)
 
 
+def _league_key(item: dict[str, Any]) -> str:
+    fx = item.get("fx") if isinstance(item.get("fx"), dict) else {}
+    league_id = fx.get("league_id")
+    if league_id is not None:
+        return f"id:{league_id}"
+    country = str(fx.get("country") or "").strip().lower()
+    league = str(fx.get("league") or "").strip().lower()
+    return f"name:{country}|{league}"
+
+
+def _round_robin_leagues(queue: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Interleave leagues while preserving each league's existing priority order."""
+    buckets: dict[str, list[dict[str, Any]]] = {}
+    for item in queue:
+        buckets.setdefault(_league_key(item), []).append(item)
+
+    if len(buckets) <= 1:
+        return list(queue)
+
+    ordered_keys = list(buckets)
+    out: list[dict[str, Any]] = []
+    while ordered_keys:
+        next_keys: list[str] = []
+        for key in ordered_keys:
+            bucket = buckets[key]
+            if bucket:
+                out.append(bucket.pop(0))
+            if bucket:
+                next_keys.append(key)
+        ordered_keys = next_keys
+    return out
+
+
 def fair_order(
     items: list[dict[str, Any]],
     max_slots: int,
@@ -103,8 +136,10 @@ def fair_order(
             item["fairness_category"] = cat
         queues[cat].append(item)
 
-    for queue in queues.values():
+    for key, queue in queues.items():
         queue.sort(key=_sort_key)
+        if key in {"unseen", "exploratory"}:
+            queues[key] = _round_robin_leagues(queue)
 
     initial_counts = {key: len(value) for key, value in queues.items()}
     selected: list[dict[str, Any]] = []
@@ -128,14 +163,21 @@ def fair_order(
     deferred.sort(key=lambda item: tuple(item.get("priority") or ()))
 
     planned_counts = Counter(str(item.get("fairness_category") or "exploratory") for item in selected)
+    eligible_leagues = {_league_key(item) for item in items}
+    planned_leagues = {_league_key(item) for item in selected}
+    planned_league_counts = Counter(_league_key(item) for item in selected)
     metrics = {
         "schema_version": SCHEMA_VERSION,
-        "policy": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY",
+        "policy": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY_WITH_LEAGUE_ROUND_ROBIN",
         "weights_pct": dict(CATEGORY_WEIGHTS),
         "eligible_queue_counts": initial_counts,
         "planned_slot_counts": {key: int(planned_counts.get(key, 0)) for key in CATEGORY_WEIGHTS},
         "planned_slot_count": len(selected),
         "deferred_after_slot_plan": len(deferred),
+        "eligible_unique_leagues": len(eligible_leagues),
+        "planned_unique_leagues": len(planned_leagues),
+        "planned_league_counts": dict(planned_league_counts),
+        "league_diversity_policy": "ACTIONABLE_PRIORITY_PRESERVED;UNSEEN_AND_EXPLORATORY_INTERLEAVED_BY_LEAGUE",
     }
     return selected, deferred, metrics
 
