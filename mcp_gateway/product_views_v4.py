@@ -206,8 +206,16 @@ def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[
     effective_cap = _int_or_none(payload.get("effective_max_api_calls_per_tick"))
     if effective_cap is None:
         effective_cap = _int_or_none(payload.get("max_api_calls_per_tick"))
+    fair = payload.get("fair_scheduler") if isinstance(payload.get("fair_scheduler"), dict) else {}
+    fair_processed = fair.get("processed_category_counts") if isinstance(fair.get("processed_category_counts"), dict) else {}
+    price_checkpoint = (
+        payload.get("price_resolution_checkpoint")
+        if isinstance(payload.get("price_resolution_checkpoint"), dict)
+        else {}
+    )
 
     return {
+        "schema_version": "2.0.0",
         "status": "LIVE" if tick_ok and db_ok and not errors else "DEGRADED",
         "generated_at_utc": payload.get("generated_at_utc"),
         "generated_at_local": payload.get("generated_at_local"),
@@ -245,6 +253,22 @@ def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[
             "market_capture_handoff_fixture_count": _int_or_none(slate.get("market_capture_handoff_fixture_count")),
             "market_capture_handoff_tier_counts": dict(slate.get("market_capture_handoff_tier_counts") or {}),
             "league_allowlist_applied": bool(slate.get("league_allowlist_applied")),
+            "scheduler_schema_version": fair.get("schema_version"),
+            "scheduler_mode": fair.get("scheduling_mode") or fair.get("policy"),
+            "scheduler_effective_weights_pct": dict(fair.get("effective_weights_pct") or fair.get("weights_pct") or {}),
+            "scheduler_planned_unique_leagues": _int_or_none(fair.get("planned_unique_leagues")),
+            "scheduler_urgent_actionable_count": _int_or_none(fair.get("urgent_actionable_count")),
+            "scheduler_unseen_processed": _int_or_none(fair_processed.get("unseen")),
+            "scheduler_actionable_processed": _int_or_none(fair_processed.get("actionable")),
+            "scheduler_starvation_count": _int_or_none(fair.get("starvation_count")),
+            "scheduler_due_analyzed_pct": fair.get("due_analyzed_pct"),
+            "primary_clv_maturation_candidates": _int_or_none(price_checkpoint.get("primary_clv_maturation_candidates")),
+            "primary_clv_maturation_refreshed": _int_or_none(price_checkpoint.get("primary_clv_maturation_fixtures_refreshed")),
+            "primary_clv_maturation_unchanged_provider_updates": _int_or_none(price_checkpoint.get("primary_clv_maturation_unchanged_provider_updates")),
+            "team_totals_maturation_candidates": _int_or_none(price_checkpoint.get("research_spillover_maturation_candidates")),
+            "team_totals_maturation_api_calls_added": _int_or_none(price_checkpoint.get("research_spillover_maturation_api_calls_added")),
+            "team_totals_later_quote_refreshes": _int_or_none(price_checkpoint.get("research_spillover_maturation_later_real_quote_refreshes")),
+            "team_totals_unchanged_provider_updates": _int_or_none(price_checkpoint.get("research_spillover_maturation_unchanged_provider_updates")),
         },
         "errors": {
             "count": len(errors),
