@@ -32,12 +32,22 @@ async def _identity_map(now: datetime, payload: dict[str, Any]) -> tuple[dict[st
     if isinstance(cached, dict) and cached:
         return cached, "CACHE"
 
-    used = int(payload.get("api_calls_this_tick") or 0)
-    cap = int(payload.get("max_api_calls_per_tick") or 20)
-    if used >= cap:
+    payload_used = int(payload.get("api_calls_this_tick") or 0)
+    hard_used = int(v2._API_CALLS_THIS_TICK or 0)
+    used = max(payload_used, hard_used)
+
+    payload_cap = int(payload.get("effective_max_api_calls_per_tick") or payload.get("max_api_calls_per_tick") or 0)
+    hard_cap = int(v2.MAX_API_CALLS_PER_TICK or 0)
+    positive_caps = [value for value in (payload_cap, hard_cap) if value > 0]
+    cap = min(positive_caps) if positive_caps else 0
+
+    if cap > 0 and used >= cap:
         return {}, "SKIPPED_PROVIDER_BUDGET"
 
-    response = await base._api_get("leagues", {})
+    try:
+        response = await base._api_get("leagues", {})
+    except v2.TickBudgetExceeded:
+        return {}, "SKIPPED_PROVIDER_BUDGET"
     mapping: dict[str, dict[str, Any]] = {}
     for row in response.get("response", []) or []:
         league = row.get("league") or {}
