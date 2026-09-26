@@ -1969,3 +1969,57 @@ def test_primary_clv_backlog_match_table_branch_normalizes_research_aliases_in_s
     # This guards the data-collection path independently from Phase16 promotion readiness.
     source = v._load_primary_clv_maturation_backlog
     assert callable(source)
+
+
+
+class _TeamTotalsMaturationSqlDescription:
+    def __init__(self, name):
+        self.name = name
+
+
+class _TeamTotalsMaturationSqlCursor:
+    def __init__(self):
+        self.description = []
+        self.sql = ""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def execute(self, sql, params):
+        self.sql = sql
+        self.description = []
+
+    def fetchall(self):
+        return []
+
+
+class _TeamTotalsMaturationSqlConn:
+    def __init__(self):
+        self.cursor_instance = _TeamTotalsMaturationSqlCursor()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def cursor(self):
+        return self.cursor_instance
+
+
+def test_team_totals_maturation_backlog_tracks_latest_modeled_signal(monkeypatch):
+    conn = _TeamTotalsMaturationSqlConn()
+    monkeypatch.setattr(v.persistence, "persistence_configured", lambda: True)
+    monkeypatch.setattr(v.persistence, "ensure_schema", lambda: None)
+    monkeypatch.setattr(v.persistence, "_connect", lambda: conn)
+
+    result = v._load_team_totals_maturation_backlog(lookahead_minutes=55, limit=10)
+
+    assert result["candidate_count"] == 0
+    sql = conn.cursor_instance.sql
+    assert "MAX(e.generated_at) AS signal_generated_at" in sql
+    assert "MIN(e.generated_at) AS signal_generated_at" not in sql
+    assert "m.provider_update > ms.signal_generated_at" in sql
