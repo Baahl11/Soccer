@@ -656,9 +656,10 @@ def test_combined_team_totals_legacy_report_keeps_conservative_max_fallback():
 
 def test_phase19_exposes_1x2_selection_readiness_without_relaxing_family_gate():
     promotion_shadow = {
-        "promotion_evaluable": {
+        "families": {
             "1X2": {
-                "settled": 9,
+                "promotion_evaluable": {
+                    "settled": 9,
                 "pending": 3,
                 "roi_per_settled_unit": 0.50,
                 "sample_status": "DATA_BLOCKED",
@@ -690,7 +691,7 @@ def test_phase19_exposes_1x2_selection_readiness_without_relaxing_family_gate():
                         "log_loss_delta": -0.008,
                     },
                 },
-                "selection_progress": {
+                "by_selection": {
                     "HOME": {
                         "rows": 4,
                         "settled": 2,
@@ -715,6 +716,7 @@ def test_phase19_exposes_1x2_selection_readiness_without_relaxing_family_gate():
                         "directional_remaining": 13,
                         "review_remaining": 43,
                     },
+                },
                 },
             }
         }
