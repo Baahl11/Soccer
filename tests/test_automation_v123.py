@@ -7,6 +7,8 @@ from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v5 as v5
 from mcp_gateway import automation_v7 as v7
 from mcp_gateway import automation_v25 as v25
+from mcp_gateway import automation_v26 as v26
+from mcp_gateway import automation_v33 as v33
 from mcp_gateway import persistence as persistence_base
 
 
@@ -1216,3 +1218,68 @@ def test_v25_postgame_player_candidates_prioritize_statistics_players_coverage()
     candidates = v25._postgame_candidates(events)
     assert [row["fixture"]["fixture_id"] for row in candidates] == [1, 2]
     assert v25.MAX_POSTGAME_PLAYER_CALLS_PER_TICK >= 2
+
+
+
+def test_v33_compactor_accepts_lineup_and_preserves_modern_prop_sidecars(monkeypatch):
+    payload = {
+        "response": [{
+            "update": "2026-09-26T00:00:00+00:00",
+            "bookmakers": [{
+                "id": 1,
+                "name": "Book",
+                "bets": [
+                    {
+                        "id": 10,
+                        "name": "Match Winner",
+                        "values": [{"value": "Home", "odd": "1.90"}],
+                    },
+                    {
+                        "id": 501,
+                        "name": "Player Assists",
+                        "values": [{
+                            "value": "Yes",
+                            "odd": "3.20",
+                            "player": {"id": 501, "name": "Player A"},
+                        }],
+                    },
+                ],
+            }],
+        }],
+    }
+    lineup = {
+        "both_xi_confirmed": True,
+        "teams": [{
+            "team_id": 10,
+            "team": "Home",
+            "starters": [{"id": 501, "name": "Player A", "pos": "M"}],
+        }],
+    }
+
+    previous = base._wanted_market
+    base._wanted_market = v33._wanted_market_complete
+    try:
+        out = v33._compact_odds_complete(payload, lineup=lineup)
+    finally:
+        base._wanted_market = previous
+
+    assert out["markets"]
+    assert out["player_prop_research_market_rows"] == 1
+    prop = out["research_cards_props_markets"][0]
+    assert prop["research_subfamily"] == "ASSISTS"
+    assert prop["xi_aligned_value_rows"] == 1
+    assert prop["values"][0]["player_id"] == 501
+    assert prop["values"][0]["xi_alignment_status"] == "MATCHED_CONFIRMED_XI"
+
+
+def test_v26_galaxy_wrapper_accepts_lineup_keyword(monkeypatch):
+    async def fake_original(fixture_id, now):
+        return {"markets": [], "market_count": 0}
+
+    monkeypatch.setattr(v26, "_ORIGINAL_GALAXY_AWARE_ODDS", fake_original)
+    out = asyncio.run(v26._tagged_galaxy_aware_odds(
+        9901,
+        datetime(2026, 9, 26, 0, 0, tzinfo=timezone.utc),
+        lineup={"both_xi_confirmed": True},
+    ))
+    assert isinstance(out, dict)
