@@ -96,3 +96,52 @@ def test_v4_006_actionable_priority_order_is_not_rewritten_by_league_round_robin
         first["fx"]["fixture_id"],
         second["fx"]["fixture_id"],
     ]
+
+
+def test_v4_006_coverage_catchup_prioritizes_unseen_when_urgent_load_is_low():
+    items = []
+    # Three urgent shortlist fixtures should all remain ahead of non-urgent
+    # repeats, while the large unseen backlog gets most of the early prefix.
+    for i in range(3):
+        item = _item("actionable", i, league_id=39 + i)
+        item["stage"] = "T-20"
+        items.append(item)
+    for i in range(3, 43):
+        item = _item("actionable", i, league_id=39)
+        item["stage"] = "EARLY_RESEARCH"
+        items.append(item)
+    items += [_item("unseen", 100 + i, league_id=100 + (i % 25)) for i in range(120)]
+
+    selected, _, metrics = fair_scheduler.fair_order(items, 48)
+    prefix = selected[:9]
+    categories = [item["fairness_category"] for item in prefix]
+    urgent_ids = {
+        1000 + i
+        for i in range(3)
+    }
+    selected_actionable_ids = {
+        item["fx"]["fixture_id"]
+        for item in prefix
+        if item["fairness_category"] == "actionable"
+    }
+
+    assert metrics["schema_version"] == "1.2.0"
+    assert metrics["scheduling_mode"] == "COVERAGE_CATCHUP"
+    assert metrics["effective_weights_pct"]["unseen"] == 60
+    assert metrics["urgent_actionable_count"] == 3
+    assert categories.count("unseen") >= 5
+    assert urgent_ids.issubset(selected_actionable_ids)
+
+
+def test_v4_006_coverage_catchup_disables_when_urgent_queue_is_large():
+    items = []
+    for i in range(20):
+        item = _item("actionable", i, league_id=39)
+        item["stage"] = "T-20"
+        items.append(item)
+    items += [_item("unseen", 100 + i, league_id=100 + (i % 25)) for i in range(120)]
+
+    _, _, metrics = fair_scheduler.fair_order(items, 48)
+
+    assert metrics["scheduling_mode"] == "NORMAL_WEIGHTED_FAIR"
+    assert metrics["effective_weights_pct"] == fair_scheduler.CATEGORY_WEIGHTS
