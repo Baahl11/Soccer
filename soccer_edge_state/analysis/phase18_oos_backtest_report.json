@@ -1,10 +1,5 @@
 {
-  "blockers": [
-    "BOOKMAKER_TIMESTAMP_DISCIPLINE_INCOMPLETE",
-    "LINEUP_TIMESTAMP_DISCIPLINE_INCOMPLETE",
-    "FEATURE_TIMESTAMP_DISCIPLINE_INCOMPLETE",
-    "SETTLED_28_LT_50"
-  ],
+  "blockers": [],
   "canonical_bet_logic_changed": false,
   "chronological_split_preview": {
     "test": {
@@ -46,26 +41,59 @@
   },
   "manual_review_required": true,
   "metric_availability_on_current_settlement_ledger": {
-    "brier": false,
-    "calibration": false,
+    "brier": true,
+    "calibration": true,
     "clv": true,
     "drawdown": true,
     "hit_rate": true,
-    "log_loss": false,
+    "log_loss": true,
     "mae": false,
     "max_losing_streak": true,
     "rmse": false,
     "roi": true,
     "volatility": true
   },
-  "model_version": "SOCCER_OOS_BACKTEST_V4_1.0.0",
+  "model_version": "SOCCER_OOS_BACKTEST_V4_1.2.0",
   "model_weights_changed": false,
   "notes": [
     "The settlement ledger can measure realized hit rate, ROI, drawdown, losing streak and volatility.",
-    "Brier/log-loss/calibration/MAE/RMSE require point-in-time model predictions joined to final outcomes; settlement ROI alone cannot substitute for those metrics.",
+    "Brier/log-loss/calibration come from frozen OOS model predictions joined to final outcomes; real BET/LEAN settlement ROI is tracked separately and cannot substitute for model OOS evidence.",
+    "Phase18 research readiness must not depend on producing BET/LEAN classifications before promotion; doing so would create a circular promotion gate.",
     "Chronological split preview is diagnostic only. Production model evaluation must use frozen prediction snapshots and walk-forward/rolling retraining without leakage.",
-    "Bookmaker, lineup and feature timestamps must be explicit per prediction row before production promotion."
+    "Bookmaker, lineup-state observation and feature timestamps must be explicit for modern Postgres prediction rows before production promotion.",
+    "Legacy rows with unavailable provenance remain visible as warnings and are never assigned fabricated timestamps."
   ],
+  "oos_model_evidence": {
+    "anti_leakage": {
+      "final_result_from_postgame_or_final_status_only": true,
+      "historical_predictions_recomputed": false,
+      "market_fields_used": false,
+      "one_latest_pre_kickoff_prediction_per_fixture": true,
+      "prediction_timestamp_before_kickoff_required": true
+    },
+    "anti_leakage_ok": true,
+    "fixture_rows": 703,
+    "minimum_fixture_rows": 50,
+    "model_version": "SOCCER_OOS_HISTORY_MERGE_V4_1.0.0",
+    "ready_target_count": 5,
+    "role": "MODEL_OOS_VALIDATION_NOT_REAL_BET_PERFORMANCE",
+    "run_type_counts": {
+      "CLOSE": 122,
+      "EARLY_RESEARCH": 89,
+      "T-10": 358,
+      "T-20": 46,
+      "T-30": 31,
+      "T-40": 28,
+      "T-60": 11,
+      "T-90": 18
+    },
+    "source_counts": {
+      "HISTORICAL_SIGNAL_LEDGER": 494,
+      "POSTGRES_NATIVE": 209
+    },
+    "status": "OOS_CALIBRATION_MATERIALIZED",
+    "targets_improving_brier_and_log_loss": 5
+  },
   "phase": "FASE_18_OOS_BACKTEST",
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
@@ -108,17 +136,34 @@
       "reason": "SETTLED_28_LT_WINDOW_50"
     }
   },
-  "schema_version": "1.0.0",
-  "status": "OOS_FRAMEWORK_DATA_GAPS",
+  "schema_version": "1.2.0",
+  "status": "OOS_FRAMEWORK_READY_FOR_MODEL_PREDICTIONS",
   "timestamp_discipline": {
     "bookmaker_timestamp_coverage": 0.0,
     "decision_timestamp_coverage": 1.0,
     "feature_timestamp_coverage": 0.0,
+    "legacy_bookmaker_timestamp_unknown": 29,
+    "legacy_feature_timestamp_unknown": 29,
+    "legacy_lineup_timestamp_unknown": 29,
+    "legacy_rows": 29,
     "lineup_timestamp_coverage": 0.0,
+    "modern_bookmaker_timestamp_coverage": null,
+    "modern_bookmaker_timestamp_present": 0,
+    "modern_feature_timestamp_coverage": null,
+    "modern_feature_timestamp_present": 0,
+    "modern_lineup_timestamp_coverage": null,
+    "modern_lineup_timestamp_present": 0,
+    "modern_rows": 0,
+    "policy": "Modern Postgres settlement rows require explicit point-in-time quote, lineup-state observation and feature timestamps. Legacy Git-history rows keep unknown provenance visible as warnings and are never assigned fabricated timestamps.",
     "pre_kickoff_decision_rate": 1.0,
     "rows": 29
   },
   "warnings": [
-    "CHRONOLOGICAL_TEST_PARTITION_SMALL"
+    "NO_MODERN_SETTLEMENT_ROWS_FOR_TIMESTAMP_VALIDATION",
+    "LEGACY_BOOKMAKER_TIMESTAMP_UNKNOWN_29",
+    "LEGACY_LINEUP_TIMESTAMP_UNKNOWN_29",
+    "LEGACY_FEATURE_TIMESTAMP_UNKNOWN_29",
+    "REAL_BET_SETTLEMENT_28_LT_50_COMMERCIAL_PERFORMANCE_ONLY",
+    "CHRONOLOGICAL_REAL_BET_TEST_PARTITION_SMALL"
   ]
 }
