@@ -186,3 +186,32 @@ def test_phase24_view_limits_are_bounded():
     result = v.build_views({"match_table_rows": rows}, limit=10)
     assert result["views"]["todays_slate"]["total"] == 50
     assert len(result["views"]["todays_slate"]["rows"]) == 10
+
+
+
+def test_control_tower_final_payload_exposes_post_price_telemetry_and_healthy_db():
+    payload = _payload()
+    payload["database_persisted"] = True
+    payload["api_calls_this_tick"] = 59
+    payload["effective_max_api_calls_per_tick"] = 70
+    payload["max_api_calls_per_tick"] = 70
+    payload["price_resolution_checkpoint"] = {
+        "primary_clv_maturation_candidates": 1,
+        "primary_clv_maturation_fixtures_refreshed": 1,
+        "primary_clv_maturation_unchanged_provider_updates": 0,
+        "research_spillover_maturation_candidates": 3,
+        "research_spillover_maturation_api_calls_added": 2,
+        "research_spillover_maturation_later_real_quote_refreshes": 1,
+        "research_spillover_maturation_unchanged_provider_updates": 1,
+    }
+
+    tower = v.build_views(payload)["views"]["control_tower"]
+
+    assert tower["status"] == "LIVE"
+    assert tower["system_health"]["postgres"] == "HEALTHY"
+    assert tower["pipeline"]["api_calls"] == 59
+    assert tower["pipeline"]["api_call_cap"] == 70
+    assert tower["pipeline"]["primary_clv_maturation_refreshed"] == 1
+    assert tower["pipeline"]["team_totals_maturation_candidates"] == 3
+    assert tower["pipeline"]["team_totals_maturation_api_calls_added"] == 2
+    assert tower["pipeline"]["team_totals_later_quote_refreshes"] == 1
