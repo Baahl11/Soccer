@@ -56,6 +56,28 @@ def test_v4_007_snapshot_is_versioned_and_valid():
     assert feature_snapshot_v4.validate(snapshot) == []
 
 
+def test_v4_007_tick_model_version_wins_over_refresh_event_version():
+    tick = _tick()
+    tick["model_version"] = "SOCCER EDGE ENGINE v1.7"
+    event = _event()
+    event["model_version"] = "SOCCER EDGE ENGINE v1.0"
+
+    snapshot = feature_snapshot_v4.build(tick, event)
+
+    assert snapshot["model_version"] == "SOCCER EDGE ENGINE v1.7"
+
+
+def test_v4_007_refresh_event_model_version_is_fallback_when_tick_version_missing():
+    tick = _tick()
+    tick["model_version"] = None
+    event = _event()
+    event["model_version"] = "SOCCER EDGE ENGINE v1.0"
+
+    snapshot = feature_snapshot_v4.build(tick, event)
+
+    assert snapshot["model_version"] == "SOCCER EDGE ENGINE v1.0"
+
+
 def test_v4_007_feature_envelope_has_required_metadata():
     snapshot = feature_snapshot_v4.build(_tick(), _event())
     row = snapshot["features"]["team_performance.home_goal_rate_blend"]
