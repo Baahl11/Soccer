@@ -62,6 +62,7 @@ async def _main() -> int:
         imported = automation_v6.import_shortlist_state(shortlist_seed)
         fairness_imported = automation_v7.fair_scheduler.import_state(fairness_seed)
         payload = await automation_v123.run_tick()
+        payload.setdefault("status", "ok")
         payload["shortlist_seed_imported"] = imported
         payload["fair_scheduler_seed_imported"] = fairness_imported
         try:
