@@ -14,7 +14,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence, research_derivative_postgres_audit as derivative_audit
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.18.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.19.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -1202,6 +1202,24 @@ def _primary_signals_with_later_provider_quote(
     return matured
 
 
+def _primary_maturation_family_accounting(
+    signals: list[dict[str, Any]],
+    matured_families: set[str],
+) -> tuple[set[str], set[str]]:
+    """Return valid primary families evaluated and those still lacking a later quote.
+
+    Observability only: this never changes selection, price, probability, budget,
+    close-window semantics or maturation eligibility.
+    """
+    evaluated = {
+        str(signal.get("market_family") or "").upper()
+        for signal in signals
+        if str(signal.get("market_family") or "").upper() in {"1X2", "FT_TOTALS", "BTTS"}
+    }
+    matured = {str(value).upper() for value in matured_families if str(value).upper() in evaluated}
+    return evaluated, evaluated - matured
+
+
 def _load_primary_clv_maturation_backlog(
     *,
     lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
@@ -2220,6 +2238,8 @@ async def resolve_payload(
     primary_maturation_api_calls_added = 0
     primary_maturation_fixtures_refreshed = 0
     primary_maturation_family_refresh_counts: dict[str, int] = defaultdict(int)
+    primary_maturation_family_evaluation_counts: dict[str, int] = defaultdict(int)
+    primary_maturation_not_matured_family_counts: dict[str, int] = defaultdict(int)
     primary_maturation_cache_replays_ignored = 0
     primary_maturation_unchanged_provider_updates = 0
     primary_maturation_budget_exhausted = 0
@@ -2290,6 +2310,13 @@ async def resolve_payload(
                         continue
 
                 matured_families = _primary_signals_with_later_provider_quote(markets, signals)
+                evaluated_families, not_matured_families = _primary_maturation_family_accounting(
+                    signals, matured_families
+                )
+                for family in evaluated_families:
+                    primary_maturation_family_evaluation_counts[family] += 1
+                for family in not_matured_families:
+                    primary_maturation_not_matured_family_counts[family] += 1
                 if not matured_families:
                     primary_maturation_unchanged_provider_updates += 1
                     continue
@@ -2989,6 +3016,8 @@ async def resolve_payload(
         "primary_clv_maturation_api_calls_added": primary_maturation_api_calls_added,
         "primary_clv_maturation_fixtures_refreshed": primary_maturation_fixtures_refreshed,
         "primary_clv_maturation_family_refresh_counts": dict(sorted(primary_maturation_family_refresh_counts.items())),
+        "primary_clv_maturation_family_evaluation_counts": dict(sorted(primary_maturation_family_evaluation_counts.items())),
+        "primary_clv_maturation_not_matured_family_counts": dict(sorted(primary_maturation_not_matured_family_counts.items())),
         "primary_clv_maturation_cache_replays_ignored": primary_maturation_cache_replays_ignored,
         "primary_clv_maturation_unchanged_provider_updates": primary_maturation_unchanged_provider_updates,
         "primary_clv_maturation_budget_exhausted": primary_maturation_budget_exhausted,

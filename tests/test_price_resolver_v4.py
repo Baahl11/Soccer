@@ -2023,3 +2023,31 @@ def test_team_totals_maturation_backlog_tracks_latest_modeled_signal(monkeypatch
     assert "MAX(e.generated_at) AS signal_generated_at" in sql
     assert "MIN(e.generated_at) AS signal_generated_at" not in sql
     assert "m.provider_update > ms.signal_generated_at" in sql
+
+
+
+def test_primary_maturation_family_accounting_tracks_partial_maturation():
+    signals = [
+        {"market_family": "FT_TOTALS"},
+        {"market_family": "BTTS"},
+        {"market_family": "BTTS"},
+        {"market_family": "OTHER"},
+    ]
+
+    evaluated, not_matured = v._primary_maturation_family_accounting(signals, {"BTTS"})
+
+    assert evaluated == {"FT_TOTALS", "BTTS"}
+    assert not_matured == {"FT_TOTALS"}
+
+
+def test_primary_maturation_family_accounting_all_unchanged():
+    signals = [
+        {"market_family": "1X2"},
+        {"market_family": "FT_TOTALS"},
+        {"market_family": "BTTS"},
+    ]
+
+    evaluated, not_matured = v._primary_maturation_family_accounting(signals, set())
+
+    assert evaluated == {"1X2", "FT_TOTALS", "BTTS"}
+    assert not_matured == evaluated
