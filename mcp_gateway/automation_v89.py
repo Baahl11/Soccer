@@ -11,11 +11,23 @@ from mcp_gateway import automation_v6 as v6
 from mcp_gateway import automation_v88 as v88
 
 MODEL_VERSION = v88.MODEL_VERSION
-AUTOMATION_VERSION = "3.62.0"
+AUTOMATION_VERSION = "3.63.0-weekend-horizon"
 
 SLATE_FLOOR_MIN_FIXTURES = int(os.getenv("SOCCER_EDGE_SLATE_FLOOR_MIN_FIXTURES", "12"))
 SLATE_FLOOR_MIN_DAILY_REMAINING = int(
     os.getenv("SOCCER_EDGE_SLATE_FLOOR_MIN_DAILY_REMAINING", "4000")
+)
+FUTURE_SLATE_HORIZON_DAYS = max(
+    0, min(2, int(os.getenv("SOCCER_EDGE_FUTURE_SLATE_HORIZON_DAYS", "2")))
+)
+FUTURE_SLATE_TTL_HOURS = max(
+    1, int(os.getenv("SOCCER_EDGE_FUTURE_SLATE_TTL_HOURS", "4"))
+)
+FUTURE_SLATE_DAY1_MIN_DAILY_REMAINING = int(
+    os.getenv("SOCCER_EDGE_FUTURE_SLATE_DAY1_MIN_DAILY_REMAINING", "4500")
+)
+FUTURE_SLATE_DAY2_MIN_DAILY_REMAINING = int(
+    os.getenv("SOCCER_EDGE_FUTURE_SLATE_DAY2_MIN_DAILY_REMAINING", "6000")
 )
 
 ApiGet = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
@@ -95,6 +107,74 @@ def _merge_fixture_payloads(primary: dict[str, Any], reconciliation: dict[str, A
     return merged
 
 
+def _future_prefetch_offsets(local_now: datetime, daily_remaining: Any) -> list[int]:
+    try:
+        remaining = int(daily_remaining) if daily_remaining is not None else None
+    except (TypeError, ValueError):
+        remaining = None
+
+    offsets: list[int] = []
+    if FUTURE_SLATE_HORIZON_DAYS >= 1 and (
+        local_now.hour >= 22
+        or (remaining is not None and remaining > FUTURE_SLATE_DAY1_MIN_DAILY_REMAINING)
+    ):
+        offsets.append(1)
+    if (
+        FUTURE_SLATE_HORIZON_DAYS >= 2
+        and remaining is not None
+        and remaining > FUTURE_SLATE_DAY2_MIN_DAILY_REMAINING
+    ):
+        offsets.append(2)
+    return offsets
+
+
+async def _future_date_payload(
+    api_get: ApiGet,
+    endpoint: str,
+    params: dict[str, Any],
+    future_date: str,
+    now_utc: datetime,
+) -> tuple[dict[str, Any], bool]:
+    cached = base._cache_get(
+        "future_raw_fixture_slate",
+        future_date,
+        timedelta(hours=FUTURE_SLATE_TTL_HOURS),
+        now_utc,
+    )
+    if isinstance(cached, dict) and isinstance(cached.get("response"), list):
+        replay = deepcopy(cached)
+        # Quota headers must always come from a live request in this tick.
+        replay.pop("quota", None)
+        return replay, True
+
+    future_params = dict(params)
+    future_params["date"] = future_date
+    payload = await api_get(endpoint, future_params)
+    cache_value = deepcopy(payload)
+    cache_value.pop("quota", None)
+    base._cache_set("future_raw_fixture_slate", future_date, cache_value, now_utc)
+    return payload, False
+
+
+def _slate_dimensions(payload: dict[str, Any]) -> tuple[int, int]:
+    leagues: set[str] = set()
+    countries: set[str] = set()
+    for row in payload.get("response") or []:
+        if not isinstance(row, dict):
+            continue
+        league = row.get("league") if isinstance(row.get("league"), dict) else {}
+        league_id = league.get("id")
+        league_name = str(league.get("name") or "").strip()
+        country = str(league.get("country") or "").strip()
+        if league_id is not None:
+            leagues.add(f"id:{league_id}")
+        elif league_name:
+            leagues.add(f"name:{country}|{league_name}")
+        if country:
+            countries.add(country)
+    return len(leagues), len(countries)
+
+
 def _daily_remaining_allows(value: Any) -> bool:
     try:
         if value is None:
@@ -115,8 +195,8 @@ def _tick_budget_allows_extra_call() -> bool:
 
 def _new_metrics() -> dict[str, Any]:
     return {
-        "schema_version": "1.0.0",
-        "policy": "RAW_API_FOOTBALL_DATE_SLATE_FLOOR_RECONCILIATION",
+        "schema_version": "1.1.0",
+        "policy": "RAW_API_FOOTBALL_ROLLING_DATE_SLATE_WITH_CACHED_FUTURE_PREFETCH",
         "min_fixture_count": SLATE_FLOOR_MIN_FIXTURES,
         "min_daily_remaining": SLATE_FLOOR_MIN_DAILY_REMAINING,
         "triggered": False,
@@ -127,8 +207,19 @@ def _new_metrics() -> dict[str, Any]:
         "reconciliation_slate_count": 0,
         "merged_slate_count": None,
         "api_slate_reconciliation_calls": 0,
-        "provider_requests_added_max": 1,
-        "scope": "fixtures?date slate only; no odds request; no market/tier/stake/model-weight change",
+        "provider_requests_added_max": 2,
+        "future_prefetch_horizon_days": FUTURE_SLATE_HORIZON_DAYS,
+        "future_prefetch_ttl_hours": FUTURE_SLATE_TTL_HOURS,
+        "future_prefetch_cache_hits": 0,
+        "future_prefetch_cache_misses": 0,
+        "future_prefetch_provider_requests_added": 0,
+        "future_prefetch_fixture_count": 0,
+        "scan_dates": [],
+        "scan_date_counts": {},
+        "unique_leagues_scanned": 0,
+        "unique_countries_scanned": 0,
+        "league_allowlist_applied": False,
+        "scope": "all fixtures returned by API-Football for selected dates; no league allowlist; no odds/model/tier/stake threshold change",
     }
 
 
@@ -171,7 +262,7 @@ def _attach_top_level_metrics(payload: dict[str, Any], metrics: dict[str, Any]) 
     payload["api_raw_reconciliation_slate_count"] = metrics.get("reconciliation_slate_count")
     payload["merged_slate_count"] = metrics.get("merged_slate_count")
     payload["slate_source_policy"] = (
-        "RAW_API_FOOTBALL_TODAY_FIRST; IF_FIXTURE_COUNT_BELOW_FLOOR_AND_BUDGET_ALLOWS_ADD_TOMORROW"
+        "RAW_API_FOOTBALL_TODAY_FIRST; HIGH_QUOTA_CACHED_48H_PREFETCH; NO_LEAGUE_ALLOWLIST; LOW_SLATE_FALLBACK_TOMORROW"
     )
 
 
@@ -185,9 +276,52 @@ async def run_tick() -> dict[str, Any]:
             return payload
 
         now_utc = datetime.now(dt_timezone.utc)
-        metrics["primary_date"] = str(params.get("date"))
+        local_now = now_utc.astimezone(base.TIMEZONE)
+        primary_date = str(params.get("date"))
+        metrics["primary_date"] = primary_date
         metrics["primary_slate_count"] = _payload_fixture_count(payload)
         metrics["merged_slate_count"] = metrics["primary_slate_count"]
+        metrics["scan_dates"] = [primary_date]
+        metrics["scan_date_counts"] = {primary_date: metrics["primary_slate_count"]}
+
+        today = local_now.date().isoformat()
+        if primary_date == today:
+            merged = payload
+            for offset in _future_prefetch_offsets(local_now, v2._LAST_DAILY_REMAINING):
+                if not _tick_budget_allows_extra_call():
+                    break
+                future_date = (local_now.date() + timedelta(days=offset)).isoformat()
+                future_payload, cache_hit = await _future_date_payload(
+                    previous_original_paced,
+                    endpoint,
+                    params,
+                    future_date,
+                    now_utc,
+                )
+                future_count = _payload_fixture_count(future_payload)
+                merged = _merge_fixture_payloads(merged, future_payload)
+                metrics["scan_dates"].append(future_date)
+                metrics["scan_date_counts"][future_date] = future_count
+                metrics["future_prefetch_fixture_count"] += future_count
+                if cache_hit:
+                    metrics["future_prefetch_cache_hits"] += 1
+                else:
+                    metrics["future_prefetch_cache_misses"] += 1
+                    metrics["future_prefetch_provider_requests_added"] += 1
+                    metrics["api_slate_reconciliation_calls"] += 1
+
+            if len(metrics["scan_dates"]) > 1:
+                metrics["triggered"] = True
+                metrics["merged_slate_count"] = _payload_fixture_count(merged)
+                metrics["reason"] = (
+                    "PRIMARY_SLATE_BELOW_FLOOR_FUTURE_PREFETCH_INCLUDED"
+                    if metrics["primary_slate_count"] < SLATE_FLOOR_MIN_FIXTURES
+                    else "PRIMARY_SLATE_MEETS_FLOOR_WITH_FUTURE_PREFETCH"
+                )
+                leagues, countries = _slate_dimensions(merged)
+                metrics["unique_leagues_scanned"] = leagues
+                metrics["unique_countries_scanned"] = countries
+                return merged
 
         should_reconcile, reason = _should_reconcile(
             payload=payload,
@@ -197,12 +331,19 @@ async def run_tick() -> dict[str, Any]:
         )
         metrics["reason"] = reason
         if not should_reconcile:
+            leagues, countries = _slate_dimensions(payload)
+            metrics["unique_leagues_scanned"] = leagues
+            metrics["unique_countries_scanned"] = countries
             return payload
 
-        tomorrow = (now_utc.astimezone(base.TIMEZONE).date() + timedelta(days=1)).isoformat()
-        recon_params = dict(params)
-        recon_params["date"] = tomorrow
-        reconciliation = await previous_original_paced(endpoint, recon_params)
+        tomorrow = (local_now.date() + timedelta(days=1)).isoformat()
+        reconciliation, cache_hit = await _future_date_payload(
+            previous_original_paced,
+            endpoint,
+            params,
+            tomorrow,
+            now_utc,
+        )
         merged = _merge_fixture_payloads(payload, reconciliation)
 
         metrics["triggered"] = True
@@ -210,7 +351,13 @@ async def run_tick() -> dict[str, Any]:
         metrics["reconciliation_date"] = tomorrow
         metrics["reconciliation_slate_count"] = _payload_fixture_count(reconciliation)
         metrics["merged_slate_count"] = _payload_fixture_count(merged)
-        metrics["api_slate_reconciliation_calls"] = 1
+        metrics["scan_dates"].append(tomorrow)
+        metrics["scan_date_counts"][tomorrow] = metrics["reconciliation_slate_count"]
+        if not cache_hit:
+            metrics["api_slate_reconciliation_calls"] += 1
+        leagues, countries = _slate_dimensions(merged)
+        metrics["unique_leagues_scanned"] = leagues
+        metrics["unique_countries_scanned"] = countries
         return merged
 
     v6._ORIGINAL_PACED_API_GET = paced_with_slate_floor
