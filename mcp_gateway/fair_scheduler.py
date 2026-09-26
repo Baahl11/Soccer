@@ -7,7 +7,7 @@ from typing import Any
 
 from mcp_gateway import automation as base
 
-SCHEMA_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.2.0"
 STATE_NAMESPACE = "fair_scheduler_state"
 STATE_TTL = timedelta(hours=72)
 EXPORT_MAX_AGE = timedelta(hours=72)
@@ -18,6 +18,14 @@ CATEGORY_WEIGHTS = {
     "unseen": 25,
     "exploratory": 15,
 }
+
+COVERAGE_CATCHUP_WEIGHTS = {
+    "actionable": 30,
+    "unseen": 60,
+    "exploratory": 10,
+}
+
+URGENT_ACTIONABLE_STAGES = {"T-40", "T-30", "T-20", "T-10", "CLOSE"}
 
 
 def get_state(fixture_id: int, now: datetime) -> dict[str, Any]:
@@ -124,6 +132,37 @@ def _round_robin_leagues(queue: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+def _effective_weights(
+    queues: dict[str, list[dict[str, Any]]],
+    max_slots: int,
+) -> tuple[dict[str, int], str, int]:
+    """Shift spare research capacity toward first-look coverage only when safe.
+
+    Actionable lifecycle urgency is preserved because actionable queues remain
+    priority-sorted. Catch-up mode is enabled only when unseen backlog is at
+    least 2x the actionable queue, fills at least one full planned window, and
+    urgent actionable fixtures are <=25% of the planned window.
+    """
+    limit = max(int(max_slots or 0), 0)
+    actionable = queues.get("actionable") or []
+    unseen = queues.get("unseen") or []
+    urgent_actionable_count = sum(
+        1
+        for item in actionable
+        if str(item.get("stage") or "").upper() in URGENT_ACTIONABLE_STAGES
+    )
+    urgent_guard = max(1, int(limit * 0.25)) if limit else 0
+    catchup = bool(
+        limit
+        and len(unseen) >= limit
+        and len(unseen) >= max(1, len(actionable) * 2)
+        and urgent_actionable_count <= urgent_guard
+    )
+    if catchup:
+        return dict(COVERAGE_CATCHUP_WEIGHTS), "COVERAGE_CATCHUP", urgent_actionable_count
+    return dict(CATEGORY_WEIGHTS), "NORMAL_WEIGHTED_FAIR", urgent_actionable_count
+
+
 def fair_order(
     items: list[dict[str, Any]],
     max_slots: int,
@@ -143,17 +182,18 @@ def fair_order(
 
     initial_counts = {key: len(value) for key, value in queues.items()}
     selected: list[dict[str, Any]] = []
-    current = {key: 0 for key in CATEGORY_WEIGHTS}
     limit = max(int(max_slots or 0), 0)
+    effective_weights, scheduling_mode, urgent_actionable_count = _effective_weights(queues, limit)
+    current = {key: 0 for key in effective_weights}
 
     while len(selected) < limit:
         available = [key for key, queue in queues.items() if queue]
         if not available:
             break
-        total_weight = sum(CATEGORY_WEIGHTS[key] for key in available)
+        total_weight = sum(effective_weights[key] for key in available)
         for key in available:
-            current[key] += CATEGORY_WEIGHTS[key]
-        chosen = max(available, key=lambda key: (current[key], CATEGORY_WEIGHTS[key]))
+            current[key] += effective_weights[key]
+        chosen = max(available, key=lambda key: (current[key], effective_weights[key]))
         current[chosen] -= total_weight
         selected.append(queues[chosen].pop(0))
 
@@ -168,8 +208,11 @@ def fair_order(
     planned_league_counts = Counter(_league_key(item) for item in selected)
     metrics = {
         "schema_version": SCHEMA_VERSION,
-        "policy": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY_WITH_LEAGUE_ROUND_ROBIN",
+        "policy": "WEIGHTED_FAIR_WITH_GUARDED_COVERAGE_CATCHUP_AND_LEAGUE_ROUND_ROBIN",
         "weights_pct": dict(CATEGORY_WEIGHTS),
+        "effective_weights_pct": dict(effective_weights),
+        "scheduling_mode": scheduling_mode,
+        "urgent_actionable_count": urgent_actionable_count,
         "eligible_queue_counts": initial_counts,
         "planned_slot_counts": {key: int(planned_counts.get(key, 0)) for key in CATEGORY_WEIGHTS},
         "planned_slot_count": len(selected),
