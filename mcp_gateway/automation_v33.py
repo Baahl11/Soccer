@@ -43,33 +43,22 @@ def _wanted_market_complete(name: str) -> bool:
     )
 
 
-def _compact_odds_complete(payload: dict[str, Any]) -> dict[str, Any]:
-    rows = []
-    for fixture_row in payload.get("response", []):
-        update = fixture_row.get("update")
-        for book in fixture_row.get("bookmakers") or []:
-            for bet in book.get("bets") or []:
-                name = bet.get("name") or ""
-                if not _wanted_market_complete(name):
-                    continue
-                values = [
-                    {"selection": value.get("value"), "price": value.get("odd")}
-                    for value in (bet.get("values") or [])
-                ]
-                rows.append(
-                    {
-                        "bookmaker_id": book.get("id"),
-                        "bookmaker": book.get("name"),
-                        "market_id": bet.get("id"),
-                        "market": name,
-                        "values": values,
-                        "provider_update": update,
-                    }
-                )
-    # Research-market retention only. This adds no provider request and does not
-    # make any retained price a sport probability or production recommendation.
-    max_rows = 120
-    return {"markets": rows[:max_rows], "market_count": len(rows), "truncated": len(rows) > max_rows}
+def _compact_odds_complete(
+    payload: dict[str, Any],
+    lineup: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Retain the v33 wider market taxonomy without bypassing the modern compactor.
+
+    The original compactor now carries bounded Team Totals plus Cards/Player Props
+    research sidecars and XI alignment. Delegating here preserves those guarantees
+    while the temporary _wanted_market_complete monkey patch still widens the
+    canonical research inventory for v33-era markets.
+    """
+    try:
+        return _ORIGINAL_COMPACT_ODDS(payload, lineup=lineup)
+    except TypeError:
+        # Backward-compatible fallback for replaying an older imported base.
+        return _ORIGINAL_COMPACT_ODDS(payload)
 
 
 async def run_tick() -> dict[str, Any]:
