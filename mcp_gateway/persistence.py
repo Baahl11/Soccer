@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from mcp_gateway import feature_snapshot_v4
+
 
 def _database_url() -> str | None:
     value = os.getenv("DATABASE_URL", "").strip()
@@ -83,6 +85,42 @@ def _upsert_fixture(cur, fx: dict[str, Any]) -> None:
     )
 
 
+def _persist_feature_snapshot(cur, tick: dict[str, Any], event: dict[str, Any], fixture_id: Any) -> None:
+    """Persist the point-in-time v4 feature envelope with each pregame refresh."""
+    if not fixture_id:
+        return
+    if str(event.get("event_type") or "").upper() != "SOCCER_REFRESH":
+        return
+    if str(event.get("stage") or "").upper() == "POSTGAME":
+        return
+
+    snapshot = feature_snapshot_v4.build(tick, event)
+    if feature_snapshot_v4.validate(snapshot):
+        return
+
+    cur.execute(
+        """
+        INSERT INTO soccer_feature_snapshots (
+            fixture_id, captured_at, stage, schema_version,
+            model_version, data_tier, feature_count,
+            missing_feature_count, payload
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+        ON CONFLICT (fixture_id, captured_at, stage, schema_version) DO NOTHING
+        """,
+        (
+            snapshot.get("fixture_id"),
+            snapshot.get("captured_at"),
+            snapshot.get("stage"),
+            snapshot.get("schema_version"),
+            snapshot.get("model_version"),
+            snapshot.get("data_tier"),
+            snapshot.get("feature_count", 0),
+            snapshot.get("missing_feature_count", 0),
+            json.dumps(snapshot),
+        ),
+    )
+
+
 def _persist_refresh_event(cur, tick: dict[str, Any], event: dict[str, Any]) -> None:
     fx = event.get("fixture") or {}
     fixture_id = fx.get("fixture_id")
@@ -108,6 +146,8 @@ def _persist_refresh_event(cur, tick: dict[str, Any], event: dict[str, Any]) -> 
             json.dumps(event),
         ),
     )
+
+    _persist_feature_snapshot(cur, tick, event, fixture_id)
 
     lineup = event.get("lineups")
     if fixture_id and isinstance(lineup, dict):
@@ -211,7 +251,6 @@ def _persist_refresh_event(cur, tick: dict[str, Any], event: dict[str, Any]) -> 
         )
 
 
-
 def load_latest_pipeline_payload() -> dict[str, Any] | None:
     """Return the most recent compact persisted pipeline payload."""
     if not persistence_configured():
@@ -240,6 +279,7 @@ def load_latest_pipeline_payload() -> dict[str, Any] | None:
             return None
         return value if isinstance(value, dict) else None
     return None
+
 
 def persist_tick(tick: dict[str, Any]) -> bool:
     if not persistence_configured():
