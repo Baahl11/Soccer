@@ -1,3 +1,4 @@
+# v164 FT Totals CLV funnel refresh
 # canonical rerun after Render explicit deploy v4.32.3 / CLV v1.1.9
 # v135 integrated Team Totals CLV funnel + provider chronology
 # v132 rebuild strict Team Totals true-CLV after provider-update hardening
@@ -69,7 +70,7 @@ jobs:
           # This contract check intentionally fails if Render is serving a stale runtime.
           # Diagnostics include per-market rejection counts from the live collector.
           # Derivative CLV smoke includes persisted research market rows.
-          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.9"
+          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10"
           READY=0
           for attempt in 1 2 3 4 5; do
             TOKEN=$(get_oidc_token)
@@ -112,6 +113,8 @@ jobs:
             family_counts,
             signal_source_counts,
             team_totals_maturation_funnel,
+            ft_totals_maturation_funnel,
+            skip_reason_family_counts,
             skip_reasons,
             error,
             detail
@@ -119,7 +122,7 @@ jobs:
           test "$READY" = "1"
           jq -e '
             .schema_version == "1.0.0"
-            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.9"
+            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10"
             and (.rows | type == "array")
             and (.pipeline_market_rows_loaded | type == "number")
             and (.signal_source_counts | type == "object")
@@ -127,6 +130,8 @@ jobs:
             and (.derivative_family_counts_raw | type == "object")
             and (.derivative_source_counts | type == "object")
             and (.derivative_family_counts | type == "object")
+            and (.ft_totals_maturation_funnel | type == "object")
+            and (.skip_reason_family_counts | type == "object")
             and (.provider_requests_added == 0)
           ' /tmp/clv_v4.json >/dev/null
 
