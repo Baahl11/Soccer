@@ -10,7 +10,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.9"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 TEAM_TOTALS_RESEARCH_STAGES = ("EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
@@ -676,8 +676,12 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
     tracked: list[dict[str, Any]] = []
     reasons: Counter[str] = Counter()
     family_counts: Counter[str] = Counter()
+    mapped_family_counts: Counter[str] = Counter()
+    priced_entry_family_counts: Counter[str] = Counter()
     signal_source_counts: Counter[str] = Counter()
     skip_reason_market_counts: dict[str, Counter[str]] = defaultdict(Counter)
+    skip_reason_family_counts: dict[str, Counter[str]] = defaultdict(Counter)
+    ft_totals_unpriced_research_placeholders_ignored = 0
 
     signals_by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
     for signal in signals:
@@ -724,16 +728,28 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             if family is None:
                 reasons["UNMAPPED_MARKET_FAMILY"] += 1
                 skip_reason_market_counts["UNMAPPED_MARKET_FAMILY"][_candidate_label(candidate)] += 1
+                skip_reason_family_counts["UNMAPPED_MARKET_FAMILY"]["UNMAPPED"] += 1
                 continue
 
+            mapped_family_counts[family] += 1
             entry_price = _num(candidate.get("decimal_price"))
             if entry_price is None:
                 entry_price = _num(candidate.get("price"))
             if entry_price is None or entry_price <= 1.0:
+                raw_family = str(
+                    candidate.get("market_family")
+                    or candidate.get("family")
+                    or ""
+                ).upper()
+                if family == "FT_TOTALS" and raw_family == "FT_TOTALS_RESEARCH":
+                    ft_totals_unpriced_research_placeholders_ignored += 1
+                    continue
                 reasons["INVALID_ENTRY_PRICE"] += 1
                 skip_reason_market_counts["INVALID_ENTRY_PRICE"][_candidate_label(candidate)] += 1
+                skip_reason_family_counts["INVALID_ENTRY_PRICE"][family] += 1
                 continue
 
+            priced_entry_family_counts[family] += 1
             entry_line = _num(candidate.get("line"))
             if entry_line is None:
                 entry_line = _line_from_selection(candidate.get("selection"))
@@ -750,6 +766,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             if generated_at is None or kickoff is None:
                 reasons["MISSING_TIMESTAMPS"] += 1
                 skip_reason_market_counts["MISSING_TIMESTAMPS"][_candidate_label(candidate)] += 1
+                skip_reason_family_counts["MISSING_TIMESTAMPS"][family] += 1
                 continue
 
             later_market_snapshots = [
@@ -762,6 +779,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             if not later_market_snapshots:
                 reasons["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"] += 1
                 skip_reason_market_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"][_candidate_label(candidate)] += 1
+                skip_reason_family_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"][family] += 1
                 continue
 
             candidates = [
@@ -772,6 +790,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             if not candidates:
                 reasons["NO_LATER_PROVIDER_UPDATE"] += 1
                 skip_reason_market_counts["NO_LATER_PROVIDER_UPDATE"][_candidate_label(candidate)] += 1
+                skip_reason_family_counts["NO_LATER_PROVIDER_UPDATE"][family] += 1
                 continue
 
             same_book = [
@@ -813,6 +832,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             if not price_values and not fair_values and not close_line_values:
                 reasons["NO_SELECTION_MATCH_AT_CLOSE"] += 1
                 skip_reason_market_counts["NO_SELECTION_MATCH_AT_CLOSE"][_candidate_label(candidate)] += 1
+                skip_reason_family_counts["NO_SELECTION_MATCH_AT_CLOSE"][family] += 1
                 continue
 
             closing_price = sorted(price_values)[len(price_values) // 2] if price_values else None
@@ -924,6 +944,32 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             reason: dict(counts.most_common())
             for reason, counts in sorted(skip_reason_market_counts.items())
         },
+        "skip_reason_family_counts": {
+            reason: dict(counts.most_common())
+            for reason, counts in sorted(skip_reason_family_counts.items())
+        },
+        "mapped_family_counts": dict(sorted(mapped_family_counts.items())),
+        "priced_entry_family_counts": dict(sorted(priced_entry_family_counts.items())),
+        "ft_totals_maturation_funnel": {
+            "mapped_signal_rows": int(mapped_family_counts.get("FT_TOTALS", 0)),
+            "unpriced_research_placeholders_ignored": int(ft_totals_unpriced_research_placeholders_ignored),
+            "priced_entry_rows": int(priced_entry_family_counts.get("FT_TOTALS", 0)),
+            "no_later_prekickoff_snapshot_rows": int(
+                skip_reason_family_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"].get("FT_TOTALS", 0)
+            ),
+            "later_snapshot_without_later_provider_update_rows": int(
+                skip_reason_family_counts["NO_LATER_PROVIDER_UPDATE"].get("FT_TOTALS", 0)
+            ),
+            "selection_mismatch_at_close_rows": int(
+                skip_reason_family_counts["NO_SELECTION_MATCH_AT_CLOSE"].get("FT_TOTALS", 0)
+            ),
+            "true_clv_rows": int(family_counts.get("FT_TOTALS", 0)),
+            "provider_requests_added": 0,
+            "policy": (
+                "UNPRICED_FT_TOTALS_RESEARCH_PLACEHOLDERS_ARE_DIAGNOSTIC_ONLY; "
+                "PRICED_ENTRIES_REQUIRE_STRICTLY_LATER_PREKICKOFF_PROVIDER_UPDATE_AND_SELECTION_MATCH"
+            ),
+        },
         "rows": tracked,
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
@@ -933,6 +979,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             "Market closes come from Postgres soccer_market_snapshots; GitHub compact history is not required.",
             "Derivative source/family counts are reported before and after period-team-total exclusion so missing Team Totals can be localized to generation versus close matching.",
             "Team Totals may enter CLV collection from any explicitly pre-kickoff research stage, including EARLY_RESEARCH/T-90/T-60/T-30/CLOSE, while other derivative families retain the narrower T-40/T-20/T-10 stage policy.",
+            "FT_TOTALS_RESEARCH rows without a real entry price are diagnostic placeholders, not CLV failures. Priced FT Totals retain strict later-snapshot and later-provider-update requirements.",
             "Probability/price CLV is computed only when the exact same market side and line are comparable at close.",
             "A true close must be a strictly later ingest AND carry a provider_update strictly later than the signal timestamp; cache replays and unchanged provider quotes do not count as new CLV evidence.",
             "Team Totals maturation is reported as a provider-free funnel from strict market capture to modeled derivative signal to later real close/true CLV, using unique fixture IDs so repeated selections cannot inflate progress.",
