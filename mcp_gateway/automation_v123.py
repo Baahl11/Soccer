@@ -13,9 +13,10 @@ from mcp_gateway import automation_v112 as v112
 from mcp_gateway import price_resolver_v4
 from mcp_gateway import team_totals_intelligence
 from mcp_gateway import halftime_2h_intelligence
+from mcp_gateway import ft_totals_settlement_capture
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.32.9-hard-budget-reserve"
+AUTOMATION_VERSION = "4.32.10-ft-totals-settlement-capture"
 PRIMARY_PRICE_RESERVE_CALLS = max(
     0,
     int(os.getenv("SOCCER_PRIMARY_PRICE_RESERVE_CALLS", "20")),
@@ -221,7 +222,9 @@ def _annotate_checkpoint(payload: dict[str, Any]) -> None:
         "calibrated_probability_fabricated": False,
         "phase16_recomputed_after_price_resolution": True,
         "team_totals_recomputed_after_price_resolution": True,
+        "ft_totals_settlement_capture_recomputed_after_price_resolution": True,
         "team_totals_post_resolution": dict(payload.get("team_totals_post_resolution") or {}),
+        "ft_totals_settlement_capture": dict(payload.get("ft_totals_settlement_capture") or {}),
         "dedicated_ht_research": dict(payload.get("dedicated_ht_research") or {}),
         "research_derivative_market_capture": dict(payload.get("research_derivative_market_capture") or {}),
         "canonical_bet_logic_changed": False,
@@ -355,6 +358,8 @@ async def run_tick() -> dict[str, Any]:
         payload,
         max_api_calls=budget_plan["total_price_resolver_budget"],
     )
+
+    payload["ft_totals_settlement_capture"] = ft_totals_settlement_capture.attach(payload)
 
     # Count Cards/Props after every paid odds path has run, including the
     # primary price resolver. Cache replays remain visible diagnostically but

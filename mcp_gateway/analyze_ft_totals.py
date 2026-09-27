@@ -8,6 +8,8 @@ import re
 from collections import Counter, defaultdict
 from typing import Any
 
+from mcp_gateway.ft_totals_validation_v4 import settle_asian_total, settlement_return_units
+
 
 def fnum(x: Any) -> float | None:
     try:
@@ -62,11 +64,7 @@ def selection_side(best: dict[str, Any]) -> str | None:
 
 
 def grade_total(total: int, side: str, line: float) -> str:
-    if math.isclose(total, line):
-        return "PUSH"
-    if side == "OVER":
-        return "WIN" if total > line else "LOSS"
-    return "WIN" if total < line else "LOSS"
+    return str(settle_asian_total(total, side, line).get("settlement") or "PUSH")
 
 
 def main() -> None:
@@ -75,7 +73,6 @@ def main() -> None:
     ap.add_argument("--output", default="soccer_edge_state/analysis/ft_totals_validation.json")
     args = ap.parse_args()
 
-    rows = []
     results: dict[int, int] = {}
     observations: list[dict[str, Any]] = []
     with open(args.ledger, "r", encoding="utf-8") as fh:
@@ -136,25 +133,30 @@ def main() -> None:
             rr["brier"] = (r["p_shrunk"] - y) ** 2
             rr["log_loss"] = -(math.log(max(1e-12, r["p_shrunk"])) if y else math.log(max(1e-12, 1-r["p_shrunk"])))
         else:
+            # Legacy p_shrunk is binary; do not score Brier/log-loss on push/half-settlement outcomes.
             rr["brier"] = None
             rr["log_loss"] = None
-        if outcome == "WIN" and r["price"] is not None:
-            rr["roi_units"] = r["price"] - 1.0
-        elif outcome == "LOSS":
-            rr["roi_units"] = -1.0
-        else:
+        rr["roi_units"] = settlement_return_units(outcome, r["price"])
+        if rr["roi_units"] is None:
             rr["roi_units"] = 0.0
         eval_rows.append(rr)
 
     def summarize(group: list[dict[str, Any]]) -> dict[str, Any]:
         c = Counter(r["outcome"] for r in group)
-        decided = c["WIN"] + c["LOSS"]
+        full_decided = c["WIN"] + c["LOSS"]
         briers = [r["brier"] for r in group if r.get("brier") is not None]
         lls = [r["log_loss"] for r in group if r.get("log_loss") is not None]
         roi = sum(float(r.get("roi_units") or 0.0) for r in group)
         return {
-            "n": len(group), "win": c["WIN"], "loss": c["LOSS"], "push": c["PUSH"],
-            "hit_rate_ex_push": round(c["WIN"]/decided, 4) if decided else None,
+            "n": len(group),
+            "win": c["WIN"],
+            "loss": c["LOSS"],
+            "push": c["PUSH"],
+            "half_win": c["HALF_WIN"],
+            "half_loss": c["HALF_LOSS"],
+            "half_win_half_loss": c["HALF_WIN_HALF_LOSS"],
+            "hit_rate_ex_push": round(c["WIN"]/full_decided, 4) if full_decided else None,
+            "hit_rate_scope": "FULL_WIN_LOSS_ONLY; HALF_SETTLEMENTS_EXCLUDED",
             "roi_units_flat_1u": round(roi, 4),
             "roi_per_decision": round(roi/len(group), 4) if group else None,
             "mean_brier": round(sum(briers)/len(briers), 4) if briers else None,
@@ -174,7 +176,7 @@ def main() -> None:
     actionable = [r for r in eval_rows if r["classification"] in {"BET", "LEAN"}]
     watch = [r for r in eval_rows if r["classification"] == "WATCH"]
     result = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "timezone_basis": "America/Mexico_City",
         "status": "VALIDATION_ONLY_DO_NOT_UPGRADE_BACKEND",
         "evaluated_decisions": len(eval_rows),
@@ -187,6 +189,8 @@ def main() -> None:
         "notes": [
             "Only canonical full-match Goals Over/Under observations are included.",
             "Period, team-total, alternate and other derivative markets are excluded.",
+            "Integer/half/quarter lines use explicit Asian settlement; quarter lines split stake across adjacent half-lines.",
+            "Legacy binary p_shrunk Brier/log-loss are not scored on push or half-settlement outcomes.",
             "Flat 1-unit ROI is descriptive only and is not used to upgrade classifications.",
             "Latest snapshot for each fixture/line/side/classification is used to avoid repeated-stage weighting."
         ]
