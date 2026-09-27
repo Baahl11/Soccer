@@ -17,132 +17,160 @@
   },
   "canonical_bet_logic_changed": false,
   "current_deployment_reference_unaligned": {
-    "auc": 0.51404352,
-    "auc_lower_95": 0.45669676,
-    "brier_delta_after_platt": -0.04088129,
-    "eligible_for_phase16_research": false,
-    "log_loss_delta_after_platt": -0.11119782,
-    "rows": 407
+    "auc": 0.54986171,
+    "auc_lower_95": 0.50595313,
+    "brier_delta_after_platt": -0.03579282,
+    "eligible_for_phase16_research": true,
+    "log_loss_delta_after_platt": -0.11694703,
+    "rows": 661
   },
-  "current_model_dataset_fixture_overlap": 0,
-  "current_model_ledger_rows_valid_prekickoff": 407,
-  "current_model_ledger_unique_fixtures": 407,
+  "current_model_dataset_fixture_overlap": 254,
+  "current_model_ledger_rows_valid_prekickoff": 661,
+  "current_model_ledger_unique_fixtures": 661,
   "current_source_model_version": "SOCCER EDGE ENGINE v1.7",
-  "dataset_fingerprint": "3338ce6e86c031b9c9fb55e1b21a7afd328c0e143c77216aa79aebd787b620ff",
+  "dataset_fingerprint": "247ebb19c5835742adaf4e0d31e5a4f7101c99eb177808c19e1968815d3f8f41",
   "dataset_model_version_counts": {
-    "SOCCER EDGE ENGINE v1.7": 236
+    "SOCCER EDGE ENGINE v1.0": 3,
+    "SOCCER EDGE ENGINE v1.7": 278
   },
-  "dataset_rows": 236,
+  "dataset_rows": 281,
   "dataset_version": "4.0.0",
   "decision_policy": "Diagnostic comparison only. No challenger can be promoted from this audit. Lineage-matched stage/time alignment is required for ranking-lift interpretation. Historical lineage evidence must not be relabeled as current-model evidence.",
   "evidence_scope": {
     "current_model_evidence": false,
-    "historical_lineage_audit": false,
-    "reason": "NO_STRICT_ALIGNED_COHORT",
-    "strict_model_versions": [],
+    "historical_lineage_audit": true,
+    "reason": "STRICT_COHORT_IS_HISTORICAL_LINEAGE_NOT_CURRENT_MODEL",
+    "strict_model_versions": [
+      "SOCCER EDGE ENGINE v1.0",
+      "SOCCER EDGE ENGINE v1.7"
+    ],
     "unlock_interpretation_allowed": false
   },
   "exclusion_counts": {
-    "no_lineage_matched_ledger_fixture": 236
+    "no_lineage_matched_ledger_fixture": 24
   },
   "ledger_model_version_counts": {
-    "SOCCER EDGE ENGINE v1.0": 313,
+    "SOCCER EDGE ENGINE v1.0": 80,
     "SOCCER EDGE ENGINE v1.1": 7,
     "SOCCER EDGE ENGINE v1.2": 1,
     "SOCCER EDGE ENGINE v1.5": 1,
     "SOCCER EDGE ENGINE v1.6": 1,
-    "SOCCER EDGE ENGINE v1.7": 407
+    "SOCCER EDGE ENGINE v1.7": 661
   },
-  "ledger_valid_prekickoff_rows": 730,
+  "ledger_valid_prekickoff_rows": 751,
   "lineage_matched_fixture_prekickoff": {
     "comparison_poisson_minus_runtime": {
-      "auc_delta": null,
-      "auc_lower_95_delta": null,
-      "brier_delta": null,
-      "log_loss_delta": null
+      "auc_delta": 0.0,
+      "auc_lower_95_delta": 0.0,
+      "brier_delta": 4.3e-07,
+      "log_loss_delta": 1.52e-06
     },
-    "model_version_counts": {},
-    "negative_count": 0,
+    "model_version_counts": {
+      "SOCCER EDGE ENGINE v1.0": 3,
+      "SOCCER EDGE ENGINE v1.7": 254
+    },
+    "negative_count": 133,
     "poisson_metrics": {
-      "brier": null,
+      "brier": 0.28227876,
       "discrimination": {
-        "auc": null,
-        "auc_lower_95": null,
-        "auc_standard_error": null,
+        "auc": 0.56833616,
+        "auc_lower_95": 0.49826442,
+        "auc_standard_error": 0.03575089,
         "discrimination_ready": false,
-        "negative_count": 0,
-        "positive_count": 0
+        "negative_count": 133,
+        "positive_count": 124
       },
-      "log_loss": null,
-      "negative_count": 0,
-      "positive_count": 0,
-      "rows": 0
+      "log_loss": 0.82743667,
+      "negative_count": 133,
+      "positive_count": 124,
+      "rows": 257
     },
-    "positive_count": 0,
-    "rows": 0,
+    "positive_count": 124,
+    "rows": 257,
     "runtime_metrics": {
-      "brier": null,
+      "brier": 0.28227833,
       "discrimination": {
-        "auc": null,
-        "auc_lower_95": null,
-        "auc_standard_error": null,
+        "auc": 0.56833616,
+        "auc_lower_95": 0.49826442,
+        "auc_standard_error": 0.03575089,
         "discrimination_ready": false,
-        "negative_count": 0,
-        "positive_count": 0
+        "negative_count": 133,
+        "positive_count": 124
       },
-      "log_loss": null,
-      "negative_count": 0,
-      "positive_count": 0,
-      "rows": 0
+      "log_loss": 0.82743515,
+      "negative_count": 133,
+      "positive_count": 124,
+      "rows": 257
     },
-    "sample_ready": false,
-    "stage_counts": {},
-    "unique_fixtures": 0
+    "sample_ready": true,
+    "stage_counts": {
+      "CLOSE": 29,
+      "EARLY_RESEARCH": 76,
+      "T-10": 92,
+      "T-20": 12,
+      "T-30": 29,
+      "T-40": 3,
+      "T-60": 9,
+      "T-90": 7
+    },
+    "unique_fixtures": 257
   },
   "lineage_matched_stage_time_aligned": {
     "comparison_poisson_minus_runtime": {
-      "auc_delta": null,
-      "auc_lower_95_delta": null,
-      "brier_delta": null,
-      "log_loss_delta": null
+      "auc_delta": 0.0,
+      "auc_lower_95_delta": 0.0,
+      "brier_delta": 4.3e-07,
+      "log_loss_delta": 1.52e-06
     },
-    "model_version_counts": {},
-    "negative_count": 0,
+    "model_version_counts": {
+      "SOCCER EDGE ENGINE v1.0": 3,
+      "SOCCER EDGE ENGINE v1.7": 254
+    },
+    "negative_count": 133,
     "poisson_metrics": {
-      "brier": null,
+      "brier": 0.28227876,
       "discrimination": {
-        "auc": null,
-        "auc_lower_95": null,
-        "auc_standard_error": null,
+        "auc": 0.56833616,
+        "auc_lower_95": 0.49826442,
+        "auc_standard_error": 0.03575089,
         "discrimination_ready": false,
-        "negative_count": 0,
-        "positive_count": 0
+        "negative_count": 133,
+        "positive_count": 124
       },
-      "log_loss": null,
-      "negative_count": 0,
-      "positive_count": 0,
-      "rows": 0
+      "log_loss": 0.82743667,
+      "negative_count": 133,
+      "positive_count": 124,
+      "rows": 257
     },
-    "positive_count": 0,
-    "rows": 0,
+    "positive_count": 124,
+    "rows": 257,
     "runtime_metrics": {
-      "brier": null,
+      "brier": 0.28227833,
       "discrimination": {
-        "auc": null,
-        "auc_lower_95": null,
-        "auc_standard_error": null,
+        "auc": 0.56833616,
+        "auc_lower_95": 0.49826442,
+        "auc_standard_error": 0.03575089,
         "discrimination_ready": false,
-        "negative_count": 0,
-        "positive_count": 0
+        "negative_count": 133,
+        "positive_count": 124
       },
-      "log_loss": null,
-      "negative_count": 0,
-      "positive_count": 0,
-      "rows": 0
+      "log_loss": 0.82743515,
+      "negative_count": 133,
+      "positive_count": 124,
+      "rows": 257
     },
-    "sample_ready": false,
-    "stage_counts": {},
-    "unique_fixtures": 0
+    "sample_ready": true,
+    "stage_counts": {
+      "CLOSE": 29,
+      "EARLY_RESEARCH": 76,
+      "T-10": 92,
+      "T-20": 12,
+      "T-30": 29,
+      "T-40": 3,
+      "T-60": 9,
+      "T-90": 7
+    },
+    "unique_fixtures": 257
   },
   "market_fields_used": false,
   "model_version": "BTTS_ALIGNED_RANKING_AUDIT_V4_1.1.0",
