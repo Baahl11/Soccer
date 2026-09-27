@@ -16,7 +16,7 @@ from mcp_gateway import halftime_2h_intelligence
 from mcp_gateway import ft_totals_settlement_capture
 
 MODEL_VERSION = v121.MODEL_VERSION
-AUTOMATION_VERSION = "4.32.10-ft-totals-settlement-capture"
+AUTOMATION_VERSION = "4.32.9-hard-budget-reserve"
 PRIMARY_PRICE_RESERVE_CALLS = max(
     0,
     int(os.getenv("SOCCER_PRIMARY_PRICE_RESERVE_CALLS", "20")),
