@@ -45,30 +45,20 @@ jobs:
           auth_baseline="1d9f788675c8e805f6ee7eaa3c38327cd10aacd5"
           research_head=$(git -C runtime rev-parse HEAD)
           echo "v190 local research HEAD: ${research_head}"
-          echo "v190 minimum Render auth baseline: ${auth_baseline}"
-
-          if ! git -C runtime cat-file -e "${auth_baseline}^{commit}" 2>/dev/null; then
-            echo "::error::v190 auth baseline is not present in runtime history"
-            exit 1
-          fi
-
           for attempt in $(seq 1 18); do
             if curl -sS --max-time 30 --retry 1 --retry-delay 2 --retry-all-errors \
               https://soccer-edge-api.onrender.com/health >/tmp/health.json; then
               cat /tmp/health.json
               deployed_commit=$(jq -r '.render_git_commit // empty' /tmp/health.json)
-              echo "v190 Render revision attempt ${attempt}: ${deployed_commit:-UNKNOWN}"
-              if [ -n "$deployed_commit" ] && git -C runtime cat-file -e "${deployed_commit}^{commit}" 2>/dev/null; then
-                if git -C runtime merge-base --is-ancestor "$auth_baseline" "$deployed_commit"; then
-                  echo "v190 Render includes auth baseline; research-only HEAD parity is not required"
-                  exit 0
-                fi
+              if [ -n "$deployed_commit" ] \
+                && git -C runtime cat-file -e "${deployed_commit}^{commit}" 2>/dev/null \
+                && git -C runtime merge-base --is-ancestor "$auth_baseline" "$deployed_commit"; then
+                exit 0
               fi
             fi
             sleep 10
           done
-
-          echo "::error::Render revision does not include required v190 auth baseline ${auth_baseline}"
+          echo "::error::Render revision does not include required v190 auth baseline"
           exit 1
 
       - name: Export current point-in-time training dataset
@@ -81,11 +71,8 @@ jobs:
           token=$(echo "$response" | jq -r '.value // empty')
           test -n "$token"
           echo "::add-mask::$token"
-
           cutoff=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           request_payload=$(jq -nc --arg cutoff "$cutoff" '{cutoff:$cutoff,row_limit:20000}')
-          printf 'v190 export request payload: %s\n' "$request_payload"
-
           set +e
           http_code=$(curl -sS --max-time 430 \
             -D /tmp/v190_training_dataset_headers.txt \
@@ -98,75 +85,17 @@ jobs:
             https://soccer-edge-api.onrender.com/internal/training-dataset/export)
           curl_exit=$?
           set -e
-
-          content_type=$(awk 'BEGIN{IGNORECASE=1} /^content-type:/ {sub(/\r$/," "); sub(/^[^:]+:[[:space:]]*/,""); value=$0} END{print value}' \
-            /tmp/v190_training_dataset_headers.txt 2>/dev/null || true)
-
+          content_type=$(awk 'BEGIN{IGNORECASE=1} /^content-type:/ {sub(/\r$/," "); sub(/^[^:]+:[[:space:]]*/,""); value=$0} END{print value}' /tmp/v190_training_dataset_headers.txt 2>/dev/null || true)
           if jq -e . /tmp/v190_training_dataset.json >/dev/null 2>&1; then
-            response_schema=$(jq -c '
-              if type == "object" then
-                {
-                  json_type: type,
-                  keys: (keys | sort),
-                  status: (.status // null),
-                  error: (.error // null),
-                  detail: (.detail // null),
-                  message: (.message // null),
-                  code: (.code // null),
-                  market_fields_included: (.market_fields_included // null),
-                  row_count: (.row_count // null),
-                  rows_type: (if has("rows") then (.rows | type) else null end)
-                }
-              else
-                {json_type: type}
-              end
-            ' /tmp/v190_training_dataset.json)
+            response_schema=$(jq -c '{json_type:type,keys:(keys|sort),status:(.status//null),error:(.error//null),detail:(.detail//null),message:(.message//null),code:(.code//null),market_fields_included:.market_fields_included,row_count:(.row_count//null),rows_type:(if has("rows") then (.rows|type) else null end)}' /tmp/v190_training_dataset.json)
           else
             response_schema='{"json_type":"NON_JSON"}'
           fi
-
-          jq -nc \
-            --arg cutoff "$cutoff" \
-            --argjson request_payload "$request_payload" \
-            --argjson curl_exit "$curl_exit" \
-            --arg http_status "$http_code" \
-            --arg content_type "$content_type" \
-            --argjson response_schema "$response_schema" \
-            '{
-              cutoff: $cutoff,
-              request_payload: $request_payload,
-              curl_exit: $curl_exit,
-              http_status: $http_status,
-              content_type: $content_type,
-              response_schema: $response_schema
-            }' > /tmp/v190_export_diagnostic.json
-
-          echo "v190 training-dataset export diagnostic:"
+          jq -nc --arg cutoff "$cutoff" --argjson request_payload "$request_payload" --argjson curl_exit "$curl_exit" --arg http_status "$http_code" --arg content_type "$content_type" --argjson response_schema "$response_schema" '{cutoff:$cutoff,request_payload:$request_payload,curl_exit:$curl_exit,http_status:$http_status,content_type:$content_type,response_schema:$response_schema}' > /tmp/v190_export_diagnostic.json
           jq . /tmp/v190_export_diagnostic.json
-
-          if [ "$curl_exit" -ne 0 ]; then
-            echo "::error::training-dataset export transport failure (curl_exit=${curl_exit})"
-            exit "$curl_exit"
-          fi
-
-          if [ "$http_code" != "200" ]; then
-            echo "::error::training-dataset export returned HTTP ${http_code}"
-            if jq -e . /tmp/v190_training_dataset.json >/dev/null 2>&1; then
-              jq '{status, error, detail, message, code}' /tmp/v190_training_dataset.json
-            else
-              echo "Non-JSON response body (first 2000 bytes):"
-              head -c 2000 /tmp/v190_training_dataset.json || true
-              echo
-            fi
-            exit 1
-          fi
-
-          if ! jq -e '.status == "OK" and .market_fields_included == false and (.rows | type == "array")' \
-            /tmp/v190_training_dataset.json >/dev/null; then
-            echo "::error::training-dataset export HTTP 200 but response schema is not the expected V4-011 contract"
-            jq . /tmp/v190_export_diagnostic.json
-            exit 1
-          fi
+          test "$curl_exit" -eq 0
+          test "$http_code" = "200"
+          jq -e '.status == "OK" and .market_fields_included == false and (.rows | type == "array")' /tmp/v190_training_dataset.json >/dev/null
 
       - name: Upload v190 export diagnostics
         if: always()
@@ -177,7 +106,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Build lineage-matched BTTS runtime vs Poisson audit
+      - name: Build current-model BTTS runtime vs Poisson audit
         shell: bash
         run: |
           set -euo pipefail
@@ -186,19 +115,10 @@ jobs:
           from collections import Counter, defaultdict
           from datetime import datetime, timezone
           from pathlib import Path
-
-          from mcp_gateway.goals_binary_challenger_v4 import (
-              MIN_CLASS_ROWS,
-              MIN_OOS_ROWS,
-              _binary_metrics,
-              _goal_rates,
-              poisson_probability,
-          )
+          from mcp_gateway.goals_binary_challenger_v4 import MIN_CLASS_ROWS, MIN_OOS_ROWS, _binary_metrics, _goal_rates, poisson_probability
 
           dataset = json.loads(Path('/tmp/v190_training_dataset.json').read_text(encoding='utf-8'))
-          diagnostics = json.loads(
-              Path('state/soccer_edge_state/analysis/oos_stage_diagnostics_v4.json').read_text(encoding='utf-8')
-          )
+          diagnostics = json.loads(Path('state/soccer_edge_state/analysis/oos_stage_diagnostics_v4.json').read_text(encoding='utf-8'))
           ledger_path = Path('state/soccer_edge_state/analysis/oos_prediction_ledger_v4.jsonl')
           current_model = str(diagnostics.get('current_source_model_version') or '').strip()
           if not current_model:
@@ -208,71 +128,51 @@ jobs:
               if value in (None, ''):
                   return None
               try:
-                  dt = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
-                  if dt.tzinfo is None:
-                      dt = dt.replace(tzinfo=timezone.utc)
-                  return dt.astimezone(timezone.utc)
+                  x = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+                  if x.tzinfo is None:
+                      x = x.replace(tzinfo=timezone.utc)
+                  return x.astimezone(timezone.utc)
               except Exception:
                   return None
 
           ledger_rows = []
           ledger_model_counts = Counter()
           ledger_fixture_sets = defaultdict(set)
-
           for raw in ledger_path.read_text(encoding='utf-8', errors='replace').splitlines():
               if not raw.strip():
                   continue
               try:
                   row = json.loads(raw)
-              except Exception:
-                  continue
-              if not isinstance(row, dict) or row.get('anti_leakage') is not True:
-                  continue
-              try:
+                  if not isinstance(row, dict) or row.get('anti_leakage') is not True:
+                      continue
                   fid = int(row.get('fixture_id'))
                   p = float((row.get('predictions') or {}).get('btts'))
                   y = int((row.get('outcomes') or {}).get('btts'))
-              except (TypeError, ValueError):
+                  kickoff = parse_dt(row.get('kickoff'))
+                  run_dt = parse_dt(row.get('run_timestamp'))
+              except Exception:
                   continue
-              if not 0.0 <= p <= 1.0 or y not in (0, 1):
+              if not 0.0 <= p <= 1.0 or y not in (0, 1) or kickoff is None or run_dt is None or run_dt >= kickoff:
                   continue
-
-              kickoff = parse_dt(row.get('kickoff'))
-              run_dt = parse_dt(row.get('run_timestamp'))
-              if kickoff is None or run_dt is None or run_dt >= kickoff:
+              model = str(row.get('model_version') or '').strip()
+              if not model:
                   continue
-
-              model_version = str(row.get('model_version') or '').strip()
-              if not model_version:
-                  continue
-
               copy = dict(row)
-              copy['_fixture_id'] = fid
-              copy['_p_btts'] = p
-              copy['_y_btts'] = y
-              copy['_kickoff_dt'] = kickoff
-              copy['_run_dt'] = run_dt
-              copy['_stage'] = str(row.get('run_type') or '').upper()
-              copy['_model_version'] = model_version
+              copy.update(_fixture_id=fid,_p_btts=p,_y_btts=y,_kickoff_dt=kickoff,_run_dt=run_dt,_stage=str(row.get('run_type') or '').upper(),_model_version=model)
               ledger_rows.append(copy)
-              ledger_model_counts[model_version] += 1
-              ledger_fixture_sets[model_version].add(fid)
+              ledger_model_counts[model] += 1
+              ledger_fixture_sets[model].add(fid)
 
           by_fixture_model = defaultdict(list)
           for row in ledger_rows:
               by_fixture_model[(row['_fixture_id'], row['_model_version'])].append(row)
           for rows in by_fixture_model.values():
-              rows.sort(key=lambda item: item['_run_dt'])
+              rows.sort(key=lambda r: r['_run_dt'])
 
-          exclusions = Counter()
-          broad_pairs = []
-          strict_pairs = []
           dataset_rows = dataset.get('rows') or []
-          dataset_model_counts = Counter(
-              str(row.get('model_version') or 'UNKNOWN')
-              for row in dataset_rows
-              if isinstance(row, dict)
-          )
+          dataset_model_counts = Counter(str(r.get('model_version') or 'UNKNOWN') for r in dataset_rows if isinstance(r, dict))
+          exclusions = Counter()
+          broad_all, strict_all = [], []
 
           for drow in dataset_rows:
               if not isinstance(drow, dict):
@@ -281,33 +181,24 @@ jobs:
               try:
                   fid = int(drow.get('fixture_id'))
                   target = int((drow.get('targets') or {}).get('btts'))
-              except (TypeError, ValueError):
+              except Exception:
                   exclusions['dataset_missing_fixture_or_target'] += 1
                   continue
               if target not in (0, 1):
                   exclusions['dataset_invalid_target'] += 1
                   continue
-
-              dataset_model = str(drow.get('model_version') or '').strip()
-              if not dataset_model:
+              model = str(drow.get('model_version') or '').strip()
+              feature_dt, kickoff_dt = parse_dt(drow.get('feature_captured_at')), parse_dt(drow.get('kickoff'))
+              if not model:
                   exclusions['dataset_model_version_missing'] += 1
                   continue
-
-              feature_dt = parse_dt(drow.get('feature_captured_at'))
-              kickoff_dt = parse_dt(drow.get('kickoff'))
               if feature_dt is None or kickoff_dt is None or feature_dt >= kickoff_dt:
                   exclusions['dataset_timestamp_invalid'] += 1
                   continue
-
-              candidates = [
-                  row
-                  for row in (by_fixture_model.get((fid, dataset_model)) or [])
-                  if row['_kickoff_dt'] == kickoff_dt
-              ]
+              candidates = [r for r in by_fixture_model.get((fid, model), []) if r['_kickoff_dt'] == kickoff_dt]
               if not candidates:
                   exclusions['no_lineage_matched_ledger_fixture'] += 1
                   continue
-
               home_rate, away_rate = _goal_rates(drow)
               if home_rate is None or away_rate is None:
                   exclusions['poisson_goal_rates_missing'] += 1
@@ -316,116 +207,66 @@ jobs:
               if poisson_p is None:
                   exclusions['poisson_probability_missing'] += 1
                   continue
-
               outcome_candidates = [r for r in candidates if r['_y_btts'] == target]
               if not outcome_candidates:
                   exclusions['outcome_mismatch'] += 1
                   continue
-
+              stage = str(drow.get('stage') or '').upper()
               broad = outcome_candidates[-1]
-              broad_pairs.append({
-                  'fixture_id': fid,
-                  'model_version': dataset_model,
-                  'stage_dataset': str(drow.get('stage') or '').upper(),
-                  'stage_runtime': broad['_stage'],
-                  'feature_captured_at': feature_dt.isoformat(),
-                  'runtime_run_timestamp': broad['_run_dt'].isoformat(),
-                  'runtime_probability': broad['_p_btts'],
-                  'poisson_probability': float(poisson_p),
-                  'outcome': target,
-              })
-
-              dataset_stage = str(drow.get('stage') or '').upper()
-              strict_candidates = [
-                  r for r in outcome_candidates
-                  if r['_stage'] == dataset_stage and r['_run_dt'] >= feature_dt
-              ]
+              broad_all.append({'fixture_id':fid,'model_version':model,'stage':stage,'feature_captured_at':feature_dt.isoformat(),'runtime_run_timestamp':broad['_run_dt'].isoformat(),'runtime_probability':broad['_p_btts'],'poisson_probability':float(poisson_p),'outcome':target})
+              strict_candidates = [r for r in outcome_candidates if r['_stage'] == stage and r['_run_dt'] >= feature_dt]
               if not strict_candidates:
-                  if not any(r['_stage'] == dataset_stage for r in outcome_candidates):
-                      exclusions['strict_stage_mismatch'] += 1
-                  else:
-                      exclusions['strict_feature_snapshot_after_runtime'] += 1
+                  exclusions['strict_stage_mismatch' if not any(r['_stage'] == stage for r in outcome_candidates) else 'strict_feature_snapshot_after_runtime'] += 1
                   continue
-
-              strict = min(
-                  strict_candidates,
-                  key=lambda r: (r['_run_dt'] - feature_dt).total_seconds(),
-              )
-              strict_pairs.append({
-                  'fixture_id': fid,
-                  'model_version': dataset_model,
-                  'stage': dataset_stage,
-                  'feature_captured_at': feature_dt.isoformat(),
-                  'runtime_run_timestamp': strict['_run_dt'].isoformat(),
-                  'time_gap_seconds': round((strict['_run_dt'] - feature_dt).total_seconds(), 3),
-                  'runtime_probability': strict['_p_btts'],
-                  'poisson_probability': float(poisson_p),
-                  'outcome': target,
-              })
+              strict = min(strict_candidates, key=lambda r: (r['_run_dt'] - feature_dt).total_seconds())
+              strict_all.append({'fixture_id':fid,'model_version':model,'stage':stage,'feature_captured_at':feature_dt.isoformat(),'runtime_run_timestamp':strict['_run_dt'].isoformat(),'time_gap_seconds':round((strict['_run_dt']-feature_dt).total_seconds(),3),'runtime_probability':strict['_p_btts'],'poisson_probability':float(poisson_p),'outcome':target})
 
           def cohort_report(rows):
-              runtime_probs = [float(r['runtime_probability']) for r in rows]
-              poisson_probs = [float(r['poisson_probability']) for r in rows]
-              outcomes = [int(r['outcome']) for r in rows]
-              runtime = _binary_metrics(runtime_probs, outcomes)
-              poisson = _binary_metrics(poisson_probs, outcomes)
-              rdisc = runtime.get('discrimination') or {}
-              pdisc = poisson.get('discrimination') or {}
-
-              def delta(a, b):
-                  return round(float(a) - float(b), 8) if a is not None and b is not None else None
-
-              stages = Counter(str(r.get('stage') or r.get('stage_dataset') or 'UNKNOWN') for r in rows)
-              models = Counter(str(r.get('model_version') or 'UNKNOWN') for r in rows)
-              fixtures = {int(r['fixture_id']) for r in rows}
+              rp = [float(r['runtime_probability']) for r in rows]
+              pp = [float(r['poisson_probability']) for r in rows]
+              y = [int(r['outcome']) for r in rows]
+              runtime = _binary_metrics(rp, y)
+              poisson = _binary_metrics(pp, y)
+              rd, pd = runtime.get('discrimination') or {}, poisson.get('discrimination') or {}
+              def delta(a,b): return round(float(a)-float(b),8) if a is not None and b is not None else None
               return {
                   'rows': len(rows),
-                  'unique_fixtures': len(fixtures),
-                  'positive_count': sum(outcomes),
-                  'negative_count': len(outcomes) - sum(outcomes),
-                  'stage_counts': dict(sorted(stages.items())),
-                  'model_version_counts': dict(sorted(models.items())),
+                  'unique_fixtures': len({int(r['fixture_id']) for r in rows}),
+                  'positive_count': sum(y),
+                  'negative_count': len(y)-sum(y),
+                  'stage_counts': dict(sorted(Counter(str(r.get('stage') or 'UNKNOWN') for r in rows).items())),
+                  'model_version_counts': dict(sorted(Counter(str(r.get('model_version') or 'UNKNOWN') for r in rows).items())),
                   'runtime_metrics': runtime,
                   'poisson_metrics': poisson,
                   'comparison_poisson_minus_runtime': {
-                      'auc_delta': delta(pdisc.get('auc'), rdisc.get('auc')),
-                      'auc_lower_95_delta': delta(pdisc.get('auc_lower_95'), rdisc.get('auc_lower_95')),
+                      'auc_delta': delta(pd.get('auc'), rd.get('auc')),
+                      'auc_lower_95_delta': delta(pd.get('auc_lower_95'), rd.get('auc_lower_95')),
                       'brier_delta': delta(poisson.get('brier'), runtime.get('brier')),
                       'log_loss_delta': delta(poisson.get('log_loss'), runtime.get('log_loss')),
                   },
-                  'sample_ready': (
-                      len(rows) >= int(MIN_OOS_ROWS)
-                      and sum(outcomes) >= int(MIN_CLASS_ROWS)
-                      and (len(outcomes) - sum(outcomes)) >= int(MIN_CLASS_ROWS)
-                  ),
+                  'sample_ready': len(rows) >= int(MIN_OOS_ROWS) and sum(y) >= int(MIN_CLASS_ROWS) and (len(y)-sum(y)) >= int(MIN_CLASS_ROWS),
               }
 
-          strict_report = cohort_report(strict_pairs)
-          broad_report = cohort_report(broad_pairs)
-          strict_models = {
-              str(row.get('model_version') or '')
-              for row in strict_pairs
-              if str(row.get('model_version') or '')
-          }
-          current_model_evidence = bool(strict_pairs) and strict_models == {current_model}
-          historical_lineage_audit = bool(strict_pairs) and not current_model_evidence
+          current_strict = [r for r in strict_all if r['model_version'] == current_model]
+          historical_strict = [r for r in strict_all if r['model_version'] != current_model]
+          current_broad = [r for r in broad_all if r['model_version'] == current_model]
+          historical_broad = [r for r in broad_all if r['model_version'] != current_model]
 
-          dataset_current_fixtures = {
-              int(row.get('fixture_id'))
-              for row in dataset_rows
-              if isinstance(row, dict)
-              and row.get('fixture_id') is not None
-              and str(row.get('model_version') or '').strip() == current_model
-          }
+          current_report = cohort_report(current_strict)
+          all_report = cohort_report(strict_all)
+          current_broad_report = cohort_report(current_broad)
+          all_broad_report = cohort_report(broad_all)
+          current_model_evidence = bool(current_strict)
+          unlock_allowed = current_model_evidence and current_report['sample_ready']
+
+          dataset_current_fixtures = {int(r.get('fixture_id')) for r in dataset_rows if isinstance(r, dict) and r.get('fixture_id') is not None and str(r.get('model_version') or '').strip() == current_model}
           ledger_current_fixtures = set(ledger_fixture_sets.get(current_model, set()))
-          current_model_fixture_overlap = len(dataset_current_fixtures & ledger_current_fixtures)
-
           deployment = ((diagnostics.get('current_model_deployment_calibrators') or {}).get('btts') or {})
           deployment_disc = deployment.get('discrimination') or {}
 
           output = {
-              'schema_version': '1.1.0',
-              'model_version': 'BTTS_ALIGNED_RANKING_AUDIT_V4_1.1.0',
+              'schema_version': '1.2.0',
+              'model_version': 'BTTS_ALIGNED_RANKING_AUDIT_V4_1.2.0',
               'status': 'RESEARCH_ONLY',
               'current_source_model_version': current_model,
               'dataset_version': dataset.get('dataset_version'),
@@ -436,38 +277,27 @@ jobs:
               'ledger_model_version_counts': dict(sorted(ledger_model_counts.items())),
               'current_model_ledger_rows_valid_prekickoff': int(ledger_model_counts.get(current_model, 0)),
               'current_model_ledger_unique_fixtures': len(ledger_current_fixtures),
-              'current_model_dataset_fixture_overlap': current_model_fixture_overlap,
+              'current_model_dataset_fixture_overlap': len(dataset_current_fixtures & ledger_current_fixtures),
               'alignment_policy': {
-                  'primary_cohort': 'LINEAGE_MATCHED_STAGE_TIME_ALIGNED',
-                  'strict_requirements': [
-                      'same_fixture_id',
-                      'same_model_version',
-                      'same_btts_outcome',
-                      'same_stage',
-                      'same_kickoff',
-                      'feature_captured_at < kickoff',
-                      'runtime_run_timestamp < kickoff',
-                      'feature_captured_at <= runtime_run_timestamp',
-                      'anti_leakage_true',
-                      'no_market_fields',
-                  ],
-                  'broad_cohort_role': 'LINEAGE_MATCHED_DIAGNOSTIC_CONTEXT_ONLY_NOT_PROMOTION_EVIDENCE',
+                  'primary_cohort': 'CURRENT_MODEL_LINEAGE_MATCHED_STAGE_TIME_ALIGNED',
+                  'historical_lineages_role': 'DIAGNOSTIC_CONTEXT_ONLY_EXCLUDED_FROM_CURRENT_MODEL_EVIDENCE',
+                  'strict_requirements': ['same_fixture_id','same_model_version','same_btts_outcome','same_stage','same_kickoff','feature_captured_at < kickoff','runtime_run_timestamp < kickoff','feature_captured_at <= runtime_run_timestamp','anti_leakage_true','no_market_fields'],
               },
-              'lineage_matched_stage_time_aligned': strict_report,
-              'lineage_matched_fixture_prekickoff': broad_report,
+              'lineage_matched_stage_time_aligned': current_report,
+              'lineage_matched_stage_time_aligned_all_lineages': all_report,
+              'lineage_matched_fixture_prekickoff': current_broad_report,
+              'lineage_matched_fixture_prekickoff_all_lineages': all_broad_report,
+              'historical_lineage_rows_excluded_from_current_evidence': historical_strict,
+              'historical_lineage_broad_rows_excluded_from_current_evidence': historical_broad,
               'exclusion_counts': dict(sorted(exclusions.items())),
               'evidence_scope': {
                   'current_model_evidence': current_model_evidence,
-                  'historical_lineage_audit': historical_lineage_audit,
-                  'strict_model_versions': sorted(strict_models),
-                  'unlock_interpretation_allowed': current_model_evidence,
-                  'reason': (
-                      'STRICT_COHORT_IS_CURRENT_MODEL'
-                      if current_model_evidence
-                      else 'STRICT_COHORT_IS_HISTORICAL_LINEAGE_NOT_CURRENT_MODEL'
-                      if historical_lineage_audit
-                      else 'NO_STRICT_ALIGNED_COHORT'
-                  ),
+                  'historical_lineage_audit': bool(historical_strict),
+                  'current_model_strict_model_versions': sorted({r['model_version'] for r in current_strict}),
+                  'historical_model_versions_excluded': sorted({r['model_version'] for r in historical_strict}),
+                  'historical_rows_excluded_from_current_evidence': len(historical_strict),
+                  'unlock_interpretation_allowed': unlock_allowed,
+                  'reason': 'CURRENT_MODEL_COHORT_READY' if unlock_allowed else 'CURRENT_MODEL_COHORT_NOT_SAMPLE_READY' if current_model_evidence else 'NO_CURRENT_MODEL_STRICT_COHORT',
               },
               'current_deployment_reference_unaligned': {
                   'rows': int(deployment.get('rows') or 0),
@@ -477,11 +307,7 @@ jobs:
                   'log_loss_delta_after_platt': deployment.get('log_loss_delta'),
                   'eligible_for_phase16_research': deployment.get('eligible_for_phase16_research') is True,
               },
-              'decision_policy': (
-                  'Diagnostic comparison only. No challenger can be promoted from this audit. '
-                  'Lineage-matched stage/time alignment is required for ranking-lift interpretation. '
-                  'Historical lineage evidence must not be relabeled as current-model evidence.'
-              ),
+              'decision_policy': 'Current-model evidence is evaluated only on rows whose model_version equals current_source_model_version. Proven historical lineage remains visible as diagnostic context and is never relabeled. No challenger can be promoted from this audit alone.',
               'provider_requests_added': 0,
               'market_fields_used': False,
               'post_kickoff_features_used': False,
@@ -491,19 +317,10 @@ jobs:
               'production_promotion_allowed': False,
               'runtime_prediction_weight': 0.0,
           }
-
           out = Path('state/soccer_edge_state/analysis/btts_aligned_ranking_audit_v4.json')
           out.parent.mkdir(parents=True, exist_ok=True)
           out.write_text(json.dumps(output, indent=2, sort_keys=True), encoding='utf-8')
-          print(json.dumps({
-              'status': output['status'],
-              'current_source_model_version': current_model,
-              'dataset_model_version_counts': output['dataset_model_version_counts'],
-              'current_model_dataset_fixture_overlap': current_model_fixture_overlap,
-              'lineage_matched_stage_time_aligned': strict_report,
-              'evidence_scope': output['evidence_scope'],
-              'exclusion_counts': output['exclusion_counts'],
-          }, indent=2, sort_keys=True))
+          print(json.dumps({'status':output['status'],'current_source_model_version':current_model,'dataset_model_version_counts':output['dataset_model_version_counts'],'current_model_dataset_fixture_overlap':output['current_model_dataset_fixture_overlap'],'current_model_strict':current_report,'all_lineages_strict':all_report,'evidence_scope':output['evidence_scope'],'historical_rows':historical_strict,'exclusion_counts':output['exclusion_counts']}, indent=2, sort_keys=True))
           PY
 
       - name: Validate v190 safety and lineage
@@ -512,11 +329,13 @@ jobs:
           set -euo pipefail
           R=state/soccer_edge_state/analysis/btts_aligned_ranking_audit_v4.json
           jq -e '
-            .schema_version == "1.1.0"
-            and .model_version == "BTTS_ALIGNED_RANKING_AUDIT_V4_1.1.0"
+            .current_source_model_version as $m |
+            .schema_version == "1.2.0"
+            and .model_version == "BTTS_ALIGNED_RANKING_AUDIT_V4_1.2.0"
             and .status == "RESEARCH_ONLY"
-            and .current_source_model_version != null
-            and .alignment_policy.primary_cohort == "LINEAGE_MATCHED_STAGE_TIME_ALIGNED"
+            and .alignment_policy.primary_cohort == "CURRENT_MODEL_LINEAGE_MATCHED_STAGE_TIME_ALIGNED"
+            and (.lineage_matched_stage_time_aligned.model_version_counts | keys | length) <= 1
+            and ((.lineage_matched_stage_time_aligned.rows == 0) or (.lineage_matched_stage_time_aligned.model_version_counts[$m] == .lineage_matched_stage_time_aligned.rows))
             and .market_fields_used == false
             and .post_kickoff_features_used == false
             and .provider_requests_added == 0
@@ -525,11 +344,7 @@ jobs:
             and .canonical_bet_logic_changed == false
             and .production_promotion_allowed == false
             and .runtime_prediction_weight == 0
-            and (
-              (.evidence_scope.current_model_evidence == true and .evidence_scope.unlock_interpretation_allowed == true)
-              or
-              (.evidence_scope.current_model_evidence == false and .evidence_scope.unlock_interpretation_allowed == false)
-            )
+            and ((.evidence_scope.unlock_interpretation_allowed == false) or (.lineage_matched_stage_time_aligned.sample_ready == true))
           ' "$R" >/dev/null
 
       - name: Persist aligned BTTS audit
@@ -541,7 +356,7 @@ jobs:
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add --sparse -f soccer_edge_state/analysis/btts_aligned_ranking_audit_v4.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Update v190 BTTS lineage-matched ranking audit"
+          git commit -m "Update v190 BTTS current-model aligned ranking audit"
           for attempt in 1 2 3; do
             git fetch origin soccer-edge-state
             git rebase --autostash origin/soccer-edge-state
