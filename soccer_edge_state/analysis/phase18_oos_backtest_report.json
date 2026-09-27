@@ -21,32 +21,30 @@
   "clv_context": {
     "family_counts": {
       "1X2": 47,
-      "AWAY_TT": 12,
       "BTTS": 15,
-      "FT_TOTALS": 1,
-      "HOME_TT": 12
+      "FT_TOTALS": 1
     },
     "ft_totals_maturation_funnel": {
-      "later_snapshot_without_later_provider_update_rows": 95,
-      "mapped_signal_rows": 308,
-      "no_later_prekickoff_snapshot_rows": 103,
+      "later_snapshot_without_later_provider_update_rows": 110,
+      "mapped_signal_rows": 340,
+      "no_later_prekickoff_snapshot_rows": 119,
       "policy": "UNPRICED_FT_TOTALS_RESEARCH_PLACEHOLDERS_ARE_DIAGNOSTIC_ONLY; PRICED_ENTRIES_REQUIRE_STRICTLY_LATER_PREKICKOFF_PROVIDER_UPDATE_AND_SELECTION_MATCH",
-      "priced_entry_rows": 199,
+      "priced_entry_rows": 230,
       "provider_requests_added": 0,
       "selection_mismatch_at_close_rows": 0,
       "true_clv_rows": 1,
-      "unpriced_research_placeholders_ignored": 109
+      "unpriced_research_placeholders_ignored": 110
     },
     "model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10",
     "overall": {
-      "avg_price_clv_pct": 2.038717,
-      "avg_probability_clv_pp": 0.251481,
-      "positive_probability_clv_rate": 0.206897
+      "avg_price_clv_pct": 10.193584,
+      "avg_probability_clv_pp": 0.347282,
+      "positive_probability_clv_rate": 0.126984
     },
-    "rows": 87,
+    "rows": 63,
     "source": "STRICT_POSTGRES_CLV_V4_TRACKING",
     "status": "ACTIVE_TRUE_CLV_SAMPLE",
-    "true_closing_line_rows": 87
+    "true_closing_line_rows": 63
   },
   "framework": {
     "chronological_splits": true,
@@ -92,15 +90,15 @@
       "prediction_timestamp_before_kickoff_required": true
     },
     "anti_leakage_ok": true,
-    "fixture_rows": 713,
+    "fixture_rows": 730,
     "minimum_fixture_rows": 50,
     "model_version": "SOCCER_OOS_HISTORY_MERGE_V4_1.0.0",
     "ready_target_count": 5,
     "role": "MODEL_OOS_VALIDATION_NOT_REAL_BET_PERFORMANCE",
     "run_type_counts": {
-      "CLOSE": 122,
+      "CLOSE": 127,
       "EARLY_RESEARCH": 89,
-      "T-10": 364,
+      "T-10": 376,
       "T-20": 48,
       "T-30": 33,
       "T-40": 28,
@@ -109,7 +107,7 @@
     },
     "source_counts": {
       "HISTORICAL_SIGNAL_LEDGER": 494,
-      "POSTGRES_NATIVE": 219
+      "POSTGRES_NATIVE": 236
     },
     "status": "OOS_CALIBRATION_MATERIALIZED",
     "targets_improving_brier_and_log_loss": 5
