@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from mcp_gateway import ft_totals_settlement_capture as capture
+from mcp_gateway.analyze_ft_totals import grade_total
+from mcp_gateway.ft_totals_validation_v4 import settlement_return_units
 
 
 def test_split_total_line_supports_integer_half_and_quarter_lines():
@@ -32,6 +34,15 @@ def test_quarter_line_settlement_preserves_half_push_and_half_loss():
         "push_fraction": 0.5,
         "loss_fraction": 0.0,
     }
+
+
+def test_legacy_analyzer_grades_quarter_lines_with_asian_settlement():
+    assert grade_total(2, "OVER", 2.25) == "HALF_LOSS"
+    assert grade_total(2, "UNDER", 2.25) == "HALF_WIN"
+    assert grade_total(3, "OVER", 2.75) == "HALF_WIN"
+    assert grade_total(3, "UNDER", 2.75) == "HALF_LOSS"
+    assert settlement_return_units("HALF_LOSS", 1.95) == -0.5
+    assert settlement_return_units("HALF_WIN", 1.95) == 0.475
 
 
 def test_capture_event_keeps_quarter_lines_research_only():
