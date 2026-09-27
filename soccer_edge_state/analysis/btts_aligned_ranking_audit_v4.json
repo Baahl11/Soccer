@@ -1,7 +1,7 @@
 {
   "alignment_policy": {
-    "broad_cohort_role": "LINEAGE_MATCHED_DIAGNOSTIC_CONTEXT_ONLY_NOT_PROMOTION_EVIDENCE",
-    "primary_cohort": "LINEAGE_MATCHED_STAGE_TIME_ALIGNED",
+    "historical_lineages_role": "DIAGNOSTIC_CONTEXT_ONLY_EXCLUDED_FROM_CURRENT_MODEL_EVIDENCE",
+    "primary_cohort": "CURRENT_MODEL_LINEAGE_MATCHED_STAGE_TIME_ALIGNED",
     "strict_requirements": [
       "same_fixture_id",
       "same_model_version",
@@ -35,20 +35,90 @@
   },
   "dataset_rows": 295,
   "dataset_version": "4.0.0",
-  "decision_policy": "Diagnostic comparison only. No challenger can be promoted from this audit. Lineage-matched stage/time alignment is required for ranking-lift interpretation. Historical lineage evidence must not be relabeled as current-model evidence.",
+  "decision_policy": "Current-model evidence is evaluated only on rows whose model_version equals current_source_model_version. Proven historical lineage remains visible as diagnostic context and is never relabeled. No challenger can be promoted from this audit alone.",
   "evidence_scope": {
-    "current_model_evidence": false,
-    "historical_lineage_audit": true,
-    "reason": "STRICT_COHORT_IS_HISTORICAL_LINEAGE_NOT_CURRENT_MODEL",
-    "strict_model_versions": [
-      "SOCCER EDGE ENGINE v1.0",
+    "current_model_evidence": true,
+    "current_model_strict_model_versions": [
       "SOCCER EDGE ENGINE v1.7"
     ],
-    "unlock_interpretation_allowed": false
+    "historical_lineage_audit": true,
+    "historical_model_versions_excluded": [
+      "SOCCER EDGE ENGINE v1.0"
+    ],
+    "historical_rows_excluded_from_current_evidence": 3,
+    "reason": "CURRENT_MODEL_COHORT_READY",
+    "unlock_interpretation_allowed": true
   },
   "exclusion_counts": {
     "no_lineage_matched_ledger_fixture": 38
   },
+  "historical_lineage_broad_rows_excluded_from_current_evidence": [
+    {
+      "feature_captured_at": "2026-09-26T17:59:19.116644+00:00",
+      "fixture_id": 1551812,
+      "model_version": "SOCCER EDGE ENGINE v1.0",
+      "outcome": 1,
+      "poisson_probability": 0.7283032830780947,
+      "runtime_probability": 0.728308,
+      "runtime_run_timestamp": "2026-09-26T17:59:19.116644+00:00",
+      "stage": "CLOSE"
+    },
+    {
+      "feature_captured_at": "2026-09-26T15:41:16.900622+00:00",
+      "fixture_id": 1628997,
+      "model_version": "SOCCER EDGE ENGINE v1.0",
+      "outcome": 1,
+      "poisson_probability": 0.6597382538819766,
+      "runtime_probability": 0.659738,
+      "runtime_run_timestamp": "2026-09-26T15:41:16.900622+00:00",
+      "stage": "EARLY_RESEARCH"
+    },
+    {
+      "feature_captured_at": "2026-09-26T14:54:24.130027+00:00",
+      "fixture_id": 1639946,
+      "model_version": "SOCCER EDGE ENGINE v1.0",
+      "outcome": 0,
+      "poisson_probability": 0.14280824021563043,
+      "runtime_probability": 0.142804,
+      "runtime_run_timestamp": "2026-09-26T14:54:24.130027+00:00",
+      "stage": "EARLY_RESEARCH"
+    }
+  ],
+  "historical_lineage_rows_excluded_from_current_evidence": [
+    {
+      "feature_captured_at": "2026-09-26T17:59:19.116644+00:00",
+      "fixture_id": 1551812,
+      "model_version": "SOCCER EDGE ENGINE v1.0",
+      "outcome": 1,
+      "poisson_probability": 0.7283032830780947,
+      "runtime_probability": 0.728308,
+      "runtime_run_timestamp": "2026-09-26T17:59:19.116644+00:00",
+      "stage": "CLOSE",
+      "time_gap_seconds": 0.0
+    },
+    {
+      "feature_captured_at": "2026-09-26T15:41:16.900622+00:00",
+      "fixture_id": 1628997,
+      "model_version": "SOCCER EDGE ENGINE v1.0",
+      "outcome": 1,
+      "poisson_probability": 0.6597382538819766,
+      "runtime_probability": 0.659738,
+      "runtime_run_timestamp": "2026-09-26T15:41:16.900622+00:00",
+      "stage": "EARLY_RESEARCH",
+      "time_gap_seconds": 0.0
+    },
+    {
+      "feature_captured_at": "2026-09-26T14:54:24.130027+00:00",
+      "fixture_id": 1639946,
+      "model_version": "SOCCER EDGE ENGINE v1.0",
+      "outcome": 0,
+      "poisson_probability": 0.14280824021563043,
+      "runtime_probability": 0.142804,
+      "runtime_run_timestamp": "2026-09-26T14:54:24.130027+00:00",
+      "stage": "EARLY_RESEARCH",
+      "time_gap_seconds": 0.0
+    }
+  ],
   "ledger_model_version_counts": {
     "SOCCER EDGE ENGINE v1.0": 80,
     "SOCCER EDGE ENGINE v1.1": 7,
@@ -59,6 +129,62 @@
   },
   "ledger_valid_prekickoff_rows": 751,
   "lineage_matched_fixture_prekickoff": {
+    "comparison_poisson_minus_runtime": {
+      "auc_delta": 0.0,
+      "auc_lower_95_delta": 0.0,
+      "brier_delta": 4.2e-07,
+      "log_loss_delta": 1.49e-06
+    },
+    "model_version_counts": {
+      "SOCCER EDGE ENGINE v1.7": 254
+    },
+    "negative_count": 132,
+    "poisson_metrics": {
+      "brier": 0.28478602,
+      "discrimination": {
+        "auc": 0.56029558,
+        "auc_lower_95": 0.48961847,
+        "auc_standard_error": 0.03605975,
+        "discrimination_ready": false,
+        "negative_count": 132,
+        "positive_count": 122
+      },
+      "log_loss": 0.83371725,
+      "negative_count": 132,
+      "positive_count": 122,
+      "rows": 254
+    },
+    "positive_count": 122,
+    "rows": 254,
+    "runtime_metrics": {
+      "brier": 0.2847856,
+      "discrimination": {
+        "auc": 0.56029558,
+        "auc_lower_95": 0.48961847,
+        "auc_standard_error": 0.03605975,
+        "discrimination_ready": false,
+        "negative_count": 132,
+        "positive_count": 122
+      },
+      "log_loss": 0.83371576,
+      "negative_count": 132,
+      "positive_count": 122,
+      "rows": 254
+    },
+    "sample_ready": true,
+    "stage_counts": {
+      "CLOSE": 28,
+      "EARLY_RESEARCH": 74,
+      "T-10": 92,
+      "T-20": 12,
+      "T-30": 29,
+      "T-40": 3,
+      "T-60": 9,
+      "T-90": 7
+    },
+    "unique_fixtures": 254
+  },
+  "lineage_matched_fixture_prekickoff_all_lineages": {
     "comparison_poisson_minus_runtime": {
       "auc_delta": 0.0,
       "auc_lower_95_delta": 0.0,
@@ -119,6 +245,62 @@
     "comparison_poisson_minus_runtime": {
       "auc_delta": 0.0,
       "auc_lower_95_delta": 0.0,
+      "brier_delta": 4.2e-07,
+      "log_loss_delta": 1.49e-06
+    },
+    "model_version_counts": {
+      "SOCCER EDGE ENGINE v1.7": 254
+    },
+    "negative_count": 132,
+    "poisson_metrics": {
+      "brier": 0.28478602,
+      "discrimination": {
+        "auc": 0.56029558,
+        "auc_lower_95": 0.48961847,
+        "auc_standard_error": 0.03605975,
+        "discrimination_ready": false,
+        "negative_count": 132,
+        "positive_count": 122
+      },
+      "log_loss": 0.83371725,
+      "negative_count": 132,
+      "positive_count": 122,
+      "rows": 254
+    },
+    "positive_count": 122,
+    "rows": 254,
+    "runtime_metrics": {
+      "brier": 0.2847856,
+      "discrimination": {
+        "auc": 0.56029558,
+        "auc_lower_95": 0.48961847,
+        "auc_standard_error": 0.03605975,
+        "discrimination_ready": false,
+        "negative_count": 132,
+        "positive_count": 122
+      },
+      "log_loss": 0.83371576,
+      "negative_count": 132,
+      "positive_count": 122,
+      "rows": 254
+    },
+    "sample_ready": true,
+    "stage_counts": {
+      "CLOSE": 28,
+      "EARLY_RESEARCH": 74,
+      "T-10": 92,
+      "T-20": 12,
+      "T-30": 29,
+      "T-40": 3,
+      "T-60": 9,
+      "T-90": 7
+    },
+    "unique_fixtures": 254
+  },
+  "lineage_matched_stage_time_aligned_all_lineages": {
+    "comparison_poisson_minus_runtime": {
+      "auc_delta": 0.0,
+      "auc_lower_95_delta": 0.0,
       "brier_delta": 4.3e-07,
       "log_loss_delta": 1.52e-06
     },
@@ -173,13 +355,13 @@
     "unique_fixtures": 257
   },
   "market_fields_used": false,
-  "model_version": "BTTS_ALIGNED_RANKING_AUDIT_V4_1.1.0",
+  "model_version": "BTTS_ALIGNED_RANKING_AUDIT_V4_1.2.0",
   "model_weights_changed": false,
   "post_kickoff_features_used": false,
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
   "runtime_prediction_weight": 0.0,
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "status": "RESEARCH_ONLY",
   "thresholds_changed": false
 }
