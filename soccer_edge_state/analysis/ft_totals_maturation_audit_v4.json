@@ -2,54 +2,60 @@
   "canonical_bet_logic_changed": false,
   "canonical_clv_model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10",
   "canonical_funnel": {
-    "later_snapshot_without_later_provider_update_rows": 65,
-    "mapped_signal_rows": 169,
-    "no_later_prekickoff_snapshot_rows": 43,
+    "later_snapshot_without_later_provider_update_rows": 110,
+    "mapped_signal_rows": 340,
+    "no_later_prekickoff_snapshot_rows": 119,
     "policy": "UNPRICED_FT_TOTALS_RESEARCH_PLACEHOLDERS_ARE_DIAGNOSTIC_ONLY; PRICED_ENTRIES_REQUIRE_STRICTLY_LATER_PREKICKOFF_PROVIDER_UPDATE_AND_SELECTION_MATCH",
-    "priced_entry_rows": 108,
+    "priced_entry_rows": 230,
     "provider_requests_added": 0,
     "selection_mismatch_at_close_rows": 0,
-    "true_clv_rows": 0,
-    "unpriced_research_placeholders_ignored": 61
+    "true_clv_rows": 1,
+    "unpriced_research_placeholders_ignored": 110
   },
   "close_window_changed": false,
   "current_visible_ft_totals": {
     "bookmaker_counts": {
+      "1xBet": 1,
       "Bet365": 2,
       "BetVictor": 1,
-      "Betano": 1
+      "Marathonbet": 2
     },
     "line_counts": {
-      "2.5": 4
+      "1.5": 2,
+      "2.5": 3,
+      "3.5": 1
     },
-    "next_kickoff": "2026-09-26T10:00:00+00:00",
+    "next_kickoff": "2026-09-27T17:00:00+00:00",
     "pending_timing": {
       "already_kicked_off": 0,
       "beyond_48h": 0,
       "missing_kickoff": 0,
-      "within_12h": 4,
-      "within_24h": 4,
-      "within_2h": 0,
-      "within_48h": 4,
-      "within_55m": 0,
-      "within_6h": 1
+      "within_12h": 6,
+      "within_24h": 6,
+      "within_2h": 6,
+      "within_48h": 6,
+      "within_55m": 4,
+      "within_6h": 6
     },
-    "priced_rows": 4,
-    "unique_fixtures": 4
+    "priced_rows": 6,
+    "unique_fixtures": 6
   },
   "diagnostic": {
     "close_window_minutes": 55,
-    "ft_totals_recent_candidates": 8,
-    "ft_totals_recent_refreshes": 0,
-    "interpretation": "No currently visible priced FT Totals fixture is yet inside the strict T-55 close-capture window.",
-    "latest_ft_totals_candidates": 0,
+    "ft_totals_recent_candidates": 736,
+    "ft_totals_recent_refreshes": 20,
+    "interpretation": "Recent FT Totals maturation produced at least one later real provider quote.",
+    "latest_ft_totals_candidates": 6,
     "latest_ft_totals_refreshes": 0
   },
-  "generated_at_utc": "2026-09-26T04:43:10.075445+00:00",
+  "generated_at_utc": "2026-09-27T17:06:29.751560+00:00",
   "latest_primary_maturation": {
     "api_calls_added": 0,
-    "candidate_family_counts": {},
-    "candidates": 0,
+    "candidate_family_counts": {
+      "1X2": 3,
+      "FT_TOTALS": 6
+    },
+    "candidates": 7,
     "family_refresh_counts": {},
     "fixtures_refreshed": 0,
     "unchanged_provider_updates": 0
@@ -59,27 +65,28 @@
   "provider_requests_added": 0,
   "recent_primary_maturation": {
     "candidate_family_counts": {
-      "1X2": 18,
-      "BTTS": 1,
-      "FT_TOTALS": 8
+      "1X2": 214,
+      "BTTS": 292,
+      "FT_TOTALS": 736
     },
-    "ft_totals_candidate_ticks": 8,
-    "ft_totals_refresh_ticks": 0,
-    "history_ticks_loaded": 189,
-    "primary_api_calls_total": 15,
-    "primary_candidates_total": 21,
-    "primary_refreshed_total": 2,
-    "primary_unchanged_provider_updates_total": 13,
+    "ft_totals_candidate_ticks": 107,
+    "ft_totals_refresh_ticks": 13,
+    "history_ticks_loaded": 125,
+    "primary_api_calls_total": 200,
+    "primary_candidates_total": 1137,
+    "primary_refreshed_total": 28,
+    "primary_unchanged_provider_updates_total": 179,
     "recent_ticks_analyzed": 120,
     "refresh_family_counts": {
-      "1X2": 1,
-      "BTTS": 1
+      "1X2": 2,
+      "BTTS": 7,
+      "FT_TOTALS": 20
     },
     "ticks_with_price_resolution_checkpoint": 120
   },
   "schema_version": "1.0.0",
-  "source_tick_generated_at_local": "2026-09-25T22:35:08.348446-06:00",
-  "source_tick_generated_at_utc": "2026-09-26T04:35:08.348446+00:00",
-  "status": "WAITING_FOR_CLOSE_WINDOW",
+  "source_tick_generated_at_local": "2026-09-27T10:55:19.760737-06:00",
+  "source_tick_generated_at_utc": "2026-09-27T16:55:19.760737+00:00",
+  "status": "MATURATION_ACTIVE",
   "thresholds_changed": false
 }
