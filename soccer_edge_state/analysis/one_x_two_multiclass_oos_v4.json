@@ -7,15 +7,15 @@
     "temperature_fit_uses_prior_rows_only": true
   },
   "baseline": {
-    "multiclass_brier": 0.67090004,
-    "multiclass_log_loss": 1.10764206,
-    "n": 207,
-    "top1_accuracy": 0.41062802
+    "multiclass_brier": 0.68693948,
+    "multiclass_log_loss": 1.13462208,
+    "n": 461,
+    "top1_accuracy": 0.4186551
   },
   "batch_size": 50,
-  "brier_delta": -0.01149463,
+  "brier_delta": -0.02391531,
   "canonical_bet_logic_changed": false,
-  "evaluated_rows": 207,
+  "evaluated_rows": 461,
   "folds": [
     {
       "baseline": {
@@ -87,24 +87,109 @@
     },
     {
       "baseline": {
-        "multiclass_brier": 0.97362341,
-        "multiclass_log_loss": 1.57255267,
-        "n": 7,
-        "top1_accuracy": 0.0
+        "multiclass_brier": 0.79227642,
+        "multiclass_log_loss": 1.28228141,
+        "n": 50,
+        "top1_accuracy": 0.28
       },
       "calibrated": {
-        "multiclass_brier": 0.85234713,
-        "multiclass_log_loss": 1.37919281,
-        "n": 7,
-        "top1_accuracy": 0.0
+        "multiclass_brier": 0.73195455,
+        "multiclass_log_loss": 1.19061673,
+        "n": 50,
+        "top1_accuracy": 0.28
       },
-      "eval_rows": 7,
+      "eval_rows": 50,
       "temperature": 1.565,
       "train_rows": 400
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.7472877,
+        "multiclass_log_loss": 1.22349773,
+        "n": 50,
+        "top1_accuracy": 0.36
+      },
+      "calibrated": {
+        "multiclass_brier": 0.68919252,
+        "multiclass_log_loss": 1.13013269,
+        "n": 50,
+        "top1_accuracy": 0.36
+      },
+      "eval_rows": 50,
+      "temperature": 1.95,
+      "train_rows": 450
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.65148777,
+        "multiclass_log_loss": 1.06286479,
+        "n": 50,
+        "top1_accuracy": 0.48
+      },
+      "calibrated": {
+        "multiclass_brier": 0.62486986,
+        "multiclass_log_loss": 1.03315712,
+        "n": 50,
+        "top1_accuracy": 0.48
+      },
+      "eval_rows": 50,
+      "temperature": 2.235,
+      "train_rows": 500
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.7179256,
+        "multiclass_log_loss": 1.22412136,
+        "n": 50,
+        "top1_accuracy": 0.46
+      },
+      "calibrated": {
+        "multiclass_brier": 0.67634921,
+        "multiclass_log_loss": 1.12299707,
+        "n": 50,
+        "top1_accuracy": 0.46
+      },
+      "eval_rows": 50,
+      "temperature": 2.145,
+      "train_rows": 550
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.62068373,
+        "multiclass_log_loss": 1.03469113,
+        "n": 50,
+        "top1_accuracy": 0.5
+      },
+      "calibrated": {
+        "multiclass_brier": 0.62806304,
+        "multiclass_log_loss": 1.04443317,
+        "n": 50,
+        "top1_accuracy": 0.5
+      },
+      "eval_rows": 50,
+      "temperature": 2.365,
+      "train_rows": 600
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.73955393,
+        "multiclass_log_loss": 1.21944736,
+        "n": 11,
+        "top1_accuracy": 0.36363636
+      },
+      "calibrated": {
+        "multiclass_brier": 0.69110846,
+        "multiclass_log_loss": 1.13604004,
+        "n": 11,
+        "top1_accuracy": 0.36363636
+      },
+      "eval_rows": 11,
+      "temperature": 2.225,
+      "train_rows": 650
     }
   ],
   "improves_brier_and_log_loss": true,
-  "log_loss_delta": -0.01835384,
+  "log_loss_delta": -0.04049715,
   "minimum_eval_rows": 100,
   "minimum_train_rows": 200,
   "model_version": "SOCCER_1X2_MULTICLASS_OOS_V4_1.0.3",
@@ -124,27 +209,27 @@
     "runtime_prediction_weight": 0.0,
     "source_model_version": "SOCCER EDGE ENGINE v1.7",
     "status": "RESEARCH_DEPLOYMENT_CALIBRATOR_FITTED",
-    "temperature": 1.69,
-    "training_rows": 407
+    "temperature": 2.265,
+    "training_rows": 661
   },
   "runtime_prediction_weight": 0.0,
   "schema_version": "1.0.0",
   "source_model_version": "SOCCER EDGE ENGINE v1.7",
   "source_model_version_counts": {
-    "SOCCER EDGE ENGINE v1.0": 313,
+    "SOCCER EDGE ENGINE v1.0": 80,
     "SOCCER EDGE ENGINE v1.1": 7,
     "SOCCER EDGE ENGINE v1.2": 1,
     "SOCCER EDGE ENGINE v1.5": 1,
     "SOCCER EDGE ENGINE v1.6": 1,
-    "SOCCER EDGE ENGINE v1.7": 407
+    "SOCCER EDGE ENGINE v1.7": 661
   },
-  "source_rows_current_model": 407,
+  "source_rows_current_model": 661,
   "status": "RESEARCH_MULTICLASS_CALIBRATION_AVAILABLE",
   "temperature_scaled": {
-    "multiclass_brier": 0.65940541,
-    "multiclass_log_loss": 1.08928822,
-    "n": 207,
-    "top1_accuracy": 0.41062802
+    "multiclass_brier": 0.66302417,
+    "multiclass_log_loss": 1.09412493,
+    "n": 461,
+    "top1_accuracy": 0.4186551
   },
-  "walk_forward_folds": 5
+  "walk_forward_folds": 10
 }
