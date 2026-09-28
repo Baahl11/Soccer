@@ -18,6 +18,7 @@ MIN_TRUE_CLOSE_ROWS = 50
 DERIVATIVE_MARKET_SOURCES = (
     ("TEAM_TOTALS", "team_totals_intelligence", "observed_exact_market_rows"),
     ("1H", "one_h_goals_intelligence", "observed_market_rows"),
+    ("2H", "two_h_goals_intelligence", "observed_market_rows"),
     ("FT_CORNERS", "corners_intelligence", "observed_market_rows"),
     ("TEAM_CORNERS", "team_corners_intelligence", "observed_market_rows"),
 )
@@ -434,6 +435,15 @@ def _load_derivative_signals(conn, *, lookback_days: int, max_rows: int) -> list
                 FROM jsonb_array_elements(
                     COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)
                 ) AS h(row_value)
+
+                UNION ALL
+
+                SELECT
+                    jsonb_set(row_value, '{market_family}', to_jsonb('2H'::text), true),
+                    'DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence'::text
+                FROM jsonb_array_elements(
+                    COALESCE(e.payload -> 'two_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                ) AS sh(row_value)
 
                 UNION ALL
 
