@@ -5,9 +5,13 @@ import re
 import statistics
 from typing import Any
 
+from mcp_gateway import ft_totals_paid_odds_reuse, price_resolver_v4
+
 SCHEMA_VERSION = "1.0.0"
 MAX_TOTAL_GOALS = 20
 MAX_CAPTURE_ROWS = 64
+
+ft_totals_paid_odds_reuse.ensure_installed(price_resolver_v4)
 
 
 def _num(value: Any) -> float | None:
@@ -262,6 +266,10 @@ def capture_event(event: dict[str, Any]) -> dict[str, Any]:
 
 
 def attach(payload: dict[str, Any]) -> dict[str, Any]:
+    paid_odds_reuse = ft_totals_paid_odds_reuse.attach(
+        payload,
+        ft_totals_paid_odds_reuse.drain(),
+    )
     events_with_rows = 0
     rows_captured = 0
     fresh_provider_rows = 0
@@ -318,6 +326,7 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
         "fresh_provider_rows": fresh_provider_rows,
         "cache_replay_rows": cache_replay_rows,
         "observed_lines": sorted(unique_lines),
+        "paid_odds_reuse": paid_odds_reuse,
         "provider_requests_added": 0,
         "research_only": True,
         "decision_weight": 0.0,
