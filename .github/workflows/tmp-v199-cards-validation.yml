@@ -1,0 +1,78 @@
+name: Temporary v199 Cards Validation
+
+on:
+  push:
+    branches:
+      - tmp-v199-validate
+
+jobs:
+  v199-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused runtime test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile v199 cards path
+        run: |
+          python -m py_compile \
+            mcp_gateway/clv_postgres_v4.py \
+            mcp_gateway/cards_intelligence_live.py \
+            mcp_gateway/team_cards_intelligence.py \
+            mcp_gateway/player_cards_intelligence.py
+      - name: Run v199 specific CLV cards tests
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_clv_postgres_v4.py
+      - name: Run official V4 runtime suite
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_v4_006_fair_scheduler.py \
+            tests/test_slate_floor_reconciliation.py \
+            tests/test_v4_007_feature_snapshot.py \
+            tests/test_v4_008_training_dataset.py \
+            tests/test_v4_009_dixon_coles.py \
+            tests/test_v4_010_bivariate_poisson.py \
+            tests/test_v4_011_lightgbm_goals.py \
+            tests/test_v4_012_ensemble.py \
+            tests/test_clv_postgres_v4.py \
+            tests/test_market_snapshot_integrity.py \
+            tests/test_oos_prediction_ledger_v4.py \
+            tests/test_team_totals_intelligence.py \
+            tests/test_ft_totals_settlement_capture.py \
+            tests/test_ft_totals_line_coverage_audit.py \
+            tests/test_ft_totals_paid_odds_reuse.py \
+            tests/test_ft_totals_line_coverage_checkpoint.py \
+            tests/test_league_stage_stability_v4.py \
+            tests/test_phase19_promotion_framework_v4.py \
+            tests/test_phase14_cards_referee_v4.py \
+            tests/test_phase15_player_props_v4.py \
+            tests/test_oos_history_backfill_v4.py \
+            tests/test_clv_history_merge_v4.py \
+            tests/test_shadow_settlement_v4.py \
+            tests/test_settlement_postgres_v4.py \
+            tests/test_oos_stage_diagnostics_v4.py \
+            tests/test_shadow_selection_diagnostics_v4.py \
+            tests/test_promotion_shadow_postgres_v4.py \
+            tests/test_price_resolver_v4.py \
+            tests/test_automation_v122.py \
+            tests/test_automation_v123.py \
+            tests/test_promotion_shadow_ledger_v4.py \
+            tests/test_phase16_market_mismatch_v4.py \
+            tests/test_research_derivative_postgres_audit.py \
+            tests/test_player_props_phase15_v4.py \
+            tests/test_phase24_product_dashboard_v4.py \
+            tests/test_phase24_product_views_v4.py \
+            tests/test_phase18_oos_backtest_v4.py \
+            tests/test_phase17_clv_engine_v4.py \
+            tests/test_v4_017_one_x_two_validation.py \
+            tests/test_v4_018_btts_validation.py \
+            tests/test_v4_022_corners_oos.py \
+            tests/test_one_x_two_multiclass_oos_v4.py \
+            tests/test_one_x_two_dixon_coles.py \
+            tests/test_one_x_two_draw_signal.py \
+            tests/test_one_x_two_draw_history_signal.py
