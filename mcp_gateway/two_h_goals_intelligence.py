@@ -68,7 +68,17 @@ def build(event: dict[str, Any], registry: dict[str, Any] | None) -> dict[str, A
     fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
     model = period_rate_registry.model_fixture(fixture, "2H", registry)
     if not model:
-        return {"schema_version": SCHEMA_VERSION, "fixture_id": fixture.get("fixture_id"), "stage": event.get("stage"), "status": "NOT_MODELED_THIS_TICK", "actionable": False, "decision_weight": 0.0, "reason": "PERIOD_RATE_REGISTRY_NOT_AVAILABLE_OR_INSUFFICIENT"}
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "fixture_id": fixture.get("fixture_id"),
+            "stage": event.get("stage"),
+            "status": "NOT_MODELED_THIS_TICK",
+            "actionable": False,
+            "decision_weight": 0.0,
+            "production_promotion_allowed": False,
+            "provider_requests_added": 0,
+            "reason": "PERIOD_RATE_REGISTRY_NOT_AVAILABLE_OR_INSUFFICIENT",
+        }
     lam = float(model["total_lambda"]); observed, unsupported = _observed(event, lam)
     return {
         "schema_version": SCHEMA_VERSION, "fixture_id": fixture.get("fixture_id"), "stage": event.get("stage"), "status": "LIVE_RESEARCH_MODELED",
@@ -77,13 +87,14 @@ def build(event: dict[str, Any], registry: dict[str, Any] | None) -> dict[str, A
         "p_over_1_5": round(1.0 - math.exp(-lam) * (1.0 + lam), 6),
         "p_over_2_5": round(1.0 - math.exp(-lam) * (1.0 + lam + lam * lam / 2.0), 6),
         "observed_market_rows": observed, "observed_market_count": len(observed), "unsupported_market_rows": unsupported,
-        "actionable": False, "decision_weight": 0.0, "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE",
+        "actionable": False, "decision_weight": 0.0, "production_promotion_allowed": False, "provider_requests_added": 0,
+        "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE",
         "calibration_gate": {"minimum_oos_for_market_comparison": 100, "minimum_oos_for_actionable_review": 200, "requires": ["dedicated pregame 2H OOS calibration", "historical exact-line prices and true CLV", "stable line-bucket/league calibration", "separate halftime-conditioned model for any live-2H use"]},
         "policy": "PREGAME PERIOD-SPECIFIC SPORT MODEL; NEVER REUSE FT OR 1H PROBABILITY; NEVER CLAIM HALFTIME-CONDITIONED; EXACT OBSERVED 2H TOTAL LINES ONLY; SETTLEMENT-AWARE; ZERO DECISION WEIGHT",
     }
 
 
-def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
+def attach(payload: dict[str, Any]) -> dict[str, int | float | bool]:
     registry = period_rate_registry.load_registry(); modeled = observed_events = observed_rows = 0
     for event in payload.get("events") or []:
         if not isinstance(event, dict) or event.get("event_type") != "SOCCER_REFRESH" or event.get("stage") == "POSTGAME": continue
@@ -93,5 +104,23 @@ def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
         if count: observed_events += 1; observed_rows += count
         mi = event.get("match_intelligence")
         if isinstance(mi, dict) and isinstance(mi.get("areas"), dict):
-            mi["areas"]["goals_second_half_pregame"] = {"status": intel.get("status"), "model_inputs": intel.get("model_inputs"), "model_timing": intel.get("model_timing"), "observed_market_rows": intel.get("observed_market_rows") or [], "actionable": False, "decision_weight": 0.0, "calibration_gate": intel.get("calibration_gate")}
-    return {"period_rate_registry_loaded": bool(registry), "modeled_events": modeled, "events_with_observed_2h_total_markets": observed_events, "observed_2h_total_rows": observed_rows, "provider_requests_added": 0, "state_registry_reads_shared_with_1h": True}
+            mi["areas"]["goals_second_half_pregame"] = {
+                "status": intel.get("status"),
+                "model_inputs": intel.get("model_inputs"),
+                "model_timing": intel.get("model_timing"),
+                "observed_market_rows": intel.get("observed_market_rows") or [],
+                "actionable": False,
+                "decision_weight": 0.0,
+                "production_promotion_allowed": False,
+                "calibration_gate": intel.get("calibration_gate"),
+            }
+    return {
+        "period_rate_registry_loaded": bool(registry),
+        "modeled_events": modeled,
+        "events_with_observed_2h_total_markets": observed_events,
+        "observed_2h_total_rows": observed_rows,
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+        "provider_requests_added": 0,
+        "state_registry_reads_shared_with_1h": True,
+    }
