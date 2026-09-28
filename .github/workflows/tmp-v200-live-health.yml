@@ -1,0 +1,29 @@
+name: Temporary v200 Live Health Probe
+
+on:
+  push:
+    branches:
+      - tmp-v200-live-health
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify deployed v200 health
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+            https://soccer-edge-api.onrender.com/health > /tmp/health.json
+          cat /tmp/health.json
+          python - <<'PY'
+          import json
+          with open('/tmp/health.json', encoding='utf-8') as f:
+              data = json.load(f)
+          assert data.get('status') == 'ok', data
+          assert data.get('service') == 'soccer-edge-api', data
+          assert data.get('render_git_commit') == '767f0b207ca6facb1a62fc1102a4d40b03e0be70', data
+          assert data.get('database_persistence_configured') is True, data
+          print('V200_HEALTH_OK')
+          PY
