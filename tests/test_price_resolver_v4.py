@@ -2118,3 +2118,49 @@ def test_1h_clv_maturation_rejects_non_later_provider_update():
         "values": [{"selection": "Under", "line": 1.5, "decimal_price": 1.91}],
     }]
     assert v._primary_signals_with_later_provider_quote(market, [signal]) == set()
+
+def test_v200_player_prop_sidecar_cap_is_family_fair_and_keeps_late_player_cards():
+    markets = []
+    for idx in range(45):
+        markets.append({
+            "fixture_id": 200,
+            "bookmaker_id": 1,
+            "bookmaker": "Book",
+            "market_id": 1000 + idx,
+            "market": "Player Shots",
+            "values": [{
+                "selection": f"Shot Player {idx} - 1",
+                "line": 0.5,
+                "decimal_price": 1.90,
+            }],
+            "provider_update": "2026-09-28T20:00:00+00:00",
+            "source": "API_FOOTBALL_ODDS_V3",
+        })
+    markets.append({
+        "fixture_id": 200,
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market_id": 1999,
+        "market": "Player To Be Booked",
+        "values": [{
+            "selection": "Late Card Player",
+            "decimal_price": 2.25,
+        }],
+        "provider_update": "2026-09-28T20:00:00+00:00",
+        "source": "API_FOOTBALL_ODDS_V3",
+    })
+
+    event = {}
+    v._attach_market_to_event(event, markets, "PRICE_API_RESOLVED")
+    sidecar = event["market"]
+    props = sidecar["research_cards_props_markets"]
+
+    assert len(props) == 40
+    assert any(row.get("research_subfamily") == "PLAYER_CARDS" for row in props)
+    assert sidecar["observed_player_prop_subfamily_counts"] == {"PLAYER_CARDS": 1, "SHOTS": 45}
+    assert sidecar["kept_player_prop_subfamily_counts"] == {"PLAYER_CARDS": 1, "SHOTS": 39}
+    assert sidecar["player_prop_sidecar_limit"] == 40
+    assert sidecar["player_prop_family_fair_selection"] is True
+    assert sidecar["research_derivative_sidecar_provider_requests_added"] == 0
+    assert sidecar["research_derivative_sidecar_decision_weight"] == 0.0
+    assert sidecar["research_derivative_sidecar_production_promotion_allowed"] is False
