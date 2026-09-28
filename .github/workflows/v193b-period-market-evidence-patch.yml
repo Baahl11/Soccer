@@ -1,0 +1,58 @@
+name: v193b Period Market Evidence Patch
+
+on:
+  push:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - ".github/workflows/v193b-period-market-evidence-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          fetch-depth: 0
+
+      - name: Install validation dependency
+        run: python -m pip install pytest
+
+      - name: Apply v193 patch
+        run: python scripts/v193_period_market_evidence_patch.py
+
+      - name: Validate v193
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile mcp_gateway/research_derivative_postgres_audit.py
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_research_derivative_postgres_audit.py
+          python - <<'PY'
+          from pathlib import Path
+          src = Path('mcp_gateway/research_derivative_postgres_audit.py').read_text(encoding='utf-8')
+          required = [
+              'SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.5.0',
+              'period_market_evidence',
+              "THEN '2H'",
+              'PERSISTED_PRE_KICKOFF_MARKET_SNAPSHOTS_ONLY',
+          ]
+          missing = [needle for needle in required if needle not in src]
+          if missing:
+              raise SystemExit(f'missing invariants: {missing}')
+          print('v193 invariants OK')
+          PY
+          git diff --check
+
+      - name: Commit production patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add mcp_gateway/research_derivative_postgres_audit.py
+          git commit -m "v193: add persisted period market evidence audit"
+          git push origin HEAD:soccer-edge-mcp-v1
