@@ -5,7 +5,11 @@ import re
 import statistics
 from typing import Any
 
-from mcp_gateway import ft_totals_paid_odds_reuse, price_resolver_v4
+from mcp_gateway import (
+    ft_totals_line_coverage_checkpoint,
+    ft_totals_paid_odds_reuse,
+    price_resolver_v4,
+)
 
 SCHEMA_VERSION = "1.0.0"
 MAX_TOTAL_GOALS = 20
@@ -270,6 +274,7 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
         payload,
         ft_totals_paid_odds_reuse.drain(),
     )
+    historical_line_coverage = ft_totals_line_coverage_checkpoint.build()
     events_with_rows = 0
     rows_captured = 0
     fresh_provider_rows = 0
@@ -327,6 +332,7 @@ def attach(payload: dict[str, Any]) -> dict[str, Any]:
         "cache_replay_rows": cache_replay_rows,
         "observed_lines": sorted(unique_lines),
         "paid_odds_reuse": paid_odds_reuse,
+        "historical_line_coverage": historical_line_coverage,
         "provider_requests_added": 0,
         "research_only": True,
         "decision_weight": 0.0,
