@@ -110,7 +110,19 @@ def test_capture_event_keeps_quarter_lines_research_only():
     assert over_225["actionable"] is False
 
 
-def test_attach_adds_capture_without_provider_calls_or_decision_changes():
+def test_attach_adds_capture_and_historical_coverage_without_decision_changes(monkeypatch):
+    historical = {
+        "status": "HISTORICAL_FT_TOTALS_LINE_COVERAGE_READY",
+        "focus_quarter_lines": {"2.25": {"unique_fixtures": 9}},
+        "provider_requests_added": 0,
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+    }
+    monkeypatch.setattr(
+        capture.ft_totals_line_coverage_checkpoint,
+        "build",
+        lambda: dict(historical),
+    )
     payload = {
         "events": [
             {
@@ -145,6 +157,8 @@ def test_attach_adds_capture_without_provider_calls_or_decision_changes():
     assert summary["cache_replay_rows"] == 2
     assert summary["canonical_bet_logic_changed"] is False
     assert summary["model_weights_changed"] is False
+    assert summary["historical_line_coverage"]["focus_quarter_lines"]["2.25"]["unique_fixtures"] == 9
+    assert summary["historical_line_coverage"]["provider_requests_added"] == 0
     event = payload["events"][0]
     assert event["ft_totals_settlement_capture"]["cache_replay"] is True
     assert event["ft_goals_intelligence"]["observed_settlement_aware_lines"] == [2.25]
