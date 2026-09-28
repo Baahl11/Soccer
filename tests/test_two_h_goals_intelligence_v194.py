@@ -135,9 +135,11 @@ def test_v194_product_wrapper_chain_reaches_existing_v47_2h_attach_without_new_d
         assert version not in visited, f"automation wrapper cycle at v{version}; chain={visited}"
         visited.append(version)
         source = Path(f"mcp_gateway/automation_v{version}.py").read_text(encoding="utf-8")
-        match = re.search(r"from mcp_gateway import automation_v(\d+) as v\d+", source)
-        assert match, f"automation_v{version}.py does not delegate to a prior wrapper; chain={visited}"
-        next_version = int(match.group(1))
+        assert "async def run_tick" in source, f"automation_v{version}.py has no run_tick; chain={visited}"
+        run_tick_source = source.split("async def run_tick", 1)[1]
+        matches = re.findall(r"await\s+v(\d+)\.run_tick\(\)", run_tick_source)
+        assert matches, f"automation_v{version}.py run_tick does not delegate to a prior wrapper; chain={visited}"
+        next_version = int(matches[0])
         assert next_version < version, f"automation_v{version}.py does not move backward; chain={visited}"
         version = next_version
 
