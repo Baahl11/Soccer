@@ -1,0 +1,174 @@
+name: Temporary v200 Player Cards Validation
+
+on:
+  push:
+    branches:
+      - tmp-v200-player-cards-fair
+
+permissions:
+  contents: write
+
+jobs:
+  v200-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-v200-player-cards-fair
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply v200 family-fair Player Props sidecar patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('mcp_gateway/price_resolver_v4.py')
+          text = path.read_text(encoding='utf-8')
+          marker = '\ndef _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]], source_status: str) -> None:\n'
+          assert marker in text
+          helper = r'''
+def _bounded_player_prop_rows(rows: list[dict[str, Any]], *, limit: int = 40) -> list[dict[str, Any]]:
+    """Bound Player Props sidecar without allowing a high-volume family to starve another."""
+    cap = max(0, int(limit))
+    if cap <= 0:
+        return []
+    buckets: dict[str, list[dict[str, Any]]] = {}
+    order: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        family = str(row.get("research_subfamily") or "UNMAPPED").upper()
+        if family not in buckets:
+            buckets[family] = []
+            order.append(family)
+        buckets[family].append(row)
+
+    positions = {family: 0 for family in order}
+    selected: list[dict[str, Any]] = []
+    while order and len(selected) < cap:
+        progress = False
+        for family in order:
+            position = positions[family]
+            bucket = buckets[family]
+            if position >= len(bucket):
+                continue
+            selected.append(bucket[position])
+            positions[family] = position + 1
+            progress = True
+            if len(selected) >= cap:
+                break
+        if not progress:
+            break
+    return selected
+
+
+def _player_prop_subfamily_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        family = str(row.get("research_subfamily") or "UNMAPPED").upper()
+        counts[family] = counts.get(family, 0) + 1
+    return dict(sorted(counts.items()))
+'''
+          text = text.replace(marker, helper + marker, 1)
+
+          old = '''    kept_cards = card_rows[:20]\n    kept_props = prop_rows[:40]\n    research_rows = kept_cards + kept_props\n'''
+          new = '''    kept_cards = card_rows[:20]\n    kept_props = _bounded_player_prop_rows(prop_rows, limit=40)\n    observed_player_prop_subfamily_counts = _player_prop_subfamily_counts(prop_rows)\n    kept_player_prop_subfamily_counts = _player_prop_subfamily_counts(kept_props)\n    research_rows = kept_cards + kept_props\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''        "player_prop_research_market_rows": len(kept_props),\n        "research_derivative_sidecar_rows": len(research_rows),\n'''
+          new = '''        "player_prop_research_market_rows": len(kept_props),\n        "player_prop_sidecar_limit": 40,\n        "player_prop_family_fair_selection": True,\n        "observed_player_prop_subfamily_counts": observed_player_prop_subfamily_counts,\n        "kept_player_prop_subfamily_counts": kept_player_prop_subfamily_counts,\n        "research_derivative_sidecar_rows": len(research_rows),\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          text = text.replace(
+              'SPLIT_FROM_ALREADY_PAID_PRICE_RESOLVER_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP; XI_ALIGN_WHEN_CONFIRMED; RESEARCH_ONLY',
+              'SPLIT_FROM_ALREADY_PAID_PRICE_RESOLVER_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP_FAMILY_FAIR; XI_ALIGN_WHEN_CONFIRMED; RESEARCH_ONLY',
+              1,
+          )
+          path.write_text(text, encoding='utf-8')
+
+          tests = Path('tests/test_price_resolver_v4.py')
+          test_text = tests.read_text(encoding='utf-8')
+          addition = r'''
+
+
+def test_v200_player_prop_sidecar_cap_is_family_fair_and_keeps_late_player_cards():
+    markets = []
+    for idx in range(45):
+        markets.append({
+            "fixture_id": 200,
+            "bookmaker_id": 1,
+            "bookmaker": "Book",
+            "market_id": 1000 + idx,
+            "market": "Player Shots",
+            "values": [{
+                "selection": f"Shot Player {idx} - 1",
+                "line": 0.5,
+                "decimal_price": 1.90,
+            }],
+            "provider_update": "2026-09-28T20:00:00+00:00",
+            "source": "API_FOOTBALL_ODDS_V3",
+        })
+    markets.append({
+        "fixture_id": 200,
+        "bookmaker_id": 1,
+        "bookmaker": "Book",
+        "market_id": 1999,
+        "market": "Player To Be Booked",
+        "values": [{
+            "selection": "Late Card Player",
+            "decimal_price": 2.25,
+        }],
+        "provider_update": "2026-09-28T20:00:00+00:00",
+        "source": "API_FOOTBALL_ODDS_V3",
+    })
+
+    event = {}
+    v._attach_market_to_event(event, markets, "PRICE_API_RESOLVED")
+    sidecar = event["market"]
+    props = sidecar["research_cards_props_markets"]
+
+    assert len(props) == 40
+    assert any(row.get("research_subfamily") == "PLAYER_CARDS" for row in props)
+    assert sidecar["observed_player_prop_subfamily_counts"] == {"PLAYER_CARDS": 1, "SHOTS": 45}
+    assert sidecar["kept_player_prop_subfamily_counts"] == {"PLAYER_CARDS": 1, "SHOTS": 39}
+    assert sidecar["player_prop_sidecar_limit"] == 40
+    assert sidecar["player_prop_family_fair_selection"] is True
+    assert sidecar["research_derivative_sidecar_provider_requests_added"] == 0
+    assert sidecar["research_derivative_sidecar_decision_weight"] == 0.0
+    assert sidecar["research_derivative_sidecar_production_promotion_allowed"] is False
+'''
+          assert 'test_v200_player_prop_sidecar_cap_is_family_fair_and_keeps_late_player_cards' not in test_text
+          tests.write_text(test_text.rstrip() + addition + '\n', encoding='utf-8')
+          PY
+      - name: Install runtime test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile v200 path
+        run: python -m py_compile mcp_gateway/price_resolver_v4.py
+      - name: Run v200 specific test
+        run: PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_price_resolver_v4.py -k v200
+      - name: Run focused regression suite
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_price_resolver_v4.py \
+            tests/test_research_derivative_postgres_audit.py \
+            tests/test_player_props_phase15_v4.py \
+            tests/test_phase15_player_props_v4.py \
+            tests/test_clv_postgres_v4.py \
+            tests/test_v4_*.py
+      - name: Commit validated v200 candidate to temp branch
+        shell: bash
+        run: |
+          git config user.name "soccer-edge-v200-bot"
+          git config user.email "soccer-edge-v200-bot@users.noreply.github.com"
+          git add mcp_gateway/price_resolver_v4.py tests/test_price_resolver_v4.py
+          git commit -m "v200: make Player Props sidecar family-fair for Player Cards capture"
+          git push origin HEAD:tmp-v200-player-cards-fair
