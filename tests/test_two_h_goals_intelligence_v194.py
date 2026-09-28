@@ -132,13 +132,13 @@ def test_v194_product_wrapper_chain_reaches_existing_v47_2h_attach_without_new_d
     version = 123
     visited: list[int] = []
     while version != 47:
-        assert version not in visited, f"automation wrapper cycle at v{version}"
+        assert version not in visited, f"automation wrapper cycle at v{version}; chain={visited}"
         visited.append(version)
         source = Path(f"mcp_gateway/automation_v{version}.py").read_text(encoding="utf-8")
         match = re.search(r"from mcp_gateway import automation_v(\d+) as v\d+", source)
-        assert match, f"automation_v{version}.py does not delegate to a prior wrapper"
+        assert match, f"automation_v{version}.py does not delegate to a prior wrapper; chain={visited}"
         next_version = int(match.group(1))
-        assert next_version < version, f"automation_v{version}.py does not move backward"
+        assert next_version < version, f"automation_v{version}.py does not move backward; chain={visited}"
         version = next_version
 
     source_v47 = Path("mcp_gateway/automation_v47.py").read_text(encoding="utf-8")
