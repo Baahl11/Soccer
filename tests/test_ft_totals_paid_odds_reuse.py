@@ -90,3 +90,31 @@ def test_install_observer_preserves_return_and_captures_without_extra_calls():
     assert result[1] == 1
     assert len(captured[321]) == 1
     assert resolver._fetch_fixture_odds is original
+
+
+def test_settlement_attach_consumes_capture_once_per_tick():
+    from mcp_gateway import ft_totals_settlement_capture as settlement
+
+    v._CAPTURED.clear()
+    v._CAPTURED[500].append(_ft_row())
+    payload = {
+        "events": [
+            {
+                "event_type": "TEAM_TOTALS_RESEARCH_SPILLOVER",
+                "fixture": {"fixture_id": 500},
+                "market": {
+                    "source": "API_FOOTBALL_ODDS_V3",
+                    "markets": [{"market": "Home Team Goals Over/Under", "market_id": 16}],
+                },
+            }
+        ]
+    }
+
+    first = settlement.attach(payload)
+    second = settlement.attach(payload)
+
+    assert first["paid_odds_reuse"]["attached_market_rows"] == 1
+    assert first["paid_odds_reuse"]["provider_requests_added"] == 0
+    assert second["paid_odds_reuse"]["captured_fixtures"] == 0
+    assert second["paid_odds_reuse"]["attached_market_rows"] == 0
+    assert v.drain() == {}
