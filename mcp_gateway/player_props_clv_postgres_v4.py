@@ -314,6 +314,13 @@ def extract_shadow_signals(
             continue
 
         diag["eligible_event_rows"] += 1
+        event_market = event.get("market") if isinstance(event.get("market"), dict) else {}
+        observed_sidecar_counts = event_market.get("observed_player_prop_subfamily_counts")
+        kept_sidecar_counts = event_market.get("kept_player_prop_subfamily_counts")
+        sidecar_telemetry_available = (
+            isinstance(observed_sidecar_counts, dict)
+            and isinstance(kept_sidecar_counts, dict)
+        )
         for family, config in FAMILY_CONFIG.items():
             family_diag = families_diag.setdefault(family, {
                 "intelligence_event_rows": 0,
@@ -326,10 +333,35 @@ def extract_shadow_signals(
                 "priced_overlap_values": 0,
                 "model_probability_values": 0,
                 "signal_rows": 0,
+                "sidecar_telemetry_event_rows": 0,
+                "sidecar_observed_event_rows": 0,
+                "sidecar_observed_market_rows": 0,
+                "sidecar_kept_event_rows": 0,
+                "sidecar_kept_market_rows": 0,
+                "sidecar_dropped_market_rows": 0,
+                "sidecar_capture_status": "NO_V200_SIDECAR_TELEMETRY",
                 "probability_failure_reasons": {},
                 "matched_player_statuses": {},
                 "probability_failure_samples": [],
             })
+            if sidecar_telemetry_available:
+                try:
+                    observed_count = max(0, int(observed_sidecar_counts.get(family) or 0))
+                except (TypeError, ValueError):
+                    observed_count = 0
+                try:
+                    kept_count = max(0, int(kept_sidecar_counts.get(family) or 0))
+                except (TypeError, ValueError):
+                    kept_count = 0
+                family_diag["sidecar_telemetry_event_rows"] += 1
+                family_diag["sidecar_observed_market_rows"] += observed_count
+                family_diag["sidecar_kept_market_rows"] += kept_count
+                family_diag["sidecar_dropped_market_rows"] += max(0, observed_count - kept_count)
+                if observed_count > 0:
+                    family_diag["sidecar_observed_event_rows"] += 1
+                if kept_count > 0:
+                    family_diag["sidecar_kept_event_rows"] += 1
+
             intel = event.get(config["intel_key"])
             if not isinstance(intel, dict):
                 continue
@@ -446,6 +478,23 @@ def extract_shadow_signals(
                         "decision_weight": 0.0,
                         "production_promotion_allowed": False,
                     })
+
+    for family_diag in families_diag.values():
+        telemetry_rows = int(family_diag.get("sidecar_telemetry_event_rows") or 0)
+        observed_rows = int(family_diag.get("sidecar_observed_market_rows") or 0)
+        kept_rows = int(family_diag.get("sidecar_kept_market_rows") or 0)
+        dropped_rows = int(family_diag.get("sidecar_dropped_market_rows") or 0)
+        if telemetry_rows <= 0:
+            status = "NO_V200_SIDECAR_TELEMETRY"
+        elif observed_rows <= 0:
+            status = "NOT_OBSERVED_IN_PAID_ODDS"
+        elif kept_rows <= 0:
+            status = "OBSERVED_BUT_NOT_KEPT"
+        elif dropped_rows > 0:
+            status = "OBSERVED_AND_PARTIALLY_KEPT"
+        else:
+            status = "OBSERVED_AND_KEPT"
+        family_diag["sidecar_capture_status"] = status
     return signals
 
 
@@ -896,6 +945,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "policy": (
             "XI_ALIGNED_SHADOW_MODEL_SIGNAL AT T-40/T-30/T-20/T-10 -> EXACT PLAYER/FAMILY/LINE/SIDE PRICE -> "
             "STRICTLY_LATER PREKICKOFF PROVIDER UPDATE; SAME BOOK PREFERRED; "
+            "V200 SIDECAR OBSERVED/KEPT/DROPPED CAPTURE TELEMETRY IS AUDIT-ONLY; "
             "ONE-WAY MARKETS TRACK PRICE CLV WITHOUT PRETENDING TO BE DEVIGGED; "
             "50 ROWS AND 20 UNIQUE FIXTURES PER FAMILY ARE RESEARCH REVIEW TARGETS ONLY; "
             "NO PRODUCTION PROMOTION"
