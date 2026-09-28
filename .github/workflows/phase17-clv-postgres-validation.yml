@@ -77,7 +77,7 @@ jobs:
           for attempt in 1 2 3 4 5; do
             TOKEN=$(get_oidc_token)
             echo "::add-mask::$TOKEN"
-            HTTP_CODE=$(curl -sS --max-time 120 -o /tmp/clv_v4.json -w "%{http_code}" \
+            HTTP_CODE=$(curl -sS --max-time 430 -o /tmp/clv_v4.json -w "%{http_code}" \
               -X POST \
               -H "Authorization: Bearer ${TOKEN}" \
               -H "Content-Type: application/json" \
