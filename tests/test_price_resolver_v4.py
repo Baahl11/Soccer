@@ -2051,3 +2051,18 @@ def test_primary_maturation_family_accounting_all_unchanged():
 
     assert evaluated == {"1X2", "FT_TOTALS", "BTTS"}
     assert not_matured == evaluated
+
+
+def test_team_totals_maturation_backlog_requires_exact_comparable_quote():
+    import inspect
+
+    source = inspect.getsource(v._load_team_totals_maturation_backlog)
+    assert "JOIN soccer_refresh_events se" in source
+    assert "se.generated_at = ms.signal_generated_at" in source
+    assert "sig.row ->> 'market'" in source
+    assert "sig.row ->> 'selection'" in source
+    assert "q.value ->> 'selection'" in source
+    assert "sig.row ->> 'line'" in source
+    assert "q.value ->> 'line'" in source
+    assert "m.provider_update > ms.signal_generated_at" in source
+    assert "m.captured_at > ms.signal_generated_at" in source

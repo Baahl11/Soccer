@@ -1070,24 +1070,56 @@ def _load_team_totals_maturation_backlog(
                   AND NOT EXISTS (
                       SELECT 1
                       FROM soccer_market_snapshots m
+                      JOIN soccer_refresh_events se
+                        ON se.fixture_id = f.fixture_id
+                       AND se.generated_at = ms.signal_generated_at
+                      CROSS JOIN LATERAL jsonb_array_elements(
+                          CASE
+                              WHEN jsonb_typeof(
+                                  COALESCE(
+                                      se.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows',
+                                      '[]'::jsonb
+                                  )
+                              ) = 'array'
+                              THEN COALESCE(
+                                  se.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows',
+                                  '[]'::jsonb
+                              )
+                              ELSE '[]'::jsonb
+                          END
+                      ) AS sig(row)
+                      CROSS JOIN LATERAL jsonb_array_elements(
+                          CASE
+                              WHEN jsonb_typeof(COALESCE(m.values, '[]'::jsonb)) = 'array'
+                              THEN COALESCE(m.values, '[]'::jsonb)
+                              ELSE '[]'::jsonb
+                          END
+                      ) AS q(value)
                       WHERE m.fixture_id = f.fixture_id
                         AND m.captured_at > ms.signal_generated_at
                         AND m.provider_update IS NOT NULL
                         AND m.provider_update > ms.signal_generated_at
                         AND m.captured_at < f.kickoff
+                        AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(sig.row ->> 'market', '')))
                         AND (
-                              m.market_id IN (16, 17)
-                              OR LOWER(TRIM(COALESCE(m.market, ''))) IN (
-                                  'total - home',
-                                  'total home',
-                                  'total - away',
-                                  'total away',
-                                  'home team total goals',
-                                  'away team total goals',
-                                  'home team goals over/under',
-                                  'away team goals over/under'
-                              )
+                              CASE
+                                  WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                                  WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                                  ELSE LOWER(TRIM(COALESCE(q.value ->> 'selection', '')))
+                              END
+                            ) = (
+                              CASE
+                                  WHEN LOWER(TRIM(COALESCE(sig.row ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                                  WHEN LOWER(TRIM(COALESCE(sig.row ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                                  ELSE LOWER(TRIM(COALESCE(sig.row ->> 'selection', '')))
+                              END
                             )
+                        AND COALESCE(q.value ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+                        AND COALESCE(sig.row ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+                        AND ABS(
+                              (q.value ->> 'line')::NUMERIC
+                              - (sig.row ->> 'line')::NUMERIC
+                            ) < 0.000001
                   )
                 ORDER BY f.kickoff ASC, ms.signal_generated_at ASC
                 LIMIT %s
