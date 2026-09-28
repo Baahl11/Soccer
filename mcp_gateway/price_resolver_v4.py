@@ -14,7 +14,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence, research_derivative_postgres_audit as derivative_audit
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.19.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.19.1"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -1184,7 +1184,7 @@ def _load_team_totals_maturation_backlog(
 def _primary_market_matches_signal(market: dict[str, Any], signal: dict[str, Any]) -> bool:
     family = str(signal.get("market_family") or "").upper()
     expected_market = _norm(signal.get("market"))
-    if family == "1H":
+    if family in {"1H", "FT_CORNERS", "TEAM_CORNERS"}:
         return bool(expected_market) and _norm(market.get("market")) == expected_market
     if family not in {"1X2", "FT_TOTALS", "BTTS"}:
         return False
@@ -1201,7 +1201,7 @@ def _primary_signals_with_later_provider_quote(
     for signal in signals:
         family = str(signal.get("market_family") or "").upper()
         raw_signal_at = signal.get("signal_generated_at")
-        if family not in {"1X2", "FT_TOTALS", "BTTS", "1H"} or not raw_signal_at:
+        if family not in {"1X2", "FT_TOTALS", "BTTS", "1H", "FT_CORNERS", "TEAM_CORNERS"} or not raw_signal_at:
             continue
         try:
             signal_at = (
@@ -1232,7 +1232,7 @@ def _primary_signals_with_later_provider_quote(
                 update = update.replace(tzinfo=timezone.utc)
             if update.astimezone(timezone.utc) <= signal_at:
                 continue
-            if family == "1H":
+            if family in {"1H", "FT_CORNERS", "TEAM_CORNERS"}:
                 desired_selection = str(signal.get("selection") or "")
                 desired_line = _num(signal.get("line"))
                 values = [value for value in (market.get("values") or []) if isinstance(value, dict)]
@@ -1252,7 +1252,7 @@ def _primary_maturation_family_accounting(
     evaluated = {
         str(signal.get("market_family") or "").upper()
         for signal in signals
-        if str(signal.get("market_family") or "").upper() in {"1X2", "FT_TOTALS", "BTTS", "1H"}
+        if str(signal.get("market_family") or "").upper() in {"1X2", "FT_TOTALS", "BTTS", "1H", "FT_CORNERS", "TEAM_CORNERS"}
     }
     matured = {str(value).upper() for value in matured_families if str(value).upper() in evaluated}
     return evaluated, evaluated - matured
@@ -1464,6 +1464,263 @@ def _load_one_h_clv_maturation_backlog(
             "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": signal_count
         } if signal_count else {},
         "source": "POSTGRES_1H_DERIVATIVE_CLV_MATURATION_BACKLOG_V1",
+    }
+
+
+def _load_corners_clv_maturation_backlog(
+    *,
+    lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
+    lookahead_minutes: int = PRIMARY_CLV_MATURATION_LOOKAHEAD_MINUTES,
+    limit: int = PRIMARY_CLV_MATURATION_BACKLOG_LIMIT,
+) -> dict[str, Any]:
+    """Load priced FT/Team Corners signals still missing an exact later quote.
+
+    Provider-call free. Signals come from the same persisted derivative
+    intelligence rows consumed by Phase17. The resolver may later reuse an
+    already-paid /odds payload or spend only from the existing primary CLV
+    maturation cap; this loader itself never calls the provider.
+    """
+    empty = {
+        "candidate_events": [],
+        "candidate_count": 0,
+        "candidate_family_counts": {},
+        "candidate_source_counts": {},
+        "source": "POSTGRES_NOT_CONFIGURED",
+    }
+    if not persistence.persistence_configured():
+        return empty
+
+    persistence.ensure_schema()
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=max(1, int(lookback_days)))
+    lookahead = now + timedelta(minutes=max(20, int(lookahead_minutes)))
+
+    with persistence._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH base_events AS (
+                    SELECT
+                        e.fixture_id,
+                        e.generated_at AS signal_generated_at,
+                        e.payload,
+                        f.league_id,
+                        f.league,
+                        f.country,
+                        f.season,
+                        f.round,
+                        f.kickoff,
+                        f.status,
+                        f.status_long,
+                        f.home_team_id,
+                        f.home_team,
+                        f.away_team_id,
+                        f.away_team,
+                        f.venue,
+                        f.city
+                    FROM soccer_refresh_events e
+                    JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                    WHERE e.generated_at >= %s
+                      AND e.generated_at < f.kickoff
+                      AND f.kickoff > %s
+                      AND f.kickoff <= %s
+                      AND COALESCE(f.status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                ),
+                candidate_rows AS (
+                    SELECT
+                        be.*,
+                        'FT_CORNERS'::TEXT AS market_family,
+                        'DERIVATIVE_INTELLIGENCE:corners_intelligence'::TEXT AS candidate_source,
+                        sig.row AS signal_row
+                    FROM base_events be
+                    CROSS JOIN LATERAL jsonb_array_elements(
+                        CASE
+                            WHEN jsonb_typeof(COALESCE(be.payload -> 'corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)) = 'array'
+                            THEN COALESCE(be.payload -> 'corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                            ELSE '[]'::jsonb
+                        END
+                    ) AS sig(row)
+
+                    UNION ALL
+
+                    SELECT
+                        be.*,
+                        'TEAM_CORNERS'::TEXT AS market_family,
+                        'DERIVATIVE_INTELLIGENCE:team_corners_intelligence'::TEXT AS candidate_source,
+                        sig.row AS signal_row
+                    FROM base_events be
+                    CROSS JOIN LATERAL jsonb_array_elements(
+                        CASE
+                            WHEN jsonb_typeof(COALESCE(be.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)) = 'array'
+                            THEN COALESCE(be.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                            ELSE '[]'::jsonb
+                        END
+                    ) AS sig(row)
+                ),
+                ranked AS (
+                    SELECT
+                        cr.*,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY
+                                cr.fixture_id,
+                                cr.market_family,
+                                LOWER(TRIM(COALESCE(cr.signal_row ->> 'market', ''))),
+                                LOWER(TRIM(COALESCE(cr.signal_row ->> 'selection', ''))),
+                                COALESCE(cr.signal_row ->> 'line', '')
+                            ORDER BY cr.signal_generated_at DESC
+                        ) AS signal_rank
+                    FROM candidate_rows cr
+                )
+                SELECT
+                    s.fixture_id,
+                    s.market_family,
+                    s.signal_row ->> 'market' AS market,
+                    s.signal_row ->> 'selection' AS selection,
+                    s.signal_row ->> 'line' AS line,
+                    s.signal_generated_at,
+                    s.candidate_source,
+                    s.league_id,
+                    s.league,
+                    s.country,
+                    s.season,
+                    s.round,
+                    s.kickoff,
+                    s.status,
+                    s.status_long,
+                    s.home_team_id,
+                    s.home_team,
+                    s.away_team_id,
+                    s.away_team,
+                    s.venue,
+                    s.city
+                FROM ranked s
+                WHERE s.signal_rank = 1
+                  AND NULLIF(s.signal_row ->> 'market', '') IS NOT NULL
+                  AND NULLIF(s.signal_row ->> 'selection', '') IS NOT NULL
+                  AND COALESCE(s.signal_row ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+                  AND COALESCE(s.signal_row ->> 'decimal_price', s.signal_row ->> 'price', '') ~ '^[0-9]+([.][0-9]+)?$'
+                  AND COALESCE(s.signal_row ->> 'decimal_price', s.signal_row ->> 'price')::DOUBLE PRECISION > 1.0
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM soccer_market_snapshots m
+                      CROSS JOIN LATERAL jsonb_array_elements(
+                          CASE
+                              WHEN jsonb_typeof(COALESCE(m.values, '[]'::jsonb)) = 'array'
+                              THEN COALESCE(m.values, '[]'::jsonb)
+                              ELSE '[]'::jsonb
+                          END
+                      ) AS q(value)
+                      WHERE m.fixture_id = s.fixture_id
+                        AND m.captured_at > s.signal_generated_at
+                        AND m.captured_at < s.kickoff
+                        AND m.provider_update IS NOT NULL
+                        AND m.provider_update > s.signal_generated_at
+                        AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(s.signal_row ->> 'market', '')))
+                        AND (
+                              CASE
+                                  WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                                  WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                                  ELSE LOWER(TRIM(COALESCE(q.value ->> 'selection', '')))
+                              END
+                            ) = (
+                              CASE
+                                  WHEN LOWER(TRIM(COALESCE(s.signal_row ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                                  WHEN LOWER(TRIM(COALESCE(s.signal_row ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                                  ELSE LOWER(TRIM(COALESCE(s.signal_row ->> 'selection', '')))
+                              END
+                            )
+                        AND COALESCE(q.value ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+                        AND ABS((q.value ->> 'line')::NUMERIC - (s.signal_row ->> 'line')::NUMERIC) < 0.000001
+                  )
+                ORDER BY s.kickoff ASC, s.fixture_id ASC, s.market_family ASC, market ASC, selection ASC, line ASC
+                LIMIT %s
+                """,
+                (cutoff, now, lookahead, max(1, int(limit))),
+            )
+            rows = cur.fetchall()
+            columns = [desc.name for desc in cur.description]
+
+    grouped: dict[int, dict[str, Any]] = {}
+    family_counts: dict[str, int] = defaultdict(int)
+    source_counts: dict[str, int] = defaultdict(int)
+    for raw_row in rows:
+        row = dict(zip(columns, raw_row))
+        try:
+            fixture_id = int(row.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        line = _num(row.get("line"))
+        if line is None:
+            continue
+        family = str(row.get("market_family") or "").upper()
+        if family not in {"FT_CORNERS", "TEAM_CORNERS"}:
+            continue
+        source = str(row.get("candidate_source") or "")
+        kickoff = row.get("kickoff")
+        record = grouped.setdefault(fixture_id, {
+            "fixture": {
+                "fixture_id": fixture_id,
+                "league_id": row.get("league_id"),
+                "league": row.get("league"),
+                "country": row.get("country"),
+                "season": row.get("season"),
+                "round": row.get("round"),
+                "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
+                "status": row.get("status"),
+                "status_long": row.get("status_long"),
+                "home_team_id": row.get("home_team_id"),
+                "home_team": row.get("home_team"),
+                "away_team_id": row.get("away_team_id"),
+                "away_team": row.get("away_team"),
+                "venue": row.get("venue"),
+                "city": row.get("city"),
+            },
+            "kickoff": kickoff,
+            "signals": [],
+        })
+        signal_at = row.get("signal_generated_at")
+        record["signals"].append({
+            "market_family": family,
+            "market": row.get("market"),
+            "selection": row.get("selection"),
+            "line": line,
+            "signal_generated_at": signal_at.isoformat() if isinstance(signal_at, datetime) else signal_at,
+            "candidate_source": source,
+        })
+        family_counts[family] += 1
+        if source:
+            source_counts[source] += 1
+
+    events: list[dict[str, Any]] = []
+    for record in grouped.values():
+        events.append({
+            "event_type": PRIMARY_CLV_MATURATION_EVENT_TYPE,
+            "stage": _maturation_stage(record.get("kickoff"), now),
+            "fixture": record["fixture"],
+            "classification": "RESEARCH_ONLY",
+            "bet_eligible": False,
+            "research_only": True,
+            "decision_weight": 0.0,
+            "primary_clv_maturation": {
+                "candidate_source": "POSTGRES_CORNERS_DERIVATIVE_SIGNAL_NO_LATER_EXACT_QUOTE",
+                "signals": list(record["signals"]),
+                "provider_requests_before_price_resolver": 0,
+                "primary_markets_preempted": False,
+                "requires_provider_update_after_signal": True,
+                "requires_same_selection_and_line": True,
+            },
+        })
+
+    events.sort(key=lambda event: (
+        str(((event.get("fixture") or {}).get("kickoff") or "")),
+        int(((event.get("fixture") or {}).get("fixture_id") or 0)),
+    ))
+    return {
+        "candidate_events": events,
+        "candidate_count": len(events),
+        "candidate_family_counts": dict(sorted(family_counts.items())),
+        "candidate_source_counts": dict(sorted(source_counts.items())),
+        "source": "POSTGRES_CORNERS_DERIVATIVE_CLV_MATURATION_BACKLOG_V1",
     }
 
 
@@ -2477,6 +2734,7 @@ async def resolve_payload(
     # Cache replay is intentionally not accepted as new closing evidence.
     primary_maturation = await asyncio.to_thread(_load_primary_clv_maturation_backlog)
     one_h_maturation = await asyncio.to_thread(_load_one_h_clv_maturation_backlog)
+    corners_maturation = await asyncio.to_thread(_load_corners_clv_maturation_backlog)
     primary_maturation_events = [
         event
         for event in (primary_maturation.get("candidate_events") or [])
@@ -2510,16 +2768,38 @@ async def resolve_payload(
         existing_meta["signals"] = existing_signals
         existing["primary_clv_maturation"] = existing_meta
 
+    for event in (corners_maturation.get("candidate_events") or []):
+        if not isinstance(event, dict):
+            continue
+        fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
+        try:
+            fixture_id = int(fixture.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        existing = primary_by_fixture.get(fixture_id)
+        if existing is None:
+            primary_maturation_events.append(event)
+            primary_by_fixture[fixture_id] = event
+            continue
+        existing_meta = existing.get("primary_clv_maturation") if isinstance(existing.get("primary_clv_maturation"), dict) else {}
+        incoming_meta = event.get("primary_clv_maturation") if isinstance(event.get("primary_clv_maturation"), dict) else {}
+        existing_signals = [row for row in (existing_meta.get("signals") or []) if isinstance(row, dict)]
+        existing_signals.extend(row for row in (incoming_meta.get("signals") or []) if isinstance(row, dict))
+        existing_meta["signals"] = existing_signals
+        existing["primary_clv_maturation"] = existing_meta
+
     family_counts = defaultdict(int, primary_maturation.get("candidate_family_counts") or {})
-    for family, count in (one_h_maturation.get("candidate_family_counts") or {}).items():
-        family_counts[str(family)] += int(count or 0)
+    for derivative_maturation in (one_h_maturation, corners_maturation):
+        for family, count in (derivative_maturation.get("candidate_family_counts") or {}).items():
+            family_counts[str(family)] += int(count or 0)
     source_counts = defaultdict(int, primary_maturation.get("candidate_source_counts") or {})
-    for source, count in (one_h_maturation.get("candidate_source_counts") or {}).items():
-        source_counts[str(source)] += int(count or 0)
+    for derivative_maturation in (one_h_maturation, corners_maturation):
+        for source, count in (derivative_maturation.get("candidate_source_counts") or {}).items():
+            source_counts[str(source)] += int(count or 0)
     primary_maturation["candidate_family_counts"] = dict(sorted(family_counts.items()))
     primary_maturation["candidate_source_counts"] = dict(sorted(source_counts.items()))
-    if one_h_maturation.get("candidate_count"):
-        primary_maturation["source"] = "POSTGRES_PRIMARY_PLUS_1H_DERIVATIVE_CLV_MATURATION_BACKLOG_V3"
+    if one_h_maturation.get("candidate_count") or corners_maturation.get("candidate_count"):
+        primary_maturation["source"] = "POSTGRES_PRIMARY_PLUS_DERIVATIVE_CLV_MATURATION_BACKLOG_V4"
     primary_maturation_candidates = len(primary_maturation_events)
     primary_maturation_api_calls_added = 0
     primary_maturation_fixtures_refreshed = 0
