@@ -3,8 +3,9 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Awaitable, Callable
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_FT_TOTALS_PAID_ODDS_REUSE_V1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_FT_TOTALS_PAID_ODDS_REUSE_V1.1.0"
+_CAPTURED: dict[int, list[dict[str, Any]]] = defaultdict(list)
 
 
 def _norm(value: Any) -> str:
@@ -69,6 +70,35 @@ def restore_fetch_observer(resolver_module: Any, original: Callable[..., Awaitab
     resolver_module._fetch_fixture_odds = original
 
 
+def ensure_installed(resolver_module: Any) -> dict[int, list[dict[str, Any]]]:
+    if getattr(resolver_module, "_ft_totals_paid_odds_reuse_installed", False):
+        return _CAPTURED
+
+    original = resolver_module._fetch_fixture_odds
+
+    async def wrapped(*args: Any, **kwargs: Any) -> Any:
+        result = await original(*args, **kwargs)
+        try:
+            fixture_id = int(args[1] if len(args) > 1 else kwargs.get("fixture_id"))
+            markets, _used, status, _remaining = result
+            if isinstance(markets, list):
+                collect_fixture_markets(_CAPTURED, fixture_id, markets, str(status or ""))
+        except (TypeError, ValueError, IndexError):
+            pass
+        return result
+
+    resolver_module._fetch_fixture_odds = wrapped
+    resolver_module._ft_totals_paid_odds_reuse_installed = True
+    resolver_module._ft_totals_paid_odds_reuse_original = original
+    return _CAPTURED
+
+
+def drain() -> dict[int, list[dict[str, Any]]]:
+    snapshot = {int(fixture_id): list(rows) for fixture_id, rows in _CAPTURED.items()}
+    _CAPTURED.clear()
+    return snapshot
+
+
 def _fixture_id(event: dict[str, Any]) -> int | None:
     fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
     value = fixture.get("fixture_id")
@@ -115,7 +145,6 @@ def attach(payload: dict[str, Any], captured: dict[int, list[dict[str, Any]]]) -
             missing_event_fixtures += 1
             continue
 
-        # Prefer the event that already carries the paid provider market payload.
         event = max(
             candidates,
             key=lambda item: int(
