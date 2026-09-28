@@ -22,8 +22,7 @@ def main() -> None:
                       FROM soccer_market_snapshots m
                       JOIN soccer_refresh_events se
                         ON se.fixture_id = f.fixture_id
-                       AND se.generated_at >= %s
-                       AND se.generated_at < f.kickoff
+                       AND se.generated_at = ms.signal_generated_at
                       CROSS JOIN LATERAL jsonb_array_elements(
                           CASE
                               WHEN jsonb_typeof(
@@ -47,9 +46,9 @@ def main() -> None:
                           END
                       ) AS q(value)
                       WHERE m.fixture_id = f.fixture_id
-                        AND m.captured_at > se.generated_at
+                        AND m.captured_at > ms.signal_generated_at
                         AND m.provider_update IS NOT NULL
-                        AND m.provider_update > se.generated_at
+                        AND m.provider_update > ms.signal_generated_at
                         AND m.captured_at < f.kickoff
                         AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(sig.row ->> 'market', '')))
                         AND (
@@ -74,32 +73,12 @@ def main() -> None:
                   )
 '''
     text = text[:start] + replacement + text[end:]
-
-    old_params = '''                    lookback_cutoff,
-                    lookback_cutoff,
-                    now,
-                    lookahead_cutoff,
-                    max(1, int(limit)),
-'''
-    new_params = '''                    lookback_cutoff,
-                    lookback_cutoff,
-                    now,
-                    lookahead_cutoff,
-                    lookback_cutoff,
-                    max(1, int(limit)),
-'''
-    function_tail = text[fn_anchor:]
-    count = function_tail.count(old_params)
-    if count != 1:
-        raise RuntimeError(f"expected one maturation parameter tuple, found {count}")
-    function_tail = function_tail.replace(old_params, new_params, 1)
-    text = text[:fn_anchor] + function_tail
     SOURCE.write_text(text, encoding="utf-8")
 
     tests = TESTS.read_text(encoding="utf-8")
     marker = "def test_team_totals_maturation_backlog_requires_exact_comparable_quote():"
     if marker not in tests:
-        tests += '''\n\ndef test_team_totals_maturation_backlog_requires_exact_comparable_quote():\n    import inspect\n\n    source = inspect.getsource(v._load_team_totals_maturation_backlog)\n    assert "JOIN soccer_refresh_events se" in source\n    assert "sig.row ->> 'market'" in source\n    assert "sig.row ->> 'selection'" in source\n    assert "q.value ->> 'selection'" in source\n    assert "sig.row ->> 'line'" in source\n    assert "q.value ->> 'line'" in source\n    assert "m.provider_update > se.generated_at" in source\n    assert "m.captured_at > se.generated_at" in source\n'''
+        tests += '''\n\ndef test_team_totals_maturation_backlog_requires_exact_comparable_quote():\n    import inspect\n\n    source = inspect.getsource(v._load_team_totals_maturation_backlog)\n    assert "JOIN soccer_refresh_events se" in source\n    assert "se.generated_at = ms.signal_generated_at" in source\n    assert "sig.row ->> 'market'" in source\n    assert "sig.row ->> 'selection'" in source\n    assert "q.value ->> 'selection'" in source\n    assert "sig.row ->> 'line'" in source\n    assert "q.value ->> 'line'" in source\n    assert "m.provider_update > ms.signal_generated_at" in source\n    assert "m.captured_at > ms.signal_generated_at" in source\n'''
         TESTS.write_text(tests, encoding="utf-8")
 
 
