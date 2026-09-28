@@ -1,0 +1,422 @@
+name: v191 1H True CLV Maturation Patch
+
+on:
+  push:
+    branches: [soccer-edge-mcp-v1]
+    paths: [".github/workflows/v191-one-h-clv-maturation-patch.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          fetch-depth: 1
+
+      - name: Apply 1H maturation patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('mcp_gateway/price_resolver_v4.py')
+          text = path.read_text(encoding='utf-8')
+
+          marker = 'def _load_primary_clv_maturation_backlog(\n'
+          if marker not in text:
+              raise SystemExit('primary backlog marker missing')
+          if 'def _load_one_h_clv_maturation_backlog(' not in text:
+              helper = r'''def _load_one_h_clv_maturation_backlog(
+    *,
+    lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
+    lookahead_minutes: int = PRIMARY_CLV_MATURATION_LOOKAHEAD_MINUTES,
+    limit: int = PRIMARY_CLV_MATURATION_BACKLOG_LIMIT,
+) -> dict[str, Any]:
+    """Load latest priced 1H derivative signals still missing an exact later quote.
+
+    Provider-call free. The signal source is the same persisted
+    one_h_goals_intelligence.observed_market_rows consumed by Phase17 CLV.
+    """
+    empty = {
+        "candidate_events": [],
+        "candidate_count": 0,
+        "candidate_family_counts": {},
+        "candidate_source_counts": {},
+        "source": "POSTGRES_NOT_CONFIGURED",
+    }
+    if not persistence.persistence_configured():
+        return empty
+
+    persistence.ensure_schema()
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=max(1, int(lookback_days)))
+    lookahead = now + timedelta(minutes=max(20, int(lookahead_minutes)))
+
+    with persistence._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH latest_event AS (
+                    SELECT DISTINCT ON (e.fixture_id)
+                        e.fixture_id,
+                        e.generated_at AS signal_generated_at,
+                        e.payload,
+                        f.league_id,
+                        f.league,
+                        f.country,
+                        f.season,
+                        f.round,
+                        f.kickoff,
+                        f.status,
+                        f.status_long,
+                        f.home_team_id,
+                        f.home_team,
+                        f.away_team_id,
+                        f.away_team,
+                        f.venue,
+                        f.city
+                    FROM soccer_refresh_events e
+                    JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                    WHERE e.generated_at >= %s
+                      AND e.generated_at < f.kickoff
+                      AND f.kickoff > %s
+                      AND f.kickoff <= %s
+                      AND COALESCE(f.status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                      AND jsonb_typeof(COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)) = 'array'
+                      AND jsonb_array_length(COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)) > 0
+                    ORDER BY e.fixture_id, e.generated_at DESC
+                )
+                SELECT
+                    le.fixture_id,
+                    '1H'::TEXT AS market_family,
+                    sig.row ->> 'market' AS market,
+                    sig.row ->> 'selection' AS selection,
+                    sig.row ->> 'line' AS line,
+                    le.signal_generated_at,
+                    'DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence'::TEXT AS candidate_source,
+                    le.league_id,
+                    le.league,
+                    le.country,
+                    le.season,
+                    le.round,
+                    le.kickoff,
+                    le.status,
+                    le.status_long,
+                    le.home_team_id,
+                    le.home_team,
+                    le.away_team_id,
+                    le.away_team,
+                    le.venue,
+                    le.city
+                FROM latest_event le
+                CROSS JOIN LATERAL jsonb_array_elements(
+                    COALESCE(le.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                ) AS sig(row)
+                WHERE NULLIF(sig.row ->> 'market', '') IS NOT NULL
+                  AND NULLIF(sig.row ->> 'selection', '') IS NOT NULL
+                  AND COALESCE(sig.row ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+                  AND COALESCE(sig.row ->> 'decimal_price', sig.row ->> 'price', '') ~ '^[0-9]+([.][0-9]+)?$'
+                  AND COALESCE(sig.row ->> 'decimal_price', sig.row ->> 'price')::DOUBLE PRECISION > 1.0
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM soccer_market_snapshots m
+                      CROSS JOIN LATERAL jsonb_array_elements(
+                          CASE
+                              WHEN jsonb_typeof(COALESCE(m.values, '[]'::jsonb)) = 'array'
+                              THEN COALESCE(m.values, '[]'::jsonb)
+                              ELSE '[]'::jsonb
+                          END
+                      ) AS q(value)
+                      WHERE m.fixture_id = le.fixture_id
+                        AND m.captured_at > le.signal_generated_at
+                        AND m.captured_at < le.kickoff
+                        AND m.provider_update IS NOT NULL
+                        AND m.provider_update > le.signal_generated_at
+                        AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(sig.row ->> 'market', '')))
+                        AND (
+                              CASE
+                                  WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                                  WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                                  ELSE LOWER(TRIM(COALESCE(q.value ->> 'selection', '')))
+                              END
+                            ) = (
+                              CASE
+                                  WHEN LOWER(TRIM(COALESCE(sig.row ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                                  WHEN LOWER(TRIM(COALESCE(sig.row ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                                  ELSE LOWER(TRIM(COALESCE(sig.row ->> 'selection', '')))
+                              END
+                            )
+                        AND COALESCE(q.value ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+                        AND ABS((q.value ->> 'line')::NUMERIC - (sig.row ->> 'line')::NUMERIC) < 0.000001
+                  )
+                ORDER BY le.kickoff ASC, le.fixture_id ASC, market ASC, selection ASC, line ASC
+                LIMIT %s
+                """,
+                (cutoff, now, lookahead, max(1, int(limit))),
+            )
+            rows = cur.fetchall()
+            columns = [desc.name for desc in cur.description]
+
+    grouped: dict[int, dict[str, Any]] = {}
+    signal_count = 0
+    for raw_row in rows:
+        row = dict(zip(columns, raw_row))
+        try:
+            fixture_id = int(row.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        line = _num(row.get("line"))
+        if line is None:
+            continue
+        kickoff = row.get("kickoff")
+        record = grouped.setdefault(fixture_id, {
+            "fixture": {
+                "fixture_id": fixture_id,
+                "league_id": row.get("league_id"),
+                "league": row.get("league"),
+                "country": row.get("country"),
+                "season": row.get("season"),
+                "round": row.get("round"),
+                "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
+                "status": row.get("status"),
+                "status_long": row.get("status_long"),
+                "home_team_id": row.get("home_team_id"),
+                "home_team": row.get("home_team"),
+                "away_team_id": row.get("away_team_id"),
+                "away_team": row.get("away_team"),
+                "venue": row.get("venue"),
+                "city": row.get("city"),
+            },
+            "kickoff": kickoff,
+            "signals": [],
+        })
+        signal_at = row.get("signal_generated_at")
+        record["signals"].append({
+            "market_family": "1H",
+            "market": row.get("market"),
+            "selection": row.get("selection"),
+            "line": line,
+            "signal_generated_at": signal_at.isoformat() if isinstance(signal_at, datetime) else signal_at,
+            "candidate_source": "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence",
+        })
+        signal_count += 1
+
+    events: list[dict[str, Any]] = []
+    for record in grouped.values():
+        events.append({
+            "event_type": PRIMARY_CLV_MATURATION_EVENT_TYPE,
+            "stage": _maturation_stage(record.get("kickoff"), now),
+            "fixture": record["fixture"],
+            "classification": "RESEARCH_ONLY",
+            "bet_eligible": False,
+            "research_only": True,
+            "decision_weight": 0.0,
+            "primary_clv_maturation": {
+                "candidate_source": "POSTGRES_1H_DERIVATIVE_SIGNAL_NO_LATER_EXACT_QUOTE",
+                "signals": list(record["signals"]),
+                "provider_requests_before_price_resolver": 0,
+                "primary_markets_preempted": False,
+                "requires_provider_update_after_signal": True,
+                "requires_same_selection_and_line": True,
+            },
+        })
+
+    events.sort(key=lambda event: (
+        str(((event.get("fixture") or {}).get("kickoff") or "")),
+        int(((event.get("fixture") or {}).get("fixture_id") or 0)),
+    ))
+    return {
+        "candidate_events": events,
+        "candidate_count": len(events),
+        "candidate_family_counts": {"1H": signal_count} if signal_count else {},
+        "candidate_source_counts": {
+            "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": signal_count
+        } if signal_count else {},
+        "source": "POSTGRES_1H_DERIVATIVE_CLV_MATURATION_BACKLOG_V1",
+    }
+
+
+'''
+              text = text.replace(marker, helper + marker, 1)
+
+          old_matcher = '''def _primary_market_matches_signal(market: dict[str, Any], signal: dict[str, Any]) -> bool:\n    family = str(signal.get("market_family") or "").upper()\n    expected_market = _norm(signal.get("market"))\n    if family not in {"1X2", "FT_TOTALS", "BTTS"}:\n        return False\n    if _market_kind(str(market.get("market") or "")) != family:\n        return False\n    return not expected_market or _norm(market.get("market")) == expected_market\n'''
+          new_matcher = '''def _primary_market_matches_signal(market: dict[str, Any], signal: dict[str, Any]) -> bool:\n    family = str(signal.get("market_family") or "").upper()\n    expected_market = _norm(signal.get("market"))\n    if family == "1H":\n        return bool(expected_market) and _norm(market.get("market")) == expected_market\n    if family not in {"1X2", "FT_TOTALS", "BTTS"}:\n        return False\n    if _market_kind(str(market.get("market") or "")) != family:\n        return False\n    return not expected_market or _norm(market.get("market")) == expected_market\n'''
+          if old_matcher not in text:
+              raise SystemExit('primary matcher anchor missing')
+          text = text.replace(old_matcher, new_matcher, 1)
+
+          start = text.index('def _primary_signals_with_later_provider_quote(')
+          end = text.index('\n\ndef _primary_maturation_family_accounting(', start)
+          old = text[start:end]
+          new = r'''def _primary_signals_with_later_provider_quote(
+    markets: list[dict[str, Any]],
+    signals: list[dict[str, Any]],
+) -> set[str]:
+    matured: set[str] = set()
+    for signal in signals:
+        family = str(signal.get("market_family") or "").upper()
+        raw_signal_at = signal.get("signal_generated_at")
+        if family not in {"1X2", "FT_TOTALS", "BTTS", "1H"} or not raw_signal_at:
+            continue
+        try:
+            signal_at = (
+                raw_signal_at
+                if isinstance(raw_signal_at, datetime)
+                else datetime.fromisoformat(str(raw_signal_at).replace("Z", "+00:00"))
+            )
+        except ValueError:
+            continue
+        if signal_at.tzinfo is None:
+            signal_at = signal_at.replace(tzinfo=timezone.utc)
+        signal_at = signal_at.astimezone(timezone.utc)
+        for market in markets:
+            if not isinstance(market, dict) or not _primary_market_matches_signal(market, signal):
+                continue
+            raw_update = market.get("provider_update")
+            if not raw_update:
+                continue
+            try:
+                update = (
+                    raw_update
+                    if isinstance(raw_update, datetime)
+                    else datetime.fromisoformat(str(raw_update).replace("Z", "+00:00"))
+                )
+            except ValueError:
+                continue
+            if update.tzinfo is None:
+                update = update.replace(tzinfo=timezone.utc)
+            if update.astimezone(timezone.utc) <= signal_at:
+                continue
+            if family == "1H":
+                desired_selection = str(signal.get("selection") or "")
+                desired_line = _num(signal.get("line"))
+                values = [value for value in (market.get("values") or []) if isinstance(value, dict)]
+                if not desired_selection or desired_line is None:
+                    continue
+                if not any(_selection_matches(value, desired_selection, desired_line) for value in values):
+                    continue
+            matured.add(family)
+            break
+    return matured'''
+          text = text[:start] + new + text[end:]
+
+          start = text.index('def _primary_maturation_family_accounting(')
+          end = text.index('\n\ndef _load_one_h_clv_maturation_backlog(', start)
+          accounting = r'''def _primary_maturation_family_accounting(
+    signals: list[dict[str, Any]],
+    matured_families: set[str],
+) -> tuple[set[str], set[str]]:
+    """Return valid CLV maturation families evaluated and those still lacking a later quote."""
+    evaluated = {
+        str(signal.get("market_family") or "").upper()
+        for signal in signals
+        if str(signal.get("market_family") or "").upper() in {"1X2", "FT_TOTALS", "BTTS", "1H"}
+    }
+    matured = {str(value).upper() for value in matured_families if str(value).upper() in evaluated}
+    return evaluated, evaluated - matured'''
+          text = text[:start] + accounting + text[end:]
+
+          anchor = '''    primary_maturation = await asyncio.to_thread(_load_primary_clv_maturation_backlog)\n    primary_maturation_events = [\n        event\n        for event in (primary_maturation.get("candidate_events") or [])\n        if isinstance(event, dict)\n    ]\n    primary_maturation_candidates = len(primary_maturation_events)\n'''
+          replacement = '''    primary_maturation = await asyncio.to_thread(_load_primary_clv_maturation_backlog)\n    one_h_maturation = await asyncio.to_thread(_load_one_h_clv_maturation_backlog)\n    primary_maturation_events = [\n        event\n        for event in (primary_maturation.get("candidate_events") or [])\n        if isinstance(event, dict)\n    ]\n\n    # Merge derivative 1H signals by fixture so one paid /odds refresh can mature\n    # all eligible families without duplicate provider calls.\n    primary_by_fixture: dict[int, dict[str, Any]] = {}\n    for event in primary_maturation_events:\n        fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}\n        try:\n            primary_by_fixture[int(fixture.get("fixture_id"))] = event\n        except (TypeError, ValueError):\n            continue\n    for event in (one_h_maturation.get("candidate_events") or []):\n        if not isinstance(event, dict):\n            continue\n        fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}\n        try:\n            fixture_id = int(fixture.get("fixture_id"))\n        except (TypeError, ValueError):\n            continue\n        existing = primary_by_fixture.get(fixture_id)\n        if existing is None:\n            primary_maturation_events.append(event)\n            primary_by_fixture[fixture_id] = event\n            continue\n        existing_meta = existing.get("primary_clv_maturation") if isinstance(existing.get("primary_clv_maturation"), dict) else {}\n        incoming_meta = event.get("primary_clv_maturation") if isinstance(event.get("primary_clv_maturation"), dict) else {}\n        existing_signals = [row for row in (existing_meta.get("signals") or []) if isinstance(row, dict)]\n        existing_signals.extend(row for row in (incoming_meta.get("signals") or []) if isinstance(row, dict))\n        existing_meta["signals"] = existing_signals\n        existing["primary_clv_maturation"] = existing_meta\n\n    family_counts = defaultdict(int, primary_maturation.get("candidate_family_counts") or {})\n    for family, count in (one_h_maturation.get("candidate_family_counts") or {}).items():\n        family_counts[str(family)] += int(count or 0)\n    source_counts = defaultdict(int, primary_maturation.get("candidate_source_counts") or {})\n    for source, count in (one_h_maturation.get("candidate_source_counts") or {}).items():\n        source_counts[str(source)] += int(count or 0)\n    primary_maturation["candidate_family_counts"] = dict(sorted(family_counts.items()))\n    primary_maturation["candidate_source_counts"] = dict(sorted(source_counts.items()))\n    if one_h_maturation.get("candidate_count"):\n        primary_maturation["source"] = "POSTGRES_PRIMARY_PLUS_1H_DERIVATIVE_CLV_MATURATION_BACKLOG_V3"\n    primary_maturation_candidates = len(primary_maturation_events)\n'''
+          if anchor not in text:
+              raise SystemExit('resolve primary backlog anchor missing')
+          text = text.replace(anchor, replacement, 1)
+
+          old_policy = 'PRIMARY_TARGETS_FIRST;THEN_PRICED_1X2_FT_TOTALS_BTTS_FROM_PHASE16_OR_MATCH_TABLE;RESEARCH_ONLY_ROWS_MAY_MATURE_CLOSE_WITH_ZERO_DECISION_WEIGHT;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;SAME_GLOBAL_PRICE_BUDGET_ONLY'
+          new_policy = 'PRIMARY_TARGETS_FIRST;THEN_PRICED_1X2_FT_TOTALS_BTTS_FROM_PHASE16_OR_MATCH_TABLE+1H_FROM_DERIVATIVE_INTELLIGENCE;1H_REQUIRES_EXACT_SELECTION_AND_LINE;RESEARCH_ONLY_ROWS_MAY_MATURE_CLOSE_WITH_ZERO_DECISION_WEIGHT;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;SAME_GLOBAL_PRICE_BUDGET_ONLY'
+          if old_policy not in text:
+              raise SystemExit('policy anchor missing')
+          text = text.replace(old_policy, new_policy, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+          test_path = Path('tests/test_price_resolver_v4.py')
+          tests = test_path.read_text(encoding='utf-8')
+          marker_test = 'def test_1h_clv_maturation_requires_exact_selection_and_line():'
+          if marker_test not in tests:
+              tests += r'''
+
+
+def test_1h_clv_maturation_requires_exact_selection_and_line():
+    signal = {
+        "market_family": "1H",
+        "market": "Goals Over/Under - First Half",
+        "selection": "Over",
+        "line": 1.5,
+        "signal_generated_at": "2026-09-25T05:30:00+00:00",
+    }
+    wrong_line = [{
+        "market": "Goals Over/Under - First Half",
+        "provider_update": "2026-09-25T05:50:00+00:00",
+        "values": [
+            {"selection": "Over", "line": 0.5, "decimal_price": 1.70},
+            {"selection": "Under", "line": 0.5, "decimal_price": 2.10},
+        ],
+    }]
+    assert v._primary_signals_with_later_provider_quote(wrong_line, [signal]) == set()
+
+    wrong_side = [{
+        "market": "Goals Over/Under - First Half",
+        "provider_update": "2026-09-25T05:50:00+00:00",
+        "values": [
+            {"selection": "Under", "line": 1.5, "decimal_price": 1.90},
+        ],
+    }]
+    assert v._primary_signals_with_later_provider_quote(wrong_side, [signal]) == set()
+
+    exact = [{
+        "market": "Goals Over/Under - First Half",
+        "provider_update": "2026-09-25T05:50:00+00:00",
+        "values": [
+            {"selection": "Over", "line": 1.5, "decimal_price": 1.92},
+            {"selection": "Under", "line": 1.5, "decimal_price": 1.88},
+        ],
+    }]
+    assert v._primary_signals_with_later_provider_quote(exact, [signal]) == {"1H"}
+    evaluated, missing = v._primary_maturation_family_accounting([signal], {"1H"})
+    assert evaluated == {"1H"}
+    assert missing == set()
+
+
+def test_1h_clv_maturation_rejects_non_later_provider_update():
+    signal = {
+        "market_family": "1H",
+        "market": "Goals Over/Under - First Half",
+        "selection": "Under",
+        "line": 1.5,
+        "signal_generated_at": "2026-09-25T05:30:00+00:00",
+    }
+    market = [{
+        "market": "Goals Over/Under - First Half",
+        "provider_update": "2026-09-25T05:30:00+00:00",
+        "values": [{"selection": "Under", "line": 1.5, "decimal_price": 1.91}],
+    }]
+    assert v._primary_signals_with_later_provider_quote(market, [signal]) == set()
+'''
+              test_path.write_text(tests, encoding='utf-8')
+          PY
+
+      - name: Compile
+        run: python -m py_compile mcp_gateway/price_resolver_v4.py tests/test_price_resolver_v4.py
+
+      - name: Directed resolver tests
+        run: pytest -q tests/test_price_resolver_v4.py
+
+      - name: Commit runtime fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/price_resolver_v4.py tests/test_price_resolver_v4.py
+          if git diff --cached --quiet; then
+            echo "No runtime changes needed"
+            exit 0
+          fi
+          git commit -m "v191: add exact 1H true-CLV maturation"
+          git push origin HEAD:soccer-edge-mcp-v1
