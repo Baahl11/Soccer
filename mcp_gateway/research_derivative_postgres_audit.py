@@ -10,8 +10,8 @@ from typing import Any, Iterable
 
 from mcp_gateway import persistence as persistence_base
 
-SCHEMA_VERSION = "1.4.0"
-MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.4.0"
+SCHEMA_VERSION = "1.5.0"
+MODEL_VERSION = "SOCCER_RESEARCH_DERIVATIVE_MARKET_AUDIT_V4_1.5.0"
 
 
 def _norm(value: Any) -> str:
@@ -529,6 +529,117 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
             columns = [desc.name for desc in cur.description]
             rows = [dict(zip(columns, row)) for row in cur.fetchall()]
 
+            # Period-market evidence is intentionally independent from the Cards/Props
+            # taxonomy above. It inventories already-persisted pre-kickoff 1H/2H
+            # markets without making provider calls or creating betting signals.
+            period_filter = """
+                LOWER(COALESCE(m.market, '')) LIKE '%%first half%%'
+                OR LOWER(COALESCE(m.market, '')) LIKE '%%1st half%%'
+                OR LOWER(COALESCE(m.market, '')) LIKE '%%second half%%'
+                OR LOWER(COALESCE(m.market, '')) LIKE '%%2nd half%%'
+            """
+            cur.execute(
+                f"""
+                WITH period_base AS (
+                    SELECT
+                        m.fixture_id,
+                        m.captured_at,
+                        m.bookmaker_id,
+                        m.market,
+                        m.values,
+                        m.provider_update,
+                        CASE
+                            WHEN LOWER(COALESCE(m.market, '')) LIKE '%%second half%%'
+                              OR LOWER(COALESCE(m.market, '')) LIKE '%%2nd half%%' THEN '2H'
+                            WHEN LOWER(COALESCE(m.market, '')) LIKE '%%first half%%'
+                              OR LOWER(COALESCE(m.market, '')) LIKE '%%1st half%%' THEN '1H'
+                            ELSE NULL
+                        END AS period
+                    FROM soccer_market_snapshots m
+                    JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+                    WHERE m.captured_at >= NOW() - (%s * INTERVAL '1 day')
+                      AND f.kickoff IS NOT NULL
+                      AND m.captured_at < f.kickoff
+                      AND ({period_filter})
+                )
+                SELECT
+                    period,
+                    COUNT(*)::BIGINT AS snapshot_rows,
+                    COUNT(DISTINCT fixture_id)::BIGINT AS unique_fixtures,
+                    COUNT(DISTINCT bookmaker_id)::BIGINT AS bookmaker_count,
+                    COUNT(DISTINCT provider_update)::BIGINT AS provider_update_count,
+                    SUM(CASE WHEN provider_update IS NOT NULL THEN 1 ELSE 0 END)::BIGINT AS provider_update_rows,
+                    SUM(
+                        CASE
+                            WHEN jsonb_typeof(COALESCE(values, '[]'::jsonb)) = 'array'
+                            THEN jsonb_array_length(COALESCE(values, '[]'::jsonb))
+                            ELSE 0
+                        END
+                    )::BIGINT AS value_rows,
+                    MIN(captured_at) AS first_seen,
+                    MAX(captured_at) AS last_seen
+                FROM period_base
+                WHERE period IS NOT NULL
+                GROUP BY period
+                ORDER BY period
+                """,
+                (lookback_days,),
+            )
+            period_total_columns = [desc.name for desc in cur.description]
+            period_totals = [dict(zip(period_total_columns, row)) for row in cur.fetchall()]
+
+            cur.execute(
+                f"""
+                WITH period_base AS (
+                    SELECT
+                        m.fixture_id,
+                        m.captured_at,
+                        m.bookmaker_id,
+                        m.market,
+                        m.values,
+                        m.provider_update,
+                        CASE
+                            WHEN LOWER(COALESCE(m.market, '')) LIKE '%%second half%%'
+                              OR LOWER(COALESCE(m.market, '')) LIKE '%%2nd half%%' THEN '2H'
+                            WHEN LOWER(COALESCE(m.market, '')) LIKE '%%first half%%'
+                              OR LOWER(COALESCE(m.market, '')) LIKE '%%1st half%%' THEN '1H'
+                            ELSE NULL
+                        END AS period
+                    FROM soccer_market_snapshots m
+                    JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+                    WHERE m.captured_at >= NOW() - (%s * INTERVAL '1 day')
+                      AND f.kickoff IS NOT NULL
+                      AND m.captured_at < f.kickoff
+                      AND ({period_filter})
+                )
+                SELECT
+                    period,
+                    market,
+                    COUNT(*)::BIGINT AS snapshot_rows,
+                    COUNT(DISTINCT fixture_id)::BIGINT AS unique_fixtures,
+                    COUNT(DISTINCT bookmaker_id)::BIGINT AS bookmaker_count,
+                    COUNT(DISTINCT provider_update)::BIGINT AS provider_update_count,
+                    SUM(CASE WHEN provider_update IS NOT NULL THEN 1 ELSE 0 END)::BIGINT AS provider_update_rows,
+                    SUM(
+                        CASE
+                            WHEN jsonb_typeof(COALESCE(values, '[]'::jsonb)) = 'array'
+                            THEN jsonb_array_length(COALESCE(values, '[]'::jsonb))
+                            ELSE 0
+                        END
+                    )::BIGINT AS value_rows,
+                    MIN(captured_at) AS first_seen,
+                    MAX(captured_at) AS last_seen
+                FROM period_base
+                WHERE period IS NOT NULL
+                GROUP BY period, market
+                ORDER BY period, unique_fixtures DESC, snapshot_rows DESC, market ASC
+                LIMIT 250
+                """,
+                (lookback_days,),
+            )
+            period_market_columns = [desc.name for desc in cur.description]
+            period_markets = [dict(zip(period_market_columns, row)) for row in cur.fetchall()]
+
     for row in rows:
         for key in ("captured_at", "provider_update", "kickoff"):
             value = row.get(key)
@@ -536,6 +647,21 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
                 row[key] = value.astimezone(timezone.utc).isoformat()
 
     report = summarize_rows(rows, lookback_days=lookback_days)
+    for period_row in period_totals + period_markets:
+        for key in ("first_seen", "last_seen"):
+            value = period_row.get(key)
+            if isinstance(value, datetime):
+                period_row[key] = value.astimezone(timezone.utc).isoformat()
+    report["period_market_evidence"] = {
+        "scope": "PERSISTED_PRE_KICKOFF_MARKET_SNAPSHOTS_ONLY",
+        "provider_requests_added": 0,
+        "period_totals": {
+            str(row.get("period")): {key: value for key, value in row.items() if key != "period"}
+            for row in period_totals
+            if row.get("period")
+        },
+        "markets": period_markets,
+    }
     report["rows_scanned_from_postgres"] = len(rows)
     report["max_rows"] = max_rows
     return report
