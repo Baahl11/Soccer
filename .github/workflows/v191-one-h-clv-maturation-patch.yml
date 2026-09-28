@@ -17,12 +17,19 @@ jobs:
         with:
           ref: soccer-edge-mcp-v1
           fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
       - name: Apply patch
         run: python .github/scripts/v191_patch_1h_clv.py
       - name: Compile
         run: python -m py_compile mcp_gateway/price_resolver_v4.py tests/test_price_resolver_v4.py
       - name: Directed resolver tests
-        run: pytest -q tests/test_price_resolver_v4.py
+        run: PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_price_resolver_v4.py
       - name: Commit runtime fix
         shell: bash
         run: |
