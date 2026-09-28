@@ -33,7 +33,7 @@ jobs:
           text = Path('.github/workflows/v4-runtime-tests.yml').read_text(encoding='utf-8')
           section = text.split('- name: Run V4 scheduler regression tests', 1)[1]
           tests = []
-          for path in re.findall(r'tests/[A-Za-z0-9_.-]+\\.py', section):
+          for path in re.findall(r'tests/[A-Za-z0-9_.-]+\.py', section):
               if path not in tests:
                   tests.append(path)
           if not tests:
