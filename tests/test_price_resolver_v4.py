@@ -2066,3 +2066,55 @@ def test_team_totals_maturation_backlog_requires_exact_comparable_quote():
     assert "q.value ->> 'line'" in source
     assert "m.provider_update > ms.signal_generated_at" in source
     assert "m.captured_at > ms.signal_generated_at" in source
+
+
+def test_1h_clv_maturation_requires_exact_selection_and_line():
+    signal = {
+        "market_family": "1H",
+        "market": "Goals Over/Under - First Half",
+        "selection": "Over",
+        "line": 1.5,
+        "signal_generated_at": "2026-09-25T05:30:00+00:00",
+    }
+    wrong_line = [{
+        "market": "Goals Over/Under - First Half",
+        "provider_update": "2026-09-25T05:50:00+00:00",
+        "values": [{"selection": "Over", "line": 0.5, "decimal_price": 1.70}],
+    }]
+    assert v._primary_signals_with_later_provider_quote(wrong_line, [signal]) == set()
+
+    wrong_side = [{
+        "market": "Goals Over/Under - First Half",
+        "provider_update": "2026-09-25T05:50:00+00:00",
+        "values": [{"selection": "Under", "line": 1.5, "decimal_price": 1.90}],
+    }]
+    assert v._primary_signals_with_later_provider_quote(wrong_side, [signal]) == set()
+
+    exact = [{
+        "market": "Goals Over/Under - First Half",
+        "provider_update": "2026-09-25T05:50:00+00:00",
+        "values": [
+            {"selection": "Over", "line": 1.5, "decimal_price": 1.92},
+            {"selection": "Under", "line": 1.5, "decimal_price": 1.88},
+        ],
+    }]
+    assert v._primary_signals_with_later_provider_quote(exact, [signal]) == {"1H"}
+    evaluated, missing = v._primary_maturation_family_accounting([signal], {"1H"})
+    assert evaluated == {"1H"}
+    assert missing == set()
+
+
+def test_1h_clv_maturation_rejects_non_later_provider_update():
+    signal = {
+        "market_family": "1H",
+        "market": "Goals Over/Under - First Half",
+        "selection": "Under",
+        "line": 1.5,
+        "signal_generated_at": "2026-09-25T05:30:00+00:00",
+    }
+    market = [{
+        "market": "Goals Over/Under - First Half",
+        "provider_update": "2026-09-25T05:30:00+00:00",
+        "values": [{"selection": "Under", "line": 1.5, "decimal_price": 1.91}],
+    }]
+    assert v._primary_signals_with_later_provider_quote(market, [signal]) == set()
