@@ -597,16 +597,43 @@ def _merge_signals(
         if len(merged) >= max_rows:
             return merged
 
+    # Derivative families share the remaining bounded CLV capacity fairly.
+    # Previously a high-volume family (notably Team Totals) could occupy the
+    # entire derivative slice before 1H/Corners were ever evaluated. Keep
+    # pipeline priority intact, but round-robin derivative families so the
+    # global max_rows memory bound cannot silently starve a smaller family.
+    derivative_buckets: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    derivative_family_order: list[str] = []
     for raw in derivative_signals:
-        if not isinstance(raw.get("market_candidate"), dict):
+        candidate = raw.get("market_candidate")
+        if not isinstance(candidate, dict):
             continue
-        key = _signal_identity(raw)
-        if key in seen:
-            continue
-        seen.add(key)
-        merged.append(raw)
-        if len(merged) >= max_rows:
-            return merged
+        family = str(_family(candidate) or "UNMAPPED")
+        if family not in derivative_buckets:
+            derivative_family_order.append(family)
+        derivative_buckets[family].append(raw)
+
+    derivative_positions = {family: 0 for family in derivative_family_order}
+    while derivative_family_order and len(merged) < max_rows:
+        progress = False
+        for family in derivative_family_order:
+            bucket = derivative_buckets[family]
+            index = derivative_positions[family]
+            while index < len(bucket):
+                raw = bucket[index]
+                index += 1
+                derivative_positions[family] = index
+                key = _signal_identity(raw)
+                if key in seen:
+                    continue
+                seen.add(key)
+                merged.append(raw)
+                progress = True
+                break
+            if len(merged) >= max_rows:
+                return merged
+        if not progress:
+            break
 
     for raw in legacy_signals:
         signal = _legacy_to_signal(raw)
@@ -1015,6 +1042,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "status": "ACTIVE_TRUE_CLV_SAMPLE" if len(comparable) >= MIN_TRUE_CLOSE_ROWS else "COLLECTING_TRUE_CLV",
         "lookback_days": int(lookback_days),
         "signal_rows_considered": signal_rows_considered,
+        "signal_merge_strategy": "PIPELINE_PRIORITY_THEN_DERIVATIVE_FAMILY_ROUND_ROBIN_THEN_LEGACY_FALLBACK",
         "pipeline_market_rows_loaded": pipeline_market_rows_loaded,
         "derivative_event_rows_loaded": derivative_event_rows_loaded,
         "derivative_market_rows_loaded_raw": derivative_market_rows_loaded_raw,
