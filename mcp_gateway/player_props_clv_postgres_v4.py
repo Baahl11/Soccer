@@ -807,10 +807,34 @@ def _load_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, A
     with conn.cursor() as cur:
         cur.execute(
             """
+            WITH candidate_events AS MATERIALIZED (
+                SELECT
+                    e.event_id,
+                    e.fixture_id,
+                    e.generated_at,
+                    e.stage,
+                    f.kickoff
+                FROM soccer_refresh_events e
+                JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                WHERE e.generated_at >= %s
+                  AND e.generated_at < f.kickoff
+                  AND e.stage IN ('T-40','T-30','T-20','T-10')
+                  AND e.payload ? 'market'
+                  AND (
+                        e.payload ? 'player_shots_intelligence'
+                     OR e.payload ? 'player_sot_intelligence'
+                     OR e.payload ? 'player_goalscorer_intelligence'
+                     OR e.payload ? 'player_assists_intelligence'
+                     OR e.payload ? 'player_cards_intelligence'
+                     OR e.payload ? 'gk_saves_intelligence'
+                  )
+                ORDER BY e.generated_at DESC
+                LIMIT %s
+            )
             SELECT
-                e.fixture_id,
-                e.generated_at,
-                e.stage,
+                c.fixture_id,
+                c.generated_at,
+                c.stage,
                 jsonb_build_object(
                     'fixture', e.payload->'fixture',
                     'lineups', e.payload->'lineups',
@@ -822,23 +846,10 @@ def _load_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, A
                     'player_cards_intelligence', e.payload->'player_cards_intelligence',
                     'gk_saves_intelligence', e.payload->'gk_saves_intelligence'
                 ) AS event_payload,
-                f.kickoff
-            FROM soccer_refresh_events e
-            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
-            WHERE e.generated_at >= %s
-              AND e.generated_at < f.kickoff
-              AND e.stage IN ('T-40','T-30','T-20','T-10')
-              AND e.payload ? 'market'
-              AND (
-                    e.payload ? 'player_shots_intelligence'
-                 OR e.payload ? 'player_sot_intelligence'
-                 OR e.payload ? 'player_goalscorer_intelligence'
-                 OR e.payload ? 'player_assists_intelligence'
-                 OR e.payload ? 'player_cards_intelligence'
-                 OR e.payload ? 'gk_saves_intelligence'
-              )
-            ORDER BY e.generated_at DESC
-            LIMIT %s
+                c.kickoff
+            FROM candidate_events c
+            JOIN soccer_refresh_events e ON e.event_id = c.event_id
+            ORDER BY c.generated_at DESC
             """,
             (cutoff, max_rows),
         )
@@ -853,32 +864,56 @@ def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_row
     with conn.cursor() as cur:
         cur.execute(
             """
+            WITH candidate_snapshots AS MATERIALIZED (
+                SELECT
+                    m.snapshot_id,
+                    m.fixture_id,
+                    m.captured_at,
+                    m.stage,
+                    m.bookmaker_id,
+                    m.bookmaker,
+                    m.market_id,
+                    m.market,
+                    m.provider_update,
+                    f.kickoff
+                FROM soccer_market_snapshots m
+                JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+                WHERE m.fixture_id = ANY(%s)
+                  AND m.captured_at >= %s
+                  AND m.captured_at < f.kickoff
+                  AND (
+                    LOWER(COALESCE(m.market,'')) LIKE '%%player%%'
+                    OR LOWER(COALESCE(m.market,'')) LIKE '%%scorer%%'
+                    OR LOWER(COALESCE(m.market,'')) LIKE '%%goalkeeper save%%'
+                    OR LOWER(COALESCE(m.market,'')) LIKE '%%keeper save%%'
+                  )
+                ORDER BY m.fixture_id, m.captured_at
+                LIMIT %s
+            )
             SELECT
-                m.fixture_id, m.captured_at, m.stage, m.bookmaker_id, m.bookmaker,
-                m.market_id, m.market, m.values, m.provider_update, f.kickoff,
+                c.fixture_id,
+                c.captured_at,
+                c.stage,
+                c.bookmaker_id,
+                c.bookmaker,
+                c.market_id,
+                c.market,
+                m.values,
+                c.provider_update,
+                c.kickoff,
                 confirmed_lineup.payload AS confirmed_lineup_payload
-            FROM soccer_market_snapshots m
-            JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+            FROM candidate_snapshots c
+            JOIN soccer_market_snapshots m ON m.snapshot_id = c.snapshot_id
             LEFT JOIN LATERAL (
                 SELECT l.payload
                 FROM soccer_lineup_snapshots l
-                WHERE l.fixture_id = m.fixture_id
-                  AND l.captured_at <= m.captured_at
+                WHERE l.fixture_id = c.fixture_id
+                  AND l.captured_at <= c.captured_at
                   AND l.both_xi_confirmed IS TRUE
                 ORDER BY l.captured_at DESC
                 LIMIT 1
             ) confirmed_lineup ON TRUE
-            WHERE m.fixture_id = ANY(%s)
-              AND m.captured_at >= %s
-              AND m.captured_at < f.kickoff
-              AND (
-                LOWER(COALESCE(m.market,'')) LIKE '%%player%%'
-                OR LOWER(COALESCE(m.market,'')) LIKE '%%scorer%%'
-                OR LOWER(COALESCE(m.market,'')) LIKE '%%goalkeeper save%%'
-                OR LOWER(COALESCE(m.market,'')) LIKE '%%keeper save%%'
-              )
-            ORDER BY m.fixture_id, m.captured_at
-            LIMIT %s
+            ORDER BY c.fixture_id, c.captured_at
             """,
             (fixture_ids, cutoff, max_rows),
         )
