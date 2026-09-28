@@ -459,3 +459,68 @@ def test_team_totals_maturation_funnel_exposes_pending_kickoff_horizons():
     assert timing["missing_kickoff"] == 0
     assert funnel["pending_future_fixtures"] == 6
     assert funnel["next_pending_kickoff"] == kickoffs[3].isoformat()
+
+
+def test_v199_cards_derivative_sources_keep_match_and_team_price_identity():
+    event = {
+        "fixture_id": 199,
+        "generated_at": datetime(2026, 9, 28, 20, 0, tzinfo=timezone.utc),
+        "stage": "T-20",
+        "classification": "WATCH",
+        "event_payload": {
+            "cards_intelligence_live": {
+                "observed_explicit_yellow_market_rows": [
+                    {
+                        "market": "Yellow Cards Over/Under",
+                        "selection": "OVER",
+                        "line": 4.5,
+                        "decimal_price": 1.91,
+                        "bookmaker": "Book",
+                    }
+                ]
+            },
+            "team_cards_intelligence": {
+                "observed_market_rows": [
+                    {
+                        "market": "Home Team Yellow Cards",
+                        "selection": "UNDER",
+                        "line": 2.5,
+                        "decimal_price": 1.87,
+                        "bookmaker": "Book",
+                    }
+                ]
+            },
+        },
+    }
+
+    rows = v._derivative_signals_from_events([event])
+    assert len(rows) == 2
+    assert {v._family(row["market_candidate"]) for row in rows} == {"CARDS", "TEAM_CARDS"}
+    assert {row["market_candidate"]["decimal_price"] for row in rows} == {1.91, 1.87}
+    assert {row["signal_source"] for row in rows} == {
+        "DERIVATIVE_INTELLIGENCE:cards_intelligence_live",
+        "DERIVATIVE_INTELLIGENCE:team_cards_intelligence",
+    }
+
+
+def test_v199_cards_sql_loader_reads_persisted_match_and_team_card_rows():
+    conn = _FakeConn()
+    rows = v._load_derivative_signals(conn, lookback_days=30, max_rows=10)
+    query = conn.cursor_instance.query
+
+    assert rows == []
+    assert "cards_intelligence_live" in query
+    assert "observed_explicit_yellow_market_rows" in query
+    assert "DERIVATIVE_INTELLIGENCE:cards_intelligence_live" in query
+    assert "team_cards_intelligence" in query
+    assert "DERIVATIVE_INTELLIGENCE:team_cards_intelligence" in query
+    assert "TEAM_CARDS" in query
+
+
+def test_v199_team_cards_family_is_not_collapsed_into_match_cards():
+    assert v._family({
+        "market_family": "TEAM_CARDS",
+        "market": "Home Team Yellow Cards",
+        "selection": "OVER",
+        "line": 2.5,
+    }) == "TEAM_CARDS"
