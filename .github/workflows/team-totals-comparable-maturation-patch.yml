@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Apply patch
+      - name: Apply exact comparable patch
         run: python ops/patch_team_totals_clv_matcher.py
 
       - name: Compile patched module
