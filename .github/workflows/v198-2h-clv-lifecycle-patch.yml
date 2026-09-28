@@ -1,0 +1,91 @@
+name: V198 2H CLV Lifecycle Patch
+
+on:
+  push:
+    branches: [tmp-v198-2h-clv-lifecycle]
+    paths:
+      - ".github/workflows/v198-2h-clv-lifecycle-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-v198-2h-clv-lifecycle
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+
+      - name: Patch dedicated 2H lifecycle and add tests
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('mcp_gateway/clv_postgres_v4.py')
+          text = path.read_text(encoding='utf-8')
+
+          old_sources = '''DERIVATIVE_MARKET_SOURCES = (\n    ("TEAM_TOTALS", "team_totals_intelligence", "observed_exact_market_rows"),\n    ("1H", "one_h_goals_intelligence", "observed_market_rows"),\n    ("FT_CORNERS", "corners_intelligence", "observed_market_rows"),\n    ("TEAM_CORNERS", "team_corners_intelligence", "observed_market_rows"),\n)'''
+          new_sources = '''DERIVATIVE_MARKET_SOURCES = (\n    ("TEAM_TOTALS", "team_totals_intelligence", "observed_exact_market_rows"),\n    ("1H", "one_h_goals_intelligence", "observed_market_rows"),\n    ("2H", "two_h_goals_intelligence", "observed_market_rows"),\n    ("FT_CORNERS", "corners_intelligence", "observed_market_rows"),\n    ("TEAM_CORNERS", "team_corners_intelligence", "observed_market_rows"),\n)'''
+          if old_sources not in text:
+              raise SystemExit('DERIVATIVE_MARKET_SOURCES block not found')
+          text = text.replace(old_sources, new_sources, 1)
+
+          old_sql = '''                SELECT\n                    jsonb_set(row_value, '{market_family}', to_jsonb('1H'::text), true),\n                    'DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence'::text\n                FROM jsonb_array_elements(\n                    COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)\n                ) AS h(row_value)\n\n                UNION ALL\n\n                SELECT\n                    jsonb_set(row_value, '{market_family}', to_jsonb('FT_CORNERS'::text), true),'''
+          new_sql = '''                SELECT\n                    jsonb_set(row_value, '{market_family}', to_jsonb('1H'::text), true),\n                    'DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence'::text\n                FROM jsonb_array_elements(\n                    COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)\n                ) AS h(row_value)\n\n                UNION ALL\n\n                SELECT\n                    jsonb_set(row_value, '{market_family}', to_jsonb('2H'::text), true),\n                    'DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence'::text\n                FROM jsonb_array_elements(\n                    COALESCE(e.payload -> 'two_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)\n                ) AS sh(row_value)\n\n                UNION ALL\n\n                SELECT\n                    jsonb_set(row_value, '{market_family}', to_jsonb('FT_CORNERS'::text), true),'''
+          if old_sql not in text:
+              raise SystemExit('1H derivative SQL insertion point not found')
+          text = text.replace(old_sql, new_sql, 1)
+          path.write_text(text, encoding='utf-8')
+
+          test = Path('tests/test_two_h_clv_lifecycle_v198.py')
+          test.write_text('''from mcp_gateway import clv_postgres_v4 as clv\n\n\ndef _event():\n    return {\n        "fixture_id": 198001,\n        "generated_at": "2026-09-28T10:00:00+00:00",\n        "event_payload": {\n            "two_h_goals_intelligence": {\n                "observed_market_rows": [\n                    {\n                        "market": "Goals Over/Under - Second Half",\n                        "selection": "OVER",\n                        "line": 1.5,\n                        "decimal_price": 1.95,\n                    }\n                ]\n            }\n        },\n    }\n\n\ndef test_dedicated_two_h_intelligence_enters_derivative_clv_source():\n    rows = clv._derivative_signals_from_events([_event()])\n    assert len(rows) == 1\n    row = rows[0]\n    assert row["signal_source"] == "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence"\n    assert row["market_candidate"]["market_family"] == "2H"\n    assert clv._family(row["market_candidate"]) == "2H"\n\n\ndef test_dedicated_two_h_is_not_excluded_as_period_team_total():\n    row = clv._derivative_signals_from_events([_event()])[0]\n    assert clv._is_period_team_total_signal(row) is False\n\n\ndef test_team_total_origin_period_two_h_remains_excluded():\n    row = {\n        "signal_source": "DERIVATIVE_INTELLIGENCE:team_totals_intelligence",\n        "market_candidate": {\n            "market_family": "2H",\n            "market": "Team Total Goals Over/Under - Second Half",\n            "selection": "Over 0.5",\n            "decimal_price": 1.8,\n        },\n    }\n    assert clv._is_period_team_total_signal(row) is True\n\n\ndef test_fair_merge_preserves_dedicated_two_h_under_derivative_pressure():\n    def signal(fid, family, source):\n        return {\n            "fixture_id": fid,\n            "generated_at": f"2026-09-28T10:{fid % 60:02d}:00+00:00",\n            "signal_source": source,\n            "market_candidate": {\n                "market_family": family,\n                "market": "Goals Over/Under - Second Half" if family == "2H" else "Total - Home",\n                "selection": "OVER",\n                "line": 1.5,\n                "decimal_price": 1.9,\n            },\n        }\n\n    derivatives = [\n        *[signal(100 + i, "HOME_TT", "DERIVATIVE_INTELLIGENCE:team_totals_intelligence") for i in range(30)],\n        signal(900, "2H", "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence"),\n    ]\n    merged = clv._merge_signals([], derivatives, [], max_rows=2)\n    assert {clv._family(row["market_candidate"]) for row in merged} == {"HOME_TT", "2H"}\n''', encoding='utf-8')
+          PY
+
+      - name: Compile
+        run: python -m compileall -q mcp_gateway
+
+      - name: Run v198 targeted tests
+        run: pytest -q tests/test_two_h_clv_lifecycle_v198.py tests/test_clv_derivative_family_fairness_v196.py
+
+      - name: Run exact official V4 runtime test list
+        shell: bash
+        run: |
+          python - <<'PY' >/tmp/v4_tests.txt
+          import re
+          from pathlib import Path
+          text = Path('.github/workflows/v4-runtime-tests.yml').read_text(encoding='utf-8')
+          found = re.findall(r'tests/[A-Za-z0-9_.-]+\.py', text)
+          unique=[]
+          for item in found:
+              if item not in unique:
+                  unique.append(item)
+          if not unique:
+              raise SystemExit('No official V4 tests discovered')
+          print(' '.join(unique))
+          PY
+          pytest -q $(cat /tmp/v4_tests.txt)
+
+      - name: Commit validated v198 patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/clv_postgres_v4.py tests/test_two_h_clv_lifecycle_v198.py
+          git commit -m "v198: connect dedicated 2H goals to canonical CLV lifecycle"
+          git push origin HEAD:tmp-v198-2h-clv-lifecycle
