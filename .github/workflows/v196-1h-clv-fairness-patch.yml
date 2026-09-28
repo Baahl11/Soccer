@@ -1,0 +1,91 @@
+name: V196 1H CLV Fairness Patch
+
+on:
+  push:
+    branches: [tmp-v196-1h-clv-fairness]
+    paths:
+      - ".github/workflows/v196-1h-clv-fairness-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-v196-1h-clv-fairness
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+
+      - name: Patch derivative-family fair merge and add tests
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('mcp_gateway/clv_postgres_v4.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''    for raw in derivative_signals:\n        if not isinstance(raw.get("market_candidate"), dict):\n            continue\n        key = _signal_identity(raw)\n        if key in seen:\n            continue\n        seen.add(key)\n        merged.append(raw)\n        if len(merged) >= max_rows:\n            return merged\n\n    for raw in legacy_signals:\n'''
+          new = '''    # Derivative families share the remaining bounded CLV capacity fairly.\n    # Previously a high-volume family (notably Team Totals) could occupy the\n    # entire derivative slice before 1H/Corners were ever evaluated.  Keep\n    # pipeline priority intact, but round-robin derivative families so the\n    # global max_rows memory bound cannot silently starve a smaller family.\n    derivative_buckets: dict[str, list[dict[str, Any]]] = defaultdict(list)\n    derivative_family_order: list[str] = []\n    for raw in derivative_signals:\n        candidate = raw.get("market_candidate")\n        if not isinstance(candidate, dict):\n            continue\n        family = str(_family(candidate) or "UNMAPPED")\n        if family not in derivative_buckets:\n            derivative_family_order.append(family)\n        derivative_buckets[family].append(raw)\n\n    derivative_positions = {family: 0 for family in derivative_family_order}\n    while derivative_family_order and len(merged) < max_rows:\n        progress = False\n        for family in derivative_family_order:\n            bucket = derivative_buckets[family]\n            index = derivative_positions[family]\n            while index < len(bucket):\n                raw = bucket[index]\n                index += 1\n                derivative_positions[family] = index\n                key = _signal_identity(raw)\n                if key in seen:\n                    continue\n                seen.add(key)\n                merged.append(raw)\n                progress = True\n                break\n            if len(merged) >= max_rows:\n                return merged\n        if not progress:\n            break\n\n    for raw in legacy_signals:\n'''
+          if old not in text:
+              raise SystemExit('expected _merge_signals derivative block not found')
+          text = text.replace(old, new, 1)
+
+          marker = '        "signal_rows_considered": signal_rows_considered,\n'
+          if marker not in text:
+              raise SystemExit('signal_rows_considered return marker not found')
+          text = text.replace(
+              marker,
+              marker + '        "signal_merge_strategy": "PIPELINE_PRIORITY_THEN_DERIVATIVE_FAMILY_ROUND_ROBIN_THEN_LEGACY_FALLBACK",\n',
+              1,
+          )
+          path.write_text(text, encoding='utf-8')
+
+          test = Path('tests/test_clv_derivative_family_fairness_v196.py')
+          test.write_text('''from mcp_gateway import clv_postgres_v4 as clv\n\n\ndef _signal(fid, family, market, selection="Over", price=2.0):\n    return {\n        "fixture_id": fid,\n        "generated_at": f"2026-09-28T10:{fid % 60:02d}:00+00:00",\n        "market_candidate": {\n            "market_family": family,\n            "market": market,\n            "selection": selection,\n            "decimal_price": price,\n        },\n    }\n\n\ndef test_derivative_merge_round_robins_families_inside_global_cap():\n    pipeline = [\n        _signal(1, "BTTS", "Both Teams Score", "Yes"),\n        _signal(2, "1X2", "Match Winner", "Home"),\n    ]\n    derivatives = [\n        *[_signal(100 + i, "HOME_TT", "Total - Home") for i in range(30)],\n        _signal(300, "1H", "Goals Over/Under - First Half"),\n        _signal(301, "FT_CORNERS", "Corners Over Under"),\n    ]\n\n    merged = clv._merge_signals(pipeline, derivatives, [], max_rows=5)\n    families = [clv._family(row["market_candidate"]) for row in merged]\n\n    assert families[:2] == ["BTTS", "1X2"]\n    assert "1H" in families\n    assert "FT_CORNERS" in families\n    assert "HOME_TT" in families\n    assert len(merged) == 5\n\n\ndef test_derivative_merge_keeps_global_bound_and_dedupes():\n    duplicate = _signal(400, "1H", "Goals Over/Under - First Half")\n    derivatives = [duplicate, dict(duplicate), _signal(401, "FT_CORNERS", "Corners Over Under")]\n    merged = clv._merge_signals([], derivatives, [], max_rows=2)\n    assert len(merged) == 2\n    assert {clv._family(row["market_candidate"]) for row in merged} == {"1H", "FT_CORNERS"}\n''', encoding='utf-8')
+          PY
+
+      - name: Compile
+        run: python -m compileall -q mcp_gateway
+
+      - name: Run v196 targeted tests
+        run: pytest -q tests/test_clv_derivative_family_fairness_v196.py
+
+      - name: Run exact official V4 runtime test list
+        shell: bash
+        run: |
+          python - <<'PY' >/tmp/v4_tests.txt
+          import re
+          from pathlib import Path
+          text = Path('.github/workflows/v4-runtime-tests.yml').read_text(encoding='utf-8')
+          found = re.findall(r'tests/[A-Za-z0-9_.-]+\.py', text)
+          unique=[]
+          for item in found:
+              if item not in unique:
+                  unique.append(item)
+          if not unique:
+              raise SystemExit('No official V4 tests discovered')
+          print(' '.join(unique))
+          PY
+          pytest -q $(cat /tmp/v4_tests.txt)
+
+      - name: Commit validated v196 patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/clv_postgres_v4.py tests/test_clv_derivative_family_fairness_v196.py
+          git commit -m "v196: prevent derivative CLV family starvation"
+          git push origin HEAD:tmp-v196-1h-clv-fairness
