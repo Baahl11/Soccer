@@ -2104,6 +2104,49 @@ def _player_prop_markets_with_later_provider_quote(
     return matured
 
 
+def _player_prop_maturation_family_accounting(
+    signals: list[dict[str, Any]],
+    matured_families: set[str],
+) -> tuple[set[str], set[str]]:
+    """Return evaluated Player Props families and those still missing a later quote."""
+    supported = {
+        "SHOTS",
+        "SOT",
+        "GOALSCORER_ANYTIME",
+        "ASSISTS",
+        "PLAYER_CARDS",
+        "GK_SAVES",
+    }
+    evaluated = {
+        str(signal.get("market_family") or "").upper()
+        for signal in signals
+        if str(signal.get("market_family") or "").upper() in supported
+    }
+    matured = {
+        str(family).upper()
+        for family in matured_families
+        if str(family).upper() in evaluated
+    }
+    return evaluated, evaluated - matured
+
+
+def _player_prop_missing_maturation_signals(
+    signals: list[dict[str, Any]],
+    later_markets: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], set[str]]:
+    """Keep only families that still lack a strict later provider quote."""
+    matured_families = _player_prop_markets_with_later_provider_quote(
+        later_markets,
+        signals,
+    )
+    missing = [
+        signal
+        for signal in signals
+        if str(signal.get("market_family") or "").upper() not in matured_families
+    ]
+    return missing, matured_families
+
+
 def _load_player_props_clv_maturation_backlog(
     *,
     lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
@@ -2242,10 +2285,12 @@ def _load_player_props_clv_maturation_backlog(
         for family in families:
             family_counts[family] += 1
 
-    # Suppress fixtures that already have a later provider-updated Player Props
-    # snapshot. A normal /odds response carries all Player Props families, so
-    # fixture-level suppression avoids duplicate provider spend.
+    # Suppress only families that already have a strictly later provider quote.
+    # Fixture-level suppression is unsafe: one family can update while another
+    # remains stale or missing.
     candidates: list[dict[str, Any]] = []
+    candidate_family_counts: dict[str, int] = defaultdict(int)
+    already_matured_family_counts: dict[str, int] = defaultdict(int)
     if grouped:
         with persistence._connect() as conn:
             with conn.cursor() as cur:
@@ -2260,7 +2305,7 @@ def _load_player_props_clv_maturation_backlog(
                     earliest_signal = min(signal_times)
                     cur.execute(
                         """
-                        SELECT 1
+                        SELECT m.market, m.provider_update
                         FROM soccer_market_snapshots m
                         JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
                         WHERE m.fixture_id = %s
@@ -2279,13 +2324,30 @@ def _load_player_props_clv_maturation_backlog(
                              OR LOWER(COALESCE(m.market,'')) LIKE '%%to be booked%%'
                              OR LOWER(COALESCE(m.market,'')) LIKE '%%to be carded%%'
                           )
-                        LIMIT 1
+                        ORDER BY m.captured_at DESC
                         """,
                         (fixture_id, earliest_signal, earliest_signal),
                     )
-                    if cur.fetchone():
+                    later_markets = [
+                        {"market": raw[0], "provider_update": raw[1]}
+                        for raw in cur.fetchall()
+                        if raw and raw[0]
+                    ]
+                    missing_signals, matured_families = _player_prop_missing_maturation_signals(
+                        list(record["signals"]),
+                        later_markets,
+                    )
+                    for family in matured_families:
+                        already_matured_family_counts[family] += 1
+                    if not missing_signals:
                         continue
-                    candidates.append(record)
+                    candidate = dict(record)
+                    candidate["signals"] = missing_signals
+                    candidates.append(candidate)
+                    for signal in missing_signals:
+                        family = str(signal.get("market_family") or "").upper()
+                        if family:
+                            candidate_family_counts[family] += 1
 
     events: list[dict[str, Any]] = []
     for record in candidates:
@@ -2314,8 +2376,11 @@ def _load_player_props_clv_maturation_backlog(
     return {
         "candidate_events": events,
         "candidate_count": len(events),
-        "candidate_family_counts": dict(sorted(family_counts.items())),
-        "source": "POSTGRES_PLAYER_PROPS_CLV_MATURATION_BACKLOG",
+        "candidate_family_counts": dict(sorted(candidate_family_counts.items())),
+        "signal_family_counts": dict(sorted(family_counts.items())),
+        "already_matured_family_counts": dict(sorted(already_matured_family_counts.items())),
+        "family_aware_suppression": True,
+        "source": "POSTGRES_PLAYER_PROPS_CLV_MATURATION_BACKLOG_V2",
     }
 
 
@@ -2981,6 +3046,8 @@ async def resolve_payload(
     player_props_maturation_api_calls_added = 0
     player_props_maturation_fixtures_refreshed = 0
     player_props_maturation_family_refresh_counts: dict[str, int] = defaultdict(int)
+    player_props_maturation_family_evaluation_counts: dict[str, int] = defaultdict(int)
+    player_props_maturation_not_matured_family_counts: dict[str, int] = defaultdict(int)
     player_props_maturation_unchanged_provider_updates = 0
     player_props_maturation_budget_exhausted = 0
     player_props_maturation_primary_payload_reuse_fixtures = 0
@@ -3067,6 +3134,14 @@ async def resolve_payload(
                     markets,
                     signals,
                 )
+                evaluated_families, not_matured_families = _player_prop_maturation_family_accounting(
+                    signals,
+                    matured_families,
+                )
+                for family in evaluated_families:
+                    player_props_maturation_family_evaluation_counts[family] += 1
+                for family in not_matured_families:
+                    player_props_maturation_not_matured_family_counts[family] += 1
                 if not matured_families:
                     player_props_maturation_unchanged_provider_updates += 1
                     continue
@@ -3651,11 +3726,26 @@ async def resolve_payload(
         "player_props_clv_maturation_family_refresh_counts": dict(
             sorted(player_props_maturation_family_refresh_counts.items())
         ),
+        "player_props_clv_maturation_family_evaluation_counts": dict(
+            sorted(player_props_maturation_family_evaluation_counts.items())
+        ),
+        "player_props_clv_maturation_not_matured_family_counts": dict(
+            sorted(player_props_maturation_not_matured_family_counts.items())
+        ),
+        "player_props_clv_maturation_signal_family_counts": dict(
+            player_props_maturation.get("signal_family_counts") or {}
+        ),
+        "player_props_clv_maturation_already_matured_family_counts": dict(
+            player_props_maturation.get("already_matured_family_counts") or {}
+        ),
+        "player_props_clv_maturation_family_aware_suppression": (
+            player_props_maturation.get("family_aware_suppression") is True
+        ),
         "player_props_clv_maturation_unchanged_provider_updates": player_props_maturation_unchanged_provider_updates,
         "player_props_clv_maturation_budget_exhausted": player_props_maturation_budget_exhausted,
         "player_props_clv_maturation_primary_payload_reuse_fixtures": player_props_maturation_primary_payload_reuse_fixtures,
         "player_props_clv_maturation_synthetic_events_added": player_props_maturation_synthetic_events_added,
-        "player_props_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;PRIMARY_CLV_SECOND;THEN_EXISTING_PLAYER_PROP_SIGNAL_LATER_REAL_QUOTE_MAX4;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;RESEARCH_ONLY",
+        "player_props_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;PRIMARY_CLV_SECOND;THEN_EXISTING_PLAYER_PROP_SIGNAL_LATER_REAL_QUOTE_MAX4;FAMILY_AWARE_BACKLOG_SUPPRESSION;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;RESEARCH_ONLY",
         "provider_requests_added": calls,
         "provider_daily_remaining_observed": provider_daily_remaining,
         "quota_accounting_included_in_api_calls_this_tick": True,

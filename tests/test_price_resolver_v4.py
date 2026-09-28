@@ -2164,3 +2164,39 @@ def test_v200_player_prop_sidecar_cap_is_family_fair_and_keeps_late_player_cards
     assert sidecar["research_derivative_sidecar_provider_requests_added"] == 0
     assert sidecar["research_derivative_sidecar_decision_weight"] == 0.0
     assert sidecar["research_derivative_sidecar_production_promotion_allowed"] is False
+
+
+def test_v201_player_props_partial_family_maturation_keeps_missing_family():
+    signals = [
+        {"market_family": "SHOTS", "signal_generated_at": "2026-09-28T20:00:00+00:00"},
+        {"market_family": "GOALSCORER_ANYTIME", "signal_generated_at": "2026-09-28T20:00:00+00:00"},
+    ]
+    later_markets = [{
+        "market": "Anytime Goal Scorer",
+        "provider_update": "2026-09-28T20:10:00+00:00",
+    }]
+    missing, matured = v._player_prop_missing_maturation_signals(signals, later_markets)
+    assert matured == {"GOALSCORER_ANYTIME"}
+    assert [row["market_family"] for row in missing] == ["SHOTS"]
+
+
+def test_v201_player_props_maturation_family_accounting_tracks_partial_close():
+    signals = [
+        {"market_family": "SHOTS"},
+        {"market_family": "GK_SAVES"},
+        {"market_family": "OTHER"},
+    ]
+    evaluated, missing = v._player_prop_maturation_family_accounting(signals, {"GK_SAVES"})
+    assert evaluated == {"SHOTS", "GK_SAVES"}
+    assert missing == {"SHOTS"}
+
+
+def test_v201_player_props_backlog_uses_family_aware_suppression():
+    import inspect
+    source = inspect.getsource(v._load_player_props_clv_maturation_backlog)
+    assert "_player_prop_missing_maturation_signals" in source
+    assert "SELECT m.market, m.provider_update" in source
+    assert 'candidate["signals"] = missing_signals' in source
+    assert '"family_aware_suppression": True' in source
+    assert "POSTGRES_PLAYER_PROPS_CLV_MATURATION_BACKLOG_V2" in source
+
