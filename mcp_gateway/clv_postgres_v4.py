@@ -21,6 +21,8 @@ DERIVATIVE_MARKET_SOURCES = (
     ("2H", "two_h_goals_intelligence", "observed_market_rows"),
     ("FT_CORNERS", "corners_intelligence", "observed_market_rows"),
     ("TEAM_CORNERS", "team_corners_intelligence", "observed_market_rows"),
+    ("CARDS", "cards_intelligence_live", "observed_explicit_yellow_market_rows"),
+    ("TEAM_CARDS", "team_cards_intelligence", "observed_market_rows"),
 )
 
 
@@ -152,6 +154,13 @@ def _closing_line_candidate(values: list[dict[str, Any]], selection: Any) -> tup
 
 
 def _family(market_candidate: dict[str, Any]) -> str | None:
+    raw_family = str(
+        market_candidate.get("market_family")
+        or market_candidate.get("family")
+        or ""
+    ).strip().upper()
+    if raw_family == "TEAM_CARDS":
+        return "TEAM_CARDS"
     return market_mismatch_v4.canonical_market_family({
         "market_family": market_candidate.get("market_family") or market_candidate.get("family"),
         "market": market_candidate.get("market"),
@@ -462,6 +471,24 @@ def _load_derivative_signals(conn, *, lookback_days: int, max_rows: int) -> list
                 FROM jsonb_array_elements(
                     COALESCE(e.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
                 ) AS tc(row_value)
+
+                UNION ALL
+
+                SELECT
+                    jsonb_set(row_value, '{market_family}', to_jsonb('CARDS'::text), true),
+                    'DERIVATIVE_INTELLIGENCE:cards_intelligence_live'::text
+                FROM jsonb_array_elements(
+                    COALESCE(e.payload -> 'cards_intelligence_live' -> 'observed_explicit_yellow_market_rows', '[]'::jsonb)
+                ) AS cards(row_value)
+
+                UNION ALL
+
+                SELECT
+                    jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_CARDS'::text), true),
+                    'DERIVATIVE_INTELLIGENCE:team_cards_intelligence'::text
+                FROM jsonb_array_elements(
+                    COALESCE(e.payload -> 'team_cards_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                ) AS team_cards(row_value)
             ) AS d
             WHERE e.generated_at >= %s
               AND (
