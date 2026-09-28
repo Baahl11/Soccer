@@ -2445,6 +2445,50 @@ def _research_derivative_family(market_name: str) -> str | None:
     return None
 
 
+def _bounded_player_prop_rows(rows: list[dict[str, Any]], *, limit: int = 40) -> list[dict[str, Any]]:
+    # Keep the Player Props sidecar bounded without allowing one subfamily to starve another.
+    cap = max(0, int(limit))
+    if cap <= 0:
+        return []
+    buckets: dict[str, list[dict[str, Any]]] = {}
+    order: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        family = str(row.get("research_subfamily") or "UNMAPPED").upper()
+        if family not in buckets:
+            buckets[family] = []
+            order.append(family)
+        buckets[family].append(row)
+    positions = {family: 0 for family in order}
+    selected: list[dict[str, Any]] = []
+    while order and len(selected) < cap:
+        progress = False
+        for family in order:
+            position = positions[family]
+            bucket = buckets[family]
+            if position >= len(bucket):
+                continue
+            selected.append(bucket[position])
+            positions[family] = position + 1
+            progress = True
+            if len(selected) >= cap:
+                break
+        if not progress:
+            break
+    return selected
+
+
+def _player_prop_subfamily_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        family = str(row.get("research_subfamily") or "UNMAPPED").upper()
+        counts[family] = counts.get(family, 0) + 1
+    return dict(sorted(counts.items()))
+
+
 def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]], source_status: str) -> None:
     if not markets:
         return
@@ -2516,7 +2560,9 @@ def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]]
             prop_rows.append(row)
 
     kept_cards = card_rows[:20]
-    kept_props = prop_rows[:40]
+    kept_props = _bounded_player_prop_rows(prop_rows, limit=40)
+    observed_player_prop_subfamily_counts = _player_prop_subfamily_counts(prop_rows)
+    kept_player_prop_subfamily_counts = _player_prop_subfamily_counts(kept_props)
     research_rows = kept_cards + kept_props
     event["market"] = {
         "source": "API_FOOTBALL_ODDS_V3" if source_status == "PRICE_API_RESOLVED" else "POSTGRES_MARKET_SNAPSHOT_CACHE",
@@ -2525,11 +2571,15 @@ def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]]
         "research_cards_props_markets": research_rows,
         "card_research_market_rows": len(kept_cards),
         "player_prop_research_market_rows": len(kept_props),
+        "player_prop_sidecar_limit": 40,
+        "player_prop_family_fair_selection": True,
+        "observed_player_prop_subfamily_counts": observed_player_prop_subfamily_counts,
+        "kept_player_prop_subfamily_counts": kept_player_prop_subfamily_counts,
         "research_derivative_sidecar_rows": len(research_rows),
         "research_derivative_sidecar_provider_requests_added": 0,
         "research_derivative_sidecar_decision_weight": 0.0,
         "research_derivative_sidecar_production_promotion_allowed": False,
-        "research_derivative_sidecar_policy": "SPLIT_FROM_ALREADY_PAID_PRICE_RESOLVER_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP; XI_ALIGN_WHEN_CONFIRMED; RESEARCH_ONLY",
+        "research_derivative_sidecar_policy": "SPLIT_FROM_ALREADY_PAID_PRICE_RESOLVER_RESPONSE; BOUNDED_20_CARD_40_PLAYER_PROP_FAMILY_FAIR; XI_ALIGN_WHEN_CONFIRMED; RESEARCH_ONLY",
     }
 
 
