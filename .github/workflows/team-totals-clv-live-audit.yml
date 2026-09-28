@@ -1,0 +1,65 @@
+name: Team Totals CLV Live Audit
+
+on:
+  push:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - ".github/workflows/team-totals-clv-live-audit.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Warm Render
+        run: |
+          curl -fsS --max-time 60 https://soccer-edge-api.onrender.com/health | tee /tmp/health.json
+
+      - name: Build live CLV report
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE=$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          TOKEN=$(echo "$RESPONSE" | jq -r '.value // empty')
+          test -n "$TOKEN"
+          echo "::add-mask::$TOKEN"
+
+          HTTP_CODE=$(curl -sS --max-time 180 -o /tmp/clv.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"lookback_days":60,"max_signals":2000}' \
+            https://soccer-edge-api.onrender.com/internal/clv-v4/build)
+
+          echo "HTTP_CODE=$HTTP_CODE"
+          jq '{
+            model_version,
+            status,
+            signal_rows_considered,
+            pipeline_market_rows_loaded,
+            derivative_event_rows_loaded,
+            derivative_market_rows_loaded,
+            tracked_rows,
+            comparable_true_clv_rows,
+            family_counts,
+            signal_source_counts,
+            team_totals_maturation_funnel,
+            ft_totals_maturation_funnel,
+            skip_reason_family_counts,
+            provider_requests_added,
+            error,
+            detail
+          }' /tmp/clv.json
+
+          test "$HTTP_CODE" = "200"
+          jq -e '
+            (.team_totals_maturation_funnel | type == "object")
+            and (.provider_requests_added == 0)
+          ' /tmp/clv.json >/dev/null
