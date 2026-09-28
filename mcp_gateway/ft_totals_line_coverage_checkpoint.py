@@ -7,8 +7,8 @@ from typing import Any
 
 from mcp_gateway import persistence
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_FT_TOTALS_LINE_COVERAGE_CHECKPOINT_V1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_FT_TOTALS_LINE_COVERAGE_CHECKPOINT_V1.1.0"
 CACHE_TTL_SECONDS = 1800
 LOOKBACK_DAYS = 180
 SUPPORTED_VALIDATION_LINES = (1.5, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5)
@@ -113,6 +113,47 @@ def _build_report(
     }
 
 
+def _parse_utc(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        parsed = value
+    elif value:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    else:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _load_persisted_cache(*, lookback_days: int) -> dict[str, Any] | None:
+    try:
+        payload = persistence.load_latest_pipeline_payload()
+    except Exception:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    capture = payload.get("ft_totals_settlement_capture")
+    if not isinstance(capture, dict):
+        return None
+    historical = capture.get("historical_line_coverage")
+    if not isinstance(historical, dict):
+        return None
+    if int(historical.get("lookback_days") or 0) != int(lookback_days):
+        return None
+    generated_at = _parse_utc(historical.get("generated_at_utc"))
+    if generated_at is None:
+        return None
+    age_seconds = (datetime.now(timezone.utc) - generated_at).total_seconds()
+    if age_seconds < 0 or age_seconds >= CACHE_TTL_SECONDS:
+        return None
+    if str(historical.get("status") or "") != "HISTORICAL_FT_TOTALS_LINE_COVERAGE_READY":
+        return None
+    return dict(historical)
+
+
 def _query_postgres(*, lookback_days: int) -> dict[str, Any]:
     if not persistence.persistence_configured():
         return {
@@ -207,27 +248,38 @@ def _query_postgres(*, lookback_days: int) -> dict[str, Any]:
 
 def build(*, lookback_days: int = LOOKBACK_DAYS, force_refresh: bool = False) -> dict[str, Any]:
     global _CACHE, _CACHE_MONOTONIC
+    bounded_lookback = max(1, min(int(lookback_days), 730))
     now = time.monotonic()
     if (
         not force_refresh
         and isinstance(_CACHE, dict)
         and _CACHE_MONOTONIC is not None
         and (now - _CACHE_MONOTONIC) < CACHE_TTL_SECONDS
+        and int(_CACHE.get("lookback_days") or 0) == bounded_lookback
     ):
         cached = dict(_CACHE)
         cached["cache_status"] = "MEMORY_CACHE_HIT"
         cached["cache_ttl_seconds"] = CACHE_TTL_SECONDS
         return cached
 
+    if not force_refresh:
+        persisted = _load_persisted_cache(lookback_days=bounded_lookback)
+        if persisted is not None:
+            _CACHE = dict(persisted)
+            _CACHE_MONOTONIC = now
+            persisted["cache_status"] = "PERSISTED_PIPELINE_CACHE_HIT"
+            persisted["cache_ttl_seconds"] = CACHE_TTL_SECONDS
+            return persisted
+
     try:
-        report = _query_postgres(lookback_days=max(1, min(int(lookback_days), 730)))
+        report = _query_postgres(lookback_days=bounded_lookback)
     except Exception as exc:
         return {
             "schema_version": SCHEMA_VERSION,
             "model_version": MODEL_VERSION,
             "status": "HISTORICAL_FT_TOTALS_LINE_COVERAGE_ERROR",
             "detail": str(exc)[:300],
-            "lookback_days": max(1, min(int(lookback_days), 730)),
+            "lookback_days": bounded_lookback,
             "provider_requests_added": 0,
             "decision_weight": 0.0,
             "production_promotion_allowed": False,
