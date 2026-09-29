@@ -2200,3 +2200,33 @@ def test_v201_player_props_backlog_uses_family_aware_suppression():
     assert '"family_aware_suppression": True' in source
     assert "POSTGRES_PLAYER_PROPS_CLV_MATURATION_BACKLOG_V3" in source
 
+
+
+
+def test_player_props_maturation_observability_funnel_v20112():
+    funnel = v._player_props_maturation_observability(
+        candidate_count=3,
+        cooldown_suppressed=2,
+        api_calls_added=2,
+        attempt_events_added=1,
+        primary_payload_reuse_fixtures=1,
+        family_candidate_signal_rows={"SHOTS": 7, "GK_SAVES": 2},
+        family_evaluation_counts={"SHOTS": 2, "GK_SAVES": 1},
+        family_refresh_counts={"SHOTS": 1},
+        family_not_matured_counts={"SHOTS": 1, "GK_SAVES": 1},
+        unchanged_provider_updates=1,
+        budget_exhausted=0,
+    )
+    assert v.PLAYER_PROPS_CLV_MATURATION_MAX_CALLS_PER_TICK == 4
+    assert funnel["eligible_before_cooldown_fixtures"] == 5
+    assert funnel["cooldown_suppressed_fixtures"] == 2
+    assert funnel["candidates_after_cooldown_fixtures"] == 3
+    assert funnel["api_attempt_calls"] == 2
+    assert funnel["max_api_attempt_calls"] == 4
+    assert funnel["attempt_events_persisted"] == 1
+    assert funnel["later_provider_update_newer_fixture_family_instances"] == 1
+    assert funnel["strict_close_candidate_fixture_family_instances"] == 1
+    assert funnel["family_funnel"]["SHOTS"]["candidate_signal_rows_after_cooldown"] == 7
+    assert funnel["family_funnel"]["SHOTS"]["evaluated_fixture_family_instances"] == 2
+    assert funnel["family_funnel"]["SHOTS"]["later_provider_update_newer_fixture_family_instances"] == 1
+    assert funnel["family_funnel"]["GK_SAVES"]["not_matured_fixture_family_instances"] == 1

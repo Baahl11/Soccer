@@ -2104,6 +2104,63 @@ def _player_prop_markets_with_later_provider_quote(
     return matured
 
 
+
+def _player_props_maturation_observability(
+    *,
+    candidate_count: int,
+    cooldown_suppressed: int,
+    api_calls_added: int,
+    attempt_events_added: int,
+    primary_payload_reuse_fixtures: int,
+    family_candidate_signal_rows: dict[str, int],
+    family_evaluation_counts: dict[str, int],
+    family_refresh_counts: dict[str, int],
+    family_not_matured_counts: dict[str, int],
+    unchanged_provider_updates: int,
+    budget_exhausted: int,
+) -> dict[str, Any]:
+    """Build a read-only per-tick maturation funnel without changing scheduling."""
+    normalized_candidates = {str(k): int(v or 0) for k, v in (family_candidate_signal_rows or {}).items()}
+    normalized_evaluated = {str(k): int(v or 0) for k, v in (family_evaluation_counts or {}).items()}
+    normalized_refreshed = {str(k): int(v or 0) for k, v in (family_refresh_counts or {}).items()}
+    normalized_not_matured = {str(k): int(v or 0) for k, v in (family_not_matured_counts or {}).items()}
+    families = sorted(
+        set(normalized_candidates)
+        | set(normalized_evaluated)
+        | set(normalized_refreshed)
+        | set(normalized_not_matured)
+    )
+    cooldown_suppressed = max(0, int(cooldown_suppressed or 0))
+    candidate_count = max(0, int(candidate_count or 0))
+    return {
+        "schema_version": "PLAYER_PROPS_MATURATION_FUNNEL_V1",
+        "eligible_before_cooldown_fixtures": candidate_count + cooldown_suppressed,
+        "cooldown_suppressed_fixtures": cooldown_suppressed,
+        "candidates_after_cooldown_fixtures": candidate_count,
+        "api_attempt_calls": max(0, int(api_calls_added or 0)),
+        "max_api_attempt_calls": PLAYER_PROPS_CLV_MATURATION_MAX_CALLS_PER_TICK,
+        "primary_payload_reuse_fixtures": max(0, int(primary_payload_reuse_fixtures or 0)),
+        "attempt_events_persisted": max(0, int(attempt_events_added or 0)),
+        "evaluated_fixture_family_instances": sum(normalized_evaluated.values()),
+        "later_provider_update_newer_fixture_family_instances": sum(normalized_refreshed.values()),
+        "strict_close_candidate_fixture_family_instances": sum(normalized_refreshed.values()),
+        "strict_close_candidate_definition": (
+            "FAMILY_HAS_LATER_PROVIDER_QUOTE;FINAL_EXACT_INSTRUMENT_STRICT_CLOSE_REMAINS_CLV_AUDIT"
+        ),
+        "unchanged_provider_update_fixtures": max(0, int(unchanged_provider_updates or 0)),
+        "budget_exhausted": max(0, int(budget_exhausted or 0)),
+        "family_funnel": {
+            family: {
+                "candidate_signal_rows_after_cooldown": normalized_candidates.get(family, 0),
+                "evaluated_fixture_family_instances": normalized_evaluated.get(family, 0),
+                "later_provider_update_newer_fixture_family_instances": normalized_refreshed.get(family, 0),
+                "strict_close_candidate_fixture_family_instances": normalized_refreshed.get(family, 0),
+                "not_matured_fixture_family_instances": normalized_not_matured.get(family, 0),
+            }
+            for family in families
+        },
+    }
+
 def _player_prop_maturation_family_accounting(
     signals: list[dict[str, Any]],
     matured_families: set[str],
@@ -3876,6 +3933,19 @@ async def resolve_payload(
         "player_props_clv_maturation_budget_exhausted": player_props_maturation_budget_exhausted,
         "player_props_clv_maturation_primary_payload_reuse_fixtures": player_props_maturation_primary_payload_reuse_fixtures,
         "player_props_clv_maturation_synthetic_events_added": player_props_maturation_synthetic_events_added,
+        "player_props_clv_maturation_funnel": _player_props_maturation_observability(
+            candidate_count=player_props_maturation_candidates,
+            cooldown_suppressed=int(player_props_maturation.get("cooldown_suppressed") or 0),
+            api_calls_added=player_props_maturation_api_calls_added,
+            attempt_events_added=player_props_maturation_attempt_events_added,
+            primary_payload_reuse_fixtures=player_props_maturation_primary_payload_reuse_fixtures,
+            family_candidate_signal_rows=dict(player_props_maturation.get("candidate_family_counts") or {}),
+            family_evaluation_counts=dict(player_props_maturation_family_evaluation_counts),
+            family_refresh_counts=dict(player_props_maturation_family_refresh_counts),
+            family_not_matured_counts=dict(player_props_maturation_not_matured_family_counts),
+            unchanged_provider_updates=player_props_maturation_unchanged_provider_updates,
+            budget_exhausted=player_props_maturation_budget_exhausted,
+        ),
         "player_props_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;PRIMARY_CLV_SECOND;THEN_EXISTING_PLAYER_PROP_SIGNAL_LATER_REAL_QUOTE_MAX4;FAMILY_AWARE_BACKLOG_SUPPRESSION;STAGE_FRESHNESS_RETRY_COOLDOWN;FRESH_PROVIDER_ATTEMPTS_PERSIST_RESEARCH_ONLY;CACHE_REPLAY_NOT_CLOSE;STRICT_PROVIDER_UPDATE_AFTER_SIGNAL_UNCHANGED;THEN_TEAM_TOTALS;RESEARCH_ONLY",
         "provider_requests_added": calls,
         "provider_daily_remaining_observed": provider_daily_remaining,
