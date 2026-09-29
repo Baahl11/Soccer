@@ -57,6 +57,31 @@ def test_dashboard_renders_control_tower_master_sections_and_escapes_content():
                         "unit": "rows",
                     },
                 ],
+                "maturity_snapshot": {
+                    "status": "OK",
+                    "reports_loaded": 11,
+                    "reports_expected": 11,
+                    "maturation_watchdogs": {
+                        "status": "WATCH",
+                        "ok_count": 1,
+                        "watch_count": 1,
+                        "not_verified_count": 0,
+                        "watchdogs": {
+                            "signal_close_freshness": {
+                                "status": "OK",
+                                "reason": "SIGNAL_CLOSE_TELEMETRY_FRESH",
+                                "source": "signal_ledger_summary.json",
+                                "evidence": {"age_hours": 1.5, "close_stage_rows": 1085},
+                            },
+                            "two_h_market_maturation": {
+                                "status": "WATCH",
+                                "reason": "2H_STRICT_CLOSE_EVIDENCE_ZERO",
+                                "source": "v4_021_2h_oos_validation.json",
+                                "evidence": {"true_clv_rows": 0, "minimum_rows": 50},
+                            },
+                        },
+                    },
+                },
                 "phases": [
                     {"phase": "14", "name": "Cards", "status": "VALIDATION_GATE_IMPLEMENTED"},
                     {"phase": "15", "name": "Player Props", "status": "VALIDATION_GATE_IMPLEMENTED"},
@@ -94,6 +119,11 @@ def test_dashboard_renders_control_tower_master_sections_and_escapes_content():
     assert "System Health" in html
     assert "Model Maturity" in html
     assert "Pipeline Errors" in html
+    assert "Maturation Watchdogs" in html
+    assert "State OK · 11/11 reports" in html
+    assert "1 OK · 1 watch · 0 N/V" in html
+    assert "2H strict-close evidence" in html
+    assert "2H_STRICT_CLOSE_EVIDENCE_ZERO" in html
     assert "Phases 14–24" in html
     assert "Today&#x27;s Slate" in html
     assert "Strong Sport Signals" in html
