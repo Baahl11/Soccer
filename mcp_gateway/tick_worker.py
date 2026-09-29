@@ -5,7 +5,7 @@ import sys
 
 import httpx
 
-from mcp_gateway import automation_v6, automation_v7, automation_v125, product_views_v4
+from mcp_gateway import automation_v6, automation_v7, automation_v126, product_views_v4
 from mcp_gateway.persistence_v2 import persist_tick
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -96,7 +96,7 @@ async def _main() -> int:
         shortlist_seed, fairness_seed = _read_seeds()
         imported = automation_v6.import_shortlist_state(shortlist_seed)
         fairness_imported = automation_v7.fair_scheduler.import_state(fairness_seed)
-        payload = await automation_v125.run_tick()
+        payload = await automation_v126.run_tick()
         payload.setdefault("status", "ok")
         payload["shortlist_seed_imported"] = imported
         payload["fair_scheduler_seed_imported"] = fairness_imported
