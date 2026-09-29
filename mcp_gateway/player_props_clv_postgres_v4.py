@@ -849,7 +849,6 @@ def _load_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, A
                 c.kickoff
             FROM candidate_events c
             JOIN soccer_refresh_events e ON e.event_id = c.event_id
-            ORDER BY c.generated_at DESC
             """,
             (cutoff, max_rows),
         )
@@ -913,7 +912,6 @@ def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_row
                 ORDER BY l.captured_at DESC
                 LIMIT 1
             ) confirmed_lineup ON TRUE
-            ORDER BY c.fixture_id, c.captured_at
             """,
             (fixture_ids, cutoff, max_rows),
         )
