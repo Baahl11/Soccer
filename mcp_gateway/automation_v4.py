@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import os
 import time
+import traceback
+from pathlib import Path
 from typing import Any
 
 from mcp_gateway import automation as base
@@ -10,7 +12,7 @@ from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v3 as v3
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
-AUTOMATION_VERSION = "1.4.2-monotonic-hard-cap-observable"
+AUTOMATION_VERSION = "1.4.3-monotonic-hard-cap-callpath"
 
 # Scheduler-side pacing. API-Football exposes a high minute ceiling, but bursts
 # can still trigger provider-side rate limiting. Keep one request in flight at a
@@ -53,12 +55,24 @@ def _budget_exhaustion_context(endpoint: str, params: dict[str, Any]) -> str:
     """Safe diagnostic context for a deferred provider request.
 
     Values are intentionally omitted because some request parameters can be
-    operational identifiers. Endpoint + parameter names are sufficient to
-    locate the orchestration layer that attempted work after the reserve cap.
+    operational identifiers. Endpoint + parameter names + Python module/function
+    names are sufficient to locate the orchestration layer that attempted work
+    after the reserve cap.
     """
     safe_endpoint = str(endpoint or "").strip().lstrip("/")[:80] or "UNKNOWN"
     safe_keys = sorted(str(key)[:40] for key in (params or {}).keys())[:12]
-    return f"endpoint={safe_endpoint}; param_keys={','.join(safe_keys) or 'NONE'}"
+    frames: list[str] = []
+    for frame in traceback.extract_stack(limit=14)[:-1]:
+        filename = Path(frame.filename).name
+        if filename.startswith("automation_v4"):
+            continue
+        if filename.endswith(".py") and (filename.startswith("automation_v") or filename.startswith("provider_") or filename.startswith("market_")):
+            frames.append(f"{filename}:{frame.name}")
+    safe_path = ">".join(frames[-6:]) or "UNKNOWN"
+    return (
+        f"endpoint={safe_endpoint}; param_keys={','.join(safe_keys) or 'NONE'}; "
+        f"call_path={safe_path}"
+    )
 
 
 def _is_rate_limit_error(exc: Exception) -> bool:
