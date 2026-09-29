@@ -1,4 +1,4 @@
-# v201.8 stage-trace 100-row diagnostic 2026-09-28
+# v201.9 event-index 100-row diagnostic 2026-09-28
 name: Player Props True CLV Validation
 
 on:
@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: player-props-true-clv-validation-v2018-probe100
+  group: player-props-true-clv-validation-v2019-probe100
   cancel-in-progress: false
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           curl -sS --max-time 60 https://soccer-edge-api.onrender.com/health >/tmp/health.json
           cat /tmp/health.json
-          jq -e '.status == "ok" and .render_git_commit == "1700864c07857b5e36769d3c920a4e3b7dde8774" and .database_persistence_configured == true' /tmp/health.json >/dev/null
+          jq -e '.status == "ok" and .render_git_commit == "45ca878294082f2c9376310b84515103df710762" and .database_persistence_configured == true' /tmp/health.json >/dev/null
 
           response=$(curl -fsS \
             -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
