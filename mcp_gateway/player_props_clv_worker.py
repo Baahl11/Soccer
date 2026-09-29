@@ -1,7 +1,12 @@
 import json
+import os
 import sys
 
-from mcp_gateway import player_props_clv_postgres_v4
+
+def _stage(name: str, **data) -> None:
+    payload = {'stage': name, **data}
+    sys.stderr.write('PLAYER_PROPS_CLV_STAGE ' + json.dumps(payload, separators=(',', ':'), default=str) + '\n')
+    sys.stderr.flush()
 
 
 def _bounded_int(raw: str, *, default: int, minimum: int, maximum: int) -> int:
@@ -14,6 +19,9 @@ def _bounded_int(raw: str, *, default: int, minimum: int, maximum: int) -> int:
 
 def main() -> int:
     try:
+        _stage('worker_boot', pid=os.getpid())
+        from mcp_gateway import player_props_clv_postgres_v4
+        _stage('module_import_ok')
         lookback_days = _bounded_int(
             sys.argv[1] if len(sys.argv) > 1 else "180",
             default=180,
@@ -26,11 +34,14 @@ def main() -> int:
             minimum=100,
             maximum=200000,
         )
+        os.environ['PLAYER_PROPS_CLV_STAGE_TRACE'] = '1'
+        _stage('build_call', lookback_days=lookback_days, max_rows=max_rows)
         result = player_props_clv_postgres_v4.build_from_postgres(
             lookback_days=lookback_days,
             max_rows=max_rows,
         )
-        sys.stdout.write(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
+        _stage('build_returned', status=result.get('status'), rows=len(result.get('rows') or []))
+        sys.stdout.write(json.dumps(result, ensure_ascii=False, separators=(',', ':')))
         sys.stdout.flush()
         return 0
     except Exception as exc:

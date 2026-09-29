@@ -510,22 +510,21 @@ async def internal_player_props_clv_v4_build(request: Request) -> Response:
             str(lookback_days),
             str(max_rows),
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stderr=None,
             env=env,
         )
         try:
-            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=170)
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=170)
         except TimeoutError:
             proc.kill()
             await proc.wait()
             return JSONResponse({"error": "player_props_clv_v4_timeout"}, status_code=504)
 
-        stderr_text = stderr.decode("utf-8", errors="replace") if stderr else ""
         if proc.returncode != 0:
             return JSONResponse(
                 {
                     "error": "player_props_clv_v4_build_failed",
-                    "detail": stderr_text[-1000:] or f"worker exited {proc.returncode}",
+                    "detail": f"worker exited {proc.returncode}; inspect PLAYER_PROPS_CLV_STAGE logs",
                 },
                 status_code=500,
             )

@@ -4,7 +4,9 @@ from collections import Counter, defaultdict
 import gc
 from datetime import datetime, timedelta, timezone
 import math
+import os
 import re
+import sys
 from typing import Any, Iterable
 
 from mcp_gateway import persistence as persistence_base
@@ -15,6 +17,14 @@ MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.3.0"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
+
+def _trace_stage(name: str, **data: Any) -> None:
+    if os.getenv('PLAYER_PROPS_CLV_STAGE_TRACE') != '1':
+        return
+    payload = {'stage': name, **data}
+    sys.stderr.write('PLAYER_PROPS_CLV_STAGE ' + __import__('json').dumps(payload, separators=(',', ':'), default=str) + '\n')
+    sys.stderr.flush()
+
 
 FAMILY_CONFIG = {
     "SHOTS": {"intel_key": "player_shots_intelligence", "rows_key": "players", "mode": "LINES"},
@@ -1101,6 +1111,7 @@ def _load_snapshot_instrument_index(
 def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> dict[str, Any]:
     lookback_days = max(1, min(int(lookback_days), 730))
     max_rows = max(100, min(int(max_rows), 200000))
+    _trace_stage('build_enter', lookback_days=lookback_days, max_rows=max_rows)
     if not persistence_base.persistence_configured():
         return {
             "schema_version": SCHEMA_VERSION,
@@ -1112,31 +1123,47 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
             "rows": [],
         }
 
+    _trace_stage('persistence_configured')
+    _trace_stage('ensure_schema_start')
     persistence_base.ensure_schema()
+    _trace_stage('ensure_schema_done')
+    _trace_stage('db_connect_start')
     with persistence_base._connect() as conn:
+        _trace_stage('db_connect_ok')
+        _trace_stage('events_start')
         events = _load_events(conn, lookback_days=lookback_days, max_rows=max_rows)
+        _trace_stage('events_done', rows=len(events))
         signal_diagnostics: dict[str, Any] = {}
+        _trace_stage('signals_start')
         signals = extract_shadow_signals(events, signal_diagnostics)
-        fixture_ids = sorted({int(row["fixture_id"]) for row in signals})
+        _trace_stage('signals_done', rows=len(signals))
+        fixture_ids = sorted({int(row['fixture_id']) for row in signals})
+        _trace_stage('fixtures_ready', fixtures=len(fixture_ids))
         event_rows_loaded = len(events)
         del events
         gc.collect()
+        _trace_stage('snapshot_index_start')
         instrument_index, snapshot_rows_loaded = _load_snapshot_instrument_index(
             conn,
             fixture_ids,
             lookback_days=lookback_days,
             max_rows=max_rows,
         )
+        _trace_stage('snapshot_index_done', rows=snapshot_rows_loaded, instruments=len(instrument_index))
 
+    _trace_stage('pairing_start')
     close_diagnostics: dict[str, Any] = {}
     rows, skip_reasons = pair_signals_to_closes(
         signals,
         diagnostics=close_diagnostics,
         instrument_index=instrument_index,
     )
+    _trace_stage('pairing_done', rows=len(rows))
     del instrument_index
     gc.collect()
+    _trace_stage('summary_start')
     summary = summarize_tracking(rows)
+    _trace_stage('summary_done', true_clv_rows=summary.get('true_clv_rows'))
     all_ready = bool(summary["families"]) and all(
         item.get("review_ready") is True for item in summary["families"].values()
     )
