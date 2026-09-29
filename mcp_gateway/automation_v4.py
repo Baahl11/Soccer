@@ -10,7 +10,7 @@ from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v3 as v3
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
-AUTOMATION_VERSION = "1.4.0"
+AUTOMATION_VERSION = "1.4.1-monotonic-hard-cap"
 
 # Scheduler-side pacing. API-Football exposes a high minute ceiling, but bursts
 # can still trigger provider-side rate limiting. Keep one request in flight at a
@@ -23,6 +23,30 @@ RATE_LIMIT_BACKOFF_SECONDS = float(os.getenv("SOCCER_EDGE_RATE_LIMIT_BACKOFF_SEC
 _REQUEST_LOCK = asyncio.Lock()
 _LAST_REQUEST_STARTED = 0.0
 _ORIGINAL_EVALUATE_MARKET = v2.evaluate_market
+
+# The scheduler has several orchestration layers that can tighten the same
+# per-tick provider cap after quota becomes known. A later layer must never
+# raise that already-tightened hard cap during the same upstream tick. This
+# low-water mark is reset automatically when the tick counter is reset to zero.
+_MONOTONIC_TICK_CAP: int | None = None
+
+
+def _effective_tick_cap() -> int:
+    global _MONOTONIC_TICK_CAP
+    try:
+        configured = max(1, int(v2.MAX_API_CALLS_PER_TICK))
+    except (TypeError, ValueError):
+        configured = 1
+    try:
+        calls = max(0, int(v2._API_CALLS_THIS_TICK or 0))
+    except (TypeError, ValueError):
+        calls = 0
+
+    if calls == 0 or _MONOTONIC_TICK_CAP is None:
+        _MONOTONIC_TICK_CAP = configured
+    else:
+        _MONOTONIC_TICK_CAP = min(_MONOTONIC_TICK_CAP, configured)
+    return int(_MONOTONIC_TICK_CAP)
 
 
 def _is_rate_limit_error(exc: Exception) -> bool:
@@ -37,9 +61,10 @@ async def _paced_api_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any
     attempt = 0
     while True:
         async with _REQUEST_LOCK:
-            if v2._API_CALLS_THIS_TICK >= v2.MAX_API_CALLS_PER_TICK:
+            effective_cap = _effective_tick_cap()
+            if v2._API_CALLS_THIS_TICK >= effective_cap:
                 raise v2.TickBudgetExceeded(
-                    f"Per-tick API budget reached ({v2.MAX_API_CALLS_PER_TICK}); lower-priority work deferred."
+                    f"Per-tick API budget reached ({effective_cap}); lower-priority work deferred."
                 )
             if v2._LAST_DAILY_REMAINING is not None and v2._LAST_DAILY_REMAINING <= 50:
                 raise v2.TickBudgetExceeded("Daily API reserve guard reached; lower-priority work deferred.")
