@@ -7,15 +7,15 @@
     "temperature_fit_uses_prior_rows_only": true
   },
   "baseline": {
-    "multiclass_brier": 0.67792337,
-    "multiclass_log_loss": 1.12013598,
-    "n": 614,
-    "top1_accuracy": 0.42833876
+    "multiclass_brier": 0.67348791,
+    "multiclass_log_loss": 1.11337206,
+    "n": 655,
+    "top1_accuracy": 0.4351145
   },
   "batch_size": 50,
-  "brier_delta": -0.01978288,
+  "brier_delta": -0.01753273,
   "canonical_bet_logic_changed": false,
-  "evaluated_rows": 614,
+  "evaluated_rows": 655,
   "folds": [
     {
       "baseline": {
@@ -223,24 +223,41 @@
     },
     {
       "baseline": {
-        "multiclass_brier": 0.75108216,
-        "multiclass_log_loss": 1.1944515,
-        "n": 14,
-        "top1_accuracy": 0.35714286
+        "multiclass_brier": 0.63363052,
+        "multiclass_log_loss": 1.04102806,
+        "n": 50,
+        "top1_accuracy": 0.52
       },
       "calibrated": {
-        "multiclass_brier": 0.67880637,
-        "multiclass_log_loss": 1.10853547,
-        "n": 14,
-        "top1_accuracy": 0.35714286
+        "multiclass_brier": 0.63173367,
+        "multiclass_log_loss": 1.04577975,
+        "n": 50,
+        "top1_accuracy": 0.52
       },
-      "eval_rows": 14,
+      "eval_rows": 50,
       "temperature": 2.1,
       "train_rows": 800
+    },
+    {
+      "baseline": {
+        "multiclass_brier": 0.74465212,
+        "multiclass_log_loss": 1.23322484,
+        "n": 5,
+        "top1_accuracy": 0.2
+      },
+      "calibrated": {
+        "multiclass_brier": 0.69379814,
+        "multiclass_log_loss": 1.14374261,
+        "n": 5,
+        "top1_accuracy": 0.2
+      },
+      "eval_rows": 5,
+      "temperature": 2.03,
+      "train_rows": 850
     }
   ],
   "improves_brier_and_log_loss": true,
-  "log_loss_delta": -0.03319392,
+  "log_loss_delta": -0.02960011,
   "minimum_eval_rows": 100,
   "minimum_train_rows": 200,
   "model_version": "SOCCER_1X2_MULTICLASS_OOS_V4_1.0.3",
@@ -260,8 +277,8 @@
     "runtime_prediction_weight": 0.0,
     "source_model_version": "SOCCER EDGE ENGINE v1.7",
     "status": "RESEARCH_DEPLOYMENT_CALIBRATOR_FITTED",
-    "temperature": 2.135,
-    "training_rows": 814
+    "temperature": 2.045,
+    "training_rows": 855
   },
   "runtime_prediction_weight": 0.0,
   "schema_version": "1.0.0",
@@ -272,15 +289,15 @@
     "SOCCER EDGE ENGINE v1.2": 1,
     "SOCCER EDGE ENGINE v1.5": 1,
     "SOCCER EDGE ENGINE v1.6": 1,
-    "SOCCER EDGE ENGINE v1.7": 814
+    "SOCCER EDGE ENGINE v1.7": 855
   },
-  "source_rows_current_model": 814,
+  "source_rows_current_model": 855,
   "status": "RESEARCH_MULTICLASS_CALIBRATION_AVAILABLE",
   "temperature_scaled": {
-    "multiclass_brier": 0.65814049,
-    "multiclass_log_loss": 1.08694206,
-    "n": 614,
-    "top1_accuracy": 0.42833876
+    "multiclass_brier": 0.65595518,
+    "multiclass_log_loss": 1.08377195,
+    "n": 655,
+    "top1_accuracy": 0.4351145
   },
-  "walk_forward_folds": 13
+  "walk_forward_folds": 14
 }
