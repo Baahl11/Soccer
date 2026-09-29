@@ -1,0 +1,75 @@
+name: Temporary v201.6 Live Player Props Audit
+
+on:
+  push:
+    branches: [tmp-v2016-player-props-lineup-history]
+    paths: [".github/workflows/tmp-v2016-live-audit.yml"]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify live health and build Player Props CLV
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sS --max-time 60 https://soccer-edge-api.onrender.com/health >/tmp/health.json
+          cat /tmp/health.json
+          jq -e '.status == "ok" and .render_git_commit == "d6406d1d35945557fedba05d1921a597ec8e566d" and .database_persistence_configured == true' /tmp/health.json >/dev/null
+
+          response=$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          TOKEN=$(echo "$response" | jq -r '.value // empty')
+          test -n "$TOKEN"
+          echo "::add-mask::$TOKEN"
+
+          HTTP_CODE=$(curl -sS --max-time 180 -o /tmp/player_props_clv.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"lookback_days":180,"max_rows":2000}' \
+            https://soccer-edge-api.onrender.com/internal/player-props-clv-v4/build)
+          echo "HTTP_CODE=$HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            head -c 2000 /tmp/player_props_clv.json || true
+            exit 1
+          fi
+          jq '{status,model_version,event_rows_loaded,signal_rows,snapshot_rows,true_clv_rows,unique_fixtures,families,signal_diagnostics,close_diagnostics,skip_reasons,provider_requests_added,production_promotion_allowed}' /tmp/player_props_clv.json
+          jq -e '
+            .provider_requests_added == 0
+            and .production_promotion_allowed == false
+            and (.families | type == "object")
+            and (.rows | type == "array")
+            and (.event_rows_loaded < 2000)
+            and (.snapshot_rows < 2000)
+          ' /tmp/player_props_clv.json >/dev/null
+
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Persist report
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p state/soccer_edge_state/analysis
+          jq 'del(.rows)' /tmp/player_props_clv.json > state/soccer_edge_state/analysis/player_props_clv_v4_report.json
+          jq -c '.rows[]' /tmp/player_props_clv.json > state/soccer_edge_state/analysis/player_props_clv_v4_tracking.jsonl
+          cd state
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/player_props_clv_v4_report.json soccer_edge_state/analysis/player_props_clv_v4_tracking.jsonl
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update Player Props true CLV from v201.6 audit"
+          git fetch origin soccer-edge-state
+          git rebase origin/soccer-edge-state
+          git push origin HEAD:soccer-edge-state
