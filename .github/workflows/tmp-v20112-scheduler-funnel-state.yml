@@ -1,0 +1,59 @@
+name: Temporary v201.12 Scheduler Funnel Persistence
+
+on:
+  push:
+    branches: [tmp-v20112-scheduler-funnel-state]
+    paths:
+      - "tmp_v20112_scheduler_patch.py"
+      - ".github/workflows/tmp-v20112-scheduler-funnel-state.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-squash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-v20112-scheduler-funnel-state
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply scheduler state patch
+        run: python tmp_v20112_scheduler_patch.py
+
+      - name: Verify funnel persistence wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('.github/workflows/soccer-edge-scheduler.yml').read_text(encoding='utf-8')
+          field = 'player_props_clv_maturation_funnel:(.player_props_clv_maturation_funnel // {})'
+          assert text.count(field) >= 2
+          assert '(.player_props_clv_maturation_funnel | type == "object")' in text
+          assert 'cron: "*/10 * * * *"' in text
+          print('V20112_SCHEDULER_FUNNEL_PERSISTENCE_OK')
+          PY
+          git diff --check
+
+      - name: Rewrite temp branch to one clean ops commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=66cd15148a50b3e919782e91db927d1dad60f8be
+          rm -f tmp_v20112_scheduler_patch.py .github/workflows/tmp-v20112-scheduler-funnel-state.yml
+          git reset --mixed "$BASE"
+          paths=$(git status --porcelain | awk '{print $2}' | sort | tr '\n' ' ')
+          test "$paths" = ".github/workflows/soccer-edge-scheduler.yml "
+          git diff --check
+          git add .github/workflows/soccer-edge-scheduler.yml
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git commit -m "ops: persist v201.12 Player Props maturation funnel" -m "Keep the new read-only Player Props maturation funnel in latest.json and compact history, and validate it as an object. Scheduler cadence, provider budget and runtime decision logic are unchanged."
+          git push --force-with-lease origin HEAD:tmp-v20112-scheduler-funnel-state
