@@ -605,10 +605,13 @@ def _build_snapshot_instrument_index(
 
 def pair_signals_to_closes(
     signals: Iterable[dict[str, Any]],
-    snapshots: Iterable[dict[str, Any]],
+    snapshots: Iterable[dict[str, Any]] | None = None,
     diagnostics: dict[str, Any] | None = None,
+    *,
+    instrument_index: dict[tuple[int, str, str, str, float | None], list[dict[str, Any]]] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    instrument_index = _build_snapshot_instrument_index(snapshots)
+    if instrument_index is None:
+        instrument_index = _build_snapshot_instrument_index(snapshots or [])
     tracked: list[dict[str, Any]] = []
     skip = Counter()
     diag = diagnostics if isinstance(diagnostics, dict) else {}
@@ -944,6 +947,116 @@ def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_row
         return [dict(zip(columns, row)) for row in cur.fetchall()]
 
 
+def _load_snapshot_instrument_index(
+    conn,
+    fixture_ids: list[int],
+    *,
+    lookback_days: int,
+    max_rows: int,
+    batch_size: int = 100,
+) -> tuple[dict[tuple[int, str, str, str, float | None], list[dict[str, Any]]], int]:
+    if not fixture_ids:
+        return {}, 0
+    cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+    bounded_batch = max(1, min(int(batch_size), 500))
+    index: dict[tuple[int, str, str, str, float | None], list[dict[str, Any]]] = defaultdict(list)
+
+    # Keep the global candidate selection narrow. Snapshot IDs are cheap to retain
+    # even at the 50k audit ceiling; heavy values/lineups are hydrated in batches.
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT m.snapshot_id
+            FROM soccer_market_snapshots m
+            JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+            WHERE m.fixture_id = ANY(%s)
+              AND m.captured_at >= %s
+              AND m.captured_at < f.kickoff
+              AND (
+                LOWER(COALESCE(m.market,'')) LIKE '%%player%%'
+                OR LOWER(COALESCE(m.market,'')) LIKE '%%scorer%%'
+                OR LOWER(COALESCE(m.market,'')) LIKE '%%goalkeeper save%%'
+                OR LOWER(COALESCE(m.market,'')) LIKE '%%keeper save%%'
+              )
+            ORDER BY m.fixture_id, m.captured_at
+            LIMIT %s
+            """,
+            (fixture_ids, cutoff, max_rows),
+        )
+        candidate_ids = [row[0] for row in cur.fetchall()]
+
+    hydrated_rows = 0
+    for offset in range(0, len(candidate_ids), bounded_batch):
+        batch_ids = candidate_ids[offset:offset + bounded_batch]
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    m.fixture_id,
+                    m.captured_at,
+                    m.stage,
+                    m.bookmaker_id,
+                    m.bookmaker,
+                    m.market_id,
+                    m.market,
+                    m.values,
+                    m.provider_update,
+                    f.kickoff,
+                    confirmed_lineup.payload AS confirmed_lineup_payload
+                FROM soccer_market_snapshots m
+                JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+                LEFT JOIN LATERAL (
+                    SELECT jsonb_build_object(
+                        'both_xi_confirmed', TRUE,
+                        'teams', COALESCE((
+                            SELECT jsonb_agg(
+                                jsonb_build_object(
+                                    'team_id', team->'team_id',
+                                    'team', team->'team',
+                                    'starters', COALESCE((
+                                        SELECT jsonb_agg(
+                                            jsonb_build_object(
+                                                'id', player->'id',
+                                                'name', player->'name',
+                                                'pos', player->'pos'
+                                            )
+                                        )
+                                        FROM jsonb_array_elements(
+                                            COALESCE(team->'starters', '[]'::jsonb)
+                                        ) AS player
+                                    ), '[]'::jsonb)
+                                )
+                            )
+                            FROM jsonb_array_elements(
+                                COALESCE(l.payload->'teams', '[]'::jsonb)
+                            ) AS team
+                        ), '[]'::jsonb)
+                    ) AS payload
+                    FROM soccer_lineup_snapshots l
+                    WHERE l.fixture_id = m.fixture_id
+                      AND l.captured_at <= m.captured_at
+                      AND l.both_xi_confirmed IS TRUE
+                    ORDER BY l.captured_at DESC
+                    LIMIT 1
+                ) confirmed_lineup ON TRUE
+                WHERE m.snapshot_id = ANY(%s)
+                """,
+                (batch_ids,),
+            )
+            columns = [desc.name for desc in cur.description]
+            snapshots = [dict(zip(columns, row)) for row in cur.fetchall()]
+
+        hydrated_rows += len(snapshots)
+        partial_index = _build_snapshot_instrument_index(snapshots)
+        for key, rows in partial_index.items():
+            index[key].extend(rows)
+        del snapshots, partial_index, batch_ids
+
+    for rows in index.values():
+        rows.sort(key=lambda row: row["captured_at"])
+    return dict(index), hydrated_rows
+
+
 def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> dict[str, Any]:
     lookback_days = max(1, min(int(lookback_days), 730))
     max_rows = max(100, min(int(max_rows), 200000))
@@ -967,7 +1080,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         event_rows_loaded = len(events)
         del events
         gc.collect()
-        snapshots = _load_snapshots(
+        instrument_index, snapshot_rows_loaded = _load_snapshot_instrument_index(
             conn,
             fixture_ids,
             lookback_days=lookback_days,
@@ -977,9 +1090,11 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
     close_diagnostics: dict[str, Any] = {}
     rows, skip_reasons = pair_signals_to_closes(
         signals,
-        snapshots,
         diagnostics=close_diagnostics,
+        instrument_index=instrument_index,
     )
+    del instrument_index
+    gc.collect()
     summary = summarize_tracking(rows)
     all_ready = bool(summary["families"]) and all(
         item.get("review_ready") is True for item in summary["families"].values()
@@ -992,7 +1107,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "event_rows_loaded": event_rows_loaded,
         "signal_rows": len(signals),
         "signal_diagnostics": signal_diagnostics,
-        "snapshot_rows": len(snapshots),
+        "snapshot_rows": snapshot_rows_loaded,
         "skip_reasons": skip_reasons,
         "close_diagnostics": close_diagnostics,
         **summary,
