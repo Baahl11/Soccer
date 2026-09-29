@@ -947,6 +947,78 @@ def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_row
         return [dict(zip(columns, row)) for row in cur.fetchall()]
 
 
+def _load_confirmed_lineup_history(conn, fixture_ids: list[int]) -> dict[int, list[tuple[datetime, dict[str, Any]]]]:
+    if not fixture_ids:
+        return {}
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                l.fixture_id,
+                l.captured_at,
+                jsonb_build_object(
+                    'both_xi_confirmed', TRUE,
+                    'teams', COALESCE((
+                        SELECT jsonb_agg(
+                            jsonb_build_object(
+                                'team_id', team->'team_id',
+                                'team', team->'team',
+                                'starters', COALESCE((
+                                    SELECT jsonb_agg(
+                                        jsonb_build_object(
+                                            'id', player->'id',
+                                            'name', player->'name',
+                                            'pos', player->'pos'
+                                        )
+                                    )
+                                    FROM jsonb_array_elements(
+                                        COALESCE(team->'starters', '[]'::jsonb)
+                                    ) AS player
+                                ), '[]'::jsonb)
+                            )
+                        )
+                        FROM jsonb_array_elements(
+                            COALESCE(l.payload->'teams', '[]'::jsonb)
+                        ) AS team
+                    ), '[]'::jsonb)
+                ) AS payload
+            FROM soccer_lineup_snapshots l
+            WHERE l.fixture_id = ANY(%s)
+              AND l.both_xi_confirmed IS TRUE
+            ORDER BY l.fixture_id, l.captured_at
+            """,
+            (fixture_ids,),
+        )
+        history: dict[int, list[tuple[datetime, dict[str, Any]]]] = defaultdict(list)
+        for fixture_id, captured_at, payload in cur.fetchall():
+            captured = _dt(captured_at)
+            if captured is None or not isinstance(payload, dict):
+                continue
+            history[int(fixture_id)].append((captured, payload))
+        return dict(history)
+
+
+def _attach_confirmed_lineup_history(
+    snapshots: list[dict[str, Any]],
+    history: dict[int, list[tuple[datetime, dict[str, Any]]]],
+) -> None:
+    for snapshot in snapshots:
+        snapshot['confirmed_lineup_payload'] = None
+        try:
+            fixture_id = int(snapshot.get('fixture_id'))
+        except (TypeError, ValueError):
+            continue
+        snapshot_at = _dt(snapshot.get('captured_at'))
+        if snapshot_at is None:
+            continue
+        latest_payload = None
+        for lineup_at, payload in history.get(fixture_id, []):
+            if lineup_at > snapshot_at:
+                break
+            latest_payload = payload
+        snapshot['confirmed_lineup_payload'] = latest_payload
+
+
 def _load_snapshot_instrument_index(
     conn,
     fixture_ids: list[int],
@@ -985,6 +1057,8 @@ def _load_snapshot_instrument_index(
         )
         candidate_ids = [row[0] for row in cur.fetchall()]
 
+    lineup_history = _load_confirmed_lineup_history(conn, fixture_ids)
+
     hydrated_rows = 0
     for offset in range(0, len(candidate_ids), bounded_batch):
         batch_ids = candidate_ids[offset:offset + bounded_batch]
@@ -1001,44 +1075,9 @@ def _load_snapshot_instrument_index(
                     m.market,
                     m.values,
                     m.provider_update,
-                    f.kickoff,
-                    confirmed_lineup.payload AS confirmed_lineup_payload
+                    f.kickoff
                 FROM soccer_market_snapshots m
                 JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
-                LEFT JOIN LATERAL (
-                    SELECT jsonb_build_object(
-                        'both_xi_confirmed', TRUE,
-                        'teams', COALESCE((
-                            SELECT jsonb_agg(
-                                jsonb_build_object(
-                                    'team_id', team->'team_id',
-                                    'team', team->'team',
-                                    'starters', COALESCE((
-                                        SELECT jsonb_agg(
-                                            jsonb_build_object(
-                                                'id', player->'id',
-                                                'name', player->'name',
-                                                'pos', player->'pos'
-                                            )
-                                        )
-                                        FROM jsonb_array_elements(
-                                            COALESCE(team->'starters', '[]'::jsonb)
-                                        ) AS player
-                                    ), '[]'::jsonb)
-                                )
-                            )
-                            FROM jsonb_array_elements(
-                                COALESCE(l.payload->'teams', '[]'::jsonb)
-                            ) AS team
-                        ), '[]'::jsonb)
-                    ) AS payload
-                    FROM soccer_lineup_snapshots l
-                    WHERE l.fixture_id = m.fixture_id
-                      AND l.captured_at <= m.captured_at
-                      AND l.both_xi_confirmed IS TRUE
-                    ORDER BY l.captured_at DESC
-                    LIMIT 1
-                ) confirmed_lineup ON TRUE
                 WHERE m.snapshot_id = ANY(%s)
                 """,
                 (batch_ids,),
@@ -1046,12 +1085,14 @@ def _load_snapshot_instrument_index(
             columns = [desc.name for desc in cur.description]
             snapshots = [dict(zip(columns, row)) for row in cur.fetchall()]
 
+        _attach_confirmed_lineup_history(snapshots, lineup_history)
         hydrated_rows += len(snapshots)
         partial_index = _build_snapshot_instrument_index(snapshots)
         for key, rows in partial_index.items():
             index[key].extend(rows)
         del snapshots, partial_index, batch_ids
 
+    del lineup_history
     for rows in index.values():
         rows.sort(key=lambda row: row["captured_at"])
     return dict(index), hydrated_rows
