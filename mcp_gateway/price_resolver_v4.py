@@ -2147,6 +2147,49 @@ def _player_prop_missing_maturation_signals(
     return missing, matured_families
 
 
+def _player_props_maturation_retry_policy(
+    *,
+    last_attempt_at: Any,
+    kickoff: Any,
+    now: datetime,
+) -> dict[str, Any]:
+    """Reuse stage freshness as a fixture-level retry cooldown.
+
+    A fresh /odds call refreshes every Player Props family available for the
+    fixture, so the cooldown is intentionally fixture-level. It never marks a
+    family mature; strict provider_update > signal time remains the only close
+    criterion.
+    """
+    stage = _maturation_stage(kickoff, now)
+    cooldown_minutes = int(FRESHNESS_MINUTES.get(stage, 15))
+    parsed_attempt: datetime | None = None
+    if isinstance(last_attempt_at, datetime):
+        parsed_attempt = last_attempt_at
+    elif last_attempt_at:
+        try:
+            parsed_attempt = datetime.fromisoformat(
+                str(last_attempt_at).replace("Z", "+00:00")
+            )
+        except ValueError:
+            parsed_attempt = None
+    if parsed_attempt is not None:
+        if parsed_attempt.tzinfo is None:
+            parsed_attempt = parsed_attempt.replace(tzinfo=timezone.utc)
+        parsed_attempt = parsed_attempt.astimezone(timezone.utc)
+    age_minutes = (
+        (now - parsed_attempt).total_seconds() / 60.0
+        if parsed_attempt is not None
+        else None
+    )
+    return {
+        "retry_due": parsed_attempt is None or float(age_minutes) >= cooldown_minutes,
+        "stage": stage,
+        "cooldown_minutes": cooldown_minutes,
+        "last_attempt_at": parsed_attempt,
+        "attempt_age_minutes": age_minutes,
+    }
+
+
 def _load_player_props_clv_maturation_backlog(
     *,
     lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
@@ -2291,6 +2334,7 @@ def _load_player_props_clv_maturation_backlog(
     candidates: list[dict[str, Any]] = []
     candidate_family_counts: dict[str, int] = defaultdict(int)
     already_matured_family_counts: dict[str, int] = defaultdict(int)
+    cooldown_suppressed = 0
     if grouped:
         with persistence._connect() as conn:
             with conn.cursor() as cur:
@@ -2305,14 +2349,13 @@ def _load_player_props_clv_maturation_backlog(
                     earliest_signal = min(signal_times)
                     cur.execute(
                         """
-                        SELECT m.market, m.provider_update
+                        SELECT m.market, m.provider_update, m.captured_at
                         FROM soccer_market_snapshots m
                         JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
                         WHERE m.fixture_id = %s
                           AND m.captured_at > %s
                           AND m.captured_at < f.kickoff
                           AND m.provider_update IS NOT NULL
-                          AND m.provider_update > %s
                           AND (
                                 LOWER(COALESCE(m.market,'')) LIKE '%%player shot%%'
                              OR LOWER(COALESCE(m.market,'')) LIKE '%%scorer%%'
@@ -2326,10 +2369,14 @@ def _load_player_props_clv_maturation_backlog(
                           )
                         ORDER BY m.captured_at DESC
                         """,
-                        (fixture_id, earliest_signal, earliest_signal),
+                        (fixture_id, earliest_signal),
                     )
                     later_markets = [
-                        {"market": raw[0], "provider_update": raw[1]}
+                        {
+                            "market": raw[0],
+                            "provider_update": raw[1],
+                            "captured_at": raw[2],
+                        }
                         for raw in cur.fetchall()
                         if raw and raw[0]
                     ]
@@ -2341,8 +2388,49 @@ def _load_player_props_clv_maturation_backlog(
                         already_matured_family_counts[family] += 1
                     if not missing_signals:
                         continue
+
+                    snapshot_attempt_times = [
+                        row.get("captured_at")
+                        for row in later_markets
+                        if row.get("captured_at") is not None
+                    ]
+                    cur.execute(
+                        """
+                        SELECT MAX(e.generated_at)
+                        FROM soccer_refresh_events e
+                        JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                        WHERE e.fixture_id = %s
+                          AND e.event_type = %s
+                          AND e.generated_at > %s
+                          AND e.generated_at < f.kickoff
+                        """,
+                        (fixture_id, PLAYER_PROPS_CLV_MATURATION_EVENT_TYPE, earliest_signal),
+                    )
+                    attempt_row = cur.fetchone()
+                    explicit_attempt_at = attempt_row[0] if attempt_row and attempt_row[0] else None
+                    attempt_times = snapshot_attempt_times + (
+                        [explicit_attempt_at] if explicit_attempt_at is not None else []
+                    )
+                    last_attempt_at = max(attempt_times) if attempt_times else None
+                    retry_policy = _player_props_maturation_retry_policy(
+                        last_attempt_at=last_attempt_at,
+                        kickoff=record.get("kickoff"),
+                        now=now,
+                    )
+                    if not retry_policy["retry_due"]:
+                        cooldown_suppressed += 1
+                        continue
+
                     candidate = dict(record)
                     candidate["signals"] = missing_signals
+                    candidate["last_maturation_attempt_at"] = (
+                        retry_policy["last_attempt_at"].isoformat()
+                        if retry_policy["last_attempt_at"] is not None
+                        else None
+                    )
+                    candidate["retry_stage"] = retry_policy["stage"]
+                    candidate["retry_cooldown_minutes"] = retry_policy["cooldown_minutes"]
+                    candidate["attempt_age_minutes"] = retry_policy["attempt_age_minutes"]
                     candidates.append(candidate)
                     for signal in missing_signals:
                         family = str(signal.get("market_family") or "").upper()
@@ -2366,6 +2454,10 @@ def _load_player_props_clv_maturation_backlog(
                 "provider_requests_before_price_resolver": 0,
                 "requires_provider_update_after_signal": True,
                 "retroactive_signal_created": False,
+                "last_maturation_attempt_at": record.get("last_maturation_attempt_at"),
+                "retry_stage": record.get("retry_stage"),
+                "retry_cooldown_minutes": record.get("retry_cooldown_minutes"),
+                "attempt_age_minutes": record.get("attempt_age_minutes"),
             },
         })
 
@@ -2379,8 +2471,10 @@ def _load_player_props_clv_maturation_backlog(
         "candidate_family_counts": dict(sorted(candidate_family_counts.items())),
         "signal_family_counts": dict(sorted(family_counts.items())),
         "already_matured_family_counts": dict(sorted(already_matured_family_counts.items())),
+        "cooldown_suppressed": cooldown_suppressed,
+        "retry_uses_existing_stage_freshness": True,
         "family_aware_suppression": True,
-        "source": "POSTGRES_PLAYER_PROPS_CLV_MATURATION_BACKLOG_V2",
+        "source": "POSTGRES_PLAYER_PROPS_CLV_MATURATION_BACKLOG_V3",
     }
 
 
@@ -3052,6 +3146,7 @@ async def resolve_payload(
     player_props_maturation_budget_exhausted = 0
     player_props_maturation_primary_payload_reuse_fixtures = 0
     player_props_maturation_synthetic_events_added = 0
+    player_props_maturation_attempt_events_added = 0
 
     if player_props_maturation_events:
         async with httpx.AsyncClient(
@@ -3144,6 +3239,35 @@ async def resolve_payload(
                     player_props_maturation_not_matured_family_counts[family] += 1
                 if not matured_families:
                     player_props_maturation_unchanged_provider_updates += 1
+                    if provider_calls_for_event > 0:
+                        exact_attempt_markets = [
+                            market
+                            for market in markets
+                            if isinstance(market, dict)
+                            and str(
+                                _research_derivative_subfamily(
+                                    str(market.get("market") or "")
+                                ) or ""
+                            ).upper() in evaluated_families
+                        ]
+                        if exact_attempt_markets:
+                            _attach_market_to_event(
+                                event,
+                                exact_attempt_markets,
+                                status or "PLAYER_PROPS_CLV_MATURATION_PROVIDER_ATTEMPT",
+                            )
+                        event["market_use"] = "PLAYER_PROPS_TRUE_CLV_MATURATION_ATTEMPT_ONLY"
+                        event["player_props_clv_maturation"]["matured_families"] = []
+                        event["player_props_clv_maturation"]["not_matured_families"] = sorted(
+                            not_matured_families
+                        )
+                        event["player_props_clv_maturation"]["provider_update_after_signal"] = False
+                        event["player_props_clv_maturation"]["provider_requests_added"] = (
+                            provider_calls_for_event
+                        )
+                        event["player_props_clv_maturation"]["fresh_attempt_persisted"] = True
+                        events.append(event)
+                        player_props_maturation_attempt_events_added += 1
                     continue
 
                 exact_markets = [
@@ -3741,11 +3865,18 @@ async def resolve_payload(
         "player_props_clv_maturation_family_aware_suppression": (
             player_props_maturation.get("family_aware_suppression") is True
         ),
+        "player_props_clv_maturation_cooldown_suppressed": int(
+            player_props_maturation.get("cooldown_suppressed") or 0
+        ),
+        "player_props_clv_maturation_retry_uses_existing_stage_freshness": (
+            player_props_maturation.get("retry_uses_existing_stage_freshness") is True
+        ),
+        "player_props_clv_maturation_attempt_events_added": player_props_maturation_attempt_events_added,
         "player_props_clv_maturation_unchanged_provider_updates": player_props_maturation_unchanged_provider_updates,
         "player_props_clv_maturation_budget_exhausted": player_props_maturation_budget_exhausted,
         "player_props_clv_maturation_primary_payload_reuse_fixtures": player_props_maturation_primary_payload_reuse_fixtures,
         "player_props_clv_maturation_synthetic_events_added": player_props_maturation_synthetic_events_added,
-        "player_props_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;PRIMARY_CLV_SECOND;THEN_EXISTING_PLAYER_PROP_SIGNAL_LATER_REAL_QUOTE_MAX4;FAMILY_AWARE_BACKLOG_SUPPRESSION;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;RESEARCH_ONLY",
+        "player_props_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;PRIMARY_CLV_SECOND;THEN_EXISTING_PLAYER_PROP_SIGNAL_LATER_REAL_QUOTE_MAX4;FAMILY_AWARE_BACKLOG_SUPPRESSION;STAGE_FRESHNESS_RETRY_COOLDOWN;FRESH_PROVIDER_ATTEMPTS_PERSIST_RESEARCH_ONLY;CACHE_REPLAY_NOT_CLOSE;STRICT_PROVIDER_UPDATE_AFTER_SIGNAL_UNCHANGED;THEN_TEAM_TOTALS;RESEARCH_ONLY",
         "provider_requests_added": calls,
         "provider_daily_remaining_observed": provider_daily_remaining,
         "quota_accounting_included_in_api_calls_this_tick": True,

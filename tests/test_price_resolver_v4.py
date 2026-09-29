@@ -2198,5 +2198,5 @@ def test_v201_player_props_backlog_uses_family_aware_suppression():
     assert "SELECT m.market, m.provider_update" in source
     assert 'candidate["signals"] = missing_signals' in source
     assert '"family_aware_suppression": True' in source
-    assert "POSTGRES_PLAYER_PROPS_CLV_MATURATION_BACKLOG_V2" in source
+    assert "POSTGRES_PLAYER_PROPS_CLV_MATURATION_BACKLOG_V3" in source
 
