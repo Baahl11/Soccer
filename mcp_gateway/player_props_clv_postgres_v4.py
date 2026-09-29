@@ -947,15 +947,48 @@ def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_row
         return [dict(zip(columns, row)) for row in cur.fetchall()]
 
 
-def _load_confirmed_lineup_history(conn, fixture_ids: list[int]) -> dict[int, list[tuple[datetime, dict[str, Any]]]]:
+def _load_confirmed_lineup_history_window(
+    conn,
+    fixture_ids: list[int],
+    *,
+    start_at: datetime,
+    end_at: datetime,
+) -> dict[int, list[tuple[datetime, dict[str, Any]]]]:
     if not fixture_ids:
         return {}
     with conn.cursor() as cur:
         cur.execute(
             """
+            WITH predecessor AS (
+                SELECT DISTINCT ON (l.fixture_id)
+                    l.fixture_id,
+                    l.captured_at,
+                    l.payload
+                FROM soccer_lineup_snapshots l
+                WHERE l.fixture_id = ANY(%s)
+                  AND l.both_xi_confirmed IS TRUE
+                  AND l.captured_at < %s
+                ORDER BY l.fixture_id, l.captured_at DESC
+            ),
+            windowed AS (
+                SELECT
+                    l.fixture_id,
+                    l.captured_at,
+                    l.payload
+                FROM soccer_lineup_snapshots l
+                WHERE l.fixture_id = ANY(%s)
+                  AND l.both_xi_confirmed IS TRUE
+                  AND l.captured_at >= %s
+                  AND l.captured_at <= %s
+            ),
+            relevant AS (
+                SELECT * FROM predecessor
+                UNION ALL
+                SELECT * FROM windowed
+            )
             SELECT
-                l.fixture_id,
-                l.captured_at,
+                r.fixture_id,
+                r.captured_at,
                 jsonb_build_object(
                     'both_xi_confirmed', TRUE,
                     'teams', COALESCE((
@@ -978,16 +1011,14 @@ def _load_confirmed_lineup_history(conn, fixture_ids: list[int]) -> dict[int, li
                             )
                         )
                         FROM jsonb_array_elements(
-                            COALESCE(l.payload->'teams', '[]'::jsonb)
+                            COALESCE(r.payload->'teams', '[]'::jsonb)
                         ) AS team
                     ), '[]'::jsonb)
                 ) AS payload
-            FROM soccer_lineup_snapshots l
-            WHERE l.fixture_id = ANY(%s)
-              AND l.both_xi_confirmed IS TRUE
-            ORDER BY l.fixture_id, l.captured_at
+            FROM relevant r
+            ORDER BY r.fixture_id, r.captured_at
             """,
-            (fixture_ids,),
+            (fixture_ids, start_at, fixture_ids, start_at, end_at),
         )
         history: dict[int, list[tuple[datetime, dict[str, Any]]]] = defaultdict(list)
         for fixture_id, captured_at, payload in cur.fetchall():
@@ -1057,8 +1088,6 @@ def _load_snapshot_instrument_index(
         )
         candidate_ids = [row[0] for row in cur.fetchall()]
 
-    lineup_history = _load_confirmed_lineup_history(conn, fixture_ids)
-
     hydrated_rows = 0
     for offset in range(0, len(candidate_ids), bounded_batch):
         batch_ids = candidate_ids[offset:offset + bounded_batch]
@@ -1085,14 +1114,37 @@ def _load_snapshot_instrument_index(
             columns = [desc.name for desc in cur.description]
             snapshots = [dict(zip(columns, row)) for row in cur.fetchall()]
 
+        snapshot_times = [
+            parsed
+            for parsed in (_dt(row.get("captured_at")) for row in snapshots)
+            if parsed is not None
+        ]
+        batch_fixture_ids: list[int] = []
+        for row in snapshots:
+            try:
+                fixture_id = int(row.get("fixture_id"))
+            except (TypeError, ValueError):
+                continue
+            batch_fixture_ids.append(fixture_id)
+        batch_fixture_ids = sorted(set(batch_fixture_ids))
+
+        lineup_history = (
+            _load_confirmed_lineup_history_window(
+                conn,
+                batch_fixture_ids,
+                start_at=min(snapshot_times),
+                end_at=max(snapshot_times),
+            )
+            if snapshot_times and batch_fixture_ids
+            else {}
+        )
         _attach_confirmed_lineup_history(snapshots, lineup_history)
         hydrated_rows += len(snapshots)
         partial_index = _build_snapshot_instrument_index(snapshots)
         for key, rows in partial_index.items():
             index[key].extend(rows)
-        del snapshots, partial_index, batch_ids
+        del snapshots, partial_index, batch_ids, lineup_history, snapshot_times, batch_fixture_ids
 
-    del lineup_history
     for rows in index.values():
         rows.sort(key=lambda row: row["captured_at"])
     return dict(index), hydrated_rows
