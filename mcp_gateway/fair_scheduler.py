@@ -7,7 +7,7 @@ from typing import Any
 
 from mcp_gateway import automation as base
 
-SCHEMA_VERSION = "1.2.0"
+SCHEMA_VERSION = "1.3.0"
 STATE_NAMESPACE = "fair_scheduler_state"
 STATE_TTL = timedelta(hours=72)
 EXPORT_MAX_AGE = timedelta(hours=72)
@@ -26,6 +26,7 @@ COVERAGE_CATCHUP_WEIGHTS = {
 }
 
 URGENT_ACTIONABLE_STAGES = {"T-40", "T-30", "T-20", "T-10", "CLOSE"}
+COVERAGE_CATEGORY_ORDER = {"unseen": 0, "exploratory": 1, "actionable": 2}
 
 
 def get_state(fixture_id: int, now: datetime) -> dict[str, Any]:
@@ -75,8 +76,6 @@ def category(prior_shortlisted: bool, state: dict[str, Any]) -> str:
 
 
 def _last_deep_dive_sort_value(state: dict[str, Any]) -> str:
-    # ISO-8601 UTC strings sort chronologically. Missing means oldest and should
-    # be serviced first when a category is otherwise tied.
     return str(state.get("last_deep_dive_at") or "")
 
 
@@ -87,15 +86,11 @@ def _sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
     last = _last_deep_dive_sort_value(state)
 
     if cat == "actionable":
-        # Preserve lifecycle urgency first, then favor the least-recently
-        # refreshed shortlist within an otherwise equivalent gate.
         head = priority[:3]
         tail = priority[3:]
         return (*head, last, *tail)
     if cat == "unseen":
         return priority
-    # Repeat research should age into service instead of monopolizing merely
-    # because the same fixture keeps hitting T-40/T-20/T-10 windows.
     return (last, *priority)
 
 
@@ -136,13 +131,7 @@ def _effective_weights(
     queues: dict[str, list[dict[str, Any]]],
     max_slots: int,
 ) -> tuple[dict[str, int], str, int]:
-    """Shift spare research capacity toward first-look coverage only when safe.
-
-    Actionable lifecycle urgency is preserved because actionable queues remain
-    priority-sorted. Catch-up mode is enabled only when unseen backlog is at
-    least 2x the actionable queue, fills at least one full planned window, and
-    urgent actionable fixtures are <=25% of the planned window.
-    """
+    """Shift spare research capacity toward first-look coverage only when safe."""
     limit = max(int(max_slots or 0), 0)
     actionable = queues.get("actionable") or []
     unseen = queues.get("unseen") or []
@@ -161,6 +150,35 @@ def _effective_weights(
     if catchup:
         return dict(COVERAGE_CATCHUP_WEIGHTS), "COVERAGE_CATCHUP", urgent_actionable_count
     return dict(CATEGORY_WEIGHTS), "NORMAL_WEIGHTED_FAIR", urgent_actionable_count
+
+
+def _pop_identity(queue: list[dict[str, Any]], target: dict[str, Any]) -> bool:
+    for index, item in enumerate(queue):
+        if item is target:
+            queue.pop(index)
+            return True
+    return False
+
+
+def _best_coverage_candidate(
+    queues: dict[str, list[dict[str, Any]]],
+    uncovered_leagues: set[str],
+) -> dict[str, Any] | None:
+    candidates: list[dict[str, Any]] = []
+    for queue in queues.values():
+        for item in queue:
+            if _league_key(item) in uncovered_leagues:
+                candidates.append(item)
+    if not candidates:
+        return None
+    return min(
+        candidates,
+        key=lambda item: (
+            COVERAGE_CATEGORY_ORDER.get(str(item.get("fairness_category") or "exploratory"), 3),
+            _sort_key(item),
+            _league_key(item),
+        ),
+    )
 
 
 def fair_order(
@@ -184,8 +202,41 @@ def fair_order(
     selected: list[dict[str, Any]] = []
     limit = max(int(max_slots or 0), 0)
     effective_weights, scheduling_mode, urgent_actionable_count = _effective_weights(queues, limit)
-    current = {key: 0 for key in effective_weights}
 
+    # 1) Preserve every urgent actionable item that can fit. This guard runs
+    # before coverage reservation, so maturity/diversity can never displace a
+    # due T-40/T-30/T-20/T-10/CLOSE lifecycle refresh.
+    urgent_selected = 0
+    for item in list(queues["actionable"]):
+        if len(selected) >= limit:
+            break
+        if str(item.get("stage") or "").upper() not in URGENT_ACTIONABLE_STAGES:
+            continue
+        if _pop_identity(queues["actionable"], item):
+            selected.append(item)
+            urgent_selected += 1
+
+    # 2) Reserve one due fixture per eligible league whenever capacity permits.
+    # Prefer unseen/exploratory candidates for this reserve, then actionable.
+    # This changes only ordering inside the existing max_slots budget: no new
+    # provider request, threshold, stake, model weight or promotion path exists.
+    eligible_leagues = {_league_key(item) for item in items}
+    league_floor_target = min(len(eligible_leagues), limit)
+    covered_leagues = {_league_key(item) for item in selected}
+    coverage_reserved = 0
+    while len(selected) < limit and len(covered_leagues) < league_floor_target:
+        candidate = _best_coverage_candidate(queues, eligible_leagues - covered_leagues)
+        if candidate is None:
+            break
+        cat = str(candidate.get("fairness_category") or "exploratory")
+        if not _pop_identity(queues[cat], candidate):
+            break
+        selected.append(candidate)
+        covered_leagues.add(_league_key(candidate))
+        coverage_reserved += 1
+
+    # 3) Fill the remaining capacity with the existing weighted-fair policy.
+    current = {key: 0 for key in effective_weights}
     while len(selected) < limit:
         available = [key for key, queue in queues.items() if queue]
         if not available:
@@ -203,16 +254,17 @@ def fair_order(
     deferred.sort(key=lambda item: tuple(item.get("priority") or ()))
 
     planned_counts = Counter(str(item.get("fairness_category") or "exploratory") for item in selected)
-    eligible_leagues = {_league_key(item) for item in items}
     planned_leagues = {_league_key(item) for item in selected}
     planned_league_counts = Counter(_league_key(item) for item in selected)
+    league_floor_covered = len(planned_leagues & eligible_leagues)
     metrics = {
         "schema_version": SCHEMA_VERSION,
-        "policy": "WEIGHTED_FAIR_WITH_GUARDED_COVERAGE_CATCHUP_AND_LEAGUE_ROUND_ROBIN",
+        "policy": "URGENT_GUARD_THEN_DUE_LEAGUE_MATURITY_FLOOR_THEN_WEIGHTED_FAIR",
         "weights_pct": dict(CATEGORY_WEIGHTS),
         "effective_weights_pct": dict(effective_weights),
         "scheduling_mode": scheduling_mode,
         "urgent_actionable_count": urgent_actionable_count,
+        "urgent_actionable_selected": urgent_selected,
         "eligible_queue_counts": initial_counts,
         "planned_slot_counts": {key: int(planned_counts.get(key, 0)) for key in CATEGORY_WEIGHTS},
         "planned_slot_count": len(selected),
@@ -220,7 +272,20 @@ def fair_order(
         "eligible_unique_leagues": len(eligible_leagues),
         "planned_unique_leagues": len(planned_leagues),
         "planned_league_counts": dict(planned_league_counts),
-        "league_diversity_policy": "ACTIONABLE_PRIORITY_PRESERVED;UNSEEN_AND_EXPLORATORY_INTERLEAVED_BY_LEAGUE",
+        "league_floor_target": league_floor_target,
+        "league_floor_covered": league_floor_covered,
+        "league_floor_met": bool(league_floor_covered >= league_floor_target),
+        "league_coverage_pct": (
+            round(league_floor_covered / len(eligible_leagues) * 100.0, 2)
+            if eligible_leagues else None
+        ),
+        "maturity_coverage_reserved_slots": coverage_reserved,
+        "provider_requests_added": 0,
+        "production_promotion_allowed": False,
+        "league_diversity_policy": (
+            "URGENT_ACTIONABLE_PRESERVED;ONE_DUE_FIXTURE_PER_ELIGIBLE_LEAGUE_WHEN_CAPACITY_ALLOWS;"
+            "UNSEEN_AND_EXPLORATORY_PREFERRED_FOR_COVERAGE_RESERVE;WEIGHTED_FAIR_FILL_AFTER_RESERVE"
+        ),
     }
     return selected, deferred, metrics
 
