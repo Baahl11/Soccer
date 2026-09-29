@@ -171,6 +171,19 @@ CREATE TABLE IF NOT EXISTS soccer_alerts (
 
 CREATE INDEX IF NOT EXISTS idx_soccer_fixtures_kickoff ON soccer_fixtures (kickoff);
 CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_generated ON soccer_refresh_events (generated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_player_props_generated
+ON soccer_refresh_events (generated_at DESC)
+INCLUDE (event_id, fixture_id, stage)
+WHERE stage IN ('T-40','T-30','T-20','T-10')
+  AND payload ? 'market'
+  AND (
+       payload ? 'player_shots_intelligence'
+    OR payload ? 'player_sot_intelligence'
+    OR payload ? 'player_goalscorer_intelligence'
+    OR payload ? 'player_assists_intelligence'
+    OR payload ? 'player_cards_intelligence'
+    OR payload ? 'gk_saves_intelligence'
+  );
 CREATE INDEX IF NOT EXISTS idx_soccer_market_fixture_time ON soccer_market_snapshots (fixture_id, captured_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_lineup_fixture_time_confirmed ON soccer_lineup_snapshots (fixture_id, captured_at DESC) WHERE both_xi_confirmed IS TRUE;
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_created ON soccer_alerts (created_at DESC);
