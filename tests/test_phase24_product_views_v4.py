@@ -132,7 +132,7 @@ def test_phase24_builds_all_master_dashboard_views_and_control_tower():
     assert tower["system_health"]["api_football_remaining"] == 3000
     assert tower["pipeline"]["fixtures_scanned"] == 200
     assert tower["pipeline"]["api_call_cap"] == 40
-    assert tower["schema_version"] == "2.0.0"
+    assert tower["schema_version"] == "2.1.0"
     assert tower["pipeline"]["scheduler_mode"] == "COVERAGE_CATCHUP"
     assert tower["pipeline"]["scheduler_unseen_processed"] == 8
     assert tower["pipeline"]["scheduler_starvation_count"] == 406
@@ -148,6 +148,34 @@ def test_phase24_builds_all_master_dashboard_views_and_control_tower():
     assert gates["phase16_calibration_sample"]["target"] == 300
     assert gates["1x2_true_clv"]["current"] is None
     assert gates["1x2_true_clv"]["target"] == 50
+
+
+def test_control_tower_uses_injected_maturity_snapshot_without_provider_calls():
+    payload = _payload()
+    payload["maturity_snapshot"] = {
+        "status": "OK",
+        "gates": {
+            "1x2_true_clv": {"current": 47, "target": 50, "source": "1x2.json"},
+            "btts_true_clv": {"current": 15, "target": 50, "source": "btts.json"},
+            "team_totals_true_clv": {"current": 0, "target": 50, "source": "tt.json"},
+            "1h_true_clv": {"current": 0, "target": 50, "source": "1h.json"},
+            "corners_formation": {"current": 39, "target": 100, "source": "corners.json"},
+            "player_props_true_clv": {"current": 0, "target": 50, "source": "props.json"},
+        },
+        "provider_requests_added": 0,
+        "production_promotion_allowed": False,
+    }
+
+    tower = v.build_views(payload)["views"]["control_tower"]
+    gates = {gate["key"]: gate for gate in tower["validation_gates"]}
+
+    assert gates["1x2_true_clv"]["current"] == 47
+    assert gates["btts_true_clv"]["current"] == 15
+    assert gates["team_totals_true_clv"]["current"] == 0
+    assert gates["1h_true_clv"]["current"] == 0
+    assert gates["corners_formation"]["current"] == 39
+    assert gates["player_props_true_clv"]["current"] == 0
+    assert tower["maturity_snapshot"]["provider_requests_added"] == 0
 
 
 def test_control_tower_uses_authoritative_top_level_data_health_and_detects_errors():
@@ -186,7 +214,6 @@ def test_phase24_view_limits_are_bounded():
     result = v.build_views({"match_table_rows": rows}, limit=10)
     assert result["views"]["todays_slate"]["total"] == 50
     assert len(result["views"]["todays_slate"]["rows"]) == 10
-
 
 
 def test_control_tower_final_payload_exposes_post_price_telemetry_and_healthy_db():
