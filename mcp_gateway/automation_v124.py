@@ -11,6 +11,7 @@ AUTOMATION_VERSION = "4.33.0-primary-clv-priority"
 
 # Engineering priority only. This never changes a model score, market gate,
 # threshold, stake, tier, or the number of provider calls available to the tick.
+# The companion v206 tests lock the family ordering and no-candidate-creation invariant.
 PRIMARY_MATURATION_FAMILY_ORDER = ("1X2", "BTTS", "FT_TOTALS")
 _FAMILY_PRIORITY = {family: index for index, family in enumerate(PRIMARY_MATURATION_FAMILY_ORDER)}
 
