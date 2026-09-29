@@ -3,17 +3,22 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_MATURATION_WATCHDOGS_V4_1.0.0"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_MATURATION_WATCHDOGS_V4_1.1.0"
 STAGNATION_WINDOW_SECONDS = 48 * 60 * 60
 
-_TIMESTAMP_KEYS = (
-    "last_generated_at_local",
-    "last_generated_at_utc",
-    "generated_at_utc",
-    "generated_at_local",
+_ARTIFACT_TIMESTAMP_KEYS = (
+    "report_updated_at_utc",
+    "report_generated_at_utc",
+    "artifact_updated_at_utc",
     "updated_at_utc",
     "updated_at",
+)
+_EVIDENCE_TIMESTAMP_KEYS = (
+    "last_evidence_at_utc",
+    "last_evidence_at_local",
+    "last_generated_at_utc",
+    "last_generated_at_local",
 )
 
 
@@ -50,12 +55,20 @@ def _parse_timestamp(value: Any) -> datetime | None:
     return parsed.astimezone(timezone.utc)
 
 
-def _report_timestamp(report: dict[str, Any]) -> datetime | None:
-    for key in _TIMESTAMP_KEYS:
+def _timestamp_from_keys(report: dict[str, Any], keys: tuple[str, ...]) -> datetime | None:
+    for key in keys:
         parsed = _parse_timestamp(report.get(key))
         if parsed is not None:
             return parsed
     return None
+
+
+def _artifact_timestamp(report: dict[str, Any]) -> datetime | None:
+    return _timestamp_from_keys(report, _ARTIFACT_TIMESTAMP_KEYS)
+
+
+def _evidence_timestamp(report: dict[str, Any]) -> datetime | None:
+    return _timestamp_from_keys(report, _EVIDENCE_TIMESTAMP_KEYS)
 
 
 def _watch(
@@ -191,36 +204,56 @@ def build_watchdogs(
     watchdogs: dict[str, dict[str, Any]] = {}
 
     signal = _dict(reports.get("signal_summary"))
-    signal_ts = _report_timestamp(signal)
+    artifact_ts = _artifact_timestamp(signal)
+    evidence_ts = _evidence_timestamp(signal)
     stages = _dict(signal.get("stage_counts"))
     close_rows = _int(stages.get("CLOSE"))
     if not signal:
         watchdogs["signal_close_freshness"] = _watch(
-            "NOT_VERIFIED",
-            "SIGNAL_LEDGER_SUMMARY_UNAVAILABLE",
-            source="signal_ledger_summary.json",
+            "NOT_VERIFIED", "SIGNAL_LEDGER_SUMMARY_UNAVAILABLE", source="signal_ledger_summary.json"
         )
-    elif signal_ts is None:
-        watchdogs["signal_close_freshness"] = _watch(
-            "NOT_VERIFIED",
-            "SIGNAL_LEDGER_TIMESTAMP_UNAVAILABLE",
-            source="signal_ledger_summary.json",
-            evidence={"close_stage_rows": close_rows},
+        watchdogs["signal_evidence_age"] = _watch(
+            "NOT_VERIFIED", "SIGNAL_EVIDENCE_UNAVAILABLE", source="signal_ledger_summary.json"
         )
     else:
-        age_seconds = max(0.0, now_ts - signal_ts.timestamp())
-        watchdogs["signal_close_freshness"] = _watch(
-            "WATCH" if age_seconds >= STAGNATION_WINDOW_SECONDS else "OK",
-            "SIGNAL_CLOSE_TELEMETRY_STALE_48H"
-            if age_seconds >= STAGNATION_WINDOW_SECONDS
-            else "SIGNAL_CLOSE_TELEMETRY_FRESH",
-            source="signal_ledger_summary.json",
-            evidence={
-                "last_generated_at": signal_ts.isoformat(),
-                "age_hours": round(age_seconds / 3600.0, 2),
-                "close_stage_rows": close_rows,
-            },
-        )
+        if artifact_ts is None:
+            watchdogs["signal_close_freshness"] = _watch(
+                "NOT_VERIFIED",
+                "SIGNAL_REPORT_ARTIFACT_TIMESTAMP_UNAVAILABLE",
+                source="signal_ledger_summary.json",
+                evidence={"close_stage_rows": close_rows},
+            )
+        else:
+            artifact_age = max(0.0, now_ts - artifact_ts.timestamp())
+            watchdogs["signal_close_freshness"] = _watch(
+                "WATCH" if artifact_age >= STAGNATION_WINDOW_SECONDS else "OK",
+                "SIGNAL_REPORT_ARTIFACT_STALE_48H" if artifact_age >= STAGNATION_WINDOW_SECONDS else "SIGNAL_REPORT_ARTIFACT_FRESH",
+                source="signal_ledger_summary.json",
+                evidence={
+                    "report_updated_at": artifact_ts.isoformat(),
+                    "age_hours": round(artifact_age / 3600.0, 2),
+                    "close_stage_rows": close_rows,
+                },
+            )
+        if evidence_ts is None:
+            watchdogs["signal_evidence_age"] = _watch(
+                "NOT_VERIFIED",
+                "SIGNAL_LAST_EVIDENCE_TIMESTAMP_UNAVAILABLE",
+                source="signal_ledger_summary.json",
+                evidence={"close_stage_rows": close_rows},
+            )
+        else:
+            evidence_age = max(0.0, now_ts - evidence_ts.timestamp())
+            watchdogs["signal_evidence_age"] = _watch(
+                "WATCH" if evidence_age >= STAGNATION_WINDOW_SECONDS else "OK",
+                "SIGNAL_EVIDENCE_AGE_OVER_48H" if evidence_age >= STAGNATION_WINDOW_SECONDS else "SIGNAL_EVIDENCE_RECENT",
+                source="signal_ledger_summary.json",
+                evidence={
+                    "last_evidence_at": evidence_ts.isoformat(),
+                    "age_hours": round(evidence_age / 3600.0, 2),
+                    "close_stage_rows": close_rows,
+                },
+            )
 
     two_h = _dict(reports.get("two_h"))
     two_h_clv = _dict(two_h.get("true_clv"))
@@ -228,29 +261,21 @@ def build_watchdogs(
     two_h_fixtures = _int(two_h_clv.get("unique_fixtures"))
     if not two_h or two_h_rows is None:
         watchdogs["two_h_market_maturation"] = _watch(
-            "NOT_VERIFIED",
-            "2H_MATURATION_SOURCE_UNAVAILABLE",
-            source="v4_021_2h_oos_validation.json",
+            "NOT_VERIFIED", "2H_MATURATION_SOURCE_UNAVAILABLE", source="v4_021_2h_oos_validation.json"
         )
     else:
         watchdogs["two_h_market_maturation"] = _watch(
             "WATCH" if two_h_rows <= 0 else "OK",
             "2H_STRICT_CLOSE_EVIDENCE_ZERO" if two_h_rows <= 0 else "2H_STRICT_CLOSE_EVIDENCE_PRESENT",
             source="v4_021_2h_oos_validation.json",
-            evidence={
-                "true_clv_rows": two_h_rows,
-                "true_clv_unique_fixtures": two_h_fixtures,
-                "minimum_rows": _int(two_h_clv.get("minimum_rows")),
-            },
+            evidence={"true_clv_rows": two_h_rows, "true_clv_unique_fixtures": two_h_fixtures, "minimum_rows": _int(two_h_clv.get("minimum_rows"))},
         )
 
     corners = _dict(reports.get("corners"))
     formation_rows = _int(_dict(corners.get("ft_corners")).get("formation_adjusted_evaluations"))
     if not corners or formation_rows is None:
         watchdogs["corners_formation_join"] = _watch(
-            "NOT_VERIFIED",
-            "CORNERS_FORMATION_SOURCE_UNAVAILABLE",
-            source="v4_022_corners_oos_validation.json",
+            "NOT_VERIFIED", "CORNERS_FORMATION_SOURCE_UNAVAILABLE", source="v4_022_corners_oos_validation.json"
         )
     else:
         watchdogs["corners_formation_join"] = _watch(
@@ -266,50 +291,32 @@ def build_watchdogs(
     card_snapshots = _int(match_cards.get("market_snapshot_rows"))
     settlement = _dict(reports.get("settlement_coverage"))
     settlement_families = _dict(settlement.get("by_market_family_reason"))
-    card_settlement_families = sorted(
-        str(name) for name in settlement_families if "CARD" in str(name).upper()
-    )
+    card_settlement_families = sorted(str(name) for name in settlement_families if "CARD" in str(name).upper())
     if not cards:
         watchdogs["cards_settlement"] = _watch(
-            "NOT_VERIFIED",
-            "CARDS_MATURATION_SOURCE_UNAVAILABLE",
-            source="phase14_cards_referee_validation.json",
+            "NOT_VERIFIED", "CARDS_MATURATION_SOURCE_UNAVAILABLE", source="phase14_cards_referee_validation.json"
         )
     elif card_priced is None:
         watchdogs["cards_settlement"] = _watch(
-            "NOT_VERIFIED",
-            "CARD_PRICE_COUNTER_UNAVAILABLE",
-            source="phase14_cards_referee_validation.json",
+            "NOT_VERIFIED", "CARD_PRICE_COUNTER_UNAVAILABLE", source="phase14_cards_referee_validation.json"
         )
     elif card_priced <= 0:
         watchdogs["cards_settlement"] = _watch(
             "WATCH",
             "CARD_SETTLEMENT_BLOCKED_NO_OBSERVED_PRICE_HISTORY",
             source="phase14_cards_referee_validation.json",
-            evidence={
-                "match_card_priced_value_rows": card_priced,
-                "match_card_market_snapshot_rows": card_snapshots,
-                "settlement_card_families": card_settlement_families,
-            },
+            evidence={"match_card_priced_value_rows": card_priced, "match_card_market_snapshot_rows": card_snapshots, "settlement_card_families": card_settlement_families},
         )
     elif not settlement:
         watchdogs["cards_settlement"] = _watch(
-            "NOT_VERIFIED",
-            "SETTLEMENT_COVERAGE_SOURCE_UNAVAILABLE",
-            source="settlement_coverage_report.json",
-            evidence={"match_card_priced_value_rows": card_priced},
+            "NOT_VERIFIED", "SETTLEMENT_COVERAGE_SOURCE_UNAVAILABLE", source="settlement_coverage_report.json", evidence={"match_card_priced_value_rows": card_priced}
         )
     else:
         watchdogs["cards_settlement"] = _watch(
             "WATCH" if not card_settlement_families else "OK",
-            "CARD_SETTLEMENT_ROWS_NOT_OBSERVED"
-            if not card_settlement_families
-            else "CARD_SETTLEMENT_EVIDENCE_PRESENT",
+            "CARD_SETTLEMENT_ROWS_NOT_OBSERVED" if not card_settlement_families else "CARD_SETTLEMENT_EVIDENCE_PRESENT",
             source="settlement_coverage_report.json",
-            evidence={
-                "match_card_priced_value_rows": card_priced,
-                "settlement_card_families": card_settlement_families,
-            },
+            evidence={"match_card_priced_value_rows": card_priced, "settlement_card_families": card_settlement_families},
         )
 
     props = _dict(reports.get("player_props"))
@@ -321,18 +328,12 @@ def build_watchdogs(
         priced = _int(market.get("priced_value_rows")) or 0
         xi_fixture = _int(market.get("confirmed_xi_pre_kickoff_unique_fixtures")) or 0
         xi_player = _int(market.get("confirmed_xi_player_aligned_unique_fixtures")) or 0
-        prop_evidence[str(family)] = {
-            "priced_value_rows": priced,
-            "confirmed_xi_fixtures": xi_fixture,
-            "player_xi_aligned_fixtures": xi_player,
-        }
+        prop_evidence[str(family)] = {"priced_value_rows": priced, "confirmed_xi_fixtures": xi_fixture, "player_xi_aligned_fixtures": xi_player}
         if priced > 0 and (xi_fixture <= 0 or xi_player <= 0):
             prop_gaps.append(str(family))
     if not prop_families:
         watchdogs["player_props_xi_confirmed"] = _watch(
-            "NOT_VERIFIED",
-            "PLAYER_PROP_FAMILY_EVIDENCE_UNAVAILABLE",
-            source="phase15_player_props_validation.json",
+            "NOT_VERIFIED", "PLAYER_PROP_FAMILY_EVIDENCE_UNAVAILABLE", source="phase15_player_props_validation.json"
         )
     else:
         watchdogs["player_props_xi_confirmed"] = _watch(
@@ -342,59 +343,36 @@ def build_watchdogs(
             evidence={"families_with_gaps": prop_gaps, "by_family": prop_evidence},
         )
 
+    baseline_source = str(previous.get("source") or "persistent_watchdog_baseline")
     if not previous_counters or since_ts is None:
         watchdogs["evidence_growth_48h"] = _watch(
-            "NOT_VERIFIED",
-            "MATURATION_BASELINE_INITIALIZED",
-            source="in_process_watchdog_baseline",
-            evidence={"counter_count": len(counters)},
+            "NOT_VERIFIED", "MATURATION_BASELINE_INITIALIZED", source=baseline_source, evidence={"counter_count": len(counters)}
         )
     else:
         stalled = stagnation_seconds >= STAGNATION_WINDOW_SECONDS and growth <= 0 and not decreased
         watchdogs["evidence_growth_48h"] = _watch(
             "WATCH" if stalled else "OK",
             "NO_MATURATION_EVIDENCE_GROWTH_48H" if stalled else "MATURATION_EVIDENCE_MONITORING",
-            source="in_process_watchdog_baseline",
-            evidence={
-                "stagnation_hours": round(stagnation_seconds / 3600.0, 2),
-                "increased_counters": increased,
-                "counter_count": len(counters),
-            },
+            source=baseline_source,
+            evidence={"stagnation_hours": round(stagnation_seconds / 3600.0, 2), "increased_counters": increased, "counter_count": len(counters)},
         )
 
     if provider_calls is None:
         watchdogs["provider_requests_without_evidence_growth"] = _watch(
-            "NOT_VERIFIED",
-            "PROVIDER_CALL_COUNTER_UNAVAILABLE",
-            source="api_efficiency.json",
+            "NOT_VERIFIED", "PROVIDER_CALL_COUNTER_UNAVAILABLE", source="api_efficiency.json"
         )
     elif previous_calls is None or not previous_counters or since_ts is None:
         watchdogs["provider_requests_without_evidence_growth"] = _watch(
-            "NOT_VERIFIED",
-            "PROVIDER_EFFICIENCY_BASELINE_INITIALIZED",
-            source="api_efficiency.json",
-            evidence={"provider_calls": provider_calls},
+            "NOT_VERIFIED", "PROVIDER_EFFICIENCY_BASELINE_INITIALIZED", source=baseline_source, evidence={"provider_calls": provider_calls}
         )
     else:
         request_delta = provider_calls - previous_calls
-        stalled = (
-            request_delta > 0
-            and growth <= 0
-            and not decreased
-            and stagnation_seconds >= STAGNATION_WINDOW_SECONDS
-        )
+        stalled = request_delta > 0 and growth <= 0 and not decreased and stagnation_seconds >= STAGNATION_WINDOW_SECONDS
         watchdogs["provider_requests_without_evidence_growth"] = _watch(
             "WATCH" if stalled else "OK",
-            "PROVIDER_REQUESTS_CONSUMED_WITHOUT_EVIDENCE_GROWTH_48H"
-            if stalled
-            else "PROVIDER_EFFICIENCY_MONITORING",
-            source="api_efficiency.json",
-            evidence={
-                "provider_calls": provider_calls,
-                "provider_call_delta": request_delta,
-                "evidence_growth_delta": growth,
-                "stagnation_hours": round(stagnation_seconds / 3600.0, 2),
-            },
+            "PROVIDER_REQUESTS_CONSUMED_WITHOUT_EVIDENCE_GROWTH_48H" if stalled else "PROVIDER_EFFICIENCY_MONITORING",
+            source=baseline_source,
+            evidence={"provider_calls": provider_calls, "provider_call_delta": request_delta, "evidence_growth_delta": growth, "stagnation_hours": round(stagnation_seconds / 3600.0, 2)},
         )
 
     statuses = [node["status"] for node in watchdogs.values()]
