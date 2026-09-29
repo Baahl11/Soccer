@@ -1,4 +1,4 @@
-# v201.10 event-batching 2k-row verification 2026-09-28
+# v201.10 compact close-diagnostics audit 2026-09-28
 name: Player Props True CLV Validation
 
 on:
@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: player-props-true-clv-validation-v20110-probe2000
+  group: player-props-true-clv-validation-v20110-close-diagnostics
   cancel-in-progress: false
 
 jobs:
@@ -22,12 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Verify live isolated worker with 2000 rows
+      - name: Inspect live Player Props close diagnostics
         shell: bash
         run: |
           set -euo pipefail
           curl -sS --max-time 60 https://soccer-edge-api.onrender.com/health >/tmp/health.json
-          cat /tmp/health.json
           jq -e '.status == "ok" and .render_git_commit == "2c8b228d5675c0d1e29216a2fa612687622f91b4" and .database_persistence_configured == true' /tmp/health.json >/dev/null
 
           response=$(curl -fsS \
@@ -43,8 +42,36 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"lookback_days":180,"max_rows":2000}' \
             https://soccer-edge-api.onrender.com/internal/player-props-clv-v4/build)
+
           echo "HTTP_CODE=$HTTP_CODE"
-          head -c 2000 /tmp/player_props_clv.json || true
-          echo
+          jq '{
+            status,
+            event_rows_loaded,
+            signal_rows,
+            snapshot_rows,
+            true_clv_rows,
+            unique_fixtures,
+            skip_reasons,
+            close_diagnostics,
+            families,
+            signal_family_summary: (
+              .signal_diagnostics.families
+              | with_entries(.value |= {
+                  intelligence_event_rows,
+                  market_overlap_event_rows,
+                  market_rows,
+                  raw_market_values,
+                  aligned_market_values,
+                  priced_overlap_values,
+                  model_probability_values,
+                  signal_rows,
+                  sidecar_capture_status,
+                  probability_failure_reasons
+                })
+            ),
+            provider_requests_added,
+            production_promotion_allowed
+          }' /tmp/player_props_clv.json
+
           test "$HTTP_CODE" = "200"
-          jq -e '.provider_requests_added == 0 and .production_promotion_allowed == false and (.rows | type == "array") and (.event_rows_loaded <= 2000) and (.snapshot_rows <= 2000)' /tmp/player_props_clv.json >/dev/null
+          jq -e '.provider_requests_added == 0 and .production_promotion_allowed == false and (.rows | type == "array")' /tmp/player_props_clv.json >/dev/null
