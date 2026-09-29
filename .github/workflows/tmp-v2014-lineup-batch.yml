@@ -1,0 +1,76 @@
+name: Temporary v201.4 Player Props Lineup Batch
+
+on:
+  push:
+    branches: [tmp-v2014-player-props-lineup-batch]
+    paths:
+      - "tmp_v2014_patch.py"
+      - ".github/workflows/tmp-v2014-lineup-batch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-squash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-v2014-player-props-lineup-batch
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply lineup batching patch
+        run: python tmp_v2014_patch.py
+
+      - name: Compile and verify query shape
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile mcp_gateway/player_props_clv_postgres_v4.py
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('mcp_gateway/player_props_clv_postgres_v4.py').read_text(encoding='utf-8')
+          start = text.index('def _load_snapshots(')
+          end = text.index('def build_from_postgres(', start)
+          block = text[start:end]
+          assert 'LEFT JOIN LATERAL' not in block
+          assert 'def _load_confirmed_lineups(' in block
+          assert 'def _attach_confirmed_lineups(' in block
+          assert '_attach_confirmed_lineups(snapshots, confirmed_lineups)' in text
+          assert text.count('WITH candidate_snapshots AS MATERIALIZED') == 1
+          print('V2014_QUERY_SHAPE_OK')
+          PY
+
+      - name: Install focused runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+
+      - name: Run Player Props and scheduler regressions
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_phase15_player_props_v4.py \
+            tests/test_player_props_phase15_v4.py \
+            tests/test_research_derivative_postgres_audit.py \
+            tests/test_v4_006_fair_scheduler.py \
+            tests/test_price_resolver_v4.py
+
+      - name: Rewrite temp branch to one clean v201.4 commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=4426dc878434a8cf65077e30f440e4ecc90a0972
+          rm -f tmp_v2014_patch.py .github/workflows/tmp-v2014-lineup-batch.yml
+          git reset --mixed "$BASE"
+          test "$(git status --porcelain | awk '{print $2}')" = "mcp_gateway/player_props_clv_postgres_v4.py"
+          git diff --check
+          git add mcp_gateway/player_props_clv_postgres_v4.py
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git commit -m "v201.4: batch confirmed lineup hydration for Player Props audit" -m "Replace the per-market-snapshot LATERAL lineup lookup with one fixture-level confirmed-lineup load and point-in-time association in Python. Preserve latest confirmed XI at or before each market snapshot while removing repeated JSON expansion/table scans. No provider calls, budgets, models, thresholds, decision weights, stages, classifications, or promotion gates changed."
+          git push --force-with-lease origin HEAD:tmp-v2014-player-props-lineup-batch
