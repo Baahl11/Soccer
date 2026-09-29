@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
-from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, formation_postgres_audit, oos_prediction_ledger_v4, persistence as persistence_base, player_props_clv_postgres_v4, player_props_oos_postgres_v4, player_props_phase15_coverage_audit, player_props_postgame_backfill_v4, player_trend_registry_backfill_v4, product_dashboard_v4, product_views_v4, promotion_shadow_postgres_v4, research_derivative_postgres_audit, settlement_postgres_v4, training_dataset_v4
+from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, formation_postgres_audit, oos_prediction_ledger_v4, persistence as persistence_base, player_props_oos_postgres_v4, player_props_phase15_coverage_audit, player_props_postgame_backfill_v4, player_trend_registry_backfill_v4, product_dashboard_v4, product_views_v4, promotion_shadow_postgres_v4, research_derivative_postgres_audit, settlement_postgres_v4, training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -499,13 +499,43 @@ async def internal_player_props_clv_v4_build(request: Request) -> Response:
     except (TypeError, ValueError):
         return JSONResponse({"error": "invalid_player_props_clv_parameters"}, status_code=400)
 
+    env = os.environ.copy()
+    env.setdefault("MALLOC_ARENA_MAX", "1")
+    env.setdefault("PYTHONMALLOC", "malloc")
     try:
-        result = await asyncio.to_thread(
-            player_props_clv_postgres_v4.build_from_postgres,
-            lookback_days=lookback_days,
-            max_rows=max_rows,
+        proc = await asyncio.create_subprocess_exec(
+            sys.executable,
+            "-m",
+            "mcp_gateway.player_props_clv_worker",
+            str(lookback_days),
+            str(max_rows),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
-        return JSONResponse(result)
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=170)
+        except TimeoutError:
+            proc.kill()
+            await proc.wait()
+            return JSONResponse({"error": "player_props_clv_v4_timeout"}, status_code=504)
+
+        stderr_text = stderr.decode("utf-8", errors="replace") if stderr else ""
+        if proc.returncode != 0:
+            return JSONResponse(
+                {
+                    "error": "player_props_clv_v4_build_failed",
+                    "detail": stderr_text[-1000:] or f"worker exited {proc.returncode}",
+                },
+                status_code=500,
+            )
+        if not stdout:
+            return JSONResponse(
+                {"error": "player_props_clv_v4_build_failed", "detail": "worker returned empty output"},
+                status_code=500,
+            )
+
+        return Response(content=stdout, media_type="application/json", status_code=200)
     except Exception as exc:
         return JSONResponse(
             {"error": "player_props_clv_v4_build_failed", "detail": str(exc)[:500]},
