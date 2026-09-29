@@ -1,4 +1,4 @@
-# v201.10 compact close-diagnostics audit 2026-09-28
+# v201.11 compact close-diagnostics audit 2026-09-28
 name: Player Props True CLV Validation
 
 on:
@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: player-props-true-clv-validation-v20110-close-diagnostics
+  group: player-props-true-clv-validation-v20111-close-diagnostics
   cancel-in-progress: false
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -sS --max-time 60 https://soccer-edge-api.onrender.com/health >/tmp/health.json
-          jq -e '.status == "ok" and .render_git_commit == "2c8b228d5675c0d1e29216a2fa612687622f91b4" and .database_persistence_configured == true' /tmp/health.json >/dev/null
+          jq -e '.status == "ok" and .render_git_commit == "28f2d1e27a31f17353f52a974e397cd04fc5a817" and .database_persistence_configured == true' /tmp/health.json >/dev/null
 
           response=$(curl -fsS \
             -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
