@@ -7,7 +7,7 @@ from typing import Any
 
 from mcp_gateway import automation as base
 
-SCHEMA_VERSION = "1.3.0"
+SCHEMA_VERSION = "1.2.0"
 STATE_NAMESPACE = "fair_scheduler_state"
 STATE_TTL = timedelta(hours=72)
 EXPORT_MAX_AGE = timedelta(hours=72)
@@ -152,33 +152,81 @@ def _effective_weights(
     return dict(CATEGORY_WEIGHTS), "NORMAL_WEIGHTED_FAIR", urgent_actionable_count
 
 
-def _pop_identity(queue: list[dict[str, Any]], target: dict[str, Any]) -> bool:
-    for index, item in enumerate(queue):
-        if item is target:
-            queue.pop(index)
-            return True
-    return False
-
-
-def _best_coverage_candidate(
-    queues: dict[str, list[dict[str, Any]]],
-    uncovered_leagues: set[str],
-) -> dict[str, Any] | None:
-    candidates: list[dict[str, Any]] = []
-    for queue in queues.values():
-        for item in queue:
-            if _league_key(item) in uncovered_leagues:
-                candidates.append(item)
-    if not candidates:
-        return None
-    return min(
-        candidates,
-        key=lambda item: (
-            COVERAGE_CATEGORY_ORDER.get(str(item.get("fairness_category") or "exploratory"), 3),
-            _sort_key(item),
-            _league_key(item),
-        ),
+def _is_protected_urgent(item: dict[str, Any]) -> bool:
+    return (
+        str(item.get("fairness_category") or "") == "actionable"
+        and str(item.get("stage") or "").upper() in URGENT_ACTIONABLE_STAGES
     )
+
+
+def _apply_league_coverage_floor(
+    selected: list[dict[str, Any]],
+    deferred: list[dict[str, Any]],
+    eligible_leagues: set[str],
+    limit: int,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
+    """Swap duplicate-league slots for missing leagues without increasing slots.
+
+    Same-category swaps are preferred so the weighted scheduler contract remains
+    intact. Urgent actionable selections are never displaced. This is a pure
+    ordering/diversity correction and cannot add provider requests.
+    """
+    if not selected or not deferred or limit <= 0:
+        return selected, deferred, 0
+
+    swaps = 0
+    target = min(len(eligible_leagues), limit)
+    while len({_league_key(item) for item in selected}) < target:
+        selected_counts = Counter(_league_key(item) for item in selected)
+        missing = eligible_leagues - set(selected_counts)
+        if not missing:
+            break
+
+        incoming_candidates = [item for item in deferred if _league_key(item) in missing]
+        if not incoming_candidates:
+            break
+        incoming_candidates.sort(
+            key=lambda item: (
+                COVERAGE_CATEGORY_ORDER.get(str(item.get("fairness_category") or "exploratory"), 3),
+                _sort_key(item),
+                _league_key(item),
+            )
+        )
+
+        swapped = False
+        for incoming in incoming_candidates:
+            incoming_cat = str(incoming.get("fairness_category") or "exploratory")
+            replacement_indices = [
+                index
+                for index, outgoing in enumerate(selected)
+                if str(outgoing.get("fairness_category") or "exploratory") == incoming_cat
+                and selected_counts[_league_key(outgoing)] > 1
+                and not _is_protected_urgent(outgoing)
+            ]
+            if not replacement_indices:
+                replacement_indices = [
+                    index
+                    for index, outgoing in enumerate(selected)
+                    if selected_counts[_league_key(outgoing)] > 1
+                    and not _is_protected_urgent(outgoing)
+                ]
+            if not replacement_indices:
+                continue
+
+            replace_index = replacement_indices[-1]
+            outgoing = selected[replace_index]
+            selected[replace_index] = incoming
+            deferred.remove(incoming)
+            deferred.append(outgoing)
+            swaps += 1
+            swapped = True
+            break
+
+        if not swapped:
+            break
+
+    deferred.sort(key=lambda item: tuple(item.get("priority") or ()))
+    return selected, deferred, swaps
 
 
 def fair_order(
@@ -202,41 +250,8 @@ def fair_order(
     selected: list[dict[str, Any]] = []
     limit = max(int(max_slots or 0), 0)
     effective_weights, scheduling_mode, urgent_actionable_count = _effective_weights(queues, limit)
-
-    # 1) Preserve every urgent actionable item that can fit. This guard runs
-    # before coverage reservation, so maturity/diversity can never displace a
-    # due T-40/T-30/T-20/T-10/CLOSE lifecycle refresh.
-    urgent_selected = 0
-    for item in list(queues["actionable"]):
-        if len(selected) >= limit:
-            break
-        if str(item.get("stage") or "").upper() not in URGENT_ACTIONABLE_STAGES:
-            continue
-        if _pop_identity(queues["actionable"], item):
-            selected.append(item)
-            urgent_selected += 1
-
-    # 2) Reserve one due fixture per eligible league whenever capacity permits.
-    # Prefer unseen/exploratory candidates for this reserve, then actionable.
-    # This changes only ordering inside the existing max_slots budget: no new
-    # provider request, threshold, stake, model weight or promotion path exists.
-    eligible_leagues = {_league_key(item) for item in items}
-    league_floor_target = min(len(eligible_leagues), limit)
-    covered_leagues = {_league_key(item) for item in selected}
-    coverage_reserved = 0
-    while len(selected) < limit and len(covered_leagues) < league_floor_target:
-        candidate = _best_coverage_candidate(queues, eligible_leagues - covered_leagues)
-        if candidate is None:
-            break
-        cat = str(candidate.get("fairness_category") or "exploratory")
-        if not _pop_identity(queues[cat], candidate):
-            break
-        selected.append(candidate)
-        covered_leagues.add(_league_key(candidate))
-        coverage_reserved += 1
-
-    # 3) Fill the remaining capacity with the existing weighted-fair policy.
     current = {key: 0 for key in effective_weights}
+
     while len(selected) < limit:
         available = [key for key, queue in queues.items() if queue]
         if not available:
@@ -253,18 +268,26 @@ def fair_order(
         deferred.extend(queue)
     deferred.sort(key=lambda item: tuple(item.get("priority") or ()))
 
+    eligible_leagues = {_league_key(item) for item in items}
+    selected, deferred, coverage_swaps = _apply_league_coverage_floor(
+        selected,
+        deferred,
+        eligible_leagues,
+        limit,
+    )
+
     planned_counts = Counter(str(item.get("fairness_category") or "exploratory") for item in selected)
     planned_leagues = {_league_key(item) for item in selected}
     planned_league_counts = Counter(_league_key(item) for item in selected)
+    league_floor_target = min(len(eligible_leagues), limit)
     league_floor_covered = len(planned_leagues & eligible_leagues)
     metrics = {
         "schema_version": SCHEMA_VERSION,
-        "policy": "URGENT_GUARD_THEN_DUE_LEAGUE_MATURITY_FLOOR_THEN_WEIGHTED_FAIR",
+        "policy": "WEIGHTED_FAIR_WITH_GUARDED_COVERAGE_CATCHUP_AND_LEAGUE_ROUND_ROBIN_AND_POSTPLAN_MATURITY_FLOOR",
         "weights_pct": dict(CATEGORY_WEIGHTS),
         "effective_weights_pct": dict(effective_weights),
         "scheduling_mode": scheduling_mode,
         "urgent_actionable_count": urgent_actionable_count,
-        "urgent_actionable_selected": urgent_selected,
         "eligible_queue_counts": initial_counts,
         "planned_slot_counts": {key: int(planned_counts.get(key, 0)) for key in CATEGORY_WEIGHTS},
         "planned_slot_count": len(selected),
@@ -279,12 +302,12 @@ def fair_order(
             round(league_floor_covered / len(eligible_leagues) * 100.0, 2)
             if eligible_leagues else None
         ),
-        "maturity_coverage_reserved_slots": coverage_reserved,
+        "maturity_coverage_swaps": coverage_swaps,
         "provider_requests_added": 0,
         "production_promotion_allowed": False,
         "league_diversity_policy": (
-            "URGENT_ACTIONABLE_PRESERVED;ONE_DUE_FIXTURE_PER_ELIGIBLE_LEAGUE_WHEN_CAPACITY_ALLOWS;"
-            "UNSEEN_AND_EXPLORATORY_PREFERRED_FOR_COVERAGE_RESERVE;WEIGHTED_FAIR_FILL_AFTER_RESERVE"
+            "ACTIONABLE_PRIORITY_PRESERVED;UNSEEN_AND_EXPLORATORY_INTERLEAVED_BY_LEAGUE;"
+            "POSTPLAN_DUPLICATE_LEAGUE_SLOTS_MAY_SWAP_TO_MISSING_DUE_LEAGUES_WITHOUT_DISPLACING_URGENT_ACTIONABLE"
         ),
     }
     return selected, deferred, metrics
