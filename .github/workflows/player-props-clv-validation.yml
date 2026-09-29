@@ -1,4 +1,4 @@
-# v201.6 lineup-history audit retry 2026-09-28
+# v201.7 isolated-worker audit verification 2026-09-28
 name: Player Props True CLV Validation
 
 on:
@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: player-props-true-clv-validation
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   validate:
