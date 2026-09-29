@@ -899,12 +899,27 @@ def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_row
                 c.market,
                 m.values,
                 c.provider_update,
-                c.kickoff,
-                confirmed_lineup.payload AS confirmed_lineup_payload
+                c.kickoff
             FROM candidate_snapshots c
             JOIN soccer_market_snapshots m ON m.snapshot_id = c.snapshot_id
-            LEFT JOIN LATERAL (
-                SELECT jsonb_build_object(
+            """,
+            (fixture_ids, cutoff, max_rows),
+        )
+        columns = [desc.name for desc in cur.description]
+        return [dict(zip(columns, row)) for row in cur.fetchall()]
+
+
+def _load_confirmed_lineups(conn, fixture_ids: list[int], *, lookback_days: int) -> list[dict[str, Any]]:
+    if not fixture_ids:
+        return []
+    cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                l.fixture_id,
+                l.captured_at,
+                jsonb_build_object(
                     'both_xi_confirmed', TRUE,
                     'teams', COALESCE((
                         SELECT jsonb_agg(
@@ -930,18 +945,58 @@ def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_row
                         ) AS team
                     ), '[]'::jsonb)
                 ) AS payload
-                FROM soccer_lineup_snapshots l
-                WHERE l.fixture_id = c.fixture_id
-                  AND l.captured_at <= c.captured_at
-                  AND l.both_xi_confirmed IS TRUE
-                ORDER BY l.captured_at DESC
-                LIMIT 1
-            ) confirmed_lineup ON TRUE
+            FROM soccer_lineup_snapshots l
+            WHERE l.fixture_id = ANY(%s)
+              AND l.captured_at >= %s
+              AND l.both_xi_confirmed IS TRUE
             """,
-            (fixture_ids, cutoff, max_rows),
+            (fixture_ids, cutoff),
         )
         columns = [desc.name for desc in cur.description]
         return [dict(zip(columns, row)) for row in cur.fetchall()]
+
+
+def _attach_confirmed_lineups(
+    snapshots: list[dict[str, Any]],
+    lineups: list[dict[str, Any]],
+) -> None:
+    lineups_by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    snapshots_by_fixture: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    for row in lineups:
+        try:
+            fixture_id = int(row.get('fixture_id'))
+        except (TypeError, ValueError):
+            continue
+        if _dt(row.get('captured_at')) is not None:
+            lineups_by_fixture[fixture_id].append(row)
+    for row in snapshots:
+        try:
+            fixture_id = int(row.get('fixture_id'))
+        except (TypeError, ValueError):
+            continue
+        row['confirmed_lineup_payload'] = None
+        if _dt(row.get('captured_at')) is not None:
+            snapshots_by_fixture[fixture_id].append(row)
+
+    floor = datetime.min.replace(tzinfo=timezone.utc)
+    for fixture_id, fixture_snapshots in snapshots_by_fixture.items():
+        fixture_lineups = lineups_by_fixture.get(fixture_id, [])
+        fixture_lineups.sort(key=lambda row: _dt(row.get('captured_at')) or floor)
+        fixture_snapshots.sort(key=lambda row: _dt(row.get('captured_at')) or floor)
+        lineup_index = 0
+        latest_payload = None
+        for snapshot in fixture_snapshots:
+            snapshot_at = _dt(snapshot.get('captured_at'))
+            if snapshot_at is None:
+                continue
+            while lineup_index < len(fixture_lineups):
+                lineup_at = _dt(fixture_lineups[lineup_index].get('captured_at'))
+                if lineup_at is None or lineup_at > snapshot_at:
+                    break
+                latest_payload = fixture_lineups[lineup_index].get('payload')
+                lineup_index += 1
+            snapshot['confirmed_lineup_payload'] = latest_payload
+
 
 
 def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> dict[str, Any]:
@@ -973,6 +1028,14 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
             lookback_days=lookback_days,
             max_rows=max_rows,
         )
+        confirmed_lineups = _load_confirmed_lineups(
+            conn,
+            fixture_ids,
+            lookback_days=lookback_days,
+        )
+        _attach_confirmed_lineups(snapshots, confirmed_lineups)
+        del confirmed_lineups
+        gc.collect()
 
     close_diagnostics: dict[str, Any] = {}
     rows, skip_reasons = pair_signals_to_closes(
