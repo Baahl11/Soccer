@@ -904,7 +904,32 @@ def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_row
             FROM candidate_snapshots c
             JOIN soccer_market_snapshots m ON m.snapshot_id = c.snapshot_id
             LEFT JOIN LATERAL (
-                SELECT l.payload
+                SELECT jsonb_build_object(
+                    'both_xi_confirmed', TRUE,
+                    'teams', COALESCE((
+                        SELECT jsonb_agg(
+                            jsonb_build_object(
+                                'team_id', team->'team_id',
+                                'team', team->'team',
+                                'starters', COALESCE((
+                                    SELECT jsonb_agg(
+                                        jsonb_build_object(
+                                            'id', player->'id',
+                                            'name', player->'name',
+                                            'pos', player->'pos'
+                                        )
+                                    )
+                                    FROM jsonb_array_elements(
+                                        COALESCE(team->'starters', '[]'::jsonb)
+                                    ) AS player
+                                ), '[]'::jsonb)
+                            )
+                        )
+                        FROM jsonb_array_elements(
+                            COALESCE(l.payload->'teams', '[]'::jsonb)
+                        ) AS team
+                    ), '[]'::jsonb)
+                ) AS payload
                 FROM soccer_lineup_snapshots l
                 WHERE l.fixture_id = c.fixture_id
                   AND l.captured_at <= c.captured_at
