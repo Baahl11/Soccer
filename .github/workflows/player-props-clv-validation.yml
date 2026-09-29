@@ -1,4 +1,4 @@
-# v201.2 no-heavy-sort audit refresh 2026-09-28
+# v201.2 bounded-capacity audit refresh 2026-09-28
 name: Player Props True CLV Validation
 
 on:
@@ -58,7 +58,7 @@ jobs:
             -X POST \
             -H "Authorization: Bearer ${TOKEN}" \
             -H "Content-Type: application/json" \
-            -d '{"lookback_days":180,"max_rows":50000}' \
+            -d '{"lookback_days":180,"max_rows":10000}' \
             https://soccer-edge-api.onrender.com/internal/player-props-clv-v4/build)
 
           echo "HTTP_CODE=$HTTP_CODE"
@@ -67,6 +67,7 @@ jobs:
             detail,
             status,
             model_version,
+            event_rows_loaded,
             signal_rows,
             snapshot_rows,
             true_clv_rows,
@@ -86,6 +87,8 @@ jobs:
             and .production_promotion_allowed == false
             and (.families | type == "object")
             and (.rows | type == "array")
+            and (.event_rows_loaded < 10000)
+            and (.snapshot_rows < 10000)
           ' /tmp/player_props_clv.json >/dev/null
 
       - name: Materialize report and tracking
