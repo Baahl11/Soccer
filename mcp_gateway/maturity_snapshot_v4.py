@@ -8,8 +8,10 @@ from typing import Any
 
 import httpx
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_MATURITY_SNAPSHOT_V4_1.0.0"
+from mcp_gateway import maturation_watchdogs_v4
+
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_MATURITY_SNAPSHOT_V4_1.1.0"
 CACHE_TTL_SECONDS = 300.0
 REQUEST_TIMEOUT_SECONDS = 3.0
 
@@ -18,13 +20,19 @@ _REPORTS = {
     "btts": "v4_018_btts_calibration_validation.json",
     "team_totals": "v4_019_team_totals_oos_validation.json",
     "one_h": "v4_020_1h_oos_validation.json",
+    "two_h": "v4_021_2h_oos_validation.json",
     "corners": "v4_022_corners_oos_validation.json",
+    "cards": "phase14_cards_referee_validation.json",
     "player_props": "phase15_player_props_validation.json",
+    "signal_summary": "signal_ledger_summary.json",
+    "settlement_coverage": "settlement_coverage_report.json",
+    "api_efficiency": "api_efficiency.json",
 }
 
 _LOCK = threading.Lock()
 _CACHE: dict[str, Any] | None = None
 _CACHE_AT = 0.0
+_WATCHDOG_BASELINE: dict[str, Any] | None = None
 
 
 def _state_config() -> tuple[str, str] | None:
@@ -168,7 +176,7 @@ def load_snapshot(*, force: bool = False) -> dict[str, Any]:
     GitHub. If STATE_REPO/STATE_BRANCH are absent (for example unit tests), the
     function returns an unavailable snapshot without doing network I/O.
     """
-    global _CACHE, _CACHE_AT
+    global _CACHE, _CACHE_AT, _WATCHDOG_BASELINE
 
     now = time.monotonic()
     with _LOCK:
@@ -184,6 +192,13 @@ def load_snapshot(*, force: bool = False) -> dict[str, Any]:
                 "reason": "STATE_REPO_OR_STATE_BRANCH_NOT_CONFIGURED",
                 "gates": {},
                 "errors": {},
+                "maturation_watchdogs": {
+                    "status": "NOT_VERIFIED",
+                    "reason": "STATE_REPO_OR_STATE_BRANCH_NOT_CONFIGURED",
+                    "watchdogs": {},
+                    "provider_requests_added": 0,
+                    "production_promotion_allowed": False,
+                },
                 "provider_requests_added": 0,
                 "production_promotion_allowed": False,
             }
@@ -191,6 +206,12 @@ def load_snapshot(*, force: bool = False) -> dict[str, Any]:
             repo, branch = config
             reports, errors = _fetch_reports(repo, branch)
             snapshot = _build_summary(reports, errors)
+            watchdogs, next_baseline = maturation_watchdogs_v4.build_watchdogs(
+                reports,
+                baseline=_WATCHDOG_BASELINE,
+            )
+            _WATCHDOG_BASELINE = next_baseline
+            snapshot["maturation_watchdogs"] = watchdogs
             snapshot["state_repo"] = repo
             snapshot["state_branch"] = branch
 
