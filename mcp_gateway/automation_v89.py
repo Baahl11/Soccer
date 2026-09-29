@@ -7,6 +7,7 @@ from typing import Any, Awaitable, Callable
 
 from mcp_gateway import automation as base
 from mcp_gateway import automation_v2 as v2
+from mcp_gateway import automation_v3 as v3
 from mcp_gateway import automation_v6 as v6
 from mcp_gateway import automation_v88 as v88
 
@@ -28,6 +29,9 @@ FUTURE_SLATE_DAY1_MIN_DAILY_REMAINING = int(
 )
 FUTURE_SLATE_DAY2_MIN_DAILY_REMAINING = int(
     os.getenv("SOCCER_EDGE_FUTURE_SLATE_DAY2_MIN_DAILY_REMAINING", "6000")
+)
+MARKET_CAPTURE_HANDOFF_MAX_FIXTURES = max(
+    100, int(os.getenv("SOCCER_EDGE_MARKET_CAPTURE_HANDOFF_MAX_FIXTURES", "2500"))
 )
 
 ApiGet = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
@@ -175,6 +179,58 @@ def _slate_dimensions(payload: dict[str, Any]) -> tuple[int, int]:
     return len(leagues), len(countries)
 
 
+def _cached_bulk_coverage(now_utc: datetime) -> tuple[dict[str, dict[str, Any]], str]:
+    """Read the already-paid coverage map without ever calling API-Football."""
+    live = getattr(v3, "_BULK_COVERAGE", None)
+    if isinstance(live, dict) and live:
+        return live, "IN_PROCESS_BULK_COVERAGE"
+
+    cached = base._cache_get("bulk_coverage", "all", timedelta(days=3), now_utc)
+    if isinstance(cached, dict) and cached:
+        return cached, "PERSISTED_BULK_COVERAGE_CACHE"
+    return {}, "BULK_COVERAGE_CACHE_UNAVAILABLE"
+
+
+def _market_capture_handoff_from_cached_coverage(
+    rows: list[Any],
+    now_utc: datetime,
+) -> tuple[int | None, dict[str, int], str]:
+    """Count future A/B/C fixtures from the captured raw slate with zero provider calls."""
+    coverage_map, source = _cached_bulk_coverage(now_utc)
+    if not coverage_map:
+        return None, {}, source
+
+    tier_counts: dict[str, int] = {}
+    eligible = 0
+    seen: set[int] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        fixture = row.get("fixture") if isinstance(row.get("fixture"), dict) else {}
+        league = row.get("league") if isinstance(row.get("league"), dict) else {}
+        fixture_id = _raw_fixture_id(row)
+        if fixture_id is None or fixture_id in seen:
+            continue
+        seen.add(fixture_id)
+        try:
+            kickoff = base._dt(fixture.get("date"))
+        except Exception:
+            continue
+        if kickoff <= now_utc:
+            continue
+        status = str((fixture.get("status") or {}).get("short") or "")
+        if status in base.CANCELLED_STATUSES | base.POSTPONED_STATUSES:
+            continue
+        key = f"{league.get('id')}:{league.get('season')}"
+        coverage = coverage_map.get(key) or {"data_tier": "D"}
+        tier = str(coverage.get("data_tier") or "D")
+        tier_counts[tier] = tier_counts.get(tier, 0) + 1
+        if tier in {"A", "B", "C"}:
+            eligible += 1
+
+    return min(eligible, MARKET_CAPTURE_HANDOFF_MAX_FIXTURES), tier_counts, source
+
+
 def _daily_remaining_allows(value: Any) -> bool:
     try:
         if value is None:
@@ -195,7 +251,7 @@ def _tick_budget_allows_extra_call() -> bool:
 
 def _new_metrics() -> dict[str, Any]:
     return {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "policy": "RAW_API_FOOTBALL_ROLLING_DATE_SLATE_WITH_CACHED_FUTURE_PREFETCH",
         "min_fixture_count": SLATE_FLOOR_MIN_FIXTURES,
         "min_daily_remaining": SLATE_FLOOR_MIN_DAILY_REMAINING,
@@ -219,6 +275,10 @@ def _new_metrics() -> dict[str, Any]:
         "unique_leagues_scanned": 0,
         "unique_countries_scanned": 0,
         "league_allowlist_applied": False,
+        "market_capture_handoff_fixture_count": None,
+        "market_capture_handoff_tier_counts": {},
+        "market_capture_handoff_source": "NOT_VERIFIED",
+        "market_capture_handoff_provider_requests_added": 0,
         "scope": "all fixtures returned by API-Football for selected dates; no league allowlist; no odds/model/tier/stake threshold change",
     }
 
@@ -269,6 +329,12 @@ def _attach_top_level_metrics(payload: dict[str, Any], metrics: dict[str, Any]) 
 async def run_tick() -> dict[str, Any]:
     metrics = _new_metrics()
     previous_original_paced = v6._ORIGINAL_PACED_API_GET
+    handoff_rows: list[Any] = []
+
+    def remember_handoff_rows(source_payload: dict[str, Any]) -> dict[str, Any]:
+        nonlocal handoff_rows
+        handoff_rows = [row for row in source_payload.get("response") or [] if isinstance(row, dict)]
+        return source_payload
 
     async def paced_with_slate_floor(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
         payload = await previous_original_paced(endpoint, params)
@@ -321,7 +387,7 @@ async def run_tick() -> dict[str, Any]:
                 leagues, countries = _slate_dimensions(merged)
                 metrics["unique_leagues_scanned"] = leagues
                 metrics["unique_countries_scanned"] = countries
-                return merged
+                return remember_handoff_rows(merged)
 
         should_reconcile, reason = _should_reconcile(
             payload=payload,
@@ -334,7 +400,7 @@ async def run_tick() -> dict[str, Any]:
             leagues, countries = _slate_dimensions(payload)
             metrics["unique_leagues_scanned"] = leagues
             metrics["unique_countries_scanned"] = countries
-            return payload
+            return remember_handoff_rows(payload)
 
         tomorrow = (local_now.date() + timedelta(days=1)).isoformat()
         reconciliation, cache_hit = await _future_date_payload(
@@ -358,13 +424,22 @@ async def run_tick() -> dict[str, Any]:
         leagues, countries = _slate_dimensions(merged)
         metrics["unique_leagues_scanned"] = leagues
         metrics["unique_countries_scanned"] = countries
-        return merged
+        return remember_handoff_rows(merged)
 
     v6._ORIGINAL_PACED_API_GET = paced_with_slate_floor
     try:
         payload = await v88.run_tick()
     finally:
         v6._ORIGINAL_PACED_API_GET = previous_original_paced
+
+    handoff_count, handoff_tiers, handoff_source = _market_capture_handoff_from_cached_coverage(
+        handoff_rows,
+        datetime.now(dt_timezone.utc),
+    )
+    metrics["market_capture_handoff_fixture_count"] = handoff_count
+    metrics["market_capture_handoff_tier_counts"] = handoff_tiers
+    metrics["market_capture_handoff_source"] = handoff_source
+    metrics["market_capture_handoff_provider_requests_added"] = 0
 
     _attach_top_level_metrics(payload, metrics)
     payload["v362_provider_requests_added"] = int(metrics.get("api_slate_reconciliation_calls") or 0)
@@ -373,6 +448,14 @@ async def run_tick() -> dict[str, Any]:
     payload["v362_canonical_bet_logic_changed"] = False
     payload["v362_runtime_promotion_added"] = False
     payload["v362_stake_or_tier_change"] = False
+    payload["v362_market_handoff_telemetry"] = {
+        "fixture_count": handoff_count,
+        "tier_counts": handoff_tiers,
+        "source": handoff_source,
+        "provider_requests_added": 0,
+        "decision_weight": 0,
+        "production_promotion_allowed": False,
+    }
     payload["v362_slate_floor_checkpoint"] = (
         "SLATE FLOOR RECONCILIATION: A TINY TODAY SLATE NO LONGER PREVENTS THE SCHEDULER FROM "
         "ADDING TOMORROW'S RAW API-FOOTBALL DATE SLATE WHEN BUDGET ALLOWS; SPORT SCREEN AND MARKET "
