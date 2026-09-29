@@ -4,8 +4,8 @@ import html
 import json
 from typing import Any
 
-SCHEMA_VERSION = "1.2.0"
-MODEL_VERSION = "SOCCER_PRODUCT_DASHBOARD_V4_1.2.0"
+SCHEMA_VERSION = "1.3.0"
+MODEL_VERSION = "SOCCER_PRODUCT_DASHBOARD_V4_1.3.0"
 
 DISPLAY_VIEWS = (
     ("strong_sport_signals", "Strong Sport Signals"),
@@ -19,6 +19,16 @@ DISPLAY_VIEWS = (
     ("corners", "Corners"),
     ("player_props", "Player Props"),
 )
+
+WATCHDOG_LABELS = {
+    "signal_close_freshness": "Signal / CLOSE freshness",
+    "two_h_market_maturation": "2H strict-close evidence",
+    "corners_formation_join": "Corners formation joins",
+    "cards_settlement": "Cards settlement readiness",
+    "player_props_xi_confirmed": "Player Props XI alignment",
+    "evidence_growth_48h": "Evidence growth · 48h",
+    "provider_requests_without_evidence_growth": "Provider efficiency · 48h",
+}
 
 
 def _esc(value: Any) -> str:
@@ -38,9 +48,9 @@ def _num(value: Any, fallback: str = "N/V") -> str:
 
 def _status_class(value: Any) -> str:
     text = str(value or "").upper()
-    if any(token in text for token in ("HEALTHY", "LIVE", "READY", "PASS", "TICK_OBSERVED")):
+    if text == "OK" or any(token in text for token in ("HEALTHY", "LIVE", "READY", "PASS", "TICK_OBSERVED")):
         return "ok"
-    if any(token in text for token in ("WAIT", "HOLD", "LOCKED", "RESEARCH", "VALIDATION", "PENDING", "N/V", "NOT_VERIFIED")):
+    if any(token in text for token in ("WATCH", "WAIT", "HOLD", "LOCKED", "RESEARCH", "VALIDATION", "PENDING", "N/V", "NOT_VERIFIED", "STALE", "BLOCKED")):
         return "warn"
     if any(token in text for token in ("ERROR", "FAILED", "DEGRADED", "OFFLINE")):
         return "bad"
@@ -168,6 +178,31 @@ def _errors_html(errors: dict[str, Any]) -> str:
     return "".join(cards) or "<div class='empty'>Pipeline errors detected; detail unavailable.</div>"
 
 
+def _watchdog_html(key: str, node: dict[str, Any]) -> str:
+    status = node.get("status") or "NOT_VERIFIED"
+    reason = node.get("reason") or "WATCHDOG_REASON_UNAVAILABLE"
+    evidence = node.get("evidence") if isinstance(node.get("evidence"), dict) else {}
+    detail_parts: list[str] = []
+    for evidence_key, value in evidence.items():
+        if len(detail_parts) >= 3:
+            break
+        label = str(evidence_key).replace("_", " ")
+        if isinstance(value, (str, int, float)) or value is None:
+            detail_parts.append(f"{label}: {value if value is not None else 'N/V'}")
+        elif isinstance(value, list):
+            detail_parts.append(f"{label}: {len(value)}")
+    detail = " · ".join(detail_parts) if detail_parts else "No compact evidence fields in current snapshot"
+    return (
+        "<div class='watchdog-card'>"
+        f"<div class='watchdog-top'><strong>{_esc(WATCHDOG_LABELS.get(key, key.replace('_', ' ').title()))}</strong>"
+        f"<span class='pill {_status_class(status)}'>{_esc(status)}</span></div>"
+        f"<div class='watchdog-reason'>{_esc(reason)}</div>"
+        f"<div class='watchdog-evidence mono'>{_esc(detail)}</div>"
+        f"<div class='watchdog-source'>{_esc(node.get('source'))}</div>"
+        "</div>"
+    )
+
+
 def render_dashboard(product_payload: dict[str, Any]) -> str:
     views = product_payload.get("views") if isinstance(product_payload.get("views"), dict) else {}
     tower = views.get("control_tower") if isinstance(views.get("control_tower"), dict) else {}
@@ -176,6 +211,9 @@ def render_dashboard(product_payload: dict[str, Any]) -> str:
     errors = tower.get("errors") if isinstance(tower.get("errors"), dict) else {}
     gates = tower.get("validation_gates") if isinstance(tower.get("validation_gates"), list) else []
     phases = tower.get("phases") if isinstance(tower.get("phases"), list) else []
+    maturity = tower.get("maturity_snapshot") if isinstance(tower.get("maturity_snapshot"), dict) else {}
+    watchdog_bundle = maturity.get("maturation_watchdogs") if isinstance(maturity.get("maturation_watchdogs"), dict) else {}
+    watchdogs = watchdog_bundle.get("watchdogs") if isinstance(watchdog_bundle.get("watchdogs"), dict) else {}
 
     generated = product_payload.get("generated_at_utc")
     pipeline_version = product_payload.get("pipeline_version")
@@ -253,6 +291,24 @@ def render_dashboard(product_payload: dict[str, Any]) -> str:
 
     gate_rows = "".join(_gate_html(g) for g in gates if isinstance(g, dict))
     phase_rows = "".join(_phase_html(p) for p in phases if isinstance(p, dict))
+    watchdog_rows = "".join(
+        _watchdog_html(key, node)
+        for key, node in watchdogs.items()
+        if isinstance(node, dict)
+    )
+    if not watchdog_rows:
+        watchdog_rows = "<div class='empty'>Maturation watchdog telemetry is not present in the current state snapshot.</div>"
+    maturity_note = "Explicit gates only"
+    if maturity:
+        maturity_note = (
+            f"State {_esc(maturity.get('status'))} · "
+            f"{_num(maturity.get('reports_loaded'))}/{_num(maturity.get('reports_expected'))} reports"
+        )
+    watchdog_count_note = (
+        f"{_num(watchdog_bundle.get('ok_count'), '0')} OK · "
+        f"{_num(watchdog_bundle.get('watch_count'), '0')} watch · "
+        f"{_num(watchdog_bundle.get('not_verified_count'), '0')} N/V"
+    )
     feed_sections = "".join(
         _view_section(key, title, views.get(key) if isinstance(views.get(key), dict) else {})
         for key, title in DISPLAY_VIEWS
@@ -327,6 +383,12 @@ h2 {{ font-size:17px; margin:3px 0; letter-spacing:-.02em; }}
 .check {{ width:30px; height:30px; display:grid; place-items:center; border-radius:50%; background:#0c4c38; color:#6df2c2; font-weight:900; }}
 .error-row {{ display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--border); padding:11px 2px; }}
 .error-reason {{ color:var(--red); font-size:11px; max-width:48%; text-align:right; }}
+.watchdog-grid {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; padding:13px; }}
+.watchdog-card {{ min-width:0; background:#081722; border:1px solid #152b3d; border-radius:9px; padding:12px; }}
+.watchdog-top {{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; font-size:12px; }}
+.watchdog-reason {{ color:#91a6b8; font-size:10px; margin-top:8px; line-height:1.35; word-break:break-word; }}
+.watchdog-evidence {{ color:#5f7b90; font-size:9px; margin-top:8px; line-height:1.45; word-break:break-word; }}
+.watchdog-source {{ color:#405d72; font-size:9px; margin-top:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
 .phase-grid {{ display:grid; grid-template-columns:repeat(11,minmax(110px,1fr)); gap:8px; padding:13px; overflow-x:auto; }}
 .phase-card {{ padding:11px; border:1px solid #152b3d; background:#081722; border-radius:9px; min-width:112px; }}
 .phase-num {{ color:#4e6c83; font-size:9px; font-weight:800; letter-spacing:.08em; }}
@@ -358,13 +420,14 @@ td {{ font-size:12px; color:#c5d2dd; }}
   .brand {{ justify-content:center; margin-left:0; margin-right:0; }}
   .nav a {{ justify-content:center; font-size:16px; }}
   .health-grid,.kpi-strip {{ grid-template-columns:repeat(3,1fr); }}
+  .watchdog-grid {{ grid-template-columns:repeat(2,1fr); }}
 }}
 @media (max-width:760px) {{
   .shell {{ display:block; }}
   .sidebar {{ display:none; }}
   .main {{ padding:18px 13px 40px; }}
   .topbar {{ display:block; }} .livebox {{ text-align:left; margin-top:10px; }}
-  .health-grid,.kpi-strip,.quick-cards {{ grid-template-columns:repeat(2,1fr); }}
+  .health-grid,.kpi-strip,.quick-cards,.watchdog-grid {{ grid-template-columns:repeat(2,1fr); }}
   .grid-main {{ grid-template-columns:1fr; }}
   h1 {{ font-size:27px; }}
 }}
@@ -406,7 +469,7 @@ td {{ font-size:12px; color:#c5d2dd; }}
   <div class="grid-main">
     <section class="panel">
       <div class="panel-head"><div><div class="eyebrow">VALIDATION</div><h2>Model Maturity</h2></div>
-        <span class="count">Explicit gates only</span></div>
+        <span class="count">{maturity_note}</span></div>
       <div class="gate-list">{gate_rows}</div>
     </section>
     <section class="panel">
@@ -415,6 +478,12 @@ td {{ font-size:12px; color:#c5d2dd; }}
       <div class="error-body">{_errors_html(errors)}</div>
     </section>
   </div>
+
+  <section class="panel" id="maturation-watchdogs" style="margin-bottom:14px">
+    <div class="panel-head"><div><div class="eyebrow">VALIDATION · READ ONLY</div><h2>Maturation Watchdogs</h2></div>
+      <span class="count">{watchdog_count_note}</span></div>
+    <div class="watchdog-grid">{watchdog_rows}</div>
+  </section>
 
   <section class="panel" id="market-lab">
     <div class="panel-head"><div><div class="eyebrow">ROADMAP</div><h2>Phases 14–24</h2></div>
