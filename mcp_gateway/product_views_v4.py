@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from mcp_gateway import market_mismatch_v4
+from mcp_gateway import market_mismatch_v4, maturity_snapshot_v4
 
-SCHEMA_VERSION = "1.2.0"
-MODEL_VERSION = "SOCCER_PRODUCT_VIEWS_V4_1.2.0"
+SCHEMA_VERSION = "1.3.0"
+MODEL_VERSION = "SOCCER_PRODUCT_VIEWS_V4_1.3.0"
 MAX_ROWS_PER_VIEW = 25
 
 VIEW_NAMES = (
@@ -126,14 +126,33 @@ def _max_phase16_calibration_rows(rows: list[dict[str, Any]]) -> int | None:
     return max(values) if values else None
 
 
-def _validation_gates(payload: dict[str, Any], rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _validation_gates(payload: dict[str, Any], rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     def required(key: str, field: str) -> int | None:
         node = payload.get(key)
         return _int_or_none(node.get(field)) if isinstance(node, dict) else None
 
-    # Current values are emitted only when they are present in the persisted
-    # runtime payload. Missing validation-report counters remain None/N/V.
-    return [
+    injected = payload.get("maturity_snapshot")
+    maturity = injected if isinstance(injected, dict) else maturity_snapshot_v4.load_snapshot()
+    maturity_gates = maturity.get("gates") if isinstance(maturity.get("gates"), dict) else {}
+
+    def maturity_value(key: str, field: str) -> Any:
+        node = maturity_gates.get(key)
+        return node.get(field) if isinstance(node, dict) else None
+
+    def gate(key: str, label: str, target: int | None, unit: str) -> dict[str, Any]:
+        current = maturity_value(key, "current")
+        maturity_target = maturity_value(key, "target")
+        source = maturity_value(key, "source")
+        return {
+            "key": key,
+            "label": label,
+            "current": _int_or_none(current),
+            "target": _int_or_none(maturity_target) or target,
+            "unit": unit,
+            "source": source or "validation_report_unavailable",
+        }
+
+    gates = [
         {
             "key": "phase16_calibration_sample",
             "label": "Core calibration sample",
@@ -142,55 +161,44 @@ def _validation_gates(payload: dict[str, Any], rows: list[dict[str, Any]]) -> li
             "unit": "rows",
             "source": "latest_runtime_diagnostics",
         },
-        {
-            "key": "1x2_true_clv",
-            "label": "1X2 True CLV",
-            "current": None,
-            "target": required("v4_017_1x2_calibration_validation", "minimum_family_specific_true_clv_rows"),
-            "unit": "rows",
-            "source": "validation_report_required",
-        },
-        {
-            "key": "btts_true_clv",
-            "label": "BTTS True CLV",
-            "current": None,
-            "target": required("v4_018_btts_calibration_validation", "minimum_family_specific_true_clv_rows"),
-            "unit": "rows",
-            "source": "validation_report_required",
-        },
-        {
-            "key": "team_totals_true_clv",
-            "label": "Team Totals True CLV",
-            "current": None,
-            "target": required("v4_019_team_totals_oos_validation", "minimum_family_specific_true_clv_rows"),
-            "unit": "rows",
-            "source": "validation_report_required",
-        },
-        {
-            "key": "1h_true_clv",
-            "label": "1H True CLV",
-            "current": None,
-            "target": required("v4_020_1h_oos_validation", "minimum_family_specific_true_clv_rows"),
-            "unit": "rows",
-            "source": "validation_report_required",
-        },
-        {
-            "key": "corners_formation",
-            "label": "Corners formation-adjusted",
-            "current": None,
-            "target": required("v4_022_corners_oos_validation", "minimum_formation_adjusted"),
-            "unit": "fixtures",
-            "source": "validation_report_required",
-        },
-        {
-            "key": "player_props_true_clv",
-            "label": "Player Props True CLV / family",
-            "current": None,
-            "target": required("phase15_player_props_validation", "minimum_prop_true_clv_rows"),
-            "unit": "rows",
-            "source": "validation_report_required",
-        },
+        gate(
+            "1x2_true_clv",
+            "1X2 True CLV",
+            required("v4_017_1x2_calibration_validation", "minimum_family_specific_true_clv_rows"),
+            "rows",
+        ),
+        gate(
+            "btts_true_clv",
+            "BTTS True CLV",
+            required("v4_018_btts_calibration_validation", "minimum_family_specific_true_clv_rows"),
+            "rows",
+        ),
+        gate(
+            "team_totals_true_clv",
+            "Team Totals True CLV",
+            required("v4_019_team_totals_oos_validation", "minimum_family_specific_true_clv_rows"),
+            "rows",
+        ),
+        gate(
+            "1h_true_clv",
+            "1H True CLV",
+            required("v4_020_1h_oos_validation", "minimum_family_specific_true_clv_rows"),
+            "rows",
+        ),
+        gate(
+            "corners_formation",
+            "Corners formation-adjusted",
+            required("v4_022_corners_oos_validation", "minimum_formation_adjusted"),
+            "fixtures",
+        ),
+        gate(
+            "player_props_true_clv",
+            "Player Props True CLV / family",
+            required("phase15_player_props_validation", "minimum_prop_true_clv_rows"),
+            "rows",
+        ),
     ]
+    return gates, maturity
 
 
 def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -213,9 +221,10 @@ def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[
         if isinstance(payload.get("price_resolution_checkpoint"), dict)
         else {}
     )
+    validation_gates, maturity = _validation_gates(payload, rows)
 
     return {
-        "schema_version": "2.0.0",
+        "schema_version": "2.1.0",
         "status": "LIVE" if tick_ok and db_ok and not errors else "DEGRADED",
         "generated_at_utc": payload.get("generated_at_utc"),
         "generated_at_local": payload.get("generated_at_local"),
@@ -257,9 +266,13 @@ def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[
             "scheduler_mode": fair.get("scheduling_mode") or fair.get("policy"),
             "scheduler_effective_weights_pct": dict(fair.get("effective_weights_pct") or fair.get("weights_pct") or {}),
             "scheduler_planned_unique_leagues": _int_or_none(fair.get("planned_unique_leagues")),
+            "scheduler_eligible_unique_leagues": _int_or_none(fair.get("eligible_unique_leagues")),
+            "scheduler_league_floor_target": _int_or_none(fair.get("league_floor_target")),
+            "scheduler_league_floor_covered": _int_or_none(fair.get("league_floor_covered")),
             "scheduler_urgent_actionable_count": _int_or_none(fair.get("urgent_actionable_count")),
             "scheduler_unseen_processed": _int_or_none(fair_processed.get("unseen")),
             "scheduler_actionable_processed": _int_or_none(fair_processed.get("actionable")),
+            "scheduler_exploratory_processed": _int_or_none(fair_processed.get("exploratory")),
             "scheduler_starvation_count": _int_or_none(fair.get("starvation_count")),
             "scheduler_due_analyzed_pct": fair.get("due_analyzed_pct"),
             "primary_clv_maturation_candidates": _int_or_none(price_checkpoint.get("primary_clv_maturation_candidates")),
@@ -274,14 +287,16 @@ def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[
             "count": len(errors),
             "rows": errors,
         },
-        "validation_gates": _validation_gates(payload, rows),
+        "validation_gates": validation_gates,
+        "maturity_snapshot": maturity,
         "phases": _phase_cards(payload),
         "production_valid_market_count": 0,
         "production_promotion_allowed": False,
-        "source": "POSTGRES_LATEST_PIPELINE_RUN",
+        "source": "POSTGRES_LATEST_PIPELINE_RUN+STATE_BRANCH_VALIDATION_REPORTS",
         "note": (
-            "Live telemetry is sourced from the latest persisted pipeline run. "
-            "Validation counters not present in that runtime payload are shown as N/V rather than inferred."
+            "Live pipeline telemetry is sourced from the latest persisted Postgres run. "
+            "Maturity counters are read from persisted validation reports on the configured state branch; "
+            "missing reports remain N/V and never affect runtime decisions."
         ),
     }
 
