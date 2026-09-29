@@ -17,6 +17,8 @@ MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.3.0"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
+PROSPECTIVE_WINDOWS_MINUTES = (("55m", 55), ("3h", 180), ("6h", 360), ("24h", 1440))
+PROSPECTIVE_DETAIL_MAX_ROWS = 2000
 
 def _trace_stage(name: str, **data: Any) -> None:
     if os.getenv('PLAYER_PROPS_CLV_STAGE_TRACE') != '1':
@@ -815,6 +817,240 @@ def summarize_tracking(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+
+def _prospective_window_labels(kickoff: Any, *, now: datetime) -> list[str]:
+    kickoff_dt = _dt(kickoff)
+    if kickoff_dt is None:
+        return []
+    minutes = (kickoff_dt - now).total_seconds() / 60.0
+    if minutes <= 0:
+        return []
+    return [label for label, max_minutes in PROSPECTIVE_WINDOWS_MINUTES if minutes <= max_minutes]
+
+
+def _empty_prospective_bucket(raw: dict[str, Any] | None = None) -> dict[str, Any]:
+    raw = raw if isinstance(raw, dict) else {}
+    return {
+        "upcoming_fixtures": int(raw.get("upcoming_fixtures") or 0),
+        "stage_event_rows": int(raw.get("stage_event_rows") or 0),
+        "hydrated_stage_event_rows": 0,
+        "hydrated_unique_fixtures": set(),
+        "events_with_market_payload": 0,
+        "events_with_any_player_intelligence": 0,
+        "events_with_research_cards_props_rows": 0,
+        "research_cards_props_market_rows": 0,
+        "events_with_player_props_family_rows": 0,
+        "player_props_family_market_rows": 0,
+        "events_with_both_xi_confirmed": 0,
+        "signal_rows": 0,
+        "signal_fixtures": set(),
+        "signal_family_counts": Counter(),
+        "signal_diagnostics": {},
+    }
+
+
+def _accumulate_prospective_events(
+    buckets: dict[str, dict[str, Any]],
+    events: Iterable[dict[str, Any]],
+    *,
+    now: datetime,
+) -> None:
+    for row in events:
+        if not isinstance(row, dict):
+            continue
+        labels = _prospective_window_labels(row.get("kickoff"), now=now)
+        if not labels:
+            continue
+        event = row.get("event_payload") if isinstance(row.get("event_payload"), dict) else row
+        fixture_id = row.get("fixture_id") or (event.get("fixture") or {}).get("fixture_id")
+        market = event.get("market") if isinstance(event.get("market"), dict) else {}
+        research_rows = [
+            item for item in (market.get("research_cards_props_markets") or [])
+            if isinstance(item, dict)
+        ]
+        recognized_rows: list[dict[str, Any]] = []
+        for market_row in research_rows:
+            market_name = market_row.get("market")
+            canonical = derivative_audit.classify_market(market_name)
+            family = canonical if market_name not in (None, "") else market_row.get("research_subfamily")
+            if family in FAMILY_CONFIG:
+                recognized_rows.append(market_row)
+        has_intelligence = any(
+            isinstance(event.get(config["intel_key"]), dict)
+            for config in FAMILY_CONFIG.values()
+        )
+        lineups = event.get("lineups") if isinstance(event.get("lineups"), dict) else {}
+
+        for label in labels:
+            bucket = buckets[label]
+            bucket["hydrated_stage_event_rows"] += 1
+            if fixture_id is not None:
+                try:
+                    bucket["hydrated_unique_fixtures"].add(int(fixture_id))
+                except (TypeError, ValueError):
+                    pass
+            if market:
+                bucket["events_with_market_payload"] += 1
+            if has_intelligence:
+                bucket["events_with_any_player_intelligence"] += 1
+            if research_rows:
+                bucket["events_with_research_cards_props_rows"] += 1
+                bucket["research_cards_props_market_rows"] += len(research_rows)
+            if recognized_rows:
+                bucket["events_with_player_props_family_rows"] += 1
+                bucket["player_props_family_market_rows"] += len(recognized_rows)
+            if lineups.get("both_xi_confirmed") is True:
+                bucket["events_with_both_xi_confirmed"] += 1
+
+            signals = extract_shadow_signals([row], bucket["signal_diagnostics"])
+            bucket["signal_rows"] += len(signals)
+            for signal in signals:
+                family = str(signal.get("market_family") or "")
+                if family:
+                    bucket["signal_family_counts"][family] += 1
+                if signal.get("fixture_id") is not None:
+                    try:
+                        bucket["signal_fixtures"].add(int(signal["fixture_id"]))
+                    except (TypeError, ValueError):
+                        pass
+
+
+def _prospective_bottleneck_hint(bucket: dict[str, Any]) -> str:
+    diag = bucket.get("signal_diagnostics") if isinstance(bucket.get("signal_diagnostics"), dict) else {}
+    if int(bucket.get("stage_event_rows") or 0) <= 0:
+        return "NO_T40_T10_REFRESH_EVENTS"
+    if int(bucket.get("hydrated_stage_event_rows") or 0) <= 0:
+        return "NO_DETAIL_ROWS_HYDRATED"
+    if int(diag.get("family_intelligence_hits") or 0) <= 0:
+        return "NO_PLAYER_PROP_INTELLIGENCE"
+    if int(diag.get("family_market_overlap_hits") or 0) <= 0:
+        return "NO_INTELLIGENCE_MARKET_FAMILY_OVERLAP"
+    if int(diag.get("modelable_player_rows") or 0) <= 0:
+        return "NO_MODELABLE_CONFIRMED_STARTERS"
+    if int(diag.get("aligned_market_values") or 0) <= 0:
+        return "NO_CONFIRMED_XI_ALIGNED_MARKET_VALUES"
+    if int(diag.get("player_id_overlap_values") or 0) <= 0:
+        return "NO_MODEL_MARKET_PLAYER_ID_OVERLAP"
+    if int(diag.get("priced_overlap_values") or 0) <= 0:
+        return "NO_PRICED_MODEL_PLAYER_OVERLAP"
+    if int(diag.get("model_probability_values") or 0) <= 0:
+        return "NO_MODEL_PROBABILITY_FOR_OBSERVED_INSTRUMENT"
+    if int(bucket.get("signal_rows") or 0) <= 0:
+        return "NO_SHADOW_SIGNALS_AFTER_RECONCILIATION"
+    return "SHADOW_SIGNALS_AVAILABLE"
+
+
+def _finalize_prospective_buckets(
+    buckets: dict[str, dict[str, Any]],
+    *,
+    detail_candidate_rows: int,
+    detail_limit: int,
+) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    detail_truncated = detail_candidate_rows > detail_limit
+    for label, bucket in buckets.items():
+        finalized = dict(bucket)
+        finalized["hydrated_unique_fixtures"] = len(bucket["hydrated_unique_fixtures"])
+        finalized["signal_fixtures"] = len(bucket["signal_fixtures"])
+        finalized["signal_family_counts"] = dict(sorted(bucket["signal_family_counts"].items()))
+        finalized["detail_rows_truncated"] = detail_truncated
+        finalized["bottleneck_hint"] = _prospective_bottleneck_hint(bucket)
+        out[label] = finalized
+    return {
+        "schema_version": "PLAYER_PROPS_PROSPECTIVE_SIGNAL_AVAILABILITY_V1",
+        "windows_are_cumulative": True,
+        "detail_candidate_rows": int(detail_candidate_rows),
+        "detail_row_limit": int(detail_limit),
+        "detail_rows_truncated": detail_truncated,
+        "windows": out,
+        "provider_requests_added": 0,
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+    }
+
+
+def _load_prospective_raw_counts(conn, *, now: datetime) -> dict[str, dict[str, int]]:
+    end = now + timedelta(minutes=max(minutes for _, minutes in PROSPECTIVE_WINDOWS_MINUTES))
+    cutoff = now - timedelta(days=180)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                f.fixture_id,
+                f.kickoff,
+                COUNT(e.event_id) AS stage_event_rows
+            FROM soccer_fixtures f
+            LEFT JOIN soccer_refresh_events e
+              ON e.fixture_id = f.fixture_id
+             AND e.generated_at >= %s
+             AND e.generated_at < f.kickoff
+             AND e.stage IN ('T-40','T-30','T-20','T-10')
+            WHERE f.kickoff > %s
+              AND f.kickoff <= %s
+              AND COALESCE(f.status,'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+            GROUP BY f.fixture_id, f.kickoff
+            """,
+            (cutoff, now, end),
+        )
+        rows = cur.fetchall()
+
+    counts = {label: {"upcoming_fixtures": 0, "stage_event_rows": 0} for label, _ in PROSPECTIVE_WINDOWS_MINUTES}
+    for _, kickoff, stage_event_rows in rows:
+        for label in _prospective_window_labels(kickoff, now=now):
+            counts[label]["upcoming_fixtures"] += 1
+            counts[label]["stage_event_rows"] += int(stage_event_rows or 0)
+    return counts
+
+
+def _load_prospective_event_ids(conn, *, now: datetime, limit: int) -> list[int]:
+    end = now + timedelta(minutes=max(minutes for _, minutes in PROSPECTIVE_WINDOWS_MINUTES))
+    cutoff = now - timedelta(days=180)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT e.event_id
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            WHERE e.generated_at >= %s
+              AND e.generated_at < f.kickoff
+              AND f.kickoff > %s
+              AND f.kickoff <= %s
+              AND e.stage IN ('T-40','T-30','T-20','T-10')
+              AND COALESCE(f.status,'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+            ORDER BY e.generated_at DESC
+            LIMIT %s
+            """,
+            (cutoff, now, end, limit),
+        )
+        return [int(row[0]) for row in cur.fetchall()]
+
+
+def _load_prospective_signal_availability(
+    conn,
+    *,
+    max_rows: int,
+    now: datetime | None = None,
+    batch_size: int = 100,
+) -> dict[str, Any]:
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    detail_limit = max(100, min(int(max_rows), PROSPECTIVE_DETAIL_MAX_ROWS))
+    raw_counts = _load_prospective_raw_counts(conn, now=now)
+    detail_candidate_rows = int(raw_counts.get("24h", {}).get("stage_event_rows") or 0)
+    buckets = {label: _empty_prospective_bucket(raw_counts.get(label)) for label, _ in PROSPECTIVE_WINDOWS_MINUTES}
+    candidate_ids = _load_prospective_event_ids(conn, now=now, limit=detail_limit)
+    bounded_batch = max(1, min(int(batch_size), 500))
+    for offset in range(0, len(candidate_ids), bounded_batch):
+        batch_ids = candidate_ids[offset:offset + bounded_batch]
+        events = _hydrate_event_batch(conn, batch_ids)
+        _accumulate_prospective_events(buckets, events, now=now)
+        del events, batch_ids
+        gc.collect()
+    return _finalize_prospective_buckets(
+        buckets,
+        detail_candidate_rows=detail_candidate_rows,
+        detail_limit=detail_limit,
+    )
+
 def _load_event_candidate_ids(conn, *, lookback_days: int, max_rows: int) -> list[int]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
     with conn.cursor() as cur:
@@ -1175,6 +1411,16 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
     _trace_stage('db_connect_start')
     with persistence_base._connect() as conn:
         _trace_stage('db_connect_ok')
+        _trace_stage('prospective_signal_availability_start')
+        prospective_signal_availability = _load_prospective_signal_availability(
+            conn,
+            max_rows=max_rows,
+        )
+        _trace_stage(
+            'prospective_signal_availability_done',
+            t55_stage_rows=(prospective_signal_availability.get('windows', {}).get('55m', {}).get('stage_event_rows', 0)),
+            t55_signals=(prospective_signal_availability.get('windows', {}).get('55m', {}).get('signal_rows', 0)),
+        )
         _trace_stage('events_start')
         signals, signal_diagnostics, event_rows_loaded = _load_event_signals(
             conn,
@@ -1219,6 +1465,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
         "event_rows_loaded": event_rows_loaded,
         "signal_rows": len(signals),
         "signal_diagnostics": signal_diagnostics,
+        "prospective_signal_availability": prospective_signal_availability,
         "snapshot_rows": snapshot_rows_loaded,
         "skip_reasons": skip_reasons,
         "close_diagnostics": close_diagnostics,

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from mcp_gateway import player_props_phase15_v4 as v
 from mcp_gateway import player_props_clv_postgres_v4 as prop_clv
 from mcp_gateway import player_props_oos_postgres_v4 as prop_oos
@@ -1677,3 +1678,74 @@ def test_v156_goalkeeper_taxonomy_ignores_outfield_zero_save_placeholders():
         "saves": 0,
         "goals_conceded": 1,
     }) is True
+
+
+
+def test_v20113_prospective_signal_availability_pinpoints_pipeline_stage():
+    now = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+    event = {
+        "fixture_id": 9913,
+        "generated_at": now.isoformat(),
+        "stage": "T-20",
+        "kickoff": (now + timedelta(minutes=30)).isoformat(),
+        "event_payload": {
+            "stage": "T-20",
+            "fixture": {"fixture_id": 9913, "kickoff": (now + timedelta(minutes=30)).isoformat()},
+            "lineups": _xi_lineup(),
+            "player_shots_intelligence": {
+                "players": [{
+                    "player_id": 501,
+                    "player": "Player A",
+                    "team_id": 10,
+                    "confirmed_starter": True,
+                    "lines": [{"line": 2.5, "p_over": 0.57, "p_under": 0.43}],
+                }]
+            },
+            "market": {
+                "research_cards_props_markets": [{
+                    "research_family": "PLAYER_PROPS",
+                    "research_subfamily": "SHOTS",
+                    "market": "Player Shots",
+                    "market_id": 801,
+                    "bookmaker_id": 1,
+                    "bookmaker": "Book",
+                    "provider_update": now.isoformat(),
+                    "values": [
+                        {"selection": "Player A Over 2.5", "price": "2.00", "parsed_line": 2.5, "xi_alignment_status": "MATCHED_CONFIRMED_XI", "player_id": 501, "player_name": "Player A", "team_id": 10},
+                        {"selection": "Player A Under 2.5", "price": "1.80", "parsed_line": 2.5, "xi_alignment_status": "MATCHED_CONFIRMED_XI", "player_id": 501, "player_name": "Player A", "team_id": 10},
+                    ],
+                }]
+            },
+        },
+    }
+    raw = {label: {"upcoming_fixtures": 1, "stage_event_rows": 1} for label, _ in prop_clv.PROSPECTIVE_WINDOWS_MINUTES}
+    buckets = {label: prop_clv._empty_prospective_bucket(raw[label]) for label, _ in prop_clv.PROSPECTIVE_WINDOWS_MINUTES}
+    prop_clv._accumulate_prospective_events(buckets, [event], now=now)
+    report = prop_clv._finalize_prospective_buckets(
+        buckets,
+        detail_candidate_rows=1,
+        detail_limit=2000,
+    )
+
+    t55 = report["windows"]["55m"]
+    assert t55["upcoming_fixtures"] == 1
+    assert t55["stage_event_rows"] == 1
+    assert t55["events_with_player_props_family_rows"] == 1
+    assert t55["events_with_both_xi_confirmed"] == 1
+    assert t55["signal_rows"] == 2
+    assert t55["signal_family_counts"] == {"SHOTS": 2}
+    assert t55["signal_diagnostics"]["family_intelligence_hits"] >= 1
+    assert t55["signal_diagnostics"]["aligned_market_values"] == 2
+    assert t55["signal_diagnostics"]["player_id_overlap_values"] == 2
+    assert t55["signal_diagnostics"]["priced_overlap_values"] == 2
+    assert t55["bottleneck_hint"] == "SHADOW_SIGNALS_AVAILABLE"
+    assert report["provider_requests_added"] == 0
+    assert report["decision_weight"] == 0.0
+    assert report["production_promotion_allowed"] is False
+
+
+def test_v20113_prospective_window_labels_are_cumulative():
+    now = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+    assert prop_clv._prospective_window_labels(now + timedelta(minutes=30), now=now) == ["55m", "3h", "6h", "24h"]
+    assert prop_clv._prospective_window_labels(now + timedelta(minutes=120), now=now) == ["3h", "6h", "24h"]
+    assert prop_clv._prospective_window_labels(now + timedelta(minutes=400), now=now) == ["24h"]
