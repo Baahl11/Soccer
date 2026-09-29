@@ -1,5 +1,7 @@
 import asyncio
 
+from mcp_gateway import automation_v2 as v2
+from mcp_gateway import automation_v4 as v4
 from mcp_gateway import automation_v126 as v126
 
 
@@ -58,6 +60,35 @@ def test_v209_flags_cap_violation_without_mutating_payload():
     assert report["cap_respected"] is False
     assert report["provider_headroom_after_tick"] == 0
     assert payload["price_resolution_v4"] == {"api_calls_added": 2}
+
+
+def test_v209_1_releases_low_water_only_to_declared_global_price_cap(monkeypatch):
+    monkeypatch.setattr(v4, "_MONOTONIC_TICK_CAP", 25)
+    monkeypatch.setattr(v2, "_API_CALLS_THIS_TICK", 25)
+    monkeypatch.setattr(v2, "MAX_API_CALLS_PER_TICK", 45)
+
+    report = v126._release_reserved_price_phase_cap()
+
+    assert report["released"] is True
+    assert report["previous_low_water_cap"] == 25
+    assert report["declared_global_cap"] == 45
+    assert report["effective_cap_after_release"] == 45
+    assert report["provider_calls_at_release"] == 25
+    assert report["provider_budget_changed"] is False
+    assert report["provider_requests_added"] == 0
+    assert v4._MONOTONIC_TICK_CAP == 45
+
+
+def test_v209_1_does_not_raise_cap_when_no_reserved_release_exists(monkeypatch):
+    monkeypatch.setattr(v4, "_MONOTONIC_TICK_CAP", 35)
+    monkeypatch.setattr(v2, "_API_CALLS_THIS_TICK", 10)
+    monkeypatch.setattr(v2, "MAX_API_CALLS_PER_TICK", 35)
+
+    report = v126._release_reserved_price_phase_cap()
+
+    assert report["released"] is False
+    assert report["effective_cap_after_release"] == 35
+    assert v4._MONOTONIC_TICK_CAP == 35
 
 
 def test_v209_run_tick_nests_verification_in_existing_compact_state_path(monkeypatch):
