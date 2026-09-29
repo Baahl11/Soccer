@@ -172,6 +172,7 @@ CREATE TABLE IF NOT EXISTS soccer_alerts (
 CREATE INDEX IF NOT EXISTS idx_soccer_fixtures_kickoff ON soccer_fixtures (kickoff);
 CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_generated ON soccer_refresh_events (generated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_market_fixture_time ON soccer_market_snapshots (fixture_id, captured_at DESC);
+CREATE INDEX IF NOT EXISTS idx_soccer_lineup_fixture_time_confirmed ON soccer_lineup_snapshots (fixture_id, captured_at DESC) WHERE both_xi_confirmed IS TRUE;
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_created ON soccer_alerts (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_notification ON soccer_alerts (notification_ready, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_feature_fixture_time ON soccer_feature_snapshots (fixture_id, captured_at DESC);
