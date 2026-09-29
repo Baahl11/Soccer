@@ -815,39 +815,44 @@ def summarize_tracking(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _load_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
+def _load_event_candidate_ids(conn, *, lookback_days: int, max_rows: int) -> list[int]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
     with conn.cursor() as cur:
         cur.execute(
             """
-            WITH candidate_events AS MATERIALIZED (
-                SELECT
-                    e.event_id,
-                    e.fixture_id,
-                    e.generated_at,
-                    e.stage,
-                    f.kickoff
-                FROM soccer_refresh_events e
-                JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
-                WHERE e.generated_at >= %s
-                  AND e.generated_at < f.kickoff
-                  AND e.stage IN ('T-40','T-30','T-20','T-10')
-                  AND e.payload ? 'market'
-                  AND (
-                        e.payload ? 'player_shots_intelligence'
-                     OR e.payload ? 'player_sot_intelligence'
-                     OR e.payload ? 'player_goalscorer_intelligence'
-                     OR e.payload ? 'player_assists_intelligence'
-                     OR e.payload ? 'player_cards_intelligence'
-                     OR e.payload ? 'gk_saves_intelligence'
-                  )
-                ORDER BY e.generated_at DESC
-                LIMIT %s
-            )
+            SELECT e.event_id
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            WHERE e.generated_at >= %s
+              AND e.generated_at < f.kickoff
+              AND e.stage IN ('T-40','T-30','T-20','T-10')
+              AND e.payload ? 'market'
+              AND (
+                    e.payload ? 'player_shots_intelligence'
+                 OR e.payload ? 'player_sot_intelligence'
+                 OR e.payload ? 'player_goalscorer_intelligence'
+                 OR e.payload ? 'player_assists_intelligence'
+                 OR e.payload ? 'player_cards_intelligence'
+                 OR e.payload ? 'gk_saves_intelligence'
+              )
+            ORDER BY e.generated_at DESC
+            LIMIT %s
+            """,
+            (cutoff, max_rows),
+        )
+        return [int(row[0]) for row in cur.fetchall()]
+
+
+def _hydrate_event_batch(conn, event_ids: list[int]) -> list[dict[str, Any]]:
+    if not event_ids:
+        return []
+    with conn.cursor() as cur:
+        cur.execute(
+            """
             SELECT
-                c.fixture_id,
-                c.generated_at,
-                c.stage,
+                e.fixture_id,
+                e.generated_at,
+                e.stage,
                 jsonb_build_object(
                     'fixture', e.payload->'fixture',
                     'lineups', e.payload->'lineups',
@@ -859,14 +864,54 @@ def _load_events(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, A
                     'player_cards_intelligence', e.payload->'player_cards_intelligence',
                     'gk_saves_intelligence', e.payload->'gk_saves_intelligence'
                 ) AS event_payload,
-                c.kickoff
-            FROM candidate_events c
-            JOIN soccer_refresh_events e ON e.event_id = c.event_id
+                f.kickoff
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+            WHERE e.event_id = ANY(%s)
+            ORDER BY e.generated_at DESC
             """,
-            (cutoff, max_rows),
+            (event_ids,),
         )
         columns = [desc.name for desc in cur.description]
         return [dict(zip(columns, row)) for row in cur.fetchall()]
+
+
+def _load_event_signals(
+    conn,
+    *,
+    lookback_days: int,
+    max_rows: int,
+    batch_size: int = 100,
+) -> tuple[list[dict[str, Any]], dict[str, Any], int]:
+    bounded_batch = max(1, min(int(batch_size), 500))
+    candidate_ids = _load_event_candidate_ids(
+        conn,
+        lookback_days=lookback_days,
+        max_rows=max_rows,
+    )
+    _trace_stage('event_candidates_done', rows=len(candidate_ids), batch_size=bounded_batch)
+
+    signals: list[dict[str, Any]] = []
+    diagnostics: dict[str, Any] = {}
+    loaded_rows = 0
+    for offset in range(0, len(candidate_ids), bounded_batch):
+        batch_ids = candidate_ids[offset:offset + bounded_batch]
+        events = _hydrate_event_batch(conn, batch_ids)
+        loaded_rows += len(events)
+        signals.extend(extract_shadow_signals(events, diagnostics))
+        _trace_stage(
+            'event_batch_done',
+            loaded_rows=loaded_rows,
+            candidate_rows=len(candidate_ids),
+            signals=len(signals),
+        )
+        del events, batch_ids
+        gc.collect()
+
+    del candidate_ids
+    return signals, diagnostics, loaded_rows
+
+
 
 
 def _load_snapshots(conn, fixture_ids: list[int], *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
@@ -1131,16 +1176,15 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
     with persistence_base._connect() as conn:
         _trace_stage('db_connect_ok')
         _trace_stage('events_start')
-        events = _load_events(conn, lookback_days=lookback_days, max_rows=max_rows)
-        _trace_stage('events_done', rows=len(events))
-        signal_diagnostics: dict[str, Any] = {}
-        _trace_stage('signals_start')
-        signals = extract_shadow_signals(events, signal_diagnostics)
+        signals, signal_diagnostics, event_rows_loaded = _load_event_signals(
+            conn,
+            lookback_days=lookback_days,
+            max_rows=max_rows,
+        )
+        _trace_stage('events_done', rows=event_rows_loaded)
         _trace_stage('signals_done', rows=len(signals))
         fixture_ids = sorted({int(row['fixture_id']) for row in signals})
         _trace_stage('fixtures_ready', fixtures=len(fixture_ids))
-        event_rows_loaded = len(events)
-        del events
         gc.collect()
         _trace_stage('snapshot_index_start')
         instrument_index, snapshot_rows_loaded = _load_snapshot_instrument_index(
