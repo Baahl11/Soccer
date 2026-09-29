@@ -63,6 +63,8 @@ jobs:
 
           echo "HTTP_CODE=$HTTP_CODE"
           jq '{
+            error,
+            detail,
             status,
             model_version,
             signal_rows,
