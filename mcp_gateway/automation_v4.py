@@ -10,7 +10,7 @@ from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v3 as v3
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
-AUTOMATION_VERSION = "1.4.1-monotonic-hard-cap"
+AUTOMATION_VERSION = "1.4.2-monotonic-hard-cap-observable"
 
 # Scheduler-side pacing. API-Football exposes a high minute ceiling, but bursts
 # can still trigger provider-side rate limiting. Keep one request in flight at a
@@ -49,6 +49,18 @@ def _effective_tick_cap() -> int:
     return int(_MONOTONIC_TICK_CAP)
 
 
+def _budget_exhaustion_context(endpoint: str, params: dict[str, Any]) -> str:
+    """Safe diagnostic context for a deferred provider request.
+
+    Values are intentionally omitted because some request parameters can be
+    operational identifiers. Endpoint + parameter names are sufficient to
+    locate the orchestration layer that attempted work after the reserve cap.
+    """
+    safe_endpoint = str(endpoint or "").strip().lstrip("/")[:80] or "UNKNOWN"
+    safe_keys = sorted(str(key)[:40] for key in (params or {}).keys())[:12]
+    return f"endpoint={safe_endpoint}; param_keys={','.join(safe_keys) or 'NONE'}"
+
+
 def _is_rate_limit_error(exc: Exception) -> bool:
     text = str(exc).lower()
     return "too many requests" in text or "ratelimit" in text or "rate limit" in text
@@ -64,10 +76,14 @@ async def _paced_api_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any
             effective_cap = _effective_tick_cap()
             if v2._API_CALLS_THIS_TICK >= effective_cap:
                 raise v2.TickBudgetExceeded(
-                    f"Per-tick API budget reached ({effective_cap}); lower-priority work deferred."
+                    f"Per-tick API budget reached ({effective_cap}); lower-priority work deferred; "
+                    f"{_budget_exhaustion_context(endpoint, params)}."
                 )
             if v2._LAST_DAILY_REMAINING is not None and v2._LAST_DAILY_REMAINING <= 50:
-                raise v2.TickBudgetExceeded("Daily API reserve guard reached; lower-priority work deferred.")
+                raise v2.TickBudgetExceeded(
+                    "Daily API reserve guard reached; lower-priority work deferred; "
+                    f"{_budget_exhaustion_context(endpoint, params)}."
+                )
 
             now = time.monotonic()
             wait_for = MIN_REQUEST_INTERVAL_SECONDS - (now - _LAST_REQUEST_STARTED)
