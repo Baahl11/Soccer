@@ -8,6 +8,7 @@ on:
     paths:
       - "mcp_gateway/**"
       - "tests/test_v4_*.py"
+      - "tests/test_subscriber_ui_contract_v231.py"
       - "tests/test_clv_postgres_v4.py"
       - "tests/test_market_snapshot_integrity.py"
       - "tests/test_oos_prediction_ledger_v4.py"
@@ -105,4 +106,6 @@ jobs:
             tests/test_one_x_two_multiclass_oos_v4.py \
             tests/test_one_x_two_dixon_coles.py \
             tests/test_one_x_two_draw_signal.py \
-            tests/test_one_x_two_draw_history_signal.py
+            tests/test_one_x_two_draw_history_signal.py \
+            tests/test_subscriber_ui_contract_v231.py \
+            tests/test_v4_023_subscriber_preview_data.py
