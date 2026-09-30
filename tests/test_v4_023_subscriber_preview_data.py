@@ -1,5 +1,7 @@
+from mcp_gateway.subscriber_maturity_v232 import _build_family_rows
 from mcp_gateway.subscriber_preview_data_v231 import build_preview_payload
 from mcp_gateway.subscriber_preview_live_v231 import _html
+from mcp_gateway.subscriber_preview_maturity_live_v232 import _html as maturity_html
 
 
 def _payload():
@@ -125,3 +127,70 @@ def test_live_preview_html_wires_three_advanced_surfaces_and_neutralizes_mock_da
     assert "neutralizeMocks" in html
     assert "DEVICE PREVIEW" in html
     assert "Missing data stays missing" in html
+
+
+def test_multi_gate_maturity_does_not_call_zero_true_clv_no_evidence():
+    clv_report = {
+        "mapped_family_counts": {
+            "1H": 123,
+            "2H": 123,
+            "HOME_TT": 124,
+            "AWAY_TT": 124,
+            "FT_CORNERS": 82,
+            "TEAM_CORNERS": 18,
+        },
+        "priced_entry_family_counts": {
+            "1H": 123,
+            "2H": 123,
+            "HOME_TT": 124,
+            "AWAY_TT": 124,
+            "FT_CORNERS": 82,
+            "TEAM_CORNERS": 18,
+        },
+        "family_counts": {"1X2": 47, "BTTS": 15, "FT_TOTALS": 4},
+        "team_totals_maturation_funnel": {"modeled_signal_unique_fixtures": 29},
+    }
+    reports = {
+        "Team Totals": {
+            "status": "RESEARCH_HOLD",
+            "oos_sample": {"evaluated_fixtures": 500, "minimum_actionable_review_fixtures": 200},
+            "true_clv": {"rows": 0, "minimum_rows": 50, "unique_fixtures": 0},
+            "blockers": ["TEAM_TOTALS_TRUE_CLV_0_LT_50"],
+        },
+        "1H": {
+            "status": "RESEARCH_HOLD",
+            "calibration": {"n": 220, "minimum_calibrated_oos": 100},
+            "true_clv": {"rows": 0, "minimum_rows": 50, "unique_fixtures": 0},
+            "blockers": ["CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE", "1H_TRUE_CLV_0_LT_50"],
+        },
+    }
+
+    rows = {row["label"]: row for row in _build_family_rows(clv_report, reports)}
+    team = rows["Team Totals"]
+    assert team["model_evidence"]["current"] == 500
+    assert team["model_evidence"]["target"] == 200
+    assert team["model_evidence"]["ready"] is True
+    assert team["mapped_rows"] == 248
+    assert team["priced_rows"] == 248
+    assert team["modeled_signal_fixtures"] == 29
+    assert team["true_clv_rows"] == 0
+    assert team["true_clv_target"] == 50
+    assert team["stage"] == "TRUE CLV COLLECTION"
+    assert "NO EVIDENCE" not in team["stage"]
+
+    one_h = rows["1H"]
+    assert one_h["model_evidence"]["current"] == 220
+    assert one_h["model_evidence"]["target"] == 100
+    assert one_h["priced_rows"] == 123
+    assert one_h["true_clv_rows"] == 0
+    assert one_h["stage"] == "MODEL REVIEW + CLV COLLECTION"
+
+
+def test_v232_html_labels_true_clv_as_one_gate_not_total_maturity():
+    html = maturity_html()
+    assert "/app-preview/maturity" in html
+    assert "Model / OOS" in html
+    assert "Market evidence" in html
+    assert "Strict True CLV" in html
+    assert "LIVE MATURITY · MULTI-GATE" in html
+    assert "1X2 True CLV" in html
