@@ -1,0 +1,94 @@
+name: Soccer Edge Content Factory
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: Maximum verified content candidates to request
+        required: false
+        default: "6"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  render-content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Request evidence-locked content packages
+        id: select
+        env:
+          CONTENT_LIMIT: ${{ inputs.limit }}
+        run: |
+          set -euo pipefail
+          response=$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          token=$(echo "$response" | jq -r '.value // empty')
+          test -n "$token"
+
+          mkdir -p content-output
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${token}" \
+            -H "Content-Type: application/json" \
+            --data "{\"limit\":${CONTENT_LIMIT}}" \
+            https://soccer-edge-api.onrender.com/internal/content-packages \
+            > content-output/content-packages.json
+
+          count=$(jq -r '.package_count // 0' content-output/content-packages.json)
+          echo "package_count=${count}" >> "$GITHUB_OUTPUT"
+          if [ "$count" -lt 1 ]; then
+            echo "has_content=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "has_content=true" >> "$GITHUB_OUTPUT"
+          jq '.packages[0] + {locale:"en"}' content-output/content-packages.json > content-output/props-en.json
+          jq '.packages[0] + {locale:"es"}' content-output/content-packages.json > content-output/props-es.json
+          jq -r '.packages[0].copy.en.caption' content-output/content-packages.json > content-output/caption-en.txt
+          jq -r '.packages[0].copy.es.caption' content-output/content-packages.json > content-output/caption-es.txt
+          jq -r '.packages[0].copy.en.x_post' content-output/content-packages.json > content-output/x-en.txt
+          jq -r '.packages[0].copy.es.x_post' content-output/content-packages.json > content-output/x-es.txt
+          jq -r '.packages[0].copy.en.voiceover' content-output/content-packages.json > content-output/voiceover-en.txt
+          jq -r '.packages[0].copy.es.voiceover' content-output/content-packages.json > content-output/voiceover-es.txt
+
+      - name: Install renderer
+        if: steps.select.outputs.has_content == 'true'
+        working-directory: content_factory/remotion
+        run: npm install --no-audit --no-fund
+
+      - name: Render English short
+        if: steps.select.outputs.has_content == 'true'
+        working-directory: content_factory/remotion
+        run: npx remotion render src/index.jsx SoccerEdgeShort "$GITHUB_WORKSPACE/content-output/short-en.mp4" --props="$GITHUB_WORKSPACE/content-output/props-en.json" --codec=h264
+
+      - name: Render Spanish short
+        if: steps.select.outputs.has_content == 'true'
+        working-directory: content_factory/remotion
+        run: npx remotion render src/index.jsx SoccerEdgeShort "$GITHUB_WORKSPACE/content-output/short-es.mp4" --props="$GITHUB_WORKSPACE/content-output/props-es.json" --codec=h264
+
+      - name: Render X cards
+        if: steps.select.outputs.has_content == 'true'
+        working-directory: content_factory/remotion
+        run: |
+          npx remotion still src/index.jsx SoccerEdgeShortCard "$GITHUB_WORKSPACE/content-output/x-card-en.png" --props="$GITHUB_WORKSPACE/content-output/props-en.json"
+          npx remotion still src/index.jsx SoccerEdgeShortCard "$GITHUB_WORKSPACE/content-output/x-card-es.png" --props="$GITHUB_WORKSPACE/content-output/props-es.json"
+
+      - name: Write manifest
+        if: steps.select.outputs.has_content == 'true'
+        run: |
+          jq '{schema_version,model_version,status,generated_at_utc,pipeline_version,source,package_count,selected:.packages[0]}' content-output/content-packages.json > content-output/manifest.json
+
+      - name: Upload content package
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-edge-content-${{ github.run_id }}
+          path: content-output/
+          if-no-files-found: error
+          retention-days: 14
