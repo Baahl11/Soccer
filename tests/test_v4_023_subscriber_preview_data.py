@@ -1,4 +1,5 @@
 from mcp_gateway.subscriber_preview_data_v231 import build_preview_payload
+from mcp_gateway.subscriber_preview_live_v231 import _html
 
 
 def test_preview_payload_wires_persisted_today_and_edge_feed_without_fake_zeroes():
@@ -7,7 +8,23 @@ def test_preview_payload_wires_persisted_today_and_edge_feed_without_fake_zeroes
         "generated_at_utc": "2026-09-30T18:10:00Z",
         "fixture_scan_count": 321,
         "deep_dive_processed_count": 7,
-        "maturity_snapshot": {"gates": {}},
+        "maturity_snapshot": {
+            "gates": {},
+            "generated_at_utc": "2026-09-30T18:09:00Z",
+            "reports_loaded": 11,
+            "reports_expected": 11,
+            "errors": {},
+            "maturation_control_tower": {
+                "status": "WATCH",
+                "families": [
+                    {"key": "one_x_two", "label": "1X2", "current": 47, "target": 50, "status": "MATURING"}
+                ],
+                "monitoring": {
+                    "report_freshness": {"status": "WATCH", "reason": "STALE"},
+                    "evidence_age": {"status": "WATCH", "evidence": {"age_hours": 25.0}},
+                },
+            },
+        },
         "match_table_rows": [
             {
                 "fixture_id": 1001,
@@ -49,5 +66,20 @@ def test_preview_payload_wires_persisted_today_and_edge_feed_without_fake_zeroes
     assert wait["model"]["probability"] is None
     assert wait["pricing"]["market_probability"] is None
     assert wait["pricing"]["edge_pp"] is None
+
+    tower = out["control_tower"]
+    assert tower["runtime_generated_at_utc"] == "2026-09-30T18:10:00Z"
+    assert tower["maturation"]["status"] == "WATCH"
+    assert tower["maturation"]["families"][0]["current"] == 47
+    assert tower["maturation"]["monitoring"]["evidence_age"]["evidence"]["age_hours"] == 25.0
+
     assert out["provider_requests_added"] == 0
     assert out["canonical_bet_logic_changed"] is False
+
+
+def test_live_preview_html_fetches_only_preview_contract_and_marks_unwired_metrics():
+    html = _html()
+    assert "/app-preview/data" in html
+    assert "LIVE DATA PREVIEW" in html
+    assert "Maturation evidence" in html
+    assert "NEXT WIRING" in html
