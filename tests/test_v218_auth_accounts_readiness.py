@@ -91,9 +91,10 @@ def test_v218_product_fragment_never_claims_auth_when_unconfigured(monkeypatch):
     assert "existing projects are not reused" in rendered
 
 
-def test_v218_source_does_not_use_unsafe_authorization_metadata():
+def test_v218_source_does_not_use_unsafe_authorization_metadata_or_secret_envs():
     source = open("mcp_gateway/supabase_auth_v4.py", encoding="utf-8").read()
     assert "user_metadata" not in source
-    assert "service_role" not in source
     assert "SOCCER_SUPABASE_SECRET" not in source
     assert "SOCCER_SUPABASE_SERVICE_ROLE" not in source
+    assert "service_role_required\": True" not in source
+    assert "secret_key_required\": True" not in source
