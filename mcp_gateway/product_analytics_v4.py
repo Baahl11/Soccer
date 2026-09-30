@@ -26,6 +26,7 @@ def inject_analytics(base_html: str, *, surface: str) -> str:
         "model_version": MODEL_VERSION,
         "surface": surface,
         "endpoint": f"{project_url}/functions/v1/track-product-event" if project_url else None,
+        "publishable_key": auth.get("publishable_key"),
     }
     cfg = _safe_json(config)
 
@@ -110,8 +111,7 @@ def inject_analytics(base_html: str, *, surface: str) -> str:
       };
     }
 
-    const originalEdge = typeof edge === 'function' ? edge : null;
-    if (originalEdge) {
+    if (typeof edge === 'function') {
       edge = async (endpoint) => {
         const headers = {apikey: cfg.publishable_key || '', Authorization:`Bearer ${token()}`, 'Content-Type':'application/json'};
         const payload = {analytics:{anonymous_id:anonId,session_id:sessionId,locale:locale(),...attribution}};
