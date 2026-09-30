@@ -44,6 +44,11 @@ def _install_product_analytics_layer() -> None:
         subscriber_app_v4._app_html = tracked_app_html
 
 
+def _install_subscriber_frontend_hotfix() -> None:
+    from mcp_gateway import subscriber_app_v4, subscriber_frontend_hotfix_v4
+    subscriber_frontend_hotfix_v4.install(subscriber_app_v4)
+
+
 def _install_subscriber_app_routes() -> None:
     """Add customer routes while preserving the FastMCP ASGI lifespan."""
     from mcp.server.fastmcp import FastMCP
@@ -55,8 +60,6 @@ def _install_subscriber_app_routes() -> None:
     FastMCP._v220_streamable_http_app = original
 
     async def auth_landing(request):
-        # Supabase Site URL currently lands at the service root after email
-        # confirmation. Always send that browser to the actual subscriber app.
         return RedirectResponse(url="/app", status_code=307)
 
     def streamable_http_app_with_subscriber_routes(self, *args, **kwargs):
@@ -85,4 +88,5 @@ def _install_subscriber_app_routes() -> None:
 _install_commercial_product_layers()
 _install_subscriber_i18n_layer()
 _install_product_analytics_layer()
+_install_subscriber_frontend_hotfix()
 _install_subscriber_app_routes()
