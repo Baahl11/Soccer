@@ -39,15 +39,13 @@ Server-side Free/Pro entitlement resolver, RLS, fail-closed plan resolution, no 
 - Stripe account connected in LIVE mode.
 - Stripe Product/Price still pending final pricing decision.
 
+### V221 — Commercial Surface Hardening ✅
+- `/dashboard` redirects to `/app`.
+- `/product/views` returns entitlement-filtered subscriber data.
+- Internal MCP product tools and V4 runtime remain untouched.
+- Route ordering and Free redaction are regression-tested.
+
 ## Immediate roadmap
-
-### V221 — Commercial Surface Hardening 🟡
-Goal: remove premium-data bypasses from legacy public HTTP surfaces.
-
-- `/dashboard` -> redirect to `/app`.
-- `/product/views` -> entitlement-filtered subscriber payload.
-- Keep internal MCP product tools and V4 runtime untouched.
-- Regression-test route ordering and Free redaction.
 
 ### V222 — ES/EN Internationalization
 Goal: one product, two languages, one backend.
@@ -198,7 +196,7 @@ Spanish direction:
 
 ## Current execution order
 
-`V221 -> V222 -> V223 -> V224 -> V225 -> V226 -> V227 -> V228`
+`V222 -> V223 -> V224 -> V225 -> V226 -> V227 -> V228`
 
 Statistical maturation continues independently in the existing family order:
 
