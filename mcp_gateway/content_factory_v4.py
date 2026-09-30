@@ -127,7 +127,7 @@ def _model_vs_market(row: dict[str, Any]) -> dict[str, Any] | None:
     selection = f' · {facts["selection"]}' if facts["selection"] else ""
     price = f' @ {facts["price"]}' if facts["price"] is not None else ""
     en = {
-        "hook": f'Market {facts["market_probability_display"]}. Soccer Edge {facts["model_probability_display"]}.' ,
+        "hook": f'Market {facts["market_probability_display"]}. Soccer Edge {facts["model_probability_display"]}.',
         "voiceover": (
             f'{fixture}. {market}{selection}{price}. The de-vigged market probability is {facts["market_probability_display"]}. '
             f'The calibrated Soccer Edge probability is {facts["model_probability_display"]}, a gap of {facts["edge_display"]}. '
@@ -158,18 +158,18 @@ def _why_passed(row: dict[str, Any]) -> dict[str, Any] | None:
         return None
     fixture = f'{facts["home"]} vs {facts["away"]}'
     reason = str(facts["reason"] or "No verified execution reason available")
-    blocker_text = "; ".join(facts["blockers"]) if facts["blockers"] else reason
+    blocker_text = "; ".join(facts["blockers"]) if facts["blockers"] else "No additional blocker"
     en = {
         "hook": f'Why Soccer Edge did not fire on {fixture}.',
-        "voiceover": f'{fixture}. Status: {status}. We do not force a pick when the evidence is incomplete. Verified blocker: {blocker_text}. Passing is a decision too.',
-        "caption": f'{fixture}: {status}. {blocker_text}. No forced picks. #SoccerEdge #NoBet',
-        "x_post": f'{fixture}\nStatus: {status}\nWhy we passed: {blocker_text}\nNo forced picks.',
+        "voiceover": f'{fixture}. Status: {status}. We do not force a pick when the evidence is incomplete. Verified reason: {reason}. Verified blocker: {blocker_text}. Passing is a decision too.',
+        "caption": f'{fixture}: {status}. Reason: {reason}. Blocker: {blocker_text}. No forced picks. #SoccerEdge #NoBet',
+        "x_post": f'{fixture}\nStatus: {status}\nReason: {reason}\nBlocker: {blocker_text}\nNo forced picks.',
     }
     es = {
         "hook": f'Por qué Soccer Edge no disparó en {fixture}.',
-        "voiceover": f'{fixture}. Estado: {status}. No forzamos una apuesta cuando la evidencia está incompleta. Bloqueador verificado: {blocker_text}. Pasar también es una decisión.',
-        "caption": f'{fixture}: {status}. {blocker_text}. Sin picks forzados. #SoccerEdge #NoBet',
-        "x_post": f'{fixture}\nEstado: {status}\nPor qué pasamos: {blocker_text}\nSin picks forzados.',
+        "voiceover": f'{fixture}. Estado: {status}. No forzamos una apuesta cuando la evidencia está incompleta. Razón verificada: {reason}. Bloqueador verificado: {blocker_text}. Pasar también es una decisión.',
+        "caption": f'{fixture}: {status}. Razón: {reason}. Bloqueador: {blocker_text}. Sin picks forzados. #SoccerEdge #NoBet',
+        "x_post": f'{fixture}\nEstado: {status}\nRazón: {reason}\nBloqueador: {blocker_text}\nSin picks forzados.',
     }
     return _package(row, "WHY_WE_PASSED", facts, en, es)
 
