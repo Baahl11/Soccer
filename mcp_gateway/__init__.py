@@ -31,4 +31,32 @@ def _install_commercial_product_layers() -> None:
     product_dashboard_v4.render_dashboard = render_dashboard_with_product_layers
 
 
+def _install_subscriber_app_routes() -> None:
+    """Add V220 subscriber routes without replacing the FastMCP ASGI lifespan."""
+    from mcp.server.fastmcp import FastMCP
+    from starlette.routing import Route
+
+    if hasattr(FastMCP, "_v220_streamable_http_app"):
+        return
+
+    original = FastMCP.streamable_http_app
+    FastMCP._v220_streamable_http_app = original
+
+    def streamable_http_app_with_subscriber_routes(self, *args, **kwargs):
+        app = original(self, *args, **kwargs)
+        from mcp_gateway import subscriber_app_v4
+
+        existing_paths = {getattr(route, "path", None) for route in app.router.routes}
+        additions = []
+        if "/app" not in existing_paths:
+            additions.append(Route("/app", subscriber_app_v4.app_page, methods=["GET"]))
+        if "/app/data" not in existing_paths:
+            additions.append(Route("/app/data", subscriber_app_v4.app_data, methods=["GET"]))
+        app.router.routes[0:0] = additions
+        return app
+
+    FastMCP.streamable_http_app = streamable_http_app_with_subscriber_routes
+
+
 _install_commercial_product_layers()
+_install_subscriber_app_routes()
