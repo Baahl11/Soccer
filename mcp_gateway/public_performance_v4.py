@@ -205,6 +205,13 @@ def _pp(value: Any) -> str:
         return "N/V"
 
 
+def _units(value: Any) -> str:
+    try:
+        return f"{float(value):+.2f}u" if value is not None else "N/V"
+    except (TypeError, ValueError):
+        return "N/V"
+
+
 def render_fragment(snapshot: dict[str, Any] | None = None) -> str:
     node = snapshot if isinstance(snapshot, dict) else load_snapshot()
     bet = _dict(node.get("bet_only"))
@@ -217,12 +224,12 @@ def render_fragment(snapshot: dict[str, Any] | None = None) -> str:
     pushes = _int(bet.get("push"))
     roi = _float(bet.get("roi_units"))
     record = "N/V" if settled is None else f"{wins or 0}-{losses or 0}-{pushes or 0}"
-    roi_text = "N/V" if roi is None else f"{roi:+.2f}u"
+    roi_text = _units(roi)
     coverage = _pct(settlement.get("coverage_rate"))
     clv_rows = _int(clv.get("rows"))
     families = bet.get("families") if isinstance(bet.get("families"), list) else []
     family_html = "".join(
-        f"<tr><td>{_esc(row.get('market_family'))}</td><td>{_esc(row.get('settled'))}</td><td>{_esc(row.get('win'))}-{_esc(row.get('loss'))}</td><td>{_esc('N/V' if row.get('roi_units') is None else f\"{float(row.get('roi_units')):+.2f}u\")}</td></tr>"
+        f"<tr><td>{_esc(row.get('market_family'))}</td><td>{_esc(row.get('settled'))}</td><td>{_esc(row.get('win'))}-{_esc(row.get('loss'))}</td><td>{_esc(_units(row.get('roi_units')))}</td></tr>"
         for row in families if isinstance(row, dict)
     ) or "<tr><td colspan='4'>No verified BET-family settlement sample.</td></tr>"
     return f"""
