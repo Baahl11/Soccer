@@ -50,7 +50,7 @@ jobs:
           path: state
           fetch-depth: 1
 
-      - name: Rebuild point-in-time ledger with v210 schema
+      - name: Rebuild compatibility ledger without recalibration
         run: |
           mkdir -p artifacts
           python mcp_gateway/build_signal_ledger.py \
@@ -59,10 +59,10 @@ jobs:
             --summary-output artifacts/signal_ledger_summary_v210.json
           cat artifacts/signal_ledger_summary_v210.json
 
-      - name: Audit rebuilt historical signal ledger
+      - name: Audit immutable point-in-time historical signals
         run: |
           python -m mcp_gateway.frozen_calibration_audit_v4 \
-            --input artifacts/signal_ledger_v210.jsonl \
+            --history-dir state/soccer_edge_state/history \
             --output artifacts/frozen_calibration_audit_v4.json
           cat artifacts/frozen_calibration_audit_v4.json
 
