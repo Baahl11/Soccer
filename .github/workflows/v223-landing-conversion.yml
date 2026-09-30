@@ -1,0 +1,32 @@
+name: v223 Landing Conversion
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v223-landing-conversion
+    paths:
+      - mcp_gateway/__init__.py
+      - mcp_gateway/landing_page_v4.py
+      - tests/test_v223_landing_conversion.py
+      - .github/workflows/v223-landing-conversion.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx psycopg[binary] "mcp<2"
+      - name: Compile landing layer
+        run: |
+          python -m py_compile mcp_gateway/landing_page_v4.py
+          python -m py_compile mcp_gateway/__init__.py
+      - name: Run V223 plus commercial regressions
+        run: |
+          PYTHONPATH=. pytest -q tests/test_v223_landing_conversion.py tests/test_v222_es_en_i18n.py tests/test_v221_commercial_surface_hardening.py tests/test_v220_subscriber_app_billing.py tests/test_v219_subscription_entitlements.py tests/test_v218_auth_accounts_readiness.py tests/test_v217_match_detail_premium.py tests/test_v216_performance_track_record.py tests/test_v215_commercial_product_shell.py tests/test_phase24_product_dashboard_v4.py tests/test_phase24_product_views_v4.py
