@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 MODEL_VERSION = "SOCCER_SUBSCRIBER_UI_CONTRACT_V231"
 
 
@@ -115,6 +115,7 @@ def adapt_market_row(row: dict[str, Any]) -> dict[str, Any]:
         },
         "model": {
             "probability": model_probability,
+            "confidence": _number(_first(row, "confidence", "confidence_score", "model_confidence")),
             "version": _first(row, "model_version"),
         },
         "pricing": {
@@ -129,6 +130,8 @@ def adapt_market_row(row: dict[str, Any]) -> dict[str, Any]:
             "status": _first(row, "execution_status", "status", "stage", "classification") or "WATCH",
             "reason": _first(row, "reason", "blocker"),
             "stage": _first(row, "stage"),
+            "data_quality": _first(row, "data_quality", "data_tier", "quality"),
+            "lineup": _first(row, "lineup_status", "xi_status", "lineup"),
             "provider_update": _first(row, "provider_update", "provider_updated_at"),
             "generated_at": _first(row, "generated_at_utc", "generated_at", "signal_generated_at"),
         },
