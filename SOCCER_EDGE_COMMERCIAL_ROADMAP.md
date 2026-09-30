@@ -45,26 +45,22 @@ Server-side Free/Pro entitlement resolver, RLS, fail-closed plan resolution, no 
 - Internal MCP product tools and V4 runtime remain untouched.
 - Route ordering and Free redaction are regression-tested.
 
+### V222 — ES/EN Internationalization ✅
+- One subscriber product in English and Spanish.
+- Browser-language default plus persistent manual EN/ES switch.
+- Presentation labels for market/status/maturity/account/billing copy.
+- Locale-aware title, description and Open Graph metadata.
+- Canonical market/status identifiers remain unchanged in payload/storage.
+
+### V223 — Landing + Conversion System ✅
+- Public bilingual `/` landing page.
+- `Model vs Market` positioning.
+- Explorer/free-account CTAs into `/app`.
+- Explain price awareness, evidence gating, verified performance and premium match detail.
+- Responsible-gambling and legal-age/jurisdiction copy.
+- No fabricated live odds or results on the marketing surface.
+
 ## Immediate roadmap
-
-### V222 — ES/EN Internationalization
-Goal: one product, two languages, one backend.
-
-- Locale layer for `en` and `es`.
-- Browser-language default plus manual EN/ES switch.
-- Translate subscriber navigation, account, maturity states, market labels, blockers, performance copy, checkout copy, and alerts.
-- Never translate internal canonical market/family identifiers in storage.
-- Prepare locale-aware SEO metadata and share cards.
-
-### V223 — Landing + Conversion System
-Goal: turn traffic into free accounts before asking for payment.
-
-- Bilingual landing page.
-- Core positioning: `Model vs Market`, not generic “AI picks”.
-- Explain evidence, calibration, CLV, and transparent track record.
-- Free Explorer CTA -> account creation -> `/app`.
-- Pro upgrade CTA only after user understands value.
-- Responsible gambling/compliance footer and jurisdiction-aware messaging.
 
 ### V224 — Funnel Analytics
 Goal: replace marketing guesses with Soccer Edge conversion data.
@@ -155,7 +151,7 @@ After V224 provides real funnel data:
 
 ## Market strategy
 
-Build globally and bilingually from V222, but launch sequentially.
+Build globally and bilingually, but launch sequentially.
 
 Recommended first wedge:
 - Mexico + US Hispanic.
@@ -196,7 +192,7 @@ Spanish direction:
 
 ## Current execution order
 
-`V222 -> V223 -> V224 -> V225 -> V226 -> V227 -> V228`
+`V224 -> V225 -> V226 -> V227 -> V228`
 
 Statistical maturation continues independently in the existing family order:
 
