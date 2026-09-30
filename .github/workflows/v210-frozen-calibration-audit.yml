@@ -9,8 +9,10 @@ on:
       - "mcp_gateway/frozen_calibration_audit_v4.py"
       - "mcp_gateway/automation_v127.py"
       - "mcp_gateway/tick_worker.py"
+      - "mcp_gateway/build_signal_ledger.py"
       - "tests/test_frozen_calibration_audit_v4.py"
       - "tests/test_automation_v127.py"
+      - "tests/test_build_signal_ledger_provenance.py"
       - ".github/workflows/v210-frozen-calibration-audit.yml"
 
 permissions:
@@ -38,7 +40,8 @@ jobs:
         run: |
           PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_frozen_calibration_audit_v4.py \
-            tests/test_automation_v127.py
+            tests/test_automation_v127.py \
+            tests/test_build_signal_ledger_provenance.py
 
       - name: Checkout immutable state snapshot
         uses: actions/checkout@v4
