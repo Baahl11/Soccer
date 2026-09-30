@@ -12,7 +12,7 @@ from mcp_gateway import subscriber_ui_contract_v231
 from mcp_gateway import subscription_entitlements_v4
 from mcp_gateway import supabase_auth_v4
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 MODEL_VERSION = "SOCCER_SUBSCRIBER_PREVIEW_DATA_V231"
 
 
@@ -76,6 +76,11 @@ def build_preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
 
     control = views.get("control_tower") if isinstance(views.get("control_tower"), dict) else {}
     pipeline = control.get("pipeline") if isinstance(control.get("pipeline"), dict) else {}
+    health = control.get("system_health") if isinstance(control.get("system_health"), dict) else {}
+    errors = control.get("errors") if isinstance(control.get("errors"), dict) else {}
+    maturity_snapshot = control.get("maturity_snapshot") if isinstance(control.get("maturity_snapshot"), dict) else {}
+    maturation = maturity_snapshot.get("maturation_control_tower") if isinstance(maturity_snapshot.get("maturation_control_tower"), dict) else {}
+    monitoring = maturation.get("monitoring") if isinstance(maturation.get("monitoring"), dict) else {}
 
     pass_count = 0
     for row in slate:
@@ -106,6 +111,23 @@ def build_preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "edge_feed": {
             "rows": feed[:25],
             "total": len(feed),
+        },
+        "control_tower": {
+            "status": control.get("status"),
+            "runtime_generated_at_utc": control.get("generated_at_utc") or payload.get("generated_at_utc"),
+            "runtime_generated_at_local": control.get("generated_at_local") or payload.get("generated_at_local"),
+            "system_health": health,
+            "pipeline": pipeline,
+            "errors": errors,
+            "maturation": {
+                "status": maturation.get("status"),
+                "families": list(maturation.get("families") or []),
+                "monitoring": monitoring,
+                "snapshot_generated_at_utc": maturity_snapshot.get("generated_at_utc"),
+                "reports_loaded": maturity_snapshot.get("reports_loaded"),
+                "reports_expected": maturity_snapshot.get("reports_expected"),
+                "errors": maturity_snapshot.get("errors") if isinstance(maturity_snapshot.get("errors"), dict) else {},
+            },
         },
         "provider_requests_added": 0,
         "canonical_bet_logic_changed": False,
