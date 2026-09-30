@@ -32,7 +32,7 @@ def _install_commercial_product_layers() -> None:
 
 
 def _install_subscriber_app_routes() -> None:
-    """Add V220 subscriber routes without replacing the FastMCP ASGI lifespan."""
+    """Add subscriber routes and shadow legacy public surfaces without replacing FastMCP lifespan."""
     from mcp.server.fastmcp import FastMCP
     from starlette.routing import Route
 
@@ -44,14 +44,37 @@ def _install_subscriber_app_routes() -> None:
 
     def streamable_http_app_with_subscriber_routes(self, *args, **kwargs):
         app = original(self, *args, **kwargs)
-        from mcp_gateway import subscriber_app_v4
+        from mcp_gateway import commercial_surface_guard_v4, subscriber_app_v4
 
         existing_paths = {getattr(route, "path", None) for route in app.router.routes}
+        existing_names = {getattr(route, "name", None) for route in app.router.routes}
         additions = []
+
+        # V221: prepend entitlement-safe shadow routes ahead of legacy public
+        # /dashboard and /product/views routes. Internal MCP tools remain untouched.
+        if "v221_dashboard_guard" not in existing_names:
+            additions.append(
+                Route(
+                    "/dashboard",
+                    commercial_surface_guard_v4.dashboard_guard,
+                    methods=["GET"],
+                    name="v221_dashboard_guard",
+                )
+            )
+        if "v221_product_views_guard" not in existing_names:
+            additions.append(
+                Route(
+                    "/product/views",
+                    commercial_surface_guard_v4.product_views_guard,
+                    methods=["GET"],
+                    name="v221_product_views_guard",
+                )
+            )
         if "/app" not in existing_paths:
-            additions.append(Route("/app", subscriber_app_v4.app_page, methods=["GET"]))
+            additions.append(Route("/app", subscriber_app_v4.app_page, methods=["GET"], name="v220_subscriber_app"))
         if "/app/data" not in existing_paths:
-            additions.append(Route("/app/data", subscriber_app_v4.app_data, methods=["GET"]))
+            additions.append(Route("/app/data", subscriber_app_v4.app_data, methods=["GET"], name="v220_subscriber_data"))
+
         app.router.routes[0:0] = additions
         return app
 
