@@ -71,7 +71,7 @@ def _install_product_analytics_layer() -> None:
 
 
 def _install_subscriber_app_routes() -> None:
-    """Add landing/subscriber routes and shadow legacy public surfaces without replacing FastMCP lifespan."""
+    """Add commercial routes without replacing the FastMCP ASGI lifespan."""
     from mcp.server.fastmcp import FastMCP
     from starlette.routing import Route
 
@@ -83,7 +83,7 @@ def _install_subscriber_app_routes() -> None:
 
     def streamable_http_app_with_subscriber_routes(self, *args, **kwargs):
         app = original(self, *args, **kwargs)
-        from mcp_gateway import commercial_surface_guard_v4, landing_page_v4, subscriber_app_v4
+        from mcp_gateway import commercial_surface_guard_v4, content_factory_http_v4, landing_page_v4, subscriber_app_v4
 
         existing_paths = {getattr(route, "path", None) for route in app.router.routes}
         existing_names = {getattr(route, "name", None) for route in app.router.routes}
@@ -107,6 +107,17 @@ def _install_subscriber_app_routes() -> None:
                     commercial_surface_guard_v4.product_views_guard,
                     methods=["GET"],
                     name="v221_product_views_guard",
+                )
+            )
+        # V225: premium content export is never public. The handler validates
+        # GitHub OIDC against the dedicated content-factory workflow.
+        if "/internal/content-packages" not in existing_paths:
+            additions.append(
+                Route(
+                    "/internal/content-packages",
+                    content_factory_http_v4.content_packages,
+                    methods=["POST"],
+                    name="v225_content_packages",
                 )
             )
         if "/" not in existing_paths:
