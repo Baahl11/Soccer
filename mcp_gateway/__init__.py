@@ -79,8 +79,7 @@ def _install_subscriber_app_routes() -> None:
         from mcp_gateway import (
             commercial_surface_guard_v4,
             content_factory_http_v4,
-            subscriber_app_v4,
-            subscriber_product_v234,
+            subscriber_product_v235,
             subscriber_preview_data_v231,
             subscriber_preview_maturity_live_v232,
             subscriber_preview_maturity_v232,
@@ -98,11 +97,11 @@ def _install_subscriber_app_routes() -> None:
         if "/internal/content-packages" not in existing_paths:
             additions.append(Route("/internal/content-packages", content_factory_http_v4.content_packages, methods=["POST"], name="v225_content_packages"))
         if "/app" not in existing_paths:
-            additions.append(Route("/app", subscriber_product_v234.app_page, methods=["GET"], name="v234_subscriber_product"))
+            additions.append(Route("/app", subscriber_product_v235.app_page, methods=["GET"], name="v235_subscriber_product"))
         if "/app/data" not in existing_paths:
-            additions.append(Route("/app/data", subscriber_app_v4.app_data, methods=["GET"], name="v220_subscriber_data"))
+            additions.append(Route("/app/data", subscriber_product_v235.app_data, methods=["GET"], name="v235_subscriber_data"))
         if "/app/match" not in existing_paths:
-            additions.append(Route("/app/match", subscriber_product_v234.match_data, methods=["GET"], name="v234_subscriber_match_data"))
+            additions.append(Route("/app/match", subscriber_product_v235.match_data, methods=["GET"], name="v235_subscriber_match_data"))
         if "/app-preview" not in existing_paths:
             additions.append(Route("/app-preview", subscriber_preview_maturity_live_v232.preview_page, methods=["GET"], name="v232_subscriber_live_preview"))
         if "/app-preview/data" not in existing_paths:
