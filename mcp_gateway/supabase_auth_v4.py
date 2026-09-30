@@ -7,7 +7,7 @@ from typing import Any
 import httpx
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_SUPABASE_AUTH_V4_1.0.0"
+MODEL_VERSION = "SOCCER_SUPABASE_AUTH_V4_1.0.1"
 REQUEST_TIMEOUT_SECONDS = 3.0
 
 
@@ -31,7 +31,7 @@ def auth_config() -> dict[str, Any]:
         "service_role_required": False,
         "billing_enabled": False,
         "entitlements_enforced": False,
-        "authorization_metadata_source": "NONE_UNTIL_V219",
+        "authorization_metadata_source": "DELEGATED_TO_SUBSCRIPTION_ENTITLEMENTS_V4",
         "provider_requests_added": 0,
     }
 
@@ -112,7 +112,7 @@ def render_fragment() -> str:
     status = str(config["status"])
     headline = "Account infrastructure ready" if configured else "Account infrastructure staged"
     body = (
-        "Dedicated Supabase Auth configuration is present. User JWT verification is available, while billing and entitlements remain disabled."
+        "Dedicated Supabase Auth configuration is present and user JWT verification is available. Billing remains disabled; subscription authorization is handled separately by V219 entitlements."
         if configured
         else "No dedicated Soccer Edge Supabase project is configured yet. Sign-in stays disabled; existing projects are not reused and no account data is created."
     )
