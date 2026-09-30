@@ -47,12 +47,30 @@ def test_model_vs_market_package_uses_only_persisted_numeric_facts():
     facts = item["facts"]
     assert facts["market_probability"] == 0.535
     assert facts["model_probability"] == 0.614
-    assert facts["edge_pp"] == 7.9
+    assert round(facts["edge_pp"], 6) == 7.9
     assert facts["price"] == 1.91
     assert "53.5%" in item["copy"]["en"]["voiceover"]
     assert "61.4%" in item["copy"]["es"]["voiceover"]
     assert item["evidence_policy"]["ai_may_modify_numeric_facts"] is False
     assert item["evidence_policy"]["provider_requests_added"] == 0
+    assert item["evidence_policy"]["probability_gap_recomputed_from_persisted_probabilities"] is True
+
+
+def test_public_gap_ignores_ambiguous_upstream_edge_field():
+    product = _product()
+    row = product["views"]["strong_sport_signals"]["rows"][0]
+    row["p_market_fair"] = 0.1579
+    row["p_model_calibrated"] = 0.26963821
+    row["calibrated_edge_pp"] = 1.158
+    item = next(
+        p for p in content_factory_v4.build_content_packages(product)["packages"]
+        if p["format"] == "MODEL_VS_MARKET"
+    )
+    assert round(item["facts"]["edge_pp"], 4) == 11.1738
+    assert item["facts"]["edge_display"] == "+11.2 pp"
+    assert item["facts"]["source_edge_value"] == 1.158
+    assert "+11.2 pp" in item["copy"]["en"]["voiceover"]
+    assert "+11.2 pp" in item["copy"]["es"]["voiceover"]
 
 
 def test_missing_probability_prevents_numeric_content_invention():
