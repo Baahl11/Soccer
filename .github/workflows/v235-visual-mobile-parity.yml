@@ -1,0 +1,39 @@
+name: V235 Visual Mobile Parity
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v235-visual-mobile-parity
+    paths:
+      - mcp_gateway/subscriber_product_v235.py
+      - mcp_gateway/__init__.py
+      - tests/test_v235_visual_mobile_parity.py
+      - .github/workflows/v235-visual-mobile-parity.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile V235 frontend layers
+        run: |
+          python -m py_compile mcp_gateway/subscriber_product_v235.py
+          python -m py_compile mcp_gateway/__init__.py
+      - name: Run V235 focused regressions
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_v235_visual_mobile_parity.py \
+            tests/test_v234_functional_mockup_completion.py \
+            tests/test_v233_frontend_completion_gate.py \
+            tests/test_subscriber_ui_contract_v231.py \
+            tests/test_v4_023_subscriber_preview_data.py \
+            tests/test_v226_regional_billing_live.py
