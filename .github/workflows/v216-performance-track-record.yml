@@ -1,0 +1,33 @@
+name: v216 Performance Track Record
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v216-performance-track-record
+    paths:
+      - mcp_gateway/__init__.py
+      - mcp_gateway/public_performance_v4.py
+      - tests/test_v216_performance_track_record.py
+      - .github/workflows/v216-performance-track-record.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx psycopg[binary]
+      - name: Compile performance product layer
+        run: |
+          python -m py_compile mcp_gateway/public_performance_v4.py
+          python -m py_compile mcp_gateway/__init__.py
+          python -m py_compile mcp_gateway/product_dashboard_v4.py
+      - name: Run V216 plus product regressions
+        run: |
+          PYTHONPATH=. pytest -q tests/test_v216_performance_track_record.py tests/test_v215_commercial_product_shell.py tests/test_phase24_product_dashboard_v4.py tests/test_phase24_product_views_v4.py
