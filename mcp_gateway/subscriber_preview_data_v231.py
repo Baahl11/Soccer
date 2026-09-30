@@ -1,18 +1,20 @@
 from __future__ import annotations
 
 import asyncio
+from collections import Counter
 from typing import Any
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from mcp_gateway import market_mismatch_v4
 from mcp_gateway import persistence as persistence_base
 from mcp_gateway import product_views_v4
 from mcp_gateway import subscriber_ui_contract_v231
 from mcp_gateway import subscription_entitlements_v4
 from mcp_gateway import supabase_auth_v4
 
-SCHEMA_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.2.0"
 MODEL_VERSION = "SOCCER_SUBSCRIBER_PREVIEW_DATA_V231"
 
 
@@ -47,6 +49,59 @@ def _dedupe(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return result
 
 
+def _active_raw_rows(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    source = payload.get("match_table_rows")
+    rows = [row for row in source if isinstance(row, dict)] if isinstance(source, list) else []
+    active: list[dict[str, Any]] = []
+    for row in rows:
+        status = str(row.get("status") or "").upper()
+        stage = str(row.get("stage") or "").upper()
+        if status in {"FT", "AET", "PEN", "CANC", "PST"} or stage == "POSTGAME":
+            continue
+        active.append(row)
+    return active
+
+
+def _market_catalog(payload: dict[str, Any], maturation: dict[str, Any]) -> list[dict[str, Any]]:
+    counts: Counter[str] = Counter()
+    for row in _active_raw_rows(payload):
+        family = market_mismatch_v4.canonical_market_family(row)
+        if family:
+            counts[family] += 1
+
+    maturity_by_label: dict[str, dict[str, Any]] = {}
+    for family in maturation.get("families") or []:
+        if isinstance(family, dict):
+            maturity_by_label[str(family.get("label") or family.get("key") or "").upper()] = family
+
+    specs = [
+        ("1X2", ("1X2",), "Match result probabilities, draw-aware calibration"),
+        ("BTTS", ("BTTS",), "Both Teams To Score · de-vig market compare"),
+        ("FT Totals", ("FT_TOTALS",), "Full-time totals ladder and price history"),
+        ("Team Totals", ("HOME_TT", "AWAY_TT"), "Home/Away team scoring markets"),
+        ("1H", ("1H",), "First-half goals and match markets"),
+        ("Corners", ("FT_CORNERS", "TEAM_CORNERS"), "Formation-aware corner intelligence"),
+        ("2H", ("2H",), "Second-half goals intelligence"),
+        ("Cards", ("CARDS",), "Match/team cards and referee context"),
+        ("Player Props", ("SHOTS", "SOT", "GOALSCORER", "ASSISTS", "PLAYER_CARDS", "GK_SAVES"), "XI-aligned player market research"),
+    ]
+
+    result: list[dict[str, Any]] = []
+    for label, families, description in specs:
+        maturity = maturity_by_label.get(label.upper()) or {}
+        result.append({
+            "label": label,
+            "live_rows": sum(counts[name] for name in families),
+            "maturity_current": maturity.get("current"),
+            "maturity_target": maturity.get("target"),
+            "maturity_status": maturity.get("status"),
+            "blocker": maturity.get("blocker"),
+            "evidence_kind": maturity.get("evidence_kind"),
+            "description": description,
+        })
+    return result
+
+
 def build_preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
     payload = dict(payload)
     payload.setdefault("status", "ok")
@@ -73,6 +128,7 @@ def build_preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
         ),
         None,
     )
+    selected_match = top_edge or (feed[0] if feed else None)
 
     control = views.get("control_tower") if isinstance(views.get("control_tower"), dict) else {}
     pipeline = control.get("pipeline") if isinstance(control.get("pipeline"), dict) else {}
@@ -111,6 +167,16 @@ def build_preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "edge_feed": {
             "rows": feed[:25],
             "total": len(feed),
+        },
+        "match_center": {
+            "selected": selected_match,
+            "source": "TOP_COMPARABLE_EDGE_OR_FIRST_PERSISTED_FEED_ROW",
+            "wired": ["match_header", "selected_market_probability", "market_probability", "edge", "price", "confidence", "status"],
+            "pending": ["score_matrix", "xg_distribution", "sport_profile", "tab_specific_derivatives"],
+        },
+        "markets": {
+            "families": _market_catalog(payload, maturation),
+            "source": "ACTIVE_PERSISTED_ROWS+MATURATION_REPORTS",
         },
         "control_tower": {
             "status": control.get("status"),
