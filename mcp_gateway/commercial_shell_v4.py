@@ -4,9 +4,9 @@ import html
 import json
 from typing import Any
 
-SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_COMMERCIAL_SHELL_V4_1.0.0"
-PRODUCT_MODE = "PREVIEW_MODE"
+SCHEMA_VERSION = "1.1.0"
+MODEL_VERSION = "SOCCER_COMMERCIAL_SHELL_V4_1.1.0"
+PRODUCT_MODE = "ENTITLEMENT_READY"
 
 FREE_FEATURES = (
     "Today's verified slate",
@@ -44,20 +44,25 @@ def _features(items: tuple[str, ...]) -> str:
 
 
 def render_membership_fragment(product_payload: dict[str, Any]) -> str:
+    from mcp_gateway import subscription_entitlements_v4, supabase_auth_v4
+
     views = product_payload.get("views") if isinstance(product_payload.get("views"), dict) else {}
     strong = views.get("strong_sport_signals") if isinstance(views.get("strong_sport_signals"), dict) else {}
     values = views.get("value_plays") if isinstance(views.get("value_plays"), dict) else {}
     waiting_price = views.get("waiting_for_price") if isinstance(views.get("waiting_for_price"), dict) else {}
     waiting_xi = views.get("waiting_for_xi") if isinstance(views.get("waiting_for_xi"), dict) else {}
     performance = views.get("performance") if isinstance(views.get("performance"), dict) else {}
+    auth_enabled = bool(supabase_auth_v4.auth_config().get("configured"))
+    contract = subscription_entitlements_v4.plan_contract()
 
     meta = html.escape(json.dumps({
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
         "product_mode": PRODUCT_MODE,
-        "auth_enabled": False,
+        "auth_enabled": auth_enabled,
         "billing_enabled": False,
-        "entitlements_enforced": False,
+        "entitlements_enforced": bool(contract.get("entitlements_enforced")),
+        "authorization_source": contract.get("authorization_source"),
         "provider_requests_added": 0,
     }, ensure_ascii=False), quote=True)
 
@@ -90,8 +95,8 @@ def render_membership_fragment(product_payload: dict[str, Any]) -> str:
 </style>
 <section class="v215-shell" id="membership" data-product="{meta}">
   <div class="v215-head">
-    <div><div class="eyebrow">COMMERCIAL PREVIEW · V215</div><h2>Soccer Edge Membership</h2><div class="v215-copy">Product shell only. No account, payment or entitlement is created in this version. The same persisted product payload remains authoritative and missing evidence is never inferred.</div></div>
-    <span class="v215-preview">PREVIEW MODE</span>
+    <div><div class="eyebrow">COMMERCIAL SHELL · V219</div><h2>Soccer Edge Membership</h2><div class="v215-copy">Supabase Auth is connected and the Free/Pro entitlement contract is enforced by server-side resolution plus database RLS. Billing is intentionally still disabled until V220. The persisted Soccer Edge payload remains authoritative and missing evidence is never inferred.</div></div>
+    <span class="v215-preview">ENTITLEMENTS READY</span>
   </div>
   <div class="v215-metrics">
     <div class="v215-metric"><span>Strong signals</span><strong class="mono">{_num(strong.get('total'))}</strong></div>
@@ -100,8 +105,8 @@ def render_membership_fragment(product_payload: dict[str, Any]) -> str:
     <div class="v215-metric"><span>Waiting XI</span><strong class="mono">{_num(waiting_xi.get('total'))}</strong></div>
   </div>
   <div class="v215-grid">
-    <article class="v215-plan"><div class="eyebrow">FREE</div><h3>Explorer</h3><p>Public read-only intelligence and transparent product discovery.</p><ul>{_features(FREE_FEATURES)}</ul><div class="v215-lock">Current preview behaves as public read-only access. Authentication is disabled.</div></article>
-    <article class="v215-plan pro"><div class="eyebrow">PRO</div><h3>Edge Pro</h3><p>Planned subscriber access for deeper signals and workflow tools.</p><ul>{_features(PRO_FEATURES)}</ul><div class="v215-lock">Locked until V218 Auth + V219 Entitlements. Billing is not connected and no purchase can occur.</div></article>
+    <article class="v215-plan"><div class="eyebrow">FREE</div><h3>Explorer</h3><p>Public read-only intelligence and transparent product discovery.</p><ul>{_features(FREE_FEATURES)}</ul><div class="v215-lock">Default account plan. Missing entitlement row, expired Pro or inactive billing state resolves to Free.</div></article>
+    <article class="v215-plan pro"><div class="eyebrow">PRO</div><h3>Edge Pro</h3><p>Subscriber access for deeper signals and workflow tools.</p><ul>{_features(PRO_FEATURES)}</ul><div class="v215-lock">Requires a persisted ACTIVE or TRIALING Pro entitlement. Browser clients cannot grant or modify Pro. Checkout is added in V220.</div></article>
   </div>
   <div class="v215-history">
     <div><span>OOS framework</span><strong>{_esc(performance.get('oos_status'))}</strong></div>
