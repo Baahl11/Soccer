@@ -1,0 +1,36 @@
+name: v226 Regional Billing Live
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v226-regional-billing-live
+    paths:
+      - mcp_gateway/subscriber_billing_market_v226.py
+      - mcp_gateway/__init__.py
+      - tests/test_v226_regional_billing_live.py
+      - .github/workflows/v226-regional-billing-live.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile V226 layers
+        run: |
+          python -m py_compile mcp_gateway/subscriber_billing_market_v226.py
+          python -m py_compile mcp_gateway/__init__.py
+      - name: Run V226 focused regressions
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_v226_regional_billing_live.py \
+            tests/test_subscriber_ui_contract_v231.py \
+            tests/test_v4_023_subscriber_preview_data.py \
+            tests/test_phase24_product_views_v4.py
