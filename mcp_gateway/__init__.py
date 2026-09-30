@@ -47,6 +47,29 @@ def _install_subscriber_i18n_layer() -> None:
     subscriber_app_v4._app_html = bilingual_app_html
 
 
+def _install_product_analytics_layer() -> None:
+    """Instrument commercial surfaces without feeding analytics back into betting logic."""
+    from mcp_gateway import landing_page_v4, product_analytics_v4, subscriber_app_v4
+
+    if not hasattr(landing_page_v4, "_v224_base_render_landing"):
+        base_landing = landing_page_v4.render_landing
+        landing_page_v4._v224_base_render_landing = base_landing
+
+        def tracked_landing() -> str:
+            return product_analytics_v4.inject_analytics(base_landing(), surface="landing")
+
+        landing_page_v4.render_landing = tracked_landing
+
+    if not hasattr(subscriber_app_v4, "_v224_base_app_html"):
+        base_app_html = subscriber_app_v4._app_html
+        subscriber_app_v4._v224_base_app_html = base_app_html
+
+        def tracked_app_html() -> str:
+            return product_analytics_v4.inject_analytics(base_app_html(), surface="app")
+
+        subscriber_app_v4._app_html = tracked_app_html
+
+
 def _install_subscriber_app_routes() -> None:
     """Add landing/subscriber routes and shadow legacy public surfaces without replacing FastMCP lifespan."""
     from mcp.server.fastmcp import FastMCP
@@ -101,4 +124,5 @@ def _install_subscriber_app_routes() -> None:
 
 _install_commercial_product_layers()
 _install_subscriber_i18n_layer()
+_install_product_analytics_layer()
 _install_subscriber_app_routes()
