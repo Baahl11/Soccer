@@ -4,9 +4,9 @@ from typing import Any
 
 from mcp_gateway import market_mismatch_v4, maturity_snapshot_v4
 
-SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_PRODUCT_VIEWS_V4_1.3.0"
-MAX_ROWS_PER_VIEW = 25
+SCHEMA_VERSION = "1.4.0"
+MODEL_VERSION = "SOCCER_PRODUCT_VIEWS_V4_1.4.0"
+MAX_ROWS_PER_VIEW = 500
 
 VIEW_NAMES = (
     "todays_slate",
