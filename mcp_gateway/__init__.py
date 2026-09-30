@@ -64,7 +64,13 @@ def _install_subscriber_app_routes() -> None:
 
     def streamable_http_app_with_subscriber_routes(self, *args, **kwargs):
         app = original(self, *args, **kwargs)
-        from mcp_gateway import commercial_surface_guard_v4, content_factory_http_v4, subscriber_app_v4, subscriber_preview_v230
+        from mcp_gateway import (
+            commercial_surface_guard_v4,
+            content_factory_http_v4,
+            subscriber_app_v4,
+            subscriber_preview_data_v231,
+            subscriber_preview_live_v231,
+        )
         existing_paths = {getattr(route, "path", None) for route in app.router.routes}
         existing_names = {getattr(route, "name", None) for route in app.router.routes}
         additions = []
@@ -81,7 +87,9 @@ def _install_subscriber_app_routes() -> None:
         if "/app/data" not in existing_paths:
             additions.append(Route("/app/data", subscriber_app_v4.app_data, methods=["GET"], name="v220_subscriber_data"))
         if "/app-preview" not in existing_paths:
-            additions.append(Route("/app-preview", subscriber_preview_v230.preview_page, methods=["GET"], name="v230_subscriber_preview"))
+            additions.append(Route("/app-preview", subscriber_preview_live_v231.preview_page, methods=["GET"], name="v231_subscriber_live_preview"))
+        if "/app-preview/data" not in existing_paths:
+            additions.append(Route("/app-preview/data", subscriber_preview_data_v231.preview_data, methods=["GET"], name="v231_subscriber_preview_data"))
         app.router.routes[0:0] = additions
         return app
     FastMCP.streamable_http_app = streamable_http_app_with_subscriber_routes
