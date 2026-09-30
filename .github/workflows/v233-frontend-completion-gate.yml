@@ -1,0 +1,38 @@
+name: V233 Frontend Completion Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v233-frontend-completion-gate
+    paths:
+      - mcp_gateway/subscriber_product_v233.py
+      - mcp_gateway/__init__.py
+      - tests/test_v233_frontend_completion_gate.py
+      - .github/workflows/v233-frontend-completion-gate.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile V233 frontend layers
+        run: |
+          python -m py_compile mcp_gateway/subscriber_product_v233.py
+          python -m py_compile mcp_gateway/__init__.py
+      - name: Run V233 focused regressions
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_v233_frontend_completion_gate.py \
+            tests/test_subscriber_ui_contract_v231.py \
+            tests/test_v4_023_subscriber_preview_data.py \
+            tests/test_phase24_product_views_v4.py \
+            tests/test_v226_regional_billing_live.py
