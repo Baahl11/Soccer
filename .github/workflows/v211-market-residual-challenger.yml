@@ -20,18 +20,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install dependencies
         run: |
           python -m pip install -r mcp_gateway/requirements.txt
           python -m pip install pytest
+
       - name: Run v211 tests
         run: |
           PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_v211_market_residual_challenger.py
+
       - name: Import runtime wrapper
         run: |
           python - <<'PY'
@@ -40,3 +46,28 @@ jobs:
           print(automation_v128.AUTOMATION_VERSION)
           print(market_residual_challenger_v4.MODEL_VERSION)
           PY
+
+      - name: Checkout immutable state snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Build V211 research report from persisted state
+        run: |
+          mkdir -p artifacts
+          python -m mcp_gateway.market_residual_challenger_v4 \
+            --source-json state/soccer_edge_state/latest.json \
+            --settlement-jsonl state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
+            --clv-jsonl state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl \
+            --output artifacts/v211_market_residual_challenger.json
+          cat artifacts/v211_market_residual_challenger.json
+
+      - name: Upload V211 report
+        uses: actions/upload-artifact@v4
+        with:
+          name: v211-market-residual-challenger
+          path: artifacts/v211_market_residual_challenger.json
+          if-no-files-found: error
+          retention-days: 14
