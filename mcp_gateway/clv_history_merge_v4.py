@@ -105,6 +105,7 @@ def normalize_history_rows(history_rows: Iterable[dict[str, Any]], current_rows:
     for (fixture_id, family), (signal_ts, row) in sorted(latest.items()):
         close_ts = _parse_dt(row.get("close_timestamp_local") or row.get("closing_timestamp"))
         kickoff = _parse_dt(row.get("kickoff_local") or row.get("kickoff"))
+        provider_close_ts = _parse_dt(row.get("closing_provider_update") or row.get("close_provider_update"))
         entry_price = _num(row.get("signal_price") or row.get("entry_price"))
         closing_price = _num(row.get("close_price") or row.get("closing_price"))
         entry_fair = _num(row.get("signal_fair_probability") or row.get("entry_fair_probability"))
@@ -153,13 +154,13 @@ def _load_json(path: str) -> dict[str, Any]:
 def _load_jsonl(path: str) -> list[dict[str, Any]]:
     rows=[]
     if not path or not os.path.exists(path): return rows
-    with open(path, "r", encoding="utf-8") as handle:
+    with open(path,"r",encoding="utf-8") as handle:
         for line in handle:
             line=line.strip()
             if not line: continue
             try: value=json.loads(line)
             except json.JSONDecodeError: continue
-            if isinstance(value, dict): rows.append(value)
+            if isinstance(value,dict): rows.append(value)
     return rows
 
 
