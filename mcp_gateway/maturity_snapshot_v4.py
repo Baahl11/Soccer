@@ -10,14 +10,15 @@ import httpx
 
 from mcp_gateway import maturation_baseline_store_v4, maturation_watchdogs_v4
 
-SCHEMA_VERSION = "1.2.0"
-MODEL_VERSION = "SOCCER_MATURITY_SNAPSHOT_V4_1.2.0"
+SCHEMA_VERSION = "1.3.0"
+MODEL_VERSION = "SOCCER_MATURITY_SNAPSHOT_V4_1.3.0"
 CACHE_TTL_SECONDS = 300.0
 REQUEST_TIMEOUT_SECONDS = 3.0
 
 _REPORTS = {
     "one_x_two": "v4_017_1x2_calibration_validation.json",
     "btts": "v4_018_btts_calibration_validation.json",
+    "ft_totals": "v4_016_ft_totals_production_validation.json",
     "team_totals": "v4_019_team_totals_oos_validation.json",
     "one_h": "v4_020_1h_oos_validation.json",
     "two_h": "v4_021_2h_oos_validation.json",
@@ -122,6 +123,7 @@ def _gate(current: Any, target: Any, *, source: str, extra: dict[str, Any] | Non
 def _build_summary(reports: dict[str, dict[str, Any]], errors: dict[str, str]) -> dict[str, Any]:
     one_x_two = reports.get("one_x_two", {})
     btts = reports.get("btts", {})
+    ft_totals = reports.get("ft_totals", {})
     team_totals = reports.get("team_totals", {})
     one_h = reports.get("one_h", {})
     corners = reports.get("corners", {})
@@ -129,6 +131,7 @@ def _build_summary(reports: dict[str, dict[str, Any]], errors: dict[str, str]) -
 
     one_x_two_clv = _dict(one_x_two.get("true_clv"))
     btts_clv = _dict(btts.get("true_clv"))
+    ft_totals_clv = _dict(ft_totals.get("true_clv"))
     team_totals_clv = _dict(team_totals.get("true_clv"))
     one_h_clv = _dict(one_h.get("true_clv"))
     corners_ft = _dict(corners.get("ft_corners"))
@@ -142,6 +145,7 @@ def _build_summary(reports: dict[str, dict[str, Any]], errors: dict[str, str]) -
     gates = {
         "1x2_true_clv": _gate(one_x_two_clv.get("rows"), one_x_two_clv.get("minimum_rows"), source=_REPORTS["one_x_two"], extra={"unique_fixtures": _int(one_x_two_clv.get("unique_fixtures"))}),
         "btts_true_clv": _gate(btts_clv.get("rows"), btts_clv.get("minimum_rows"), source=_REPORTS["btts"], extra={"unique_fixtures": _int(btts_clv.get("unique_fixtures"))}),
+        "ft_totals_true_clv": _gate(ft_totals_clv.get("rows"), ft_totals_clv.get("minimum_rows"), source=_REPORTS["ft_totals"], extra={"unique_fixtures": _int(ft_totals_clv.get("unique_fixtures"))}),
         "team_totals_true_clv": _gate(team_totals_clv.get("rows"), team_totals_clv.get("minimum_rows"), source=_REPORTS["team_totals"], extra={"unique_fixtures": _int(team_totals_clv.get("unique_fixtures")), "minimum_unique_fixtures": _int(team_totals_clv.get("minimum_unique_fixtures"))}),
         "1h_true_clv": _gate(one_h_clv.get("rows"), one_h_clv.get("minimum_rows"), source=_REPORTS["one_h"], extra={"unique_fixtures": _int(one_h_clv.get("unique_fixtures"))}),
         "corners_formation": _gate(corners_ft.get("formation_adjusted_evaluations"), corners.get("minimum_formation_adjusted") or 100, source=_REPORTS["corners"]),
@@ -205,15 +209,18 @@ def _build_maturation_control_tower(
     families = [
         clv_family("one_x_two", "1X2"),
         clv_family("btts", "BTTS"),
-        clv_family("team_totals", "Team Totals"),
-        clv_family("one_h", "1H"),
     ]
 
-    two_h = clv_family("two_h", "2H")
-    two_h_watch = _dict(watchdogs.get("two_h_market_maturation"))
-    two_h["status"] = _tower_status(two_h.get("current"), two_h.get("target"), two_h_watch)
-    two_h["blocker"] = two_h_watch.get("reason")
-    families.append(two_h)
+    ft_totals = clv_family("ft_totals", "FT Totals")
+    ft_totals_blockers = _dict(reports.get("ft_totals")).get("blockers")
+    if isinstance(ft_totals_blockers, list) and ft_totals_blockers:
+        ft_totals["blocker"] = str(ft_totals_blockers[0])
+    families.append(ft_totals)
+
+    families.extend([
+        clv_family("team_totals", "Team Totals"),
+        clv_family("one_h", "1H"),
+    ])
 
     corners = _dict(reports.get("corners"))
     corners_ft = _dict(corners.get("ft_corners"))
@@ -231,6 +238,12 @@ def _build_maturation_control_tower(
         "blocker": corners_watch.get("reason"),
         "source": _REPORTS["corners"],
     })
+
+    two_h = clv_family("two_h", "2H")
+    two_h_watch = _dict(watchdogs.get("two_h_market_maturation"))
+    two_h["status"] = _tower_status(two_h.get("current"), two_h.get("target"), two_h_watch)
+    two_h["blocker"] = two_h_watch.get("reason")
+    families.append(two_h)
 
     cards = _dict(reports.get("cards"))
     cards_clv = _dict(cards.get("true_clv"))
@@ -279,8 +292,8 @@ def _build_maturation_control_tower(
     signal_age = _dict(watchdogs.get("signal_evidence_age"))
     growth = _dict(watchdogs.get("evidence_growth_48h"))
     return {
-        "schema_version": "1.0.0",
-        "model_version": "SOCCER_MATURATION_CONTROL_TOWER_V4_1.0.0",
+        "schema_version": "1.1.0",
+        "model_version": "SOCCER_MATURATION_CONTROL_TOWER_V4_1.1.0",
         "status": watchdog_bundle.get("status") or "NOT_VERIFIED",
         "families": families,
         "monitoring": {
