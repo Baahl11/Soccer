@@ -31,6 +31,22 @@ def _install_commercial_product_layers() -> None:
     product_dashboard_v4.render_dashboard = render_dashboard_with_product_layers
 
 
+def _install_subscriber_i18n_layer() -> None:
+    """Localize only the subscriber presentation; canonical product data stays unchanged."""
+    from mcp_gateway import subscriber_app_v4, subscriber_i18n_v4
+
+    if hasattr(subscriber_app_v4, "_v222_base_app_html"):
+        return
+
+    base_app_html = subscriber_app_v4._app_html
+    subscriber_app_v4._v222_base_app_html = base_app_html
+
+    def bilingual_app_html() -> str:
+        return subscriber_i18n_v4.inject_i18n(base_app_html())
+
+    subscriber_app_v4._app_html = bilingual_app_html
+
+
 def _install_subscriber_app_routes() -> None:
     """Add subscriber routes and shadow legacy public surfaces without replacing FastMCP lifespan."""
     from mcp.server.fastmcp import FastMCP
@@ -82,4 +98,5 @@ def _install_subscriber_app_routes() -> None:
 
 
 _install_commercial_product_layers()
+_install_subscriber_i18n_layer()
 _install_subscriber_app_routes()
