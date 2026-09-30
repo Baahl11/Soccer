@@ -5,7 +5,7 @@ import json
 from typing import Any
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_CONTENT_FACTORY_V4_1.0.0"
+MODEL_VERSION = "SOCCER_CONTENT_FACTORY_V4_1.0.1"
 MAX_PACKAGES = 12
 
 
@@ -89,9 +89,19 @@ def _facts(row: dict[str, Any]) -> dict[str, Any]:
     home, away = _teams(row)
     p_market = _prob(_first(row, "p_market_fair", "p_market_devig"))
     p_model = _prob(_first(row, "p_model_calibrated", "p_calibrated", "calibrated_probability", "model_probability_calibrated"))
-    edge_pp = _float(_first(row, "calibrated_edge_pp", "prob_edge_pp"))
-    if edge_pp is None and p_market is not None and p_model is not None:
-        edge_pp = (p_model - p_market) * 100.0
+    source_edge_value = _float(_first(row, "calibrated_edge_pp", "prob_edge_pp"))
+
+    # Public "Model vs Market" gap has one unambiguous definition: the
+    # percentage-point difference between the persisted calibrated model
+    # probability and persisted de-vigged market probability. Do not reuse a
+    # field named "edge" because upstream rows may use a different unit or
+    # semantic. This is a deterministic calculation from two persisted facts.
+    probability_gap_pp = (
+        (p_model - p_market) * 100.0
+        if p_market is not None and p_model is not None
+        else None
+    )
+
     return {
         "fixture_id": row.get("fixture_id"),
         "home": home,
@@ -106,8 +116,9 @@ def _facts(row: dict[str, Any]) -> dict[str, Any]:
         "market_probability_display": _pct(p_market),
         "model_probability": p_model,
         "model_probability_display": _pct(p_model),
-        "edge_pp": edge_pp,
-        "edge_display": _pp(edge_pp),
+        "edge_pp": probability_gap_pp,
+        "edge_display": _pp(probability_gap_pp),
+        "source_edge_value": source_edge_value,
         "model_signal": row.get("model_signal"),
         "model_signal_score": row.get("model_signal_score"),
         "execution_status": row.get("execution_status"),
@@ -200,6 +211,7 @@ def _package(row: dict[str, Any], format_name: str, facts: dict[str, Any], en: d
         },
         "evidence_policy": {
             "numbers_from_persisted_row_only": True,
+            "probability_gap_recomputed_from_persisted_probabilities": True,
             "ai_may_modify_numeric_facts": False,
             "provider_requests_added": 0,
             "production_promotion_allowed": False,
