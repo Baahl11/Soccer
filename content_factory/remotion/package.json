@@ -3,11 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "check": "esbuild src/index.jsx --bundle --outfile=/tmp/soccer-edge-content-factory.js --platform=browser",
     "render": "remotion render src/index.jsx SoccerEdgeShort",
     "still": "remotion still src/index.jsx SoccerEdgeShortCard"
   },
   "dependencies": {
     "@remotion/cli": "4.0.360",
+    "esbuild": "0.25.10",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "remotion": "4.0.360"
