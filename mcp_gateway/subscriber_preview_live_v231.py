@@ -86,6 +86,33 @@ _LIVE_SCRIPT = r'''
     if(live)live.innerHTML=`<span class="dot"></span> Persisted · ${esc(data.generated_at_local||data.generated_at_utc||'latest')}`;
   }
 
+  function renderMatchCenter(data){
+    const r=data.match_center?.selected;
+    const head=document.querySelector('#matches .match-head');
+    const cards=document.querySelectorAll('#matches .match-grid .score-card');
+    if(!r){
+      if(head)head.innerHTML='<div class="placeholder">No persisted match row available for Match Center.</div>';
+      cards.forEach(c=>c.innerHTML='<div class="placeholder">No live data.</div>');
+      return;
+    }
+    if(head){
+      const initials=x=>String(x||'?').split(/\s+/).filter(Boolean).slice(0,3).map(v=>v[0]).join('').toUpperCase().slice(0,3);
+      head.innerHTML=`<div class="teams-head"><div class="crest">${esc(initials(r.match?.home))}</div><div><small class="subtitle">${esc(r.match?.league||r.match?.country||'Competition')} · ${esc(r.match?.kickoff||'Kickoff N/V')}</small><div class="match-name">${esc(r.match?.home||'Home')} <span class="vs">vs</span> ${esc(r.match?.away||'Away')}</div></div><div class="crest">${esc(initials(r.match?.away))}</div></div><div class="quality"><span>Data Quality <b class="green">${esc(r.state?.data_quality||'N/V')}</b></span><span>Lineup <b class="green">${esc(r.state?.lineup||'N/V')}</b></span><span>Status <b class="green">${esc(status(r))}</b></span></div>`;
+    }
+    if(cards[0])cards[0].innerHTML=`<h4>Selected Market</h4><div class="bigprob">${esc(market(r))}</div><div class="probline" style="margin-top:10px"><div class="probbox"><small>MODEL</small><b class="green">${esc(pct(r.model?.probability))}</b></div><div class="probbox"><small>MARKET</small><b>${esc(pct(r.pricing?.market_probability))}</b></div><div class="probbox"><small>EDGE</small><b class="green">${esc(edge(r.pricing?.edge_pp))}</b></div></div>`;
+    if(cards[1])cards[1].innerHTML=`<h4>Market Readiness</h4><div class="bigprob">${esc(status(r))}</div><div class="bars" style="margin-top:12px"><div class="barrow"><span>Price</span><div class="bar"><div class="fill" style="width:${r.pricing?.price!=null?'100':'0'}%"></div></div><b>${esc(price(r.pricing?.price))}</b></div><div class="barrow"><span>Confidence</span><div class="bar"><div class="fill" style="width:${Math.max(0,Math.min(100,num(conf(r.model?.confidence))||0))}%"></div></div><b>${esc(conf(r.model?.confidence))}</b></div></div>`;
+    if(cards[2])cards[2].innerHTML='<h4>Advanced Match Intelligence</h4><div class="placeholder">Score matrix, xG distribution and sport profile remain visible in the shell but will only be enabled when their persisted contract is wired. No mock numbers are shown here.</div>';
+    const live=document.querySelector('#matches .header .live');if(live)live.innerHTML='<span class="dot"></span> LIVE · persisted selected row';
+  }
+
+  function renderMarkets(data){
+    const grid=document.getElementById('marketgrid');
+    if(!grid)return;
+    const families=data.markets?.families||[];
+    grid.innerHTML=families.length?families.map(m=>`<div class="market-card"><h3>${esc(m.label)}</h3><div class="count">${esc(m.live_rows??0)}<span class="subtitle"> live rows</span></div><small>${esc(m.description)}</small><div class="mini-line"><span>Maturity</span><b>${esc(m.maturity_current??'—')}/${esc(m.maturity_target??'—')} · ${esc(String(m.maturity_status||'NOT VERIFIED').replaceAll('_',' '))}</b></div>${m.blocker?`<div class="mini-line"><span>Blocker</span><b style="color:#eab95c">${esc(String(m.blocker).replaceAll('_',' '))}</b></div>`:''}</div>`).join(''):'<div class="placeholder">No market catalog available.</div>';
+    const chip=document.querySelector('#markets .preview-chip');if(chip)chip.textContent='LIVE CATALOG';
+  }
+
   function renderTower(data){
     const ct=data.control_tower||{}, health=ct.system_health||{}, pipe=ct.pipeline||{}, mat=ct.maturation||{};
     const monitoring=mat.monitoring||{};
@@ -116,7 +143,7 @@ _LIVE_SCRIPT = r'''
 
     const errPanel=document.querySelector('#tower .pipeline-grid > .panel:nth-child(2)');
     if(errPanel){
-      errPanel.querySelectorAll('.error').forEach(x=>x.remove());
+      errPanel.querySelectorAll('.error,.placeholder').forEach(x=>x.remove());
       const rows=Array.isArray(ct.errors?.rows)?ct.errors.rows:[];
       const freshnessIssue=String(matState).toUpperCase()!=='OK'?{reason:`Maturation evidence ${matState}`,stage:age!=null?`${age}h old`:'freshness not verified'}:null;
       const merged=[...(freshnessIssue?[freshnessIssue]:[]),...rows].slice(0,4);
@@ -146,7 +173,7 @@ _LIVE_SCRIPT = r'''
       const r=await fetch('/app-preview/data',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
       const d=await r.json();
       if(!r.ok)throw new Error(d.error||`HTTP ${r.status}`);
-      renderToday(d);renderFeed(d);renderTower(d);
+      renderToday(d);renderFeed(d);renderMatchCenter(d);renderMarkets(d);renderTower(d);
     }catch(err){
       const live=document.querySelector('#today .header .live');
       if(live)live.innerHTML=`<span class="dot" style="background:#ff6679"></span> LIVE DATA ERROR · ${esc(err.message)}`;
