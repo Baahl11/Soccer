@@ -44,6 +44,18 @@ def _install_product_analytics_layer() -> None:
         subscriber_app_v4._app_html = tracked_app_html
 
 
+def _install_v226_billing_layer() -> None:
+    """Add regional billing controls without exposing Stripe Price IDs client-side."""
+    from mcp_gateway import subscriber_app_v4, subscriber_billing_v226
+    if hasattr(subscriber_app_v4, "_v226_base_app_html"):
+        return
+    base_app_html = subscriber_app_v4._app_html
+    subscriber_app_v4._v226_base_app_html = base_app_html
+    def billing_app_html() -> str:
+        return subscriber_billing_v226.inject_billing(base_app_html())
+    subscriber_app_v4._app_html = billing_app_html
+
+
 def _install_subscriber_frontend_hotfix() -> None:
     from mcp_gateway import subscriber_app_v4, subscriber_frontend_hotfix_v4
     subscriber_frontend_hotfix_v4.install(subscriber_app_v4)
@@ -104,5 +116,6 @@ def _install_subscriber_app_routes() -> None:
 _install_commercial_product_layers()
 _install_subscriber_i18n_layer()
 _install_product_analytics_layer()
+_install_v226_billing_layer()
 _install_subscriber_frontend_hotfix()
 _install_subscriber_app_routes()
