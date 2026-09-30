@@ -6,7 +6,7 @@ Verify from the final runtime tick that the v208 monotonic hard provider cap rem
 
 This is an observability-only checkpoint. It does not add provider requests, create maturation candidates, change models, thresholds, gates, tiers, stakes, promotion state, or strict-close semantics.
 
-## Pre-v209 live evidence
+## Pre-v209 evidence
 
 The first persisted tick after v208 was generated at `2026-09-29T16:55:51.852069-06:00` and showed:
 
@@ -15,10 +15,29 @@ The first persisted tick after v208 was generated at `2026-09-29T16:55:51.852069
 - `effective_max_api_calls_per_tick = 45`
 - `price_resolution_v4.api_calls_added = 5`
 - `price_resolution_v4.primary_clv_maturation_api_calls_added = 1`
-- one BTTS paid-entry research row was surfaced from an already-paid `/odds` response
+- one BTTS paid-entry research row surfaced from an already-paid `/odds` response
 - database persistence succeeded
 
-Therefore v208 did not reproduce the previous 55/55 upstream starvation pattern: the hard cap was respected and price-resolution work still executed.
+A later stress tick exposed an intermittent cap-path inconsistency, which led to v209.1-v209.3 observability and explicit phase-release work. The system was not declared closed on that anomalous tick.
+
+## Final live verification
+
+The persisted tick generated at `2026-09-29T17:58:55.383632-06:00` closes v209:
+
+- `v209_post_reserve_verification.status = LIVE_VERIFIED`
+- `api_calls_this_tick = 13`
+- `configured_cap = 45`
+- `effective_cap = 45`
+- `cap_respected = true`
+- `provider_headroom_after_tick = 32`
+- `price_resolution_v4.api_calls_added = 4`
+- `primary_clv_maturation_api_calls_added = 3`
+- reserved price phase release executed: `25 -> 45`
+- release occurred at provider-call count `9`
+- roadmap-priority backlog visible in the same tick: `1X2=2`, `BTTS=2`, `FT_TOTALS=3`
+- database persistence succeeded
+
+This is the required proof that reserved capacity can be released for the price-resolution phase while the final tick stays inside the same global cap.
 
 ## Runtime output
 
@@ -42,3 +61,7 @@ Status values:
 - `gates_changed = false`
 - `canonical_bet_logic_changed = false`
 - `strict_close_semantics_changed = false`
+
+## Roadmap consequence
+
+V209 is closed. Continue natural maturation in the existing order (`1X2 -> BTTS -> FT Totals -> Team Totals -> 1H -> Corners -> 2H -> Cards/Player Props`) while the zero-call research work from `V209_RESEARCH_LEDGER_AND_MARKET_BASELINE.md` proceeds in parallel. The first parallel research block is the frozen point-in-time calibration/provenance audit.
