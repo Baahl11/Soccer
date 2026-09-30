@@ -1,0 +1,33 @@
+name: v218 Auth Accounts Readiness
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v218-auth-accounts-readiness
+    paths:
+      - mcp_gateway/__init__.py
+      - mcp_gateway/supabase_auth_v4.py
+      - tests/test_v218_auth_accounts_readiness.py
+      - .github/workflows/v218-auth-accounts-readiness.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx psycopg[binary]
+      - name: Compile auth readiness layer
+        run: |
+          python -m py_compile mcp_gateway/supabase_auth_v4.py
+          python -m py_compile mcp_gateway/__init__.py
+          python -m py_compile mcp_gateway/product_dashboard_v4.py
+      - name: Run V218 plus product regressions
+        run: |
+          PYTHONPATH=. pytest -q tests/test_v218_auth_accounts_readiness.py tests/test_v217_match_detail_premium.py tests/test_v216_performance_track_record.py tests/test_v215_commercial_product_shell.py tests/test_phase24_product_dashboard_v4.py tests/test_phase24_product_views_v4.py
