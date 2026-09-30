@@ -1,0 +1,42 @@
+name: Soccer Edge V211 Market Residual Challenger
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - "mcp_gateway/market_residual_challenger_v4.py"
+      - "mcp_gateway/automation_v128.py"
+      - "mcp_gateway/tick_worker.py"
+      - "tests/test_v211_market_residual_challenger.py"
+      - ".github/workflows/v211-market-residual-challenger.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  market-residual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install -r mcp_gateway/requirements.txt
+          python -m pip install pytest
+      - name: Run v211 tests
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_v211_market_residual_challenger.py
+      - name: Import runtime wrapper
+        run: |
+          python - <<'PY'
+          from mcp_gateway import automation_v128
+          from mcp_gateway import market_residual_challenger_v4
+          print(automation_v128.AUTOMATION_VERSION)
+          print(market_residual_challenger_v4.MODEL_VERSION)
+          PY
