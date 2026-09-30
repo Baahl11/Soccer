@@ -8,6 +8,7 @@
 # v123 strict FT Team Totals CLV refresh: 2026-09-24 21:09 CDMX
 # Team Totals post-v123 CLV refresh: 2026-09-24 20:37 CDMX
 # 2026-09-30 recovery: allow the bounded CLV retries to complete after Postgres recovery
+# 2026-09-30 runner isolation: execute stdlib-only CLV merge directly, avoiding package commercial imports
 name: Phase 17 Postgres CLV Validation - Canonical Refresh
 
 on:
@@ -139,7 +140,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PYTHONPATH=runtime python -m mcp_gateway.clv_history_merge_v4 \
+          # Run the stdlib-only merge script directly. Using `python -m mcp_gateway...`
+          # executes mcp_gateway/__init__.py first, which installs commercial layers and
+          # pulls optional runtime dependencies (currently httpx) that Phase17 does not need.
+          python runtime/mcp_gateway/clv_history_merge_v4.py \
             --postgres-report /tmp/clv_v4.json \
             --history-true-clv soccer_edge_state/analysis/true_clv_tracking.jsonl \
             --output /tmp/clv_v4_merged.json
