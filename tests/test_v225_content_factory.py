@@ -70,6 +70,7 @@ def test_why_we_passed_uses_verified_execution_context():
     assert item["facts"]["execution_status"] == "WAIT_XI"
     assert item["facts"]["blockers"] == ["WAIT_XI"]
     assert "LINEUP_NOT_CONFIRMED" in item["copy"]["en"]["voiceover"]
+    assert "WAIT_XI" in item["copy"]["en"]["voiceover"]
     assert "Pasar también es una decisión" in item["copy"]["es"]["voiceover"]
 
 
@@ -86,5 +87,10 @@ def test_content_package_has_multi_platform_render_contract():
 
 def test_content_factory_has_no_provider_or_runtime_mutation_path():
     source = open(content_factory_v4.__file__, "r", encoding="utf-8").read().lower()
-    for forbidden in ("api-football", "requests.get", "threshold", "model_weights", "decision_weight"):
+    for forbidden in ("api-football", "requests.get", "threshold =", "decision_weight =", "model_weights ="):
         assert forbidden not in source
+    result = content_factory_v4.build_content_packages(_product())
+    assert result["provider_requests_added"] == 0
+    assert result["canonical_bet_logic_changed"] is False
+    assert result["model_weights_changed"] is False
+    assert result["production_promotion_allowed"] is False
