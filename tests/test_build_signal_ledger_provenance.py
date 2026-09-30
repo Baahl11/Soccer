@@ -64,6 +64,61 @@ def test_phase16_calibration_snapshot_matches_same_fixture_line_and_direction():
     assert out["calibration_status"] == "BINARY_DISCRIMINATION_NOT_READY"
     assert out["promotion_shadow_eligible"] is False
     assert out["binary_calibration_diagnostics"]["auc_lower_95"] == 0.465
+    assert out["phase16_calibrator_artifact"] is None
+
+
+def test_snapshot_persists_exact_frozen_artifact_identity_without_parameters():
+    tick = {
+        "match_table_rows": [
+            {
+                "fixture_id": 101,
+                "market_family": "BTTS",
+                "market": "Both Teams To Score",
+                "selection": "Yes",
+                "price": 1.85,
+                "bookmaker": "Book A",
+                "p_model_calibrated": 0.61,
+                "phase16_calibration_status": "RESEARCH_CALIBRATION_APPLIED",
+                "phase16_calibration_source": "CURRENT_MODEL_OOS_PLATT:BTTS",
+                "phase16_calibration_policy": "BINARY_PLATT+BrierLogLossImprovement+AUC_L95_GT_0_50",
+                "phase16_calibration_promotion_shadow_eligible": True,
+                "phase16_calibrator_artifact_frozen_at_decision_time": True,
+                "phase16_calibrator_artifact": {
+                    "kind": "BINARY_PLATT",
+                    "target": "btts",
+                    "source_model_version": "M1",
+                    "source_model_version_matches": True,
+                    "calibrator_status": "RESEARCH_CALIBRATOR_FITTED",
+                    "parameter_keys": ["parameters", "status"],
+                    "fingerprint_sha256": "a" * 64,
+                    "fingerprint_basis": "CANONICAL_JSON_EXACT_CALIBRATOR_PAYLOAD",
+                    "calibrator": {"parameters": {"slope": 1.2}},
+                },
+                "phase16_binary_calibration_diagnostics": {
+                    "target": "btts",
+                    "source_model_version": "M1",
+                    "requested_model_version": "M1",
+                    "source_model_version_matches": True,
+                },
+            }
+        ]
+    }
+    best = {
+        "family": "BTTS",
+        "market": "Both Teams To Score",
+        "selection": "Yes",
+        "decimal_price": 1.85,
+    }
+
+    out = v._phase16_calibration_snapshot(tick, 101, best)
+
+    assert out is not None
+    assert out["calibration_source"] == "CURRENT_MODEL_OOS_PLATT:BTTS"
+    assert out["calibration_policy"].startswith("BINARY_PLATT")
+    assert out["calibrated_probability_fields"]["p_model_calibrated"] == 0.61
+    assert out["phase16_calibrator_artifact"]["fingerprint_sha256"] == "a" * 64
+    assert out["calibrator_artifact_frozen_at_decision_time"] is True
+    assert "calibrator" not in out["phase16_calibrator_artifact"]
 
 
 def test_build_rows_persists_provenance_without_changing_market(tmp_path: Path):
@@ -123,7 +178,11 @@ def test_build_rows_persists_provenance_without_changing_market(tmp_path: Path):
     assert rows[0]["best_market"]["decimal_price"] == 1.80
     assert rows[0]["classification"] == "WATCH"
     assert rows[0]["phase16_calibration_provenance"]["calibration_target"] == "over_2_5"
-    assert summary["schema_version"] == "1.3.0"
+    assert summary["schema_version"] == "1.4.0"
     assert summary["rows_with_phase16_calibration_provenance"] == 1
+    assert summary["rows_with_applied_phase16_calibration"] == 0
+    assert summary["rows_with_frozen_phase16_calibrator_artifact"] == 0
     assert summary["provider_requests_added"] == 0
     assert summary["canonical_bet_logic_changed"] is False
+    assert summary["historical_probabilities_recomputed"] is False
+    assert summary["historical_rows_recalibrated"] is False
