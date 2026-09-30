@@ -36,18 +36,30 @@ def _payload():
     }
 
 
-def test_v215_shell_is_preview_only_and_does_not_claim_auth_or_billing():
+def test_commercial_shell_reports_entitlement_readiness_without_claiming_billing(monkeypatch):
+    monkeypatch.setenv("SOCCER_SUPABASE_URL", "https://soccer-edge.supabase.co")
+    monkeypatch.setenv("SOCCER_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_example")
     fragment = commercial_shell_v4.render_membership_fragment(_payload())
     assert "Soccer Edge Membership" in fragment
-    assert "PREVIEW MODE" in fragment
+    assert "ENTITLEMENTS READY" in fragment
     assert "Explorer" in fragment
     assert "Edge Pro" in fragment
-    assert "Authentication is disabled" in fragment
-    assert "Billing is not connected" in fragment
-    assert "&quot;auth_enabled&quot;: false" in fragment
+    assert "Supabase Auth is connected" in fragment
+    assert "Billing is intentionally still disabled" in fragment
+    assert "&quot;auth_enabled&quot;: true" in fragment
     assert "&quot;billing_enabled&quot;: false" in fragment
-    assert "&quot;entitlements_enforced&quot;: false" in fragment
+    assert "&quot;entitlements_enforced&quot;: true" in fragment
     assert "&quot;provider_requests_added&quot;: 0" in fragment
+
+
+def test_commercial_shell_does_not_claim_auth_when_runtime_is_unconfigured(monkeypatch):
+    monkeypatch.delenv("SOCCER_SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SOCCER_SUPABASE_PUBLISHABLE_KEY", raising=False)
+    fragment = commercial_shell_v4.render_membership_fragment(_payload())
+    assert "AUTH REQUIRED" in fragment
+    assert "no Supabase Auth configuration" in fragment
+    assert "&quot;auth_enabled&quot;: false" in fragment
+    assert "&quot;entitlements_enforced&quot;: true" in fragment
 
 
 def test_v215_wraps_existing_operator_dashboard_instead_of_replacing_it():
