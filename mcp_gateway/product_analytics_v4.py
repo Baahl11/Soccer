@@ -124,5 +124,5 @@ def inject_analytics(base_html: str, *, surface: str) -> str:
   }
 })();
 </script>
-'''.replaceAll("__MARKER__", marker).replace("__CONFIG__", cfg)
+'''.replace("__MARKER__", marker).replace("__CONFIG__", cfg)
     return html.replace("</body>", script + "</body>", 1)
