@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 def _install_commercial_product_layers() -> None:
-    # Keep the V214 operator renderer authoritative. V215-V218 only inject
+    # Keep the V214 operator renderer authoritative. V215-V219 only inject
     # read-only product/account fragments before </main>; runtime model logic is untouched.
-    from mcp_gateway import commercial_shell_v4, match_detail_v4, product_dashboard_v4, public_performance_v4, supabase_auth_v4
+    from mcp_gateway import commercial_shell_v4, match_detail_v4, product_dashboard_v4, public_performance_v4, subscription_entitlements_v4, supabase_auth_v4
 
     if hasattr(product_dashboard_v4, "_v215_operator_render_dashboard"):
         return
@@ -21,6 +21,7 @@ def _install_commercial_product_layers() -> None:
             + public_performance_v4.render_fragment()
             + match_detail_v4.render_fragment(product_payload)
             + supabase_auth_v4.render_fragment()
+            + subscription_entitlements_v4.render_fragment()
         )
         marker = "</main>"
         if marker in rendered:
