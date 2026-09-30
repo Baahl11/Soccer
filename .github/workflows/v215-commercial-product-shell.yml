@@ -1,0 +1,33 @@
+name: v215 Commercial Product Shell
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v215-commercial-product-shell
+    paths:
+      - mcp_gateway/__init__.py
+      - mcp_gateway/commercial_shell_v4.py
+      - tests/test_v215_commercial_product_shell.py
+      - .github/workflows/v215-commercial-product-shell.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx psycopg[binary]
+      - name: Compile product shell
+        run: |
+          python -m py_compile mcp_gateway/__init__.py
+          python -m py_compile mcp_gateway/commercial_shell_v4.py
+          python -m py_compile mcp_gateway/product_dashboard_v4.py
+      - name: Run V215 plus Phase24 regressions
+        run: |
+          PYTHONPATH=. pytest -q tests/test_v215_commercial_product_shell.py tests/test_phase24_product_dashboard_v4.py tests/test_phase24_product_views_v4.py
