@@ -70,44 +70,48 @@ Server-side Free/Pro entitlement resolver, RLS, fail-closed plan resolution, no 
 - Signed Stripe webhook is the only path that records `pro_activated` after ACTIVE/TRIALING subscription evidence.
 - Analytics remains completely separate from betting-model decisions.
 
-## Immediate roadmap
-
-### V225 — Soccer Edge Content Factory
-Goal: convert verified engine output into scalable organic acquisition content.
+### V225 — Soccer Edge Content Factory ✅
+Evidence-locked organic content generation is operational.
 
 Pipeline:
 
-`persisted signal -> content candidate -> ES/EN script -> render -> platform package -> attribution`
+`persisted signal -> content candidate -> ES/EN script -> Remotion render -> platform package -> GitHub artifact`
 
-Outputs from one verified source row:
-- 1080x1920 TikTok / Reel / YouTube Short
-- X image/card
-- X post/thread copy
-- ES caption
-- EN caption
-- optional voice-over script
+Validated outputs:
+- 1080x1920 TikTok / Reel / YouTube Short in English.
+- 1080x1920 TikTok / Reel / YouTube Short in Spanish.
+- X image/card in both languages.
+- X post copy, captions and voice-over scripts in both languages.
+- Manifest containing the exact persisted source facts used by the render.
 
-Core recurring formats:
-1. Model vs Market
-2. Why We Passed / NO BET
-3. Line Movement / Price Watch
-4. Verified Results & CLV transparency
-5. Educational (+EV, fair probability, CLV, pricing)
+Production validation:
+- First LIVE run exposed that an upstream `calibrated_edge_pp` field did not share the same semantics as the public Model-vs-Market probability gap.
+- V225.1 now calculates the public gap deterministically as `(p_model_calibrated - p_market_fair) * 100` using persisted probabilities only.
+- Regression protects the observed mismatch case.
+- Focused Content Factory CI passed.
+- Full V4 Runtime suite passed.
+- Corrected Content Factory LIVE run rendered EN/ES videos, X cards and artifact successfully.
 
 Rules:
-- Odds, probabilities, edge, settlements and CLV always come from persisted engine data.
+- Odds, probabilities, settlements and CLV always come from persisted engine data.
+- Public probability gap is a reproducible calculation from persisted calibrated-model and de-vig market probabilities.
 - AI may generate narrative/layout/voice, never numerical betting facts.
+- Research-only status remains visible and is never relabeled as a production pick.
 - A losing day is never hidden from public verified-performance content.
+
+## Immediate roadmap
 
 ### V226 — Pricing & Stripe Live Subscription
 Goal: activate real recurring billing after pricing validation.
 
-Initial market hypothesis to test, not final pricing:
-- Mexico/LATAM: lower regional Pro price.
-- United States: higher USD Pro price.
-- Consider annual option after monthly conversion is measured.
+Market approach:
+- Product stays bilingual/global.
+- Initial acquisition wedge: Mexico + US Hispanic.
+- US English follows after early conversion data.
+- Regional pricing may differ while entitlements remain one `Edge Pro` product tier.
 
 Required before activation:
+- Validate current competitor pricing and willingness-to-pay bands.
 - Create Stripe `Soccer Edge Pro` Product.
 - Create recurring regional Price(s).
 - Configure Stripe secrets in Supabase.
@@ -186,7 +190,7 @@ Spanish direction:
 
 ## Current execution order
 
-`V225 -> V226 -> V227 -> V228`
+`V226 -> V227 -> V228`
 
 Statistical maturation continues independently in the existing family order:
 
