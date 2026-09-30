@@ -1,0 +1,72 @@
+name: Soccer Edge V212 Dynamic Strength Challenger
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - "mcp_gateway/dynamic_strength_challenger_v4.py"
+      - "mcp_gateway/automation_v129.py"
+      - "mcp_gateway/tick_worker.py"
+      - "tests/test_v212_dynamic_strength_challenger.py"
+      - ".github/workflows/v212-dynamic-strength-challenger.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dynamic-strength:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r mcp_gateway/requirements.txt
+          python -m pip install pytest
+
+      - name: Run V212 tests
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_v212_dynamic_strength_challenger.py
+
+      - name: Import runtime wrapper
+        run: |
+          python - <<'PY'
+          from mcp_gateway import automation_v129
+          from mcp_gateway import dynamic_strength_challenger_v4
+          print(automation_v129.AUTOMATION_VERSION)
+          print(dynamic_strength_challenger_v4.MODEL_VERSION)
+          PY
+
+      - name: Checkout immutable state snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Build V212 research report from persisted state
+        run: |
+          mkdir -p artifacts
+          python -m mcp_gateway.dynamic_strength_challenger_v4 \
+            --source-json state/soccer_edge_state/latest.json \
+            --source-key events \
+            --output artifacts/v212_dynamic_strength_challenger.json
+          cat artifacts/v212_dynamic_strength_challenger.json
+
+      - name: Upload V212 report
+        uses: actions/upload-artifact@v4
+        with:
+          name: v212-dynamic-strength-challenger
+          path: artifacts/v212_dynamic_strength_challenger.json
+          if-no-files-found: error
+          retention-days: 14
