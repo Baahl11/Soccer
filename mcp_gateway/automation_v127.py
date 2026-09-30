@@ -8,7 +8,7 @@ from mcp_gateway import automation_v126 as v126
 from mcp_gateway import price_resolver_v4
 
 MODEL_VERSION = v126.MODEL_VERSION
-AUTOMATION_VERSION = "4.36.0-frozen-calibration-artifact"
+AUTOMATION_VERSION = "4.36.1-frozen-point-in-time-calibration"
 
 
 def _dict(value: Any) -> dict[str, Any]:
@@ -23,6 +23,15 @@ def _canonical_fingerprint(payload: dict[str, Any]) -> str:
         ensure_ascii=True,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _freeze_exact_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return a detached JSON-safe copy of the exact calibrator payload.
+
+    This is provenance only. It prevents later in-memory mutation of calibration
+    state from changing the artifact that was actually used at decision time.
+    """
+    return json.loads(json.dumps(payload, sort_keys=True, ensure_ascii=True))
 
 
 def _calibrator_artifact(
@@ -48,6 +57,7 @@ def _calibrator_artifact(
             "source_model_version": source_model_version,
             "calibrator": calibrator,
         }
+        frozen_payload = _freeze_exact_payload(exact_payload)
         return {
             "kind": "BINARY_PLATT",
             "target": target,
@@ -57,6 +67,7 @@ def _calibrator_artifact(
             "parameter_keys": sorted(str(key) for key in calibrator.keys()),
             "fingerprint_sha256": _canonical_fingerprint(exact_payload),
             "fingerprint_basis": "CANONICAL_JSON_EXACT_CALIBRATOR_PAYLOAD",
+            "exact_calibrator_payload": frozen_payload,
         }
 
     if family == "1X2":
@@ -71,6 +82,7 @@ def _calibrator_artifact(
             "source_model_version": source_model_version,
             "calibrator": calibrator,
         }
+        frozen_payload = _freeze_exact_payload(exact_payload)
         return {
             "kind": "MULTICLASS_TEMPERATURE",
             "target": "1X2",
@@ -80,6 +92,7 @@ def _calibrator_artifact(
             "parameter_keys": sorted(str(key) for key in calibrator.keys()),
             "fingerprint_sha256": _canonical_fingerprint(exact_payload),
             "fingerprint_basis": "CANONICAL_JSON_EXACT_CALIBRATOR_PAYLOAD",
+            "exact_calibrator_payload": frozen_payload,
         }
 
     return None
@@ -155,15 +168,16 @@ async def run_tick() -> dict[str, Any]:
         price_resolver_v4._apply_phase16_calibration = original_apply
 
     payload["v210_frozen_calibration_provenance"] = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "status": (
-            "FROZEN_ARTIFACT_IDENTITY_ACTIVE"
+            "FROZEN_POINT_IN_TIME_ARTIFACT_ACTIVE"
             if counters["artifact_missing_after_calibration"] == 0
             else "WATCH_CALIBRATED_ROW_WITHOUT_ARTIFACT_IDENTITY"
         ),
         **counters,
         "fingerprint_algorithm": "SHA256",
         "fingerprint_basis": "CANONICAL_JSON_EXACT_CALIBRATOR_PAYLOAD",
+        "exact_calibrator_payload_persisted": True,
         "historical_rows_mutated": False,
         "historical_probabilities_recomputed": False,
         "provider_requests_added": 0,
@@ -176,14 +190,14 @@ async def run_tick() -> dict[str, Any]:
         "canonical_bet_logic_changed": False,
         "strict_close_semantics_changed": False,
         "policy": (
-            "FREEZE_EXACT_CALIBRATOR_IDENTITY_AT_DECISION_TIME; HASH_ONLY_IN_RUNTIME_ROW; "
+            "FREEZE_EXACT_CALIBRATOR_PAYLOAD_AND_IDENTITY_AT_DECISION_TIME; "
             "NO_RETROACTIVE_RECALIBRATION; NO_PROVIDER_CALLS; NO_DECISION_WEIGHT; NO_PROMOTION"
         ),
     }
     payload["v210_checkpoint"] = (
-        "FROZEN CALIBRATION PROVENANCE ACTIVE: whenever Phase16 applies a research calibrator, "
-        "the exact calibrator payload used in that call is canonically hashed at decision time. "
-        "Historical rows are not rewritten and probabilities are not recomputed."
+        "FROZEN POINT-IN-TIME CALIBRATION PROVENANCE ACTIVE: whenever Phase16 applies a research "
+        "calibrator, the exact calibrator payload and canonical fingerprint used in that call are "
+        "frozen at decision time. Historical rows are not rewritten and probabilities are not recomputed."
     )
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
