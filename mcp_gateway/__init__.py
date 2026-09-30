@@ -48,7 +48,7 @@ def _install_subscriber_i18n_layer() -> None:
 
 
 def _install_subscriber_app_routes() -> None:
-    """Add subscriber routes and shadow legacy public surfaces without replacing FastMCP lifespan."""
+    """Add landing/subscriber routes and shadow legacy public surfaces without replacing FastMCP lifespan."""
     from mcp.server.fastmcp import FastMCP
     from starlette.routing import Route
 
@@ -60,7 +60,7 @@ def _install_subscriber_app_routes() -> None:
 
     def streamable_http_app_with_subscriber_routes(self, *args, **kwargs):
         app = original(self, *args, **kwargs)
-        from mcp_gateway import commercial_surface_guard_v4, subscriber_app_v4
+        from mcp_gateway import commercial_surface_guard_v4, landing_page_v4, subscriber_app_v4
 
         existing_paths = {getattr(route, "path", None) for route in app.router.routes}
         existing_names = {getattr(route, "name", None) for route in app.router.routes}
@@ -86,6 +86,8 @@ def _install_subscriber_app_routes() -> None:
                     name="v221_product_views_guard",
                 )
             )
+        if "/" not in existing_paths:
+            additions.append(Route("/", landing_page_v4.landing_page, methods=["GET"], name="v223_landing_page"))
         if "/app" not in existing_paths:
             additions.append(Route("/app", subscriber_app_v4.app_page, methods=["GET"], name="v220_subscriber_app"))
         if "/app/data" not in existing_paths:
