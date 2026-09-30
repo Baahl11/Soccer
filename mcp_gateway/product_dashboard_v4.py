@@ -4,11 +4,10 @@ import html
 import json
 from typing import Any
 
-SCHEMA_VERSION = "1.5.0"
-MODEL_VERSION = "SOCCER_PRODUCT_DASHBOARD_V4_1.5.0"
+SCHEMA_VERSION = "1.6.0"
+MODEL_VERSION = "SOCCER_PRODUCT_DASHBOARD_V4_1.6.0"
 
 DISPLAY_VIEWS = (
-    ("todays_slate", "Today's Slate"),
     ("team_totals", "Team Totals"),
     ("first_half", "1H"),
     ("second_half", "2H"),
@@ -27,6 +26,10 @@ WATCHDOG_LABELS = {
     "provider_requests_without_evidence_growth": "Provider efficiency · 48h",
 }
 
+LIVE_CODES = {"1H", "2H", "HT", "ET", "BT", "P", "LIVE", "INT"}
+FINISHED_CODES = {"FT", "AET", "PEN"}
+POSTPONED_CODES = {"PST", "CANC", "ABD", "SUSP"}
+
 
 def _esc(value: Any) -> str:
     if value is None:
@@ -43,9 +46,16 @@ def _num(value: Any, fallback: str = "N/V") -> str:
         return _esc(value)
 
 
+def _float(value: Any) -> float | None:
+    try:
+        return float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
 def _status_class(value: Any) -> str:
     text = str(value or "").upper()
-    if text == "OK" or any(token in text for token in ("HEALTHY", "LIVE", "READY", "PASS", "TICK_OBSERVED")):
+    if text == "OK" or any(token in text for token in ("HEALTHY", "LIVE", "READY", "PASS", "TICK_OBSERVED", "CALIBRATED")):
         return "ok"
     if any(token in text for token in ("WATCH", "WAIT", "HOLD", "LOCKED", "RESEARCH", "VALIDATION", "PENDING", "N/V", "NOT_VERIFIED", "STALE", "BLOCKED", "MATURING", "NO_EVIDENCE", "COOLDOWN")):
         return "warn"
@@ -62,6 +72,8 @@ def _friendly_execution(value: Any) -> str:
         "WAIT_PRICE": "Price watch",
         "WAIT_FRESH_QUOTE": "Fresh price",
         "WAIT_XI": "Lineup watch",
+        "WAIT_GK": "GK watch",
+        "WAIT_AVAILABILITY": "Availability",
         "RESEARCH_ONLY": "Research",
         "DEFER_COOLDOWN": "Cooldown",
         "NOT_VERIFIED": "Not verified",
@@ -70,17 +82,238 @@ def _friendly_execution(value: Any) -> str:
 
 
 def _edge_value(row: dict[str, Any]) -> float | None:
-    value = row.get("calibrated_edge_pp")
-    if value is None:
-        value = row.get("prob_edge_pp")
-    try:
-        return float(value) if value is not None else None
-    except (TypeError, ValueError):
-        return None
+    for key in ("calibrated_edge_pp", "prob_edge_pp", "edge_pp"):
+        value = _float(row.get(key))
+        if value is not None:
+            return value
+    return None
+
+
+def _nested(mapping: Any, *keys: str) -> Any:
+    node = mapping
+    for key in keys:
+        if not isinstance(node, dict):
+            return None
+        node = node.get(key)
+    return node
+
+
+def _team_name(row: dict[str, Any], side: str) -> str:
+    candidates = (
+        row.get(side),
+        row.get(f"{side}_team"),
+        row.get(f"{side}_name"),
+        _nested(row, "teams", side, "name"),
+        _nested(row, side, "name"),
+    )
+    for value in candidates:
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return side.title()
+
+
+def _team_id(row: dict[str, Any], side: str) -> int | None:
+    candidates = (
+        row.get(f"{side}_team_id"),
+        row.get(f"{side}_id"),
+        _nested(row, "teams", side, "id"),
+        _nested(row, side, "id"),
+    )
+    for value in candidates:
+        try:
+            if value is not None:
+                return int(value)
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _team_logo(row: dict[str, Any], side: str) -> str | None:
+    candidates = (
+        row.get(f"{side}_logo"),
+        row.get(f"{side}_team_logo"),
+        _nested(row, "teams", side, "logo"),
+        _nested(row, side, "logo"),
+    )
+    for value in candidates:
+        if isinstance(value, str) and value.startswith(("https://", "http://")):
+            return value
+    team_id = _team_id(row, side)
+    if team_id is not None and team_id > 0:
+        return f"https://media.api-sports.io/football/teams/{team_id}.png"
+    return None
+
+
+def _initials(name: str) -> str:
+    parts = [part for part in name.replace("-", " ").split() if part]
+    if not parts:
+        return "FC"
+    return "".join(part[0] for part in parts[:2]).upper()
+
+
+def _team_badge(row: dict[str, Any], side: str) -> str:
+    name = _team_name(row, side)
+    logo = _team_logo(row, side)
+    fallback = _esc(_initials(name))
+    image = ""
+    if logo:
+        image = (
+            f"<img src='{_esc(logo)}' alt='' loading='lazy' "
+            "onerror=\"this.style.display='none'\">"
+        )
+    return (
+        "<span class='team-badge'>"
+        f"<span class='team-initials'>{fallback}</span>{image}"
+        "</span>"
+    )
+
+
+def _status_code(row: dict[str, Any]) -> str:
+    raw = row.get("status")
+    if isinstance(raw, dict):
+        raw = raw.get("short") or raw.get("status")
+    if not raw:
+        raw = row.get("fixture_status") or row.get("stage") or row.get("event_stage")
+    return str(raw or "NS").upper()
+
+
+def _elapsed(row: dict[str, Any]) -> int | None:
+    values = (
+        row.get("elapsed"),
+        row.get("fixture_elapsed"),
+        _nested(row, "fixture", "status", "elapsed"),
+        _nested(row, "status", "elapsed"),
+    )
+    for value in values:
+        try:
+            return int(value) if value is not None else None
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _score_pair(row: dict[str, Any]) -> tuple[Any, Any]:
+    direct_pairs = (
+        (row.get("home_score"), row.get("away_score")),
+        (_nested(row, "goals", "home"), _nested(row, "goals", "away")),
+        (_nested(row, "score", "current", "home"), _nested(row, "score", "current", "away")),
+        (_nested(row, "score", "fulltime", "home"), _nested(row, "score", "fulltime", "away")),
+    )
+    for home, away in direct_pairs:
+        if home is not None or away is not None:
+            return home, away
+    return None, None
+
+
+def _match_state(row: dict[str, Any]) -> tuple[str, str]:
+    code = _status_code(row)
+    minute = _elapsed(row)
+    if code in LIVE_CODES:
+        if code in {"1H", "2H", "ET", "LIVE"} and minute is not None:
+            return f"{minute}'", "live"
+        return code, "live"
+    if code in FINISHED_CODES:
+        return code, "finished"
+    if code in POSTPONED_CODES:
+        return code, "bad"
+    if code in {"NS", "TBD", "PREMATCH", "PRE"}:
+        kickoff = row.get("kickoff") or row.get("fixture_date") or row.get("date")
+        return (str(kickoff) if kickoff else "PRE"), "scheduled"
+    return code, "scheduled"
+
+
+def _fixture_key(row: dict[str, Any], index: int) -> str:
+    fixture_id = row.get("fixture_id") or row.get("match_id") or row.get("id")
+    if fixture_id is not None:
+        return f"id:{fixture_id}"
+    return f"name:{_team_name(row, 'home')}|{_team_name(row, 'away')}|{row.get('league')}|{index}"
+
+
+def _group_slate(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    groups: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+    for index, row in enumerate(rows):
+        key = _fixture_key(row, index)
+        if key not in groups:
+            groups[key] = {"base": row, "markets": []}
+            order.append(key)
+        groups[key]["markets"].append(row)
+        base = groups[key]["base"]
+        if _status_code(row) in LIVE_CODES | FINISHED_CODES or _score_pair(row) != (None, None):
+            groups[key]["base"] = row
+        elif _status_code(base) in {"NS", "PRE", "PREMATCH"} and _status_code(row) not in {"NS", "PRE", "PREMATCH"}:
+            groups[key]["base"] = row
+    return [groups[key] for key in order]
+
+
+def _market_line(row: dict[str, Any]) -> str:
+    market = row.get("market") or row.get("recommended_market") or row.get("market_family") or "Market"
+    selection = row.get("selection") or row.get("pick") or row.get("side")
+    line = row.get("line")
+    price = row.get("price")
+    if price is None and isinstance(row.get("soft_price"), dict):
+        price = row["soft_price"].get("american_odds") or row["soft_price"].get("decimal_odds")
+    parts = [str(market)]
+    detail = " ".join(str(value) for value in (selection, line) if value not in (None, ""))
+    if detail:
+        parts.append(detail)
+    if price not in (None, ""):
+        parts.append(f"@ {price}")
+    return " · ".join(parts)
+
+
+def _fixture_card(group: dict[str, Any]) -> str:
+    row = group["base"]
+    markets = [item for item in group.get("markets", []) if isinstance(item, dict)]
+    home = _team_name(row, "home")
+    away = _team_name(row, "away")
+    status, tone = _match_state(row)
+    home_score, away_score = _score_pair(row)
+    if home_score is not None or away_score is not None:
+        score_html = f"<div class='score mono'>{_esc(home_score)}<span>–</span>{_esc(away_score)}</div>"
+    else:
+        score_html = "<div class='score score-empty'>vs</div>"
+    league = row.get("league") or row.get("league_name") or "League N/V"
+    market_html = "".join(
+        f"<div class='market-row'><span>{_esc(_market_line(item))}</span>"
+        f"<span class='mini-pill {_status_class(item.get('execution_status'))}'>{_esc(_friendly_execution(item.get('execution_status')))}</span></div>"
+        for item in markets[:3]
+    )
+    if len(markets) > 3:
+        market_html += f"<div class='more-markets'>+{len(markets) - 3} more verified rows</div>"
+
+    return (
+        "<article class='fixture-card'>"
+        f"<div class='fixture-head'><span class='league'>{_esc(league)}</span><span class='match-status {tone}'>{_esc(status)}</span></div>"
+        "<div class='teams'>"
+        f"<div class='team home'>{_team_badge(row, 'home')}<strong>{_esc(home)}</strong></div>"
+        f"{score_html}"
+        f"<div class='team away'>{_team_badge(row, 'away')}<strong>{_esc(away)}</strong></div>"
+        "</div>"
+        f"<div class='markets'>{market_html or '<div class=\"muted\">No verified market rows.</div>'}</div>"
+        "</article>"
+    )
+
+
+def _slate_section(view: dict[str, Any]) -> str:
+    rows = view.get("rows") if isinstance(view, dict) else []
+    rows = [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
+    groups = _group_slate(rows)
+    if not groups:
+        body = "<div class='empty'>No active fixtures in the latest persisted tick.</div>"
+    else:
+        body = "<div class='fixture-grid'>" + "".join(_fixture_card(group) for group in groups) + "</div>"
+    total_rows = view.get("total") if isinstance(view, dict) else len(rows)
+    return (
+        "<section class='panel slate-panel' id='todays_slate'>"
+        "<div class='panel-head'><div><div class='eyebrow'>FULL SLATE · PERSISTED DATA</div>"
+        "<h2>Today&#x27;s Slate</h2>"
+        "<p class='panel-copy'>All active fixtures available in the latest persisted tick. Live/partial states and scores appear only when present in the stored payload.</p>"
+        f"</div><span class='count'>{_num(len(groups), '0')} fixtures · {_num(total_rows, '0')} rows</span></div>{body}</section>"
+    )
 
 
 def _signal_card(row: dict[str, Any], *, accent: str = "cyan") -> str:
-    fixture = f"{_esc(row.get('home'))} <span>vs</span> {_esc(row.get('away'))}"
     edge = _edge_value(row)
     edge_text = "N/V" if edge is None else f"{edge:+.1f} pp"
     price = row.get("price")
@@ -92,8 +325,12 @@ def _signal_card(row: dict[str, Any], *, accent: str = "cyan") -> str:
         f"<span class='league'>{_esc(row.get('league'))}</span>"
         f"<span class='pill {_status_class(execution)}'>{_esc(_friendly_execution(execution))}</span>"
         "</div>"
-        f"<h3>{fixture}</h3>"
-        f"<div class='market-name'>{_esc(row.get('market'))}</div>"
+        "<div class='signal-fixture'>"
+        f"{_team_badge(row, 'home')}<strong>{_esc(_team_name(row, 'home'))}</strong>"
+        "<span class='muted'>vs</span>"
+        f"{_team_badge(row, 'away')}<strong>{_esc(_team_name(row, 'away'))}</strong>"
+        "</div>"
+        f"<div class='market-name'>{_esc(row.get('market') or row.get('market_family'))}</div>"
         f"<div class='selection'>{_esc(row.get('selection'))} <strong>{_esc(row.get('line'))}</strong></div>"
         "<div class='signal-stats'>"
         f"<div><span>Price</span><strong class='mono'>{_esc(price)}</strong></div>"
@@ -114,13 +351,13 @@ def _signal_grid(view: dict[str, Any], *, accent: str = "cyan", empty: str) -> s
 
 
 def _row_html(row: dict[str, Any]) -> str:
-    fixture = f"{_esc(row.get('home'))} vs {_esc(row.get('away'))}"
+    fixture = f"{_esc(_team_name(row, 'home'))} vs {_esc(_team_name(row, 'away'))}"
     edge = _edge_value(row)
     edge_html = "N/V" if edge is None else f"{edge:+.1f} pp"
     return (
         "<tr>"
         f"<td><strong>{fixture}</strong><div class='muted'>{_esc(row.get('league'))}</div></td>"
-        f"<td>{_esc(row.get('market'))}<div class='muted'>{_esc(row.get('selection'))} {_esc(row.get('line'))}</div></td>"
+        f"<td>{_esc(row.get('market') or row.get('market_family'))}<div class='muted'>{_esc(row.get('selection'))} {_esc(row.get('line'))}</div></td>"
         f"<td class='mono'>{_esc(row.get('price'))}</td>"
         f"<td><span class='signal'>{_esc(row.get('model_signal'))}</span></td>"
         f"<td class='edge mono'>{_esc(edge_html)}</td>"
@@ -240,10 +477,15 @@ def render_dashboard(product_payload: dict[str, Any]) -> str:
     generated = product_payload.get("generated_at_utc")
     pipeline_version = product_payload.get("pipeline_version")
     status = tower.get("status") or product_payload.get("status")
+    slate = views.get("todays_slate") if isinstance(views.get("todays_slate"), dict) else {}
     strong = views.get("strong_sport_signals") if isinstance(views.get("strong_sport_signals"), dict) else {}
     values = views.get("value_plays") if isinstance(views.get("value_plays"), dict) else {}
     waiting_price = views.get("waiting_for_price") if isinstance(views.get("waiting_for_price"), dict) else {}
     waiting_xi = views.get("waiting_for_xi") if isinstance(views.get("waiting_for_xi"), dict) else {}
+
+    slate_rows = slate.get("rows") if isinstance(slate.get("rows"), list) else []
+    fixture_groups = _group_slate([row for row in slate_rows if isinstance(row, dict)])
+    live_fixture_count = sum(1 for group in fixture_groups if _match_state(group["base"])[1] == "live")
 
     meta_json = html.escape(json.dumps({
         "schema_version": SCHEMA_VERSION,
@@ -267,70 +509,196 @@ def render_dashboard(product_payload: dict[str, Any]) -> str:
     watchdog_note = f"{_num(watchdog_bundle.get('ok_count'), '0')} OK · {_num(watchdog_bundle.get('watch_count'), '0')} watch · {_num(watchdog_bundle.get('not_verified_count'), '0')} N/V"
 
     operator_metrics = "".join((
-        _metric("Fixtures scanned", pipeline.get("fixtures_scanned")),
-        _metric("Scheduler mode", pipeline.get("scheduler_mode")),
-        _metric("Unseen processed", pipeline.get("scheduler_unseen_processed")),
-        _metric("Starvation", pipeline.get("scheduler_starvation_count")),
-        _metric("TT close candidates", pipeline.get("team_totals_maturation_candidates")),
-        _metric("Primary close candidates", pipeline.get("primary_clv_maturation_candidates")),
+        _metric("Fixtures scanned", pipeline.get("fixtures_scanned"), "latest tick"),
+        _metric("Due", pipeline.get("due"), "refresh candidates"),
+        _metric("Events", pipeline.get("events"), "persisted"),
+        _metric("Deep dives", pipeline.get("deep_dives"), "processed"),
         _metric("API calls", pipeline.get("api_calls"), f"cap {_num(pipeline.get('api_call_cap'))}"),
-        _metric("API remaining", health.get("api_football_remaining")),
+        _metric("API remaining", health.get("api_football_remaining"), health.get("daily_budget_mode")),
+    ))
+
+    slate_metrics = "".join((
+        _metric("Full slate", len(fixture_groups), f"{_num(slate.get('total'), '0')} market rows"),
+        _metric("Live now", live_fixture_count, "stored status"),
+        _metric("Strong signals", strong.get("total"), "verified"),
+        _metric("Value plays", values.get("total"), "calibrated"),
+        _metric("Price watch", waiting_price.get("total"), "awaiting quote"),
+        _metric("XI watch", waiting_xi.get("total"), "awaiting lineup"),
+    ))
+
+    health_cards = "".join(
+        f"<div class='health-card'><span>{_esc(label)}</span><strong class='{_status_class(value)}'>{_esc(value)}</strong></div>"
+        for label, value in (
+            ("Runtime", health.get("runtime")),
+            ("Postgres", health.get("postgres")),
+            ("Scheduler", health.get("scheduler")),
+            ("API-Football", health.get("api_football")),
+            ("Galaxy", health.get("galaxy")),
+        )
+    )
+
+    scheduler_cards = "".join((
+        _metric("Scheduler mode", pipeline.get("scheduler_mode"), pipeline.get("scheduler_schema_version")),
+        _metric("Unseen processed", pipeline.get("scheduler_unseen_processed"), "coverage"),
+        _metric("Actionable processed", pipeline.get("scheduler_actionable_processed"), "priority"),
+        _metric("Starvation", pipeline.get("scheduler_starvation_count"), "fixtures"),
+        _metric("TT close candidates", pipeline.get("team_totals_maturation_candidates"), f"{_num(pipeline.get('team_totals_later_quote_refreshes'), '0')} later quotes"),
+        _metric("Primary close candidates", pipeline.get("primary_clv_maturation_candidates"), f"{_num(pipeline.get('primary_clv_maturation_refreshed'), '0')} refreshed"),
     ))
 
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#07111d">
-<meta name="description" content="Soccer Edge Intelligence — evidence-first football market analysis and model signals.">
-<title>Soccer Edge · Intelligence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Soccer Edge · Control Tower</title>
 <style>
-:root{{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#050912;--surface:#08111c;--surface2:#0b1724;--border:#17283a;--text:#f3f7fb;--muted:#72859a;--cyan:#47c9ff;--blue:#5588ff;--green:#2ed7a3;--amber:#f4bc55;--red:#ff6879;--violet:#9a7cff}}*{{box-sizing:border-box}}html{{scroll-behavior:smooth}}body{{margin:0;background:radial-gradient(circle at 80% -10%,rgba(71,201,255,.14),transparent 28%),radial-gradient(circle at 10% 15%,rgba(154,124,255,.08),transparent 26%),linear-gradient(180deg,#040811,#07111c 45%,#050a12);color:var(--text)}}a{{color:inherit;text-decoration:none}}.shell{{max-width:1540px;margin:auto;padding:22px 26px 64px}}.topnav{{height:58px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid rgba(255,255,255,.06)}}.brand{{display:flex;align-items:center;gap:11px;font-weight:900;letter-spacing:.02em}}.mark{{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,#0b2840,#11203b);border:1px solid #1d4e72;color:var(--cyan);box-shadow:0 0 28px rgba(71,201,255,.12)}}.navlinks{{display:flex;gap:4px;align-items:center}}.navlinks a{{font-size:12px;color:#899bad;padding:8px 10px;border-radius:8px}}.navlinks a:hover{{color:#fff;background:#0c1d2d}}.beta{{font-size:10px;color:#c9d7e3;border:1px solid #294158;background:#0a1723;padding:5px 8px;border-radius:999px}}.hero{{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:28px;padding:48px 0 28px;align-items:end}}.eyebrow{{font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan)}}h1{{font-size:clamp(36px,6vw,70px);line-height:.98;letter-spacing:-.06em;margin:10px 0 16px;max-width:850px}}.hero p{{font-size:15px;line-height:1.7;color:#8fa3b7;max-width:720px;margin:0}}.hero-side{{border:1px solid var(--border);background:linear-gradient(180deg,rgba(12,25,39,.95),rgba(7,16,26,.95));border-radius:18px;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.2)}}.live-row{{display:flex;align-items:center;justify-content:space-between;gap:18px}}.live{{display:flex;align-items:center;gap:8px;font-weight:850;font-size:12px}}.dot{{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 16px rgba(46,215,163,.8)}}.stamp{{font-size:10px;color:#62798f;text-align:right}}.trust-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}}.trust{{padding:12px;border-radius:10px;border:1px solid #142c40;background:#071620}}.trust strong{{display:block;font-size:12px}}.trust span{{display:block;color:#5e768a;font-size:9px;margin-top:4px;line-height:1.35}}.overview{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:18px 0 30px}}.overview-card{{border:1px solid var(--border);border-radius:13px;padding:17px;background:linear-gradient(180deg,#0a1724,#08121d)}}.overview-card .label{{font-size:10px;color:#71859a;text-transform:uppercase;letter-spacing:.08em}}.overview-card .value{{font-size:30px;font-weight:950;margin-top:4px}}.overview-card .sub{{font-size:10px;color:#5d7488;margin-top:3px}}.positive{{color:var(--green)}}.section{{margin-top:26px}}.section-head{{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:12px}}.section-head h2{{font-size:22px;letter-spacing:-.03em;margin:3px 0 0}}.count{{font-size:11px;color:#62788c}}.signal-grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}}.signal-card{{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#0a1724,#07111c);padding:15px;min-height:216px}}.signal-card:before{{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:var(--cyan)}}.signal-card.green:before{{background:var(--green)}}.signal-card-top{{display:flex;justify-content:space-between;gap:8px;align-items:center}}.league{{font-size:9px;color:#6c8397;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}.signal-card h3{{font-size:17px;letter-spacing:-.03em;margin:18px 0 12px}}.signal-card h3 span{{color:#51677b;font-weight:500;font-size:12px}}.market-name{{font-size:10px;color:#6d8396;text-transform:uppercase;letter-spacing:.06em}}.selection{{font-size:14px;font-weight:800;margin-top:4px}}.selection strong{{color:var(--cyan)}}.signal-stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:18px}}.signal-stats div{{min-width:0}}.signal-stats span{{display:block;color:#536b80;font-size:8px;text-transform:uppercase;letter-spacing:.06em}}.signal-stats strong{{display:block;font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}.radar{{display:grid;grid-template-columns:1fr 1fr;gap:12px}}.radar-card{{border:1px solid var(--border);border-radius:14px;background:#08131f;overflow:hidden}}.radar-head{{display:flex;justify-content:space-between;align-items:center;padding:14px 15px;border-bottom:1px solid var(--border)}}.radar-head h3{{font-size:14px;margin:0}}.radar-body{{padding:13px}}.panel{{background:linear-gradient(180deg,rgba(10,22,35,.98),rgba(7,16,27,.98));border:1px solid var(--border);border-radius:14px;overflow:hidden}}.panel-head{{padding:14px 16px;display:flex;justify-content:space-between;gap:18px;align-items:center;border-bottom:1px solid var(--border)}}.panel-head h2{{font-size:16px;margin:3px 0}}.table-wrap{{overflow:auto}}table{{width:100%;border-collapse:collapse;min-width:880px}}th,td{{text-align:left;padding:12px 15px;border-bottom:1px solid #122230;vertical-align:middle}}th{{color:#5e7489;font-size:8px;text-transform:uppercase;letter-spacing:.1em}}td{{font-size:11px;color:#c5d2dd}}.muted{{color:var(--muted)}}.signal{{font-weight:850}}.edge{{color:var(--green);font-weight:900}}.pill{{display:inline-flex;align-items:center;border-radius:999px;font-size:8px;font-weight:900;letter-spacing:.04em;padding:4px 7px;border:1px solid transparent}}.pill.ok{{color:#6ff0c7;background:#0b382c;border-color:#155944}}.pill.warn{{color:#f5ca78;background:#332710;border-color:#58431f}}.pill.bad{{color:#ff8795;background:#3b1620;border-color:#642431}}.pill.neutral{{color:#9fb1c0;background:#172431;border-color:#27394a}}.lab{{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}}.maturity-grid{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:13px}}.maturity-card{{background:#081722;border:1px solid #152b3d;border-radius:10px;padding:12px}}.maturity-top{{display:flex;justify-content:space-between;gap:8px;font-size:11px}}.maturity-kind{{color:#4e6c83;font-size:8px;margin-top:3px}}.maturity-value{{font-size:18px;font-weight:900;margin-top:11px}}.maturity-meta{{color:#617c91;font-size:9px;margin-top:8px;line-height:1.35}}.track{{height:6px;background:#101e2b;border-radius:999px;margin-top:7px;overflow:hidden;border:1px solid #172a3b}}.fill{{height:100%;background:linear-gradient(90deg,#228ed1,#2ed7a3);border-radius:999px}}.fill.complete{{background:linear-gradient(90deg,#1ebf8c,#67efc5)}}.fill.unknown{{width:0!important}}.gate-list{{padding:13px 16px}}.gate{{margin:10px 0 14px}}.gate-top{{display:flex;justify-content:space-between;gap:12px;font-size:11px}}.gate-top span{{color:#9db0c1}}.operator{{margin-top:34px;border-top:1px solid rgba(255,255,255,.06);padding-top:24px}}.operator summary{{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;padding:14px 0;font-weight:900}}.operator summary::-webkit-details-marker{{display:none}}.operator-kpis{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px}}.metric-card{{padding:13px 14px;border:1px solid var(--border);border-radius:10px;background:#07131e}}.metric-label{{color:#71869b;font-size:9px;text-transform:uppercase;letter-spacing:.07em}}.metric-value{{font-size:20px;font-weight:900;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}.metric-sub{{color:#536c82;font-size:9px;margin-top:2px}}.watchdog-grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:13px}}.watchdog-card{{background:#081722;border:1px solid #152b3d;border-radius:9px;padding:12px}}.watchdog-top{{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;font-size:11px}}.watchdog-reason{{color:#91a6b8;font-size:9px;margin-top:8px;line-height:1.35;word-break:break-word}}.watchdog-source{{color:#405d72;font-size:8px;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}.phase-grid{{display:grid;grid-template-columns:repeat(11,minmax(105px,1fr));gap:7px;padding:13px;overflow-x:auto}}.phase-card{{padding:10px;border:1px solid #152b3d;background:#081722;border-radius:9px;min-width:108px}}.phase-num{{color:#4e6c83;font-size:8px;font-weight:800;letter-spacing:.08em}}.phase-name{{font-size:11px;font-weight:800;margin:5px 0 8px;min-height:26px}}.empty{{padding:18px;color:#63798d;font-size:11px}}.empty-success{{display:flex;gap:12px;align-items:center;padding:16px;border:1px dashed #174335;border-radius:10px;background:rgba(25,100,75,.08);margin:13px}}.check{{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#0c4c38;color:#6df2c2;font-weight:900}}.error-row{{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}}.error-reason{{color:var(--red);font-size:10px;max-width:48%;text-align:right}}.mono{{font-variant-numeric:tabular-nums;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}}.footer{{margin-top:26px;color:#526b80;font-size:10px;line-height:1.55;padding:14px 0}}
-@media(max-width:1180px){{.signal-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}.overview{{grid-template-columns:repeat(2,minmax(0,1fr))}}.maturity-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}.watchdog-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}.hero{{grid-template-columns:1fr}}}}
-@media(max-width:760px){{.shell{{padding:14px 14px 44px}}.navlinks{{display:none}}.hero{{padding-top:30px}}h1{{font-size:42px}}.overview,.signal-grid,.radar,.lab,.operator-kpis,.maturity-grid,.watchdog-grid{{grid-template-columns:1fr}}.trust-grid{{grid-template-columns:1fr}}.signal-stats{{grid-template-columns:repeat(2,1fr)}}}}
+:root {{
+  --bg:#071017; --panel:#0c171f; --panel2:#101e28; --line:#20323d; --text:#f1f5f9;
+  --muted:#8ca0ad; --cyan:#32d6d2; --green:#66d19e; --amber:#f7bd68; --red:#ff7f85;
+}}
+*{{box-sizing:border-box}} html{{scroll-behavior:smooth}} body{{margin:0;background:radial-gradient(circle at 15% -10%,#14313b 0,transparent 38%),var(--bg);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}}
+a{{color:inherit}} .shell{{max-width:1500px;margin:auto;padding:20px 24px 72px}} .mono{{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}}
+.topbar{{position:sticky;top:0;z-index:20;margin:-20px -24px 22px;padding:14px 24px;background:rgba(7,16,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.07);display:flex;gap:18px;align-items:center;justify-content:space-between}}
+.brand{{display:flex;align-items:center;gap:12px}} .brand-mark{{width:34px;height:34px;border:1px solid #2f6870;border-radius:11px;display:grid;place-items:center;background:#0d2830;box-shadow:0 0 28px rgba(50,214,210,.12)}} .brand h1{{font-size:15px;margin:0;letter-spacing:.08em;text-transform:uppercase}} .brand small{{display:block;color:var(--muted);font-size:11px}}
+.status-cluster{{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}} .live-dot{{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px rgba(102,209,158,.1)}} .refresh-state{{font-size:12px;color:var(--muted);padding:7px 10px;border:1px solid var(--line);border-radius:999px}}
+.hero{{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);gap:16px;margin-bottom:16px}} .hero-main,.hero-side{{background:linear-gradient(145deg,rgba(16,30,40,.96),rgba(10,20,28,.96));border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 18px 50px rgba(0,0,0,.18)}} .eyebrow{{font-size:11px;letter-spacing:.13em;color:var(--cyan);font-weight:800;text-transform:uppercase}} .hero h2{{font-size:30px;line-height:1.08;margin:10px 0 8px}} .hero p{{color:var(--muted);max-width:760px;margin:0}} .hero-tags{{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}}
+.pill,.mini-pill,.match-status,.count{{display:inline-flex;align-items:center;border-radius:999px;border:1px solid var(--line);padding:5px 9px;font-size:11px;font-weight:750;white-space:nowrap}} .pill.ok,.mini-pill.ok{{background:rgba(102,209,158,.10);border-color:rgba(102,209,158,.28);color:#9ce5bd}} .pill.warn,.mini-pill.warn{{background:rgba(247,189,104,.10);border-color:rgba(247,189,104,.28);color:#ffd28e}} .pill.bad,.mini-pill.bad{{background:rgba(255,127,133,.10);border-color:rgba(255,127,133,.28);color:#ffa5aa}}
+.hero-side{{display:grid;align-content:center;gap:12px}} .hero-state{{font-size:24px;font-weight:850}} .hero-meta{{color:var(--muted);font-size:12px}}
+.metric-grid{{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:0 0 16px}} .metric-card{{background:rgba(12,23,31,.9);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}} .metric-label{{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em}} .metric-value{{font-size:21px;font-weight:850;margin-top:6px;overflow:hidden;text-overflow:ellipsis}} .metric-sub{{color:var(--muted);font-size:11px;margin-top:4px;overflow:hidden;text-overflow:ellipsis}}
+.layout{{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}} .main{{display:grid;gap:16px}} .rail{{display:grid;gap:16px;position:sticky;top:84px}} .panel{{background:rgba(12,23,31,.93);border:1px solid var(--line);border-radius:18px;padding:18px;overflow:hidden}} .panel-head{{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:14px}} .panel-head h2{{font-size:18px;margin:4px 0 0}} .panel-copy{{color:var(--muted);font-size:12px;max-width:760px;margin:7px 0 0}} .count{{color:var(--muted);font-weight:650}}
+.fixture-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}} .fixture-card{{background:linear-gradient(155deg,#101f29,#0b151c);border:1px solid #203743;border-radius:16px;padding:14px;min-width:0}} .fixture-head{{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}} .league{{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}} .match-status.live{{color:#9ce5bd;background:rgba(102,209,158,.10);border-color:rgba(102,209,158,.3)}} .match-status.finished{{color:#b7c4cc}} .match-status.bad{{color:#ffa5aa;background:rgba(255,127,133,.08)}} .match-status.scheduled{{color:#98dce0}}
+.teams{{display:grid;grid-template-columns:minmax(0,1fr) 66px minmax(0,1fr);gap:10px;align-items:center}} .team{{display:flex;align-items:center;gap:9px;min-width:0}} .team.away{{justify-content:flex-end;text-align:right}} .team strong{{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}} .team-badge{{position:relative;width:36px;height:36px;min-width:36px;border-radius:50%;display:grid;place-items:center;background:#172833;border:1px solid #29404b;overflow:hidden}} .team-badge img{{position:absolute;inset:4px;width:28px;height:28px;object-fit:contain}} .team-initials{{font-size:10px;font-weight:850;color:#9ab0bd}} .score{{font-size:22px;font-weight:900;text-align:center;letter-spacing:.02em}} .score span{{color:var(--muted);padding:0 4px}} .score-empty{{font-size:11px;color:var(--muted);text-transform:uppercase}}
+.markets{{margin-top:13px;border-top:1px solid rgba(255,255,255,.06);padding-top:10px;display:grid;gap:7px}} .market-row{{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;color:#c8d4db}} .market-row>span:first-child{{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}} .more-markets{{font-size:11px;color:var(--muted)}}
+.signal-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}} .signal-card{{border:1px solid var(--line);border-radius:15px;padding:14px;background:#0e1b24}} .signal-card-top{{display:flex;justify-content:space-between;gap:8px}} .signal-fixture{{display:flex;gap:7px;align-items:center;margin:12px 0 8px;min-width:0}} .signal-fixture .team-badge{{width:28px;height:28px;min-width:28px}} .signal-fixture .team-badge img{{width:22px;height:22px;inset:3px}} .signal-fixture strong{{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}} .market-name{{color:var(--muted);font-size:11px}} .selection{{font-size:15px;margin-top:3px}} .signal-stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}} .signal-stats div{{background:#0a151c;border-radius:9px;padding:8px}} .signal-stats span{{display:block;color:var(--muted);font-size:9px;text-transform:uppercase}} .signal-stats strong{{font-size:11px}} .positive{{color:#91e8bc}}
+.table-wrap{{overflow:auto;border:1px solid rgba(255,255,255,.05);border-radius:12px}} table{{width:100%;border-collapse:collapse;min-width:720px}} th,td{{text-align:left;padding:11px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px}} th{{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em;background:#0a151c}} .muted{{color:var(--muted);font-size:11px}} .edge{{color:#95e8bd}}
+.health-grid{{display:grid;gap:8px}} .health-card{{display:flex;justify-content:space-between;gap:8px;padding:9px 10px;background:#0a151c;border-radius:10px}} .health-card span{{color:var(--muted)}} .health-card strong.ok{{color:#9ce5bd}} .health-card strong.warn{{color:#ffd28e}} .health-card strong.bad{{color:#ffa5aa}}
+.gates{{display:grid;gap:13px}} .gate-top{{display:flex;justify-content:space-between;gap:12px;font-size:11px;margin-bottom:6px}} .gate-top span{{color:#cbd7de}} .track{{height:6px;border-radius:999px;background:#152630;overflow:hidden}} .fill{{height:100%;background:linear-gradient(90deg,#27757a,var(--cyan));border-radius:999px}} .fill.complete{{background:linear-gradient(90deg,#2a7959,var(--green))}} .fill.unknown{{width:0!important}}
+.watchdog-grid,.maturity-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}} .watchdog-card,.maturity-card{{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0b171e}} .watchdog-top,.maturity-top{{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}} .watchdog-reason,.maturity-meta{{color:#c6d2d9;font-size:11px;margin-top:9px}} .watchdog-source,.maturity-kind{{color:var(--muted);font-size:10px;margin-top:4px}} .maturity-value{{font-size:18px;font-weight:850;margin:12px 0 8px}}
+.phase-grid{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}} .phase-card{{background:#0a151c;border:1px solid var(--line);border-radius:11px;padding:10px}} .phase-num{{font-size:9px;color:var(--muted);letter-spacing:.09em}} .phase-name{{font-weight:800;margin:3px 0 8px}} .empty,.empty-success{{padding:18px;border:1px dashed #29404b;border-radius:12px;color:var(--muted)}} .empty-success{{display:flex;gap:10px;align-items:center}} .check{{font-size:22px;color:var(--green)}} .error-row{{padding:12px;border:1px solid rgba(255,127,133,.25);border-radius:10px;margin-top:8px}} .error-reason{{color:#ffa5aa;margin-top:5px}}
+.nav-pills{{display:flex;gap:7px;overflow:auto;padding-bottom:2px;margin:0 0 16px}} .nav-pills a{{text-decoration:none;color:#aebdc6;padding:7px 10px;border:1px solid var(--line);border-radius:999px;white-space:nowrap;font-size:11px}} .nav-pills a:hover{{color:white;border-color:#3a6470}} .research-note{{font-size:11px;color:var(--muted);margin-top:10px}}
+@media(max-width:1100px){{.layout{{grid-template-columns:1fr}}.rail{{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}}.metric-grid{{grid-template-columns:repeat(3,minmax(0,1fr))}}}}
+@media(max-width:760px){{.shell{{padding:14px 12px 54px}}.topbar{{margin:-14px -12px 16px;padding:12px}}.brand small{{display:none}}.hero{{grid-template-columns:1fr}}.hero h2{{font-size:24px}}.metric-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}.fixture-grid,.signal-grid,.watchdog-grid,.maturity-grid,.rail{{grid-template-columns:1fr}}.phase-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}.teams{{grid-template-columns:minmax(0,1fr) 50px minmax(0,1fr)}}.team{{display:grid;justify-items:start;gap:5px}}.team.away{{justify-items:end}}.team strong{{font-size:11px;max-width:115px}}.signal-stats{{grid-template-columns:repeat(2,1fr)}}}}
 </style>
 </head>
-<body data-meta="{meta_json}">
-<div class="shell">
-<header class="topnav">
-<a class="brand" href="#top"><span class="mark">SE</span><span>Soccer Edge</span></a>
-<nav class="navlinks"><a href="#signals">Signals</a><a href="#radar">Radar</a><a href="#markets">Markets</a><a href="#model-lab">Model Lab</a></nav>
-<span class="beta">SUBSCRIBER PREVIEW</span>
+<body>
+<div class="shell" data-dashboard-meta="{meta_json}" data-generated-at="{_esc(generated)}">
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">◈</span><div><h1>Soccer Edge</h1><small>Control Tower · evidence-first</small></div></div>
+  <div class="status-cluster"><span class="live-dot"></span><span class="pill {_status_class(status)}">{_esc(status)}</span><span id="refreshState" class="refresh-state">Snapshot {_esc(generated)}</span></div>
 </header>
 
-<main id="top">
 <section class="hero">
-<div><div class="eyebrow">EVIDENCE-FIRST FOOTBALL INTELLIGENCE</div><h1>Find the signal.<br>Ignore the noise.</h1><p>Soccer Edge turns model output, market price, lineup status and validation evidence into one decision surface. No forced picks, no hidden backfills, and no invented data.</p></div>
-<aside class="hero-side"><div class="live-row"><div class="live"><span class="dot"></span>{_esc(status)}</div><div class="stamp">Last persisted tick<br><span class="mono">{_esc(generated)}</span></div></div><div class="trust-grid"><div class="trust"><strong>Price-aware</strong><span>Signals keep price and freshness state visible.</span></div><div class="trust"><strong>Evidence-gated</strong><span>Research markets remain research until evidence matures.</span></div><div class="trust"><strong>Read-only</strong><span>This surface cannot alter model or bet logic.</span></div></div></aside>
+  <div class="hero-main">
+    <div class="eyebrow">DASHBOARD CONTROL TOWER V1</div>
+    <h2>Live slate, real pipeline KPIs, zero invented state.</h2>
+    <p>Read-only operational view. The page renders the latest persisted tick and keeps it visible if refresh checks fail. Logos, scores and partial-match states are shown only from grounded team IDs or stored fixture data.</p>
+    <div class="hero-tags">
+      <span class="pill ok">Research-first dashboard</span>
+      <span class="pill neutral">Read-only operational view</span>
+      <span class="pill warn">Production-valid markets: {_num(tower.get('production_valid_market_count'), '0')}</span>
+    </div>
+  </div>
+  <div class="hero-side">
+    <div class="eyebrow">LATEST PERSISTED TICK</div>
+    <div class="hero-state">{_esc(status)}</div>
+    <div class="hero-meta mono">{_esc(pipeline_version)}</div>
+    <div class="hero-meta">{_esc(generated)}</div>
+    <div class="hero-meta">Provider requests added by dashboard: <strong>0</strong></div>
+  </div>
 </section>
 
-<section class="overview" aria-label="Today overview">
-<div class="overview-card"><div class="label">Strong Sport Signals</div><div class="value positive mono">{_num(strong.get('total'),'0')}</div><div class="sub">verified in latest tick</div></div>
-<div class="overview-card"><div class="label">Value Plays</div><div class="value mono">{_num(values.get('total'),'0')}</div><div class="sub">calibrated mismatch candidates</div></div>
-<div class="overview-card"><div class="label">Waiting for Price</div><div class="value mono">{_num(waiting_price.get('total'),'0')}</div><div class="sub">signal exists, price not ready</div></div>
-<div class="overview-card"><div class="label">Waiting for XI</div><div class="value mono">{_num(waiting_xi.get('total'),'0')}</div><div class="sub">lineup confirmation pending</div></div>
-</section>
+<div class="metric-grid">{slate_metrics}</div>
+<nav class="nav-pills">
+  <a href="#todays_slate">Full slate</a><a href="#strong">Strong signals</a><a href="#control">Control Tower</a>
+  <a href="#maturity">Model Maturity</a><a href="#watchdogs">Maturation Watchdogs</a><a href="#phases">Phases 14–24</a>
+</nav>
 
-<section class="section" id="signals"><div class="section-head"><div><div class="eyebrow">DECISION DESK</div><h2>Strong Sport Signals</h2></div><span class="count">Research-first dashboard · {_num(strong.get('total'),'0')} total</span></div>{_signal_grid(strong, accent='green', empty='No strong verified signal in the latest persisted tick.')}</section>
-<section class="section"><div class="section-head"><div><div class="eyebrow">MARKET MISPRICING</div><h2>Value Plays</h2></div><span class="count">Calibrated probability required · {_num(values.get('total'),'0')} total</span></div>{_signal_grid(values, accent='cyan', empty='No calibrated value play in the latest persisted tick.')}</section>
-
-<section class="section" id="radar"><div class="section-head"><div><div class="eyebrow">MARKET RADAR</div><h2>What is blocking execution?</h2></div><span class="count">No hidden assumptions</span></div><div class="radar"><div class="radar-card"><div class="radar-head"><h3>Waiting for Price</h3><span class="pill warn">{_num(waiting_price.get('total'),'0')}</span></div><div class="radar-body">{_signal_grid(waiting_price, accent='cyan', empty='No current price-watch signals.')}</div></div><div class="radar-card"><div class="radar-head"><h3>Waiting for XI</h3><span class="pill warn">{_num(waiting_xi.get('total'),'0')}</span></div><div class="radar-body">{_signal_grid(waiting_xi, accent='green', empty='No current lineup-watch signals.')}</div></div></div></section>
-
-<section class="section" id="model-lab"><div class="section-head"><div><div class="eyebrow">MODEL TRANSPARENCY</div><h2>Model Maturity</h2></div><span class="count">{state_note}</span></div><div class="lab"><div class="panel"><div class="panel-head"><div><div class="eyebrow">MATURATION CONTROL TOWER</div><h2>Market evidence</h2></div><span class="count">Explicit gates only</span></div><div class="maturity-grid">{maturation_rows}</div></div><div class="panel"><div class="panel-head"><div><div class="eyebrow">VALIDATION GATES</div><h2>Evidence thresholds</h2></div></div><div class="gate-list">{gate_rows}</div></div></div></section>
-
-<section class="section" id="markets"><div class="section-head"><div><div class="eyebrow">FULL MARKET BOARD</div><h2>Today's Slate & market views</h2></div><span class="count">Latest persisted data only</span></div>{feed_sections}</section>
-
-<details class="operator" id="control-tower">
-<summary><span>Control Tower · operator diagnostics</span><span class="count">System Health · {watchdog_note}</span></summary>
-<section class="panel"><div class="panel-head"><div><div class="eyebrow">SYSTEM HEALTH</div><h2>System Health</h2></div><span class="count">Pipeline {_esc(pipeline_version)}</span></div><div class="operator-kpis">{operator_metrics}</div></section>
-<section class="panel" style="margin-top:12px"><div class="panel-head"><div><div class="eyebrow">PIPELINE SAFETY</div><h2>Pipeline Errors</h2></div><span class="count">{_num(errors.get('count'),'0')} current</span></div>{_errors_html(errors)}</section>
-<section class="panel" style="margin-top:12px"><div class="panel-head"><div><div class="eyebrow">VALIDATION · READ ONLY</div><h2>Maturation Watchdogs</h2></div><span class="count">{watchdog_note}</span></div><div class="watchdog-grid">{watchdog_rows}</div></section>
-<section class="panel" style="margin-top:12px"><div class="panel-head"><div><div class="eyebrow">ROADMAP</div><h2>Phases 14–24</h2></div><span class="count">Production-valid markets: {_num(tower.get('production_valid_market_count'),'0')}</span></div><div class="phase-grid">{phase_rows}</div></section>
-</details>
-
-<div class="footer">Read-only operational view. Soccer Edge presents persisted model and market evidence; it does not guarantee outcomes, manufacture missing data, promote research markets, or alter betting logic. N/V means the current field is not verified in the latest payload.</div>
+<div class="layout">
+<main class="main">
+  {_slate_section(slate)}
+  <section class="panel" id="strong">
+    <div class="panel-head"><div><div class="eyebrow">VERIFIED SIGNALS</div><h2>Strong Sport Signals</h2></div><span class="count">{_num(strong.get('total'), '0')} total</span></div>
+    {_signal_grid(strong, empty="No STRONG / VERY_STRONG rows in this tick.")}
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><div class="eyebrow">VALUE / EXECUTION</div><h2>Market Watch</h2></div></div>
+    <div class="metric-grid">{''.join((_metric('Value plays', values.get('total')), _metric('Waiting price', waiting_price.get('total')), _metric('Waiting XI', waiting_xi.get('total'))))}</div>
+  </section>
+  {feed_sections}
+  <section class="panel" id="control">
+    <div class="panel-head"><div><div class="eyebrow">OPERATIONS</div><h2>Control Tower</h2></div><span class="count">{_esc(health.get('last_tick'))}</span></div>
+    <div class="metric-grid">{operator_metrics}</div>
+    <div class="metric-grid">{scheduler_cards}</div>
+  </section>
+  <section class="panel" id="maturity">
+    <div class="panel-head"><div><div class="eyebrow">VALIDATION</div><h2>Model Maturity</h2><p class="panel-copy">{state_note}</p></div></div>
+    <div class="maturity-grid">{maturation_rows}</div>
+    <div class="gates" style="margin-top:16px">{gate_rows or "<div class='empty'>No validation gate telemetry.</div>"}</div>
+  </section>
+  <section class="panel" id="watchdogs">
+    <div class="panel-head"><div><div class="eyebrow">EVIDENCE MONITORING</div><h2>Maturation Watchdogs</h2><p class="panel-copy">{watchdog_note}</p></div></div>
+    <div class="watchdog-grid">{watchdog_rows}</div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><div class="eyebrow">FAULT SURFACE</div><h2>Pipeline Errors</h2></div><span class="count">{_num(errors.get('count'), '0')} current</span></div>
+    {_errors_html(errors)}
+  </section>
+  <section class="panel" id="phases">
+    <div class="panel-head"><div><div class="eyebrow">ROADMAP</div><h2>Phases 14–24</h2></div></div>
+    <div class="phase-grid">{phase_rows or "<div class='empty'>No phase telemetry.</div>"}</div>
+  </section>
 </main>
+<aside class="rail">
+  <section class="panel">
+    <div class="panel-head"><div><div class="eyebrow">SYSTEM</div><h2>System Health</h2></div></div>
+    <div class="health-grid">{health_cards}</div>
+    <div class="research-note">Research-first dashboard · no thresholds, gates, model weights or canonical BET logic are changed by this view.</div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><div class="eyebrow">REFRESH</div><h2>Snapshot Fallback</h2></div></div>
+    <p class="panel-copy">The browser checks the persisted product view every 60 seconds. A newer tick reloads the dashboard. If the check fails, this snapshot stays on screen.</p>
+    <div id="fallbackState" class="pill ok">Snapshot available</div>
+  </section>
+</aside>
 </div>
+</div>
+<script>
+(() => {{
+  const generated = {json.dumps(str(generated or ""))};
+  const state = document.getElementById("refreshState");
+  const fallback = document.getElementById("fallbackState");
+  let timer = null;
+  function mark(text, bad=false) {{
+    if (state) state.textContent = text;
+    if (fallback) {{
+      fallback.textContent = bad ? "Snapshot mode · refresh unavailable" : "Live refresh check OK";
+      fallback.className = "pill " + (bad ? "warn" : "ok");
+    }}
+  }}
+  async function check() {{
+    if (document.hidden) return;
+    try {{
+      const res = await fetch("/product/views?limit=25", {{cache:"no-store", headers:{{"Accept":"application/json"}}}});
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const payload = await res.json();
+      const next = String(payload.generated_at_utc || "");
+      mark("Refresh OK · " + new Date().toLocaleTimeString([], {{hour:"2-digit",minute:"2-digit"}}));
+      if (next && generated && next !== generated) window.location.reload();
+    }} catch (err) {{
+      mark("Refresh unavailable · showing saved snapshot", true);
+    }}
+  }}
+  function schedule() {{
+    clearInterval(timer);
+    timer = setInterval(check, 60000);
+  }}
+  window.addEventListener("online", () => {{ check(); schedule(); }});
+  window.addEventListener("offline", () => mark("Offline · showing saved snapshot", true));
+  document.addEventListener("visibilitychange", () => {{ if (!document.hidden) check(); }});
+  schedule();
+}})();
+</script>
 </body>
 </html>"""
