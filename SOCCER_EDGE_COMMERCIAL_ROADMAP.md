@@ -10,6 +10,7 @@ Canonical commercial/product roadmap layered on top of the existing Soccer Edge 
 - Free/Pro authorization is server-side. Client state alone can never unlock Pro.
 - Billing must fail closed. Only verified billing lifecycle events may activate/revoke paid entitlements.
 - Operator/internal surfaces stay separate from customer-facing product surfaces.
+- Product/marketing analytics must never become betting-model input.
 
 ## Completed commercial track
 
@@ -56,27 +57,20 @@ Server-side Free/Pro entitlement resolver, RLS, fail-closed plan resolution, no 
 - Public bilingual `/` landing page.
 - `Model vs Market` positioning.
 - Explorer/free-account CTAs into `/app`.
-- Explain price awareness, evidence gating, verified performance and premium match detail.
+- Price awareness, evidence gating, verified performance and premium match detail explained.
 - Responsible-gambling and legal-age/jurisdiction copy.
 - No fabricated live odds or results on the marketing surface.
 
+### V224 — Funnel Analytics ✅
+- Privacy-conscious product event ledger in Supabase with RLS and client deny-all.
+- Anonymous/session IDs without storing IP or browser fingerprint.
+- Explicit UTM/cohort attribution; no inference of ethnicity or US-Hispanic identity.
+- Landing, Explorer, signup/signin, language, checkout, portal and authenticated-view events.
+- Server-side `checkout_created` attribution.
+- Signed Stripe webhook is the only path that records `pro_activated` after ACTIVE/TRIALING subscription evidence.
+- Analytics remains completely separate from betting-model decisions.
+
 ## Immediate roadmap
-
-### V224 — Funnel Analytics
-Goal: replace marketing guesses with Soccer Edge conversion data.
-
-Measure:
-- landing visit -> signup
-- signup -> activated Explorer
-- Explorer -> Pro checkout
-- checkout -> paid Pro
-- D1 / D7 / D30 retention
-- churn
-- feature usage by market family
-- language/market cohort (MX Spanish, US Hispanic, US English)
-- content source -> signup -> Pro attribution
-
-No behavioral metric may alter betting-model decisions.
 
 ### V225 — Soccer Edge Content Factory
 Goal: convert verified engine output into scalable organic acquisition content.
@@ -192,7 +186,7 @@ Spanish direction:
 
 ## Current execution order
 
-`V224 -> V225 -> V226 -> V227 -> V228`
+`V225 -> V226 -> V227 -> V228`
 
 Statistical maturation continues independently in the existing family order:
 
