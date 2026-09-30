@@ -69,12 +69,32 @@ def _same_direction(left: Any, right: Any) -> bool:
     return a == b
 
 
+def _artifact_snapshot(row: dict[str, Any]) -> dict[str, Any] | None:
+    artifact = row.get("phase16_calibrator_artifact")
+    if not isinstance(artifact, dict) or not artifact:
+        return None
+    keep = (
+        "kind",
+        "target",
+        "source_model_version",
+        "source_model_version_matches",
+        "calibrator_status",
+        "parameter_keys",
+        "fingerprint_sha256",
+        "fingerprint_basis",
+    )
+    out = {key: artifact.get(key) for key in keep if artifact.get(key) is not None}
+    if not out.get("fingerprint_sha256"):
+        return None
+    return out
+
+
 def _phase16_calibration_snapshot(tick: dict[str, Any], fixture_id: int, best: Any) -> dict[str, Any] | None:
     """Preserve same-tick Phase16 calibration lineage for future audits.
 
-    This is metadata-only. It never changes the selected market, classification,
-    probability, price, tier or stake. The match is fixture + line + selection
-    direction, with nearest observed price used only to disambiguate duplicate rows.
+    Metadata-only. Historical probabilities are never recomputed. When v210
+    runtime metadata is present, persist the exact calibrator fingerprint that
+    was frozen at decision time; older rows remain honestly incomplete.
     """
     if not isinstance(best, dict) or not best:
         return None
@@ -137,6 +157,8 @@ def _phase16_calibration_snapshot(tick: dict[str, Any], fixture_id: int, best: A
     row = min(candidates, key=distance)
     diag = row.get("phase16_binary_calibration_diagnostics")
     diag = diag if isinstance(diag, dict) else {}
+    one_x_two_diag = row.get("phase16_1x2_class_discrimination_diagnostics")
+    one_x_two_diag = one_x_two_diag if isinstance(one_x_two_diag, dict) else None
     calibrated_fields: dict[str, float] = {}
     for key in ("p_model_calibrated", "p_calibrated", "calibrated_probability", "model_probability_calibrated"):
         value = _f(row.get(key))
@@ -172,9 +194,14 @@ def _phase16_calibration_snapshot(tick: dict[str, Any], fixture_id: int, best: A
         "bookmaker": row.get("bookmaker"),
         "calibration_status": row.get("phase16_calibration_status"),
         "calibration_target": diag.get("target") or row.get("phase16_calibration_target"),
+        "calibration_source": row.get("phase16_calibration_source"),
+        "calibration_policy": row.get("phase16_calibration_policy"),
         "promotion_shadow_eligible": row.get("phase16_calibration_promotion_shadow_eligible") is True,
         "calibrated_probability_fields": calibrated_fields,
         "binary_calibration_diagnostics": diag_snapshot,
+        "one_x_two_class_discrimination_diagnostics": one_x_two_diag,
+        "phase16_calibrator_artifact": _artifact_snapshot(row),
+        "calibrator_artifact_frozen_at_decision_time": row.get("phase16_calibrator_artifact_frozen_at_decision_time") is True,
     }
 
 
@@ -242,7 +269,9 @@ def build_rows(history_dir: str):
     signal_counts = Counter()
     fixtures = set()
     finals = set()
-    with_market = with_raw = with_lineups = with_shadow = with_tactical = with_phase16_provenance = phase16_promotion_shadow_eligible = 0
+    with_market = with_raw = with_lineups = with_shadow = with_tactical = 0
+    with_phase16_provenance = phase16_promotion_shadow_eligible = 0
+    phase16_calibrated = phase16_frozen_artifact = 0
     for r in rows:
         fixtures.add(r["fixture_id"])
         if r.get("result"):
@@ -253,11 +282,43 @@ def build_rows(history_dir: str):
         with_shadow += bool((r.get("raw_projection") or {}).get("relative_strength_shadow"))
         with_tactical += bool((r.get("result") or {}).get("tactical_stats"))
         provenance = r.get("phase16_calibration_provenance")
-        with_phase16_provenance += isinstance(provenance, dict) and bool(provenance)
-        phase16_promotion_shadow_eligible += isinstance(provenance, dict) and provenance.get("promotion_shadow_eligible") is True
+        has_provenance = isinstance(provenance, dict) and bool(provenance)
+        with_phase16_provenance += has_provenance
+        phase16_promotion_shadow_eligible += has_provenance and provenance.get("promotion_shadow_eligible") is True
+        calibrated = has_provenance and bool(provenance.get("calibrated_probability_fields"))
+        phase16_calibrated += calibrated
+        phase16_frozen_artifact += calibrated and bool((provenance.get("phase16_calibrator_artifact") or {}).get("fingerprint_sha256"))
         for track in (r.get("sporting_shortlist") or {}).get("tracks") or []:
             signal_counts[str(track)] += 1
-    summary = {"schema_version": "1.3.0", "source": "soccer_edge_state/history/*.jsonl", "timezone_basis": "America/Mexico_City", "ticks_read": ticks, "bad_lines": bad_lines, "rows": len(rows), "unique_fixtures": len(fixtures), "fixtures_with_final_result": len(finals), "rows_with_raw_projection": with_raw, "rows_with_relative_strength_shadow": with_shadow, "rows_with_market": with_market, "rows_with_lineups": with_lineups, "rows_with_tactical_stats": with_tactical, "rows_with_phase16_calibration_provenance": with_phase16_provenance, "rows_phase16_promotion_shadow_eligible": phase16_promotion_shadow_eligible, "stage_counts": dict(sorted(stage_counts.items())), "classification_counts": dict(sorted(class_counts.items())), "sport_signal_counts": dict(sorted(signal_counts.items())), "first_generated_at_local": rows[0].get("generated_at_local") if rows else None, "last_generated_at_local": rows[-1].get("generated_at_local") if rows else None, "provider_requests_added": 0, "canonical_bet_logic_changed": False, "model_weights_changed": False}
+    summary = {
+        "schema_version": "1.4.0",
+        "source": "soccer_edge_state/history/*.jsonl",
+        "timezone_basis": "America/Mexico_City",
+        "ticks_read": ticks,
+        "bad_lines": bad_lines,
+        "rows": len(rows),
+        "unique_fixtures": len(fixtures),
+        "fixtures_with_final_result": len(finals),
+        "rows_with_raw_projection": with_raw,
+        "rows_with_relative_strength_shadow": with_shadow,
+        "rows_with_market": with_market,
+        "rows_with_lineups": with_lineups,
+        "rows_with_tactical_stats": with_tactical,
+        "rows_with_phase16_calibration_provenance": with_phase16_provenance,
+        "rows_phase16_promotion_shadow_eligible": phase16_promotion_shadow_eligible,
+        "rows_with_applied_phase16_calibration": phase16_calibrated,
+        "rows_with_frozen_phase16_calibrator_artifact": phase16_frozen_artifact,
+        "stage_counts": dict(sorted(stage_counts.items())),
+        "classification_counts": dict(sorted(class_counts.items())),
+        "sport_signal_counts": dict(sorted(signal_counts.items())),
+        "first_generated_at_local": rows[0].get("generated_at_local") if rows else None,
+        "last_generated_at_local": rows[-1].get("generated_at_local") if rows else None,
+        "provider_requests_added": 0,
+        "canonical_bet_logic_changed": False,
+        "model_weights_changed": False,
+        "historical_probabilities_recomputed": False,
+        "historical_rows_recalibrated": False,
+    }
     return rows, summary
 
 
