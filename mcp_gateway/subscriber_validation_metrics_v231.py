@@ -60,6 +60,7 @@ def _metric_row(label: str, report: dict[str, Any]) -> dict[str, Any]:
     canonical = _dict(report.get("canonical_multiclass_oos"))
     canonical_temp = _dict(canonical.get("temperature_scaled"))
     sample = _dict(report.get("sample"))
+    settlement = _dict(report.get("settlement_context"))
     true_clv = _dict(report.get("true_clv"))
 
     brier = (
@@ -86,7 +87,26 @@ def _metric_row(label: str, report: dict[str, Any]) -> dict[str, Any]:
 
     settled = _integer(sample.get("commercial_settled"))
     if settled is None:
-        settled = _integer(_dict(report.get("settlement_context")).get("settled"))
+        settled = _integer(settlement.get("settled"))
+
+    hit_rate = _number(sample.get("hit_rate_ex_push_commercial"))
+    if hit_rate is None:
+        hit_rate = _number(settlement.get("hit_rate_ex_push"))
+
+    roi_units = _number(sample.get("roi_units_commercial"))
+    if roi_units is None:
+        roi_units = _number(settlement.get("roi_units"))
+
+    blockers = (
+        [str(value) for value in report.get("blockers", []) if value is not None]
+        if isinstance(report.get("blockers"), list)
+        else []
+    )
+    warnings = (
+        [str(value) for value in report.get("warnings", []) if value is not None]
+        if isinstance(report.get("warnings"), list)
+        else []
+    )
 
     return {
         "label": label,
@@ -96,18 +116,29 @@ def _metric_row(label: str, report: dict[str, Any]) -> dict[str, Any]:
         "brier": brier,
         "log_loss": log_loss,
         "ece": _number(calibration.get("ece")),
+        "mce": _number(calibration.get("mce")),
         "accuracy": _number(calibration.get("top1_accuracy")),
         "settled": settled,
+        "hit_rate": hit_rate,
+        "roi_units": roi_units,
         "true_clv_rows": _integer(true_clv.get("rows")),
         "true_clv_target": _integer(true_clv.get("minimum_rows")),
+        "true_clv_fixtures": _integer(true_clv.get("unique_fixtures")),
         "avg_clv_pp": _number(true_clv.get("avg_probability_clv_pp")),
-        "blockers": [str(v) for v in report.get("blockers", []) if v is not None]
-        if isinstance(report.get("blockers"), list)
-        else [],
+        "positive_clv_rows": _integer(true_clv.get("positive_rows")),
+        "negative_clv_rows": _integer(true_clv.get("negative_rows")),
+        "flat_clv_rows": _integer(true_clv.get("flat_rows")),
+        "blockers": blockers,
+        "warnings": warnings,
     }
 
 
 def load_validation_metrics(*, force: bool = False) -> dict[str, Any]:
+    """Read presentation-only performance evidence from persisted validation reports.
+
+    The adapter is deliberately read-only. It never changes production decisions,
+    model weights, thresholds, market gates, strict-close rules, or provider budgets.
+    """
     global _CACHE, _CACHE_AT
     now = time.monotonic()
     with _LOCK:
@@ -144,27 +175,48 @@ def load_validation_metrics(*, force: bool = False) -> dict[str, Any]:
                 except Exception as exc:
                     errors[label] = f"{type(exc).__name__}: {str(exc)[:120]}"
 
-        known_clv = [r["avg_clv_pp"] for r in rows if r.get("avg_clv_pp") is not None]
+        known_clv = [row["avg_clv_pp"] for row in rows if row.get("avg_clv_pp") is not None]
         weighted_pairs = [
-            (float(r["avg_clv_pp"]), int(r["true_clv_rows"]))
-            for r in rows
-            if r.get("avg_clv_pp") is not None and r.get("true_clv_rows") not in (None, 0)
+            (float(row["avg_clv_pp"]), int(row["true_clv_rows"]))
+            for row in rows
+            if row.get("avg_clv_pp") is not None and row.get("true_clv_rows") not in (None, 0)
         ]
         weighted_avg_clv = None
         if weighted_pairs:
-            total_rows = sum(n for _, n in weighted_pairs)
-            weighted_avg_clv = sum(value * n for value, n in weighted_pairs) / total_rows if total_rows else None
+            total_rows = sum(count for _, count in weighted_pairs)
+            weighted_avg_clv = (
+                sum(value * count for value, count in weighted_pairs) / total_rows
+                if total_rows
+                else None
+            )
+
+        known_sample_rows = [int(row["sample_n"]) for row in rows if row.get("sample_n") is not None]
+        known_settled = [int(row["settled"]) for row in rows if row.get("settled") is not None]
+        known_clv_rows = [int(row["true_clv_rows"]) for row in rows if row.get("true_clv_rows") is not None]
+        known_clv_fixtures = [
+            int(row["true_clv_fixtures"])
+            for row in rows
+            if row.get("true_clv_fixtures") is not None
+        ]
 
         result = {
             "status": "OK" if rows and not errors else ("PARTIAL" if rows else "UNAVAILABLE"),
             "rows": rows,
             "weighted_avg_clv_pp": weighted_avg_clv,
             "families_with_clv": len(known_clv),
+            "totals": {
+                "validation_sample_rows": sum(known_sample_rows) if known_sample_rows else None,
+                "settled": sum(known_settled) if known_settled else None,
+                "true_clv_rows": sum(known_clv_rows) if known_clv_rows else None,
+                "true_clv_fixtures_sum": sum(known_clv_fixtures) if known_clv_fixtures else None,
+                "note": "Family totals are descriptive sums and are not deduplicated across validation cohorts.",
+            },
             "errors": errors,
             "state_repo": repo,
             "state_branch": branch,
             "provider_requests_added": 0,
             "canonical_bet_logic_changed": False,
+            "model_weights_changed": False,
             "production_promotion_allowed": False,
         }
         _CACHE, _CACHE_AT = result, now
