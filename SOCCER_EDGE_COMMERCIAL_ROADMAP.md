@@ -38,7 +38,6 @@ Server-side Free/Pro entitlement resolver, RLS, fail-closed plan resolution, no 
 - Supabase billing tables with RLS.
 - Checkout, Customer Portal, and signed Stripe webhook Edge Functions deployed fail-closed.
 - Stripe account connected in LIVE mode.
-- Stripe Product/Price still pending final pricing decision.
 
 ### V221 — Commercial Surface Hardening ✅
 - `/dashboard` redirects to `/app`.
@@ -50,82 +49,74 @@ Server-side Free/Pro entitlement resolver, RLS, fail-closed plan resolution, no 
 - One subscriber product in English and Spanish.
 - Browser-language default plus persistent manual EN/ES switch.
 - Presentation labels for market/status/maturity/account/billing copy.
-- Locale-aware title, description and Open Graph metadata.
 - Canonical market/status identifiers remain unchanged in payload/storage.
 
 ### V223 — Landing + Conversion System ✅
-- Public bilingual `/` landing page.
+- Public bilingual landing/conversion surface.
 - `Model vs Market` positioning.
 - Explorer/free-account CTAs into `/app`.
-- Price awareness, evidence gating, verified performance and premium match detail explained.
-- Responsible-gambling and legal-age/jurisdiction copy.
 - No fabricated live odds or results on the marketing surface.
 
 ### V224 — Funnel Analytics ✅
-- Privacy-conscious product event ledger in Supabase with RLS and client deny-all.
-- Anonymous/session IDs without storing IP or browser fingerprint.
-- Explicit UTM/cohort attribution; no inference of ethnicity or US-Hispanic identity.
-- Landing, Explorer, signup/signin, language, checkout, portal and authenticated-view events.
-- Server-side `checkout_created` attribution.
-- Signed Stripe webhook is the only path that records `pro_activated` after ACTIVE/TRIALING subscription evidence.
-- Analytics remains completely separate from betting-model decisions.
+Privacy-conscious product analytics are isolated from betting-model decisions.
 
 ### V225 — Soccer Edge Content Factory ✅
-Evidence-locked organic content generation is operational.
+Evidence-locked EN/ES short-video and X-card generation is operational. Public Model-vs-Market gap is calculated reproducibly from persisted calibrated-model and de-vig market probabilities.
 
-Pipeline:
+### V233 — Frontend Completion Gate ✅
+- Approved Soccer Edge analysis mockup is the product source of truth.
+- `/app` now uses the mockup-first shell instead of the older incomplete subscriber UI.
+- Today, Edge Feed, Match Center, Markets, Performance, My Edge, Control Tower and Research Lab are present in the production product.
+- Auth/account and regional billing controls are integrated into the product shell.
+- Edge Feed and Top Edge can select a fixture and open its Match Center.
+- Missing premium values remain redacted instead of reconstructed.
 
-`persisted signal -> content candidate -> ES/EN script -> Remotion render -> platform package -> GitHub artifact`
+### V234 — Functional Mockup Completion ✅
+- Edge Feed league, market, kickoff, edge, confidence and status controls are functional.
+- Strong Only, Ready Only, Next 3 Hours and Confirmed XI modes are functional.
+- Match Center Goals, Corners, Cards, Players, Market and Model tabs read persisted fixture rows.
+- Missing family rows render explicit N/V/empty states and are never synthesized.
+- Production V4 Runtime remained green.
 
-Validated outputs:
-- 1080x1920 TikTok / Reel / YouTube Short in English.
-- 1080x1920 TikTok / Reel / YouTube Short in Spanish.
-- X image/card in both languages.
-- X post copy, captions and voice-over scripts in both languages.
-- Manifest containing the exact persisted source facts used by the render.
+### V235 — Visual & Mobile Parity ✅
+- Mobile navigation exposes Today, Feed, Match, Markets, Performance, My Edge, Tower, Lab and Account.
+- Safe-area handling, horizontal tab/nav scrolling, responsive Match Center, table scrolling and account spacing are hardened.
+- Owner/Admin presentation access receives the advanced product view without creating or mutating a paid subscription.
+- `/app` externally verified HTTP 200 with V233 + V234 + V235 layers present.
+- Production V4 Runtime remained green.
 
-Production validation:
-- First LIVE run exposed that an upstream `calibrated_edge_pp` field did not share the same semantics as the public Model-vs-Market probability gap.
-- V225.1 now calculates the public gap deterministically as `(p_model_calibrated - p_market_fair) * 100` using persisted probabilities only.
-- Regression protects the observed mismatch case.
-- Focused Content Factory CI passed.
-- Full V4 Runtime suite passed.
-- Corrected Content Factory LIVE run rendered EN/ES videos, X cards and artifact successfully.
+## Current gates before Beta
 
-Rules:
-- Odds, probabilities, settlements and CLV always come from persisted engine data.
-- Public probability gap is a reproducible calculation from persisted calibrated-model and de-vig market probabilities.
-- AI may generate narrative/layout/voice, never numerical betting facts.
-- Research-only status remains visible and is never relabeled as a production pick.
-- A losing day is never hidden from public verified-performance content.
+### Frontend visual acceptance — NEXT
+Open the production `/app` on desktop and mobile and compare against the approved mockup. Any visual discrepancy is fixed before billing activation or beta launch.
 
-## Immediate roadmap
+### V226 — Pricing & Stripe Live Subscription — TECHNICALLY WIRED / ACTIVATION HOLD
+Current LIVE pricing:
+- United States: Edge Pro Founding Beta — US$14.99/month.
+- Mexico/LATAM: Edge Pro Founding Beta — MX$249/month.
 
-### V226 — Pricing & Stripe Live Subscription
-Goal: activate real recurring billing after pricing validation.
+Already wired:
+- Stripe `Soccer Edge Pro` Product.
+- Two recurring regional Prices.
+- Explicit server-side billing-market allowlist; browser never sends a Stripe Price ID.
+- Signed Stripe webhook endpoint.
+- Customer Portal with payment-method updates, invoice history and cancel-at-period-end.
 
-Market approach:
-- Product stays bilingual/global.
-- Initial acquisition wedge: Mexico + US Hispanic.
-- US English follows after early conversion data.
-- Regional pricing may differ while entitlements remain one `Edge Pro` product tier.
-
-Required before activation:
-- Validate current competitor pricing and willingness-to-pay bands.
-- Create Stripe `Soccer Edge Pro` Product.
-- Create recurring regional Price(s).
-- Configure Stripe secrets in Supabase.
-- Register signed webhook endpoint.
+Still required before activation:
+- Configure `STRIPE_SECRET_KEY` in Supabase Edge Function secrets.
+- Configure `STRIPE_WEBHOOK_SECRET` in Supabase Edge Function secrets.
 - End-to-end Checkout -> webhook -> Supabase PRO -> cancel/past_due -> entitlement downgrade test.
 
-### V227 — Beta Launch
-Initial market order:
+### V227 — Beta Launch — BLOCKED
+Do not launch until both gates are green:
+1. frontend visual acceptance;
+2. V226 end-to-end billing validation.
+
+Initial market order after unlock:
 1. Mexico Spanish
 2. US Hispanic
 3. US English
 4. broader LATAM
-
-Do not split acquisition budget evenly on day one. Run independent cohorts and compare CAC, activation, Pro conversion, retention, and churn.
 
 Target validation milestones:
 - first 50 active beta users
@@ -134,10 +125,8 @@ Target validation milestones:
 - first 50 paid users
 - first 100 paid users
 
-Revenue/user-growth forecasts are planning scenarios only, never product promises.
-
 ### V228 — Growth Loops & Retention
-After V224 provides real funnel data:
+After real funnel data:
 - favorites
 - alerts
 - watchlists
@@ -147,25 +136,6 @@ After V224 provides real funnel data:
 - win-back flows
 - content-to-match deep links
 
-## Market strategy
-
-Build globally and bilingually, but launch sequentially.
-
-Recommended first wedge:
-- Mexico + US Hispanic.
-
-Then:
-- US English.
-
-Then:
-- broader LATAM.
-
-Reasoning:
-- strong soccer affinity and Spanish content opportunity,
-- lower-friction initial audience development,
-- access to US Hispanic users with higher purchasing power,
-- same engine/data can serve both languages without duplicating backend logic.
-
 ## Positioning
 
 Primary brand concept:
@@ -174,23 +144,9 @@ Primary brand concept:
 
 Soccer Edge should be positioned as transparent soccer market intelligence, not as a “guaranteed picks” service.
 
-English direction:
-- `Stop betting blind.`
-- Market prices.
-- Model probabilities.
-- Verified performance.
-- Real closing-line evidence.
-
-Spanish direction:
-- `Deja de apostar a ciegas.`
-- Precios de mercado.
-- Probabilidades del modelo.
-- Rendimiento verificable.
-- Evidencia real contra el cierre.
-
 ## Current execution order
 
-`V226 -> V227 -> V228`
+`Frontend visual acceptance -> finish V226 billing validation -> V227 Beta Launch -> V228`
 
 Statistical maturation continues independently in the existing family order:
 
