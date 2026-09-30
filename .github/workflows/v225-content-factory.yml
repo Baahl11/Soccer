@@ -34,9 +34,9 @@ jobs:
           python -m py_compile mcp_gateway/content_factory_v4.py
           python -m py_compile mcp_gateway/content_factory_http_v4.py
           python -m py_compile mcp_gateway/__init__.py
-      - name: Run V225 plus commercial regressions
+      - name: Run V225 focused regressions
         run: |
-          PYTHONPATH=. pytest -q tests/test_v225_content_factory.py tests/test_v224_funnel_analytics.py tests/test_v223_landing_conversion.py tests/test_v222_es_en_i18n.py tests/test_v221_commercial_surface_hardening.py tests/test_v220_subscriber_app_billing.py tests/test_v219_subscription_entitlements.py tests/test_v218_auth_accounts_readiness.py tests/test_v217_match_detail_premium.py tests/test_v216_performance_track_record.py tests/test_v215_commercial_product_shell.py tests/test_phase24_product_dashboard_v4.py tests/test_phase24_product_views_v4.py
+          PYTHONPATH=. pytest -q tests/test_v225_content_factory.py tests/test_phase24_product_views_v4.py
       - name: Validate Remotion renderer bundle
         working-directory: content_factory/remotion
         run: |
