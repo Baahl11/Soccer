@@ -7,6 +7,7 @@
 # Team Totals strict FT CLV refresh after v123: 2026-09-24 21:09 CDMX
 # v123 strict FT Team Totals CLV refresh: 2026-09-24 21:09 CDMX
 # Team Totals post-v123 CLV refresh: 2026-09-24 20:37 CDMX
+# 2026-09-30 recovery: allow the bounded CLV retries to complete after Postgres recovery
 name: Phase 17 Postgres CLV Validation - Canonical Refresh
 
 on:
@@ -28,7 +29,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 30
     steps:
       - name: Checkout state branch
         uses: actions/checkout@v4
@@ -69,9 +70,6 @@ jobs:
             printf '%s' "$token"
           }
 
-          # This contract check intentionally fails if Render is serving a stale runtime.
-          # Diagnostics include per-market rejection counts from the live collector.
-          # Derivative CLV smoke includes persisted research market rows.
           EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10"
           READY=0
           for attempt in 1 2 3 4 5; do
