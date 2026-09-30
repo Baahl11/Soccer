@@ -3,224 +3,296 @@
   "model_version": "SOCCER_PLAYER_PROPS_OOS_V4_1.1.1",
   "status": "COLLECTING_PLAYER_PROP_OOS",
   "lookback_days": 180,
-  "pregame_event_rows_loaded": 783,
-  "canonical_pregame_fixtures": 783,
-  "postgame_event_rows_loaded": 288,
+  "pregame_event_rows_loaded": 883,
+  "canonical_pregame_fixtures": 883,
+  "postgame_event_rows_loaded": 400,
   "families": {
     "SHOTS": {
-      "player_game_rows": 10,
-      "binary_probability_rows": 60,
-      "unique_fixtures": 1,
-      "unique_player_fixtures": 10,
+      "player_game_rows": 16,
+      "binary_probability_rows": 96,
+      "unique_fixtures": 4,
+      "unique_player_fixtures": 16,
       "minimum_player_games_for_review": 500,
       "sample_target_met": false,
       "oos_validation_complete": false,
-      "brier_score": 0.06356663,
-      "log_loss": 0.19820694,
-      "expected_count_mae": 0.7369657,
-      "expected_count_rmse": 0.84630394,
-      "expected_minutes_mae": 18.8037,
-      "calibration_ece": 0.07923895,
+      "brier_score": 0.07625895,
+      "log_loss": 0.23520865,
+      "expected_count_mae": 0.81904769,
+      "expected_count_rmse": 0.96611495,
+      "expected_minutes_mae": 19.534625,
+      "calibration_ece": 0.0617258,
       "calibration_bins": [
         {
           "bucket": "0.0-0.1",
-          "rows": 39,
-          "mean_probability": 0.018729,
+          "rows": 59,
+          "mean_probability": 0.021269,
           "observed_rate": 0.0,
-          "calibration_gap_pp": -1.872926
+          "calibration_gap_pp": -2.126917
         },
         {
           "bucket": "0.1-0.2",
-          "rows": 7,
-          "mean_probability": 0.150517,
-          "observed_rate": 0.0,
-          "calibration_gap_pp": -15.051714
+          "rows": 10,
+          "mean_probability": 0.144433,
+          "observed_rate": 0.1,
+          "calibration_gap_pp": -4.4433
+        },
+        {
+          "bucket": "0.2-0.3",
+          "rows": 3,
+          "mean_probability": 0.236996,
+          "observed_rate": 0.333333,
+          "calibration_gap_pp": 9.633733
         },
         {
           "bucket": "0.3-0.4",
-          "rows": 6,
-          "mean_probability": 0.348912,
+          "rows": 9,
+          "mean_probability": 0.348485,
           "observed_rate": 0.333333,
-          "calibration_gap_pp": -1.5579
+          "calibration_gap_pp": -1.515211
         },
         {
           "bucket": "0.4-0.5",
-          "rows": 2,
-          "mean_probability": 0.428079,
+          "rows": 3,
+          "mean_probability": 0.440482,
           "observed_rate": 0.0,
-          "calibration_gap_pp": -42.80785
+          "calibration_gap_pp": -44.048233
         },
         {
           "bucket": "0.5-0.6",
-          "rows": 1,
-          "mean_probability": 0.500965,
-          "observed_rate": 0.0,
-          "calibration_gap_pp": -50.0965
+          "rows": 3,
+          "mean_probability": 0.526783,
+          "observed_rate": 0.333333,
+          "calibration_gap_pp": -19.344967
         },
         {
           "bucket": "0.6-0.7",
-          "rows": 3,
-          "mean_probability": 0.682229,
-          "observed_rate": 0.333333,
-          "calibration_gap_pp": -34.8896
+          "rows": 4,
+          "mean_probability": 0.673857,
+          "observed_rate": 0.25,
+          "calibration_gap_pp": -42.3857
         },
         {
           "bucket": "0.7-0.8",
-          "rows": 2,
-          "mean_probability": 0.736501,
-          "observed_rate": 0.5,
-          "calibration_gap_pp": -23.6501
+          "rows": 4,
+          "mean_probability": 0.745312,
+          "observed_rate": 0.75,
+          "calibration_gap_pp": 0.4688
+        },
+        {
+          "bucket": "0.8-0.9",
+          "rows": 1,
+          "mean_probability": 0.814879,
+          "observed_rate": 1.0,
+          "calibration_gap_pp": 18.5121
         }
       ],
       "status": "COLLECTING_OOS"
     },
     "SOT": {
-      "player_game_rows": 10,
-      "binary_probability_rows": 40,
-      "unique_fixtures": 1,
-      "unique_player_fixtures": 10,
+      "player_game_rows": 14,
+      "binary_probability_rows": 56,
+      "unique_fixtures": 3,
+      "unique_player_fixtures": 14,
       "minimum_player_games_for_review": 500,
       "sample_target_met": false,
       "oos_validation_complete": false,
-      "brier_score": 0.02681385,
-      "log_loss": 0.10570022,
-      "expected_count_mae": 0.3210873,
-      "expected_count_rmse": 0.36064826,
-      "expected_minutes_mae": 18.8037,
-      "calibration_ece": 0.05375425,
+      "brier_score": 0.02798137,
+      "log_loss": 0.11002654,
+      "expected_count_mae": 0.31338543,
+      "expected_count_rmse": 0.34873341,
+      "expected_minutes_mae": 19.34214286,
+      "calibration_ece": 0.066592,
       "calibration_bins": [
         {
           "bucket": "0.0-0.1",
-          "rows": 31,
-          "mean_probability": 0.022536,
+          "rows": 42,
+          "mean_probability": 0.021767,
           "observed_rate": 0.0,
-          "calibration_gap_pp": -2.253561
+          "calibration_gap_pp": -2.176655
         },
         {
           "bucket": "0.1-0.2",
-          "rows": 2,
-          "mean_probability": 0.117387,
+          "rows": 4,
+          "mean_probability": 0.125242,
           "observed_rate": 0.0,
-          "calibration_gap_pp": -11.73865
+          "calibration_gap_pp": -12.524225
         },
         {
           "bucket": "0.2-0.3",
-          "rows": 2,
-          "mean_probability": 0.22628,
+          "rows": 3,
+          "mean_probability": 0.224986,
           "observed_rate": 0.0,
-          "calibration_gap_pp": -22.628
+          "calibration_gap_pp": -22.498633
         },
         {
           "bucket": "0.3-0.4",
-          "rows": 5,
-          "mean_probability": 0.352844,
-          "observed_rate": 0.2,
-          "calibration_gap_pp": -15.28442
+          "rows": 6,
+          "mean_probability": 0.352503,
+          "observed_rate": 0.166667,
+          "calibration_gap_pp": -18.58365
+        },
+        {
+          "bucket": "0.4-0.5",
+          "rows": 1,
+          "mean_probability": 0.476004,
+          "observed_rate": 1.0,
+          "calibration_gap_pp": 52.3996
         }
       ],
       "status": "COLLECTING_OOS"
     },
     "GOALSCORER_ANYTIME": {
-      "player_game_rows": 10,
-      "binary_probability_rows": 10,
-      "unique_fixtures": 1,
-      "unique_player_fixtures": 10,
+      "player_game_rows": 14,
+      "binary_probability_rows": 14,
+      "unique_fixtures": 3,
+      "unique_player_fixtures": 14,
       "minimum_player_games_for_review": 1000,
       "sample_target_met": false,
       "oos_validation_complete": false,
-      "brier_score": 0.08529281,
-      "log_loss": 0.28781224,
-      "expected_count_mae": 0.1852966,
-      "expected_count_rmse": 0.29361619,
-      "expected_minutes_mae": 18.8037,
-      "calibration_ece": 0.0409955,
+      "brier_score": 0.06323411,
+      "log_loss": 0.22853649,
+      "expected_count_mae": 0.15662014,
+      "expected_count_rmse": 0.25399886,
+      "expected_minutes_mae": 19.34214286,
+      "calibration_ece": 0.029745,
       "calibration_bins": [
         {
           "bucket": "0.0-0.1",
-          "rows": 5,
-          "mean_probability": 0.044732,
+          "rows": 8,
+          "mean_probability": 0.047343,
           "observed_rate": 0.0,
-          "calibration_gap_pp": -4.47324
+          "calibration_gap_pp": -4.734325
         },
         {
           "bucket": "0.1-0.2",
-          "rows": 5,
-          "mean_probability": 0.162741,
-          "observed_rate": 0.2,
-          "calibration_gap_pp": 3.7259
+          "rows": 6,
+          "mean_probability": 0.160386,
+          "observed_rate": 0.166667,
+          "calibration_gap_pp": 0.628083
         }
       ],
       "status": "COLLECTING_OOS"
     },
     "ASSISTS": {
-      "player_game_rows": 10,
-      "binary_probability_rows": 10,
-      "unique_fixtures": 1,
-      "unique_player_fixtures": 10,
+      "player_game_rows": 14,
+      "binary_probability_rows": 14,
+      "unique_fixtures": 3,
+      "unique_player_fixtures": 14,
       "minimum_player_games_for_review": 1000,
       "sample_target_met": false,
       "oos_validation_complete": false,
-      "brier_score": 0.18309827,
-      "log_loss": 0.64182863,
-      "expected_count_mae": 0.2492403,
-      "expected_count_rmse": 0.42709482,
-      "expected_minutes_mae": 18.8037,
-      "calibration_ece": 0.1652006,
+      "brier_score": 0.13317233,
+      "log_loss": 0.48208219,
+      "expected_count_mae": 0.20301486,
+      "expected_count_rmse": 0.36516616,
+      "expected_minutes_mae": 19.34214286,
+      "calibration_ece": 0.11812014,
       "calibration_bins": [
         {
           "bucket": "0.0-0.1",
-          "rows": 9,
-          "mean_probability": 0.056296,
-          "observed_rate": 0.222222,
-          "calibration_gap_pp": 16.5926
+          "rows": 12,
+          "mean_probability": 0.055173,
+          "observed_rate": 0.166667,
+          "calibration_gap_pp": 11.149325
         },
         {
           "bucket": "0.1-0.2",
-          "rows": 1,
-          "mean_probability": 0.158672,
+          "rows": 2,
+          "mean_probability": 0.157877,
           "observed_rate": 0.0,
-          "calibration_gap_pp": -15.8672
+          "calibration_gap_pp": -15.78765
         }
       ],
       "status": "COLLECTING_OOS"
     },
     "PLAYER_CARDS": {
-      "player_game_rows": 0,
-      "binary_probability_rows": 0,
-      "unique_fixtures": 0,
-      "unique_player_fixtures": 0,
+      "player_game_rows": 5,
+      "binary_probability_rows": 5,
+      "unique_fixtures": 2,
+      "unique_player_fixtures": 5,
       "minimum_player_games_for_review": 1000,
       "sample_target_met": false,
       "oos_validation_complete": false,
-      "brier_score": null,
-      "log_loss": null,
-      "expected_count_mae": null,
-      "expected_count_rmse": null,
-      "expected_minutes_mae": null,
-      "calibration_ece": null,
-      "calibration_bins": [],
+      "brier_score": 0.00728887,
+      "log_loss": 0.08891,
+      "expected_count_mae": 0.0941278,
+      "expected_count_rmse": 0.09459578,
+      "expected_minutes_mae": 22.2616,
+      "calibration_ece": 0.085041,
+      "calibration_bins": [
+        {
+          "bucket": "0.0-0.1",
+          "rows": 5,
+          "mean_probability": 0.085041,
+          "observed_rate": 0.0,
+          "calibration_gap_pp": -8.50408
+        }
+      ],
       "status": "COLLECTING_OOS"
     },
     "GK_SAVES": {
-      "player_game_rows": 0,
-      "binary_probability_rows": 0,
-      "unique_fixtures": 0,
-      "unique_player_fixtures": 0,
+      "player_game_rows": 10,
+      "binary_probability_rows": 80,
+      "unique_fixtures": 6,
+      "unique_player_fixtures": 10,
       "minimum_player_games_for_review": 300,
       "sample_target_met": false,
       "oos_validation_complete": false,
-      "brier_score": null,
-      "log_loss": null,
-      "expected_count_mae": null,
-      "expected_count_rmse": null,
-      "expected_minutes_mae": null,
-      "calibration_ece": null,
-      "calibration_bins": [],
+      "brier_score": 0.12918951,
+      "log_loss": 0.38613534,
+      "expected_count_mae": 1.6024672,
+      "expected_count_rmse": 1.79027556,
+      "expected_minutes_mae": 1.6,
+      "calibration_ece": 0.05257025,
+      "calibration_bins": [
+        {
+          "bucket": "0.0-0.1",
+          "rows": 30,
+          "mean_probability": 0.043825,
+          "observed_rate": 0.033333,
+          "calibration_gap_pp": -1.049133
+        },
+        {
+          "bucket": "0.1-0.2",
+          "rows": 10,
+          "mean_probability": 0.186814,
+          "observed_rate": 0.2,
+          "calibration_gap_pp": 1.3186
+        },
+        {
+          "bucket": "0.3-0.4",
+          "rows": 10,
+          "mean_probability": 0.355532,
+          "observed_rate": 0.4,
+          "calibration_gap_pp": 4.4468
+        },
+        {
+          "bucket": "0.5-0.6",
+          "rows": 10,
+          "mean_probability": 0.579568,
+          "observed_rate": 0.5,
+          "calibration_gap_pp": -7.9568
+        },
+        {
+          "bucket": "0.8-0.9",
+          "rows": 10,
+          "mean_probability": 0.802687,
+          "observed_rate": 0.6,
+          "calibration_gap_pp": -20.2687
+        },
+        {
+          "bucket": "0.9-1.0",
+          "rows": 10,
+          "mean_probability": 0.950823,
+          "observed_rate": 1.0,
+          "calibration_gap_pp": 4.9177
+        }
+      ],
       "status": "COLLECTING_OOS"
     }
   },
-  "player_game_rows": 40,
-  "unique_fixtures": 1,
+  "player_game_rows": 73,
+  "unique_fixtures": 8,
   "review_ready_family_count": 0,
   "provider_requests_added": 0,
   "decision_weight": 0.0,
