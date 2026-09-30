@@ -1,0 +1,38 @@
+name: V234 Functional Mockup Completion
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v234-functional-mockup-completion
+    paths:
+      - mcp_gateway/subscriber_product_v234.py
+      - mcp_gateway/__init__.py
+      - tests/test_v234_functional_mockup_completion.py
+      - .github/workflows/v234-functional-mockup-completion.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile V234 frontend layers
+        run: |
+          python -m py_compile mcp_gateway/subscriber_product_v234.py
+          python -m py_compile mcp_gateway/__init__.py
+      - name: Run V234 focused regressions
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_v234_functional_mockup_completion.py \
+            tests/test_v233_frontend_completion_gate.py \
+            tests/test_subscriber_ui_contract_v231.py \
+            tests/test_v4_023_subscriber_preview_data.py \
+            tests/test_v226_regional_billing_live.py
