@@ -5,7 +5,7 @@ import json
 from typing import Any
 
 SCHEMA_VERSION = "1.1.0"
-MODEL_VERSION = "SOCCER_COMMERCIAL_SHELL_V4_1.1.0"
+MODEL_VERSION = "SOCCER_COMMERCIAL_SHELL_V4_1.1.1"
 PRODUCT_MODE = "ENTITLEMENT_READY"
 
 FREE_FEATURES = (
@@ -54,6 +54,12 @@ def render_membership_fragment(product_payload: dict[str, Any]) -> str:
     performance = views.get("performance") if isinstance(views.get("performance"), dict) else {}
     auth_enabled = bool(supabase_auth_v4.auth_config().get("configured"))
     contract = subscription_entitlements_v4.plan_contract()
+    readiness_copy = (
+        "Supabase Auth is connected and the Free/Pro entitlement contract is enforced by server-side resolution plus database RLS. Billing is intentionally still disabled until V220."
+        if auth_enabled
+        else "The Free/Pro entitlement contract is installed, but this runtime has no Supabase Auth configuration. Pro access cannot be granted until Auth is configured."
+    )
+    readiness_badge = "ENTITLEMENTS READY" if auth_enabled else "AUTH REQUIRED"
 
     meta = html.escape(json.dumps({
         "schema_version": SCHEMA_VERSION,
@@ -95,8 +101,8 @@ def render_membership_fragment(product_payload: dict[str, Any]) -> str:
 </style>
 <section class="v215-shell" id="membership" data-product="{meta}">
   <div class="v215-head">
-    <div><div class="eyebrow">COMMERCIAL SHELL · V219</div><h2>Soccer Edge Membership</h2><div class="v215-copy">Supabase Auth is connected and the Free/Pro entitlement contract is enforced by server-side resolution plus database RLS. Billing is intentionally still disabled until V220. The persisted Soccer Edge payload remains authoritative and missing evidence is never inferred.</div></div>
-    <span class="v215-preview">ENTITLEMENTS READY</span>
+    <div><div class="eyebrow">COMMERCIAL SHELL · V219</div><h2>Soccer Edge Membership</h2><div class="v215-copy">{_esc(readiness_copy)} The persisted Soccer Edge payload remains authoritative and missing evidence is never inferred.</div></div>
+    <span class="v215-preview">{_esc(readiness_badge)}</span>
   </div>
   <div class="v215-metrics">
     <div class="v215-metric"><span>Strong signals</span><strong class="mono">{_num(strong.get('total'))}</strong></div>
