@@ -38,18 +38,21 @@ def test_refresh_advances_only_from_real_persisted_compact_event_tick() -> None:
     assert out["last_evidence_at_local"] == tick["generated_at_local"]
     assert out["last_evidence_event_count"] == 12
     assert out["last_evidence_database_persisted"] is True
+    assert refresh_module._parse_timestamp(out["report_updated_at_utc"]) is not None
+    assert out["report_updated_at_utc"] != out["last_evidence_at_utc"]
     assert out["synthetic_close_rows_added"] == 0
     assert out["historical_probabilities_recomputed"] is False
     assert out["historical_rows_recalibrated"] is False
 
 
-def test_refresh_does_not_regress_evidence_timestamp() -> None:
+def test_refresh_does_not_regress_evidence_or_rewrite_artifact_timestamp_without_advance() -> None:
     summary = {
         "schema_version": "2.1.0",
         "last_generated_at_local": "2026-09-22T18:34:09-06:00",
         "last_evidence_at_utc": "2026-10-01T06:00:09+00:00",
         "last_evidence_at_local": "2026-10-01T00:00:09-06:00",
         "last_evidence_source": "COMPACT_HISTORY_EVENT_COUNT_WITH_POSTGRES_PERSISTED_TRUE",
+        "report_updated_at_utc": "2026-10-01T06:01:00+00:00",
     }
     older = {
         "generated_at_utc": "2026-09-30T23:00:00+00:00",
@@ -63,3 +66,4 @@ def test_refresh_does_not_regress_evidence_timestamp() -> None:
     assert out["schema_version"] == "2.1.0"
     assert out["last_evidence_at_utc"] == summary["last_evidence_at_utc"]
     assert out["last_evidence_at_local"] == summary["last_evidence_at_local"]
+    assert out["report_updated_at_utc"] == summary["report_updated_at_utc"]
