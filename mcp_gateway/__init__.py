@@ -67,6 +67,12 @@ def _install_v236_today_layer() -> None:
     subscriber_today_v236.install(subscriber_product_v235)
 
 
+def _install_v237_visual_layer() -> None:
+    """Match the approved mockup crest scale and faceoff composition."""
+    from mcp_gateway import subscriber_product_v235, subscriber_visual_v237
+    subscriber_visual_v237.install(subscriber_product_v235)
+
+
 def _install_subscriber_app_routes() -> None:
     """Add customer routes while preserving the FastMCP ASGI lifespan."""
     from mcp.server.fastmcp import FastMCP
@@ -127,4 +133,5 @@ _install_product_analytics_layer()
 _install_subscriber_frontend_hotfix()
 _install_v226_regional_billing_layer()
 _install_v236_today_layer()
+_install_v237_visual_layer()
 _install_subscriber_app_routes()
