@@ -21,7 +21,7 @@ concurrency:
 jobs:
   materialize:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       BASE_URL: https://soccer-edge-api.onrender.com
       STATE_BRANCH: soccer-edge-state
@@ -52,29 +52,75 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r runtime/mcp_gateway/requirements.txt
 
-      - name: Obtain GitHub OIDC token
-        id: oidc
-        shell: bash
-        run: |
-          set -euo pipefail
-          response=$(curl -fsS \
-            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
-          token=$(echo "$response" | jq -r '.value // empty')
-          test -n "$token"
-          echo "token=$token" >> "$GITHUB_OUTPUT"
-
       - name: Materialize Postgres delta and rebuild summary
         shell: bash
-        env:
-          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
           import os
           import pathlib
+          import sys
+          import time
+          import urllib.error
+          import urllib.parse
           import urllib.request
+
+          PAGE_SIZE = 100
+          MAX_PAGES = 500
+          RETRIES = 4
+
+          def fresh_oidc_token() -> str:
+              base = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL']
+              sep = '&' if '?' in base else '?'
+              url = base + sep + urllib.parse.urlencode({'audience': 'soccer-edge-render'})
+              req = urllib.request.Request(
+                  url,
+                  headers={'Authorization': f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"},
+              )
+              with urllib.request.urlopen(req, timeout=20) as resp:
+                  payload = json.loads(resp.read().decode('utf-8'))
+              token = str(payload.get('value') or '').strip()
+              if not token:
+                  raise RuntimeError('GitHub OIDC token was empty')
+              return token
+
+          def fetch_page(url: str, since: str, after_event_id: int) -> dict:
+              last_error = None
+              for attempt in range(1, RETRIES + 1):
+                  token = fresh_oidc_token()
+                  body = json.dumps({
+                      'since': since,
+                      'after_event_id': after_event_id,
+                      'max_rows': PAGE_SIZE,
+                  }).encode('utf-8')
+                  req = urllib.request.Request(
+                      url,
+                      data=body,
+                      headers={
+                          'Authorization': f'Bearer {token}',
+                          'Content-Type': 'application/json',
+                      },
+                      method='POST',
+                  )
+                  try:
+                      with urllib.request.urlopen(req, timeout=55) as resp:
+                          return json.loads(resp.read().decode('utf-8'))
+                  except urllib.error.HTTPError as exc:
+                      detail = ''
+                      try:
+                          detail = exc.read().decode('utf-8', errors='replace')[:500]
+                      except Exception:
+                          pass
+                      last_error = RuntimeError(f'HTTP {exc.code}: {detail}')
+                      if exc.code not in (502, 503, 504) or attempt == RETRIES:
+                          raise last_error
+                  except Exception as exc:
+                      last_error = exc
+                      if attempt == RETRIES:
+                          raise
+                  time.sleep(3 * attempt)
+              raise last_error or RuntimeError('page fetch failed')
 
           state = pathlib.Path('state')
           ledger_path = state / os.environ['LEDGER_PATH']
@@ -108,40 +154,31 @@ jobs:
               or '2026-09-01T00:00:00+00:00'
           )
           after_event_id = 0
-          token = os.environ['OIDC_TOKEN']
-          url = os.environ['BASE_URL'].rstrip('/') + '/internal/signal-ledger-postgres-v4/build'
+          endpoint = os.environ['BASE_URL'].rstrip('/') + '/internal/signal-ledger-postgres-v4/build'
           delta_rows = []
           pages = 0
 
           while True:
-              body = json.dumps({
-                  'since': since,
-                  'after_event_id': after_event_id,
-                  'max_rows': 1000,
-              }).encode('utf-8')
-              req = urllib.request.Request(
-                  url,
-                  data=body,
-                  headers={
-                      'Authorization': f'Bearer {token}',
-                      'Content-Type': 'application/json',
-                  },
-                  method='POST',
-              )
-              with urllib.request.urlopen(req, timeout=90) as resp:
-                  payload = json.loads(resp.read().decode('utf-8'))
+              payload = fetch_page(endpoint, since, after_event_id)
               if payload.get('status') != 'OK':
                   raise RuntimeError(f"unexpected v215 status: {payload}")
-              rows = payload.get('rows') or []
-              delta_rows.extend(r for r in rows if isinstance(r, dict))
+              page_rows = [r for r in (payload.get('rows') or []) if isinstance(r, dict)]
+              delta_rows.extend(page_rows)
               pages += 1
               next_event_id = int(payload.get('next_event_id') or after_event_id)
+              print(json.dumps({
+                  'page': pages,
+                  'raw_refresh_events_loaded': payload.get('raw_refresh_events_loaded'),
+                  'ledger_rows': len(page_rows),
+                  'next_event_id': next_event_id,
+                  'has_more': bool(payload.get('has_more')),
+              }), flush=True)
               if not payload.get('has_more'):
                   break
               if next_event_id <= after_event_id:
                   raise RuntimeError('v215 pagination cursor did not advance')
               after_event_id = next_event_id
-              if pages > 200:
+              if pages >= MAX_PAGES:
                   raise RuntimeError('v215 pagination exceeded safety bound')
 
           merged = {}
@@ -163,7 +200,6 @@ jobs:
               ),
           )
 
-          import sys
           sys.path.insert(0, str(pathlib.Path('runtime').resolve()))
           from mcp_gateway import signal_ledger_postgres_v4
 
@@ -176,6 +212,7 @@ jobs:
           rebuilt.update({
               'materialization_mode': 'V215_POSTGRES_DELTA_MERGE',
               'delta_since': since,
+              'delta_page_size': PAGE_SIZE,
               'delta_pages': pages,
               'delta_rows_loaded': len(delta_rows),
               'provider_requests_added': 0,
@@ -200,7 +237,7 @@ jobs:
               'merged_rows': len(rows),
               'last_materialized_ledger_row_at_utc': rebuilt.get('last_materialized_ledger_row_at_utc'),
               'stage_counts': rebuilt.get('stage_counts'),
-          }, indent=2))
+          }, indent=2), flush=True)
           PY
 
       - name: Commit refreshed ledger to state branch
