@@ -179,3 +179,21 @@ def test_v129_activates_and_restores_derivative_anchor_loaders(monkeypatch):
     assert repair["scope"] == ["1H", "2H", "FT_CORNERS", "TEAM_CORNERS"]
     assert repair["provider_budget_changed"] is False
     assert payload["version"] == "4.38.2-derivative-clv-anchor-repair"
+
+
+
+def test_default_derivative_anchor_scan_is_bounded_to_one_day(monkeypatch):
+    from datetime import datetime, timedelta, timezone
+
+    cursor = _FakeCursor([])
+    _wire_fake_db(monkeypatch, cursor)
+    before = datetime.now(timezone.utc)
+    anchor.load_one_h_clv_maturation_backlog(limit=10)
+    after = datetime.now(timezone.utc)
+
+    cutoff = cursor.params[0]
+    assert timedelta(hours=23, minutes=59) <= (after - cutoff) <= timedelta(days=1, minutes=1)
+    assert cutoff <= before - timedelta(hours=23, minutes=59)
+    normalized = " ".join(cursor.query.split())
+    assert "e.stage IN ('T-40','T-20','T-10')" in normalized
+    assert anchor.DEFAULT_DERIVATIVE_ANCHOR_LOOKBACK_DAYS == 1

@@ -6,8 +6,9 @@ from typing import Any
 
 from mcp_gateway import price_resolver_v4 as price
 
-MODEL_VERSION = "SOCCER_DERIVATIVE_CLV_ANCHOR_V4_1.0.0"
+MODEL_VERSION = "SOCCER_DERIVATIVE_CLV_ANCHOR_V4_1.0.1"
 ANCHOR_POLICY = "OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_EXACT_DERIVATIVE"
+DEFAULT_DERIVATIVE_ANCHOR_LOOKBACK_DAYS = 1
 
 FAMILY_CONFIG: dict[str, tuple[str, str]] = {
     "1H": (
@@ -42,7 +43,7 @@ def _load_exact_derivative_backlog(
         if family in FAMILY_CONFIG
     )
     lookback_days = (
-        price.TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS
+        DEFAULT_DERIVATIVE_ANCHOR_LOOKBACK_DAYS
         if lookback_days is None
         else max(1, int(lookback_days))
     )
@@ -126,6 +127,7 @@ def _load_exact_derivative_backlog(
                 END
             ) AS sig(row)
             WHERE e.generated_at >= b.cutoff
+              AND e.stage IN ('T-40','T-20','T-10')
               AND e.generated_at < f.kickoff
               AND f.kickoff > b.now_utc
               AND f.kickoff <= b.lookahead
