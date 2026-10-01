@@ -169,8 +169,10 @@ CREATE TABLE IF NOT EXISTS soccer_alerts (
     notification_ready BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+CREATE INDEX IF NOT EXISTS idx_soccer_pipeline_runs_generated_at ON soccer_pipeline_runs (generated_at_utc DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_fixtures_kickoff ON soccer_fixtures (kickoff);
 CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_generated ON soccer_refresh_events (generated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_generated_event ON soccer_refresh_events (generated_at DESC, event_id DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_player_props_generated
 ON soccer_refresh_events (generated_at DESC)
 INCLUDE (event_id, fixture_id, stage)
