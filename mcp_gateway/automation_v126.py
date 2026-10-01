@@ -5,6 +5,7 @@ from typing import Any, Awaitable, Callable
 
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v4 as v4
+from mcp_gateway import automation_v90 as v90
 from mcp_gateway import automation_v123 as v123
 from mcp_gateway import automation_v125 as v125
 from mcp_gateway import price_resolver_v4
@@ -24,22 +25,24 @@ def _dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _release_reserved_price_phase_cap() -> dict[str, Any]:
-    """Release the v208 low-water cap only at the reserved price phase boundary.
-
-    v208 correctly prevented later upstream layers from silently reopening the
-    reserved cap, but that low-water mark must not survive into the explicitly
-    reserved post-upstream price resolver phase. The global elastic cap has
-    already been restored by v123 before `_fetch_fixture_odds` is called.
-
-    This function never raises the declared global cap and never adds budget;
-    it only lets the reserved portion of that same cap become usable by the
-    component it was reserved for.
-    """
+def _quota_aware_global_cap() -> int:
+    """Return the existing elastic global cap from the latest verified quota."""
+    remaining = v2._LAST_DAILY_REMAINING
+    if remaining is not None:
+        try:
+            global_cap, _ = v90._elastic_request_cap(int(remaining))
+            return max(1, int(global_cap))
+        except (TypeError, ValueError):
+            pass
     try:
-        declared_global_cap = max(1, int(v2.MAX_API_CALLS_PER_TICK))
+        return max(1, int(v2.MAX_API_CALLS_PER_TICK))
     except (TypeError, ValueError):
-        declared_global_cap = 1
+        return 1
+
+
+def _release_reserved_price_phase_cap() -> dict[str, Any]:
+    """Release only to the already-existing quota-aware global cap."""
+    declared_global_cap = _quota_aware_global_cap()
     try:
         calls_at_release = max(0, int(v2._API_CALLS_THIS_TICK or 0))
     except (TypeError, ValueError):
@@ -49,14 +52,15 @@ def _release_reserved_price_phase_cap() -> dict[str, Any]:
     previous_cap = _as_int(previous, declared_global_cap) if previous is not None else None
     released = previous is not None and declared_global_cap > int(previous)
     if released:
-        # The global elastic cap is authoritative at this explicit phase
-        # boundary. It must already be >= used calls; clamp defensively.
+        # This does not increase the provider policy budget. It only restores
+        # the reserved slice inside the same quota-derived global cap.
         v4._MONOTONIC_TICK_CAP = max(calls_at_release, declared_global_cap)
 
     return {
         "released": bool(released),
         "previous_low_water_cap": previous_cap,
         "declared_global_cap": declared_global_cap,
+        "quota_remaining_basis": v2._LAST_DAILY_REMAINING,
         "effective_cap_after_release": _as_int(v4._MONOTONIC_TICK_CAP, declared_global_cap),
         "provider_calls_at_release": calls_at_release,
         "provider_budget_changed": False,
@@ -178,17 +182,25 @@ async def run_tick() -> dict[str, Any]:
 
         if phase_lock["active"]:
             current = max(1, _as_int(phase_lock.get("low_water_cap"), configured))
-            tightened = min(current, configured)
+            quota_global_cap = _quota_aware_global_cap()
+            quota_upstream_cap, quota_reserved_calls = v123._reserve_from_elastic_cap(quota_global_cap)
+            tightened = min(current, configured, max(1, int(quota_upstream_cap)))
             if tightened < current:
                 phase_lock["tighten_count"] = int(phase_lock.get("tighten_count") or 0) + 1
             phase_lock["low_water_cap"] = tightened
+            phase_lock["quota_global_cap"] = int(quota_global_cap)
+            phase_lock["quota_upstream_cap"] = int(quota_upstream_cap)
+            phase_lock["reserved_calls"] = int(quota_reserved_calls)
+            phase_lock["quota_remaining_basis"] = v2._LAST_DAILY_REMAINING
 
             # Call the canonical v4 low-water implementation with a temporary
-            # configured cap that cannot exceed the explicit upstream phase lock.
+            # configured cap that cannot exceed the quota-aware reserved cap.
             original_configured = v2.MAX_API_CALLS_PER_TICK
             v2.MAX_API_CALLS_PER_TICK = tightened
             try:
-                return original_effective_tick_cap()
+                effective = int(original_effective_tick_cap())
+                phase_lock["low_water_cap"] = min(tightened, effective)
+                return int(phase_lock["low_water_cap"])
             finally:
                 v2.MAX_API_CALLS_PER_TICK = original_configured
 
@@ -243,7 +255,7 @@ async def run_tick() -> dict[str, Any]:
 
     payload["v209_post_reserve_maturation_verification"] = verification
     payload["v209_checkpoint"] = (
-        "v209.4 UPSTREAM CAP PRESEED/LOCK + RESERVED-PHASE RELEASE: lock the low-water provider cap "
+        "v216.5 QUOTA-AWARE UPSTREAM CAP LOCK + RESERVED-PHASE RELEASE: lock the low-water provider cap "
         "before entering v121, allow quota policy to tighten it but never reopen it during upstream work, "
         "then release only when the reserved price resolver performs a real fetch. Same global budget; no "
         "candidate creation, synthetic close, model, threshold, gate, stake or promotion change."
