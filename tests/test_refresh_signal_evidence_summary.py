@@ -13,7 +13,7 @@ refresh_summary = refresh_module.refresh_summary
 
 def test_refresh_advances_only_from_real_persisted_compact_event_tick() -> None:
     summary = {
-        "schema_version": "1.3.0",
+        "schema_version": "2.1.0",
         "last_generated_at_local": "2026-09-22T18:34:09-06:00",
         "last_generated_at_utc": "2026-09-23T00:34:09+00:00",
         "rows": 10758,
@@ -30,6 +30,7 @@ def test_refresh_advances_only_from_real_persisted_compact_event_tick() -> None:
 
     out = refresh_summary(summary, tick)
 
+    assert out["schema_version"] == "2.1.0"
     assert out["rows"] == 10758
     assert out["last_generated_at_local"] == summary["last_generated_at_local"]
     assert out["last_materialized_ledger_row_at_local"] == summary["last_generated_at_local"]
@@ -44,6 +45,7 @@ def test_refresh_advances_only_from_real_persisted_compact_event_tick() -> None:
 
 def test_refresh_does_not_regress_evidence_timestamp() -> None:
     summary = {
+        "schema_version": "2.1.0",
         "last_generated_at_local": "2026-09-22T18:34:09-06:00",
         "last_evidence_at_utc": "2026-10-01T06:00:09+00:00",
         "last_evidence_at_local": "2026-10-01T00:00:09-06:00",
@@ -58,5 +60,6 @@ def test_refresh_does_not_regress_evidence_timestamp() -> None:
 
     out = refresh_summary(summary, older)
 
+    assert out["schema_version"] == "2.1.0"
     assert out["last_evidence_at_utc"] == summary["last_evidence_at_utc"]
     assert out["last_evidence_at_local"] == summary["last_evidence_at_local"]
