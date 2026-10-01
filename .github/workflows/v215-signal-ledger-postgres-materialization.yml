@@ -66,7 +66,7 @@ jobs:
           import urllib.parse
           import urllib.request
 
-          PAGE_SIZE = 100
+          PAGE_SIZE = 500
           MAX_PAGES = 500
           RETRIES = 4
 
@@ -247,7 +247,7 @@ jobs:
           cd state
           git config user.name "soccer-edge-v215-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add "$LEDGER_PATH" "$SUMMARY_PATH"
+          git add -f "$LEDGER_PATH" "$SUMMARY_PATH"
           if git diff --cached --quiet; then
             echo "No signal-ledger changes to persist."
             exit 0
