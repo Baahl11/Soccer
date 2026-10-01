@@ -7,9 +7,10 @@ from mcp_gateway import dynamic_strength_challenger_v4
 from mcp_gateway import price_resolver_v4
 from mcp_gateway import primary_clv_anchor_v4
 from mcp_gateway import derivative_clv_anchor_v4
+from mcp_gateway import team_totals_clv_anchor_v4
 
 MODEL_VERSION = v128.MODEL_VERSION
-AUTOMATION_VERSION = "4.38.2-derivative-clv-anchor-repair"
+AUTOMATION_VERSION = "4.38.3-team-totals-clv-anchor-repair"
 
 
 async def run_tick() -> dict[str, Any]:
@@ -17,6 +18,7 @@ async def run_tick() -> dict[str, Any]:
     original_one_h_loader = price_resolver_v4._load_one_h_clv_maturation_backlog
     original_two_h_loader = price_resolver_v4._load_two_h_clv_maturation_backlog
     original_corners_loader = price_resolver_v4._load_corners_clv_maturation_backlog
+    original_team_totals_loader = price_resolver_v4._load_team_totals_maturation_backlog
     price_resolver_v4._load_primary_clv_maturation_backlog = (
         primary_clv_anchor_v4.load_primary_clv_maturation_backlog
     )
@@ -29,6 +31,9 @@ async def run_tick() -> dict[str, Any]:
     price_resolver_v4._load_corners_clv_maturation_backlog = (
         derivative_clv_anchor_v4.load_corners_clv_maturation_backlog
     )
+    price_resolver_v4._load_team_totals_maturation_backlog = (
+        team_totals_clv_anchor_v4.load_team_totals_maturation_backlog
+    )
     try:
         payload = await v128.run_tick()
     finally:
@@ -36,6 +41,7 @@ async def run_tick() -> dict[str, Any]:
         price_resolver_v4._load_one_h_clv_maturation_backlog = original_one_h_loader
         price_resolver_v4._load_two_h_clv_maturation_backlog = original_two_h_loader
         price_resolver_v4._load_corners_clv_maturation_backlog = original_corners_loader
+        price_resolver_v4._load_team_totals_maturation_backlog = original_team_totals_loader
 
     events = payload.get("events")
     if not isinstance(events, list):
@@ -115,6 +121,31 @@ async def run_tick() -> dict[str, Any]:
         "same-selection/same-line requirements remain unchanged; no provider budget increase or "
         "history rewrite. Team Totals anchor remains a separate follow-up block."
     )
+    payload["v215_7_team_totals_clv_anchor_repair"] = {
+        "schema_version": "1.0.0",
+        "status": "ACTIVE_OLDEST_UNRESOLVED_EXACT_TEAM_TOTAL_SIGNAL",
+        "signal_anchor_policy": team_totals_clv_anchor_v4.ANCHOR_POLICY,
+        "lookback_hours": team_totals_clv_anchor_v4.DEFAULT_LOOKBACK_HOURS,
+        "strict_close_semantics_changed": False,
+        "requires_captured_at_after_signal": True,
+        "requires_provider_update_after_signal": True,
+        "requires_same_selection_and_line": True,
+        "historical_rows_mutated": False,
+        "historical_probabilities_recomputed": False,
+        "provider_budget_changed": False,
+        "team_totals_maturation_max_calls_per_tick": price_resolver_v4.TEAM_TOTALS_MATURATION_MAX_CALLS_PER_TICK,
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+        "model_weights_changed": False,
+        "thresholds_changed": False,
+        "gates_changed": False,
+        "canonical_bet_logic_changed": False,
+        "policy": (
+            "UPCOMING_T55_FIXTURES_FIRST; BOUNDED_48H_OR_DIVERSITY_HORIZON_PLUS_MARGIN; "
+            "OLDEST_UNRESOLVED_EXACT_MARKET_SIDE_LINE_SIGNAL; STRICTLY_LATER_REAL_PROVIDER_QUOTE; "
+            "SAME_EXISTING_LEFTOVER_BUDGET_MAX12; NO_HISTORY_REWRITE"
+        ),
+    }
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
     return payload

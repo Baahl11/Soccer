@@ -178,7 +178,7 @@ def test_v129_activates_and_restores_derivative_anchor_loaders(monkeypatch):
     assert repair["signal_anchor_policy"] == anchor.ANCHOR_POLICY
     assert repair["scope"] == ["1H", "2H", "FT_CORNERS", "TEAM_CORNERS"]
     assert repair["provider_budget_changed"] is False
-    assert payload["version"] == "4.38.2-derivative-clv-anchor-repair"
+    assert payload["version"] == "4.38.3-team-totals-clv-anchor-repair"
 
 
 

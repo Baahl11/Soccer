@@ -146,7 +146,7 @@ def test_v129_activates_anchor_only_during_upstream_tick_and_restores_loader(mon
     payload = asyncio.run(automation_v129.run_tick())
 
     assert price._load_primary_clv_maturation_backlog is original_loader
-    assert payload["version"] == "4.38.2-derivative-clv-anchor-repair"
+    assert payload["version"] == "4.38.3-team-totals-clv-anchor-repair"
     repair = payload["v213_primary_clv_anchor_repair"]
     assert repair["signal_anchor_policy"] == anchor.ANCHOR_POLICY
     assert repair["strict_close_semantics_changed"] is False
