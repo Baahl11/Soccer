@@ -1,0 +1,173 @@
+name: v216.8 Preview Single Bootstrap
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v2168-preview-single-bootstrap.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Patch preview bootstrap only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          live = Path('mcp_gateway/subscriber_preview_live_v231.py')
+          text = live.read_text(encoding='utf-8')
+
+          old = """    if(!token){const live=document.querySelector('#today .header .live');if(live)live.innerHTML='<span class=\"dot\" style=\"background:#eab95c\"></span> LOGIN REQUIRED FOR LIVE PREVIEW';return}"""
+          new = """    if(!token){const live=document.querySelector('#today .header .live');if(live)live.innerHTML='<span class=\"dot\" style=\"background:#eab95c\"></span> LOGIN REQUIRED FOR LIVE PREVIEW';document.documentElement.classList.remove('v232-booting');return null}"""
+          if old not in text:
+              raise SystemExit('live no-token anchor missing')
+          text = text.replace(old, new, 1)
+
+          old = """      renderToday(LIVE);renderFeed(LIVE);renderMatch(LIVE);renderMarkets(LIVE);renderTower(LIVE);renderPerformance(PERF);renderResearch(LIVE,PERF);renderMyEdge(LIVE);"""
+          new = """      renderToday(LIVE);renderFeed(LIVE);renderMatch(LIVE);renderMarkets(LIVE);renderTower(LIVE);renderPerformance(PERF);renderResearch(LIVE,PERF);renderMyEdge(LIVE);
+      const ready={data:LIVE,performance:PERF};window.__soccerEdgeLiveReady=ready;window.dispatchEvent(new CustomEvent('soccer-edge:live-ready',{detail:ready}));document.documentElement.classList.remove('v232-booting');return ready;"""
+          if old not in text:
+              raise SystemExit('live render anchor missing')
+          text = text.replace(old, new, 1)
+
+          old = """    }catch(err){const live=document.querySelector('#today .header .live');if(live)live.innerHTML=`<span class=\"dot\" style=\"background:#ff6679\"></span> LIVE DATA ERROR · ${esc(err.message)}`}"""
+          new = """    }catch(err){const live=document.querySelector('#today .header .live');if(live)live.innerHTML=`<span class=\"dot\" style=\"background:#ff6679\"></span> LIVE DATA ERROR · ${esc(err.message)}`;document.documentElement.classList.remove('v232-booting');return null}"""
+          if old not in text:
+              raise SystemExit('live catch anchor missing')
+          text = text.replace(old, new, 1)
+
+          old = """  loadLive();"""
+          new = """  window.__soccerEdgeLivePromise=loadLive();"""
+          if old not in text:
+              raise SystemExit('live boot call anchor missing')
+          text = text.replace(old, new, 1)
+          live.write_text(text, encoding='utf-8')
+
+          perf = Path('mcp_gateway/subscriber_preview_performance_live_v231.py')
+          text = perf.read_text(encoding='utf-8')
+          old = '''def _html() -> str:\n    html = subscriber_preview_live_v231._html()\n    marker = "</body>"\n    return html.replace(marker, _SCRIPT + marker, 1) if marker in html else html + _SCRIPT\n'''
+          new = '''def _html() -> str:\n    # v231 live bootstrap already fetches and renders /app-preview/performance.\n    # Do not mount a second independent renderer over the same DOM.\n    return subscriber_preview_live_v231._html()\n'''
+          if old not in text:
+              raise SystemExit('performance html anchor missing')
+          text = text.replace(old, new, 1)
+          perf.write_text(text, encoding='utf-8')
+
+          maturity = Path('mcp_gateway/subscriber_preview_maturity_live_v232.py')
+          text = maturity.read_text(encoding='utf-8')
+          old = """_STYLE = r'''\n<style id=\"v232-maturity-style\">"""
+          new = """_STYLE = r'''\n<script id=\"v232-boot-state\">document.documentElement.classList.add('v232-booting');</script>\n<style id=\"v232-maturity-style\">\nhtml.v232-booting body>*{opacity:0!important;pointer-events:none!important}\nhtml.v232-booting body::before{content:'SOCCER EDGE · loading live snapshot…';position:fixed;inset:0;display:grid;place-items:center;background:#07141d;color:#7895aa;font:600 11px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;z-index:2147483647;visibility:visible}"""
+          if old not in text:
+              raise SystemExit('maturity style anchor missing')
+          text = text.replace(old, new, 1)
+
+          old = """  async function loadMaturity(){
+    const token=localStorage.getItem(AK)||'';if(!token)return;
+    try{
+      const [mat,live]=await Promise.all([fetchJson('/app-preview/maturity',token),fetchJson('/app-preview/data',token)]);
+      MAT=mat;LIVE=live;renderMarkets();renderTower();patchPerformanceLabel();
+      setTimeout(()=>{renderMarkets();renderTower();patchPerformanceLabel()},900);
+    }catch(err){const chip=document.querySelector('#markets .preview-chip');if(chip)chip.textContent=`MATURITY UNAVAILABLE · ${err.message}`}
+  }
+  setTimeout(loadMaturity,120);"""
+          new = """  async function liveSnapshot(){
+    if(window.__soccerEdgeLiveReady?.data)return window.__soccerEdgeLiveReady.data;
+    if(window.__soccerEdgeLivePromise&&typeof window.__soccerEdgeLivePromise.then==='function'){
+      const ready=await window.__soccerEdgeLivePromise;return ready?.data||null;
+    }
+    return await new Promise(resolve=>{
+      const timer=setTimeout(()=>resolve(null),2500);
+      window.addEventListener('soccer-edge:live-ready',event=>{clearTimeout(timer);resolve(event.detail?.data||null)},{once:true});
+    });
+  }
+  async function loadMaturity(){
+    const token=localStorage.getItem(AK)||'';if(!token){document.documentElement.classList.remove('v232-booting');return}
+    try{
+      const [mat,live]=await Promise.all([fetchJson('/app-preview/maturity',token),liveSnapshot()]);
+      MAT=mat;LIVE=live||{};renderMarkets();renderTower();patchPerformanceLabel();
+    }catch(err){const chip=document.querySelector('#markets .preview-chip');if(chip)chip.textContent=`MATURITY UNAVAILABLE · ${err.message}`}
+    finally{document.documentElement.classList.remove('v232-booting')}
+  }
+  loadMaturity();"""
+          if old not in text:
+              raise SystemExit('maturity load anchor missing')
+          text = text.replace(old, new, 1)
+          maturity.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Add regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/v2168_tests.py <<'PY'
+          from mcp_gateway.subscriber_preview_live_v231 import _html as live_html
+          from mcp_gateway.subscriber_preview_performance_live_v231 import _html as performance_html
+          from mcp_gateway.subscriber_preview_maturity_live_v232 import _html as maturity_html
+
+
+          def test_v2168_single_visible_bootstrap():
+              html = maturity_html()
+              assert "v232-boot-state" in html
+              assert "v232-booting" in html
+              assert "window.__soccerEdgeLivePromise=loadLive()" in html
+              assert "soccer-edge:live-ready" in html
+              assert "setTimeout(loadMaturity,120)" not in html
+              assert "setTimeout(()=>{renderMarkets();renderTower();patchPerformanceLabel()},900)" not in html
+              assert "fetchJson('/app-preview/data',token)" not in html
+
+
+          def test_v2168_performance_wrapper_does_not_mount_second_renderer():
+              base = live_html()
+              wrapped = performance_html()
+              assert wrapped == base
+              assert wrapped.count('id="v231-live-preview"') == 1
+              assert 'id="v231-performance-live"' not in wrapped
+          PY
+          cp /tmp/v2168_tests.py tests/test_v2168_preview_single_bootstrap.py
+
+      - name: Compile and run focused preview tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            mcp_gateway/subscriber_preview_live_v231.py \
+            mcp_gateway/subscriber_preview_performance_live_v231.py \
+            mcp_gateway/subscriber_preview_maturity_live_v232.py
+          python -m pytest -q \
+            tests/test_v2168_preview_single_bootstrap.py \
+            tests/test_v4_023_subscriber_preview_data.py
+
+      - name: Commit runtime fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            mcp_gateway/subscriber_preview_live_v231.py \
+            mcp_gateway/subscriber_preview_performance_live_v231.py \
+            mcp_gateway/subscriber_preview_maturity_live_v232.py \
+            tests/test_v2168_preview_single_bootstrap.py
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git commit -m 'v216.8: stabilize app preview single bootstrap'
+          git push origin HEAD:soccer-edge-mcp-v1
