@@ -18,12 +18,39 @@ for _name, _value in vars(_base_server).items():
 
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
+V215_SIGNAL_LEDGER_REF = "refs/heads/soccer-edge-mcp-v1"
+
+
+def _v215_github_oidc_claims(request: Request) -> dict[str, Any]:
+    """Validate only the isolated v215 materializer without relaxing global OIDC rules."""
+    auth = request.headers.get("authorization", "")
+    if not auth.startswith("Bearer "):
+        raise PermissionError("Missing bearer token")
+    token = auth[7:].strip()
+    signing_key = _base_server._JWK_CLIENT.get_signing_key_from_jwt(token)
+    claims = _base_server.jwt.decode(
+        token,
+        signing_key.key,
+        algorithms=["RS256"],
+        audience=_base_server.GITHUB_OIDC_AUDIENCE,
+        issuer=_base_server.GITHUB_ISSUER,
+        options={"require": ["exp", "iat", "iss", "aud", "sub"]},
+    )
+    if claims.get("repository") != _base_server.GITHUB_REPOSITORY:
+        raise PermissionError("Repository not allowed")
+    workflow_ref = str(claims.get("workflow_ref") or "")
+    expected_prefix = f"{_base_server.GITHUB_REPOSITORY}/{V215_SIGNAL_LEDGER_WORKFLOW}@"
+    if not workflow_ref.startswith(expected_prefix):
+        raise PermissionError("Workflow not allowed")
+    if claims.get("ref") != V215_SIGNAL_LEDGER_REF:
+        raise PermissionError("Only soccer-edge-mcp-v1 v215 materializer is allowed")
+    return claims
 
 
 async def _handle_v215_signal_ledger(scope, receive, send) -> None:
     request = Request(scope, receive=receive)
     try:
-        _base_server._github_oidc_claims(request, {V215_SIGNAL_LEDGER_WORKFLOW})
+        _v215_github_oidc_claims(request)
     except Exception as exc:
         response = JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
         await response(scope, receive, send)
