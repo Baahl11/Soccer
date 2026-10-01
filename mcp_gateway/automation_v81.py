@@ -64,6 +64,21 @@ def _generated_at(payload: dict[str, Any]) -> datetime:
     return now.astimezone(dt_timezone.utc)
 
 
+def _deferred_catalog_audit(status: str = "DEFERRED_PROVIDER_BUDGET") -> dict[str, Any]:
+    return {
+        "schema_version": "1.0.0",
+        "status": status,
+        "source": "NOT_CHECKED",
+        "catalog_count": None,
+        "explicit_sgp_like_count": None,
+        "explicit_sgp_like_bet_types": [],
+        "provider_requests_added": 0,
+        "model_weights_changed": False,
+        "canonical_bet_logic_changed": False,
+        "policy": "REFERENCE_CATALOG_AUDIT_ONLY; NO BET PROMOTION",
+    }
+
+
 async def _audit_catalog(payload: dict[str, Any]) -> dict[str, Any]:
     now = _generated_at(payload)
     cached = base._cache_get(
@@ -80,20 +95,17 @@ async def _audit_catalog(payload: dict[str, Any]) -> dict[str, Any]:
         used = int(v2._API_CALLS_THIS_TICK or 0)
         cap = int(v2.MAX_API_CALLS_PER_TICK or 0)
         # Preserve at least one call of headroom for higher-priority lifecycle work.
+        # v216.5 may enforce a stricter quota-aware low-water cap than this public
+        # configured value, so the real provider gate remains authoritative too.
         if cap - used <= 1:
-            return {
-                "schema_version": "1.0.0",
-                "status": "DEFERRED_PROVIDER_BUDGET",
-                "source": "NOT_CHECKED",
-                "catalog_count": None,
-                "explicit_sgp_like_count": None,
-                "explicit_sgp_like_bet_types": [],
-                "provider_requests_added": 0,
-                "model_weights_changed": False,
-                "canonical_bet_logic_changed": False,
-                "policy": "REFERENCE_CATALOG_AUDIT_ONLY; NO BET PROMOTION",
-            }
-        response = await v6._adaptive_paced_api_get("odds/bets", {})
+            return _deferred_catalog_audit()
+        try:
+            response = await v6._adaptive_paced_api_get("odds/bets", {})
+        except v2.TickBudgetExceeded:
+            # This reference-catalog audit is optional. Reaching the reserved
+            # upstream low-water mark must defer the audit, not abort the tick
+            # before the explicitly reserved price-resolution phase can run.
+            return _deferred_catalog_audit("DEFERRED_BY_TICK_BUDGET")
         rows = _clean_catalog_rows(response.get("response"))
         base._cache_set(
             CATALOG_CACHE_NAMESPACE,
