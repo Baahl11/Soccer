@@ -61,6 +61,12 @@ def _install_v226_regional_billing_layer() -> None:
     subscriber_app_v4._app_html = regional_billing_app_html
 
 
+def _install_v236_today_layer() -> None:
+    """Render the subscriber Today surface from the approved mockup hierarchy."""
+    from mcp_gateway import subscriber_product_v235, subscriber_today_v236
+    subscriber_today_v236.install(subscriber_product_v235)
+
+
 def _install_subscriber_app_routes() -> None:
     """Add customer routes while preserving the FastMCP ASGI lifespan."""
     from mcp.server.fastmcp import FastMCP
@@ -85,6 +91,7 @@ def _install_subscriber_app_routes() -> None:
             subscriber_preview_data_v231,
             subscriber_preview_maturity_v232,
             subscriber_preview_performance_v231,
+            subscriber_today_v236,
         )
         existing_paths = {getattr(route, "path", None) for route in app.router.routes}
         existing_names = {getattr(route, "name", None) for route in app.router.routes}
@@ -99,6 +106,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app/data", subscriber_product_v235.app_data, methods=["GET"], name="v235_subscriber_data"))
         if "/app/match" not in existing_paths:
             additions.append(Route("/app/match", subscriber_product_v235.match_data, methods=["GET"], name="v235_subscriber_match_data"))
+        if "/app/fixture-identities" not in existing_paths:
+            additions.append(Route("/app/fixture-identities", subscriber_today_v236.fixture_identities, methods=["GET"], name="v236_fixture_identities"))
         if "/app-preview" not in existing_paths:
             additions.append(Route("/app-preview", legacy_preview_landing, methods=["GET"], name="v235_legacy_preview_redirect"))
         if "/app-preview/data" not in existing_paths:
@@ -117,4 +126,5 @@ _install_subscriber_i18n_layer()
 _install_product_analytics_layer()
 _install_subscriber_frontend_hotfix()
 _install_v226_regional_billing_layer()
+_install_v236_today_layer()
 _install_subscriber_app_routes()
