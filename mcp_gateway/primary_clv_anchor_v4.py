@@ -6,8 +6,190 @@ from typing import Any
 
 from mcp_gateway import price_resolver_v4 as price
 
-MODEL_VERSION = "SOCCER_PRIMARY_CLV_ANCHOR_V4_1.0.0"
+MODEL_VERSION = "SOCCER_PRIMARY_CLV_ANCHOR_V4_1.1.0"
 ANCHOR_POLICY = "OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL"
+DIAGNOSTIC_SCHEMA_VERSION = "1.0.0"
+
+
+def _load_exclusion_diagnostics(
+    cur: Any,
+    *,
+    cutoff: datetime,
+    now: datetime,
+    lookahead: datetime,
+) -> dict[str, dict[str, int]]:
+    """Count where real priced primary signals fall out of the live backlog.
+
+    This is a Postgres-only observability query. It does not call a provider,
+    mutate history, relax strict-close chronology, or change candidate selection.
+    Counts are fixture-level so recycled scheduler rows cannot inflate progress.
+    """
+    cur.execute(
+        """
+        WITH raw_signal AS (
+            SELECT
+                (mm.row ->> 'fixture_id')::BIGINT AS fixture_id,
+                UPPER(mm.row ->> 'market_family') AS market_family,
+                mm.row ->> 'market' AS market,
+                p.generated_at_utc AS signal_generated_at,
+                f.kickoff,
+                f.status
+            FROM soccer_pipeline_runs p
+            CROSS JOIN LATERAL jsonb_array_elements(
+                CASE
+                    WHEN jsonb_typeof(COALESCE(p.payload -> 'market_mismatch_rows', '[]'::jsonb)) = 'array'
+                    THEN COALESCE(p.payload -> 'market_mismatch_rows', '[]'::jsonb)
+                    ELSE '[]'::jsonb
+                END
+            ) AS mm(row)
+            JOIN soccer_fixtures f
+              ON f.fixture_id = (mm.row ->> 'fixture_id')::BIGINT
+            WHERE p.generated_at_utc >= %s
+              AND UPPER(mm.row ->> 'market_family') IN ('1X2','FT_TOTALS','BTTS')
+              AND COALESCE((mm.row ->> 'rankable')::boolean, false) = true
+              AND NULLIF(mm.row ->> 'market', '') IS NOT NULL
+              AND NULLIF(mm.row ->> 'selection', '') IS NOT NULL
+              AND NULLIF(mm.row ->> 'price', '') IS NOT NULL
+
+            UNION ALL
+
+            SELECT
+                (mt.row ->> 'fixture_id')::BIGINT AS fixture_id,
+                CASE
+                    WHEN UPPER(mt.row ->> 'market_family') IN ('TOTAL','FT_TOTALS_RESEARCH') THEN 'FT_TOTALS'
+                    WHEN UPPER(mt.row ->> 'market_family') IN ('FT_BTTS','FT_BTTS_RESEARCH') THEN 'BTTS'
+                    WHEN UPPER(mt.row ->> 'market_family') IN ('FT_1X2','FT_1X2_RESEARCH','MATCH_WINNER') THEN '1X2'
+                    ELSE UPPER(mt.row ->> 'market_family')
+                END AS market_family,
+                mt.row ->> 'market' AS market,
+                p.generated_at_utc AS signal_generated_at,
+                f.kickoff,
+                f.status
+            FROM soccer_pipeline_runs p
+            CROSS JOIN LATERAL jsonb_array_elements(
+                CASE
+                    WHEN jsonb_typeof(COALESCE(p.payload -> 'match_table_rows', '[]'::jsonb)) = 'array'
+                    THEN COALESCE(p.payload -> 'match_table_rows', '[]'::jsonb)
+                    ELSE '[]'::jsonb
+                END
+            ) AS mt(row)
+            JOIN soccer_fixtures f
+              ON f.fixture_id = (mt.row ->> 'fixture_id')::BIGINT
+            WHERE p.generated_at_utc >= %s
+              AND CASE
+                    WHEN UPPER(mt.row ->> 'market_family') IN ('TOTAL','FT_TOTALS_RESEARCH') THEN 'FT_TOTALS'
+                    WHEN UPPER(mt.row ->> 'market_family') IN ('FT_BTTS','FT_BTTS_RESEARCH') THEN 'BTTS'
+                    WHEN UPPER(mt.row ->> 'market_family') IN ('FT_1X2','FT_1X2_RESEARCH','MATCH_WINNER') THEN '1X2'
+                    ELSE UPPER(mt.row ->> 'market_family')
+                  END IN ('1X2','FT_TOTALS','BTTS')
+              AND NULLIF(mt.row ->> 'market', '') IS NOT NULL
+              AND NULLIF(mt.row ->> 'selection', '') IS NOT NULL
+              AND NULLIF(mt.row ->> 'price', '') IS NOT NULL
+              AND jsonb_typeof(mt.row -> 'price') = 'number'
+              AND (mt.row ->> 'price')::DOUBLE PRECISION > 1.0
+        ),
+        classified AS (
+            SELECT
+                rs.*,
+                EXISTS (
+                    SELECT 1
+                    FROM soccer_market_snapshots m
+                    WHERE m.fixture_id = rs.fixture_id
+                      AND m.captured_at > rs.signal_generated_at
+                      AND m.captured_at < rs.kickoff
+                      AND m.provider_update IS NOT NULL
+                      AND m.provider_update > rs.signal_generated_at
+                      AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(rs.market, '')))
+                ) AS has_strict_later_quote
+            FROM raw_signal rs
+        )
+        SELECT
+            market_family,
+            COUNT(*)::BIGINT AS priced_signal_rows,
+            COUNT(DISTINCT fixture_id)::BIGINT AS priced_fixtures,
+            COUNT(DISTINCT fixture_id) FILTER (
+                WHERE signal_generated_at < kickoff
+            )::BIGINT AS prekickoff_signal_fixtures,
+            COUNT(DISTINCT fixture_id) FILTER (
+                WHERE signal_generated_at < kickoff
+                  AND kickoff > %s
+                  AND COALESCE(status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+            )::BIGINT AS future_active_fixtures,
+            COUNT(DISTINCT fixture_id) FILTER (
+                WHERE signal_generated_at < kickoff
+                  AND kickoff > %s
+                  AND kickoff <= %s
+                  AND COALESCE(status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+            )::BIGINT AS within_lookahead_fixtures,
+            COUNT(DISTINCT fixture_id) FILTER (
+                WHERE signal_generated_at < kickoff
+                  AND kickoff > %s
+                  AND kickoff <= %s
+                  AND COALESCE(status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                  AND has_strict_later_quote
+            )::BIGINT AS strict_later_quote_fixtures,
+            COUNT(DISTINCT fixture_id) FILTER (
+                WHERE signal_generated_at < kickoff
+                  AND kickoff > %s
+                  AND kickoff <= %s
+                  AND COALESCE(status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                  AND NOT has_strict_later_quote
+            )::BIGINT AS unresolved_within_lookahead_fixtures
+        FROM classified
+        GROUP BY market_family
+        ORDER BY market_family
+        """,
+        (
+            cutoff,
+            cutoff,
+            now,
+            now,
+            lookahead,
+            now,
+            lookahead,
+            now,
+            lookahead,
+        ),
+    )
+    columns = [desc.name for desc in cur.description]
+    diagnostics: dict[str, dict[str, int]] = {}
+    for raw_row in cur.fetchall():
+        row = dict(zip(columns, raw_row))
+        family = str(row.get("market_family") or "").upper()
+        if family not in {"1X2", "BTTS", "FT_TOTALS"}:
+            continue
+        metrics = {
+            key: int(row.get(key) or 0)
+            for key in (
+                "priced_signal_rows",
+                "priced_fixtures",
+                "prekickoff_signal_fixtures",
+                "future_active_fixtures",
+                "within_lookahead_fixtures",
+                "strict_later_quote_fixtures",
+                "unresolved_within_lookahead_fixtures",
+            )
+        }
+        metrics["outside_lookahead_active_fixtures"] = max(
+            0,
+            metrics["future_active_fixtures"] - metrics["within_lookahead_fixtures"],
+        )
+        diagnostics[family] = metrics
+    for family in ("1X2", "BTTS", "FT_TOTALS"):
+        diagnostics.setdefault(
+            family,
+            {
+                "priced_signal_rows": 0,
+                "priced_fixtures": 0,
+                "prekickoff_signal_fixtures": 0,
+                "future_active_fixtures": 0,
+                "within_lookahead_fixtures": 0,
+                "strict_later_quote_fixtures": 0,
+                "unresolved_within_lookahead_fixtures": 0,
+                "outside_lookahead_active_fixtures": 0,
+            },
+        )
+    return diagnostics
 
 
 def load_primary_clv_maturation_backlog(
@@ -51,6 +233,10 @@ def load_primary_clv_maturation_backlog(
         "candidate_source_counts": {},
         "source": "POSTGRES_NOT_CONFIGURED",
         "signal_anchor_policy": ANCHOR_POLICY,
+        "diagnostic_schema_version": DIAGNOSTIC_SCHEMA_VERSION,
+        "diagnostic_family_counts": {},
+        "provider_requests_added": 0,
+        "selection_logic_changed": False,
     }
     if not price.persistence.persistence_configured():
         return empty
@@ -209,6 +395,12 @@ def load_primary_clv_maturation_backlog(
             )
             rows = cur.fetchall()
             columns = [desc.name for desc in cur.description]
+            diagnostics = _load_exclusion_diagnostics(
+                cur,
+                cutoff=cutoff,
+                now=now,
+                lookahead=lookahead,
+            )
 
     grouped: dict[int, dict[str, Any]] = {}
     family_counts: dict[str, int] = defaultdict(int)
@@ -300,8 +492,18 @@ def load_primary_clv_maturation_backlog(
         "candidate_source_counts": dict(sorted(source_counts.items())),
         "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V3_OLDEST_UNRESOLVED",
         "signal_anchor_policy": ANCHOR_POLICY,
+        "diagnostic_schema_version": DIAGNOSTIC_SCHEMA_VERSION,
+        "diagnostic_family_counts": diagnostics,
+        "diagnostic_window": {
+            "lookback_days": lookback_days,
+            "lookahead_minutes": lookahead_minutes,
+            "cutoff_utc": cutoff.isoformat(),
+            "observed_at_utc": now.isoformat(),
+            "lookahead_utc": lookahead.isoformat(),
+        },
         "provider_requests_added": 0,
         "provider_budget_changed": False,
         "strict_close_semantics_changed": False,
         "historical_rows_mutated": False,
+        "selection_logic_changed": False,
     }
