@@ -1,0 +1,61 @@
+name: v216.5 Quota Aware Phase Lock
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/v2165-quota-aware-phase-lock.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 0
+
+      - name: Checkout control script
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: control
+          sparse-checkout: |
+            .github/scripts/v2165_patch_quota_aware_phase_lock.py
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply patch
+        run: python control/.github/scripts/v2165_patch_quota_aware_phase_lock.py runtime
+
+      - name: Validate compile and policy anchors
+        working-directory: runtime
+        run: |
+          python -m py_compile mcp_gateway/automation_v126.py
+          grep -q '_quota_aware_global_cap' mcp_gateway/automation_v126.py
+          grep -q 'quota_upstream_cap' mcp_gateway/automation_v126.py
+          grep -q 'provider_budget_changed": False' mcp_gateway/automation_v126.py
+          grep -q 'v216.5 QUOTA-AWARE UPSTREAM CAP LOCK' mcp_gateway/automation_v126.py
+
+      - name: Commit runtime fix
+        working-directory: runtime
+        run: |
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/automation_v126.py
+          git diff --cached --quiet && exit 0
+          git commit -m 'v216.5 make upstream phase lock quota-aware'
+          git fetch origin soccer-edge-mcp-v1
+          git rebase origin/soccer-edge-mcp-v1
+          git push origin HEAD:soccer-edge-mcp-v1
