@@ -63,7 +63,16 @@ _SCRIPT = r'''
     const badge=panel.querySelector('.status');if(badge){badge.textContent='MULTI-GATE';badge.className='status research'}
     const box=panel.querySelector('.maturity');if(!box)return;
     const rows=Array.isArray(MAT.families)?MAT.families:[];
-    box.innerHTML=rows.map(m=>{const cur=num(m.true_clv_rows),tar=num(m.true_clv_target),w=cur!=null&&tar?Math.max(0,Math.min(100,cur/tar*100)):0;return `<div><div class="matrow"><b>${esc(m.label)}</b><div class="mbar"><div class="mfill" style="width:${w}%"></div></div><span>CLV ${esc(cur??'—')}/${esc(tar??'—')}</span></div><small style="display:block;color:#7895aa;margin:2px 0 4px 79px;font-size:7px">${esc(human(m.stage))}${m.priced_rows!=null?` · ${esc(m.priced_rows)} priced`:''}</small></div>`}).join('');
+    box.innerHTML=rows.map(m=>{
+      const evidence=m.model_evidence||{};
+      const formationPrimary=m.label==='Corners'&&num(evidence.current)!=null&&num(evidence.target)!=null;
+      const cur=formationPrimary?num(evidence.current):num(m.true_clv_rows);
+      const tar=formationPrimary?num(evidence.target):num(m.true_clv_target);
+      const w=cur!=null&&tar?Math.max(0,Math.min(100,cur/tar*100)):0;
+      const ratio=formationPrimary?`${cur}/${tar}`:`CLV ${cur??'—'}/${tar??'—'}`;
+      const secondaryClv=formationPrimary?` · Strict CLV ${clvText(m)}`:'';
+      return `<div><div class="matrow"><b>${esc(m.label)}</b><div class="mbar"><div class="mfill" style="width:${w}%"></div></div><span>${esc(ratio)}</span></div><small style="display:block;color:#7895aa;margin:2px 0 4px 79px;font-size:7px">${esc(human(m.stage))}${m.priced_rows!=null?` · ${esc(m.priced_rows)} priced`:''}${esc(secondaryClv)}</small></div>`;
+    }).join('');
   }
 
   function patchPerformanceLabel(){
