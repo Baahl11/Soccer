@@ -48,7 +48,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check -q pytest
+          python -m pip install --disable-pip-version-check -q -r runtime/mcp_gateway/requirements.txt pytest
           python -m py_compile \
             runtime/mcp_gateway/signal_ledger_postgres_v4.py \
             runtime/mcp_gateway/signal_ledger_postgres_delta_v4.py \
