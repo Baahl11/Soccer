@@ -57,7 +57,9 @@ def latest_persisted_event_tick(paths: Iterable[Path]) -> dict[str, Any] | None:
 
 def refresh_summary(summary: dict[str, Any], latest_tick: dict[str, Any] | None) -> dict[str, Any]:
     out = dict(summary)
-    out["schema_version"] = "1.5.0"
+    # Evidence freshness is an additive metadata refresh. Never downgrade a
+    # newer summary schema produced by the canonical ledger materializer.
+    out.setdefault("schema_version", "1.5.0")
     out.setdefault("last_materialized_ledger_row_at_local", out.get("last_generated_at_local"))
     out.setdefault("last_materialized_ledger_row_at_utc", out.get("last_generated_at_utc"))
 
