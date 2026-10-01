@@ -1,0 +1,102 @@
+name: v215.6 Live Derivative Anchor Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v2156-live-anchor-validation.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      EXPECTED_COMMIT: dafce8036dea621dc45ebc3fc3800f067f244246
+      BASE_URL: https://soccer-edge-api.onrender.com
+    steps:
+      - name: Wait for exact Render runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 36); do
+            if curl -fsS --max-time 20 "$BASE_URL/health" -o /tmp/health.json; then
+              LIVE_COMMIT=$(jq -r '.render_git_commit // empty' /tmp/health.json)
+              echo "attempt=$attempt live_commit=$LIVE_COMMIT"
+              if [ "$LIVE_COMMIT" = "$EXPECTED_COMMIT" ]; then
+                jq '{status,service,version,clv_model_version,render_git_commit,database_persistence_configured}' /tmp/health.json
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo "::error::Render did not reach expected commit $EXPECTED_COMMIT"
+          cat /tmp/health.json || true
+          exit 1
+
+      - name: Run clean post-deploy tick
+        shell: bash
+        run: |
+          set -euo pipefail
+          OIDC_RESPONSE=$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          OIDC_TOKEN=$(echo "$OIDC_RESPONSE" | jq -r '.value // empty')
+          test -n "$OIDC_TOKEN"
+          echo "::add-mask::$OIDC_TOKEN"
+
+          HTTP_CODE=$(curl -sS --max-time 430 \
+            -o /tmp/tick.json \
+            -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${OIDC_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "$BASE_URL/internal/tick")
+
+          echo "http_code=$HTTP_CODE"
+          test "$HTTP_CODE" = "200"
+          jq -e 'type == "object"' /tmp/tick.json >/dev/null
+
+          jq '{
+            service,
+            version,
+            model_version,
+            generated_at_utc,
+            generated_at_local,
+            fixture_scan_count,
+            due_fixture_count,
+            event_count,
+            api_calls_this_tick,
+            effective_max_api_calls_per_tick,
+            last_daily_remaining,
+            database_persisted,
+            database_error,
+            v215_6_derivative_clv_anchor_repair,
+            maturation: {
+              source: .price_resolution_v4.primary_clv_maturation_source,
+              candidates: .price_resolution_v4.primary_clv_maturation_candidates,
+              candidate_family_counts: .price_resolution_v4.primary_clv_maturation_candidate_family_counts,
+              evaluation_counts: .price_resolution_v4.primary_clv_maturation_family_evaluation_counts,
+              not_matured_counts: .price_resolution_v4.primary_clv_maturation_not_matured_family_counts,
+              refresh_counts: .price_resolution_v4.primary_clv_maturation_family_refresh_counts,
+              unchanged_provider_updates: .price_resolution_v4.primary_clv_maturation_unchanged_provider_updates,
+              api_calls_added: .price_resolution_v4.primary_clv_maturation_api_calls_added,
+              max_calls_per_tick: .price_resolution_v4.primary_clv_maturation_max_calls_per_tick
+            },
+            team_totals: {
+              candidates: .price_resolution_v4.research_spillover_maturation_candidates,
+              api_calls_added: .price_resolution_v4.research_spillover_maturation_api_calls_added,
+              later_real_quote_refreshes: .price_resolution_v4.research_spillover_maturation_later_real_quote_refreshes,
+              unchanged_provider_updates: .price_resolution_v4.research_spillover_maturation_unchanged_provider_updates
+            }
+          }' /tmp/tick.json
+
+          jq -e '.version == "4.38.2-derivative-clv-anchor-repair"' /tmp/tick.json >/dev/null
+          jq -e '.database_persisted == true' /tmp/tick.json >/dev/null
+          jq -e '.v215_6_derivative_clv_anchor_repair.status == "ACTIVE_OLDEST_UNRESOLVED_EXACT_DERIVATIVE_SIGNAL"' /tmp/tick.json >/dev/null
+          jq -e '.v215_6_derivative_clv_anchor_repair.provider_budget_changed == false' /tmp/tick.json >/dev/null
+          jq -e '.v215_6_derivative_clv_anchor_repair.strict_close_semantics_changed == false' /tmp/tick.json >/dev/null
