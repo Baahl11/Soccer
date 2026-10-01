@@ -4,6 +4,11 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "17 * * * *"
+  push:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
 
 permissions:
   contents: write
@@ -65,7 +70,6 @@ jobs:
           OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
-          mkdir -p work
           python - <<'PY'
           import json
           import os
@@ -159,15 +163,13 @@ jobs:
               ),
           )
 
-          # Import only after the payload has been collected; reuse the canonical
-          # summary implementation rather than duplicating maturity semantics.
           import sys
           sys.path.insert(0, str(pathlib.Path('runtime').resolve()))
           from mcp_gateway import signal_ledger_postgres_v4
 
           rebuilt = signal_ledger_postgres_v4.summarize_rows(
               rows,
-              source='POSTGRES_SOCCER_REFRESH_EVENTS_POINT_IN_TIME',
+              source=signal_ledger_postgres_v4.SOURCE,
               postgres_rows=sum(1 for r in rows if r.get('ledger_source') == signal_ledger_postgres_v4.SOURCE),
               legacy_rows_loaded=sum(1 for r in rows if r.get('ledger_source') != signal_ledger_postgres_v4.SOURCE),
           )
