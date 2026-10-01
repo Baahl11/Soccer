@@ -98,7 +98,7 @@ jobs:
             provider_requests_added
           }' state/soccer_edge_state/analysis/signal_ledger_summary.json
 
-          jq -e '.schema_version == "1.5.0"' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
+          jq -e '.schema_version == "2.1.0"' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
           jq -e '.last_evidence_at_utc != null' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
           jq -e '.provider_requests_added == 0' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
           jq -e '.synthetic_close_rows_added == 0' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
