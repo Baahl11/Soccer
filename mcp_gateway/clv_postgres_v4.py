@@ -262,6 +262,8 @@ def _build_team_totals_maturation_funnel(
         "missing_kickoff": 0,
     }
     future_kickoffs: list[datetime] = []
+    already_kicked_off_fixture_ids: list[int] = []
+    pending_future_fixture_ids: list[int] = []
     for fixture_id in signal_without_true_clv:
         kickoff = modeled_signal_kickoffs.get(int(fixture_id))
         if not isinstance(kickoff, datetime):
@@ -274,8 +276,10 @@ def _build_team_totals_maturation_funnel(
         delta = kickoff - now
         if delta.total_seconds() <= 0:
             timing["already_kicked_off"] += 1
+            already_kicked_off_fixture_ids.append(int(fixture_id))
             continue
         future_kickoffs.append(kickoff)
+        pending_future_fixture_ids.append(int(fixture_id))
         minutes = delta.total_seconds() / 60.0
         if minutes <= 55:
             timing["within_55m"] += 1
@@ -306,6 +310,8 @@ def _build_team_totals_maturation_funnel(
         "capture_without_modeled_signal_fixture_ids": sorted(capture_without_signal),
         "modeled_signal_without_later_real_close_fixture_ids": sorted(signal_without_true_clv),
         "pending_timing": timing,
+        "already_kicked_off_fixture_ids": sorted(already_kicked_off_fixture_ids),
+        "pending_future_fixture_ids": sorted(pending_future_fixture_ids),
         "pending_future_fixtures": len(future_kickoffs),
         "next_pending_kickoff": min(future_kickoffs).isoformat() if future_kickoffs else None,
         "provider_requests_added": 0,
