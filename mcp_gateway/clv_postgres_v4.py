@@ -790,6 +790,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             and signal.get("fixture_id") is not None
         }
         team_totals_modeled_signal_kickoffs: dict[int, datetime] = {}
+        team_totals_directed_audit_signals: list[dict[str, Any]] = []
         for signal in derivative_signals:
             if str(signal.get("signal_source") or "") != "DERIVATIVE_INTELLIGENCE:team_totals_intelligence":
                 continue
@@ -798,6 +799,12 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             if fixture_id is None or not isinstance(kickoff, datetime):
                 continue
             team_totals_modeled_signal_kickoffs[int(fixture_id)] = kickoff
+            team_totals_directed_audit_signals.append({
+                'fixture_id': int(fixture_id),
+                'generated_at': signal.get('generated_at'),
+                'kickoff': kickoff,
+                'market_candidate': dict(signal.get('market_candidate') or {}),
+            })
         derivative_family_counts = Counter(
             str(_family(signal.get("market_candidate") or {}) or "UNMAPPED")
             for signal in derivative_signals
@@ -823,7 +830,10 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             max_rows=max(1, int(max_signals)),
         )
         signal_rows_considered = len(signals)
-        fixture_ids = sorted({int(row["fixture_id"]) for row in signals if row.get("fixture_id") is not None})
+        fixture_ids = sorted(
+            {int(row['fixture_id']) for row in signals if row.get('fixture_id') is not None}
+            | {int(row['fixture_id']) for row in team_totals_directed_audit_signals if row.get('fixture_id') is not None}
+        )
         cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
 
         # These source collections can each contain up to max_signals rows.
@@ -1071,6 +1081,60 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             })
 
 
+    # Research-only directed Team Totals audit. This does not append to tracked rows,
+    # does not change family counts, and does not create synthetic closes. It only
+    # classifies already-kicked-off Team Totals signals using the exact same strict
+    # snapshot/provider/selection semantics as the canonical matcher above.
+    now_utc = datetime.now(timezone.utc)
+    team_totals_directed_close_audit: dict[str, set[int]] = defaultdict(set)
+    for audit_signal in team_totals_directed_audit_signals:
+        fixture_id = int(audit_signal['fixture_id'])
+        generated_at = audit_signal.get('generated_at')
+        kickoff = audit_signal.get('kickoff')
+        candidate = audit_signal.get('market_candidate') or {}
+        if not isinstance(generated_at, datetime) or not isinstance(kickoff, datetime):
+            team_totals_directed_close_audit['MISSING_TIMESTAMPS'].add(fixture_id)
+            continue
+        if kickoff > now_utc:
+            continue
+        later_market_snapshots = [
+            snap
+            for snap in snapshots_by_fixture.get(fixture_id, [])
+            if snap.get('captured_at') is not None
+            and generated_at < snap['captured_at'] < kickoff
+            and _norm(snap.get('market')) == _norm(candidate.get('market'))
+        ]
+        if not later_market_snapshots:
+            team_totals_directed_close_audit['NO_LATER_PREKICKOFF_MARKET_SNAPSHOT'].add(fixture_id)
+            continue
+        strict_candidates = [
+            snap for snap in later_market_snapshots
+            if _is_strictly_later_provider_quote(snap, generated_at)
+        ]
+        if not strict_candidates:
+            team_totals_directed_close_audit['NO_LATER_PROVIDER_UPDATE'].add(fixture_id)
+            continue
+        entry_line = _num(candidate.get('line'))
+        if entry_line is None:
+            entry_line = _line_from_selection(candidate.get('selection'))
+        exact_match = False
+        selection_match = False
+        for snap in strict_candidates:
+            values = snap.get('values') if isinstance(snap.get('values'), list) else []
+            fair, price = _group_fair_probability(values, candidate.get('selection'), entry_line)
+            if fair is not None:
+                exact_match = True
+                break
+            close_line, close_price = _closing_line_candidate(values, candidate.get('selection'))
+            if close_line is not None or close_price is not None:
+                selection_match = True
+        if exact_match:
+            team_totals_directed_close_audit['STRICT_EXACT_CLOSE_EXISTS'].add(fixture_id)
+        elif selection_match:
+            team_totals_directed_close_audit['SELECTION_MATCH_LINE_MOVED'].add(fixture_id)
+        else:
+            team_totals_directed_close_audit['NO_SELECTION_MATCH_AT_CLOSE'].add(fixture_id)
+
     comparable = [row for row in tracked if row.get("probability_comparable_same_line")]
     team_totals_true_clv_fixture_ids = {
         int(row["fixture_id"])
@@ -1115,6 +1179,14 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "team_totals_skip_fixture_counts": {
             reason: len(fixture_ids)
             for reason, fixture_ids in sorted(team_totals_skip_fixture_ids.items())
+        },
+        "team_totals_directed_close_audit": {
+            reason: sorted(fixture_ids)
+            for reason, fixture_ids in sorted(team_totals_directed_close_audit.items())
+        },
+        "team_totals_directed_close_audit_counts": {
+            reason: len(fixture_ids)
+            for reason, fixture_ids in sorted(team_totals_directed_close_audit.items())
         },
         "skip_reasons": dict(sorted(reasons.items())),
         "skip_reason_market_counts": {
