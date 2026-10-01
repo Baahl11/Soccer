@@ -1,0 +1,57 @@
+name: v216.3 Team Totals Timing Diagnostics
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/v2163-team-totals-timing-diagnostics.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 0
+
+      - name: Checkout control script
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: control
+          sparse-checkout: |
+            .github/scripts/v2163_patch_team_totals_timing_ids.py
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply patch
+        run: python control/.github/scripts/v2163_patch_team_totals_timing_ids.py runtime
+
+      - name: Validate
+        working-directory: runtime
+        run: |
+          python -m py_compile mcp_gateway/clv_postgres_v4.py
+          grep -q 'already_kicked_off_fixture_ids' mcp_gateway/clv_postgres_v4.py
+          grep -q 'pending_future_fixture_ids' mcp_gateway/clv_postgres_v4.py
+
+      - name: Commit runtime diagnostic
+        working-directory: runtime
+        run: |
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/clv_postgres_v4.py
+          git diff --cached --quiet && exit 0
+          git commit -m 'v216.3 add Team Totals timing fixture diagnostics'
+          git push origin HEAD:soccer-edge-mcp-v1
