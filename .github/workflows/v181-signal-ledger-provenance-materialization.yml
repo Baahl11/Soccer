@@ -1,9 +1,9 @@
-name: v181 Signal Ledger Provenance Materialization
+name: v214 Signal Evidence Freshness Materialization
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "37 */6 * * *"
+    - cron: "17 * * * *"
   push:
     branches: [main]
     paths:
@@ -12,20 +12,22 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: v214-signal-evidence-freshness
+  cancel-in-progress: true
+
 jobs:
   materialize:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
-      - name: Checkout state history
+      - name: Checkout signal summary only
         uses: actions/checkout@v4
         with:
           ref: soccer-edge-state
           path: state
           fetch-depth: 1
           sparse-checkout: |
-            soccer_edge_state/history
-            soccer_edge_state/analysis/signal_ledger.jsonl
             soccer_edge_state/analysis/signal_ledger_summary.json
           sparse-checkout-cone-mode: false
 
@@ -40,41 +42,60 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate compact-history evidence semantics
+      - name: Validate evidence freshness semantics
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check -q pytest
-          python -m pytest -q runtime/tests/test_signal_ledger_compact_evidence_freshness.py
+          python -m pytest -q \
+            runtime/tests/test_signal_ledger_compact_evidence_freshness.py \
+            runtime/tests/test_refresh_signal_evidence_summary.py
+          python -m py_compile runtime/mcp_gateway/refresh_signal_evidence_summary.py
 
-      - name: Rebuild signal ledger with calibration provenance
+      - name: Fetch latest compact history tick file
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          API="https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/soccer_edge_state/history?ref=soccer-edge-state"
+          LIST=$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "$API")
+          LATEST_URL=$(printf '%s' "$LIST" | jq -r '[.[] | select(.name | test("^20[0-9]{2}-[0-9]{2}-[0-9]{2}\\.jsonl$"))] | sort_by(.name) | last | .download_url // empty')
+          LATEST_NAME=$(printf '%s' "$LIST" | jq -r '[.[] | select(.name | test("^20[0-9]{2}-[0-9]{2}-[0-9]{2}\\.jsonl$"))] | sort_by(.name) | last | .name // empty')
+          test -n "$LATEST_URL"
+          test -n "$LATEST_NAME"
+          echo "Latest compact history: $LATEST_NAME"
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            "$LATEST_URL" \
+            -o /tmp/latest_signal_history.jsonl
+          test -s /tmp/latest_signal_history.jsonl
+
+      - name: Refresh persisted signal evidence timestamp
         shell: bash
         run: |
           set -euo pipefail
-          python runtime/mcp_gateway/build_signal_ledger.py \
-            --history-dir state/soccer_edge_state/history \
-            --output state/soccer_edge_state/analysis/signal_ledger.jsonl \
-            --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
+          python runtime/mcp_gateway/refresh_signal_evidence_summary.py \
+            --summary state/soccer_edge_state/analysis/signal_ledger_summary.json \
+            --history-file /tmp/latest_signal_history.jsonl
 
           jq '{
             schema_version,
             rows,
-            unique_fixtures,
-            rows_with_market,
-            rows_with_phase16_calibration_provenance,
-            rows_phase16_promotion_shadow_eligible,
+            last_generated_at_local,
             last_materialized_ledger_row_at_local,
             last_evidence_at_local,
             last_evidence_at_utc,
             last_evidence_source,
-            compact_postgres_event_ticks,
-            compact_postgres_event_count_total,
+            last_evidence_event_count,
+            last_evidence_database_persisted,
             synthetic_close_rows_added,
             historical_probabilities_recomputed,
             historical_rows_recalibrated,
-            provider_requests_added,
-            canonical_bet_logic_changed,
-            model_weights_changed
+            provider_requests_added
           }' state/soccer_edge_state/analysis/signal_ledger_summary.json
 
           jq -e '.schema_version == "1.5.0"' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
@@ -83,19 +104,17 @@ jobs:
           jq -e '.synthetic_close_rows_added == 0' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
           jq -e '.historical_probabilities_recomputed == false' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
           jq -e '.historical_rows_recalibrated == false' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
-          jq -e '.canonical_bet_logic_changed == false' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
-          jq -e '.model_weights_changed == false' state/soccer_edge_state/analysis/signal_ledger_summary.json >/dev/null
 
-      - name: Persist provenance-enriched ledger
+      - name: Persist signal evidence freshness
         working-directory: state
         shell: bash
         run: |
           set -euo pipefail
           git config user.name soccer-edge-bot
           git config user.email soccer-edge-bot@users.noreply.github.com
-          git add -f soccer_edge_state/analysis/signal_ledger.jsonl soccer_edge_state/analysis/signal_ledger_summary.json
+          git add -f soccer_edge_state/analysis/signal_ledger_summary.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Materialize v214 signal ledger evidence freshness"
+          git commit -m "Materialize v214 signal evidence freshness"
           for attempt in 1 2 3; do
             git fetch origin soccer-edge-state
             git rebase origin/soccer-edge-state
