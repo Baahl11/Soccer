@@ -1,0 +1,230 @@
+name: v215 Signal Ledger Postgres Materialization
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 * * * *"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: v215-signal-ledger-postgres-materialization
+  cancel-in-progress: false
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout canonical state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+          sparse-checkout: |
+            soccer_edge_state/analysis/signal_ledger.jsonl
+            soccer_edge_state/analysis/signal_ledger_summary.json
+          sparse-checkout-cone-mode: false
+
+      - name: Checkout v215 runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate materializer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q pytest
+          python -m py_compile \
+            runtime/mcp_gateway/signal_ledger_postgres_v4.py \
+            runtime/mcp_gateway/signal_ledger_postgres_delta_v4.py \
+            runtime/mcp_gateway/materialize_signal_ledger_postgres_v4.py
+          PYTHONPATH=runtime python -m pytest -q runtime/tests/test_signal_ledger_postgres_materializer_v4.py
+
+      - name: Resolve canonical delta start
+        shell: bash
+        run: |
+          set -euo pipefail
+          SUMMARY=state/soccer_edge_state/analysis/signal_ledger_summary.json
+          LEDGER=state/soccer_edge_state/analysis/signal_ledger.jsonl
+          test -s "$SUMMARY"
+          test -s "$LEDGER"
+          SINCE=$(jq -r '.last_materialized_ledger_row_at_utc // .last_materialized_ledger_row_at_local // empty' "$SUMMARY")
+          test -n "$SINCE"
+          OLD_ROWS=$(jq -r '.rows // 0' "$SUMMARY")
+          echo "SINCE=$SINCE" >> "$GITHUB_ENV"
+          echo "OLD_ROWS=$OLD_ROWS" >> "$GITHUB_ENV"
+          echo "Materializing Postgres rows after $SINCE; current rows=$OLD_ROWS"
+
+      - name: Fetch paged point-in-time Postgres delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          DELTA_PAGES=/tmp/signal_ledger_postgres_delta_pages.jsonl
+          : > "$DELTA_PAGES"
+
+          curl -sS --max-time 90 --retry 2 --retry-delay 5 --retry-all-errors \
+            https://soccer-edge-api.onrender.com/health >/tmp/v215-health.json || true
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS \
+              -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          AFTER_EVENT_ID=0
+          PAGE=0
+          TOTAL_ROWS=0
+          TOTAL_RAW=0
+          while true; do
+            PAGE=$((PAGE + 1))
+            if [ "$PAGE" -gt 100 ]; then
+              echo "::error::v215 pagination exceeded 100 pages"
+              exit 1
+            fi
+
+            TOKEN=$(get_oidc_token)
+            echo "::add-mask::$TOKEN"
+            PAYLOAD=$(jq -nc \
+              --arg since "$SINCE" \
+              --argjson after "$AFTER_EVENT_ID" \
+              '{since:$since,after_event_id:$after,max_rows:1000}')
+            HTTP_CODE=$(curl -sS --max-time 180 --retry 2 --retry-delay 5 --retry-all-errors \
+              -o /tmp/v215-page.json -w "%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \
+              https://soccer-edge-api.onrender.com/internal/signal-ledger-postgres-v4/build)
+
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "::error::v215 endpoint returned HTTP $HTTP_CODE"
+              cat /tmp/v215-page.json || true
+              exit 1
+            fi
+
+            jq -e '
+              .status == "OK"
+              and .model_version == "SOCCER_SIGNAL_LEDGER_POSTGRES_DELTA_V4_1.0.0"
+              and (.rows | type == "array")
+              and .provider_requests_added == 0
+              and .canonical_bet_logic_changed == false
+              and .model_weights_changed == false
+              and .historical_probabilities_recomputed == false
+              and .historical_rows_recalibrated == false
+              and .synthetic_close_rows_added == 0
+              and .production_promotion_allowed == false
+            ' /tmp/v215-page.json >/dev/null
+
+            jq -c . /tmp/v215-page.json >> "$DELTA_PAGES"
+            ROW_COUNT=$(jq -r '.row_count // 0' /tmp/v215-page.json)
+            RAW_COUNT=$(jq -r '.raw_refresh_events_loaded // 0' /tmp/v215-page.json)
+            NEXT_EVENT_ID=$(jq -r '.next_event_id // 0' /tmp/v215-page.json)
+            HAS_MORE=$(jq -r '.has_more // false' /tmp/v215-page.json)
+            TOTAL_ROWS=$((TOTAL_ROWS + ROW_COUNT))
+            TOTAL_RAW=$((TOTAL_RAW + RAW_COUNT))
+
+            echo "v215 page=$PAGE rows=$ROW_COUNT raw=$RAW_COUNT after=$AFTER_EVENT_ID next=$NEXT_EVENT_ID has_more=$HAS_MORE"
+            if [ "$HAS_MORE" != "true" ]; then
+              break
+            fi
+            if [ "$NEXT_EVENT_ID" -le "$AFTER_EVENT_ID" ]; then
+              echo "::error::v215 pagination cursor did not advance"
+              exit 1
+            fi
+            AFTER_EVENT_ID=$NEXT_EVENT_ID
+          done
+
+          echo "V215_TOTAL_ROWS=$TOTAL_ROWS" >> "$GITHUB_ENV"
+          echo "V215_TOTAL_RAW=$TOTAL_RAW" >> "$GITHUB_ENV"
+          echo "V215_PAGES=$PAGE" >> "$GITHUB_ENV"
+
+      - name: Merge Postgres delta into canonical signal ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python runtime/mcp_gateway/materialize_signal_ledger_postgres_v4.py \
+            --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --summary state/soccer_edge_state/analysis/signal_ledger_summary.json \
+            --delta-pages /tmp/signal_ledger_postgres_delta_pages.jsonl \
+            | tee /tmp/v215-materialization-report.json
+
+          jq -e '
+            .provider_requests_added == 0
+            and .canonical_bet_logic_changed == false
+            and .model_weights_changed == false
+            and .historical_probabilities_recomputed == false
+            and .historical_rows_recalibrated == false
+            and .synthetic_close_rows_added == 0
+            and .production_promotion_allowed == false
+          ' /tmp/v215-materialization-report.json >/dev/null
+
+          SUMMARY=state/soccer_edge_state/analysis/signal_ledger_summary.json
+          NEW_ROWS=$(jq -r '.rows // 0' "$SUMMARY")
+          test "$NEW_ROWS" -ge "$OLD_ROWS"
+          jq -e '.schema_version == "1.5.0"' "$SUMMARY" >/dev/null
+          jq -e '.provider_requests_added == 0' "$SUMMARY" >/dev/null
+          jq -e '.historical_probabilities_recomputed == false' "$SUMMARY" >/dev/null
+          jq -e '.historical_rows_recalibrated == false' "$SUMMARY" >/dev/null
+          jq -e '.synthetic_close_rows_added == 0' "$SUMMARY" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$SUMMARY" >/dev/null
+
+          echo "v215 materialization rows: $OLD_ROWS -> $NEW_ROWS (delta rows=$V215_TOTAL_ROWS, pages=$V215_PAGES)"
+          jq '{
+            schema_version,
+            rows,
+            unique_fixtures,
+            last_materialized_ledger_row_at_local,
+            last_materialized_ledger_row_at_utc,
+            last_evidence_at_local,
+            last_evidence_source,
+            postgres_source_rows,
+            postgres_delta_rows_received,
+            postgres_delta_rows_added,
+            postgres_delta_rows_replaced,
+            provider_requests_added,
+            synthetic_close_rows_added,
+            historical_probabilities_recomputed,
+            historical_rows_recalibrated,
+            production_promotion_allowed
+          }' "$SUMMARY"
+
+      - name: Persist canonical v215 ledger checkpoint
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f \
+            soccer_edge_state/analysis/signal_ledger.jsonl \
+            soccer_edge_state/analysis/signal_ledger_summary.json
+          if git diff --cached --quiet; then
+            echo "No new canonical signal-ledger rows to persist"
+            exit 0
+          fi
+          git commit -m "Materialize v215 Postgres signal ledger"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase --autostash origin/soccer-edge-state && git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          echo "::error::Failed to persist v215 signal ledger after concurrent state updates"
+          exit 1
