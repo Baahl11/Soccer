@@ -1,0 +1,670 @@
+name: v215.6 Derivative CLV Anchor Repair
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v2156-derivative-clv-anchor.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Add oldest-unresolved derivative anchor layer
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > runtime/mcp_gateway/derivative_clv_anchor_v4.py <<'PYMOD'
+          from __future__ import annotations
+
+          from collections import defaultdict
+          from datetime import datetime, timedelta, timezone
+          from typing import Any
+
+          from mcp_gateway import price_resolver_v4 as price
+
+          MODEL_VERSION = "SOCCER_DERIVATIVE_CLV_ANCHOR_V4_1.0.0"
+          ANCHOR_POLICY = "OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_EXACT_DERIVATIVE"
+
+          FAMILY_CONFIG: dict[str, tuple[str, str]] = {
+              "1H": (
+                  "one_h_goals_intelligence",
+                  "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence",
+              ),
+              "2H": (
+                  "two_h_goals_intelligence",
+                  "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence",
+              ),
+              "FT_CORNERS": (
+                  "corners_intelligence",
+                  "DERIVATIVE_INTELLIGENCE:corners_intelligence",
+              ),
+              "TEAM_CORNERS": (
+                  "team_corners_intelligence",
+                  "DERIVATIVE_INTELLIGENCE:team_corners_intelligence",
+              ),
+          }
+
+
+          def _load_exact_derivative_backlog(
+              *,
+              families: tuple[str, ...],
+              lookback_days: int | None = None,
+              lookahead_minutes: int | None = None,
+              limit: int | None = None,
+          ) -> dict[str, Any]:
+              normalized_families = tuple(
+                  family
+                  for family in dict.fromkeys(str(value).upper() for value in families)
+                  if family in FAMILY_CONFIG
+              )
+              lookback_days = (
+                  price.TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS
+                  if lookback_days is None
+                  else max(1, int(lookback_days))
+              )
+              lookahead_minutes = (
+                  price.PRIMARY_CLV_MATURATION_LOOKAHEAD_MINUTES
+                  if lookahead_minutes is None
+                  else max(20, int(lookahead_minutes))
+              )
+              limit = (
+                  price.PRIMARY_CLV_MATURATION_BACKLOG_LIMIT
+                  if limit is None
+                  else max(1, int(limit))
+              )
+
+              empty = {
+                  "candidate_events": [],
+                  "candidate_count": 0,
+                  "candidate_family_counts": {},
+                  "candidate_source_counts": {},
+                  "source": "POSTGRES_NOT_CONFIGURED",
+                  "signal_anchor_policy": ANCHOR_POLICY,
+                  "provider_requests_added": 0,
+                  "provider_budget_changed": False,
+                  "strict_close_semantics_changed": False,
+                  "historical_rows_mutated": False,
+              }
+              if not normalized_families:
+                  empty["source"] = "NO_SUPPORTED_DERIVATIVE_FAMILIES"
+                  return empty
+              if not price.persistence.persistence_configured():
+                  return empty
+
+              price.persistence.ensure_schema()
+              now = datetime.now(timezone.utc)
+              cutoff = now - timedelta(days=lookback_days)
+              lookahead = now + timedelta(minutes=lookahead_minutes)
+
+              fragments: list[str] = []
+              for family in normalized_families:
+                  container_key, source = FAMILY_CONFIG[family]
+                  fragments.append(
+                      f"""
+                      SELECT
+                          e.fixture_id,
+                          '{family}'::TEXT AS market_family,
+                          sig.row ->> 'market' AS market,
+                          sig.row ->> 'selection' AS selection,
+                          sig.row ->> 'line' AS line,
+                          e.generated_at AS signal_generated_at,
+                          '{source}'::TEXT AS candidate_source,
+                          f.league_id,
+                          f.league,
+                          f.country,
+                          f.season,
+                          f.round,
+                          f.kickoff,
+                          f.status,
+                          f.status_long,
+                          f.home_team_id,
+                          f.home_team,
+                          f.away_team_id,
+                          f.away_team,
+                          f.venue,
+                          f.city
+                      FROM soccer_refresh_events e
+                      JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                      CROSS JOIN bounds b
+                      CROSS JOIN LATERAL jsonb_array_elements(
+                          CASE
+                              WHEN jsonb_typeof(
+                                  COALESCE(
+                                      e.payload -> '{container_key}' -> 'observed_market_rows',
+                                      '[]'::jsonb
+                                  )
+                              ) = 'array'
+                              THEN COALESCE(
+                                  e.payload -> '{container_key}' -> 'observed_market_rows',
+                                  '[]'::jsonb
+                              )
+                              ELSE '[]'::jsonb
+                          END
+                      ) AS sig(row)
+                      WHERE e.generated_at >= b.cutoff
+                        AND e.generated_at < f.kickoff
+                        AND f.kickoff > b.now_utc
+                        AND f.kickoff <= b.lookahead
+                        AND COALESCE(f.status, 'NS') NOT IN ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                        AND NULLIF(sig.row ->> 'market', '') IS NOT NULL
+                        AND NULLIF(sig.row ->> 'selection', '') IS NOT NULL
+                        AND COALESCE(sig.row ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+                        AND COALESCE(sig.row ->> 'decimal_price', sig.row ->> 'price', '') ~ '^[0-9]+([.][0-9]+)?$'
+                        AND COALESCE(sig.row ->> 'decimal_price', sig.row ->> 'price')::DOUBLE PRECISION > 1.0
+                      """
+                  )
+
+              candidate_sql = "\nUNION ALL\n".join(fragments)
+              query = f"""
+                  WITH bounds AS (
+                      SELECT
+                          %s::timestamptz AS cutoff,
+                          %s::timestamptz AS now_utc,
+                          %s::timestamptz AS lookahead
+                  ),
+                  candidate_signal AS (
+                      {candidate_sql}
+                  ),
+                  oldest_unresolved_signal AS (
+                      SELECT DISTINCT ON (
+                          cs.fixture_id,
+                          cs.market_family,
+                          LOWER(TRIM(COALESCE(cs.market, ''))),
+                          CASE
+                              WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'over%%' THEN 'over'
+                              WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'under%%' THEN 'under'
+                              ELSE LOWER(TRIM(COALESCE(cs.selection, '')))
+                          END,
+                          (cs.line)::NUMERIC
+                      )
+                          cs.fixture_id,
+                          cs.market_family,
+                          cs.market,
+                          cs.selection,
+                          cs.line,
+                          cs.signal_generated_at,
+                          cs.candidate_source,
+                          cs.league_id,
+                          cs.league,
+                          cs.country,
+                          cs.season,
+                          cs.round,
+                          cs.kickoff,
+                          cs.status,
+                          cs.status_long,
+                          cs.home_team_id,
+                          cs.home_team,
+                          cs.away_team_id,
+                          cs.away_team,
+                          cs.venue,
+                          cs.city
+                      FROM candidate_signal cs
+                      WHERE NOT EXISTS (
+                          SELECT 1
+                          FROM soccer_market_snapshots m
+                          CROSS JOIN LATERAL jsonb_array_elements(
+                              CASE
+                                  WHEN jsonb_typeof(COALESCE(m.values, '[]'::jsonb)) = 'array'
+                                  THEN COALESCE(m.values, '[]'::jsonb)
+                                  ELSE '[]'::jsonb
+                              END
+                          ) AS q(value)
+                          WHERE m.fixture_id = cs.fixture_id
+                            AND m.captured_at > cs.signal_generated_at
+                            AND m.captured_at < cs.kickoff
+                            AND m.provider_update IS NOT NULL
+                            AND m.provider_update > cs.signal_generated_at
+                            AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(cs.market, '')))
+                            AND (
+                                  CASE
+                                      WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                                      WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                                      ELSE LOWER(TRIM(COALESCE(q.value ->> 'selection', '')))
+                                  END
+                                ) = (
+                                  CASE
+                                      WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'over%%' THEN 'over'
+                                      WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'under%%' THEN 'under'
+                                      ELSE LOWER(TRIM(COALESCE(cs.selection, '')))
+                                  END
+                                )
+                            AND COALESCE(q.value ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+                            AND ABS(
+                                  (q.value ->> 'line')::NUMERIC
+                                  - (cs.line)::NUMERIC
+                                ) < 0.000001
+                      )
+                      ORDER BY
+                          cs.fixture_id,
+                          cs.market_family,
+                          LOWER(TRIM(COALESCE(cs.market, ''))),
+                          CASE
+                              WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'over%%' THEN 'over'
+                              WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'under%%' THEN 'under'
+                              ELSE LOWER(TRIM(COALESCE(cs.selection, '')))
+                          END,
+                          (cs.line)::NUMERIC,
+                          cs.signal_generated_at ASC
+                  )
+                  SELECT ous.*
+                  FROM oldest_unresolved_signal ous
+                  ORDER BY
+                      ous.kickoff ASC,
+                      ous.fixture_id ASC,
+                      ous.market_family ASC,
+                      ous.market ASC,
+                      ous.selection ASC,
+                      (ous.line)::NUMERIC ASC
+                  LIMIT %s
+              """
+
+              with price.persistence._connect() as conn:
+                  with conn.cursor() as cur:
+                      cur.execute(query, (cutoff, now, lookahead, limit))
+                      rows = cur.fetchall()
+                      columns = [desc.name for desc in cur.description]
+
+              grouped: dict[int, dict[str, Any]] = {}
+              family_counts: dict[str, int] = defaultdict(int)
+              source_counts: dict[str, int] = defaultdict(int)
+              for raw_row in rows:
+                  row = dict(zip(columns, raw_row))
+                  try:
+                      fixture_id = int(row.get("fixture_id"))
+                  except (TypeError, ValueError):
+                      continue
+                  family = str(row.get("market_family") or "").upper()
+                  if family not in normalized_families:
+                      continue
+                  line = price._num(row.get("line"))
+                  if line is None:
+                      continue
+                  signal_at = row.get("signal_generated_at")
+                  kickoff = row.get("kickoff")
+                  source = str(row.get("candidate_source") or "UNKNOWN")
+                  family_counts[family] += 1
+                  source_counts[source] += 1
+                  record = grouped.setdefault(
+                      fixture_id,
+                      {
+                          "fixture": {
+                              "fixture_id": fixture_id,
+                              "league_id": row.get("league_id"),
+                              "league": row.get("league"),
+                              "country": row.get("country"),
+                              "season": row.get("season"),
+                              "round": row.get("round"),
+                              "kickoff": kickoff.isoformat() if isinstance(kickoff, datetime) else kickoff,
+                              "status": row.get("status"),
+                              "status_long": row.get("status_long"),
+                              "home_team_id": row.get("home_team_id"),
+                              "home_team": row.get("home_team"),
+                              "away_team_id": row.get("away_team_id"),
+                              "away_team": row.get("away_team"),
+                              "venue": row.get("venue"),
+                              "city": row.get("city"),
+                          },
+                          "kickoff": kickoff,
+                          "signals": [],
+                      },
+                  )
+                  record["signals"].append(
+                      {
+                          "market_family": family,
+                          "market": row.get("market"),
+                          "selection": row.get("selection"),
+                          "line": line,
+                          "signal_generated_at": (
+                              signal_at.isoformat() if isinstance(signal_at, datetime) else signal_at
+                          ),
+                          "candidate_source": source,
+                          "signal_anchor_policy": ANCHOR_POLICY,
+                      }
+                  )
+
+              events: list[dict[str, Any]] = []
+              for record in grouped.values():
+                  events.append(
+                      {
+                          "event_type": price.PRIMARY_CLV_MATURATION_EVENT_TYPE,
+                          "stage": price._maturation_stage(record.get("kickoff"), now),
+                          "fixture": record["fixture"],
+                          "classification": "RESEARCH_ONLY",
+                          "bet_eligible": False,
+                          "research_only": True,
+                          "decision_weight": 0.0,
+                          "primary_clv_maturation": {
+                              "candidate_source": "POSTGRES_DERIVATIVE_OLDEST_UNRESOLVED_SIGNAL_NO_LATER_EXACT_QUOTE",
+                              "signals": list(record["signals"]),
+                              "signal_anchor_policy": ANCHOR_POLICY,
+                              "provider_requests_before_price_resolver": 0,
+                              "primary_markets_preempted": False,
+                              "requires_provider_update_after_signal": True,
+                              "requires_same_selection_and_line": True,
+                              "strict_close_semantics_changed": False,
+                              "historical_signal_mutated": False,
+                          },
+                      }
+                  )
+
+              events.sort(
+                  key=lambda event: (
+                      str(((event.get("fixture") or {}).get("kickoff") or "")),
+                      int(((event.get("fixture") or {}).get("fixture_id") or 0)),
+                  )
+              )
+              return {
+                  "candidate_events": events,
+                  "candidate_count": len(events),
+                  "candidate_family_counts": dict(sorted(family_counts.items())),
+                  "candidate_source_counts": dict(sorted(source_counts.items())),
+                  "source": "POSTGRES_DERIVATIVE_CLV_MATURATION_BACKLOG_V2_OLDEST_UNRESOLVED",
+                  "signal_anchor_policy": ANCHOR_POLICY,
+                  "provider_requests_added": 0,
+                  "provider_budget_changed": False,
+                  "strict_close_semantics_changed": False,
+                  "historical_rows_mutated": False,
+              }
+
+
+          def load_one_h_clv_maturation_backlog(**kwargs: Any) -> dict[str, Any]:
+              return _load_exact_derivative_backlog(families=("1H",), **kwargs)
+
+
+          def load_two_h_clv_maturation_backlog(**kwargs: Any) -> dict[str, Any]:
+              return _load_exact_derivative_backlog(families=("2H",), **kwargs)
+
+
+          def load_corners_clv_maturation_backlog(**kwargs: Any) -> dict[str, Any]:
+              return _load_exact_derivative_backlog(
+                  families=("FT_CORNERS", "TEAM_CORNERS"),
+                  **kwargs,
+              )
+          PYMOD
+
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('runtime/mcp_gateway/automation_v129.py')
+          text = path.read_text(encoding='utf-8')
+
+          import_anchor = 'from mcp_gateway import primary_clv_anchor_v4\n'
+          replacement = (
+              'from mcp_gateway import primary_clv_anchor_v4\n'
+              'from mcp_gateway import derivative_clv_anchor_v4\n'
+          )
+          if 'from mcp_gateway import derivative_clv_anchor_v4' not in text:
+              if import_anchor not in text:
+                  raise SystemExit('automation import anchor missing')
+              text = text.replace(import_anchor, replacement, 1)
+
+          text = text.replace(
+              'AUTOMATION_VERSION = "4.38.1-primary-clv-anchor-repair"',
+              'AUTOMATION_VERSION = "4.38.2-derivative-clv-anchor-repair"',
+              1,
+          )
+
+          old_run = '''async def run_tick() -> dict[str, Any]:\n    original_primary_loader = price_resolver_v4._load_primary_clv_maturation_backlog\n    price_resolver_v4._load_primary_clv_maturation_backlog = (\n        primary_clv_anchor_v4.load_primary_clv_maturation_backlog\n    )\n    try:\n        payload = await v128.run_tick()\n    finally:\n        price_resolver_v4._load_primary_clv_maturation_backlog = original_primary_loader\n'''
+          new_run = '''async def run_tick() -> dict[str, Any]:\n    original_primary_loader = price_resolver_v4._load_primary_clv_maturation_backlog\n    original_one_h_loader = price_resolver_v4._load_one_h_clv_maturation_backlog\n    original_two_h_loader = price_resolver_v4._load_two_h_clv_maturation_backlog\n    original_corners_loader = price_resolver_v4._load_corners_clv_maturation_backlog\n    price_resolver_v4._load_primary_clv_maturation_backlog = (\n        primary_clv_anchor_v4.load_primary_clv_maturation_backlog\n    )\n    price_resolver_v4._load_one_h_clv_maturation_backlog = (\n        derivative_clv_anchor_v4.load_one_h_clv_maturation_backlog\n    )\n    price_resolver_v4._load_two_h_clv_maturation_backlog = (\n        derivative_clv_anchor_v4.load_two_h_clv_maturation_backlog\n    )\n    price_resolver_v4._load_corners_clv_maturation_backlog = (\n        derivative_clv_anchor_v4.load_corners_clv_maturation_backlog\n    )\n    try:\n        payload = await v128.run_tick()\n    finally:\n        price_resolver_v4._load_primary_clv_maturation_backlog = original_primary_loader\n        price_resolver_v4._load_one_h_clv_maturation_backlog = original_one_h_loader\n        price_resolver_v4._load_two_h_clv_maturation_backlog = original_two_h_loader\n        price_resolver_v4._load_corners_clv_maturation_backlog = original_corners_loader\n'''
+          if old_run not in text:
+              raise SystemExit('automation run_tick anchor missing')
+          text = text.replace(old_run, new_run, 1)
+
+          marker = '    payload["version"] = AUTOMATION_VERSION\n'
+          metadata = '''    payload["v215_6_derivative_clv_anchor_repair"] = {\n        "schema_version": "1.0.0",\n        "status": "ACTIVE_OLDEST_UNRESOLVED_EXACT_DERIVATIVE_SIGNAL",\n        "signal_anchor_policy": derivative_clv_anchor_v4.ANCHOR_POLICY,\n        "scope": ["1H", "2H", "FT_CORNERS", "TEAM_CORNERS"],\n        "strict_close_semantics_changed": False,\n        "requires_captured_at_after_signal": True,\n        "requires_provider_update_after_signal": True,\n        "requires_same_selection_and_line": True,\n        "historical_rows_mutated": False,\n        "historical_probabilities_recomputed": False,\n        "retroactive_signal_created": False,\n        "provider_budget_changed": False,\n        "provider_requests_added_by_anchor_loader": 0,\n        "decision_weight": 0.0,\n        "production_promotion_allowed": False,\n        "model_weights_changed": False,\n        "thresholds_changed": False,\n        "gates_changed": False,\n        "canonical_bet_logic_changed": False,\n        "team_totals_anchor_pending_separate_block": True,\n        "policy": (\n            "SELECT_OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_EXACT_DERIVATIVE; "\n            "DO_NOT_ADVANCE_ANCHOR_ON_RECYCLED_SCHEDULER_TICKS; "\n            "STRICTLY_LATER_REAL_PROVIDER_QUOTE_AND_EXACT_SELECTION_LINE_STILL_REQUIRED"\n        ),\n    }\n    payload["v215_6_checkpoint"] = (\n        "DERIVATIVE TRUE-CLV ANCHOR REPAIRED FOR 1H/2H/CORNERS: repeated scheduler ticks no "\n        "longer move the unresolved signal anchor forward. Strict captured_at/provider_update and "\n        "same-selection/same-line requirements remain unchanged; no provider budget increase or "\n        "history rewrite. Team Totals anchor remains a separate follow-up block."\n    )\n'''
+          if 'v215_6_derivative_clv_anchor_repair' not in text:
+              if marker not in text:
+                  raise SystemExit('automation metadata anchor missing')
+              text = text.replace(marker, metadata + marker, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+          workflow = Path('runtime/.github/workflows/v4-runtime-tests.yml')
+          w = workflow.read_text(encoding='utf-8')
+          if 'tests/test_derivative_clv_anchor_v4.py' not in w:
+              w = w.replace(
+                  '      - "tests/test_primary_clv_anchor_v4.py"\n',
+                  '      - "tests/test_primary_clv_anchor_v4.py"\n      - "tests/test_derivative_clv_anchor_v4.py"\n',
+                  1,
+              )
+              w = w.replace(
+                  '            tests/test_primary_clv_anchor_v4.py \\\n',
+                  '            tests/test_primary_clv_anchor_v4.py \\\n            tests/test_derivative_clv_anchor_v4.py \\\n',
+                  1,
+              )
+              workflow.write_text(w, encoding='utf-8')
+          PY
+
+          cat > runtime/tests/test_derivative_clv_anchor_v4.py <<'PYTEST'
+          import asyncio
+          from datetime import datetime, timezone
+          from types import SimpleNamespace
+
+          from mcp_gateway import automation_v129
+          from mcp_gateway import derivative_clv_anchor_v4 as anchor
+          from mcp_gateway import price_resolver_v4 as price
+
+
+          COLUMNS = (
+              "fixture_id",
+              "market_family",
+              "market",
+              "selection",
+              "line",
+              "signal_generated_at",
+              "candidate_source",
+              "league_id",
+              "league",
+              "country",
+              "season",
+              "round",
+              "kickoff",
+              "status",
+              "status_long",
+              "home_team_id",
+              "home_team",
+              "away_team_id",
+              "away_team",
+              "venue",
+              "city",
+          )
+
+
+          class _FakeCursor:
+              def __init__(self, rows):
+                  self._rows = rows
+                  self.query = ""
+                  self.params = None
+                  self.description = [SimpleNamespace(name=name) for name in COLUMNS]
+
+              def __enter__(self):
+                  return self
+
+              def __exit__(self, exc_type, exc, tb):
+                  return False
+
+              def execute(self, query, params):
+                  self.query = query
+                  self.params = params
+
+              def fetchall(self):
+                  return self._rows
+
+
+          class _FakeConnection:
+              def __init__(self, cursor):
+                  self._cursor = cursor
+
+              def __enter__(self):
+                  return self
+
+              def __exit__(self, exc_type, exc, tb):
+                  return False
+
+              def cursor(self):
+                  return self._cursor
+
+
+          def _wire_fake_db(monkeypatch, cursor):
+              monkeypatch.setattr(price.persistence, "persistence_configured", lambda: True)
+              monkeypatch.setattr(price.persistence, "ensure_schema", lambda: None)
+              monkeypatch.setattr(price.persistence, "_connect", lambda: _FakeConnection(cursor))
+
+
+          def test_one_h_anchor_uses_oldest_unresolved_exact_signal(monkeypatch):
+              signal_at = datetime(2026, 10, 1, 16, 0, tzinfo=timezone.utc)
+              kickoff = datetime(2026, 10, 1, 16, 45, tzinfo=timezone.utc)
+              cursor = _FakeCursor([
+                  (
+                      12345,
+                      "1H",
+                      "Goals Over/Under - First Half",
+                      "Over",
+                      "1.5",
+                      signal_at,
+                      "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence",
+                      39,
+                      "Premier League",
+                      "England",
+                      2026,
+                      "Regular Season - 1",
+                      kickoff,
+                      "NS",
+                      "Not Started",
+                      1,
+                      "Home",
+                      2,
+                      "Away",
+                      "Stadium",
+                      "City",
+                  )
+              ])
+              _wire_fake_db(monkeypatch, cursor)
+
+              report = anchor.load_one_h_clv_maturation_backlog(
+                  lookback_days=30,
+                  lookahead_minutes=55,
+                  limit=80,
+              )
+
+              normalized = " ".join(cursor.query.split())
+              assert "oldest_unresolved_signal AS" in normalized
+              assert "cs.signal_generated_at ASC" in normalized
+              assert "m.captured_at > cs.signal_generated_at" in normalized
+              assert "m.provider_update > cs.signal_generated_at" in normalized
+              assert "(q.value ->> 'line')::NUMERIC - (cs.line)::NUMERIC" in normalized
+              assert report["signal_anchor_policy"] == anchor.ANCHOR_POLICY
+              assert report["candidate_family_counts"] == {"1H": 1}
+              meta = report["candidate_events"][0]["primary_clv_maturation"]
+              assert meta["signals"][0]["signal_generated_at"] == signal_at.isoformat()
+              assert meta["requires_same_selection_and_line"] is True
+              assert meta["strict_close_semantics_changed"] is False
+
+
+          def test_two_h_and_corners_use_expected_persisted_sources(monkeypatch):
+              cursor = _FakeCursor([])
+              _wire_fake_db(monkeypatch, cursor)
+              anchor.load_two_h_clv_maturation_backlog(limit=10)
+              assert "two_h_goals_intelligence" in cursor.query
+              assert "'2H'::TEXT" in cursor.query
+
+              cursor2 = _FakeCursor([])
+              _wire_fake_db(monkeypatch, cursor2)
+              anchor.load_corners_clv_maturation_backlog(limit=10)
+              assert "corners_intelligence" in cursor2.query
+              assert "team_corners_intelligence" in cursor2.query
+              assert "'FT_CORNERS'::TEXT" in cursor2.query
+              assert "'TEAM_CORNERS'::TEXT" in cursor2.query
+
+
+          def test_v129_activates_and_restores_derivative_anchor_loaders(monkeypatch):
+              original_one_h = price._load_one_h_clv_maturation_backlog
+              original_two_h = price._load_two_h_clv_maturation_backlog
+              original_corners = price._load_corners_clv_maturation_backlog
+
+              def one_h_loader(*args, **kwargs):
+                  return {"candidate_events": [], "candidate_count": 0}
+
+              def two_h_loader(*args, **kwargs):
+                  return {"candidate_events": [], "candidate_count": 0}
+
+              def corners_loader(*args, **kwargs):
+                  return {"candidate_events": [], "candidate_count": 0}
+
+              async def fake_v128_run_tick():
+                  assert price._load_one_h_clv_maturation_backlog is one_h_loader
+                  assert price._load_two_h_clv_maturation_backlog is two_h_loader
+                  assert price._load_corners_clv_maturation_backlog is corners_loader
+                  return {"events": [], "model_version": "SOCCER EDGE ENGINE v1.7"}
+
+              monkeypatch.setattr(anchor, "load_one_h_clv_maturation_backlog", one_h_loader)
+              monkeypatch.setattr(anchor, "load_two_h_clv_maturation_backlog", two_h_loader)
+              monkeypatch.setattr(anchor, "load_corners_clv_maturation_backlog", corners_loader)
+              monkeypatch.setattr(automation_v129.v128, "run_tick", fake_v128_run_tick)
+              monkeypatch.setattr(
+                  automation_v129.dynamic_strength_challenger_v4,
+                  "build_report",
+                  lambda events: {"status": "TEST"},
+              )
+
+              payload = asyncio.run(automation_v129.run_tick())
+
+              assert price._load_one_h_clv_maturation_backlog is original_one_h
+              assert price._load_two_h_clv_maturation_backlog is original_two_h
+              assert price._load_corners_clv_maturation_backlog is original_corners
+              repair = payload["v215_6_derivative_clv_anchor_repair"]
+              assert repair["signal_anchor_policy"] == anchor.ANCHOR_POLICY
+              assert repair["scope"] == ["1H", "2H", "FT_CORNERS", "TEAM_CORNERS"]
+              assert repair["provider_budget_changed"] is False
+              assert payload["version"] == "4.38.2-derivative-clv-anchor-repair"
+          PYTEST
+
+      - name: Validate derivative anchor repair
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q -r mcp_gateway/requirements.txt pytest
+          python -m py_compile \
+            mcp_gateway/derivative_clv_anchor_v4.py \
+            mcp_gateway/automation_v129.py \
+            mcp_gateway/price_resolver_v4.py
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_derivative_clv_anchor_v4.py \
+            tests/test_primary_clv_anchor_v4.py \
+            tests/test_price_resolver_v4.py
+          grep -q '4.38.2-derivative-clv-anchor-repair' mcp_gateway/automation_v129.py
+          grep -q 'OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_EXACT_DERIVATIVE' mcp_gateway/derivative_clv_anchor_v4.py
+
+      - name: Commit validated runtime patch
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add \
+            mcp_gateway/derivative_clv_anchor_v4.py \
+            mcp_gateway/automation_v129.py \
+            tests/test_derivative_clv_anchor_v4.py \
+            .github/workflows/v4-runtime-tests.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "v215.6 repair derivative CLV signal anchors"
+          git push origin HEAD:soccer-edge-mcp-v1
