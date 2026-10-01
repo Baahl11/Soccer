@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 from mcp_gateway import build_signal_ledger as legacy
 from mcp_gateway import persistence
 
-SCHEMA_VERSION = "2.0.0"
+SCHEMA_VERSION = "2.1.0"
 SOURCE = "POSTGRES_SOCCER_REFRESH_EVENTS_POINT_IN_TIME"
 DEFAULT_TIMEZONE = "America/Mexico_City"
 
@@ -39,10 +39,15 @@ def _local_iso(value: Any, timezone_name: str) -> str | None:
 
 
 def _fixture_from_row(row: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
-    fixture = event.get("fixture")
-    if isinstance(fixture, dict) and fixture.get("fixture_id"):
-        return fixture
-    return {
+    """Return point-in-time fixture data with stable metadata fallbacks only.
+
+    soccer_fixtures is a latest-state table. It is safe for stable identity and
+    schedule/team metadata, but its status/result fields must never be copied
+    into a historical ledger row because that would leak future knowledge.
+    """
+    point_in_time = event.get("fixture")
+    fixture = dict(point_in_time) if isinstance(point_in_time, dict) else {}
+    stable_fallbacks = {
         "fixture_id": row.get("fixture_id"),
         "kickoff": _iso(row.get("kickoff")),
         "league_id": row.get("league_id"),
@@ -53,8 +58,11 @@ def _fixture_from_row(row: dict[str, Any], event: dict[str, Any]) -> dict[str, A
         "home_team": row.get("home_team"),
         "away_team_id": row.get("away_team_id"),
         "away_team": row.get("away_team"),
-        "status": row.get("fixture_status"),
     }
+    for key, value in stable_fallbacks.items():
+        if fixture.get(key) is None and value is not None:
+            fixture[key] = value
+    return fixture
 
 
 def _pipeline_tick_view(row: dict[str, Any], generated_at: Any, timezone_name: str) -> dict[str, Any]:
@@ -107,7 +115,9 @@ def _ledger_row(row: dict[str, Any]) -> dict[str, Any] | None:
         "home_team": fixture.get("home_team") or row.get("home_team"),
         "away_team_id": fixture.get("away_team_id") or row.get("away_team_id"),
         "away_team": fixture.get("away_team") or row.get("away_team"),
-        "fixture_status": fixture.get("status") or row.get("fixture_status"),
+        # Never fall back to soccer_fixtures.status here. Only the status that
+        # existed inside the persisted point-in-time event is admissible.
+        "fixture_status": fixture.get("status"),
         "event_type": event.get("event_type") or row.get("event_type"),
         "stage": event.get("stage") or row.get("stage"),
         "classification": event.get("classification") if event.get("classification") is not None else row.get("classification"),
@@ -195,6 +205,10 @@ def summarize_rows(
         for track in (row.get("sporting_shortlist") or {}).get("tracks") or []:
             signal_counts[str(track)] += 1
 
+    first_local = rows[0].get("generated_at_local") if rows else None
+    last_local = rows[-1].get("generated_at_local") if rows else None
+    first_utc = rows[0].get("generated_at_utc") if rows else None
+    last_utc = rows[-1].get("generated_at_utc") if rows else None
     summary: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "source": source,
@@ -214,14 +228,19 @@ def summarize_rows(
         "stage_counts": dict(sorted(stage_counts.items())),
         "classification_counts": dict(sorted(class_counts.items())),
         "sport_signal_counts": dict(sorted(signal_counts.items())),
-        "first_generated_at_local": rows[0].get("generated_at_local") if rows else None,
-        "last_generated_at_local": rows[-1].get("generated_at_local") if rows else None,
+        "first_generated_at_local": first_local,
+        "first_generated_at_utc": first_utc,
+        "last_generated_at_local": last_local,
+        "last_generated_at_utc": last_utc,
+        "last_materialized_ledger_row_at_local": last_local,
+        "last_materialized_ledger_row_at_utc": last_utc,
         "postgres_source_rows": postgres_source_rows,
         "provider_requests_added": 0,
         "canonical_bet_logic_changed": False,
         "model_weights_changed": False,
         "historical_probabilities_recomputed": False,
         "historical_rows_recalibrated": False,
+        "synthetic_close_rows_added": 0,
         "point_in_time_payloads_reused": True,
     }
     if postgres_rows is not None:
@@ -263,7 +282,6 @@ def build_from_postgres(*, lookback_days: int = 60, max_rows: int = 50000) -> di
                     f.home_team,
                     f.away_team_id,
                     f.away_team,
-                    f.status AS fixture_status,
                     p.run_id AS pipeline_run_id,
                     p.generated_at_local AS pipeline_generated_at_local,
                     p.timezone AS pipeline_timezone,
@@ -291,7 +309,6 @@ def build_from_postgres(*, lookback_days: int = 60, max_rows: int = 50000) -> di
             columns = [desc.name for desc in cur.description]
             raw_rows = [dict(zip(columns, values)) for values in cur.fetchall()]
 
-    rows: list[dict[str, Any]] = []
     by_key: dict[str, dict[str, Any]] = {}
     rows_without_pipeline_match = 0
     for raw in raw_rows:
@@ -316,6 +333,7 @@ def build_from_postgres(*, lookback_days: int = 60, max_rows: int = 50000) -> di
         "strict_point_in_time_policy": (
             "REUSE_SOCCER_REFRESH_EVENTS_PAYLOAD_AT_GENERATED_AT; "
             "MATCH_ONLY_SAME_TICK_PIPELINE_ENVELOPE_WITHIN_1_SECOND; "
+            "NEVER_FILL_HISTORICAL_STATUS_OR_RESULT_FROM_MUTABLE_SOCCER_FIXTURES; "
             "DO_NOT_RECALCULATE_HISTORICAL_PROBABILITIES_OR_CALIBRATORS"
         ),
         "production_promotion_allowed": False,
@@ -331,5 +349,6 @@ def build_from_postgres(*, lookback_days: int = 60, max_rows: int = 50000) -> di
         "model_weights_changed": False,
         "historical_probabilities_recomputed": False,
         "historical_rows_recalibrated": False,
+        "synthetic_close_rows_added": 0,
         "production_promotion_allowed": False,
     }
