@@ -1,0 +1,96 @@
+name: v215.6.1 Bound Derivative Anchor Query
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v21561-derivative-anchor-query-bound.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bound derivative anchor scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          src = Path('runtime/mcp_gateway/derivative_clv_anchor_v4.py')
+          text = src.read_text(encoding='utf-8')
+          text = text.replace(
+              'MODEL_VERSION = "SOCCER_DERIVATIVE_CLV_ANCHOR_V4_1.0.0"',
+              'MODEL_VERSION = "SOCCER_DERIVATIVE_CLV_ANCHOR_V4_1.0.1"',
+              1,
+          )
+          anchor = 'ANCHOR_POLICY = "OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_EXACT_DERIVATIVE"\n'
+          if 'DEFAULT_DERIVATIVE_ANCHOR_LOOKBACK_DAYS' not in text:
+              text = text.replace(
+                  anchor,
+                  anchor + 'DEFAULT_DERIVATIVE_ANCHOR_LOOKBACK_DAYS = 1\n',
+                  1,
+              )
+
+          old_default = '''    lookback_days = (\n        price.TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS\n        if lookback_days is None\n        else max(1, int(lookback_days))\n    )\n'''
+          new_default = '''    lookback_days = (\n        DEFAULT_DERIVATIVE_ANCHOR_LOOKBACK_DAYS\n        if lookback_days is None\n        else max(1, int(lookback_days))\n    )\n'''
+          if old_default not in text:
+              raise SystemExit('lookback default anchor missing')
+          text = text.replace(old_default, new_default, 1)
+
+          stage_anchor = '''            WHERE e.generated_at >= b.cutoff\n              AND e.generated_at < f.kickoff\n'''
+          stage_new = '''            WHERE e.generated_at >= b.cutoff\n              AND e.stage IN ('T-40','T-20','T-10')\n              AND e.generated_at < f.kickoff\n'''
+          if stage_anchor not in text:
+              raise SystemExit('stage filter anchor missing')
+          text = text.replace(stage_anchor, stage_new)
+          src.write_text(text, encoding='utf-8')
+
+          test = Path('runtime/tests/test_derivative_clv_anchor_v4.py')
+          t = test.read_text(encoding='utf-8')
+          marker = 'def test_default_derivative_anchor_scan_is_bounded_to_one_day():'
+          if marker not in t:
+              t += '''\n\n\ndef test_default_derivative_anchor_scan_is_bounded_to_one_day(monkeypatch):\n    from datetime import datetime, timedelta, timezone\n\n    cursor = _FakeCursor([])\n    _wire_fake_db(monkeypatch, cursor)\n    before = datetime.now(timezone.utc)\n    anchor.load_one_h_clv_maturation_backlog(limit=10)\n    after = datetime.now(timezone.utc)\n\n    cutoff = cursor.params[0]\n    assert timedelta(hours=23, minutes=59) <= (after - cutoff) <= timedelta(days=1, minutes=1)\n    assert cutoff <= before - timedelta(hours=23, minutes=59)\n    normalized = " ".join(cursor.query.split())\n    assert "e.stage IN ('T-40','T-20','T-10')" in normalized\n    assert anchor.DEFAULT_DERIVATIVE_ANCHOR_LOOKBACK_DAYS == 1\n'''
+              test.write_text(t, encoding='utf-8')
+          PY
+
+      - name: Validate hotfix
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q -r mcp_gateway/requirements.txt pytest
+          python -m py_compile mcp_gateway/derivative_clv_anchor_v4.py mcp_gateway/automation_v129.py
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_derivative_clv_anchor_v4.py \
+            tests/test_primary_clv_anchor_v4.py \
+            tests/test_price_resolver_v4.py
+          grep -q 'SOCCER_DERIVATIVE_CLV_ANCHOR_V4_1.0.1' mcp_gateway/derivative_clv_anchor_v4.py
+          grep -q 'DEFAULT_DERIVATIVE_ANCHOR_LOOKBACK_DAYS = 1' mcp_gateway/derivative_clv_anchor_v4.py
+
+      - name: Commit validated runtime hotfix
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/derivative_clv_anchor_v4.py tests/test_derivative_clv_anchor_v4.py
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "v215.6.1 bound derivative anchor scan"
+          git push origin HEAD:soccer-edge-mcp-v1
