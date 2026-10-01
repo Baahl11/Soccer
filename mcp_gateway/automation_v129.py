@@ -10,7 +10,7 @@ from mcp_gateway import derivative_clv_anchor_v4
 from mcp_gateway import team_totals_clv_anchor_v4
 
 MODEL_VERSION = v128.MODEL_VERSION
-AUTOMATION_VERSION = "4.38.3-team-totals-clv-anchor-repair"
+AUTOMATION_VERSION = "4.38.4-primary-clv-exclusion-audit"
 
 
 async def run_tick() -> dict[str, Any]:
@@ -19,9 +19,28 @@ async def run_tick() -> dict[str, Any]:
     original_two_h_loader = price_resolver_v4._load_two_h_clv_maturation_backlog
     original_corners_loader = price_resolver_v4._load_corners_clv_maturation_backlog
     original_team_totals_loader = price_resolver_v4._load_team_totals_maturation_backlog
-    price_resolver_v4._load_primary_clv_maturation_backlog = (
-        primary_clv_anchor_v4.load_primary_clv_maturation_backlog
-    )
+    primary_loader_observation: dict[str, Any] = {}
+
+    def observed_primary_loader(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        report = primary_clv_anchor_v4.load_primary_clv_maturation_backlog(*args, **kwargs)
+        primary_loader_observation.clear()
+        primary_loader_observation.update(
+            {
+                "source": report.get("source"),
+                "signal_anchor_policy": report.get("signal_anchor_policy"),
+                "candidate_count": int(report.get("candidate_count") or 0),
+                "candidate_family_counts": dict(report.get("candidate_family_counts") or {}),
+                "candidate_source_counts": dict(report.get("candidate_source_counts") or {}),
+                "diagnostic_schema_version": report.get("diagnostic_schema_version"),
+                "diagnostic_family_counts": dict(report.get("diagnostic_family_counts") or {}),
+                "diagnostic_window": dict(report.get("diagnostic_window") or {}),
+                "provider_requests_added": int(report.get("provider_requests_added") or 0),
+                "selection_logic_changed": bool(report.get("selection_logic_changed", False)),
+            }
+        )
+        return report
+
+    price_resolver_v4._load_primary_clv_maturation_backlog = observed_primary_loader
     price_resolver_v4._load_one_h_clv_maturation_backlog = (
         derivative_clv_anchor_v4.load_one_h_clv_maturation_backlog
     )
@@ -144,6 +163,24 @@ async def run_tick() -> dict[str, Any]:
             "UPCOMING_T55_FIXTURES_FIRST; BOUNDED_48H_OR_DIVERSITY_HORIZON_PLUS_MARGIN; "
             "OLDEST_UNRESOLVED_EXACT_MARKET_SIDE_LINE_SIGNAL; STRICTLY_LATER_REAL_PROVIDER_QUOTE; "
             "SAME_EXISTING_LEFTOVER_BUDGET_MAX12; NO_HISTORY_REWRITE"
+        ),
+    }
+    payload["v216_7_primary_clv_maturation_exclusion_audit"] = {
+        "schema_version": primary_clv_anchor_v4.DIAGNOSTIC_SCHEMA_VERSION,
+        "status": "OBSERVABILITY_ONLY",
+        "scope": ["1X2", "BTTS", "FT_TOTALS"],
+        "loader_observation": primary_loader_observation,
+        "provider_requests_added": 0,
+        "selection_logic_changed": False,
+        "strict_close_semantics_changed": False,
+        "historical_rows_mutated": False,
+        "model_weights_changed": False,
+        "thresholds_changed": False,
+        "gates_changed": False,
+        "production_promotion_allowed": False,
+        "purpose": (
+            "COUNT PRICED/FUTURE/T55/STRICT-LATER-QUOTE/UNRESOLVED FIXTURES PER PRIMARY FAMILY "
+            "WITHOUT CHANGING WHICH FIXTURES ENTER MATURATION"
         ),
     }
     payload["version"] = AUTOMATION_VERSION
