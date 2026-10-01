@@ -1,10 +1,11 @@
-# v216.2 trigger validated runtime-only Team Totals CLV diagnostics
 name: v216.2 Team Totals CLV Skip Diagnostics
 
 on:
   push:
-    branches: [main]
-    paths: [".github/workflows/v2162-team-totals-clv-skip-diagnostics.yml"]
+    branches:
+      - main
+    paths:
+      - .github/workflows/v2162-team-totals-clv-skip-diagnostics.yml
   workflow_dispatch:
 
 permissions:
@@ -14,109 +15,45 @@ jobs:
   patch-and-validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout runtime branch
+      - name: Checkout runtime
         uses: actions/checkout@v4
         with:
           ref: soccer-edge-mcp-v1
+          path: runtime
           fetch-depth: 0
+
+      - name: Checkout control scripts
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: control
+          sparse-checkout: |
+            .github/scripts/v2162_patch_team_totals_clv_diag.py
+          sparse-checkout-cone-mode: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Patch bounded Team Totals skip diagnostics
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
+      - name: Apply diagnostic patch
+        run: python control/.github/scripts/v2162_patch_team_totals_clv_diag.py runtime
 
-          path = Path('mcp_gateway/clv_postgres_v4.py')
-          text = path.read_text()
-
-          old = '''    skip_reason_market_counts: dict[str, Counter[str]] = defaultdict(Counter)
-    skip_reason_family_counts: dict[str, Counter[str]] = defaultdict(Counter)
-    ft_totals_unpriced_research_placeholders_ignored = 0
-'''
-          new = '''    skip_reason_market_counts: dict[str, Counter[str]] = defaultdict(Counter)
-    skip_reason_family_counts: dict[str, Counter[str]] = defaultdict(Counter)
-    team_totals_skip_fixture_ids: dict[str, set[int]] = defaultdict(set)
-    ft_totals_unpriced_research_placeholders_ignored = 0
-'''
-          assert old in text
-          text = text.replace(old, new, 1)
-
-          old = '''            if not later_market_snapshots:
-                reasons["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"] += 1
-                skip_reason_market_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"][_candidate_label(candidate)] += 1
-                skip_reason_family_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"][family] += 1
-                continue
-'''
-          new = '''            if not later_market_snapshots:
-                reasons["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"] += 1
-                skip_reason_market_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"][_candidate_label(candidate)] += 1
-                skip_reason_family_counts["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"][family] += 1
-                if family in {"TEAM_TOTALS", "HOME_TT", "AWAY_TT"}:
-                    team_totals_skip_fixture_ids["NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"].add(fixture_id)
-                continue
-'''
-          assert old in text
-          text = text.replace(old, new, 1)
-
-          old = '''            if not candidates:
-                reasons["NO_LATER_PROVIDER_UPDATE"] += 1
-                skip_reason_market_counts["NO_LATER_PROVIDER_UPDATE"][_candidate_label(candidate)] += 1
-                skip_reason_family_counts["NO_LATER_PROVIDER_UPDATE"][family] += 1
-                continue
-'''
-          new = '''            if not candidates:
-                reasons["NO_LATER_PROVIDER_UPDATE"] += 1
-                skip_reason_market_counts["NO_LATER_PROVIDER_UPDATE"][_candidate_label(candidate)] += 1
-                skip_reason_family_counts["NO_LATER_PROVIDER_UPDATE"][family] += 1
-                if family in {"TEAM_TOTALS", "HOME_TT", "AWAY_TT"}:
-                    team_totals_skip_fixture_ids["NO_LATER_PROVIDER_UPDATE"].add(fixture_id)
-                continue
-'''
-          assert old in text
-          text = text.replace(old, new, 1)
-
-          old = '''        "signal_source_counts": dict(sorted(signal_source_counts.items())),
-        "team_totals_maturation_funnel": team_totals_maturation_funnel,
-        "skip_reasons": dict(sorted(reasons.items())),
-'''
-          new = '''        "signal_source_counts": dict(sorted(signal_source_counts.items())),
-        "team_totals_maturation_funnel": team_totals_maturation_funnel,
-        "team_totals_skip_fixture_ids": {
-            reason: sorted(fixture_ids)[:100]
-            for reason, fixture_ids in sorted(team_totals_skip_fixture_ids.items())
-        },
-        "team_totals_skip_fixture_counts": {
-            reason: len(fixture_ids)
-            for reason, fixture_ids in sorted(team_totals_skip_fixture_ids.items())
-        },
-        "skip_reasons": dict(sorted(reasons.items())),
-'''
-          assert old in text
-          text = text.replace(old, new, 1)
-
-          path.write_text(text)
-          PY
-
-      - name: Validate diagnostic-only change
-        shell: bash
+      - name: Validate
+        working-directory: runtime
         run: |
           python -m py_compile mcp_gateway/clv_postgres_v4.py
           python -m pip install -q pytest
           pytest -q tests/test_clv_postgres_v4.py
-          grep -q 'team_totals_skip_fixture_ids' mcp_gateway/clv_postgres_v4.py
-          grep -q 'team_totals_skip_fixture_counts' mcp_gateway/clv_postgres_v4.py
+          grep -q team_totals_skip_fixture_ids mcp_gateway/clv_postgres_v4.py
+          grep -q team_totals_skip_fixture_counts mcp_gateway/clv_postgres_v4.py
 
-      - name: Commit validated runtime diagnostic
-        shell: bash
+      - name: Commit runtime diagnostic
+        working-directory: runtime
         run: |
           git config user.name soccer-edge-bot
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add mcp_gateway/clv_postgres_v4.py
           git diff --cached --quiet && exit 0
-          git commit -m "v216.2 add Team Totals CLV skip fixture diagnostics"
+          git commit -m 'v216.2 add Team Totals CLV skip fixture diagnostics'
           git push origin HEAD:soccer-edge-mcp-v1
