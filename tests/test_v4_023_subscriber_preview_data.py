@@ -163,6 +163,12 @@ def test_multi_gate_maturity_does_not_call_zero_true_clv_no_evidence():
             "true_clv": {"rows": 0, "minimum_rows": 50, "unique_fixtures": 0},
             "blockers": ["CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE", "1H_TRUE_CLV_0_LT_50"],
         },
+        "Corners": {
+            "status": "RESEARCH_HOLD",
+            "ft_corners": {"formation_adjusted_evaluations": 39},
+            "true_clv": {"rows": 0, "minimum_rows": 50, "unique_fixtures": 0},
+            "blockers": ["FORMATION_ADJUSTED_39_LT_100", "CORNERS_TRUE_CLV_0_LT_50"],
+        },
     }
 
     rows = {row["label"]: row for row in _build_family_rows(clv_report, reports)}
@@ -185,6 +191,14 @@ def test_multi_gate_maturity_does_not_call_zero_true_clv_no_evidence():
     assert one_h["true_clv_rows"] == 0
     assert one_h["stage"] == "MODEL REVIEW + CLV COLLECTION"
 
+    corners = rows["Corners"]
+    assert corners["model_evidence"]["current"] == 39
+    assert corners["model_evidence"]["target"] == 100
+    assert corners["priced_rows"] == 100
+    assert corners["true_clv_rows"] == 0
+    assert corners["true_clv_target"] == 50
+    assert corners["stage"] == "FORMATION MATURATION + CLV"
+
 
 def test_v232_html_labels_true_clv_as_one_gate_not_total_maturity():
     html = maturity_html()
@@ -194,3 +208,5 @@ def test_v232_html_labels_true_clv_as_one_gate_not_total_maturity():
     assert "Strict True CLV" in html
     assert "LIVE MATURITY · MULTI-GATE" in html
     assert "1X2 True CLV" in html
+    assert "formationPrimary=m.label==='Corners'" in html
+    assert "Strict CLV ${clvText(m)}" in html
