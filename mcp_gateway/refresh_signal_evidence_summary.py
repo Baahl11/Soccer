@@ -89,9 +89,9 @@ def refresh_summary(summary: dict[str, Any], latest_tick: dict[str, Any] | None)
         out["last_evidence_source"] = "MATERIALIZED_SIGNAL_LEDGER_ROW"
 
     # Artifact freshness is intentionally separate from eligible-evidence age.
-    # Only stamp the artifact when this refresh actually advances persisted
-    # eligible evidence; do not mirror the evidence timestamp or synthesize it.
-    if evidence_advanced:
+    # Stamp the artifact when evidence advances, or once if this metadata did
+    # not exist yet. If neither happens, preserve the prior artifact timestamp.
+    if evidence_advanced or not out.get("report_updated_at_utc"):
         out["report_updated_at_utc"] = datetime.now(timezone.utc).isoformat()
 
     out["evidence_freshness_semantics"] = (
