@@ -66,8 +66,8 @@ jobs:
           import urllib.parse
           import urllib.request
 
-          PAGE_SIZE = 500
-          MAX_PAGES = 500
+          PAGE_SIZE = 200
+          MAX_PAGES_PER_RUN = 3
           RETRIES = 4
 
           def fresh_oidc_token() -> str:
@@ -119,7 +119,7 @@ jobs:
                       last_error = exc
                       if attempt == RETRIES:
                           raise
-                  time.sleep(3 * attempt)
+                  time.sleep(2 * attempt)
               raise last_error or RuntimeError('page fetch failed')
 
           state = pathlib.Path('state')
@@ -148,38 +148,67 @@ jobs:
               except Exception:
                   summary = {}
 
-          since = str(
-              summary.get('last_materialized_ledger_row_at_utc')
-              or summary.get('last_generated_at_utc')
-              or '2026-09-01T00:00:00+00:00'
-          )
-          after_event_id = 0
+          resuming = bool(summary.get('v215_catchup_has_more'))
+          if resuming:
+              since = str(summary.get('v215_catchup_since') or '').strip()
+              after_event_id = int(summary.get('v215_catchup_after_event_id') or 0)
+              if not since:
+                  raise RuntimeError('v215 catch-up cursor missing since timestamp')
+          else:
+              since = str(
+                  summary.get('last_materialized_ledger_row_at_utc')
+                  or summary.get('last_generated_at_utc')
+                  or '2026-09-01T00:00:00+00:00'
+              )
+              after_event_id = 0
+
           endpoint = os.environ['BASE_URL'].rstrip('/') + '/internal/signal-ledger-postgres-v4/build'
           delta_rows = []
           pages = 0
+          has_more = False
+          interrupted = False
+          interrupted_error = None
 
-          while True:
-              payload = fetch_page(endpoint, since, after_event_id)
+          while pages < MAX_PAGES_PER_RUN:
+              try:
+                  payload = fetch_page(endpoint, since, after_event_id)
+              except Exception as exc:
+                  if not delta_rows:
+                      raise
+                  interrupted = True
+                  has_more = True
+                  interrupted_error = str(exc)[:300]
+                  print(json.dumps({
+                      'checkpointing_after_transient_error': True,
+                      'pages_completed': pages,
+                      'after_event_id': after_event_id,
+                      'error': interrupted_error,
+                  }), flush=True)
+                  break
+
               if payload.get('status') != 'OK':
                   raise RuntimeError(f"unexpected v215 status: {payload}")
+
               page_rows = [r for r in (payload.get('rows') or []) if isinstance(r, dict)]
               delta_rows.extend(page_rows)
               pages += 1
               next_event_id = int(payload.get('next_event_id') or after_event_id)
+              has_more = bool(payload.get('has_more'))
+
               print(json.dumps({
                   'page': pages,
                   'raw_refresh_events_loaded': payload.get('raw_refresh_events_loaded'),
                   'ledger_rows': len(page_rows),
                   'next_event_id': next_event_id,
-                  'has_more': bool(payload.get('has_more')),
+                  'has_more': has_more,
               }), flush=True)
-              if not payload.get('has_more'):
+
+              if not has_more:
+                  after_event_id = next_event_id
                   break
               if next_event_id <= after_event_id:
                   raise RuntimeError('v215 pagination cursor did not advance')
               after_event_id = next_event_id
-              if pages >= MAX_PAGES:
-                  raise RuntimeError('v215 pagination exceeded safety bound')
 
           merged = {}
           for row in existing:
@@ -209,12 +238,19 @@ jobs:
               postgres_rows=sum(1 for r in rows if r.get('ledger_source') == signal_ledger_postgres_v4.SOURCE),
               legacy_rows_loaded=sum(1 for r in rows if r.get('ledger_source') != signal_ledger_postgres_v4.SOURCE),
           )
+
+          catchup_has_more = bool(has_more)
           rebuilt.update({
-              'materialization_mode': 'V215_POSTGRES_DELTA_MERGE',
+              'materialization_mode': 'V215_POSTGRES_DELTA_CHECKPOINTED',
               'delta_since': since,
               'delta_page_size': PAGE_SIZE,
               'delta_pages': pages,
               'delta_rows_loaded': len(delta_rows),
+              'v215_catchup_has_more': catchup_has_more,
+              'v215_catchup_since': since if catchup_has_more else None,
+              'v215_catchup_after_event_id': after_event_id if catchup_has_more else 0,
+              'v215_catchup_interrupted': interrupted,
+              'v215_catchup_last_error': interrupted_error,
               'provider_requests_added': 0,
               'historical_probabilities_recomputed': False,
               'historical_rows_recalibrated': False,
@@ -231,10 +267,13 @@ jobs:
           )
 
           print(json.dumps({
+              'resuming': resuming,
               'since': since,
               'pages': pages,
               'delta_rows': len(delta_rows),
               'merged_rows': len(rows),
+              'catchup_has_more': catchup_has_more,
+              'catchup_after_event_id': after_event_id if catchup_has_more else 0,
               'last_materialized_ledger_row_at_utc': rebuilt.get('last_materialized_ledger_row_at_utc'),
               'stage_counts': rebuilt.get('stage_counts'),
           }, indent=2), flush=True)
