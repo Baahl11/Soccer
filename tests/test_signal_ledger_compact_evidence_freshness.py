@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 from pathlib import Path
 
-from mcp_gateway import build_signal_ledger
+MODULE_PATH = Path(__file__).resolve().parents[1] / "mcp_gateway" / "build_signal_ledger.py"
+SPEC = importlib.util.spec_from_file_location("build_signal_ledger_stdlib", MODULE_PATH)
+assert SPEC is not None and SPEC.loader is not None
+build_signal_ledger = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(build_signal_ledger)
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
