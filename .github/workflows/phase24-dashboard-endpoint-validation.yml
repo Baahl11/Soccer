@@ -29,7 +29,7 @@ jobs:
       - name: Run dashboard renderer tests
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest -r mcp_gateway/requirements.txt
           PYTHONPATH=. pytest -q tests/test_phase24_product_dashboard_v4.py tests/test_phase24_product_views_v4.py
 
       - name: Validate product views endpoint
@@ -47,6 +47,19 @@ jobs:
             and (.views.control_tower | type == "object")
             and (.views.control_tower.pipeline | type == "object")
             and (.row_limit_per_view == 5)
+          ' /tmp/views.json >/dev/null
+
+          jq '{
+            control_tower_status: .views.control_tower.status,
+            maturity_snapshot_status: .views.control_tower.maturity_snapshot.status,
+            evidence_age: .views.control_tower.maturity_snapshot.maturation_control_tower.monitoring.evidence_age,
+            report_freshness: .views.control_tower.maturity_snapshot.maturation_control_tower.monitoring.report_freshness,
+            family_statuses: [.views.control_tower.maturity_snapshot.maturation_control_tower.families[]? | {key,status,current,target,unique_fixtures,blocker}]
+          }' /tmp/views.json
+
+          jq -e '
+            .views.control_tower.maturity_snapshot.maturation_control_tower.monitoring.evidence_age.status == "OK"
+            and (.views.control_tower.maturity_snapshot.maturation_control_tower.monitoring.evidence_age.evidence.age_hours < 48)
           ' /tmp/views.json >/dev/null
 
       - name: Validate dashboard endpoint
