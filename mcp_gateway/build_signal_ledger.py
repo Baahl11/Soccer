@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from collections import Counter
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -18,6 +19,21 @@ def _f(value: Any) -> float | None:
 
 def _norm(value: Any) -> str:
     return " ".join(str(value or "").strip().upper().split())
+
+
+def _parse_timestamp(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    text = value.strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def _market_snapshot(best: Any) -> dict[str, Any] | None:
@@ -230,6 +246,12 @@ def build_rows(history_dir: str):
     seen = set()
     bad_lines = 0
     ticks = 0
+    compact_postgres_event_ticks = 0
+    compact_postgres_event_count_total = 0
+    latest_persisted_event_at_utc: str | None = None
+    latest_persisted_event_at_local: str | None = None
+    latest_persisted_event_dt: datetime | None = None
+
     for path in sorted(glob.glob(os.path.join(history_dir, "*.jsonl"))):
         with open(path, encoding="utf-8") as fh:
             for line in fh:
@@ -241,6 +263,28 @@ def build_rows(history_dir: str):
                     bad_lines += 1
                     continue
                 ticks += 1
+
+                # Compact history v2.1.0 intentionally omits `events`, but a
+                # successful persist still records the real event count and the
+                # exact tick timestamp. Treat that only as freshness evidence;
+                # it never creates synthetic ledger rows, CLOSE rows, results,
+                # prices or recalibrated probabilities.
+                try:
+                    event_count = int(tick.get("event_count") or 0)
+                except (TypeError, ValueError):
+                    event_count = 0
+                if event_count > 0 and tick.get("database_persisted") is True:
+                    compact_postgres_event_ticks += 1
+                    compact_postgres_event_count_total += event_count
+                    candidate_utc = tick.get("generated_at_utc")
+                    candidate_dt = _parse_timestamp(candidate_utc)
+                    if candidate_dt is not None and (
+                        latest_persisted_event_dt is None or candidate_dt > latest_persisted_event_dt
+                    ):
+                        latest_persisted_event_dt = candidate_dt
+                        latest_persisted_event_at_utc = candidate_utc
+                        latest_persisted_event_at_local = tick.get("generated_at_local")
+
                 for event in tick.get("events") or []:
                     fixture = event.get("fixture") or {}
                     fid = fixture.get("fixture_id")
@@ -263,6 +307,7 @@ def build_rows(history_dir: str):
                         continue
                     seen.add(row["event_key"])
                     rows.append(row)
+
     rows.sort(key=lambda r: (r.get("generated_at_local") or "", r["fixture_id"], r.get("stage") or ""))
     stage_counts = Counter(str(r.get("stage") or "UNKNOWN") for r in rows)
     class_counts = Counter(str(r.get("classification") or "UNKNOWN") for r in rows)
@@ -290,8 +335,25 @@ def build_rows(history_dir: str):
         phase16_frozen_artifact += calibrated and bool((provenance.get("phase16_calibrator_artifact") or {}).get("fingerprint_sha256"))
         for track in (r.get("sporting_shortlist") or {}).get("tracks") or []:
             signal_counts[str(track)] += 1
+
+    first_materialized_local = rows[0].get("generated_at_local") if rows else None
+    first_materialized_utc = rows[0].get("generated_at_utc") if rows else None
+    last_materialized_local = rows[-1].get("generated_at_local") if rows else None
+    last_materialized_utc = rows[-1].get("generated_at_utc") if rows else None
+    materialized_dt = _parse_timestamp(last_materialized_utc or last_materialized_local)
+
+    last_evidence_at_utc = last_materialized_utc
+    last_evidence_at_local = last_materialized_local
+    last_evidence_source = "MATERIALIZED_SIGNAL_LEDGER_ROW" if rows else None
+    if latest_persisted_event_dt is not None and (
+        materialized_dt is None or latest_persisted_event_dt > materialized_dt
+    ):
+        last_evidence_at_utc = latest_persisted_event_at_utc
+        last_evidence_at_local = latest_persisted_event_at_local
+        last_evidence_source = "COMPACT_HISTORY_EVENT_COUNT_WITH_POSTGRES_PERSISTED_TRUE"
+
     summary = {
-        "schema_version": "1.4.0",
+        "schema_version": "1.5.0",
         "source": "soccer_edge_state/history/*.jsonl",
         "timezone_basis": "America/Mexico_City",
         "ticks_read": ticks,
@@ -311,13 +373,27 @@ def build_rows(history_dir: str):
         "stage_counts": dict(sorted(stage_counts.items())),
         "classification_counts": dict(sorted(class_counts.items())),
         "sport_signal_counts": dict(sorted(signal_counts.items())),
-        "first_generated_at_local": rows[0].get("generated_at_local") if rows else None,
-        "last_generated_at_local": rows[-1].get("generated_at_local") if rows else None,
+        "first_generated_at_local": first_materialized_local,
+        "first_generated_at_utc": first_materialized_utc,
+        "last_generated_at_local": last_materialized_local,
+        "last_generated_at_utc": last_materialized_utc,
+        "last_materialized_ledger_row_at_local": last_materialized_local,
+        "last_materialized_ledger_row_at_utc": last_materialized_utc,
+        "last_evidence_at_local": last_evidence_at_local,
+        "last_evidence_at_utc": last_evidence_at_utc,
+        "last_evidence_source": last_evidence_source,
+        "compact_postgres_event_ticks": compact_postgres_event_ticks,
+        "compact_postgres_event_count_total": compact_postgres_event_count_total,
+        "evidence_freshness_semantics": (
+            "last_evidence_at advances only from a materialized ledger row or a compact-history tick "
+            "with event_count>0 and database_persisted=true; compact ticks do not create ledger rows"
+        ),
         "provider_requests_added": 0,
         "canonical_bet_logic_changed": False,
         "model_weights_changed": False,
         "historical_probabilities_recomputed": False,
         "historical_rows_recalibrated": False,
+        "synthetic_close_rows_added": 0,
     }
     return rows, summary
 
