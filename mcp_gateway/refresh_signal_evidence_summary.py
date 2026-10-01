@@ -65,6 +65,7 @@ def refresh_summary(summary: dict[str, Any], latest_tick: dict[str, Any] | None)
 
     previous_value = out.get("last_evidence_at_utc") or out.get("last_evidence_at_local") or out.get("last_generated_at_utc") or out.get("last_generated_at_local")
     previous_dt = _parse_timestamp(previous_value)
+    evidence_advanced = False
 
     if latest_tick is not None:
         latest_utc = latest_tick.get("generated_at_utc")
@@ -78,6 +79,7 @@ def refresh_summary(summary: dict[str, Any], latest_tick: dict[str, Any] | None)
             out["last_evidence_database_persisted"] = True
             out["last_evidence_pipeline_version"] = latest_tick.get("version")
             out["last_evidence_model_version"] = latest_tick.get("model_version")
+            evidence_advanced = True
 
     if not out.get("last_evidence_at_local"):
         out["last_evidence_at_local"] = out.get("last_generated_at_local")
@@ -86,10 +88,17 @@ def refresh_summary(summary: dict[str, Any], latest_tick: dict[str, Any] | None)
     if not out.get("last_evidence_source") and (out.get("last_evidence_at_local") or out.get("last_evidence_at_utc")):
         out["last_evidence_source"] = "MATERIALIZED_SIGNAL_LEDGER_ROW"
 
+    # Artifact freshness is intentionally separate from eligible-evidence age.
+    # Only stamp the artifact when this refresh actually advances persisted
+    # eligible evidence; do not mirror the evidence timestamp or synthesize it.
+    if evidence_advanced:
+        out["report_updated_at_utc"] = datetime.now(timezone.utc).isoformat()
+
     out["evidence_freshness_semantics"] = (
         "last_generated_at tracks the newest materialized signal-ledger row; "
         "last_evidence_at may advance from a compact-history tick only when "
-        "event_count>0 and database_persisted=true. No event/CLOSE/result row is synthesized."
+        "event_count>0 and database_persisted=true; report_updated_at_utc tracks "
+        "the artifact refresh itself. No event/CLOSE/result row is synthesized."
     )
     out["provider_requests_added"] = 0
     out["canonical_bet_logic_changed"] = False
@@ -114,6 +123,7 @@ def main() -> None:
     summary_path.write_text(json.dumps(updated, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({
         "schema_version": updated.get("schema_version"),
+        "report_updated_at_utc": updated.get("report_updated_at_utc"),
         "last_materialized_ledger_row_at_local": updated.get("last_materialized_ledger_row_at_local"),
         "last_evidence_at_local": updated.get("last_evidence_at_local"),
         "last_evidence_at_utc": updated.get("last_evidence_at_utc"),
