@@ -1,0 +1,150 @@
+name: v215.5 2H Strict-Close Maturation Wiring
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v215-2h-clv-maturation-wiring.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Wire 2H into existing primary CLV maturation cap
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          src = Path('runtime/mcp_gateway/price_resolver_v4.py')
+          text = src.read_text(encoding='utf-8')
+
+          text = text.replace(
+              'MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.19.1"',
+              'MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.20.0"',
+              1,
+          )
+
+          # 2H uses the exact-market/selection/line semantics already used by 1H
+          # and Corners. No budget/gate/model changes.
+          text = text.replace(
+              'if family in {"1H", "FT_CORNERS", "TEAM_CORNERS"}:',
+              'if family in {"1H", "2H", "FT_CORNERS", "TEAM_CORNERS"}:',
+          )
+          text = text.replace(
+              '{"1X2", "FT_TOTALS", "BTTS", "1H", "FT_CORNERS", "TEAM_CORNERS"}',
+              '{"1X2", "FT_TOTALS", "BTTS", "1H", "2H", "FT_CORNERS", "TEAM_CORNERS"}',
+          )
+
+          # Clone the proven 1H backlog loader, changing only family/container/source.
+          start = text.index('def _load_one_h_clv_maturation_backlog(')
+          end = text.index('def _load_corners_clv_maturation_backlog(', start)
+          one_h_block = text[start:end]
+          if 'def _load_two_h_clv_maturation_backlog(' not in text:
+              two_h_block = one_h_block
+              two_h_block = two_h_block.replace(
+                  'def _load_one_h_clv_maturation_backlog(',
+                  'def _load_two_h_clv_maturation_backlog(',
+                  1,
+              )
+              two_h_block = two_h_block.replace('one_h_goals_intelligence', 'two_h_goals_intelligence')
+              two_h_block = two_h_block.replace('POSTGRES_1H_DERIVATIVE_SIGNAL_NO_LATER_EXACT_QUOTE', 'POSTGRES_2H_DERIVATIVE_SIGNAL_NO_LATER_EXACT_QUOTE')
+              two_h_block = two_h_block.replace('POSTGRES_1H_DERIVATIVE_CLV_MATURATION_BACKLOG_V1', 'POSTGRES_2H_DERIVATIVE_CLV_MATURATION_BACKLOG_V1')
+              two_h_block = two_h_block.replace('DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence', 'DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence')
+              two_h_block = two_h_block.replace('latest priced 1H derivative', 'latest priced 2H derivative')
+              two_h_block = two_h_block.replace("'1H'::TEXT", "'2H'::TEXT")
+              two_h_block = two_h_block.replace('"market_family": "1H"', '"market_family": "2H"')
+              two_h_block = two_h_block.replace('{"1H": signal_count}', '{"2H": signal_count}')
+              text = text[:end] + two_h_block + text[end:]
+
+          loader_anchor = '''    one_h_maturation = await asyncio.to_thread(_load_one_h_clv_maturation_backlog)\n    corners_maturation = await asyncio.to_thread(_load_corners_clv_maturation_backlog)\n'''
+          loader_new = '''    one_h_maturation = await asyncio.to_thread(_load_one_h_clv_maturation_backlog)\n    two_h_maturation = await asyncio.to_thread(_load_two_h_clv_maturation_backlog)\n    corners_maturation = await asyncio.to_thread(_load_corners_clv_maturation_backlog)\n'''
+          if loader_anchor not in text:
+              raise SystemExit('2H loader wiring anchor missing')
+          text = text.replace(loader_anchor, loader_new, 1)
+
+          one_h_loop_start = text.index('    for event in (one_h_maturation.get("candidate_events") or []):')
+          corners_loop_start = text.index('    for event in (corners_maturation.get("candidate_events") or []):', one_h_loop_start)
+          one_h_loop = text[one_h_loop_start:corners_loop_start]
+          if 'for event in (two_h_maturation.get("candidate_events") or []):' not in text:
+              two_h_loop = one_h_loop.replace('one_h_maturation', 'two_h_maturation')
+              text = text[:corners_loop_start] + two_h_loop + text[corners_loop_start:]
+
+          text = text.replace(
+              'for derivative_maturation in (one_h_maturation, corners_maturation):',
+              'for derivative_maturation in (one_h_maturation, two_h_maturation, corners_maturation):',
+              2,
+          )
+          text = text.replace(
+              'if one_h_maturation.get("candidate_count") or corners_maturation.get("candidate_count"):',
+              'if one_h_maturation.get("candidate_count") or two_h_maturation.get("candidate_count") or corners_maturation.get("candidate_count"):',
+              1,
+          )
+          text = text.replace(
+              'THEN_PRICED_1X2_FT_TOTALS_BTTS_FROM_PHASE16_OR_MATCH_TABLE+1H_FROM_DERIVATIVE_INTELLIGENCE;1H_REQUIRES_EXACT_SELECTION_AND_LINE;',
+              'THEN_PRICED_1X2_FT_TOTALS_BTTS_FROM_PHASE16_OR_MATCH_TABLE+1H_2H_FROM_DERIVATIVE_INTELLIGENCE;1H_2H_REQUIRE_EXACT_SELECTION_AND_LINE;',
+              1,
+          )
+
+          required = [
+              'SOCCER_PRICE_RESOLVER_V4_1.20.0',
+              'def _load_two_h_clv_maturation_backlog(',
+              'two_h_goals_intelligence',
+              'POSTGRES_2H_DERIVATIVE_CLV_MATURATION_BACKLOG_V1',
+              'two_h_maturation = await asyncio.to_thread(_load_two_h_clv_maturation_backlog)',
+              '"2H", "FT_CORNERS"',
+          ]
+          for needle in required:
+              if needle not in text:
+                  raise SystemExit(f'missing expected 2H wiring: {needle}')
+
+          src.write_text(text, encoding='utf-8')
+
+          test = Path('runtime/tests/test_price_resolver_v4.py')
+          t = test.read_text(encoding='utf-8')
+          marker = 'def test_primary_clv_maturation_supports_exact_2h_quote():'
+          if marker not in t:
+              t += '''\n\n\ndef test_primary_clv_maturation_supports_exact_2h_quote():\n    signals = [{\n        "market_family": "2H",\n        "market": "Goals Over/Under - Second Half",\n        "selection": "Over",\n        "line": 1.5,\n        "signal_generated_at": "2026-10-01T16:00:00+00:00",\n    }]\n    markets = [{\n        "market": "Goals Over/Under - Second Half",\n        "provider_update": "2026-10-01T16:10:00+00:00",\n        "values": [\n            {"selection": "Over", "line": 1.5, "decimal_price": 1.91},\n            {"selection": "Under", "line": 1.5, "decimal_price": 1.91},\n        ],\n    }]\n\n    matured = v._primary_signals_with_later_provider_quote(markets, signals)\n    evaluated, not_matured = v._primary_maturation_family_accounting(signals, matured)\n\n    assert matured == {"2H"}\n    assert evaluated == {"2H"}\n    assert not not_matured\n\n\ndef test_primary_clv_maturation_rejects_2h_same_provider_update():\n    signals = [{\n        "market_family": "2H",\n        "market": "Goals Over/Under - Second Half",\n        "selection": "Over",\n        "line": 1.5,\n        "signal_generated_at": "2026-10-01T16:10:00+00:00",\n    }]\n    markets = [{\n        "market": "Goals Over/Under - Second Half",\n        "provider_update": "2026-10-01T16:10:00+00:00",\n        "values": [{"selection": "Over", "line": 1.5, "decimal_price": 1.91}],\n    }]\n\n    assert v._primary_signals_with_later_provider_quote(markets, signals) == set()\n'''
+              test.write_text(t, encoding='utf-8')
+          PY
+
+      - name: Validate runtime patch
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q pytest httpx psycopg[binary]
+          python -m py_compile mcp_gateway/price_resolver_v4.py
+          python -m pytest -q tests/test_price_resolver_v4.py
+          grep -q 'SOCCER_PRICE_RESOLVER_V4_1.20.0' mcp_gateway/price_resolver_v4.py
+          grep -q 'def _load_two_h_clv_maturation_backlog' mcp_gateway/price_resolver_v4.py
+          grep -q 'two_h_maturation = await asyncio.to_thread' mcp_gateway/price_resolver_v4.py
+
+      - name: Commit validated runtime patch
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/price_resolver_v4.py tests/test_price_resolver_v4.py
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "v215.5 wire 2H strict-close maturation"
+          git push origin HEAD:soccer-edge-mcp-v1
