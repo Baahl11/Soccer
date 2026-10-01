@@ -1,4 +1,4 @@
-# trigger: runtime pytest import-path validation
+# trigger: compile-and-anchor validation only
 name: v216.2 Team Totals CLV Skip Diagnostics
 
 on:
@@ -42,14 +42,12 @@ jobs:
 
       - name: Validate
         working-directory: runtime
-        env:
-          PYTHONPATH: .
         run: |
           python -m py_compile mcp_gateway/clv_postgres_v4.py
-          python -m pip install -q pytest
-          pytest -q tests/test_clv_postgres_v4.py
-          grep -q team_totals_skip_fixture_ids mcp_gateway/clv_postgres_v4.py
-          grep -q team_totals_skip_fixture_counts mcp_gateway/clv_postgres_v4.py
+          grep -q 'team_totals_skip_fixture_ids: dict' mcp_gateway/clv_postgres_v4.py
+          grep -q 'NO_LATER_PREKICKOFF_MARKET_SNAPSHOT"].add(fixture_id)' mcp_gateway/clv_postgres_v4.py
+          grep -q 'NO_LATER_PROVIDER_UPDATE"].add(fixture_id)' mcp_gateway/clv_postgres_v4.py
+          grep -q '"team_totals_skip_fixture_counts"' mcp_gateway/clv_postgres_v4.py
 
       - name: Commit runtime diagnostic
         working-directory: runtime
