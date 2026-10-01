@@ -1,0 +1,97 @@
+name: v215.6 Derivative CLV Anchor Repair Retry
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v2156-derivative-clv-anchor-retry.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout control workflow
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: control
+          fetch-depth: 1
+
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Replay validated v215.6 patch and align prior regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q pyyaml
+          python - <<'PY' >/tmp/v2156_patch.sh
+          from pathlib import Path
+          import yaml
+
+          workflow = yaml.safe_load(
+              Path('control/.github/workflows/v2156-derivative-clv-anchor.yml').read_text(encoding='utf-8')
+          )
+          steps = workflow['jobs']['patch-and-validate']['steps']
+          step = next(s for s in steps if s.get('name') == 'Add oldest-unresolved derivative anchor layer')
+          print(step['run'])
+          PY
+          bash /tmp/v2156_patch.sh
+
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('runtime/tests/test_primary_clv_anchor_v4.py')
+          text = path.read_text(encoding='utf-8')
+          old = 'assert payload["version"] == "4.38.1-primary-clv-anchor-repair"'
+          new = 'assert payload["version"] == "4.38.2-derivative-clv-anchor-repair"'
+          if old not in text:
+              raise SystemExit('stale primary-anchor version assertion not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Validate derivative anchor repair
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q -r mcp_gateway/requirements.txt pytest
+          python -m py_compile \
+            mcp_gateway/derivative_clv_anchor_v4.py \
+            mcp_gateway/automation_v129.py \
+            mcp_gateway/price_resolver_v4.py
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_derivative_clv_anchor_v4.py \
+            tests/test_primary_clv_anchor_v4.py \
+            tests/test_price_resolver_v4.py
+          grep -q '4.38.2-derivative-clv-anchor-repair' mcp_gateway/automation_v129.py
+          grep -q 'OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_EXACT_DERIVATIVE' mcp_gateway/derivative_clv_anchor_v4.py
+
+      - name: Commit validated runtime patch
+        working-directory: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add \
+            mcp_gateway/derivative_clv_anchor_v4.py \
+            mcp_gateway/automation_v129.py \
+            tests/test_derivative_clv_anchor_v4.py \
+            tests/test_primary_clv_anchor_v4.py \
+            .github/workflows/v4-runtime-tests.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "v215.6 repair derivative CLV signal anchors"
+          git push origin HEAD:soccer-edge-mcp-v1
