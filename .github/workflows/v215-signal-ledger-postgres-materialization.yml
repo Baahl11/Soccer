@@ -1,0 +1,217 @@
+name: V215 Signal Ledger Postgres Materialization
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: v215-signal-ledger-postgres-materialization
+  cancel-in-progress: false
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: https://soccer-edge-api.onrender.com
+      STATE_BRANCH: soccer-edge-state
+      LEDGER_PATH: soccer_edge_state/analysis/signal_ledger.jsonl
+      SUMMARY_PATH: soccer_edge_state/analysis/signal_ledger_summary.json
+    steps:
+      - name: Checkout runtime branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+
+      - name: Checkout state branch
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install materialization dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r runtime/mcp_gateway/requirements.txt
+
+      - name: Obtain GitHub OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          response=$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          token=$(echo "$response" | jq -r '.value // empty')
+          test -n "$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Materialize Postgres delta and rebuild summary
+        shell: bash
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p work
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+          import urllib.request
+
+          state = pathlib.Path('state')
+          ledger_path = state / os.environ['LEDGER_PATH']
+          summary_path = state / os.environ['SUMMARY_PATH']
+          ledger_path.parent.mkdir(parents=True, exist_ok=True)
+
+          existing = []
+          if ledger_path.exists():
+              with ledger_path.open('r', encoding='utf-8') as fh:
+                  for line in fh:
+                      line = line.strip()
+                      if not line:
+                          continue
+                      try:
+                          row = json.loads(line)
+                      except json.JSONDecodeError:
+                          continue
+                      if isinstance(row, dict):
+                          existing.append(row)
+
+          summary = {}
+          if summary_path.exists():
+              try:
+                  summary = json.loads(summary_path.read_text(encoding='utf-8'))
+              except Exception:
+                  summary = {}
+
+          since = str(
+              summary.get('last_materialized_ledger_row_at_utc')
+              or summary.get('last_generated_at_utc')
+              or '2026-09-01T00:00:00+00:00'
+          )
+          after_event_id = 0
+          token = os.environ['OIDC_TOKEN']
+          url = os.environ['BASE_URL'].rstrip('/') + '/internal/signal-ledger-postgres-v4/build'
+          delta_rows = []
+          pages = 0
+
+          while True:
+              body = json.dumps({
+                  'since': since,
+                  'after_event_id': after_event_id,
+                  'max_rows': 1000,
+              }).encode('utf-8')
+              req = urllib.request.Request(
+                  url,
+                  data=body,
+                  headers={
+                      'Authorization': f'Bearer {token}',
+                      'Content-Type': 'application/json',
+                  },
+                  method='POST',
+              )
+              with urllib.request.urlopen(req, timeout=90) as resp:
+                  payload = json.loads(resp.read().decode('utf-8'))
+              if payload.get('status') != 'OK':
+                  raise RuntimeError(f"unexpected v215 status: {payload}")
+              rows = payload.get('rows') or []
+              delta_rows.extend(r for r in rows if isinstance(r, dict))
+              pages += 1
+              next_event_id = int(payload.get('next_event_id') or after_event_id)
+              if not payload.get('has_more'):
+                  break
+              if next_event_id <= after_event_id:
+                  raise RuntimeError('v215 pagination cursor did not advance')
+              after_event_id = next_event_id
+              if pages > 200:
+                  raise RuntimeError('v215 pagination exceeded safety bound')
+
+          merged = {}
+          for row in existing:
+              key = str(row.get('event_key') or '').strip()
+              if key:
+                  merged[key] = row
+          for row in delta_rows:
+              key = str(row.get('event_key') or '').strip()
+              if key:
+                  merged[key] = row
+
+          rows = sorted(
+              merged.values(),
+              key=lambda r: (
+                  str(r.get('generated_at_local') or ''),
+                  int(r.get('fixture_id') or 0),
+                  str(r.get('stage') or ''),
+              ),
+          )
+
+          # Import only after the payload has been collected; reuse the canonical
+          # summary implementation rather than duplicating maturity semantics.
+          import sys
+          sys.path.insert(0, str(pathlib.Path('runtime').resolve()))
+          from mcp_gateway import signal_ledger_postgres_v4
+
+          rebuilt = signal_ledger_postgres_v4.summarize_rows(
+              rows,
+              source='POSTGRES_SOCCER_REFRESH_EVENTS_POINT_IN_TIME',
+              postgres_rows=sum(1 for r in rows if r.get('ledger_source') == signal_ledger_postgres_v4.SOURCE),
+              legacy_rows_loaded=sum(1 for r in rows if r.get('ledger_source') != signal_ledger_postgres_v4.SOURCE),
+          )
+          rebuilt.update({
+              'materialization_mode': 'V215_POSTGRES_DELTA_MERGE',
+              'delta_since': since,
+              'delta_pages': pages,
+              'delta_rows_loaded': len(delta_rows),
+              'provider_requests_added': 0,
+              'historical_probabilities_recomputed': False,
+              'historical_rows_recalibrated': False,
+              'synthetic_close_rows_added': 0,
+              'production_promotion_allowed': False,
+          })
+
+          with ledger_path.open('w', encoding='utf-8') as fh:
+              for row in rows:
+                  fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + '\n')
+          summary_path.write_text(
+              json.dumps(rebuilt, ensure_ascii=False, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+
+          print(json.dumps({
+              'since': since,
+              'pages': pages,
+              'delta_rows': len(delta_rows),
+              'merged_rows': len(rows),
+              'last_materialized_ledger_row_at_utc': rebuilt.get('last_materialized_ledger_row_at_utc'),
+              'stage_counts': rebuilt.get('stage_counts'),
+          }, indent=2))
+          PY
+
+      - name: Commit refreshed ledger to state branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd state
+          git config user.name "soccer-edge-v215-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add "$LEDGER_PATH" "$SUMMARY_PATH"
+          if git diff --cached --quiet; then
+            echo "No signal-ledger changes to persist."
+            exit 0
+          fi
+          git commit -m "state: materialize v215 Postgres signal ledger"
+          git push origin HEAD:"$STATE_BRANCH"
