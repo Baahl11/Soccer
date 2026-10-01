@@ -1,4 +1,4 @@
-# trigger: simplified workflow validation
+# trigger: runtime pytest import-path validation
 name: v216.2 Team Totals CLV Skip Diagnostics
 
 on:
@@ -42,6 +42,8 @@ jobs:
 
       - name: Validate
         working-directory: runtime
+        env:
+          PYTHONPATH: .
         run: |
           python -m py_compile mcp_gateway/clv_postgres_v4.py
           python -m pip install -q pytest
