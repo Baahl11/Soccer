@@ -47,7 +47,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check -q pytest
-          python -m pytest -q \
+          PYTHONPATH=runtime python -m pytest -q \
             runtime/tests/test_signal_ledger_compact_evidence_freshness.py \
             runtime/tests/test_refresh_signal_evidence_summary.py
           python -m py_compile runtime/mcp_gateway/refresh_signal_evidence_summary.py
