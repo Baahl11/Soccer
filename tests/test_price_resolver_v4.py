@@ -2230,3 +2230,46 @@ def test_player_props_maturation_observability_funnel_v20112():
     assert funnel["family_funnel"]["SHOTS"]["evaluated_fixture_family_instances"] == 2
     assert funnel["family_funnel"]["SHOTS"]["later_provider_update_newer_fixture_family_instances"] == 1
     assert funnel["family_funnel"]["GK_SAVES"]["not_matured_fixture_family_instances"] == 1
+
+
+
+def test_primary_clv_maturation_supports_exact_2h_quote():
+    signals = [{
+        "market_family": "2H",
+        "market": "Goals Over/Under - Second Half",
+        "selection": "Over",
+        "line": 1.5,
+        "signal_generated_at": "2026-10-01T16:00:00+00:00",
+    }]
+    markets = [{
+        "market": "Goals Over/Under - Second Half",
+        "provider_update": "2026-10-01T16:10:00+00:00",
+        "values": [
+            {"selection": "Over", "line": 1.5, "decimal_price": 1.91},
+            {"selection": "Under", "line": 1.5, "decimal_price": 1.91},
+        ],
+    }]
+
+    matured = v._primary_signals_with_later_provider_quote(markets, signals)
+    evaluated, not_matured = v._primary_maturation_family_accounting(signals, matured)
+
+    assert matured == {"2H"}
+    assert evaluated == {"2H"}
+    assert not not_matured
+
+
+def test_primary_clv_maturation_rejects_2h_same_provider_update():
+    signals = [{
+        "market_family": "2H",
+        "market": "Goals Over/Under - Second Half",
+        "selection": "Over",
+        "line": 1.5,
+        "signal_generated_at": "2026-10-01T16:10:00+00:00",
+    }]
+    markets = [{
+        "market": "Goals Over/Under - Second Half",
+        "provider_update": "2026-10-01T16:10:00+00:00",
+        "values": [{"selection": "Over", "line": 1.5, "decimal_price": 1.91}],
+    }]
+
+    assert v._primary_signals_with_later_provider_quote(markets, signals) == set()
