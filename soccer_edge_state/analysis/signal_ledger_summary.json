@@ -9,9 +9,21 @@
     "POSTGAME": 1687,
     "WATCH": 6948
   },
+  "evidence_freshness_semantics": "last_generated_at tracks the newest materialized signal-ledger row; last_evidence_at may advance from a compact-history tick only when event_count>0 and database_persisted=true. No event/CLOSE/result row is synthesized.",
   "first_generated_at_local": "2026-09-11T23:16:15.092183-06:00",
   "fixtures_with_final_result": 657,
+  "historical_probabilities_recomputed": false,
+  "historical_rows_recalibrated": false,
+  "last_evidence_at_local": "2026-10-01T00:04:27.601931-06:00",
+  "last_evidence_at_utc": "2026-10-01T06:04:27.601931+00:00",
+  "last_evidence_database_persisted": true,
+  "last_evidence_event_count": 12,
+  "last_evidence_model_version": "SOCCER EDGE ENGINE v1.7",
+  "last_evidence_pipeline_version": "4.38.1-primary-clv-anchor-repair",
+  "last_evidence_source": "COMPACT_HISTORY_EVENT_COUNT_WITH_POSTGRES_PERSISTED_TRUE",
   "last_generated_at_local": "2026-09-22T18:34:09.866728-06:00",
+  "last_materialized_ledger_row_at_local": "2026-09-22T18:34:09.866728-06:00",
+  "last_materialized_ledger_row_at_utc": null,
   "model_weights_changed": false,
   "provider_requests_added": 0,
   "rows": 10758,
@@ -22,7 +34,7 @@
   "rows_with_raw_projection": 3861,
   "rows_with_relative_strength_shadow": 2275,
   "rows_with_tactical_stats": 752,
-  "schema_version": "1.3.0",
+  "schema_version": "1.5.0",
   "source": "soccer_edge_state/history/*.jsonl",
   "sport_signal_counts": {
     "GOALS_OVER": 1137,
@@ -41,6 +53,7 @@
     "T-60": 1041,
     "T-90": 2150
   },
+  "synthetic_close_rows_added": 0,
   "ticks_read": 1510,
   "timezone_basis": "America/Mexico_City",
   "unique_fixtures": 2419
