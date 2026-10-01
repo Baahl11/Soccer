@@ -5,8 +5,9 @@ from typing import Any
 
 from mcp_gateway import price_resolver_v4 as price
 
-MODEL_VERSION = "SOCCER_TEAM_TOTALS_CLV_ANCHOR_V4_1.0.0"
+MODEL_VERSION = "SOCCER_TEAM_TOTALS_CLV_ANCHOR_V4_1.0.1"
 ANCHOR_POLICY = "OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_EXACT_TEAM_TOTAL"
+QUERY_STRATEGY = "PREAGGREGATED_EXACT_SNAPSHOT_RESOLUTION_V2"
 DEFAULT_LOOKBACK_HOURS = max(
     48,
     int(price.TEAM_TOTALS_DIVERSITY_LOOKAHEAD_HOURS) + 12,
@@ -25,6 +26,7 @@ def load_team_totals_maturation_backlog(
         "candidate_signal_count": 0,
         "source": "POSTGRES_NOT_CONFIGURED",
         "signal_anchor_policy": ANCHOR_POLICY,
+        "query_strategy": QUERY_STRATEGY,
         "lookback_hours": DEFAULT_LOOKBACK_HOURS,
         "provider_requests_added": 0,
         "provider_budget_changed": False,
@@ -84,7 +86,7 @@ def load_team_totals_maturation_backlog(
             WHERE e.generated_at >= b.cutoff
               AND e.generated_at < f.kickoff
         ),
-        strict_capture AS (
+        strict_capture AS MATERIALIZED (
             SELECT DISTINCT be.fixture_id
             FROM base_events be
             WHERE COALESCE(
@@ -92,12 +94,19 @@ def load_team_totals_maturation_backlog(
                       'false'
                   ) = 'true'
         ),
-        candidate_signal AS (
+        candidate_signal AS MATERIALIZED (
             SELECT
                 be.fixture_id,
                 sig.row ->> 'market' AS market,
+                LOWER(TRIM(COALESCE(sig.row ->> 'market', ''))) AS market_norm,
                 sig.row ->> 'selection' AS selection,
+                CASE
+                    WHEN LOWER(TRIM(COALESCE(sig.row ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                    WHEN LOWER(TRIM(COALESCE(sig.row ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                    ELSE LOWER(TRIM(COALESCE(sig.row ->> 'selection', '')))
+                END AS selection_norm,
                 sig.row ->> 'line' AS line,
+                (sig.row ->> 'line')::NUMERIC AS line_num,
                 be.generated_at AS signal_generated_at,
                 be.league_id,
                 be.league,
@@ -136,63 +145,88 @@ def load_team_totals_maturation_backlog(
               AND COALESCE(sig.row ->> 'decimal_price', sig.row ->> 'price', '') ~ '^[0-9]+([.][0-9]+)?$'
               AND COALESCE(sig.row ->> 'decimal_price', sig.row ->> 'price')::DOUBLE PRECISION > 1.0
         ),
+        candidate_market AS MATERIALIZED (
+            SELECT DISTINCT fixture_id, market_norm
+            FROM candidate_signal
+        ),
+        exact_snapshot_resolution AS MATERIALIZED (
+            SELECT
+                m.fixture_id,
+                LOWER(TRIM(COALESCE(m.market, ''))) AS market_norm,
+                CASE
+                    WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                    WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                    ELSE LOWER(TRIM(COALESCE(q.value ->> 'selection', '')))
+                END AS selection_norm,
+                (q.value ->> 'line')::NUMERIC AS line_num,
+                MAX(LEAST(m.captured_at, m.provider_update)) AS latest_resolution_at
+            FROM soccer_market_snapshots m
+            JOIN upcoming_fixtures f ON f.fixture_id = m.fixture_id
+            JOIN candidate_market cm
+              ON cm.fixture_id = m.fixture_id
+             AND cm.market_norm = LOWER(TRIM(COALESCE(m.market, '')))
+            CROSS JOIN bounds b
+            CROSS JOIN LATERAL jsonb_array_elements(
+                CASE
+                    WHEN jsonb_typeof(COALESCE(m.values, '[]'::jsonb)) = 'array'
+                    THEN COALESCE(m.values, '[]'::jsonb)
+                    ELSE '[]'::jsonb
+                END
+            ) AS q(value)
+            WHERE m.captured_at >= b.cutoff
+              AND m.captured_at < f.kickoff
+              AND m.provider_update IS NOT NULL
+              AND m.provider_update >= b.cutoff
+              AND COALESCE(q.value ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
+            GROUP BY
+                m.fixture_id,
+                LOWER(TRIM(COALESCE(m.market, ''))),
+                CASE
+                    WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
+                    WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
+                    ELSE LOWER(TRIM(COALESCE(q.value ->> 'selection', '')))
+                END,
+                (q.value ->> 'line')::NUMERIC
+        ),
         oldest_unresolved_signal AS (
             SELECT DISTINCT ON (
                 cs.fixture_id,
-                LOWER(TRIM(COALESCE(cs.market, ''))),
-                CASE
-                    WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'over%%' THEN 'over'
-                    WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'under%%' THEN 'under'
-                    ELSE LOWER(TRIM(COALESCE(cs.selection, '')))
-                END,
-                (cs.line)::NUMERIC
+                cs.market_norm,
+                cs.selection_norm,
+                cs.line_num
             )
-                cs.*
+                cs.fixture_id,
+                cs.market,
+                cs.selection,
+                cs.line,
+                cs.signal_generated_at,
+                cs.league_id,
+                cs.league,
+                cs.country,
+                cs.season,
+                cs.round,
+                cs.kickoff,
+                cs.status,
+                cs.status_long,
+                cs.home_team_id,
+                cs.home_team,
+                cs.away_team_id,
+                cs.away_team,
+                cs.venue,
+                cs.city
             FROM candidate_signal cs
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM soccer_market_snapshots m
-                CROSS JOIN LATERAL jsonb_array_elements(
-                    CASE
-                        WHEN jsonb_typeof(COALESCE(m.values, '[]'::jsonb)) = 'array'
-                        THEN COALESCE(m.values, '[]'::jsonb)
-                        ELSE '[]'::jsonb
-                    END
-                ) AS q(value)
-                WHERE m.fixture_id = cs.fixture_id
-                  AND m.captured_at > cs.signal_generated_at
-                  AND m.captured_at < cs.kickoff
-                  AND m.provider_update IS NOT NULL
-                  AND m.provider_update > cs.signal_generated_at
-                  AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(cs.market, '')))
-                  AND (
-                        CASE
-                            WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'over%%' THEN 'over'
-                            WHEN LOWER(TRIM(COALESCE(q.value ->> 'selection', ''))) LIKE 'under%%' THEN 'under'
-                            ELSE LOWER(TRIM(COALESCE(q.value ->> 'selection', '')))
-                        END
-                      ) = (
-                        CASE
-                            WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'over%%' THEN 'over'
-                            WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'under%%' THEN 'under'
-                            ELSE LOWER(TRIM(COALESCE(cs.selection, '')))
-                        END
-                      )
-                  AND COALESCE(q.value ->> 'line', '') ~ '^[0-9]+([.][0-9]+)?$'
-                  AND ABS(
-                        (q.value ->> 'line')::NUMERIC
-                        - (cs.line)::NUMERIC
-                      ) < 0.000001
-            )
+            LEFT JOIN exact_snapshot_resolution resolution
+              ON resolution.fixture_id = cs.fixture_id
+             AND resolution.market_norm = cs.market_norm
+             AND resolution.selection_norm = cs.selection_norm
+             AND ABS(resolution.line_num - cs.line_num) < 0.000001
+            WHERE resolution.latest_resolution_at IS NULL
+               OR resolution.latest_resolution_at <= cs.signal_generated_at
             ORDER BY
                 cs.fixture_id,
-                LOWER(TRIM(COALESCE(cs.market, ''))),
-                CASE
-                    WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'over%%' THEN 'over'
-                    WHEN LOWER(TRIM(COALESCE(cs.selection, ''))) LIKE 'under%%' THEN 'under'
-                    ELSE LOWER(TRIM(COALESCE(cs.selection, '')))
-                END,
-                (cs.line)::NUMERIC,
+                cs.market_norm,
+                cs.selection_norm,
+                cs.line_num,
                 cs.signal_generated_at ASC
         )
         SELECT ous.*
@@ -296,6 +330,7 @@ def load_team_totals_maturation_backlog(
                     ),
                     "signals": list(record["signals"]),
                     "signal_anchor_policy": ANCHOR_POLICY,
+                    "query_strategy": QUERY_STRATEGY,
                     "provider_requests_before_price_resolver": 0,
                     "primary_markets_preempted": False,
                     "requires_provider_update_after_signal": True,
@@ -316,8 +351,9 @@ def load_team_totals_maturation_backlog(
         "candidate_events": candidate_events,
         "candidate_count": len(candidate_events),
         "candidate_signal_count": signal_count,
-        "source": "POSTGRES_TEAM_TOTALS_CLV_MATURATION_BACKLOG_V2_OLDEST_UNRESOLVED_EXACT",
+        "source": "POSTGRES_TEAM_TOTALS_CLV_MATURATION_BACKLOG_V3_PREAGGREGATED_RESOLUTION",
         "signal_anchor_policy": ANCHOR_POLICY,
+        "query_strategy": QUERY_STRATEGY,
         "lookback_hours": lookback_hours,
         "provider_requests_added": 0,
         "provider_budget_changed": False,

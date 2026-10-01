@@ -58,20 +58,26 @@ def test_team_totals_anchor_is_exact_oldest_unresolved_and_bounded(monkeypatch):
     normalized = " ".join(cursor.query.split())
     assert "upcoming_fixtures AS MATERIALIZED" in normalized
     assert "base_events AS MATERIALIZED" in normalized
-    assert "oldest_unresolved_signal AS" in normalized
+    assert "candidate_market AS MATERIALIZED" in normalized
+    assert "exact_snapshot_resolution AS MATERIALIZED" in normalized
+    assert "MAX(LEAST(m.captured_at, m.provider_update))" in normalized
+    assert "LEFT JOIN exact_snapshot_resolution resolution" in normalized
+    assert "resolution.latest_resolution_at <= cs.signal_generated_at" in normalized
+    assert "ABS(resolution.line_num - cs.line_num) < 0.000001" in normalized
+    assert "m.captured_at >= b.cutoff" in normalized
+    assert "m.provider_update >= b.cutoff" in normalized
     assert "cs.signal_generated_at ASC" in normalized
-    assert "m.captured_at > cs.signal_generated_at" in normalized
-    assert "m.provider_update > cs.signal_generated_at" in normalized
-    assert "(q.value ->> 'line')::NUMERIC - (cs.line)::NUMERIC" in normalized
     cutoff = cursor.params[0]
     assert before - timedelta(hours=anchor.DEFAULT_LOOKBACK_HOURS, minutes=1) <= cutoff
     assert cutoff <= after - timedelta(hours=anchor.DEFAULT_LOOKBACK_HOURS - 1)
     assert report["candidate_count"] == 1
     assert report["candidate_signal_count"] == 1
+    assert report["query_strategy"] == anchor.QUERY_STRATEGY
     meta = report["candidate_events"][0]["team_totals_clv_maturation"]
     assert meta["signal_generated_at"] == signal_at.isoformat()
     assert meta["signals"][0]["line"] == 1.5
     assert meta["requires_same_selection_and_line"] is True
+    assert meta["query_strategy"] == anchor.QUERY_STRATEGY
     assert report["provider_budget_changed"] is False
 
 
