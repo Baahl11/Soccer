@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from mcp_gateway.refresh_signal_evidence_summary import refresh_summary
+import importlib.util
+from pathlib import Path
+
+MODULE_PATH = Path(__file__).resolve().parents[1] / "mcp_gateway" / "refresh_signal_evidence_summary.py"
+SPEC = importlib.util.spec_from_file_location("refresh_signal_evidence_summary_stdlib", MODULE_PATH)
+assert SPEC is not None and SPEC.loader is not None
+refresh_module = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(refresh_module)
+refresh_summary = refresh_module.refresh_summary
 
 
 def test_refresh_advances_only_from_real_persisted_compact_event_tick() -> None:
