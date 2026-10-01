@@ -72,12 +72,11 @@ def _install_subscriber_app_routes() -> None:
     FastMCP._v220_streamable_http_app = original
 
     async def auth_landing(request):
-        return RedirectResponse(url="/app", status_code=307)
+        return RedirectResponse(url="/dashboard", status_code=307)
 
     def streamable_http_app_with_subscriber_routes(self, *args, **kwargs):
         app = original(self, *args, **kwargs)
         from mcp_gateway import (
-            commercial_surface_guard_v4,
             content_factory_http_v4,
             subscriber_product_v235,
             subscriber_preview_data_v231,
@@ -90,14 +89,10 @@ def _install_subscriber_app_routes() -> None:
         additions = []
         if "v226_auth_landing" not in existing_names:
             additions.append(Route("/", auth_landing, methods=["GET"], name="v226_auth_landing"))
-        if "v221_dashboard_guard" not in existing_names:
-            additions.append(Route("/dashboard", commercial_surface_guard_v4.dashboard_guard, methods=["GET"], name="v221_dashboard_guard"))
-        if "v221_product_views_guard" not in existing_names:
-            additions.append(Route("/product/views", commercial_surface_guard_v4.product_views_guard, methods=["GET"], name="v221_product_views_guard"))
         if "/internal/content-packages" not in existing_paths:
             additions.append(Route("/internal/content-packages", content_factory_http_v4.content_packages, methods=["POST"], name="v225_content_packages"))
         if "/app" not in existing_paths:
-            additions.append(Route("/app", subscriber_product_v235.app_page, methods=["GET"], name="v235_subscriber_product"))
+            additions.append(Route("/app", auth_landing, methods=["GET"], name="v235_subscriber_product"))
         if "/app/data" not in existing_paths:
             additions.append(Route("/app/data", subscriber_product_v235.app_data, methods=["GET"], name="v235_subscriber_data"))
         if "/app/match" not in existing_paths:
