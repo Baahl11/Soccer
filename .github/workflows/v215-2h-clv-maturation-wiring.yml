@@ -42,8 +42,6 @@ jobs:
               1,
           )
 
-          # 2H uses the exact-market/selection/line semantics already used by 1H
-          # and Corners. No budget/gate/model changes.
           text = text.replace(
               'if family in {"1H", "FT_CORNERS", "TEAM_CORNERS"}:',
               'if family in {"1H", "2H", "FT_CORNERS", "TEAM_CORNERS"}:',
@@ -53,7 +51,6 @@ jobs:
               '{"1X2", "FT_TOTALS", "BTTS", "1H", "2H", "FT_CORNERS", "TEAM_CORNERS"}',
           )
 
-          # Clone the proven 1H backlog loader, changing only family/container/source.
           start = text.index('def _load_one_h_clv_maturation_backlog(')
           end = text.index('def _load_corners_clv_maturation_backlog(', start)
           one_h_block = text[start:end]
@@ -130,7 +127,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check -q pytest httpx psycopg[binary]
+          python -m pip install --disable-pip-version-check -q pytest -r mcp_gateway/requirements.txt
           python -m py_compile mcp_gateway/price_resolver_v4.py
           python -m pytest -q tests/test_price_resolver_v4.py
           grep -q 'SOCCER_PRICE_RESOLVER_V4_1.20.0' mcp_gateway/price_resolver_v4.py
