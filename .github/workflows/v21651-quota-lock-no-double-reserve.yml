@@ -1,0 +1,64 @@
+name: v216.5.1 Quota Lock No Double Reserve
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/v21651-quota-lock-no-double-reserve.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 0
+
+      - name: Checkout control script
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: control
+          sparse-checkout: |
+            .github/scripts/v21651_patch_quota_lock_no_double_reserve.py
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install runtime test dependencies
+        working-directory: runtime
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+
+      - name: Apply patch
+        run: python control/.github/scripts/v21651_patch_quota_lock_no_double_reserve.py runtime
+
+      - name: Validate focused v126 tests
+        working-directory: runtime
+        run: |
+          python -m py_compile mcp_gateway/automation_v126.py
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_automation_v126.py
+
+      - name: Commit runtime fix
+        working-directory: runtime
+        run: |
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add mcp_gateway/automation_v126.py
+          git diff --cached --quiet && exit 0
+          git commit -m 'v216.5.1 avoid double-reserving pre-quota cap'
+          git fetch origin soccer-edge-mcp-v1
+          git rebase origin/soccer-edge-mcp-v1
+          git push origin HEAD:soccer-edge-mcp-v1
