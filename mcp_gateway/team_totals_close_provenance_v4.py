@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+# Observability only: this module never changes price selection, provider budget, or strict-close eligibility.
 MODEL_VERSION = "SOCCER_TEAM_TOTALS_CLOSE_PROVENANCE_V4_1.0.0"
 SCHEMA_VERSION = "1.0.0"
 MAX_SAMPLES = 80
