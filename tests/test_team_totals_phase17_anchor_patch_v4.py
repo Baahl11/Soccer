@@ -96,3 +96,83 @@ def test_exact_key_normalizes_over_under_wording_but_keeps_home_away_separate():
     assert over_plain in collapsed
     assert over_with_line not in collapsed
     assert away in collapsed
+
+
+def test_recent_cap_independent_slice_replaces_rows_without_increasing_max_rows():
+    raw_old_tt = _signal(
+        fixture_id=1,
+        at="2026-10-02T02:00:00",
+        market="Total - Home",
+        selection="OVER",
+        line=1.5,
+    )
+    raw_other = _signal(
+        fixture_id=20,
+        at="2026-10-02T03:00:00",
+        market="Goals Over/Under First Half",
+        selection="Over",
+        line=1.5,
+        source="DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence",
+    )
+    raw_tail = _signal(
+        fixture_id=21,
+        at="2026-10-02T03:10:00",
+        market="Goals Over/Under - Second Half",
+        selection="Under",
+        line=1.5,
+        source="DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence",
+    )
+    missing_recent = _signal(
+        fixture_id=1549849,
+        at="2026-10-01T22:00:00",
+        market="Total - Home",
+        selection="OVER",
+        line=1.5,
+    )
+
+    merged = patch.merge_bounded_recent_team_totals(
+        [raw_old_tt, raw_other, raw_tail],
+        [missing_recent],
+        max_rows=3,
+    )
+
+    assert len(merged) == 3
+    assert merged[0] is missing_recent
+    assert raw_other in merged
+    assert raw_tail not in merged
+
+
+def test_recent_slice_replaces_recycled_same_exact_key_with_oldest_recent_anchor():
+    raw_recycled = _signal(
+        fixture_id=1490463,
+        at="2026-10-02T01:10:00",
+        market="Total - Away",
+        selection="UNDER",
+        line=2.5,
+    )
+    recent_oldest = _signal(
+        fixture_id=1490463,
+        at="2026-10-01T22:10:00",
+        market="Total - Away",
+        selection="Under 2.5",
+        line=2.5,
+    )
+    other_family = _signal(
+        fixture_id=30,
+        at="2026-10-02T01:20:00",
+        market="Goals Over/Under First Half",
+        selection="Over",
+        line=1.5,
+        source="DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence",
+    )
+
+    merged = patch.merge_bounded_recent_team_totals(
+        [raw_recycled, other_family],
+        [recent_oldest],
+        max_rows=2,
+    )
+
+    assert len(merged) == 2
+    assert recent_oldest in merged
+    assert raw_recycled not in merged
+    assert other_family in merged
