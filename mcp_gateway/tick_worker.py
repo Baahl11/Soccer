@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import sys
+import time
 
 import httpx
 
@@ -91,16 +92,106 @@ def _normalize_refresh_event_model_lineage(payload: dict) -> dict:
     return result
 
 
+def _emit_timing(stage: str, **fields: object) -> None:
+    record = {"stage": stage, **fields}
+    sys.stderr.write(
+        "TICK_TIMING "
+        + json.dumps(record, ensure_ascii=False, separators=(",", ":"), default=str)
+        + "\n"
+    )
+    sys.stderr.flush()
+
+
+def _elapsed_ms(started: float) -> int:
+    return int(round((time.monotonic() - started) * 1000.0))
+
+
 async def _main() -> int:
+    total_started = time.monotonic()
+    timings: dict[str, int] = {}
     try:
+        stage_started = time.monotonic()
+        _emit_timing("seed_state_start")
         shortlist_seed, fairness_seed = _read_seeds()
+        timings["seed_state_ms"] = _elapsed_ms(stage_started)
+        _emit_timing("seed_state_done", elapsed_ms=timings["seed_state_ms"])
+
+        stage_started = time.monotonic()
         imported = automation_v6.import_shortlist_state(shortlist_seed)
         fairness_imported = automation_v7.fair_scheduler.import_state(fairness_seed)
-        payload = await automation_v129.run_tick()
+        timings["seed_import_ms"] = _elapsed_ms(stage_started)
+        _emit_timing("seed_import_done", elapsed_ms=timings["seed_import_ms"])
+
+        original_v128_run_tick = automation_v129.v128.run_tick
+        original_history_load_report = automation_v129.team_totals_close_provenance_history_v4.load_report
+        original_current_close_build_report = automation_v129.team_totals_close_provenance_v4.build_report
+
+        async def timed_v128_run_tick(*args, **kwargs):
+            started = time.monotonic()
+            _emit_timing("v128_run_tick_start")
+            try:
+                return await original_v128_run_tick(*args, **kwargs)
+            finally:
+                timings["v128_run_tick_ms"] = _elapsed_ms(started)
+                _emit_timing("v128_run_tick_done", elapsed_ms=timings["v128_run_tick_ms"])
+
+        def timed_history_load_report(*args, **kwargs):
+            started = time.monotonic()
+            _emit_timing("team_totals_history_audit_start")
+            try:
+                return original_history_load_report(*args, **kwargs)
+            finally:
+                timings["team_totals_history_audit_ms"] = _elapsed_ms(started)
+                _emit_timing(
+                    "team_totals_history_audit_done",
+                    elapsed_ms=timings["team_totals_history_audit_ms"],
+                )
+
+        def timed_current_close_build_report(*args, **kwargs):
+            started = time.monotonic()
+            _emit_timing("team_totals_current_tick_audit_start")
+            try:
+                return original_current_close_build_report(*args, **kwargs)
+            finally:
+                timings["team_totals_current_tick_audit_ms"] = _elapsed_ms(started)
+                _emit_timing(
+                    "team_totals_current_tick_audit_done",
+                    elapsed_ms=timings["team_totals_current_tick_audit_ms"],
+                )
+
+        automation_v129.v128.run_tick = timed_v128_run_tick
+        automation_v129.team_totals_close_provenance_history_v4.load_report = timed_history_load_report
+        automation_v129.team_totals_close_provenance_v4.build_report = timed_current_close_build_report
+
+        stage_started = time.monotonic()
+        _emit_timing("automation_v129_start")
+        try:
+            payload = await automation_v129.run_tick()
+        finally:
+            timings["automation_v129_total_ms"] = _elapsed_ms(stage_started)
+            _emit_timing(
+                "automation_v129_done",
+                elapsed_ms=timings["automation_v129_total_ms"],
+            )
+            automation_v129.v128.run_tick = original_v128_run_tick
+            automation_v129.team_totals_close_provenance_history_v4.load_report = original_history_load_report
+            automation_v129.team_totals_close_provenance_v4.build_report = original_current_close_build_report
+
         payload.setdefault("status", "ok")
         payload["shortlist_seed_imported"] = imported
         payload["fair_scheduler_seed_imported"] = fairness_imported
+        payload["tick_stage_timings_ms"] = timings
+
+        stage_started = time.monotonic()
         _normalize_refresh_event_model_lineage(payload)
+        timings["model_lineage_normalization_ms"] = _elapsed_ms(stage_started)
+        _emit_timing(
+            "model_lineage_normalization_done",
+            elapsed_ms=timings["model_lineage_normalization_ms"],
+        )
+
+        stage_started = time.monotonic()
+        _emit_timing("persistence_start")
         try:
             # Avoid retaining a second top-level payload mapping on the 512 MB
             # Render instance. shortlist_state is durable scheduler handoff data,
@@ -117,11 +208,15 @@ async def _main() -> int:
         except Exception as db_exc:
             payload["database_persisted"] = False
             payload["database_error"] = str(db_exc)[:300]
+        timings["persistence_ms"] = _elapsed_ms(stage_started)
+        _emit_timing("persistence_done", elapsed_ms=timings["persistence_ms"])
 
         # Phase24 views were initially assembled upstream before the final
         # price-resolver/CLV annotations and before persistence completed.
         # Rebuild once here from the final payload so the returned/state-branch
         # snapshot reflects final API caps, maturation counters and DB health.
+        stage_started = time.monotonic()
+        _emit_timing("dashboard_refresh_start")
         try:
             product = product_views_v4.build_views(payload, limit=product_views_v4.MAX_ROWS_PER_VIEW)
             payload["dashboard_views"] = product["views"]
@@ -132,12 +227,26 @@ async def _main() -> int:
                 phase24["dashboard_views_refreshed_after_persistence"] = True
         except Exception as dashboard_exc:
             payload["dashboard_refresh_error"] = str(dashboard_exc)[:300]
+        timings["dashboard_refresh_ms"] = _elapsed_ms(stage_started)
+        _emit_timing("dashboard_refresh_done", elapsed_ms=timings["dashboard_refresh_ms"])
 
+        timings["total_before_json_ms"] = _elapsed_ms(total_started)
+        _emit_timing("json_encode_start", elapsed_ms=timings["total_before_json_ms"])
+        stage_started = time.monotonic()
         encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        timings["json_encode_ms"] = _elapsed_ms(stage_started)
+        timings["total_worker_ms"] = _elapsed_ms(total_started)
+        _emit_timing(
+            "json_encode_done",
+            elapsed_ms=timings["json_encode_ms"],
+            total_worker_ms=timings["total_worker_ms"],
+            output_bytes=len(encoded.encode("utf-8")),
+        )
         sys.stdout.write(encoded)
         sys.stdout.flush()
         return 0
     except Exception as exc:
+        _emit_timing("tick_worker_exception", elapsed_ms=_elapsed_ms(total_started), error=str(exc)[:200])
         sys.stderr.write(f"tick_failed: {str(exc)[:500]}\n")
         sys.stderr.flush()
         return 1
