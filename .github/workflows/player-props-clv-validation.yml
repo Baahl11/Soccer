@@ -1,4 +1,4 @@
-# v217 live-runtime Player Props SHOTS anchor validation 2026-10-02
+# v217 expose SHOTS anchor diagnostics 2026-10-02
 name: Player Props True CLV Validation
 
 on:
@@ -54,6 +54,7 @@ jobs:
             unique_fixtures,
             skip_reasons,
             close_diagnostics,
+            v217_shots_anchor_patch: .signal_diagnostics.v217_shots_anchor_patch,
             families,
             signal_family_summary: (
               .signal_diagnostics.families
