@@ -9,7 +9,7 @@ MODEL_VERSION = "SOCCER_PLAYER_PROPS_SHOTS_ANCHOR_PATCH_V4_1.0.0"
 RECENT_CLOSED_HOURS = 12
 MAX_RECENT_EVENT_IDS = 600
 
-_ORIGINAL_LOAD_EVENT_SIGNALS = base._load_event_signals
+_ORIGINAL_LOAD_EVENT_SIGNALS = base._load_event_signALS if False else base._load_event_signals
 _INSTALLED = False
 
 
@@ -102,7 +102,7 @@ def _load_recent_closed_shots(
     hours: int = RECENT_CLOSED_HOURS,
     max_event_ids: int = MAX_RECENT_EVENT_IDS,
     batch_size: int = 100,
-) -> tuple[list[dict[str, Any]], int]:
+) -> tuple[list[dict[str, Any]], int, dict[str, Any]]:
     now = datetime.now(timezone.utc)
     kickoff_cutoff = now - timedelta(hours=max(1, int(hours)))
     event_cutoff = kickoff_cutoff - timedelta(hours=2)
@@ -130,14 +130,37 @@ def _load_recent_closed_shots(
         event_ids = [int(row[0]) for row in cur.fetchall()]
 
     recent_signals: list[dict[str, Any]] = []
+    extraction_diagnostics: dict[str, Any] = {}
     for offset in range(0, len(event_ids), bounded_batch):
         events = base._hydrate_event_batch(conn, event_ids[offset:offset + bounded_batch])
-        extracted = base.extract_shadow_signals(events, {})
+        extracted = base.extract_shadow_signals(events, extraction_diagnostics)
         recent_signals.extend(
             row for row in extracted
             if str(row.get("market_family") or "").upper() == "SHOTS"
         )
-    return recent_signals, len(event_ids)
+    return recent_signals, len(event_ids), extraction_diagnostics
+
+
+def _compact_recent_shots_diagnostics(diagnostics: dict[str, Any]) -> dict[str, Any]:
+    family = ((diagnostics.get("families") or {}).get("SHOTS") or {})
+    keys = (
+        "intelligence_event_rows",
+        "market_overlap_event_rows",
+        "modelable_player_rows",
+        "market_rows",
+        "raw_market_values",
+        "aligned_market_values",
+        "player_id_overlap_values",
+        "priced_overlap_values",
+        "model_probability_values",
+        "signal_rows",
+        "sidecar_capture_status",
+        "probability_failure_reasons",
+    )
+    return {
+        "eligible_event_rows": int(diagnostics.get("eligible_event_rows") or 0),
+        **{key: family.get(key) for key in keys},
+    }
 
 
 def _patched_load_event_signals(
@@ -155,7 +178,7 @@ def _patched_load_event_signals(
     )
 
     try:
-        recent_shots, recent_event_ids = _load_recent_closed_shots(
+        recent_shots, recent_event_ids, recent_extraction_diagnostics = _load_recent_closed_shots(
             conn,
             batch_size=batch_size,
         )
@@ -165,6 +188,7 @@ def _patched_load_event_signals(
             "status": "RESEARCH_ONLY",
             "recent_closed_hours": RECENT_CLOSED_HOURS,
             "recent_event_ids_loaded": recent_event_ids,
+            "recent_extraction": _compact_recent_shots_diagnostics(recent_extraction_diagnostics),
             **patch_diag,
             "provider_requests_added": 0,
             "strict_close_semantics_changed": False,
