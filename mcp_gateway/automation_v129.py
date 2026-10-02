@@ -9,6 +9,7 @@ from mcp_gateway import primary_clv_anchor_v4
 from mcp_gateway import derivative_clv_anchor_v4
 from mcp_gateway import team_totals_clv_anchor_v4
 from mcp_gateway import team_totals_close_provenance_v4
+from mcp_gateway import team_totals_close_provenance_history_v4
 
 MODEL_VERSION = v128.MODEL_VERSION
 AUTOMATION_VERSION = "4.38.5-team-totals-close-provenance-audit"
@@ -79,7 +80,7 @@ async def run_tick() -> dict[str, Any]:
         resolved_events=events,
         captured_at=payload.get("generated_at_utc"),
     )
-    historical_team_totals_close_audit = team_totals_close_provenance_v4.load_historical_report()
+    historical_team_totals_close_audit = team_totals_close_provenance_history_v4.load_report()
     if historical_team_totals_close_audit.get("status") == "NO_DATABASE":
         team_totals_close_audit = current_tick_team_totals_close_audit
     else:
@@ -211,12 +212,12 @@ async def run_tick() -> dict[str, Any]:
         price_resolution["team_totals_close_provenance_audit"] = team_totals_close_audit
     payload["v216_8_checkpoint"] = (
         "TEAM TOTALS CLOSE PROVENANCE AUDIT ACTIVE: recent kicked-off modeled Team Totals are "
-        "audited directly from Postgres refresh events and market snapshots, independent of the "
-        "Phase17 2,000-signal cap. Exact market, side and line plus captured_at/provider_update "
-        "strictly after the authentic signal and before kickoff are still required. The current-tick "
-        "candidate view is retained as a nested diagnostic. Observability only: no provider calls, "
-        "selection changes, history rewrite, cap change, gate/threshold changes, decision weight, "
-        "or production promotion."
+        "audited from a fixture-scoped Postgres read that fetches only the minimal derivative JSON, "
+        "then expands and deduplicates exact market/side/line signals in Python. The audit is "
+        "independent of the Phase17 2,000-signal cap and still requires captured_at/provider_update "
+        "strictly after the authentic signal and before kickoff. Observability only: no provider "
+        "calls, selection changes, history rewrite, cap change, gate/threshold changes, decision "
+        "weight, or production promotion."
     )
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
