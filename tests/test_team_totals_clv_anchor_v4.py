@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from mcp_gateway import automation_v129
 from mcp_gateway import price_resolver_v4 as price
 from mcp_gateway import team_totals_clv_anchor_v4 as anchor
+from mcp_gateway import team_totals_close_provenance_v4 as provenance
 
 
 COLUMNS = (
@@ -40,6 +41,37 @@ def _wire(monkeypatch, cursor):
     monkeypatch.setattr(price.persistence, "persistence_configured", lambda: True)
     monkeypatch.setattr(price.persistence, "ensure_schema", lambda: None)
     monkeypatch.setattr(price.persistence, "_connect", lambda: _Conn(cursor))
+
+
+def _candidate(signal_at, kickoff, *, fixture_id=123, line=1.5):
+    return {
+        "stage": "T-40",
+        "fixture": {"fixture_id": fixture_id, "kickoff": kickoff.isoformat()},
+        "team_totals_clv_maturation": {
+            "signals": [{
+                "market_family": "TEAM_TOTALS",
+                "market": "Home Goals Over/Under",
+                "selection": "Over",
+                "line": line,
+                "signal_generated_at": signal_at.isoformat(),
+            }]
+        },
+    }
+
+
+def _resolved(provider_update, *, fixture_id=123, line=1.5):
+    return {
+        "fixture": {"fixture_id": fixture_id},
+        "market": {
+            "markets": [{
+                "market": "Home Goals Over/Under",
+                "bookmaker_id": 8,
+                "bookmaker": "Book",
+                "provider_update": provider_update.isoformat(),
+                "values": [{"selection": "Over", "line": line, "decimal_price": 1.91}],
+            }]
+        },
+    }
 
 
 def test_team_totals_anchor_is_exact_oldest_unresolved_and_bounded(monkeypatch):
@@ -97,13 +129,53 @@ def test_team_totals_anchor_groups_multiple_exact_signals_by_fixture(monkeypatch
     assert len(meta["signals"]) == 2
 
 
-def test_v129_activates_and_restores_team_totals_anchor(monkeypatch):
+def test_close_provenance_requires_exact_side_line_and_strict_times():
+    signal_at = datetime(2026, 10, 1, 16, 0, tzinfo=timezone.utc)
+    captured_at = datetime(2026, 10, 1, 16, 30, tzinfo=timezone.utc)
+    kickoff = datetime(2026, 10, 1, 18, 0, tzinfo=timezone.utc)
+
+    strict = provenance.build_report(
+        candidate_events=[_candidate(signal_at, kickoff)],
+        resolved_events=[_resolved(datetime(2026, 10, 1, 16, 20, tzinfo=timezone.utc))],
+        captured_at=captured_at,
+    )
+    assert strict["strict_later_exact_quote_fixture_ids"] == [123]
+    assert strict["reason_counts"] == {"STRICT_LATER_EXACT_QUOTE": 1}
+    assert strict["samples"][0]["bookmaker_id"] == 8
+    assert strict["provider_requests_added"] == 0
+    assert strict["selection_logic_changed"] is False
+
+    wrong_line = provenance.build_report(
+        candidate_events=[_candidate(signal_at, kickoff, line=1.5)],
+        resolved_events=[_resolved(datetime(2026, 10, 1, 16, 20, tzinfo=timezone.utc), line=2.5)],
+        captured_at=captured_at,
+    )
+    assert wrong_line["reason_counts"] == {"NO_EXACT_SIDE_LINE_MATCH": 1}
+
+    stale_provider = provenance.build_report(
+        candidate_events=[_candidate(signal_at, kickoff)],
+        resolved_events=[_resolved(datetime(2026, 10, 1, 15, 59, tzinfo=timezone.utc))],
+        captured_at=captured_at,
+    )
+    assert stale_provider["reason_counts"] == {"PROVIDER_UPDATE_NOT_AFTER_SIGNAL": 1}
+
+
+def test_v129_activates_restores_and_publishes_team_totals_audit(monkeypatch):
     original = price._load_team_totals_maturation_backlog
+    replacement_calls = []
+
     def replacement(*args, **kwargs):
+        replacement_calls.append(True)
         return {"candidate_events": [], "candidate_count": 0}
+
     async def fake_upstream():
-        assert price._load_team_totals_maturation_backlog is replacement
-        return {"events": [], "model_version": "SOCCER EDGE ENGINE v1.7"}
+        assert price._load_team_totals_maturation_backlog is not original
+        price._load_team_totals_maturation_backlog()
+        return {
+            "events": [],
+            "generated_at_utc": "2026-10-01T16:30:00+00:00",
+            "model_version": "SOCCER EDGE ENGINE v1.7",
+        }
 
     monkeypatch.setattr(anchor, "load_team_totals_maturation_backlog", replacement)
     monkeypatch.setattr(automation_v129.v128, "run_tick", fake_upstream)
@@ -113,9 +185,14 @@ def test_v129_activates_and_restores_team_totals_anchor(monkeypatch):
         lambda events: {"status": "TEST"},
     )
     payload = asyncio.run(automation_v129.run_tick())
+    assert replacement_calls == [True]
     assert price._load_team_totals_maturation_backlog is original
     repair = payload["v215_7_team_totals_clv_anchor_repair"]
     assert repair["signal_anchor_policy"] == anchor.ANCHOR_POLICY
     assert repair["provider_budget_changed"] is False
     assert repair["team_totals_maturation_max_calls_per_tick"] == price.TEAM_TOTALS_MATURATION_MAX_CALLS_PER_TICK
-    assert payload["version"] == "4.38.3-team-totals-clv-anchor-repair"
+    audit = payload["v216_8_team_totals_close_provenance_audit"]
+    assert audit["status"] == "OBSERVABILITY_ONLY"
+    assert audit["provider_requests_added"] == 0
+    assert audit["selection_logic_changed"] is False
+    assert payload["version"] == "4.38.5-team-totals-close-provenance-audit"
