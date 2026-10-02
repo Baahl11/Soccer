@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import os
+import sys
 from typing import Any
 
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 from mcp_gateway import player_props_shots_anchor_patch_v4
 from mcp_gateway import server_base as _base_server
@@ -13,7 +15,8 @@ from mcp_gateway import team_totals_phase17_anchor_patch_v4
 
 # Keep mcp_gateway.server as the canonical compatibility surface.  The entire
 # pre-v215 server implementation is preserved byte-for-byte in server_base;
-# this module only adds one isolated ASGI route and delegates everything else.
+# this module only adds isolated compatibility/diagnostic routes and delegates
+# everything else.
 for _name, _value in vars(_base_server).items():
     if not _name.startswith("__") and _name != "app":
         globals()[_name] = _value
@@ -32,6 +35,8 @@ V217_PLAYER_PROPS_SHOTS_ANCHOR_PATCH = player_props_shots_anchor_patch_v4.instal
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
 V215_SIGNAL_LEDGER_REF = "refs/heads/soccer-edge-mcp-v1"
+TICK_ROUTE = "/internal/tick"
+TICK_TIMEOUT_SECONDS = 420
 
 
 def _v215_github_oidc_claims(request: Request) -> dict[str, Any]:
@@ -112,20 +117,113 @@ async def _handle_v215_signal_ledger(scope, receive, send) -> None:
     await response(scope, receive, send)
 
 
+async def _handle_instrumented_tick(scope, receive, send) -> None:
+    """Run the canonical tick while surfacing worker timing checkpoints.
+
+    This is observability-only. It preserves the existing OIDC validation,
+    subprocess isolation, 420-second timeout, JSON response bytes, model logic,
+    gates, thresholds, provider budget and persistence behavior.
+    """
+    request = Request(scope, receive=receive)
+    try:
+        _base_server._github_oidc_claims(request)
+    except Exception as exc:
+        response = JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+        await response(scope, receive, send)
+        return
+
+    env = os.environ.copy()
+    env.setdefault("MALLOC_ARENA_MAX", "2")
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            sys.executable,
+            "-m",
+            "mcp_gateway.tick_worker",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
+        )
+        stderr_lines: list[str] = []
+
+        async def _pump_worker_stderr() -> None:
+            assert proc.stderr is not None
+            while True:
+                raw = await proc.stderr.readline()
+                if not raw:
+                    break
+                line = raw.decode("utf-8", errors="replace").rstrip()
+                stderr_lines.append(line)
+                if len(stderr_lines) > 200:
+                    del stderr_lines[:-200]
+                if line.startswith("TICK_TIMING "):
+                    print(line, file=sys.stderr, flush=True)
+
+        assert proc.stdout is not None
+        stderr_task = asyncio.create_task(_pump_worker_stderr())
+        stdout_task = asyncio.create_task(proc.stdout.read())
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=TICK_TIMEOUT_SECONDS)
+        except TimeoutError:
+            proc.kill()
+            await proc.wait()
+            await stderr_task
+            stdout_task.cancel()
+            timing_tail = [
+                line for line in stderr_lines if line.startswith("TICK_TIMING ")
+            ][-20:]
+            response = JSONResponse(
+                {
+                    "error": "tick_timeout",
+                    "timeout_seconds": TICK_TIMEOUT_SECONDS,
+                    "worker_timing_tail": timing_tail,
+                },
+                status_code=504,
+            )
+            await response(scope, receive, send)
+            return
+
+        await stderr_task
+        stdout = await stdout_task
+        stderr_text = "\n".join(stderr_lines)
+        if proc.returncode != 0:
+            detail = stderr_text[-1000:]
+            response = JSONResponse({"error": "tick_failed", "detail": detail}, status_code=500)
+            await response(scope, receive, send)
+            return
+        if not stdout:
+            response = JSONResponse(
+                {"error": "tick_failed", "detail": "worker returned empty output"},
+                status_code=500,
+            )
+            await response(scope, receive, send)
+            return
+
+        response = Response(content=stdout, media_type="application/json", status_code=200)
+        await response(scope, receive, send)
+    except Exception as exc:
+        response = JSONResponse(
+            {"error": "tick_failed", "detail": str(exc)[:500]},
+            status_code=500,
+        )
+        await response(scope, receive, send)
+
+
 class V215SignalLedgerRouter:
-    """Intercept the v215 materialization route and delegate every other request."""
+    """Intercept isolated compatibility routes and delegate every other request."""
 
     def __init__(self, downstream) -> None:
         self.downstream = downstream
 
     async def __call__(self, scope, receive, send) -> None:
-        if (
-            scope.get("type") == "http"
-            and scope.get("path") == V215_SIGNAL_LEDGER_ROUTE
-            and str(scope.get("method") or "").upper() == "POST"
-        ):
-            await _handle_v215_signal_ledger(scope, receive, send)
-            return
+        if scope.get("type") == "http":
+            path = scope.get("path")
+            method = str(scope.get("method") or "").upper()
+            if path == V215_SIGNAL_LEDGER_ROUTE and method == "POST":
+                await _handle_v215_signal_ledger(scope, receive, send)
+                return
+            if path == TICK_ROUTE and method == "POST":
+                await _handle_instrumented_tick(scope, receive, send)
+                return
         await self.downstream(scope, receive, send)
 
 
