@@ -6,6 +6,7 @@ from typing import Any
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from mcp_gateway import player_props_shots_anchor_patch_v4
 from mcp_gateway import server_base as _base_server
 from mcp_gateway import signal_ledger_postgres_delta_v4
 from mcp_gateway import team_totals_phase17_anchor_patch_v4
@@ -21,6 +22,12 @@ for _name, _value in vars(_base_server).items():
 # the oldest exact fixture/market/side/line signal, matching the live maturation
 # contract. This changes neither the global signal cap nor strict-close rules.
 V216_9_PHASE17_TEAM_TOTALS_ANCHOR_PATCH = team_totals_phase17_anchor_patch_v4.install()
+
+# v217 research-only compatibility patch: repeated SHOTS signals from successive
+# pre-kickoff ticks must anchor to the oldest exact fixture/player/side/line
+# signal. The patch is DB-only, bounded, adds no provider requests, and leaves
+# strict-close semantics unchanged.
+V217_PLAYER_PROPS_SHOTS_ANCHOR_PATCH = player_props_shots_anchor_patch_v4.install()
 
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
