@@ -8,6 +8,7 @@ from starlette.responses import JSONResponse
 
 from mcp_gateway import server_base as _base_server
 from mcp_gateway import signal_ledger_postgres_delta_v4
+from mcp_gateway import team_totals_phase17_anchor_patch_v4
 
 # Keep mcp_gateway.server as the canonical compatibility surface.  The entire
 # pre-v215 server implementation is preserved byte-for-byte in server_base;
@@ -15,6 +16,11 @@ from mcp_gateway import signal_ledger_postgres_delta_v4
 for _name, _value in vars(_base_server).items():
     if not _name.startswith("__") and _name != "app":
         globals()[_name] = _value
+
+# v216.9 research-only compatibility patch: Phase17 Team Totals must anchor to
+# the oldest exact fixture/market/side/line signal, matching the live maturation
+# contract. This changes neither the global signal cap nor strict-close rules.
+V216_9_PHASE17_TEAM_TOTALS_ANCHOR_PATCH = team_totals_phase17_anchor_patch_v4.install()
 
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
