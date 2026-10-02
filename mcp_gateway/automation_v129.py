@@ -8,9 +8,10 @@ from mcp_gateway import price_resolver_v4
 from mcp_gateway import primary_clv_anchor_v4
 from mcp_gateway import derivative_clv_anchor_v4
 from mcp_gateway import team_totals_clv_anchor_v4
+from mcp_gateway import team_totals_close_provenance_v4
 
 MODEL_VERSION = v128.MODEL_VERSION
-AUTOMATION_VERSION = "4.38.4-primary-clv-exclusion-audit"
+AUTOMATION_VERSION = "4.38.5-team-totals-close-provenance-audit"
 
 
 async def run_tick() -> dict[str, Any]:
@@ -20,6 +21,7 @@ async def run_tick() -> dict[str, Any]:
     original_corners_loader = price_resolver_v4._load_corners_clv_maturation_backlog
     original_team_totals_loader = price_resolver_v4._load_team_totals_maturation_backlog
     primary_loader_observation: dict[str, Any] = {}
+    team_totals_candidate_events: list[dict[str, Any]] = []
 
     def observed_primary_loader(*args: Any, **kwargs: Any) -> dict[str, Any]:
         report = primary_clv_anchor_v4.load_primary_clv_maturation_backlog(*args, **kwargs)
@@ -40,6 +42,14 @@ async def run_tick() -> dict[str, Any]:
         )
         return report
 
+    def observed_team_totals_loader(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        report = team_totals_clv_anchor_v4.load_team_totals_maturation_backlog(*args, **kwargs)
+        team_totals_candidate_events.clear()
+        team_totals_candidate_events.extend(
+            event for event in (report.get("candidate_events") or []) if isinstance(event, dict)
+        )
+        return report
+
     price_resolver_v4._load_primary_clv_maturation_backlog = observed_primary_loader
     price_resolver_v4._load_one_h_clv_maturation_backlog = (
         derivative_clv_anchor_v4.load_one_h_clv_maturation_backlog
@@ -50,9 +60,7 @@ async def run_tick() -> dict[str, Any]:
     price_resolver_v4._load_corners_clv_maturation_backlog = (
         derivative_clv_anchor_v4.load_corners_clv_maturation_backlog
     )
-    price_resolver_v4._load_team_totals_maturation_backlog = (
-        team_totals_clv_anchor_v4.load_team_totals_maturation_backlog
-    )
+    price_resolver_v4._load_team_totals_maturation_backlog = observed_team_totals_loader
     try:
         payload = await v128.run_tick()
     finally:
@@ -65,6 +73,12 @@ async def run_tick() -> dict[str, Any]:
     events = payload.get("events")
     if not isinstance(events, list):
         events = []
+
+    team_totals_close_audit = team_totals_close_provenance_v4.build_report(
+        candidate_events=team_totals_candidate_events,
+        resolved_events=events,
+        captured_at=payload.get("generated_at_utc"),
+    )
 
     payload["v212_dynamic_strength_challenger"] = dynamic_strength_challenger_v4.build_report(events)
     payload["v212_checkpoint"] = (
@@ -183,6 +197,14 @@ async def run_tick() -> dict[str, Any]:
             "WITHOUT CHANGING WHICH FIXTURES ENTER MATURATION"
         ),
     }
+    payload["v216_8_team_totals_close_provenance_audit"] = team_totals_close_audit
+    payload["v216_8_checkpoint"] = (
+        "TEAM TOTALS CLOSE PROVENANCE AUDIT ACTIVE: every maturation candidate is compared against "
+        "the exact same market, selection and line returned in this tick, with captured_at and "
+        "provider_update checked strictly after the authentic signal and before kickoff. This is "
+        "observability only: no provider calls, selection changes, history rewrite, gate/threshold "
+        "changes, decision weight, or production promotion."
+    )
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
     return payload
