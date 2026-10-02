@@ -74,11 +74,19 @@ async def run_tick() -> dict[str, Any]:
     if not isinstance(events, list):
         events = []
 
-    team_totals_close_audit = team_totals_close_provenance_v4.build_report(
+    current_tick_team_totals_close_audit = team_totals_close_provenance_v4.build_report(
         candidate_events=team_totals_candidate_events,
         resolved_events=events,
         captured_at=payload.get("generated_at_utc"),
     )
+    historical_team_totals_close_audit = team_totals_close_provenance_v4.load_historical_report()
+    if historical_team_totals_close_audit.get("status") == "NO_DATABASE":
+        team_totals_close_audit = current_tick_team_totals_close_audit
+    else:
+        historical_team_totals_close_audit["current_tick_candidate_audit"] = (
+            current_tick_team_totals_close_audit
+        )
+        team_totals_close_audit = historical_team_totals_close_audit
 
     payload["v212_dynamic_strength_challenger"] = dynamic_strength_challenger_v4.build_report(events)
     payload["v212_checkpoint"] = (
@@ -198,12 +206,17 @@ async def run_tick() -> dict[str, Any]:
         ),
     }
     payload["v216_8_team_totals_close_provenance_audit"] = team_totals_close_audit
+    price_resolution = payload.get("price_resolution_v4")
+    if isinstance(price_resolution, dict):
+        price_resolution["team_totals_close_provenance_audit"] = team_totals_close_audit
     payload["v216_8_checkpoint"] = (
-        "TEAM TOTALS CLOSE PROVENANCE AUDIT ACTIVE: every maturation candidate is compared against "
-        "the exact same market, selection and line returned in this tick, with captured_at and "
-        "provider_update checked strictly after the authentic signal and before kickoff. This is "
-        "observability only: no provider calls, selection changes, history rewrite, gate/threshold "
-        "changes, decision weight, or production promotion."
+        "TEAM TOTALS CLOSE PROVENANCE AUDIT ACTIVE: recent kicked-off modeled Team Totals are "
+        "audited directly from Postgres refresh events and market snapshots, independent of the "
+        "Phase17 2,000-signal cap. Exact market, side and line plus captured_at/provider_update "
+        "strictly after the authentic signal and before kickoff are still required. The current-tick "
+        "candidate view is retained as a nested diagnostic. Observability only: no provider calls, "
+        "selection changes, history rewrite, cap change, gate/threshold changes, decision weight, "
+        "or production promotion."
     )
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
