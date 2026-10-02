@@ -1,5 +1,5 @@
 name: Soccer Edge V4 Runtime Tests
-# Validation checkpoint: Team Totals comparable maturation matcher.
+# Validation checkpoint: Team Totals oldest exact Phase17 anchor.
 
 on:
   push:
@@ -15,6 +15,7 @@ on:
       - "tests/test_one_x_two_multiclass_oos_v4.py"
       - "tests/test_team_totals_intelligence.py"
       - "tests/test_team_totals_clv_anchor_v4.py"
+      - "tests/test_team_totals_phase17_anchor_patch_v4.py"
       - "tests/test_ft_totals_settlement_capture.py"
       - "tests/test_ft_totals_line_coverage_audit.py"
       - "tests/test_ft_totals_paid_odds_reuse.py"
@@ -74,6 +75,7 @@ jobs:
             tests/test_oos_prediction_ledger_v4.py \
             tests/test_team_totals_intelligence.py \
             tests/test_team_totals_clv_anchor_v4.py \
+            tests/test_team_totals_phase17_anchor_patch_v4.py \
             tests/test_ft_totals_settlement_capture.py \
             tests/test_ft_totals_line_coverage_audit.py \
             tests/test_ft_totals_paid_odds_reuse.py \
