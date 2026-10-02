@@ -208,7 +208,7 @@ def test_v129_captures_exclusion_audit_only_during_upstream_tick_and_restores_lo
 
     assert sentinel_calls
     assert price._load_primary_clv_maturation_backlog is original_loader
-    assert payload["version"] == "4.38.4-primary-clv-exclusion-audit"
+    assert payload["version"] == "4.38.5-team-totals-close-provenance-audit"
     repair = payload["v213_primary_clv_anchor_repair"]
     assert repair["signal_anchor_policy"] == anchor.ANCHOR_POLICY
     assert repair["strict_close_semantics_changed"] is False
