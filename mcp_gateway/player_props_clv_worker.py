@@ -21,7 +21,9 @@ def main() -> int:
     try:
         _stage('worker_boot', pid=os.getpid())
         from mcp_gateway import player_props_clv_postgres_v4
-        _stage('module_import_ok')
+        from mcp_gateway import player_props_shots_anchor_patch_v4
+        patch_installed = player_props_shots_anchor_patch_v4.install()
+        _stage('module_import_ok', v217_shots_anchor_patch_installed=patch_installed)
         lookback_days = _bounded_int(
             sys.argv[1] if len(sys.argv) > 1 else "180",
             default=180,
