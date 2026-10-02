@@ -109,6 +109,48 @@ def _elapsed_ms(started: float) -> int:
 async def _main() -> int:
     total_started = time.monotonic()
     timings: dict[str, int] = {}
+    restorers: list[tuple[object, str, object]] = []
+
+    def install_async_timing(module: object, attr: str, stage: str) -> None:
+        original = getattr(module, attr)
+        restorers.append((module, attr, original))
+        calls_key = f"{stage}_calls"
+        elapsed_key = f"{stage}_ms"
+
+        async def wrapped(*args, **kwargs):
+            call_index = int(timings.get(calls_key, 0)) + 1
+            timings[calls_key] = call_index
+            started = time.monotonic()
+            _emit_timing(f"{stage}_start", call=call_index)
+            try:
+                return await original(*args, **kwargs)
+            finally:
+                elapsed = _elapsed_ms(started)
+                timings[elapsed_key] = int(timings.get(elapsed_key, 0)) + elapsed
+                _emit_timing(f"{stage}_done", call=call_index, elapsed_ms=elapsed)
+
+        setattr(module, attr, wrapped)
+
+    def install_sync_timing(module: object, attr: str, stage: str) -> None:
+        original = getattr(module, attr)
+        restorers.append((module, attr, original))
+        calls_key = f"{stage}_calls"
+        elapsed_key = f"{stage}_ms"
+
+        def wrapped(*args, **kwargs):
+            call_index = int(timings.get(calls_key, 0)) + 1
+            timings[calls_key] = call_index
+            started = time.monotonic()
+            _emit_timing(f"{stage}_start", call=call_index)
+            try:
+                return original(*args, **kwargs)
+            finally:
+                elapsed = _elapsed_ms(started)
+                timings[elapsed_key] = int(timings.get(elapsed_key, 0)) + elapsed
+                _emit_timing(f"{stage}_done", call=call_index, elapsed_ms=elapsed)
+
+        setattr(module, attr, wrapped)
+
     try:
         stage_started = time.monotonic()
         _emit_timing("seed_state_start")
@@ -122,46 +164,43 @@ async def _main() -> int:
         timings["seed_import_ms"] = _elapsed_ms(stage_started)
         _emit_timing("seed_import_done", elapsed_ms=timings["seed_import_ms"])
 
-        original_v128_run_tick = automation_v129.v128.run_tick
-        original_history_load_report = automation_v129.team_totals_close_provenance_history_v4.load_report
-        original_current_close_build_report = automation_v129.team_totals_close_provenance_v4.build_report
+        # Diagnostic-only nested timing. Every wrapper delegates to the exact
+        # existing function and is restored immediately after automation_v129.
+        # No provider budget, selection logic, thresholds, gates or persistence
+        # semantics are changed by these probes.
+        v128 = automation_v129.v128
+        v127 = v128.v127
+        v126 = v127.v126
+        v125 = v126.v125
+        v124 = v125.v124
+        v123 = v124.v123
+        v121 = v123.v121
+        v120 = v121.v120
 
-        async def timed_v128_run_tick(*args, **kwargs):
-            started = time.monotonic()
-            _emit_timing("v128_run_tick_start")
-            try:
-                return await original_v128_run_tick(*args, **kwargs)
-            finally:
-                timings["v128_run_tick_ms"] = _elapsed_ms(started)
-                _emit_timing("v128_run_tick_done", elapsed_ms=timings["v128_run_tick_ms"])
-
-        def timed_history_load_report(*args, **kwargs):
-            started = time.monotonic()
-            _emit_timing("team_totals_history_audit_start")
-            try:
-                return original_history_load_report(*args, **kwargs)
-            finally:
-                timings["team_totals_history_audit_ms"] = _elapsed_ms(started)
-                _emit_timing(
-                    "team_totals_history_audit_done",
-                    elapsed_ms=timings["team_totals_history_audit_ms"],
-                )
-
-        def timed_current_close_build_report(*args, **kwargs):
-            started = time.monotonic()
-            _emit_timing("team_totals_current_tick_audit_start")
-            try:
-                return original_current_close_build_report(*args, **kwargs)
-            finally:
-                timings["team_totals_current_tick_audit_ms"] = _elapsed_ms(started)
-                _emit_timing(
-                    "team_totals_current_tick_audit_done",
-                    elapsed_ms=timings["team_totals_current_tick_audit_ms"],
-                )
-
-        automation_v129.v128.run_tick = timed_v128_run_tick
-        automation_v129.team_totals_close_provenance_history_v4.load_report = timed_history_load_report
-        automation_v129.team_totals_close_provenance_v4.build_report = timed_current_close_build_report
+        install_async_timing(v128, "run_tick", "v128_run_tick")
+        install_async_timing(v127, "run_tick", "v127_run_tick")
+        install_async_timing(v126, "run_tick", "v126_run_tick")
+        install_async_timing(v125, "run_tick", "v125_run_tick")
+        install_async_timing(v124, "run_tick", "v124_run_tick")
+        install_async_timing(v123, "run_tick", "v123_run_tick")
+        install_async_timing(v121, "run_tick", "v121_run_tick")
+        install_async_timing(v120, "run_tick", "v120_run_tick")
+        install_async_timing(v123.price_resolver_v4, "resolve_payload", "price_resolver_v4_resolve_payload")
+        install_sync_timing(
+            v128.market_residual_challenger_v4,
+            "build_report",
+            "market_residual_build_report",
+        )
+        install_sync_timing(
+            automation_v129.team_totals_close_provenance_history_v4,
+            "load_report",
+            "team_totals_history_audit",
+        )
+        install_sync_timing(
+            automation_v129.team_totals_close_provenance_v4,
+            "build_report",
+            "team_totals_current_tick_audit",
+        )
 
         stage_started = time.monotonic()
         _emit_timing("automation_v129_start")
@@ -173,9 +212,9 @@ async def _main() -> int:
                 "automation_v129_done",
                 elapsed_ms=timings["automation_v129_total_ms"],
             )
-            automation_v129.v128.run_tick = original_v128_run_tick
-            automation_v129.team_totals_close_provenance_history_v4.load_report = original_history_load_report
-            automation_v129.team_totals_close_provenance_v4.build_report = original_current_close_build_report
+            for module, attr, original in reversed(restorers):
+                setattr(module, attr, original)
+            restorers.clear()
 
         payload.setdefault("status", "ok")
         payload["shortlist_seed_imported"] = imported
@@ -246,6 +285,11 @@ async def _main() -> int:
         sys.stdout.flush()
         return 0
     except Exception as exc:
+        for module, attr, original in reversed(restorers):
+            try:
+                setattr(module, attr, original)
+            except Exception:
+                pass
         _emit_timing("tick_worker_exception", elapsed_ms=_elapsed_ms(total_started), error=str(exc)[:200])
         sys.stderr.write(f"tick_failed: {str(exc)[:500]}\n")
         sys.stderr.flush()
