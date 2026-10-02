@@ -9,7 +9,7 @@ MODEL_VERSION = "SOCCER_PLAYER_PROPS_SHOTS_ANCHOR_PATCH_V4_1.0.0"
 RECENT_CLOSED_HOURS = 12
 MAX_RECENT_EVENT_IDS = 600
 
-_ORIGINAL_LOAD_EVENT_SIGNALS = base._load_event_signALS if False else base._load_event_signals
+_ORIGINAL_LOAD_EVENT_SIGNALS = base._load_event_signals
 _INSTALLED = False
 
 
