@@ -173,6 +173,19 @@ CREATE INDEX IF NOT EXISTS idx_soccer_pipeline_runs_generated_at ON soccer_pipel
 CREATE INDEX IF NOT EXISTS idx_soccer_fixtures_kickoff ON soccer_fixtures (kickoff);
 CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_generated ON soccer_refresh_events (generated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_generated_event ON soccer_refresh_events (generated_at DESC, event_id DESC);
+CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_fixture_generated ON soccer_refresh_events (fixture_id, generated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_team_totals_diversity
+ON soccer_refresh_events (fixture_id, generated_at DESC)
+WHERE COALESCE(payload -> 'team_totals_diversity_capture' ->> 'qualifies', 'false') = 'true';
+CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_team_totals_observed
+ON soccer_refresh_events (fixture_id, generated_at DESC)
+WHERE (
+    CASE
+        WHEN jsonb_typeof(COALESCE(payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb)) = 'array'
+        THEN jsonb_array_length(COALESCE(payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb))
+        ELSE 0
+    END
+) > 0;
 CREATE INDEX IF NOT EXISTS idx_soccer_refresh_events_player_props_generated
 ON soccer_refresh_events (generated_at DESC)
 INCLUDE (event_id, fixture_id, stage)
@@ -187,6 +200,7 @@ WHERE stage IN ('T-40','T-30','T-20','T-10')
     OR payload ? 'gk_saves_intelligence'
   );
 CREATE INDEX IF NOT EXISTS idx_soccer_market_fixture_time ON soccer_market_snapshots (fixture_id, captured_at DESC);
+CREATE INDEX IF NOT EXISTS idx_soccer_model_runs_fixture_time ON soccer_model_runs (fixture_id, run_timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_lineup_fixture_time_confirmed ON soccer_lineup_snapshots (fixture_id, captured_at DESC) WHERE both_xi_confirmed IS TRUE;
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_created ON soccer_alerts (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_soccer_alerts_notification ON soccer_alerts (notification_ready, created_at DESC);
