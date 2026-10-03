@@ -185,6 +185,7 @@ async def _main() -> int:
         install_async_timing(v123, "run_tick", "v123_run_tick")
         install_async_timing(v121, "run_tick", "v121_run_tick")
         install_async_timing(v120, "run_tick", "v120_run_tick")
+        install_async_timing(v126.v2, "_ORIGINAL_API_GET", "provider_network_request")
         install_async_timing(v123.price_resolver_v4, "resolve_payload", "price_resolver_v4_resolve_payload")
         install_sync_timing(
             v128.market_residual_challenger_v4,
