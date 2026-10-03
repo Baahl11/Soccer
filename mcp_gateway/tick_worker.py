@@ -176,6 +176,7 @@ async def _main() -> int:
         v123 = v124.v123
         v121 = v123.v121
         v120 = v121.v120
+        resolver = v123.price_resolver_v4
 
         install_async_timing(v128, "run_tick", "v128_run_tick")
         install_async_timing(v127, "run_tick", "v127_run_tick")
@@ -185,8 +186,34 @@ async def _main() -> int:
         install_async_timing(v123, "run_tick", "v123_run_tick")
         install_async_timing(v121, "run_tick", "v121_run_tick")
         install_async_timing(v120, "run_tick", "v120_run_tick")
+
+        # Upstream API-Football requests use the v2 original getter behind the
+        # paced gate. Resolver /odds calls use their own httpx client and are
+        # timed separately below.
         install_async_timing(v126.v2, "_ORIGINAL_API_GET", "provider_network_request")
-        install_async_timing(v123.price_resolver_v4, "resolve_payload", "price_resolver_v4_resolve_payload")
+        install_async_timing(resolver, "resolve_payload", "price_resolver_v4_resolve_payload")
+        install_async_timing(resolver, "_load_research_calibration_state", "price_calibration_state_load")
+        install_sync_timing(resolver, "_load_cached_markets", "price_cached_markets_load")
+        install_async_timing(resolver, "_fetch_fixture_odds", "price_fixture_odds_fetch")
+        install_sync_timing(resolver, "_load_primary_clv_maturation_backlog", "primary_clv_backlog_load")
+        install_sync_timing(resolver, "_load_one_h_clv_maturation_backlog", "one_h_clv_backlog_load")
+        install_sync_timing(resolver, "_load_two_h_clv_maturation_backlog", "two_h_clv_backlog_load")
+        install_sync_timing(resolver, "_load_corners_clv_maturation_backlog", "corners_clv_backlog_load")
+        install_sync_timing(resolver, "_load_player_props_clv_maturation_backlog", "player_props_clv_backlog_load")
+        install_sync_timing(resolver, "_load_team_totals_maturation_backlog", "team_totals_maturation_backlog_load")
+        install_sync_timing(resolver, "_load_team_totals_diversity_backlog", "team_totals_diversity_backlog_load")
+
+        # Split the post-resolver portion of automation_v123. These functions
+        # are all zero-provider-call annotations/attachments; the wrappers do
+        # not change their arguments, return values or execution order.
+        install_sync_timing(v123, "_attach_dedicated_ht_research", "v123_dedicated_ht_attach")
+        install_sync_timing(v123.ft_totals_settlement_capture, "attach", "ft_totals_settlement_attach")
+        install_sync_timing(v123, "_summarize_research_derivative_sidecars", "research_derivative_sidecars_summary")
+        install_sync_timing(v123.team_totals_intelligence, "attach", "team_totals_intelligence_attach")
+        install_sync_timing(v123.v92, "_annotate_decision_separation", "decision_separation_annotate")
+        install_sync_timing(v123.v112, "_annotate_phase16", "phase16_annotate")
+        install_sync_timing(v123, "_annotate_checkpoint", "price_checkpoint_annotate")
+
         install_sync_timing(
             v128.market_residual_challenger_v4,
             "build_report",
