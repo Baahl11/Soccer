@@ -203,6 +203,35 @@ async def _main() -> int:
         install_sync_timing(resolver, "_load_team_totals_maturation_backlog", "team_totals_maturation_backlog_load")
         install_sync_timing(resolver, "_load_team_totals_diversity_backlog", "team_totals_diversity_backlog_load")
 
+        # v129 swaps the primary/derivative/team-total maturation loaders for
+        # anchor-repair implementations immediately before v128. Time those
+        # actual runtime implementations too so the resolver has no blind spot.
+        install_sync_timing(
+            automation_v129.primary_clv_anchor_v4,
+            "load_primary_clv_maturation_backlog",
+            "anchor_primary_clv_backlog_load",
+        )
+        install_sync_timing(
+            automation_v129.derivative_clv_anchor_v4,
+            "load_one_h_clv_maturation_backlog",
+            "anchor_one_h_clv_backlog_load",
+        )
+        install_sync_timing(
+            automation_v129.derivative_clv_anchor_v4,
+            "load_two_h_clv_maturation_backlog",
+            "anchor_two_h_clv_backlog_load",
+        )
+        install_sync_timing(
+            automation_v129.derivative_clv_anchor_v4,
+            "load_corners_clv_maturation_backlog",
+            "anchor_corners_clv_backlog_load",
+        )
+        install_sync_timing(
+            automation_v129.team_totals_clv_anchor_v4,
+            "load_team_totals_maturation_backlog",
+            "anchor_team_totals_maturation_backlog_load",
+        )
+
         # Split the post-resolver portion of automation_v123. These functions
         # are all zero-provider-call annotations/attachments; the wrappers do
         # not change their arguments, return values or execution order.
