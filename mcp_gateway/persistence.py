@@ -1,11 +1,15 @@
 import json
 import os
+import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from mcp_gateway import feature_snapshot_v4
+
+_SCHEMA_READY = False
+_SCHEMA_LOCK = threading.Lock()
 
 
 def _database_url() -> str | None:
@@ -35,12 +39,17 @@ def _connect():
 
 
 def ensure_schema() -> None:
-    if not persistence_configured():
+    global _SCHEMA_READY
+    if _SCHEMA_READY or not persistence_configured():
         return
-    schema = Path(__file__).with_name("schema.sql").read_text(encoding="utf-8")
-    with _connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute(schema)
+    with _SCHEMA_LOCK:
+        if _SCHEMA_READY:
+            return
+        schema = Path(__file__).with_name("schema.sql").read_text(encoding="utf-8")
+        with _connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(schema)
+        _SCHEMA_READY = True
 
 
 def _quota_remaining(tick: dict[str, Any]) -> int | None:
