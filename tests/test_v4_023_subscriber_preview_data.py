@@ -120,6 +120,13 @@ def test_live_preview_html_wires_three_advanced_surfaces_and_neutralizes_mock_da
     html = _html()
     assert "/app-preview/data" in html
     assert "/app-preview/performance" in html
+    assert "/product/views?limit=25" in html
+    assert "loadPublicTower" in html
+    assert "DESIGN: STALE STATE EXAMPLE" not in html
+    assert "fixture parse failure" not in html
+    assert "market wrapper failure" not in html
+    assert "Last validation refresh: 26 hours ago · STALE" not in html
+    assert "Family evidence chain · Team Totals example" not in html
     assert "renderMatch" in html
     assert "renderPerformance" in html
     assert "renderResearch" in html
