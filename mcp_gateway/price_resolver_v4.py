@@ -1402,6 +1402,15 @@ def _load_one_h_clv_maturation_backlog(
             rows = cur.fetchall()
             columns = [desc.name for desc in cur.description]
 
+    # v221.1: selected-mix observability is provider-free and computed from the
+    # already loaded bounded rows. Exact starvation is represented by saturation
+    # plus the downstream evaluated/refresh/budget counters; no extra API calls.
+    selected_family_counts: dict[str, int] = defaultdict(int)
+    for raw_row in rows:
+        probe = dict(zip(columns, raw_row))
+        selected_family_counts[str(probe.get("market_family") or "").upper()] += 1
+    limit_saturated = len(rows) >= max(1, int(limit))
+
     grouped: dict[int, dict[str, Any]] = {}
     signal_count = 0
     for raw_row in rows:
