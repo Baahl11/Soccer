@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse, Response
 from mcp_gateway import player_props_shots_anchor_patch_v4
 from mcp_gateway import server_base as _base_server
 from mcp_gateway import signal_ledger_postgres_delta_v4
-from mcp_gateway import team_totals_phase17_anchor_patch_v4
+from mcp_gateway import team_totals_phase17_anchor_patch_v4\nfrom mcp_gateway import team_totals_capture_signal_reconciliation_v4
 
 # Keep mcp_gateway.server as the canonical compatibility surface.  The entire
 # pre-v215 server implementation is preserved byte-for-byte in server_base;
@@ -31,6 +31,24 @@ V216_9_PHASE17_TEAM_TOTALS_ANCHOR_PATCH = team_totals_phase17_anchor_patch_v4.in
 # signal. The patch is DB-only, bounded, adds no provider requests, and leaves
 # strict-close semantics unchanged.
 V217_PLAYER_PROPS_SHOTS_ANCHOR_PATCH = player_props_shots_anchor_patch_v4.install()
+
+@mcp.custom_route("/internal/team-totals-capture-signal-reconciliation-v4/build", methods=["POST"])
+async def internal_team_totals_capture_signal_reconciliation_v4_build(request: Request) -> Response:
+    try:
+        _base_server._github_oidc_claims(request, {".github/workflows/phase17-clv-postgres-validation.yml"})
+    except Exception as exc:
+        return JSONResponse({"error":"unauthorized","detail":str(exc)[:200]}, status_code=401)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    try:
+        lookback_days = max(1, min(int((body or {}).get("lookback_days", 60)), 180))
+        result = await asyncio.to_thread(team_totals_capture_signal_reconciliation_v4.build, lookback_days=lookback_days)
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse({"error":"team_totals_capture_signal_reconciliation_failed","detail":str(exc)[:500]}, status_code=500)
+
 
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
