@@ -221,7 +221,7 @@ jobs:
           }' /tmp/clv_v4.json
           jq -e '
             .schema_version == "1.0.0"
-            and .canonical_merge_version == "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.1.0"
+            and .canonical_merge_version == "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.2.0"
             and (.rows | type == "array")
             and (.provider_requests_added == 0)
           ' /tmp/clv_v4.json >/dev/null
