@@ -11,7 +11,8 @@ from starlette.responses import JSONResponse, Response
 from mcp_gateway import player_props_shots_anchor_patch_v4
 from mcp_gateway import server_base as _base_server
 from mcp_gateway import signal_ledger_postgres_delta_v4
-from mcp_gateway import team_totals_phase17_anchor_patch_v4\nfrom mcp_gateway import team_totals_capture_signal_reconciliation_v4
+from mcp_gateway import team_totals_phase17_anchor_patch_v4
+from mcp_gateway import team_totals_capture_signal_reconciliation_v4
 
 # Keep mcp_gateway.server as the canonical compatibility surface.  The entire
 # pre-v215 server implementation is preserved byte-for-byte in server_base;
