@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MERGE_VERSION = "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.1.0"
+MERGE_VERSION = "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.2.0"
 MIN_TRUE_CLOSE_ROWS = 50
 TEAM_TOTAL_FAMILIES = {"TEAM_TOTALS", "HOME_TT", "AWAY_TT"}
 
@@ -117,10 +117,60 @@ def normalize_history_rows(history_rows: Iterable[dict[str, Any]], current_rows:
     return normalized
 
 
-def merge_report(postgres_report: dict[str, Any], history_rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
+def _canonical_exact_key(row: dict[str, Any]) -> tuple[Any, ...] | None:
+    fixture_id = _fixture_id(row.get("fixture_id"))
+    family = _family(row)
+    entry_ts = _parse_dt(row.get("entry_timestamp") or row.get("signal_timestamp_local"))
+    if fixture_id is None or family is None or entry_ts is None:
+        return None
+    line = _num(row.get("entry_line"))
+    if line is None:
+        line = _num(row.get("line"))
+    return (fixture_id, family, _norm(row.get("market")), _norm(row.get("selection")), line, _norm(row.get("bookmaker") or row.get("bookmaker_at_signal")), entry_ts.isoformat())
+
+
+def _strict_canonical_row(row: dict[str, Any]) -> bool:
+    if not isinstance(row, dict) or row.get("probability_comparable_same_line") is not True:
+        return False
+    family = _family(row)
+    entry_ts = _parse_dt(row.get("entry_timestamp") or row.get("signal_timestamp_local"))
+    close_ts = _parse_dt(row.get("closing_timestamp") or row.get("close_timestamp_local"))
+    kickoff = _parse_dt(row.get("kickoff") or row.get("kickoff_local"))
+    if family is None or entry_ts is None or close_ts is None or kickoff is None or not (entry_ts < close_ts < kickoff):
+        return False
+    if str(family).upper() in TEAM_TOTAL_FAMILIES:
+        provider_close_ts = _parse_dt(row.get("closing_provider_update") or row.get("close_provider_update"))
+        if provider_close_ts is None or not (entry_ts < provider_close_ts < kickoff):
+            return False
+    return _canonical_exact_key(row) is not None
+
+
+def preserve_previous_canonical_rows(previous_rows: Iterable[dict[str, Any]], current_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
+    current_keys = {_canonical_exact_key(row) for row in current_rows if isinstance(row, dict)}
+    preserved: dict[tuple[Any, ...], dict[str, Any]] = {}
+    for row in previous_rows:
+        if not _strict_canonical_row(row):
+            continue
+        key = _canonical_exact_key(row)
+        if key is None or key in current_keys:
+            continue
+        prior = preserved.get(key)
+        if prior is None:
+            preserved[key] = dict(row)
+            continue
+        prior_close = _parse_dt(prior.get("closing_timestamp") or prior.get("close_timestamp_local"))
+        row_close = _parse_dt(row.get("closing_timestamp") or row.get("close_timestamp_local"))
+        if row_close is not None and (prior_close is None or row_close > prior_close):
+            preserved[key] = dict(row)
+    return list(preserved.values())
+
+
+def merge_report(postgres_report: dict[str, Any], history_rows: Iterable[dict[str, Any]], previous_canonical_rows: Iterable[dict[str, Any]] = ()) -> dict[str, Any]:
     current_rows = postgres_report.get("rows") if isinstance(postgres_report.get("rows"), list) else []
-    historical = normalize_history_rows(history_rows, current_rows)
-    merged_rows = list(current_rows) + historical
+    preserved_canonical = preserve_previous_canonical_rows(previous_canonical_rows, current_rows)
+    current_plus_preserved = list(current_rows) + preserved_canonical
+    historical = normalize_history_rows(history_rows, current_plus_preserved)
+    merged_rows = current_plus_preserved + historical
     family_counts = Counter(); source_counts = Counter(); unique_by_family: dict[str, set[int]] = {}
     malformed_fixture_rows = 0
     for row in merged_rows:
@@ -137,8 +187,9 @@ def merge_report(postgres_report: dict[str, Any], history_rows: Iterable[dict[st
         source_counts[str(row.get("signal_source") or "UNKNOWN")] += 1
     comparable = [row for row in merged_rows if isinstance(row, dict) and row.get("probability_comparable_same_line") is True]
     out = dict(postgres_report)
-    out.update({"rows": merged_rows, "tracked_rows": len(merged_rows), "comparable_true_clv_rows": len(comparable), "status": "ACTIVE_TRUE_CLV_SAMPLE" if len(comparable) >= MIN_TRUE_CLOSE_ROWS else "COLLECTING_TRUE_CLV", "family_counts": dict(sorted(family_counts.items())), "signal_source_counts": dict(sorted(source_counts.items())), "canonical_merge_version": MERGE_VERSION, "historical_backfill_rows_added": len(historical), "historical_backfill_unique_fixtures": len({row["fixture_id"] for row in historical}), "unique_fixtures_by_family": {family: len(fixtures) for family, fixtures in sorted(unique_by_family.items())}, "malformed_fixture_rows_ignored_for_unique_counts": malformed_fixture_rows, "provider_requests_added": 0})
+    out.update({"rows": merged_rows, "tracked_rows": len(merged_rows), "comparable_true_clv_rows": len(comparable), "status": "ACTIVE_TRUE_CLV_SAMPLE" if len(comparable) >= MIN_TRUE_CLOSE_ROWS else "COLLECTING_TRUE_CLV", "family_counts": dict(sorted(family_counts.items())), "signal_source_counts": dict(sorted(source_counts.items())), "canonical_merge_version": MERGE_VERSION, "historical_backfill_rows_added": len(historical), "previous_canonical_rows_preserved": len(preserved_canonical), "historical_backfill_unique_fixtures": len({row["fixture_id"] for row in historical}), "unique_fixtures_by_family": {family: len(fixtures) for family, fixtures in sorted(unique_by_family.items())}, "malformed_fixture_rows_ignored_for_unique_counts": malformed_fixture_rows, "provider_requests_added": 0})
     notes = list(out.get("notes") or [])
+    notes.append("Prior canonical strict True CLV rows are preserved by exact signal key so a bounded current Postgres window cannot silently delete previously validated evidence.")
     notes.append("Historical dedicated-close backfill adds at most one latest pre-kickoff row per fixture/family and is skipped whenever Postgres already covers that fixture/family.")
     notes.append("Historical Team Totals backfill additionally requires a provider close update strictly after the signal and before kickoff; legacy rows without this provenance cannot re-enter canonical true CLV.")
     out["notes"] = notes
@@ -166,10 +217,10 @@ def _load_jsonl(path: str) -> list[dict[str, Any]]:
 
 def main() -> None:
     parser=argparse.ArgumentParser(description="Merge strict historical dedicated-close CLV into the canonical Postgres CLV ledger.")
-    parser.add_argument("--postgres-report", required=True); parser.add_argument("--history-true-clv", required=True); parser.add_argument("--output", required=True); args=parser.parse_args()
-    report=merge_report(_load_json(args.postgres_report), _load_jsonl(args.history_true_clv))
+    parser.add_argument("--postgres-report", required=True); parser.add_argument("--history-true-clv", required=True); parser.add_argument("--previous-canonical"); parser.add_argument("--output", required=True); args=parser.parse_args()
+    report=merge_report(_load_json(args.postgres_report), _load_jsonl(args.history_true_clv), _load_jsonl(args.previous_canonical) if args.previous_canonical else [])
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output,"w",encoding="utf-8") as handle: json.dump(report,handle,ensure_ascii=False,indent=2,sort_keys=True); handle.write("\n")
-    print(json.dumps({"canonical_merge_version":report["canonical_merge_version"],"tracked_rows":report["tracked_rows"],"comparable_true_clv_rows":report["comparable_true_clv_rows"],"historical_backfill_rows_added":report["historical_backfill_rows_added"],"historical_backfill_unique_fixtures":report["historical_backfill_unique_fixtures"],"unique_fixtures_by_family":report["unique_fixtures_by_family"],"family_counts":report["family_counts"],"malformed_fixture_rows_ignored_for_unique_counts":report["malformed_fixture_rows_ignored_for_unique_counts"],"provider_requests_added":report["provider_requests_added"]},indent=2,sort_keys=True))
+    print(json.dumps({"canonical_merge_version":report["canonical_merge_version"],"tracked_rows":report["tracked_rows"],"comparable_true_clv_rows":report["comparable_true_clv_rows"],"historical_backfill_rows_added":report["historical_backfill_rows_added"],"historical_backfill_unique_fixtures":report["historical_backfill_unique_fixtures"],"previous_canonical_rows_preserved":report.get("previous_canonical_rows_preserved",0),"unique_fixtures_by_family":report["unique_fixtures_by_family"],"family_counts":report["family_counts"],"malformed_fixture_rows_ignored_for_unique_counts":report["malformed_fixture_rows_ignored_for_unique_counts"],"provider_requests_added":report["provider_requests_added"]},indent=2,sort_keys=True))
 
 if __name__ == "__main__": main()
