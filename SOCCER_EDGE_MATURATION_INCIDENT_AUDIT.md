@@ -84,3 +84,12 @@ After v219 is live:
 - v221 initial telemetry commit 91ec64b376fd773728d0ce4ee691a3fb029a438d had incomplete runtime wiring and failed V4 tests; it was superseded before becoming the accepted checkpoint.
 - v221.1 commit 6d7c712095810b977ec8b3696523dfae4acb8e9e fixes the wiring and exposes selected family mix + global limit saturation alongside existing evaluated/refresh/not-matured/budget-exhausted counters. It adds zero provider calls and changes no model, threshold, gate, strict-close rule, canonical BET logic, or provider budget.
 - Next decision must use live v221.1 telemetry from a normal scheduled tick. Do not spend a manual provider tick merely for diagnostics. If global LIMIT starvation is proven, fix family fairness/backlog selection before increasing provider budget. If budget exhaustion dominates, evaluate bounded reallocation/reuse before any cap increase.
+
+
+## v222 preventive capture fix — 2026-10-04
+- Pre-fix normal scheduler evidence at 2026-10-04T05:17:37Z: 61 total API calls, 11 price-resolver calls, 7,169 daily remaining, primary maturation candidates=0, primary maturation calls=0, budget_exhausted=0. The blocker is therefore before provider spend in that tick.
+- Phase17 historical audit simultaneously reports 1X2 NO_LATER_PREKICKOFF_MARKET_SNAPSHOT=230 and NO_LATER_PROVIDER_UPDATE=231. Past fixtures cannot be repaired retroactively under strict-close; engineering must prevent future missed close observations.
+- Root mechanism: primary maturation loader admitted upcoming fixtures only inside 55 minutes, leaving too few scheduled opportunities to obtain a genuinely later provider update before kickoff.
+- v221.3 54493ae74332dcdcafdd3594d49f7f62afbf5821 passed V4 Runtime Tests and preserves BACKLOG_V2 source compatibility while exposing saturation telemetry.
+- v222 2efceb04062ee6f2ef3d55073f8617f21aa722e7 widens ONLY primary CLV maturation eligibility from 55 to 90 minutes. Max primary maturation calls remains 8/tick; global provider cap and strict provider_update semantics remain unchanged; no model/threshold/gate/canonical BET changes.
+- Validation: normal scheduled ticks should expose primary 1X2 candidates earlier while staying inside existing caps. Subsequent Phase17 cohorts should gradually show more genuine current 1X2 True CLV. Historical 230/231 counts will not disappear retroactively.
