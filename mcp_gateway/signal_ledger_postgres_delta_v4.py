@@ -8,7 +8,7 @@ from mcp_gateway import persistence, signal_ledger_postgres_v4
 
 SCHEMA_VERSION = "1.1.0"
 MODEL_VERSION = "SOCCER_SIGNAL_LEDGER_POSTGRES_DELTA_V4_1.1.0"
-MAX_PAGE_ROWS = 1000
+MAX_PAGE_ROWS = 200
 
 
 def _as_utc(value: Any) -> datetime:
