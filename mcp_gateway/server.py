@@ -51,7 +51,6 @@ async def internal_team_totals_capture_signal_reconciliation_v4_build(request: R
         return JSONResponse({"error":"team_totals_capture_signal_reconciliation_failed","detail":str(exc)[:500]}, status_code=500)
 
 
-V226_TEAM_TOTALS_RECON_ROUTE = "/internal/team-totals-capture-signal-reconciliation-v4/build"
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
 V215_SIGNAL_LEDGER_REF = "refs/heads/main"
@@ -204,8 +203,7 @@ async def _handle_instrumented_tick(scope, receive, send) -> None:
 
         await stderr_task
         stdout = await stdout_task
-        stderr_text = "
-".join(stderr_lines)
+        stderr_text = "\n".join(stderr_lines)
         if proc.returncode != 0:
             detail = stderr_text[-1000:]
             response = JSONResponse({"error": "tick_failed", "detail": detail}, status_code=500)
@@ -229,25 +227,6 @@ async def _handle_instrumented_tick(scope, receive, send) -> None:
         await response(scope, receive, send)
 
 
-async def _handle_v226_team_totals_reconciliation(scope, receive, send) -> None:
-    request = Request(scope, receive=receive)
-    try:
-        _base_server._github_oidc_claims(request, {".github/workflows/phase17-clv-postgres-validation.yml"})
-    except Exception as exc:
-        await JSONResponse({"error":"unauthorized","detail":str(exc)[:200]}, status_code=401)(scope, receive, send)
-        return
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
-    try:
-        lookback_days = max(1, min(int((body or {}).get("lookback_days", 60)), 180))
-        result = await asyncio.to_thread(team_totals_capture_signal_reconciliation_v4.build, lookback_days=lookback_days)
-        await JSONResponse(result)(scope, receive, send)
-    except Exception as exc:
-        await JSONResponse({"error":"team_totals_capture_signal_reconciliation_failed","detail":str(exc)[:500]}, status_code=500)(scope, receive, send)
-
-
 class V215SignalLedgerRouter:
     """Intercept isolated compatibility routes and delegate every other request."""
 
@@ -258,9 +237,6 @@ class V215SignalLedgerRouter:
         if scope.get("type") == "http":
             path = scope.get("path")
             method = str(scope.get("method") or "").upper()
-            if path == V226_TEAM_TOTALS_RECON_ROUTE and method == "POST":
-                await _handle_v226_team_totals_reconciliation(scope, receive, send)
-                return
             if path == "/internal/team-totals-capture-signal-reconciliation-v4/build" and method == "POST":
                 request = Request(scope, receive=receive)
                 response = await internal_team_totals_capture_signal_reconciliation_v4_build(request)
