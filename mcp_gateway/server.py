@@ -51,7 +51,7 @@ async def internal_team_totals_capture_signal_reconciliation_v4_build(request: R
         return JSONResponse({"error":"team_totals_capture_signal_reconciliation_failed","detail":str(exc)[:500]}, status_code=500)
 
 
-V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
+V226_TEAM_TOTALS_RECON_ROUTE = "/internal/team-totals-capture-signal-reconciliation-v4/build"\nV215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
 V215_SIGNAL_LEDGER_REF = "refs/heads/main"
 TICK_ROUTE = "/internal/tick"
@@ -227,6 +227,25 @@ async def _handle_instrumented_tick(scope, receive, send) -> None:
         await response(scope, receive, send)
 
 
+async def _handle_v226_team_totals_reconciliation(scope, receive, send) -> None:
+    request = Request(scope, receive=receive)
+    try:
+        _base_server._github_oidc_claims(request, {".github/workflows/phase17-clv-postgres-validation.yml"})
+    except Exception as exc:
+        await JSONResponse({"error":"unauthorized","detail":str(exc)[:200]}, status_code=401)(scope, receive, send)
+        return
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    try:
+        lookback_days = max(1, min(int((body or {}).get("lookback_days", 60)), 180))
+        result = await asyncio.to_thread(team_totals_capture_signal_reconciliation_v4.build, lookback_days=lookback_days)
+        await JSONResponse(result)(scope, receive, send)
+    except Exception as exc:
+        await JSONResponse({"error":"team_totals_capture_signal_reconciliation_failed","detail":str(exc)[:500]}, status_code=500)(scope, receive, send)
+
+
 class V215SignalLedgerRouter:
     """Intercept isolated compatibility routes and delegate every other request."""
 
@@ -237,7 +256,7 @@ class V215SignalLedgerRouter:
         if scope.get("type") == "http":
             path = scope.get("path")
             method = str(scope.get("method") or "").upper()
-            if path == V215_SIGNAL_LEDGER_ROUTE and method == "POST":
+            if path == V226_TEAM_TOTALS_RECON_ROUTE and method == "POST":\n                await _handle_v226_team_totals_reconciliation(scope, receive, send)\n                return\n            if path == V215_SIGNAL_LEDGER_ROUTE and method == "POST":
                 await _handle_v215_signal_ledger(scope, receive, send)
                 return
             if path == TICK_ROUTE and method == "POST":
