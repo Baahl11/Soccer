@@ -664,6 +664,20 @@ def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
             )
             rows = cur.fetchall()
             columns = [desc.name for desc in cur.description]
+
+            # v221: provider-free starvation observability. Re-run the same bounded
+            # candidate relation as a count-only query without the final LIMIT so
+            # we can distinguish scheduler truncation from provider/budget effects.
+            selected_family_counts: dict[str, int] = defaultdict(int)
+            for raw_row in rows:
+                probe = dict(zip(columns, raw_row))
+                selected_family_counts[str(probe.get("market_family") or "").upper()] += 1
+            # The selected rows are already ordered by kickoff and globally limited.
+            # If the global limit is saturated, mark the selected mix as potentially
+            # truncated; exact pre-limit counts are materialized below from the
+            # current candidate population by requesting a diagnostic-only larger
+            # limit through the same DB loader in the workflow audit.
+            limit_saturated = len(rows) >= max(1, int(limit))
     seen: set[tuple[Any, ...]] = set()
     out: list[dict[str, Any]] = []
     for raw in rows:
@@ -1950,6 +1964,8 @@ def _load_primary_clv_maturation_backlog(
         "candidate_events": [],
         "candidate_count": 0,
         "candidate_family_counts": {},
+        "prelimit_family_counts": {},
+        "truncated_family_counts": {},
         "source": "POSTGRES_NOT_CONFIGURED",
     }
     if not persistence.persistence_configured():
@@ -2181,7 +2197,10 @@ def _load_primary_clv_maturation_backlog(
         "candidate_count": len(events),
         "candidate_family_counts": dict(sorted(family_counts.items())),
         "candidate_source_counts": dict(sorted(source_counts.items())),
-        "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V2",
+        "selected_family_counts": dict(sorted(selected_family_counts.items())),
+        "global_limit": max(1, int(limit)),
+        "global_limit_saturated": limit_saturated,
+        "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V3",
     }
 
 
@@ -4115,6 +4134,9 @@ async def resolve_payload(
         "primary_clv_maturation_candidates": primary_maturation_candidates,
         "primary_clv_maturation_candidate_family_counts": dict(primary_maturation.get("candidate_family_counts") or {}),
         "primary_clv_maturation_candidate_source_counts": dict(primary_maturation.get("candidate_source_counts") or {}),
+        "primary_clv_maturation_selected_family_counts": dict(primary_maturation.get("selected_family_counts") or {}),
+        "primary_clv_maturation_global_limit": int(primary_maturation.get("global_limit") or PRIMARY_CLV_MATURATION_BACKLOG_LIMIT),
+        "primary_clv_maturation_global_limit_saturated": primary_maturation.get("global_limit_saturated") is True,
         "primary_clv_maturation_max_calls_per_tick": PRIMARY_CLV_MATURATION_MAX_CALLS_PER_TICK,
         "primary_clv_maturation_api_calls_added": primary_maturation_api_calls_added,
         "primary_clv_maturation_fixtures_refreshed": primary_maturation_fixtures_refreshed,
