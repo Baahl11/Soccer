@@ -93,3 +93,15 @@ After v219 is live:
 - v221.3 54493ae74332dcdcafdd3594d49f7f62afbf5821 passed V4 Runtime Tests and preserves BACKLOG_V2 source compatibility while exposing saturation telemetry.
 - v222 2efceb04062ee6f2ef3d55073f8617f21aa722e7 widens ONLY primary CLV maturation eligibility from 55 to 90 minutes. Max primary maturation calls remains 8/tick; global provider cap and strict provider_update semantics remain unchanged; no model/threshold/gate/canonical BET changes.
 - Validation: normal scheduled ticks should expose primary 1X2 candidates earlier while staying inside existing caps. Subsequent Phase17 cohorts should gradually show more genuine current 1X2 True CLV. Historical 230/231 counts will not disappear retroactively.
+
+
+## v223 / v223.1 — primary CLV preventive capture + provider chronology proof (2026-10-04)
+
+- v223 runtime commit `348b4137079573acc15c0bbb4aeb175f8d32e28f` widened only `SOCCER_PRIMARY_CLV_MATURATION_LOOKAHEAD_MINUTES` from 90 to 180. Primary max remains 8 calls/tick; global provider cap, strict-close, models, thresholds, gates and canonical BET logic are unchanged.
+- Render deploy `dep-db0vp22d0e5s73de9hb0` reached LIVE at 2026-10-04T07:13:43.615095Z. Runtime CI `37185114559` succeeded.
+- Manual v223 validation `37185177971` succeeded. Canonical state at 2026-10-04T07:20:15.262075Z showed 4 primary candidates: 1X2=1, BTTS=1, FT_TOTALS=2; 4 primary provider calls; budget_exhausted=0; refreshed=0; unchanged_provider_updates=4. This proves the 180-minute window removed the zero-candidate scheduler starvation without increasing budget.
+- v223.1 runtime commit `5d1ef483f44411d2d1a8c1cbfa2117d7be6c3a8e` added bounded diagnostic provenance only (max 8 unchanged examples): fixture, family, signal_generated_at, provider_update, resolution status, provider requests. It does not alter maturation decisions.
+- Render deploy `dep-db106dpsrm7s739es4u0` reached LIVE at 2026-10-04T07:42:28.864705Z. Runtime CI `37186564399` succeeded.
+- Manual v223.1 validation `37186650644` succeeded. Canonical state at 2026-10-04T07:43:58.678850Z showed 6 candidates (1X2=1, BTTS=1, FT_TOTALS=4), 6 provider calls, budget_exhausted=0, refreshed=0, unchanged_provider_updates=6.
+- Provenance proves strict chronology is working rather than falsely rejecting a later update. Examples: fixture 1643004 1X2 signal 2026-10-04T06:06:37.137651Z vs provider_update 2026-10-04T04:12:19Z; fixture 1633999 BTTS signal 06:06:37.137651Z vs provider_update 06:00:37Z; fixture 1634001 FT_TOTALS signal 03:47:09.053906Z vs provider_update 00:00:57Z. All observed provider timestamps were older than their signal anchors.
+- Conclusion: current blocker is genuine provider chronology / timing of first valid priced signal, not provider budget, family displacement, timestamp parsing, captured_at substitution, or strict-close comparison. Do not widen the window again or increase provider calls solely to force maturation. v223.1 should remain as preventive scheduled capture; a family matures only after API-Football supplies a real provider_update strictly later than the persisted signal and before kickoff.
