@@ -2210,7 +2210,7 @@ def _load_primary_clv_maturation_backlog(
         "selected_family_counts": dict(sorted(family_counts.items())),
         "global_limit": max(1, int(limit)),
         "global_limit_saturated": limit_saturated,
-        "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V3",
+        "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V2",
     }
 
 
