@@ -2134,6 +2134,7 @@ def _load_primary_clv_maturation_backlog(
             )
             rows = cur.fetchall()
             columns = [desc.name for desc in cur.description]
+            limit_saturated = len(rows) >= max(1, int(limit))
 
     grouped: dict[int, dict[str, Any]] = {}
     family_counts: dict[str, int] = defaultdict(int)
@@ -2206,7 +2207,7 @@ def _load_primary_clv_maturation_backlog(
         "candidate_count": len(events),
         "candidate_family_counts": dict(sorted(family_counts.items())),
         "candidate_source_counts": dict(sorted(source_counts.items())),
-        "selected_family_counts": dict(sorted(selected_family_counts.items())),
+        "selected_family_counts": dict(sorted(family_counts.items())),
         "global_limit": max(1, int(limit)),
         "global_limit_saturated": limit_saturated,
         "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V3",
