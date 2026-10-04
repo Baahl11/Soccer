@@ -34,7 +34,7 @@ V217_PLAYER_PROPS_SHOTS_ANCHOR_PATCH = player_props_shots_anchor_patch_v4.instal
 
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
-V215_SIGNAL_LEDGER_REF = "refs/heads/soccer-edge-mcp-v1"
+V215_SIGNAL_LEDGER_REF = "refs/heads/main"
 TICK_ROUTE = "/internal/tick"
 TICK_TIMEOUT_SECONDS = 420
 
@@ -61,7 +61,7 @@ def _v215_github_oidc_claims(request: Request) -> dict[str, Any]:
     if not workflow_ref.startswith(expected_prefix):
         raise PermissionError("Workflow not allowed")
     if claims.get("ref") != V215_SIGNAL_LEDGER_REF:
-        raise PermissionError("Only soccer-edge-mcp-v1 v215 materializer is allowed")
+        raise PermissionError("Only the main-scheduled v215 materializer workflow is allowed")
     return claims
 
 
