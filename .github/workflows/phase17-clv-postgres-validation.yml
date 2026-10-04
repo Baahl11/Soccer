@@ -206,6 +206,7 @@ jobs:
           python runtime/mcp_gateway/clv_history_merge_v4.py \
             --postgres-report /tmp/clv_v4.json \
             --history-true-clv soccer_edge_state/analysis/true_clv_tracking.jsonl \
+            --previous-canonical soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl \
             --output /tmp/clv_v4_merged.json
           mv /tmp/clv_v4_merged.json /tmp/clv_v4.json
 
