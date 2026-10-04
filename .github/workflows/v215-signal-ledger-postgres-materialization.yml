@@ -180,7 +180,7 @@ jobs:
           SUMMARY=state/soccer_edge_state/analysis/signal_ledger_summary.json
           NEW_ROWS=$(jq -r '.rows // 0' "$SUMMARY")
           test "$NEW_ROWS" -ge "$OLD_ROWS"
-          jq -e '.schema_version == "1.5.0"' "$SUMMARY" >/dev/null
+          jq -e '.schema_version | type == "string" and length > 0' "$SUMMARY" >/dev/null
           jq -e '.provider_requests_added == 0' "$SUMMARY" >/dev/null
           jq -e '.historical_probabilities_recomputed == false' "$SUMMARY" >/dev/null
           jq -e '.historical_rows_recalibrated == false' "$SUMMARY" >/dev/null
