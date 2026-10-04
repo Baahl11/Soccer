@@ -1,3 +1,4 @@
+# v220.2 canonical 1X2 temporal blocker audit 2026-10-04
 # v219.4 post-v215-ledger-repair maturation refresh 2026-10-04
 # v217.2 1X2 stall diagnostic refresh 2026-10-02
 # v216.7 force canonical Phase17 refresh after Team Totals later-real quotes
@@ -143,6 +144,28 @@ jobs:
             and (.skip_reason_family_counts | type == "object")
             and (.provider_requests_added == 0)
           ' /tmp/clv_v4.json >/dev/null
+
+      - name: Persist v220 1X2 blocker classification
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq '{
+            schema_version:"1.2.0",
+            model_version:"SOCCER_1X2_CLV_TEMPORAL_AUDIT_V220_1.2.0",
+            generated_at_utc:.generated_at_utc,
+            source_model_version:.model_version,
+            family_true_clv_count:(.family_counts["1X2"] // 0),
+            skip_reason_counts:(.skip_reason_family_counts["1X2"] // {}),
+            provider_requests_added:0,
+            strict_close_semantics_changed:false,
+            models_changed:false,
+            thresholds_changed:false,
+            gates_changed:false,
+            provider_budget_changed:false
+          }' /tmp/clv_v4.json > /tmp/v220.json
+          jq . /tmp/v220.json
+          mkdir -p soccer_edge_state/analysis
+          cp /tmp/v220.json soccer_edge_state/analysis/v220_1x2_clv_temporal_audit.json
 
       - name: Merge strict historical true CLV
         shell: bash
