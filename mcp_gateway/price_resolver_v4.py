@@ -3321,6 +3321,7 @@ async def resolve_payload(
     primary_maturation_not_matured_family_counts: dict[str, int] = defaultdict(int)
     primary_maturation_cache_replays_ignored = 0
     primary_maturation_unchanged_provider_updates = 0
+    primary_maturation_unchanged_provider_update_examples: list[dict[str, Any]] = []
     primary_maturation_budget_exhausted = 0
     primary_maturation_primary_payload_reuse_fixtures = 0
     primary_maturation_synthetic_events_added = 0
@@ -3398,6 +3399,24 @@ async def resolve_payload(
                     primary_maturation_not_matured_family_counts[family] += 1
                 if not matured_families:
                     primary_maturation_unchanged_provider_updates += 1
+                    if len(primary_maturation_unchanged_provider_update_examples) < 8:
+                        provider_updates = sorted({
+                            str(market.get("provider_update"))
+                            for market in markets
+                            if isinstance(market, dict) and market.get("provider_update")
+                        })
+                        primary_maturation_unchanged_provider_update_examples.append({
+                            "fixture_id": fixture_id,
+                            "families": sorted(evaluated_families),
+                            "signal_generated_at": sorted({
+                                str(signal.get("signal_generated_at"))
+                                for signal in signals
+                                if signal.get("signal_generated_at")
+                            }),
+                            "provider_updates": provider_updates[:8],
+                            "resolution_status": status,
+                            "provider_requests_added": provider_calls_for_event,
+                        })
                     continue
 
                 exact_markets = [
@@ -4142,6 +4161,7 @@ async def resolve_payload(
         "primary_clv_maturation_not_matured_family_counts": dict(sorted(primary_maturation_not_matured_family_counts.items())),
         "primary_clv_maturation_cache_replays_ignored": primary_maturation_cache_replays_ignored,
         "primary_clv_maturation_unchanged_provider_updates": primary_maturation_unchanged_provider_updates,
+        "primary_clv_maturation_unchanged_provider_update_examples": primary_maturation_unchanged_provider_update_examples,
         "primary_clv_maturation_budget_exhausted": primary_maturation_budget_exhausted,
         "primary_clv_maturation_primary_payload_reuse_fixtures": primary_maturation_primary_payload_reuse_fixtures,
         "primary_clv_maturation_synthetic_events_added": primary_maturation_synthetic_events_added,
