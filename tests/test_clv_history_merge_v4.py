@@ -115,3 +115,42 @@ def test_history_non_team_totals_remain_backward_compatible_without_provider_upd
     out = v.normalize_history_rows([row], [])
     assert len(out) == 1
     assert out[0]["market_family"] == "1X2"
+
+
+def test_previous_canonical_team_totals_are_preserved_across_bounded_refreshes():
+    previous = {
+        "fixture_id": 99,
+        "market_family": "HOME_TT",
+        "market": "Total - Home",
+        "selection": "OVER",
+        "line": 1.5,
+        "entry_line": 1.5,
+        "bookmaker": "Pinnacle",
+        "entry_timestamp": "2026-09-20T17:20:00+00:00",
+        "closing_timestamp": "2026-09-20T17:50:00+00:00",
+        "closing_provider_update": "2026-09-20T17:45:00+00:00",
+        "kickoff": "2026-09-20T18:00:00+00:00",
+        "probability_comparable_same_line": True,
+        "signal_source": "DERIVATIVE_INTELLIGENCE:team_totals_intelligence",
+    }
+    postgres = {"schema_version": "1.0.0", "rows": [], "notes": [], "provider_requests_added": 0}
+    report = v.merge_report(postgres, [], [previous])
+    assert report["previous_canonical_rows_preserved"] == 1
+    assert report["tracked_rows"] == 1
+    assert report["family_counts"]["HOME_TT"] == 1
+
+
+def test_previous_canonical_team_totals_reject_stale_provider_update():
+    previous = {
+        "fixture_id": 100,
+        "market_family": "AWAY_TT",
+        "market": "Total - Away",
+        "selection": "UNDER",
+        "line": 0.5,
+        "entry_timestamp": "2026-09-20T17:20:00+00:00",
+        "closing_timestamp": "2026-09-20T17:50:00+00:00",
+        "closing_provider_update": "2026-09-20T17:10:00+00:00",
+        "kickoff": "2026-09-20T18:00:00+00:00",
+        "probability_comparable_same_line": True,
+    }
+    assert v.preserve_previous_canonical_rows([previous], []) == []
