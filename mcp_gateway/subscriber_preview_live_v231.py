@@ -1,10 +1,29 @@
 from __future__ import annotations
 
+import re
+
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from mcp_gateway import subscriber_preview_v230
 
+
+_TOWER_PLACEHOLDER = r'''
+<section class="page" id="tower">
+  <div class="header"><div><h1>Control Tower</h1><div class="subtitle">System health and evidence freshness are separate concepts</div></div><span class="preview-chip amber">LOADING OBSERVABILITY</span></div>
+  <div class="health">
+    <div class="health-card"><b>● Render</b><small>—</small></div><div class="health-card"><b>● Postgres</b><small>—</small></div><div class="health-card"><b>● Scheduler</b><small>—</small></div><div class="health-card"><b>● API-Football</b><small>—</small></div><div class="health-card"><b>● Galaxy</b><small>—</small></div><div class="health-card"><b>● Last Tick</b><small>—</small></div>
+  </div>
+  <div class="section-title">Data freshness</div>
+  <div class="fresh-grid"><div class="fresh"><b>Runtime telemetry</b><small>Loading persisted observability…</small></div><div class="fresh"><b>Postgres pipeline</b><small>Loading persisted observability…</small></div><div class="fresh"><b>Maturation artifact</b><small>Loading persisted observability…</small></div><div class="fresh"><b>Evidence age</b><small>Loading persisted observability…</small></div></div>
+  <div class="pipeline-grid" style="margin-top:10px">
+    <div class="panel"><div class="ph"><h3>Current Pipeline</h3></div><div class="mini-kpis"><div class="mini"><b>—</b><small>fixtures scanned</small></div><div class="mini"><b>—</b><small>due</small></div><div class="mini"><b>—</b><small>deep dives</small></div><div class="mini"><b>—</b><small>events</small></div><div class="mini"><b>—</b><small>research visible</small></div><div class="mini"><b>—</b><small>API calls</small></div></div></div>
+    <div class="panel"><div class="ph"><h3>Pipeline Errors</h3><span class="status research">—</span></div><div class="v231-empty">Loading persisted runtime errors…</div></div>
+    <div class="panel"><div class="ph"><h3>Model Maturity</h3><span class="status research">LOADING</span></div><div class="maturity"><div class="v231-empty">Loading persisted validation reports…</div></div></div>
+  </div>
+  <div class="panel"><div class="ph"><h3>Persisted maturity evidence</h3><span class="status research">LOADING</span></div><div class="chain"><div><b>—</b><small>Waiting for public Control Tower snapshot</small></div></div><p class="note">No design-time counters or synthetic pipeline errors are shown on the live product surface.</p></div>
+</section>
+'''
 
 _LIVE_STYLE = r'''
 <style id="v231-live-style">
@@ -48,7 +67,7 @@ _LIVE_SCRIPT = r'''
     const perfBody=document.querySelector('#performance .perf-table tbody');if(perfBody)perfBody.innerHTML='<tr><td colspan="7">Loading persisted validation evidence…</td></tr>';
     const myPanels=document.querySelectorAll('#myedge .grid2 > .panel');myPanels.forEach(p=>p.innerHTML='<div class="v231-empty">Loading personal preview…</div>');
     const research=document.querySelector('#research .market-grid');if(research)research.innerHTML='<div class="v231-empty">Loading persisted research context…</div>';
-    const towerChip=document.querySelector('#tower .preview-chip');if(towerChip){towerChip.textContent='LIVE OBSERVABILITY';towerChip.classList.remove('amber')}
+    const towerChip=document.querySelector('#tower .preview-chip');if(towerChip){towerChip.textContent='LOADING OBSERVABILITY';towerChip.classList.add('amber')}
   }
 
   function renderToday(data){
@@ -192,10 +211,40 @@ _LIVE_SCRIPT = r'''
     const maturityBox=document.querySelector('#tower .pipeline-grid > .panel:nth-child(3) .maturity');if(maturityBox){const families=Array.isArray(mat.families)?mat.families:[];maturityBox.innerHTML=families.length?families.map(f=>{const cur=num(f.current),tar=num(f.target),w=cur!==null&&tar&&tar>0?Math.max(0,Math.min(100,(cur/tar)*100)):0;return `<div><div class="matrow"><b>${esc(f.label||f.key)}</b><div class="mbar"><div class="mfill" style="width:${w.toFixed(1)}%"></div></div><span>${esc(cur??'—')}/${esc(tar??'—')}</span></div>${f.blocker?`<small style="display:block;color:#eab95c;margin:2px 0 0 79px;font-size:7px">${esc(String(f.blocker).replaceAll('_',' '))}</small>`:''}</div>`}).join(''):'<div class="v231-empty">Maturation reports unavailable.</div>'}
   }
 
+  function publicTowerEnvelope(product){
+    const ct=product?.views?.control_tower||{},snap=ct?.maturity_snapshot||{},mat=snap?.maturation_control_tower||{};
+    return {control_tower:{status:ct.status,runtime_generated_at_utc:ct.generated_at_utc||product?.generated_at_utc,runtime_generated_at_local:ct.generated_at_local,pipeline_version:ct.pipeline_version||product?.pipeline_version,model_version:ct.model_version,system_health:ct.system_health||{},pipeline:ct.pipeline||{},errors:ct.errors||{count:0,rows:[]},maturation:{status:mat.status||snap.status,families:Array.isArray(mat.families)?mat.families:[],monitoring:mat.monitoring||{},snapshot_generated_at_utc:snap.generated_at_utc,reports_loaded:snap.reports_loaded,reports_expected:snap.reports_expected,errors:snap.errors||{}}}};
+  }
+
+  function renderPublicEvidence(data){
+    const mat=data?.control_tower?.maturation||{},rows=Array.isArray(mat.families)?mat.families:[];
+    const panel=document.querySelector('#tower .pipeline-grid + .panel');if(!panel)return;
+    const evidence=rows.filter(x=>x&&typeof x==='object');
+    panel.innerHTML=`<div class="ph"><h3>Persisted maturity evidence</h3><span class="status ${evidence.length?'ready':'research'}">${evidence.length?'LIVE':'N/V'}</span></div><div class="chain">${evidence.length?evidence.slice(0,9).map(f=>`<div><b>${esc(f.current??'—')}/${esc(f.target??'—')}</b><small>${esc(f.label||f.key||'Family')}${f.unique_fixtures!=null?` · ${esc(f.unique_fixtures)} fx`:''}</small></div>`).join(''):'<div><b>—</b><small>No persisted maturation families available.</small></div>'}</div><p class="note">Public read-only observability from /product/views. No design-time counters, provider calls, or synthetic errors are used.</p>`;
+  }
+
+  async function loadPublicTower(){
+    const chip=document.querySelector('#tower .preview-chip');
+    try{
+      const r=await fetch('/product/views?limit=25',{cache:'no-store',headers:{Accept:'application/json'}});
+      const product=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(product.error||`HTTP ${r.status}`);
+      const data=publicTowerEnvelope(product);
+      renderTower(data);renderPublicEvidence(data);
+      if(chip)chip.classList.toggle('amber',String(data?.control_tower?.status||'').toUpperCase()!=='LIVE');
+    }catch(err){
+      if(chip){chip.textContent=`OBSERVABILITY UNAVAILABLE · ${esc(err.message)}`;chip.classList.add('amber')}
+      const errPanel=document.querySelector('#tower .pipeline-grid > .panel:nth-child(2)');
+      if(errPanel){errPanel.querySelectorAll('.error,.placeholder,.v231-empty').forEach(x=>x.remove());errPanel.insertAdjacentHTML('beforeend',`<div class="v231-empty">Public Control Tower unavailable · ${esc(err.message)}</div>`)}
+      const maturityBox=document.querySelector('#tower .pipeline-grid > .panel:nth-child(3) .maturity');if(maturityBox)maturityBox.innerHTML='<div class="v231-empty">Persisted maturation reports unavailable.</div>';
+    }
+  }
+
   async function fetchJson(url,token){const r=await fetch(url,{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});let d={};try{d=await r.json()}catch(_){}if(!r.ok)throw new Error(d.error||`${url} HTTP ${r.status}`);return d}
 
   async function loadLive(){
     neutralizeMocks();
+    loadPublicTower();
     const token=localStorage.getItem(AK)||'';
     if(!token){const live=document.querySelector('#today .header .live');if(live)live.innerHTML='<span class="dot" style="background:#eab95c"></span> LOGIN REQUIRED FOR LIVE PREVIEW';return}
     try{
@@ -214,6 +263,15 @@ _LIVE_SCRIPT = r'''
 
 def _html() -> str:
     html = subscriber_preview_v230._html()
+    # The approved v230 shell contains design-only Control Tower examples. Strip
+    # them server-side so a failed/forbidden premium fetch can never look live.
+    html = re.sub(
+        r'<section class="page" id="tower">.*?</section>',
+        _TOWER_PLACEHOLDER,
+        html,
+        count=1,
+        flags=re.S,
+    )
     marker = "</body>"
     payload = _LIVE_STYLE + _LIVE_SCRIPT
     return html.replace(marker, payload + marker, 1) if marker in html else html + payload
