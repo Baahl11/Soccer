@@ -1,0 +1,53 @@
+name: v220 1X2 CLV Temporal Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v220-1x2-clv-temporal-audit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install DB driver
+        run: pip install "psycopg[binary]>=3.2,<4"
+      - name: Run DB-only temporal audit
+        run: |
+          python runtime/scripts/v220_1x2_clv_temporal_audit.py > /tmp/v220.json
+          jq . /tmp/v220.json
+          jq -e '.provider_requests_added == 0' /tmp/v220.json >/dev/null
+          jq -e '.strict_close_semantics_changed == false' /tmp/v220.json >/dev/null
+          mkdir -p state/soccer_edge_state/analysis
+          cp /tmp/v220.json state/soccer_edge_state/analysis/v220_1x2_clv_temporal_audit.json
+      - name: Persist audit
+        working-directory: state
+        run: |
+          git config user.name "soccer-edge-bot"
+          git config user.email "actions@github.com"
+          git add soccer_edge_state/analysis/v220_1x2_clv_temporal_audit.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "state: persist v220 1X2 CLV temporal audit"
+          git push origin HEAD:soccer-edge-state
