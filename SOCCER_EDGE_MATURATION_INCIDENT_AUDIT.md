@@ -72,3 +72,15 @@ After v219 is live:
 - merge and persist steps must execute;
 - `last_materialized_ledger_row_at_utc` and ledger row count must advance;
 - then family validations/Control Tower should be re-read.
+
+
+## Checkpoint v219-v221 — 2026-10-04
+- v215 canonical materialization repaired end-to-end. Final successful run: 37178111076 / job 111364895511. Canonical ledger advanced to 23,758 rows, last_materialized_ledger_row_at_utc=2026-10-04T03:47:09.053906+00:00, provider_requests_added=0.
+- v219 auth: f5c7a099a74705e4853deb0d8fddaf80281bb335. v219.1 bounded delta pages: dceda5642fb70a1d810aca5f0422e689766c9a65. v219.2 delta contract: 5e5afa3d6b2ab18130fe48bce7e6f316020f4472. v219.3 summary guard: 23d1cfd80d805bb6dae4bd79f1d666428830e792.
+- Post-repair Phase17 run 37178605858 succeeded; canonical primary counts remained 1X2=48, BTTS=17, FT_TOTALS=6. This proves ledger repair did not fabricate True CLV.
+- v220 canonical temporal audit run 37180733390 succeeded. Pre-history current cohort produced only 4 1X2 True CLV; canonical historical merge returned 1X2=48. Current 1X2 skip reasons: INVALID_ENTRY_PRICE=17; NO_LATER_PREKICKOFF_MARKET_SNAPSHOT=230; NO_LATER_PROVIDER_UPDATE=231. provider_requests_added=0.
+- v220.3 commit 31cdad45fd1c8baf3fc29210f7ddbc8f39dd029e fixes skip_reason_family_counts orientation and persists the v220 artifact in the canonical Phase17 commit.
+- Scheduler audit found primary CLV maturation is bounded to a 55-minute lookahead, a global backlog LIMIT 80 shared by 1X2/FT_TOTALS/BTTS, and max 8 maturation provider calls per tick. These are candidate starvation mechanisms; no limits/budget were changed without measurement.
+- v221 initial telemetry commit 91ec64b376fd773728d0ce4ee691a3fb029a438d had incomplete runtime wiring and failed V4 tests; it was superseded before becoming the accepted checkpoint.
+- v221.1 commit 6d7c712095810b977ec8b3696523dfae4acb8e9e fixes the wiring and exposes selected family mix + global limit saturation alongside existing evaluated/refresh/not-matured/budget-exhausted counters. It adds zero provider calls and changes no model, threshold, gate, strict-close rule, canonical BET logic, or provider budget.
+- Next decision must use live v221.1 telemetry from a normal scheduled tick. Do not spend a manual provider tick merely for diagnostics. If global LIMIT starvation is proven, fix family fairness/backlog selection before increasing provider budget. If budget exhaustion dominates, evaluate bounded reallocation/reuse before any cap increase.
