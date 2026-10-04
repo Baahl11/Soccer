@@ -665,19 +665,6 @@ def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
             rows = cur.fetchall()
             columns = [desc.name for desc in cur.description]
 
-            # v221: provider-free starvation observability. Re-run the same bounded
-            # candidate relation as a count-only query without the final LIMIT so
-            # we can distinguish scheduler truncation from provider/budget effects.
-            selected_family_counts: dict[str, int] = defaultdict(int)
-            for raw_row in rows:
-                probe = dict(zip(columns, raw_row))
-                selected_family_counts[str(probe.get("market_family") or "").upper()] += 1
-            # The selected rows are already ordered by kickoff and globally limited.
-            # If the global limit is saturated, mark the selected mix as potentially
-            # truncated; exact pre-limit counts are materialized below from the
-            # current candidate population by requesting a diagnostic-only larger
-            # limit through the same DB loader in the workflow audit.
-            limit_saturated = len(rows) >= max(1, int(limit))
     seen: set[tuple[Any, ...]] = set()
     out: list[dict[str, Any]] = []
     for raw in rows:
