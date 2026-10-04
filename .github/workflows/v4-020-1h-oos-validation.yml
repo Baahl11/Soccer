@@ -28,6 +28,11 @@ jobs:
           ref: soccer-edge-state
           path: state
           fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/one_h_goals_calibration.json
+            soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl
+            soccer_edge_state/analysis/v4_020_1h_oos_validation.json
+          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-python@v5
         with:
