@@ -256,7 +256,12 @@ class V215SignalLedgerRouter:
         if scope.get("type") == "http":
             path = scope.get("path")
             method = str(scope.get("method") or "").upper()
-            if path == V226_TEAM_TOTALS_RECON_ROUTE and method == "POST":\n                await _handle_v226_team_totals_reconciliation(scope, receive, send)\n                return\n            if path == V215_SIGNAL_LEDGER_ROUTE and method == "POST":
+            if path == V226_TEAM_TOTALS_RECON_ROUTE and method == "POST":\n                await _handle_v226_team_totals_reconciliation(scope, receive, send)\n                return\n            if path == "/internal/team-totals-capture-signal-reconciliation-v4/build" and method == "POST":
+                request = Request(scope, receive=receive)
+                response = await internal_team_totals_capture_signal_reconciliation_v4_build(request)
+                await response(scope, receive, send)
+                return
+            if path == V215_SIGNAL_LEDGER_ROUTE and method == "POST":
                 await _handle_v215_signal_ledger(scope, receive, send)
                 return
             if path == TICK_ROUTE and method == "POST":
