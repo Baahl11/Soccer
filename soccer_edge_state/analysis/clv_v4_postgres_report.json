@@ -1,5 +1,5 @@
 {
-  "canonical_merge_version": "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.1.0",
+  "canonical_merge_version": "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.2.0",
   "comparable_true_clv_rows": 82,
   "derivative_event_rows_loaded": 60,
   "derivative_family_counts": {
@@ -82,10 +82,12 @@
     "Over/Under selections match by side plus explicit line, so 'Over' and 'Over 2.5' are equivalent only when line=2.5.",
     "Line movement may still be recorded when the selected side survives but the sportsbook line changes.",
     "Same-book close is preferred; otherwise the latest cross-book snapshot at the latest pre-kickoff timestamp is used.",
+    "Prior canonical strict True CLV rows are preserved by exact signal key so a bounded current Postgres window cannot silently delete previously validated evidence.",
     "Historical dedicated-close backfill adds at most one latest pre-kickoff row per fixture/family and is skipped whenever Postgres already covers that fixture/family.",
     "Historical Team Totals backfill additionally requires a provider close update strictly after the signal and before kickoff; legacy rows without this provenance cannot re-enter canonical true CLV."
   ],
   "pipeline_market_rows_loaded": 2000,
+  "previous_canonical_rows_preserved": 0,
   "priced_entry_family_counts": {
     "1H": 9,
     "1X2": 465,
