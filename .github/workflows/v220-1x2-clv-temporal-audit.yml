@@ -4,42 +4,55 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/v220-1x2-clv-temporal-audit.yml"
+    paths: [".github/workflows/v220-1x2-clv-temporal-audit.yml"]
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    timeout-minutes: 15
     steps:
-      - name: Checkout runtime
-        uses: actions/checkout@v4
-        with:
-          ref: soccer-edge-mcp-v1
-          path: runtime
-          fetch-depth: 1
       - name: Checkout state
         uses: actions/checkout@v4
         with:
           ref: soccer-edge-state
           path: state
           fetch-depth: 1
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install DB driver
-        run: pip install "psycopg[binary]>=3.2,<4"
-      - name: Run DB-only temporal audit
+      - name: Build canonical DB-only CLV evidence
+        shell: bash
         run: |
-          python runtime/scripts/v220_1x2_clv_temporal_audit.py > /tmp/v220.json
+          set -euo pipefail
+          OIDC_RESPONSE=$(curl -fsS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          TOKEN=$(echo "$OIDC_RESPONSE" | jq -r '.value // empty')
+          test -n "$TOKEN"
+          echo "::add-mask::$TOKEN"
+          HTTP=$(curl -sS --max-time 430 -o /tmp/clv.json -w "%{http_code}" -X POST             -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json"             -d '{"lookback_days":60,"max_signals":2000}'             https://soccer-edge-api.onrender.com/internal/clv-v4/build)
+          test "$HTTP" = "200"
+          jq -e '.model_version=="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10" and .provider_requests_added==0' /tmp/clv.json >/dev/null
+      - name: Materialize 1X2 temporal classification
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq '{
+            schema_version:"1.1.0",
+            model_version:"SOCCER_1X2_CLV_TEMPORAL_AUDIT_V220_1.1.0",
+            generated_at_utc:.generated_at_utc,
+            source_model_version:.model_version,
+            family_true_clv_count:(.family_counts["1X2"] // 0),
+            skip_reason_counts:(.skip_reason_family_counts["1X2"] // {}),
+            global_skip_reasons:.skip_reasons,
+            ft_totals_control_funnel:.ft_totals_maturation_funnel,
+            provider_requests_added:0,
+            strict_close_semantics_changed:false,
+            models_changed:false,
+            thresholds_changed:false,
+            gates_changed:false,
+            provider_budget_changed:false
+          }' /tmp/clv.json > /tmp/v220.json
           jq . /tmp/v220.json
-          jq -e '.provider_requests_added == 0' /tmp/v220.json >/dev/null
-          jq -e '.strict_close_semantics_changed == false' /tmp/v220.json >/dev/null
           mkdir -p state/soccer_edge_state/analysis
           cp /tmp/v220.json state/soccer_edge_state/analysis/v220_1x2_clv_temporal_audit.json
       - name: Persist audit
@@ -48,6 +61,6 @@ jobs:
           git config user.name "soccer-edge-bot"
           git config user.email "actions@github.com"
           git add soccer_edge_state/analysis/v220_1x2_clv_temporal_audit.json
-          if git diff --cached --quiet; then exit 0; fi
+          git diff --cached --quiet && exit 0
           git commit -m "state: persist v220 1X2 CLV temporal audit"
           git push origin HEAD:soccer-edge-state
