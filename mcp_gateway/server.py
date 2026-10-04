@@ -51,7 +51,8 @@ async def internal_team_totals_capture_signal_reconciliation_v4_build(request: R
         return JSONResponse({"error":"team_totals_capture_signal_reconciliation_failed","detail":str(exc)[:500]}, status_code=500)
 
 
-V226_TEAM_TOTALS_RECON_ROUTE = "/internal/team-totals-capture-signal-reconciliation-v4/build"\nV215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
+V226_TEAM_TOTALS_RECON_ROUTE = "/internal/team-totals-capture-signal-reconciliation-v4/build"
+V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
 V215_SIGNAL_LEDGER_REF = "refs/heads/main"
 TICK_ROUTE = "/internal/tick"
@@ -203,7 +204,8 @@ async def _handle_instrumented_tick(scope, receive, send) -> None:
 
         await stderr_task
         stdout = await stdout_task
-        stderr_text = "\n".join(stderr_lines)
+        stderr_text = "
+".join(stderr_lines)
         if proc.returncode != 0:
             detail = stderr_text[-1000:]
             response = JSONResponse({"error": "tick_failed", "detail": detail}, status_code=500)
@@ -256,7 +258,10 @@ class V215SignalLedgerRouter:
         if scope.get("type") == "http":
             path = scope.get("path")
             method = str(scope.get("method") or "").upper()
-            if path == V226_TEAM_TOTALS_RECON_ROUTE and method == "POST":\n                await _handle_v226_team_totals_reconciliation(scope, receive, send)\n                return\n            if path == "/internal/team-totals-capture-signal-reconciliation-v4/build" and method == "POST":
+            if path == V226_TEAM_TOTALS_RECON_ROUTE and method == "POST":
+                await _handle_v226_team_totals_reconciliation(scope, receive, send)
+                return
+            if path == "/internal/team-totals-capture-signal-reconciliation-v4/build" and method == "POST":
                 request = Request(scope, receive=receive)
                 response = await internal_team_totals_capture_signal_reconciliation_v4_build(request)
                 await response(scope, receive, send)
