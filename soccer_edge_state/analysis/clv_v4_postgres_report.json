@@ -1,6 +1,6 @@
 {
   "canonical_merge_version": "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.2.0",
-  "comparable_true_clv_rows": 71,
+  "comparable_true_clv_rows": 100,
   "derivative_event_rows_loaded": 59,
   "derivative_family_counts": {
     "1H": 218,
@@ -35,8 +35,10 @@
   },
   "family_counts": {
     "1X2": 48,
+    "AWAY_TT": 15,
     "BTTS": 17,
-    "FT_TOTALS": 6
+    "FT_TOTALS": 6,
+    "HOME_TT": 14
   },
   "ft_totals_maturation_funnel": {
     "later_snapshot_without_later_provider_update_rows": 350,
@@ -49,8 +51,8 @@
     "true_clv_rows": 6,
     "unpriced_research_placeholders_ignored": 283
   },
-  "historical_backfill_rows_added": 57,
-  "historical_backfill_unique_fixtures": 57,
+  "historical_backfill_rows_added": 0,
+  "historical_backfill_unique_fixtures": 0,
   "legacy_signal_rows_loaded": 1870,
   "lookback_days": 60,
   "malformed_fixture_rows_ignored_for_unique_counts": 0,
@@ -85,7 +87,7 @@
     "Historical Team Totals backfill additionally requires a provider close update strictly after the signal and before kickoff; legacy rows without this provenance cannot re-enter canonical true CLV."
   ],
   "pipeline_market_rows_loaded": 2000,
-  "previous_canonical_rows_preserved": 0,
+  "previous_canonical_rows_preserved": 86,
   "priced_entry_family_counts": {
     "1H": 9,
     "1X2": 465,
@@ -103,6 +105,7 @@
   "signal_merge_strategy": "PIPELINE_PRIORITY_THEN_DERIVATIVE_FAMILY_ROUND_ROBIN_THEN_LEGACY_FALLBACK",
   "signal_rows_considered": 2000,
   "signal_source_counts": {
+    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 29,
     "HISTORICAL_DEDICATED_CLOSE": 57,
     "PIPELINE_MATCH_TABLE": 14
   },
@@ -3111,10 +3114,12 @@
       1609395
     ]
   },
-  "tracked_rows": 71,
+  "tracked_rows": 100,
   "unique_fixtures_by_family": {
     "1X2": 48,
+    "AWAY_TT": 5,
     "BTTS": 17,
-    "FT_TOTALS": 6
+    "FT_TOTALS": 6,
+    "HOME_TT": 4
   }
 }
