@@ -1,3 +1,4 @@
+# v233 CI dependency closure: install runtime requirements for validation tests
 # v233 canonical refresh after Phase17 2026-10-05
 name: V4-017 1X2 Calibration Validation
 
@@ -37,7 +38,7 @@ jobs:
         working-directory: runtime
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest -r mcp_gateway/requirements.txt
           PYTHONPATH=. pytest -q tests/test_v4_017_one_x_two_validation.py
 
       - name: Build current 1X2 calibration-validation report
