@@ -10,7 +10,7 @@ from typing import Any
 from mcp_gateway import market_mismatch_v4, persistence
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10"
+MODEL_VERSION = "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.11"
 SIGNAL_STAGES = ("T-40", "T-20", "T-10")
 TEAM_TOTALS_RESEARCH_STAGES = ("EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10", "CLOSE")
 SIGNAL_CLASSES = ("BET", "LEAN", "WATCH")
@@ -677,7 +677,7 @@ def _merge_signals(
 
     derivative_reserve = min(
         sum(len(bucket) for bucket in derivative_buckets.values()),
-        max_rows // 10,
+        max_rows // 4,
     )
     pipeline_limit = max_rows - derivative_reserve
 
@@ -1205,8 +1205,8 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "status": "ACTIVE_TRUE_CLV_SAMPLE" if len(comparable) >= MIN_TRUE_CLOSE_ROWS else "COLLECTING_TRUE_CLV",
         "lookback_days": int(lookback_days),
         "signal_rows_considered": signal_rows_considered,
-        "signal_merge_strategy": "RECENT_PIPELINE_90PCT_PRIORITY_WITH_DERIVATIVE_10PCT_RESERVE_THEN_UNUSED_CAPACITY_BACKFILL_THEN_LEGACY",
-        "derivative_validation_reserve_fraction": 0.10,
+        "signal_merge_strategy": "RECENT_PIPELINE_75PCT_PRIORITY_WITH_DERIVATIVE_25PCT_RESERVE_THEN_UNUSED_CAPACITY_BACKFILL_THEN_LEGACY",
+        "derivative_validation_reserve_fraction": 0.25,
         "pipeline_signal_window_policy": "DEDUPED_BEFORE_LIMIT;NEWEST_FIRST_WITH_BOUNDED_MAX_SIGNALS;HISTORICAL_TRUE_CLV_PRESERVED_BY_CANONICAL_MERGE",
         "pipeline_market_rows_loaded": pipeline_market_rows_loaded,
         "derivative_event_rows_loaded": derivative_event_rows_loaded,
