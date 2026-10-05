@@ -126,6 +126,66 @@ def test_merge_keeps_independent_market_families_from_same_fixture_and_run():
     assert {v._family(row["market_candidate"]) for row in merged} == {"FT_TOTALS", "FT_CORNERS"}
 
 
+def test_merge_reserves_bounded_capacity_for_derivative_families():
+    generated = datetime(2026, 10, 5, 5, 0, tzinfo=timezone.utc)
+    pipeline = []
+    for i in range(20):
+        pipeline.append({
+            "fixture_id": 1000 + i,
+            "generated_at": generated,
+            "market_candidate": {
+                "market_family": "FT_TOTALS",
+                "market": "Goals Over/Under",
+                "selection": "Over",
+                "line": 2.5,
+                "price": 1.9,
+                "bookmaker": "Book",
+            },
+            "signal_source": "PIPELINE_MATCH_TABLE",
+        })
+    derivative = [{
+        "fixture_id": 2001,
+        "generated_at": generated,
+        "market_candidate": {
+            "market_family": "1H",
+            "market": "Goals Over/Under First Half",
+            "selection": "Over",
+            "line": 1.5,
+            "decimal_price": 1.95,
+            "bookmaker": "Book",
+        },
+        "signal_source": "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence",
+    }]
+
+    merged = v._merge_signals(pipeline, derivative, [], max_rows=10)
+
+    assert len(merged) == 10
+    assert sum(1 for row in merged if row["signal_source"] == "PIPELINE_MATCH_TABLE") == 9
+    assert sum(1 for row in merged if row["signal_source"].startswith("DERIVATIVE_INTELLIGENCE:")) == 1
+
+
+def test_merge_returns_unused_derivative_reserve_to_pipeline():
+    generated = datetime(2026, 10, 5, 5, 0, tzinfo=timezone.utc)
+    pipeline = [{
+        "fixture_id": 3000 + i,
+        "generated_at": generated,
+        "market_candidate": {
+            "market_family": "FT_TOTALS",
+            "market": "Goals Over/Under",
+            "selection": "Over",
+            "line": float(i) + 0.5,
+            "price": 1.9,
+            "bookmaker": "Book",
+        },
+        "signal_source": "PIPELINE_MATCH_TABLE",
+    } for i in range(12)]
+
+    merged = v._merge_signals(pipeline, [], [], max_rows=10)
+
+    assert len(merged) == 10
+    assert all(row["signal_source"] == "PIPELINE_MATCH_TABLE" for row in merged)
+
+
 def test_derivative_signals_extract_observed_research_markets():
     event = {
         "fixture_id": 10,
