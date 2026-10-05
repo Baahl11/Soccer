@@ -1,3 +1,4 @@
+# v233 CI dependency closure for commercial-layer imports
 # v169 selection-level readiness materialization
 # v160 refresh after Phase18 OOS ready
 # Phase19 Draw class-supported OOS audit: 2026-09-24
@@ -63,7 +64,7 @@ jobs:
         working-directory: runtime
         run: |
           python -m pip install --upgrade pip
-          pip install pytest "lightgbm>=4,<5" "scikit-learn>=1.5,<2"
+          pip install -r mcp_gateway/requirements.txt pytest "lightgbm>=4,<5" "scikit-learn>=1.5,<2"
           PYTHONPATH=. pytest -q tests/test_phase19_promotion_framework_v4.py tests/test_promotion_shadow_postgres_v4.py tests/test_draw_challenger_v4.py
 
       - name: Build promotion-quality shadow from Postgres
