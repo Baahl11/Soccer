@@ -2381,3 +2381,97 @@ def test_paid_odds_payload_materializes_research_only_1x2_entry_without_extra_ca
     assert sidecar["production_promotion_allowed"] is False
     assert sidecar["paid_odds_1x2_reuse"] is True
     assert payload["api_calls_this_tick"] == 11
+
+
+
+def test_paid_odds_payload_materializes_research_only_btts_entry_without_extra_call(monkeypatch):
+    payload = {
+        "model_version": "SOCCER EDGE ENGINE v1.7",
+        "events": [{
+            "event_type": "SOCCER_REFRESH",
+            "stage": "T-60",
+            "fixture": {"fixture_id": 9902, "league": "UEFA Nations League", "home_team": "A", "away_team": "B"},
+            "raw_projection": {"raw_btts_yes_prob": 0.59, "raw_over_2_5_prob": 0.61},
+        }],
+        "match_table_rows": [{
+            "row_index": 0, "fixture_id": 9902, "stage": "T-60",
+            "execution_status": "WAIT_PRICE", "market_family": "FT_TOTALS_RESEARCH",
+            "selection": "Over research", "model_signal_score": 80.0, "data_tier": "B",
+        }],
+        "api_calls_this_tick": 5,
+    }
+    fetched = [
+        {"fixture_id": 9902, "bookmaker":"Book","market":"Goals Over/Under",
+         "values":[{"selection":"Over","line":2.5,"decimal_price":1.95,"fair_probability":0.50},
+                   {"selection":"Under","line":2.5,"decimal_price":1.95,"fair_probability":0.50}],
+         "provider_update":"2026-10-05T00:00:00+00:00","source":"API_FOOTBALL_ODDS_V3"},
+        {"fixture_id": 9902, "bookmaker":"Book","market":"Both Teams To Score",
+         "values":[{"selection":"Yes","line":None,"decimal_price":1.88,"fair_probability":0.51},
+                   {"selection":"No","line":None,"decimal_price":1.95,"fair_probability":0.49}],
+         "provider_update":"2026-10-05T00:00:00+00:00","source":"API_FOOTBALL_ODDS_V3"},
+    ]
+    calls=[]
+    async def fake_fetch(client, fixture_id, *, api_key, remaining_calls):
+        calls.append(fixture_id)
+        return fetched,1,"PRICE_API_RESOLVED",6000
+
+    monkeypatch.setenv("API_FOOTBALL_KEY","test-key")
+    monkeypatch.setattr(v,"_load_cached_markets",lambda fixture_id,stage:[])
+    monkeypatch.setattr(v,"_fetch_fixture_odds",fake_fetch)
+    monkeypatch.setattr(v,"_load_primary_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"candidate_source_counts":{}})
+    monkeypatch.setattr(v,"_load_one_h_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"candidate_source_counts":{}})
+    monkeypatch.setattr(v,"_load_two_h_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"candidate_source_counts":{}})
+    monkeypatch.setattr(v,"_load_corners_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"candidate_source_counts":{}})
+    monkeypatch.setattr(v,"_load_player_props_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"signal_family_counts":{},"already_matured_family_counts":{}})
+    monkeypatch.setattr(v,"_load_team_totals_maturation_backlog",lambda:{"candidate_events":[],"source":"TEST"})
+    monkeypatch.setattr(v,"_load_team_totals_diversity_backlog",lambda:{"candidate_events":[],"existing_fixture_ids":set(),"target":20,"source":"TEST"})
+
+    result=asyncio.run(v.resolve_payload(payload,max_api_calls=1,calibration_state=_calibration_state()))
+    assert calls == [9902]
+    assert result["api_calls_added"] == 1
+    assert result["paid_odds_btts_reuse_rows_added"] == 1
+    assert result["paid_odds_btts_reuse_provider_requests_added"] == 0
+    sidecars=[row for row in payload["match_table_rows"] if row.get("market_family")=="BTTS"]
+    assert len(sidecars)==1
+    assert sidecars[0]["selection"]=="Yes"
+    assert sidecars[0]["price"]==1.88
+    assert sidecars[0]["execution_status"]=="RESEARCH_ONLY"
+    assert sidecars[0]["decision_weight"]==0.0
+    assert sidecars[0]["production_promotion_allowed"] is False
+
+
+def test_direct_1x2_target_does_not_duplicate_paid_odds_sidecar(monkeypatch):
+    payload = {
+        "model_version": "SOCCER EDGE ENGINE v1.7",
+        "events": [{
+            "event_type":"SOCCER_REFRESH","stage":"T-60",
+            "fixture":{"fixture_id":9903,"home_team":"A","away_team":"B"},
+            "raw_projection":{"raw_home_win_prob":0.57,"raw_draw_prob":0.23,"raw_away_win_prob":0.20},
+        }],
+        "match_table_rows": [{
+            "row_index":0,"fixture_id":9903,"stage":"T-60","execution_status":"WAIT_PRICE",
+            "market_family":"FT_1X2_RESEARCH","selection":"Side research","model_signal_score":81.0,"data_tier":"B",
+        }],
+        "api_calls_this_tick":3,
+    }
+    fetched=[{"fixture_id":9903,"bookmaker":"Book","market":"Match Winner",
+              "values":[{"selection":"Home","line":None,"decimal_price":1.90,"fair_probability":0.52},
+                        {"selection":"Draw","line":None,"decimal_price":3.50,"fair_probability":0.28},
+                        {"selection":"Away","line":None,"decimal_price":4.80,"fair_probability":0.20}],
+              "provider_update":"2026-10-05T00:00:00+00:00","source":"API_FOOTBALL_ODDS_V3"}]
+    async def fake_fetch(client, fixture_id, *, api_key, remaining_calls):
+        return fetched,1,"PRICE_API_RESOLVED",6000
+    monkeypatch.setenv("API_FOOTBALL_KEY","test-key")
+    monkeypatch.setattr(v,"_load_cached_markets",lambda fixture_id,stage:[])
+    monkeypatch.setattr(v,"_fetch_fixture_odds",fake_fetch)
+    monkeypatch.setattr(v,"_load_primary_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"candidate_source_counts":{}})
+    monkeypatch.setattr(v,"_load_one_h_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"candidate_source_counts":{}})
+    monkeypatch.setattr(v,"_load_two_h_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"candidate_source_counts":{}})
+    monkeypatch.setattr(v,"_load_corners_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"candidate_source_counts":{}})
+    monkeypatch.setattr(v,"_load_player_props_clv_maturation_backlog",lambda:{"candidate_events":[],"candidate_family_counts":{},"signal_family_counts":{},"already_matured_family_counts":{}})
+    monkeypatch.setattr(v,"_load_team_totals_maturation_backlog",lambda:{"candidate_events":[],"source":"TEST"})
+    monkeypatch.setattr(v,"_load_team_totals_diversity_backlog",lambda:{"candidate_events":[],"existing_fixture_ids":set(),"target":20,"source":"TEST"})
+    result=asyncio.run(v.resolve_payload(payload,max_api_calls=1,calibration_state=_calibration_state()))
+    one_x_two=[row for row in payload["match_table_rows"] if row.get("market_family")=="1X2"]
+    assert len(one_x_two)==1
+    assert result["paid_odds_1x2_reuse_rows_added"]==0
