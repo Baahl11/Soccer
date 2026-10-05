@@ -10,8 +10,8 @@ import httpx
 
 from mcp_gateway import maturation_baseline_store_v4, maturation_watchdogs_v4
 
-SCHEMA_VERSION = "1.3.0"
-MODEL_VERSION = "SOCCER_MATURITY_SNAPSHOT_V4_1.3.0"
+SCHEMA_VERSION = "1.4.0"
+MODEL_VERSION = "SOCCER_MATURITY_SNAPSHOT_V4_1.4.0"
 CACHE_TTL_SECONDS = 300.0
 REQUEST_TIMEOUT_SECONDS = 3.0
 
@@ -28,6 +28,7 @@ _REPORTS = {
     "signal_summary": "signal_ledger_summary.json",
     "settlement_coverage": "settlement_coverage_report.json",
     "api_efficiency": "api_efficiency.json",
+    "visit_matrix": "post_v223_visit_matrix_v4.json",
 }
 
 _LOCK = threading.Lock()
@@ -288,14 +289,42 @@ def _build_maturation_control_tower(
         "source": _REPORTS["player_props"],
     })
 
+    visit_matrix = _dict(reports.get("visit_matrix"))
+    visit_summary = _dict(visit_matrix.get("family_summary"))
+    primary_visit_keys = {"one_x_two": "1X2", "btts": "BTTS", "ft_totals": "FT_TOTALS"}
+    for family in families:
+        raw_key = primary_visit_keys.get(str(family.get("key") or ""))
+        if raw_key is None:
+            continue
+        row = _dict(visit_summary.get(raw_key))
+        signals = _int(row.get("signals")) or 0
+        any_later = _int(row.get("with_any_later_snapshot")) or 0
+        two_plus = _int(row.get("with_2plus_capture_visits")) or 0
+        advanced = _int(row.get("with_provider_update_advance")) or 0
+        family["revisit_health"] = {
+            "signals": signals,
+            "zero_visit_signals": max(signals - any_later, 0),
+            "one_visit_signals": max(any_later - two_plus, 0),
+            "two_plus_visit_signals": two_plus,
+            "provider_update_advanced_signals": advanced,
+            "provider_update_advancement_rate": row.get("provider_update_advancement_rate"),
+            "source": _REPORTS["visit_matrix"],
+        }
+
     signal_freshness = _dict(watchdogs.get("signal_close_freshness"))
     signal_age = _dict(watchdogs.get("signal_evidence_age"))
     growth = _dict(watchdogs.get("evidence_growth_48h"))
     return {
         "schema_version": "1.1.0",
-        "model_version": "SOCCER_MATURATION_CONTROL_TOWER_V4_1.1.0",
+        "model_version": "SOCCER_MATURATION_CONTROL_TOWER_V4_1.2.0",
         "status": watchdog_bundle.get("status") or "NOT_VERIFIED",
         "families": families,
+        "visit_matrix": {
+            "generated_at_utc": visit_matrix.get("generated_at_utc"),
+            "cohort_start_utc": visit_matrix.get("cohort_start_utc"),
+            "family_summary": visit_summary,
+            "provider_requests_added": 0,
+        },
         "monitoring": {
             "report_freshness": signal_freshness,
             "evidence_age": signal_age,
