@@ -1,3 +1,4 @@
+# v233 CI dependency closure: install runtime requirements for validation tests
 # v233 canonical refresh after Phase17 2026-10-05
 name: V4-022 Corners OOS Validation
 
@@ -47,7 +48,7 @@ jobs:
         working-directory: runtime
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest -r mcp_gateway/requirements.txt
           PYTHONPATH=. pytest -q tests/test_v4_022_corners_oos.py
 
       - name: Build current Corners OOS validation report
