@@ -1,3 +1,4 @@
+# v233 exact-instrument strict-close visit matrix
 name: v232 Post-v223 CLV Visit Matrix Audit
 
 on:
@@ -37,7 +38,7 @@ jobs:
             https://soccer-edge-api.onrender.com/internal/post-v223-visit-matrix-v4/build \
             -o /tmp/v232.json
           jq '{model_version,cohort_start_utc,generated_at_utc,family_summary,provider_requests_added}' /tmp/v232.json
-          jq -e '.model_version=="SOCCER_POST_V223_VISIT_MATRIX_V1" and .provider_requests_added==0 and .strict_close_semantics_changed==false and .provider_budget_changed==false' /tmp/v232.json >/dev/null
+          jq -e '.model_version=="SOCCER_POST_V223_VISIT_MATRIX_V2" and .provider_requests_added==0 and .strict_close_semantics_changed==false and .provider_budget_changed==false' /tmp/v232.json >/dev/null
           mkdir -p soccer_edge_state/analysis
           cp /tmp/v232.json soccer_edge_state/analysis/post_v223_visit_matrix_v4.json
       - name: Persist audit
