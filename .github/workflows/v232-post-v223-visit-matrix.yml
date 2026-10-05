@@ -2,6 +2,9 @@ name: v232 Post-v223 CLV Visit Matrix Audit
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/v232-post-v223-visit-matrix.yml']
   schedule:
     - cron: "37 7,19 * * *"
 
