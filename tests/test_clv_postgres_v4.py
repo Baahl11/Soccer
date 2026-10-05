@@ -277,6 +277,16 @@ def test_market_snapshot_loader_preserves_distinct_provider_quote_states():
     assert "DISTINCT ON (m.fixture_id, m.market_id, m.bookmaker_id, m.provider_update)" in query
     assert "m.provider_update, m.captured_at DESC" in query
 
+def test_pipeline_loader_bounded_window_is_recent_first():
+    conn = _FakeConn()
+    rows = v._load_pipeline_market_signals(conn, lookback_days=60, max_rows=2000)
+    query = " ".join(conn.cursor_instance.query.split())
+
+    assert rows == []
+    assert "ORDER BY p.generated_at_utc DESC LIMIT %s" in query
+    assert "ORDER BY p.generated_at_utc ASC LIMIT %s" not in query
+
+
 def test_pipeline_loader_does_not_duplicate_full_event_payload():
     conn = _FakeConn()
     rows = v._load_pipeline_market_signals(conn, lookback_days=30, max_rows=10)
