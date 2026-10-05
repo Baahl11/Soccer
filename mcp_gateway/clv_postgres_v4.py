@@ -360,7 +360,11 @@ def _load_pipeline_market_signals(conn, *, lookback_days: int, max_rows: int) ->
               AND COALESCE(NULLIF(mr.row ->> 'classification', ''), e.classification) = ANY(%s)
               AND NULLIF(mr.row ->> 'market', '') IS NOT NULL
               AND NULLIF(mr.row ->> 'selection', '') IS NOT NULL
-            ORDER BY p.generated_at_utc ASC
+            -- The canonical workflow is intentionally bounded (currently 2,000
+            -- pipeline rows). Read the newest point-in-time signals first; historical
+            -- strict True CLV is preserved downstream by clv_history_merge_v4.
+            -- ASC here silently starved current weekend signals once the cap filled.
+            ORDER BY p.generated_at_utc DESC
             LIMIT %s
             """,
             (cutoff, list(SIGNAL_STAGES), list(SIGNAL_CLASSES), max(1, int(max_rows))),
@@ -1154,7 +1158,8 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "status": "ACTIVE_TRUE_CLV_SAMPLE" if len(comparable) >= MIN_TRUE_CLOSE_ROWS else "COLLECTING_TRUE_CLV",
         "lookback_days": int(lookback_days),
         "signal_rows_considered": signal_rows_considered,
-        "signal_merge_strategy": "PIPELINE_PRIORITY_THEN_DERIVATIVE_FAMILY_ROUND_ROBIN_THEN_LEGACY_FALLBACK",
+        "signal_merge_strategy": "RECENT_PIPELINE_PRIORITY_THEN_DERIVATIVE_FAMILY_ROUND_ROBIN_THEN_LEGACY_FALLBACK",
+        "pipeline_signal_window_policy": "NEWEST_FIRST_WITH_BOUNDED_MAX_SIGNALS;HISTORICAL_TRUE_CLV_PRESERVED_BY_CANONICAL_MERGE",
         "pipeline_market_rows_loaded": pipeline_market_rows_loaded,
         "derivative_event_rows_loaded": derivative_event_rows_loaded,
         "derivative_market_rows_loaded_raw": derivative_market_rows_loaded_raw,
