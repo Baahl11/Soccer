@@ -439,99 +439,127 @@ def _load_derivative_signals(conn, *, lookback_days: int, max_rows: int) -> list
     with conn.cursor() as cur:
         cur.execute(
             """
+            WITH raw AS (
+                SELECT
+                    e.fixture_id,
+                    e.generated_at,
+                    e.stage,
+                    e.classification,
+                    jsonb_build_object(
+                        'tier', e.payload -> 'tier',
+                        'model_signal', e.payload -> 'model_signal',
+                        'sporting_shortlist', e.payload -> 'sporting_shortlist'
+                    ) AS event_payload,
+                    f.kickoff,
+                    f.league,
+                    f.home_team,
+                    f.away_team,
+                    p.payload ->> 'model_version' AS model_version,
+                    p.payload ->> 'version' AS automation_version,
+                    d.market_candidate,
+                    d.signal_source,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY
+                            e.fixture_id,
+                            d.signal_source,
+                            LOWER(TRIM(COALESCE(d.market_candidate ->> 'market', ''))),
+                            LOWER(TRIM(COALESCE(d.market_candidate ->> 'selection', ''))),
+                            COALESCE(d.market_candidate ->> 'line', ''),
+                            LOWER(TRIM(COALESCE(d.market_candidate ->> 'bookmaker', '')))
+                        ORDER BY e.generated_at ASC
+                    ) AS instrument_anchor_rank
+                FROM soccer_refresh_events e
+                JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                LEFT JOIN soccer_pipeline_runs p ON p.generated_at_utc = e.generated_at
+                CROSS JOIN LATERAL (
+                    SELECT
+                        jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_TOTALS'::text), true) AS market_candidate,
+                        'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'::text AS signal_source
+                    FROM jsonb_array_elements(
+                        COALESCE(e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb)
+                    ) AS t(row_value)
+
+                    UNION ALL
+
+                    SELECT
+                        jsonb_set(row_value, '{market_family}', to_jsonb('1H'::text), true),
+                        'DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence'::text
+                    FROM jsonb_array_elements(
+                        COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                    ) AS h(row_value)
+
+                    UNION ALL
+
+                    SELECT
+                        jsonb_set(row_value, '{market_family}', to_jsonb('2H'::text), true),
+                        'DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence'::text
+                    FROM jsonb_array_elements(
+                        COALESCE(e.payload -> 'two_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                    ) AS sh(row_value)
+
+                    UNION ALL
+
+                    SELECT
+                        jsonb_set(row_value, '{market_family}', to_jsonb('FT_CORNERS'::text), true),
+                        'DERIVATIVE_INTELLIGENCE:corners_intelligence'::text
+                    FROM jsonb_array_elements(
+                        COALESCE(e.payload -> 'corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                    ) AS c(row_value)
+
+                    UNION ALL
+
+                    SELECT
+                        jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_CORNERS'::text), true),
+                        'DERIVATIVE_INTELLIGENCE:team_corners_intelligence'::text
+                    FROM jsonb_array_elements(
+                        COALESCE(e.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                    ) AS tc(row_value)
+
+                    UNION ALL
+
+                    SELECT
+                        jsonb_set(row_value, '{market_family}', to_jsonb('CARDS'::text), true),
+                        'DERIVATIVE_INTELLIGENCE:cards_intelligence_live'::text
+                    FROM jsonb_array_elements(
+                        COALESCE(e.payload -> 'cards_intelligence_live' -> 'observed_explicit_yellow_market_rows', '[]'::jsonb)
+                    ) AS cards(row_value)
+
+                    UNION ALL
+
+                    SELECT
+                        jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_CARDS'::text), true),
+                        'DERIVATIVE_INTELLIGENCE:team_cards_intelligence'::text
+                    FROM jsonb_array_elements(
+                        COALESCE(e.payload -> 'team_cards_intelligence' -> 'observed_market_rows', '[]'::jsonb)
+                    ) AS team_cards(row_value)
+                ) AS d
+                WHERE e.generated_at >= %s
+                  AND (
+                        e.stage = ANY(%s)
+                        OR (
+                            d.signal_source = 'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'
+                            AND e.stage = ANY(%s)
+                        )
+                      )
+                  AND e.generated_at < f.kickoff
+            )
             SELECT
-                e.fixture_id,
-                e.generated_at,
-                e.stage,
-                e.classification,
-                jsonb_build_object(
-                    'tier', e.payload -> 'tier',
-                    'model_signal', e.payload -> 'model_signal',
-                    'sporting_shortlist', e.payload -> 'sporting_shortlist'
-                ) AS event_payload,
-                f.kickoff,
-                f.league,
-                f.home_team,
-                f.away_team,
-                p.payload ->> 'model_version' AS model_version,
-                p.payload ->> 'version' AS automation_version,
-                d.market_candidate,
-                d.signal_source
-            FROM soccer_refresh_events e
-            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
-            LEFT JOIN soccer_pipeline_runs p ON p.generated_at_utc = e.generated_at
-            CROSS JOIN LATERAL (
-                SELECT
-                    jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_TOTALS'::text), true) AS market_candidate,
-                    'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'::text AS signal_source
-                FROM jsonb_array_elements(
-                    COALESCE(e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb)
-                ) AS t(row_value)
-
-                UNION ALL
-
-                SELECT
-                    jsonb_set(row_value, '{market_family}', to_jsonb('1H'::text), true),
-                    'DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence'::text
-                FROM jsonb_array_elements(
-                    COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)
-                ) AS h(row_value)
-
-                UNION ALL
-
-                SELECT
-                    jsonb_set(row_value, '{market_family}', to_jsonb('2H'::text), true),
-                    'DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence'::text
-                FROM jsonb_array_elements(
-                    COALESCE(e.payload -> 'two_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)
-                ) AS sh(row_value)
-
-                UNION ALL
-
-                SELECT
-                    jsonb_set(row_value, '{market_family}', to_jsonb('FT_CORNERS'::text), true),
-                    'DERIVATIVE_INTELLIGENCE:corners_intelligence'::text
-                FROM jsonb_array_elements(
-                    COALESCE(e.payload -> 'corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
-                ) AS c(row_value)
-
-                UNION ALL
-
-                SELECT
-                    jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_CORNERS'::text), true),
-                    'DERIVATIVE_INTELLIGENCE:team_corners_intelligence'::text
-                FROM jsonb_array_elements(
-                    COALESCE(e.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)
-                ) AS tc(row_value)
-
-                UNION ALL
-
-                SELECT
-                    jsonb_set(row_value, '{market_family}', to_jsonb('CARDS'::text), true),
-                    'DERIVATIVE_INTELLIGENCE:cards_intelligence_live'::text
-                FROM jsonb_array_elements(
-                    COALESCE(e.payload -> 'cards_intelligence_live' -> 'observed_explicit_yellow_market_rows', '[]'::jsonb)
-                ) AS cards(row_value)
-
-                UNION ALL
-
-                SELECT
-                    jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_CARDS'::text), true),
-                    'DERIVATIVE_INTELLIGENCE:team_cards_intelligence'::text
-                FROM jsonb_array_elements(
-                    COALESCE(e.payload -> 'team_cards_intelligence' -> 'observed_market_rows', '[]'::jsonb)
-                ) AS team_cards(row_value)
-            ) AS d
-            WHERE e.generated_at >= %s
-              AND (
-                    e.stage = ANY(%s)
-                    OR (
-                        d.signal_source = 'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'
-                        AND e.stage = ANY(%s)
-                    )
-                  )
-              AND e.generated_at < f.kickoff
-            ORDER BY e.generated_at DESC
+                fixture_id,
+                generated_at,
+                stage,
+                classification,
+                event_payload,
+                kickoff,
+                league,
+                home_team,
+                away_team,
+                model_version,
+                automation_version,
+                market_candidate,
+                signal_source
+            FROM raw
+            WHERE instrument_anchor_rank = 1
+            ORDER BY generated_at DESC
             LIMIT %s
             """,
             (
