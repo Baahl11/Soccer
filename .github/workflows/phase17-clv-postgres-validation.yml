@@ -1,3 +1,4 @@
+# v236 serialize DB-heavy runtime workflows to prevent Render 502 contention
 # v234.1 derivative validation reserve 25% post-deploy refresh
 # v234 continuous completion refresh 2026-10-05
 # v233 post-v232.1 canonical refresh 2026-10-05
@@ -44,8 +45,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: phase17-clv-postgres-validation
-  cancel-in-progress: true
+  group: soccer-edge-db-heavy-runtime
+  cancel-in-progress: false
 
 jobs:
   validate:
