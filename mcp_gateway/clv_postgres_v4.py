@@ -327,44 +327,66 @@ def _load_pipeline_market_signals(conn, *, lookback_days: int, max_rows: int) ->
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT
-                (mr.row ->> 'fixture_id')::BIGINT AS fixture_id,
-                p.generated_at_utc AS generated_at,
-                COALESCE(NULLIF(mr.row ->> 'stage', ''), e.stage) AS stage,
-                COALESCE(NULLIF(mr.row ->> 'classification', ''), e.classification) AS classification,
-                mr.row AS market_candidate,
-                jsonb_build_object(
-                    'tier', e.payload -> 'tier',
-                    'model_signal', e.payload -> 'model_signal',
-                    'sporting_shortlist', e.payload -> 'sporting_shortlist'
-                ) AS event_payload,
-                f.kickoff,
-                f.league,
-                f.home_team,
-                f.away_team,
-                p.payload ->> 'model_version' AS model_version,
-                p.payload ->> 'version' AS automation_version,
-                'PIPELINE_MATCH_TABLE'::TEXT AS signal_source
-            FROM soccer_pipeline_runs p
-            CROSS JOIN LATERAL jsonb_array_elements(
-                COALESCE(p.payload -> 'match_table_rows', '[]'::jsonb)
-            ) AS mr(row)
-            JOIN soccer_fixtures f
-              ON f.fixture_id = (mr.row ->> 'fixture_id')::BIGINT
-            LEFT JOIN soccer_refresh_events e
-              ON e.fixture_id = f.fixture_id
-             AND e.generated_at = p.generated_at_utc
-            WHERE p.generated_at_utc >= %s
-              AND p.generated_at_utc < f.kickoff
-              AND COALESCE(NULLIF(mr.row ->> 'stage', ''), e.stage) = ANY(%s)
-              AND COALESCE(NULLIF(mr.row ->> 'classification', ''), e.classification) = ANY(%s)
-              AND NULLIF(mr.row ->> 'market', '') IS NOT NULL
-              AND NULLIF(mr.row ->> 'selection', '') IS NOT NULL
+            WITH candidate_rows AS (
+                SELECT
+                    (mr.row ->> 'fixture_id')::BIGINT AS fixture_id,
+                    p.generated_at_utc AS generated_at,
+                    COALESCE(NULLIF(mr.row ->> 'stage', ''), e.stage) AS stage,
+                    COALESCE(NULLIF(mr.row ->> 'classification', ''), e.classification) AS classification,
+                    mr.row AS market_candidate,
+                    jsonb_build_object(
+                        'tier', e.payload -> 'tier',
+                        'model_signal', e.payload -> 'model_signal',
+                        'sporting_shortlist', e.payload -> 'sporting_shortlist'
+                    ) AS event_payload,
+                    f.kickoff,
+                    f.league,
+                    f.home_team,
+                    f.away_team,
+                    p.payload ->> 'model_version' AS model_version,
+                    p.payload ->> 'version' AS automation_version,
+                    'PIPELINE_MATCH_TABLE'::TEXT AS signal_source
+                FROM soccer_pipeline_runs p
+                CROSS JOIN LATERAL jsonb_array_elements(
+                    COALESCE(p.payload -> 'match_table_rows', '[]'::jsonb)
+                ) AS mr(row)
+                JOIN soccer_fixtures f
+                  ON f.fixture_id = (mr.row ->> 'fixture_id')::BIGINT
+                LEFT JOIN soccer_refresh_events e
+                  ON e.fixture_id = f.fixture_id
+                 AND e.generated_at = p.generated_at_utc
+                WHERE p.generated_at_utc >= %s
+                  AND p.generated_at_utc < f.kickoff
+                  AND COALESCE(NULLIF(mr.row ->> 'stage', ''), e.stage) = ANY(%s)
+                  AND COALESCE(NULLIF(mr.row ->> 'classification', ''), e.classification) = ANY(%s)
+                  AND NULLIF(mr.row ->> 'market', '') IS NOT NULL
+                  AND NULLIF(mr.row ->> 'selection', '') IS NOT NULL
+            ),
+            deduped_rows AS (
+                SELECT DISTINCT ON (
+                    fixture_id,
+                    generated_at,
+                    LOWER(TRIM(COALESCE(market_candidate ->> 'market', ''))),
+                    LOWER(TRIM(COALESCE(market_candidate ->> 'selection', ''))),
+                    COALESCE(market_candidate ->> 'line', ''),
+                    LOWER(TRIM(COALESCE(market_candidate ->> 'bookmaker', '')))
+                )
+                    *
+                FROM candidate_rows
+                ORDER BY
+                    fixture_id,
+                    generated_at,
+                    LOWER(TRIM(COALESCE(market_candidate ->> 'market', ''))),
+                    LOWER(TRIM(COALESCE(market_candidate ->> 'selection', ''))),
+                    COALESCE(market_candidate ->> 'line', ''),
+                    LOWER(TRIM(COALESCE(market_candidate ->> 'bookmaker', '')))
+            )
+            SELECT *
+            FROM deduped_rows
             -- The canonical workflow is intentionally bounded (currently 2,000
-            -- pipeline rows). Read the newest point-in-time signals first; historical
-            -- strict True CLV is preserved downstream by clv_history_merge_v4.
-            -- ASC here silently starved current weekend signals once the cap filled.
-            ORDER BY p.generated_at_utc DESC
+            -- unique pipeline signals). Read newest point-in-time signals first;
+            -- historical strict True CLV is preserved by clv_history_merge_v4.
+            ORDER BY generated_at DESC
             LIMIT %s
             """,
             (cutoff, list(SIGNAL_STAGES), list(SIGNAL_CLASSES), max(1, int(max_rows))),
@@ -1159,7 +1181,7 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
         "lookback_days": int(lookback_days),
         "signal_rows_considered": signal_rows_considered,
         "signal_merge_strategy": "RECENT_PIPELINE_PRIORITY_THEN_DERIVATIVE_FAMILY_ROUND_ROBIN_THEN_LEGACY_FALLBACK",
-        "pipeline_signal_window_policy": "NEWEST_FIRST_WITH_BOUNDED_MAX_SIGNALS;HISTORICAL_TRUE_CLV_PRESERVED_BY_CANONICAL_MERGE",
+        "pipeline_signal_window_policy": "DEDUPED_BEFORE_LIMIT;NEWEST_FIRST_WITH_BOUNDED_MAX_SIGNALS;HISTORICAL_TRUE_CLV_PRESERVED_BY_CANONICAL_MERGE",
         "pipeline_market_rows_loaded": pipeline_market_rows_loaded,
         "derivative_event_rows_loaded": derivative_event_rows_loaded,
         "derivative_market_rows_loaded_raw": derivative_market_rows_loaded_raw,
