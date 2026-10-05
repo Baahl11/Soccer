@@ -1,3 +1,4 @@
+# v234.1 derivative validation reserve 25% post-deploy refresh
 # v234 continuous completion refresh 2026-10-05
 # v233 post-v232.1 canonical refresh 2026-10-05
 # v230 recent-first bounded canonical CLV refresh 2026-10-04
@@ -92,7 +93,7 @@ jobs:
             printf '%s' "$token"
           }
 
-          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10"
+          EXPECTED_MODEL="SOCCER_TRUE_CLV_POSTGRES_V4_1.1.11"
           READY=0
           for attempt in 1 2 3 4 5; do
             TOKEN=$(get_oidc_token)
@@ -144,7 +145,7 @@ jobs:
           test "$READY" = "1"
           jq -e '
             .schema_version == "1.0.0"
-            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10"
+            and .model_version == "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.11"
             and (.rows | type == "array")
             and (.pipeline_market_rows_loaded | type == "number")
             and (.signal_source_counts | type == "object")
