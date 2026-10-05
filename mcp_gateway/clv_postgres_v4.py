@@ -646,6 +646,23 @@ def _signal_identity(signal: dict[str, Any]) -> tuple[Any, ...]:
     )
 
 
+DERIVATIVE_OLDEST_ANCHOR_FAMILIES = {"1H", "2H", "FT_CORNERS", "TEAM_CORNERS", "CARDS", "TEAM_CARDS"}
+
+def _derivative_instrument_identity(signal: dict[str, Any]) -> tuple[Any, ...]:
+    candidate = signal.get("market_candidate") if isinstance(signal.get("market_candidate"), dict) else {}
+    line = _num(candidate.get("line"))
+    if line is None:
+        line = _line_from_selection(candidate.get("selection"))
+    return (
+        signal.get("fixture_id"),
+        str(_family(candidate) or "UNMAPPED"),
+        _norm(candidate.get("market")),
+        _norm(candidate.get("selection")),
+        line,
+        _norm(candidate.get("bookmaker")),
+    )
+
+
 def _merge_signals(
     pipeline_signals: list[dict[str, Any]],
     derivative_signals: list[dict[str, Any]],
@@ -666,6 +683,7 @@ def _merge_signals(
 
     derivative_buckets: dict[str, list[dict[str, Any]]] = defaultdict(list)
     derivative_family_order: list[str] = []
+    anchored_oldest: dict[str, dict[tuple[Any, ...], dict[str, Any]]] = defaultdict(dict)
     for raw in derivative_signals:
         candidate = raw.get("market_candidate")
         if not isinstance(candidate, dict):
@@ -673,7 +691,27 @@ def _merge_signals(
         family = str(_family(candidate) or "UNMAPPED")
         if family not in derivative_buckets:
             derivative_family_order.append(family)
-        derivative_buckets[family].append(raw)
+        if family in DERIVATIVE_OLDEST_ANCHOR_FAMILIES:
+            key = _derivative_instrument_identity(raw)
+            current = anchored_oldest[family].get(key)
+            raw_at = _as_utc_datetime(raw.get("generated_at"))
+            current_at = _as_utc_datetime(current.get("generated_at")) if current else None
+            if current is None or (
+                raw_at is not None
+                and (current_at is None or raw_at < current_at)
+            ):
+                anchored_oldest[family][key] = raw
+        else:
+            derivative_buckets[family].append(raw)
+
+    for family, by_instrument in anchored_oldest.items():
+        derivative_buckets[family] = sorted(
+            by_instrument.values(),
+            key=lambda row: (
+                _as_utc_datetime(row.get("generated_at")) or datetime.max.replace(tzinfo=timezone.utc),
+                int(row.get("fixture_id") or 0),
+            ),
+        )
 
     derivative_reserve = min(
         sum(len(bucket) for bucket in derivative_buckets.values()),
