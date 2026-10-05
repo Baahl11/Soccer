@@ -1114,19 +1114,30 @@ def _load_snapshot_instrument_index(
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT m.snapshot_id
-            FROM soccer_market_snapshots m
-            JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
-            WHERE m.fixture_id = ANY(%s)
-              AND m.captured_at >= %s
-              AND m.captured_at < f.kickoff
-              AND (
-                LOWER(COALESCE(m.market,'')) LIKE '%%player%%'
-                OR LOWER(COALESCE(m.market,'')) LIKE '%%scorer%%'
-                OR LOWER(COALESCE(m.market,'')) LIKE '%%goalkeeper save%%'
-                OR LOWER(COALESCE(m.market,'')) LIKE '%%keeper save%%'
-              )
-            ORDER BY m.fixture_id, m.captured_at
+            WITH ranked AS (
+                SELECT
+                    m.snapshot_id,
+                    m.fixture_id,
+                    m.captured_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY m.fixture_id
+                        ORDER BY m.captured_at DESC, m.snapshot_id DESC
+                    ) AS fixture_visit_rank
+                FROM soccer_market_snapshots m
+                JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+                WHERE m.fixture_id = ANY(%s)
+                  AND m.captured_at >= %s
+                  AND m.captured_at < f.kickoff
+                  AND (
+                    LOWER(COALESCE(m.market,'')) LIKE '%%player%%'
+                    OR LOWER(COALESCE(m.market,'')) LIKE '%%scorer%%'
+                    OR LOWER(COALESCE(m.market,'')) LIKE '%%goalkeeper save%%'
+                    OR LOWER(COALESCE(m.market,'')) LIKE '%%keeper save%%'
+                  )
+            )
+            SELECT snapshot_id
+            FROM ranked
+            ORDER BY fixture_visit_rank ASC, captured_at DESC, fixture_id ASC
             LIMIT %s
             """,
             (fixture_ids, cutoff, max_rows),
@@ -1174,6 +1185,34 @@ def _load_snapshot_instrument_index(
     return dict(index), hydrated_rows
 
 
+def _oldest_exact_instrument_signals(signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    oldest: dict[tuple[Any, ...], dict[str, Any]] = {}
+    for signal in signals:
+        key = (
+            int(signal.get("fixture_id") or 0),
+            str(signal.get("market_family") or ""),
+            _norm(signal.get("market")),
+            str(signal.get("bookmaker_id") or signal.get("bookmaker") or ""),
+            str(signal.get("player_id") or ""),
+            str(signal.get("side") or ""),
+            _num(signal.get("line")),
+        )
+        current = oldest.get(key)
+        signal_at = _dt(signal.get("signal_timestamp"))
+        current_at = _dt(current.get("signal_timestamp")) if current else None
+        if current is None or (
+            signal_at is not None and (current_at is None or signal_at < current_at)
+        ):
+            oldest[key] = signal
+    return sorted(
+        oldest.values(),
+        key=lambda row: (
+            _dt(row.get("signal_timestamp")) or datetime.max.replace(tzinfo=timezone.utc),
+            int(row.get("fixture_id") or 0),
+        ),
+    )
+
+
 def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> dict[str, Any]:
     lookback_days = max(1, min(int(lookback_days), 730))
     max_rows = max(100, min(int(max_rows), 200000))
@@ -1203,7 +1242,16 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
             max_rows=max_rows,
         )
         _trace_stage('events_done', rows=event_rows_loaded)
-        _trace_stage('signals_done', rows=len(signals))
+        raw_signal_rows = len(signals)
+        signals = _oldest_exact_instrument_signals(signals)
+        signal_diagnostics["oldest_exact_instrument_anchor"] = {
+            "policy": "OLDEST_POINT_IN_TIME_PER_EXACT_PLAYER_PROP_INSTRUMENT",
+            "raw_signal_rows": raw_signal_rows,
+            "anchored_signal_rows": len(signals),
+            "strict_close_semantics_changed": False,
+            "provider_requests_added": 0,
+        }
+        _trace_stage('signals_done', rows=len(signals), raw_rows=raw_signal_rows)
         fixture_ids = sorted({int(row['fixture_id']) for row in signals})
         _trace_stage('fixtures_ready', fixtures=len(fixture_ids))
         gc.collect()
