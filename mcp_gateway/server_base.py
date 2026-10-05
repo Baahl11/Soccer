@@ -161,6 +161,7 @@ def _compact_fixture(item: dict[str, Any]) -> dict[str, Any]:
         "away_team": away.get("name"),
         "venue": venue.get("name"),
         "city": venue.get("city"),
+        "referee": fixture.get("referee"),
     }
 
 
