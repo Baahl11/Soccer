@@ -4,8 +4,8 @@ import html
 import json
 from typing import Any
 
-SCHEMA_VERSION = "1.6.0"
-MODEL_VERSION = "SOCCER_PRODUCT_DASHBOARD_V4_1.6.0"
+SCHEMA_VERSION = "1.7.0"
+MODEL_VERSION = "SOCCER_PRODUCT_DASHBOARD_V4_1.7.0"
 
 DISPLAY_VIEWS = (
     ("team_totals", "Team Totals"),
@@ -417,11 +417,25 @@ def _maturation_family_html(node: dict[str, Any]) -> str:
     else:
         ratio = _num(current)
         width = 0
+    revisit = node.get("revisit_health") if isinstance(node.get("revisit_health"), dict) else {}
+    revisit_html = ""
+    if revisit:
+        rate = _float(revisit.get("provider_update_advancement_rate"))
+        rate_text = "N/V" if rate is None else f"{rate * 100.0:.1f}%"
+        revisit_html = (
+            "<div class='revisit-grid'>"
+            f"<span><b>{_num(revisit.get('zero_visit_signals'), '0')}</b> 0 visits</span>"
+            f"<span><b>{_num(revisit.get('one_visit_signals'), '0')}</b> 1 visit</span>"
+            f"<span><b>{_num(revisit.get('two_plus_visit_signals'), '0')}</b> 2+ visits</span>"
+            f"<span><b>{_esc(rate_text)}</b> update advance</span>"
+            "</div>"
+        )
     return (
         "<div class='maturity-card'>"
         f"<div class='maturity-top'><div><strong>{_esc(node.get('label'))}</strong><div class='maturity-kind'>{_esc(node.get('evidence_kind'))}</div></div><span class='pill {_status_class(status)}'>{_esc(status)}</span></div>"
         f"<div class='maturity-value mono'>{_esc(ratio)}</div>"
         f"<div class='track'><div class='fill' style='width:{width}%'></div></div>"
+        f"{revisit_html}"
         f"<div class='maturity-meta'>{_esc(node.get('blocker') or 'No explicit blocker')}</div>"
         "</div>"
     )
@@ -575,7 +589,7 @@ a{{color:inherit}} .shell{{max-width:1500px;margin:auto;padding:20px 24px 72px}}
 .table-wrap{{overflow:auto;border:1px solid rgba(255,255,255,.05);border-radius:12px}} table{{width:100%;border-collapse:collapse;min-width:720px}} th,td{{text-align:left;padding:11px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px}} th{{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em;background:#0a151c}} .muted{{color:var(--muted);font-size:11px}} .edge{{color:#95e8bd}}
 .health-grid{{display:grid;gap:8px}} .health-card{{display:flex;justify-content:space-between;gap:8px;padding:9px 10px;background:#0a151c;border-radius:10px}} .health-card span{{color:var(--muted)}} .health-card strong.ok{{color:#9ce5bd}} .health-card strong.warn{{color:#ffd28e}} .health-card strong.bad{{color:#ffa5aa}}
 .gates{{display:grid;gap:13px}} .gate-top{{display:flex;justify-content:space-between;gap:12px;font-size:11px;margin-bottom:6px}} .gate-top span{{color:#cbd7de}} .track{{height:6px;border-radius:999px;background:#152630;overflow:hidden}} .fill{{height:100%;background:linear-gradient(90deg,#27757a,var(--cyan));border-radius:999px}} .fill.complete{{background:linear-gradient(90deg,#2a7959,var(--green))}} .fill.unknown{{width:0!important}}
-.watchdog-grid,.maturity-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}} .watchdog-card,.maturity-card{{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0b171e}} .watchdog-top,.maturity-top{{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}} .watchdog-reason,.maturity-meta{{color:#c6d2d9;font-size:11px;margin-top:9px}} .watchdog-source,.maturity-kind{{color:var(--muted);font-size:10px;margin-top:4px}} .maturity-value{{font-size:18px;font-weight:850;margin:12px 0 8px}}
+.watchdog-grid,.maturity-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}} .watchdog-card,.maturity-card{{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0b171e}} .watchdog-top,.maturity-top{{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}} .watchdog-reason,.maturity-meta{{color:#c6d2d9;font-size:11px;margin-top:9px}} .watchdog-source,.maturity-kind{{color:var(--muted);font-size:10px;margin-top:4px}} .maturity-value{{font-size:18px;font-weight:850;margin:12px 0 8px}} .revisit-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}} .revisit-grid span{{font-size:10px;color:var(--muted);background:#09141a;border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:6px}} .revisit-grid b{{color:#d7e6ec}}
 .phase-grid{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}} .phase-card{{background:#0a151c;border:1px solid var(--line);border-radius:11px;padding:10px}} .phase-num{{font-size:9px;color:var(--muted);letter-spacing:.09em}} .phase-name{{font-weight:800;margin:3px 0 8px}} .empty,.empty-success{{padding:18px;border:1px dashed #29404b;border-radius:12px;color:var(--muted)}} .empty-success{{display:flex;gap:10px;align-items:center}} .check{{font-size:22px;color:var(--green)}} .error-row{{padding:12px;border:1px solid rgba(255,127,133,.25);border-radius:10px;margin-top:8px}} .error-reason{{color:#ffa5aa;margin-top:5px}}
 .nav-pills{{display:flex;gap:7px;overflow:auto;padding-bottom:2px;margin:0 0 16px}} .nav-pills a{{text-decoration:none;color:#aebdc6;padding:7px 10px;border:1px solid var(--line);border-radius:999px;white-space:nowrap;font-size:11px}} .nav-pills a:hover{{color:white;border-color:#3a6470}} .research-note{{font-size:11px;color:var(--muted);margin-top:10px}}
 @media(max-width:1100px){{.layout{{grid-template-columns:1fr}}.rail{{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}}.metric-grid{{grid-template-columns:repeat(3,minmax(0,1fr))}}}}
