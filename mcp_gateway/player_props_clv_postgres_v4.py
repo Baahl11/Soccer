@@ -13,7 +13,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import research_derivative_postgres_audit as derivative_audit
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.3.0"
+MODEL_VERSION = "SOCCER_PLAYER_PROPS_TRUE_CLV_V4_1.3.1"
 SIGNAL_STAGES = {"T-40", "T-30", "T-20", "T-10"}
 MIN_TRUE_CLV_ROWS_PER_FAMILY = 50
 MIN_TRUE_CLV_FIXTURES_PER_FAMILY = 20
@@ -896,7 +896,28 @@ def _load_event_signals(
     loaded_rows = 0
     for offset in range(0, len(candidate_ids), bounded_batch):
         batch_ids = candidate_ids[offset:offset + bounded_batch]
-        events = _hydrate_event_batch(conn, batch_ids)
+        events = None
+        last_error = None
+        for attempt in range(2):
+            try:
+                # Keep DB-heavy CLV hydration off one long-lived SSL connection.
+                # A fresh connection per bounded batch prevents one transient EOF
+                # from invalidating the remainder of a 2k-event audit.
+                with persistence_base._connect() as batch_conn:
+                    events = _hydrate_event_batch(batch_conn, batch_ids)
+                break
+            except Exception as exc:
+                last_error = exc
+                _trace_stage(
+                    'event_batch_retry',
+                    offset=offset,
+                    attempt=attempt + 1,
+                    error=str(exc)[:160],
+                )
+        if events is None:
+            raise RuntimeError(
+                f"player props event batch hydration failed after retry at offset {offset}: {last_error}"
+            )
         loaded_rows += len(events)
         signals.extend(extract_shadow_signals(events, diagnostics))
         _trace_stage(
