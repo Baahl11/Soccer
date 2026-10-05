@@ -4,8 +4,8 @@ from typing import Any
 
 from mcp_gateway import market_mismatch_v4, maturity_snapshot_v4
 
-SCHEMA_VERSION = "1.4.0"
-MODEL_VERSION = "SOCCER_PRODUCT_VIEWS_V4_1.4.0"
+SCHEMA_VERSION = "1.5.0"
+MODEL_VERSION = "SOCCER_PRODUCT_VIEWS_V4_1.5.0"
 MAX_ROWS_PER_VIEW = 500
 
 VIEW_NAMES = (
@@ -289,6 +289,7 @@ def _control_tower(payload: dict[str, Any], rows: list[dict[str, Any]]) -> dict[
         },
         "validation_gates": validation_gates,
         "maturity_snapshot": maturity,
+        "maturation_control_tower": maturity.get("maturation_control_tower") if isinstance(maturity, dict) else {},
         "phases": _phase_cards(payload),
         "production_valid_market_count": 0,
         "production_promotion_allowed": False,
