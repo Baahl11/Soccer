@@ -507,3 +507,114 @@ def load_primary_clv_maturation_backlog(
         "historical_rows_mutated": False,
         "selection_logic_changed": False,
     }
+
+
+POST_V223_LIVE_AT = datetime(2026, 10, 4, 7, 13, 43, tzinfo=timezone.utc)
+
+def build_post_v223_visit_matrix(*, limit: int = 500) -> dict[str, Any]:
+    """DB-only cohort audit: signal -> repeated pre-kickoff snapshots -> provider chronology."""
+    if not price.persistence.persistence_configured():
+        return {"status":"POSTGRES_NOT_CONFIGURED","rows":[],"provider_requests_added":0}
+    price.persistence.ensure_schema()
+    with price.persistence._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH raw_signal AS (
+                    SELECT (mm.row->>'fixture_id')::BIGINT fixture_id,
+                           UPPER(mm.row->>'market_family') market_family,
+                           mm.row->>'market' market,
+                           p.generated_at_utc signal_generated_at,
+                           f.kickoff
+                    FROM soccer_pipeline_runs p
+                    CROSS JOIN LATERAL jsonb_array_elements(
+                      CASE WHEN jsonb_typeof(COALESCE(p.payload->'market_mismatch_rows','[]'::jsonb))='array'
+                           THEN COALESCE(p.payload->'market_mismatch_rows','[]'::jsonb) ELSE '[]'::jsonb END
+                    ) mm(row)
+                    JOIN soccer_fixtures f ON f.fixture_id=(mm.row->>'fixture_id')::BIGINT
+                    WHERE p.generated_at_utc >= %s
+                      AND p.generated_at_utc < f.kickoff
+                      AND UPPER(mm.row->>'market_family') IN ('1X2','FT_TOTALS','BTTS')
+                      AND COALESCE((mm.row->>'rankable')::boolean,false)=true
+                      AND NULLIF(mm.row->>'market','') IS NOT NULL
+                      AND NULLIF(mm.row->>'price','') IS NOT NULL
+                    UNION ALL
+                    SELECT (mt.row->>'fixture_id')::BIGINT,
+                           CASE WHEN UPPER(mt.row->>'market_family') IN ('TOTAL','FT_TOTALS_RESEARCH') THEN 'FT_TOTALS'
+                                WHEN UPPER(mt.row->>'market_family') IN ('FT_BTTS','FT_BTTS_RESEARCH') THEN 'BTTS'
+                                WHEN UPPER(mt.row->>'market_family') IN ('FT_1X2','FT_1X2_RESEARCH','MATCH_WINNER') THEN '1X2'
+                                ELSE UPPER(mt.row->>'market_family') END,
+                           mt.row->>'market', p.generated_at_utc, f.kickoff
+                    FROM soccer_pipeline_runs p
+                    CROSS JOIN LATERAL jsonb_array_elements(
+                      CASE WHEN jsonb_typeof(COALESCE(p.payload->'match_table_rows','[]'::jsonb))='array'
+                           THEN COALESCE(p.payload->'match_table_rows','[]'::jsonb) ELSE '[]'::jsonb END
+                    ) mt(row)
+                    JOIN soccer_fixtures f ON f.fixture_id=(mt.row->>'fixture_id')::BIGINT
+                    WHERE p.generated_at_utc >= %s
+                      AND p.generated_at_utc < f.kickoff
+                      AND CASE WHEN UPPER(mt.row->>'market_family') IN ('TOTAL','FT_TOTALS_RESEARCH') THEN 'FT_TOTALS'
+                               WHEN UPPER(mt.row->>'market_family') IN ('FT_BTTS','FT_BTTS_RESEARCH') THEN 'BTTS'
+                               WHEN UPPER(mt.row->>'market_family') IN ('FT_1X2','FT_1X2_RESEARCH','MATCH_WINNER') THEN '1X2'
+                               ELSE UPPER(mt.row->>'market_family') END IN ('1X2','FT_TOTALS','BTTS')
+                      AND NULLIF(mt.row->>'market','') IS NOT NULL
+                      AND jsonb_typeof(mt.row->'price')='number'
+                      AND (mt.row->>'price')::DOUBLE PRECISION > 1.0
+                ), anchor AS (
+                    SELECT DISTINCT ON (fixture_id,market_family)
+                           fixture_id,market_family,market,signal_generated_at,kickoff
+                    FROM raw_signal
+                    ORDER BY fixture_id,market_family,signal_generated_at ASC
+                )
+                SELECT a.fixture_id,a.market_family,a.market,a.signal_generated_at,a.kickoff,
+                       COUNT(m.*)::BIGINT AS later_market_snapshot_visits,
+                       COUNT(DISTINCT m.captured_at)::BIGINT AS distinct_capture_visits,
+                       COUNT(*) FILTER (WHERE m.provider_update IS NOT NULL)::BIGINT AS visits_with_provider_update,
+                       COUNT(*) FILTER (WHERE m.provider_update > a.signal_generated_at)::BIGINT AS provider_update_advances,
+                       MIN(m.captured_at) AS first_later_capture_at,
+                       MAX(m.captured_at) AS last_later_capture_at,
+                       MAX(m.provider_update) AS max_provider_update,
+                       BOOL_OR(m.provider_update > a.signal_generated_at) AS strict_later_provider_update
+                FROM anchor a
+                LEFT JOIN soccer_market_snapshots m
+                  ON m.fixture_id=a.fixture_id
+                 AND m.captured_at>a.signal_generated_at
+                 AND m.captured_at<a.kickoff
+                 AND LOWER(TRIM(COALESCE(m.market,'')))=LOWER(TRIM(COALESCE(a.market,'')))
+                GROUP BY a.fixture_id,a.market_family,a.market,a.signal_generated_at,a.kickoff
+                ORDER BY a.kickoff DESC,a.fixture_id,a.market_family
+                LIMIT %s
+                """,
+                (POST_V223_LIVE_AT, POST_V223_LIVE_AT, max(1,min(int(limit),2000))),
+            )
+            cols=[d.name for d in cur.description]
+            rows=[dict(zip(cols,r)) for r in cur.fetchall()]
+    def iso(v):
+        return v.isoformat() if isinstance(v,datetime) else v
+    clean=[]
+    for row in rows:
+        clean.append({k:iso(v) for k,v in row.items()})
+    families={}
+    for fam in ("1X2","BTTS","FT_TOTALS"):
+        fr=[r for r in clean if r["market_family"]==fam]
+        revisited=[r for r in fr if int(r["distinct_capture_visits"] or 0)>=2]
+        advanced=[r for r in revisited if bool(r["strict_later_provider_update"])]
+        families[fam]={
+            "signals":len(fr),
+            "with_any_later_snapshot":sum(int(r["later_market_snapshot_visits"] or 0)>0 for r in fr),
+            "with_2plus_capture_visits":len(revisited),
+            "with_provider_update_advance":len(advanced),
+            "provider_update_advancement_rate":round(len(advanced)/len(revisited),6) if revisited else None,
+        }
+    return {
+        "schema_version":"1.0.0",
+        "model_version":"SOCCER_POST_V223_VISIT_MATRIX_V1",
+        "cohort_start_utc":POST_V223_LIVE_AT.isoformat(),
+        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+        "family_summary":families,
+        "rows":clean,
+        "provider_requests_added":0,
+        "strict_close_semantics_changed":False,
+        "models_changed":False,"thresholds_changed":False,"gates_changed":False,
+        "provider_budget_changed":False,"canonical_bet_logic_changed":False,
+    }
