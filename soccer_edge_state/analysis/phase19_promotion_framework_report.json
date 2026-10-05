@@ -28,7 +28,7 @@
         "T-20"
       ],
       "promotion_shadow_not_ready_classes": [],
-      "promotion_shadow_pending": 99,
+      "promotion_shadow_pending": 100,
       "promotion_shadow_roi_per_settled_unit": -0.02596,
       "promotion_shadow_sample_status": "SHADOW_REVIEW_READY",
       "promotion_shadow_selection_progress": {},
@@ -130,7 +130,7 @@
       "promotion_shadow_not_ready_classes": [
         "DRAW"
       ],
-      "promotion_shadow_pending": 151,
+      "promotion_shadow_pending": 153,
       "promotion_shadow_roi_per_settled_unit": -0.297034,
       "promotion_shadow_sample_status": "SHADOW_REVIEW_READY",
       "promotion_shadow_selection_progress": {
@@ -138,16 +138,16 @@
           "directional_remaining": 0,
           "hit_rate": 0.191781,
           "loss": 59,
-          "pending": 89,
+          "pending": 90,
           "push": 0,
           "review_remaining": 0,
           "roi_per_settled_unit": -0.372877,
           "roi_units": -27.22,
-          "rows": 162,
+          "rows": 163,
           "sample_status": "SHADOW_REVIEW_READY",
           "settled": 73,
           "ungradable": 0,
-          "unique_fixtures": 162,
+          "unique_fixtures": 163,
           "win": 14
         },
         "DRAW": {
@@ -170,16 +170,16 @@
           "directional_remaining": 0,
           "hit_rate": 0.288889,
           "loss": 32,
-          "pending": 62,
+          "pending": 63,
           "push": 0,
           "review_remaining": 5,
           "roi_per_settled_unit": -0.174,
           "roi_units": -7.83,
-          "rows": 107,
+          "rows": 108,
           "sample_status": "DIRECTIONAL_SHADOW",
           "settled": 45,
           "ungradable": 0,
-          "unique_fixtures": 107,
+          "unique_fixtures": 108,
           "win": 13
         }
       },
@@ -270,16 +270,14 @@
     },
     {
       "automatic_demotion_candidate": false,
-      "avg_true_clv_probability_pp": 0.625954,
+      "avg_true_clv_probability_pp": 0.553613,
       "blockers": [
-        "UNIQUE_FIXTURES_16_LT_DIRECTIONAL_20",
-        "UNIQUE_FIXTURES_16_LT_TIER_B_REVIEW_50",
+        "UNIQUE_FIXTURES_31_LT_TIER_B_REVIEW_50",
         "SETTLED_0_LT_DIRECTIONAL_20",
         "SETTLED_0_LT_TIER_B_REVIEW_50",
         "ROI_MISSING",
-        "STABILITY_DATA_BLOCKED",
-        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-        "VALIDATION:TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_16_LT_20"
+        "STABILITY_DIRECTIONAL_ONLY",
+        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -294,10 +292,10 @@
       "promotion_shadow_sample_status": "QUALITY_DIAGNOSTICS_NOT_IMPLEMENTED",
       "promotion_shadow_selection_progress": {},
       "promotion_shadow_settled": 0,
-      "recommended_state": "RESEARCH",
+      "recommended_state": "SHADOW",
       "roi_per_settled_unit": null,
       "settled": 0,
-      "stability_status": "DATA_BLOCKED",
+      "stability_status": "DIRECTIONAL_ONLY",
       "tier_review_eligibility": {
         "directional_read": false,
         "model_weight_change_review": false,
@@ -309,13 +307,11 @@
         "tier_b_review": false,
         "tier_s_review": false
       },
-      "true_clv_rows": 117,
-      "unique_fixtures": 16,
-      "validation_blockers": [
-        "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_16_LT_20"
-      ],
+      "true_clv_rows": 260,
+      "unique_fixtures": 31,
+      "validation_blockers": [],
       "validation_model_version": "SOCCER_TEAM_TOTALS_OOS_V4_1.3.0",
-      "validation_status": "RESEARCH_HOLD",
+      "validation_status": "OOS_REVIEW_ELIGIBLE",
       "warnings": [],
       "watch_shadow_negative_directional_stages": [],
       "watch_shadow_roi_per_settled_unit": null,
@@ -580,6 +576,7 @@
         "VALIDATION:RED_CARDS_PROMOTION_GATE_DISABLED",
         "VALIDATION:PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
         "VALIDATION:CARD_TRUE_CLV_0_LT_50",
+        "VALIDATION:MATCH_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
         "VALIDATION:PLAYER_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING"
       ],
       "current_state": "RESEARCH",
@@ -621,6 +618,7 @@
         "RED_CARDS_PROMOTION_GATE_DISABLED",
         "PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
         "CARD_TRUE_CLV_0_LT_50",
+        "MATCH_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
         "PLAYER_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING"
       ],
       "validation_model_version": "SOCCER_CARDS_REFEREE_PHASE14_V4_1.1.0",
@@ -663,15 +661,33 @@
         "VALIDATION:CARDS_TRUE_CLV_FIXTURES_0_LT_20",
         "VALIDATION:GK_SAVES_TRUE_CLV_0_LT_50",
         "VALIDATION:GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
+        "VALIDATION:SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+        "VALIDATION:SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+        "VALIDATION:SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+        "VALIDATION:SHOTS_EXACT_LINE_HISTORY_MISSING",
+        "VALIDATION:SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
         "VALIDATION:SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
         "VALIDATION:SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
         "VALIDATION:SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
         "VALIDATION:SOT_EXACT_LINE_HISTORY_MISSING",
         "VALIDATION:SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
+        "VALIDATION:GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+        "VALIDATION:GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+        "VALIDATION:GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+        "VALIDATION:ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+        "VALIDATION:ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
         "VALIDATION:ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
         "VALIDATION:CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
         "VALIDATION:CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-        "VALIDATION:CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
+        "VALIDATION:CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+        "VALIDATION:GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+        "VALIDATION:GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+        "VALIDATION:GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+        "VALIDATION:GK_SAVES_EXACT_LINE_HISTORY_MISSING",
+        "VALIDATION:GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
+        "VALIDATION:PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
+        "VALIDATION:EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
+        "VALIDATION:PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
       ],
       "current_state": "RESEARCH",
       "manual_approval_present": false,
@@ -724,15 +740,33 @@
         "CARDS_TRUE_CLV_FIXTURES_0_LT_20",
         "GK_SAVES_TRUE_CLV_0_LT_50",
         "GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
+        "SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+        "SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+        "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+        "SHOTS_EXACT_LINE_HISTORY_MISSING",
+        "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
         "SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
         "SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
         "SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
         "SOT_EXACT_LINE_HISTORY_MISSING",
         "SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
+        "GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+        "GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+        "GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+        "ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+        "ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
         "ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
         "CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
         "CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-        "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
+        "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+        "GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+        "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+        "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+        "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
+        "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
+        "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
+        "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
+        "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
       ],
       "validation_model_version": "SOCCER_PLAYER_PROPS_PHASE15_V4_1.4.0",
       "validation_status": "RESEARCH_HOLD",
@@ -919,16 +953,16 @@
               "directional_remaining": 0,
               "hit_rate": 0.191781,
               "loss": 59,
-              "pending": 89,
+              "pending": 90,
               "push": 0,
               "review_remaining": 0,
               "roi_per_settled_unit": -0.372877,
               "roi_units": -27.22,
-              "rows": 162,
+              "rows": 163,
               "sample_status": "SHADOW_REVIEW_READY",
               "settled": 73,
               "ungradable": 0,
-              "unique_fixtures": 162,
+              "unique_fixtures": 163,
               "win": 14
             },
             "DRAW": {
@@ -951,16 +985,16 @@
               "directional_remaining": 0,
               "hit_rate": 0.288889,
               "loss": 32,
-              "pending": 62,
+              "pending": 63,
               "push": 0,
               "review_remaining": 5,
               "roi_per_settled_unit": -0.174,
               "roi_units": -7.83,
-              "rows": 107,
+              "rows": 108,
               "sample_status": "DIRECTIONAL_SHADOW",
               "settled": 45,
               "ungradable": 0,
-              "unique_fixtures": 107,
+              "unique_fixtures": 108,
               "win": 13
             }
           },
@@ -976,9 +1010,9 @@
               "oos_rows": 870,
               "production_promotion_allowed": false,
               "review_remaining": 50,
-              "shadow_pending": 89,
+              "shadow_pending": 90,
               "shadow_roi_per_settled_unit": -0.372877,
-              "shadow_rows": 162,
+              "shadow_rows": 163,
               "shadow_settled": 73
             },
             "DRAW": {
@@ -1008,9 +1042,9 @@
               "oos_rows": 870,
               "production_promotion_allowed": false,
               "review_remaining": 5,
-              "shadow_pending": 62,
+              "shadow_pending": 63,
               "shadow_roi_per_settled_unit": -0.174,
-              "shadow_rows": 107,
+              "shadow_rows": 108,
               "shadow_settled": 45
             }
           },
@@ -1290,6 +1324,7 @@
           "VALIDATION:RED_CARDS_PROMOTION_GATE_DISABLED",
           "VALIDATION:PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
           "VALIDATION:CARD_TRUE_CLV_0_LT_50",
+          "VALIDATION:MATCH_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "VALIDATION:PLAYER_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING"
         ],
         "current_state": "RESEARCH",
@@ -1386,6 +1421,7 @@
             "RED_CARD_REFEREE_ADJUSTED_SAMPLE_INSUFFICIENT",
             "RED_CARDS_PROMOTION_GATE_DISABLED",
             "PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
+            "MATCH_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
             "PLAYER_CARD_OBSERVED_MARKET_PRICE_HISTORY_MISSING"
           ],
           "status": "RESEARCH_HOLD"
@@ -1606,15 +1642,33 @@
           "VALIDATION:CARDS_TRUE_CLV_FIXTURES_0_LT_20",
           "VALIDATION:GK_SAVES_TRUE_CLV_0_LT_50",
           "VALIDATION:GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
+          "VALIDATION:SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+          "VALIDATION:SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+          "VALIDATION:SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+          "VALIDATION:SHOTS_EXACT_LINE_HISTORY_MISSING",
+          "VALIDATION:SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
           "VALIDATION:SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "VALIDATION:SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "VALIDATION:SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "VALIDATION:SOT_EXACT_LINE_HISTORY_MISSING",
           "VALIDATION:SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
+          "VALIDATION:GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+          "VALIDATION:GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+          "VALIDATION:GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+          "VALIDATION:ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+          "VALIDATION:ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "VALIDATION:ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "VALIDATION:CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "VALIDATION:CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "VALIDATION:CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
+          "VALIDATION:CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+          "VALIDATION:GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+          "VALIDATION:GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+          "VALIDATION:GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+          "VALIDATION:GK_SAVES_EXACT_LINE_HISTORY_MISSING",
+          "VALIDATION:GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
+          "VALIDATION:PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
+          "VALIDATION:EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
+          "VALIDATION:PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
         ],
         "current_state": "RESEARCH",
         "promotion_shadow": {
@@ -1772,15 +1826,33 @@
             "ASSISTS_OOS_VALIDATION_INCOMPLETE",
             "CARDS_OOS_VALIDATION_INCOMPLETE",
             "GK_SAVES_OOS_VALIDATION_INCOMPLETE",
+            "SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+            "SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+            "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+            "SHOTS_EXACT_LINE_HISTORY_MISSING",
+            "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
             "SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
             "SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
             "SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
             "SOT_EXACT_LINE_HISTORY_MISSING",
             "SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
+            "GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+            "GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+            "GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+            "ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+            "ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
             "ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
             "CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
             "CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-            "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
+            "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+            "GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
+            "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
+            "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
+            "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
+            "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
+            "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
+            "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
+            "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
           ],
           "status": "RESEARCH_HOLD"
         }
@@ -1879,14 +1951,12 @@
       },
       "TEAM_TOTALS": {
         "all_current_blockers": [
-          "UNIQUE_FIXTURES_16_LT_DIRECTIONAL_20",
-          "UNIQUE_FIXTURES_16_LT_TIER_B_REVIEW_50",
+          "UNIQUE_FIXTURES_31_LT_TIER_B_REVIEW_50",
           "SETTLED_0_LT_DIRECTIONAL_20",
           "SETTLED_0_LT_TIER_B_REVIEW_50",
           "ROI_MISSING",
-          "STABILITY_DATA_BLOCKED",
-          "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
-          "VALIDATION:TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_16_LT_20"
+          "STABILITY_DIRECTIONAL_ONLY",
+          "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20"
         ],
         "current_state": "RESEARCH",
         "promotion_shadow": {
@@ -1899,10 +1969,10 @@
           "sample_status": "QUALITY_DIAGNOSTICS_NOT_IMPLEMENTED",
           "settled": 0
         },
-        "recommended_state": "RESEARCH",
+        "recommended_state": "SHADOW",
         "stability": {
           "ready": false,
-          "status": "DATA_BLOCKED"
+          "status": "DIRECTIONAL_ONLY"
         },
         "tier_samples": {
           "directional": {
@@ -1911,8 +1981,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 20,
-            "unique_fixtures": 16,
-            "unique_fixtures_remaining": 4
+            "unique_fixtures": 31,
+            "unique_fixtures_remaining": 0
           },
           "tier_a": {
             "required_settled": 100,
@@ -1920,8 +1990,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 100,
-            "unique_fixtures": 16,
-            "unique_fixtures_remaining": 84
+            "unique_fixtures": 31,
+            "unique_fixtures_remaining": 69
           },
           "tier_b": {
             "required_settled": 50,
@@ -1929,8 +1999,8 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 50,
-            "unique_fixtures": 16,
-            "unique_fixtures_remaining": 34
+            "unique_fixtures": 31,
+            "unique_fixtures_remaining": 19
           },
           "tier_s": {
             "required_settled": 200,
@@ -1938,29 +2008,22 @@
             "sample_ready": false,
             "settled": 0,
             "settled_remaining": 200,
-            "unique_fixtures": 16,
-            "unique_fixtures_remaining": 184
+            "unique_fixtures": 31,
+            "unique_fixtures_remaining": 169
           }
         },
         "true_clv": {
-          "avg_probability_clv_pp": 0.631889,
+          "avg_probability_clv_pp": 0.505695,
           "minimum_rows": 50,
-          "rows": 117,
+          "rows": 260,
           "rows_remaining": 0,
           "sample_ready": true,
           "status": "READY"
         },
         "validation": {
-          "numeric_deficits": [
-            {
-              "actual": 16,
-              "gate": "TEAM_TOTALS_TRUE_CLV_UNIQUE_FIXTURES_16_LT_20",
-              "remaining": 4.0,
-              "required": 20
-            }
-          ],
+          "numeric_deficits": [],
           "qualitative_blockers": [],
-          "status": "RESEARCH_HOLD"
+          "status": "OOS_REVIEW_ELIGIBLE"
         }
       }
     },
@@ -1980,8 +2043,8 @@
   },
   "provider_requests_added": 0,
   "recommended_state_counts": {
-    "RESEARCH": 9,
-    "SHADOW": 1
+    "RESEARCH": 8,
+    "SHADOW": 2
   },
   "runtime_state_mutation_enabled": false,
   "sample_policy": {
