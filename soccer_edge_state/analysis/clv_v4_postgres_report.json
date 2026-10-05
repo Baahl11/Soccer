@@ -1,6 +1,6 @@
 {
   "canonical_merge_version": "SOCCER_TRUE_CLV_HISTORY_MERGE_V4_1.2.0",
-  "comparable_true_clv_rows": 106,
+  "comparable_true_clv_rows": 111,
   "derivative_event_rows_loaded": 54,
   "derivative_family_counts": {
     "1H": 250,
@@ -33,23 +33,24 @@
     "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 353,
     "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence": 244
   },
+  "derivative_validation_reserve_fraction": 0.1,
   "family_counts": {
     "1X2": 48,
-    "AWAY_TT": 18,
+    "AWAY_TT": 21,
     "BTTS": 17,
     "FT_TOTALS": 6,
-    "HOME_TT": 17
+    "HOME_TT": 19
   },
   "ft_totals_maturation_funnel": {
-    "later_snapshot_without_later_provider_update_rows": 356,
-    "mapped_signal_rows": 956,
-    "no_later_prekickoff_snapshot_rows": 329,
+    "later_snapshot_without_later_provider_update_rows": 302,
+    "mapped_signal_rows": 847,
+    "no_later_prekickoff_snapshot_rows": 298,
     "policy": "UNPRICED_FT_TOTALS_RESEARCH_PLACEHOLDERS_ARE_DIAGNOSTIC_ONLY; PRICED_ENTRIES_REQUIRE_STRICTLY_LATER_PREKICKOFF_PROVIDER_UPDATE_AND_SELECTION_MATCH",
-    "priced_entry_rows": 691,
+    "priced_entry_rows": 606,
     "provider_requests_added": 0,
     "selection_mismatch_at_close_rows": 0,
     "true_clv_rows": 6,
-    "unpriced_research_placeholders_ignored": 265
+    "unpriced_research_placeholders_ignored": 241
   },
   "historical_backfill_rows_added": 0,
   "historical_backfill_unique_fixtures": 0,
@@ -57,9 +58,15 @@
   "lookback_days": 60,
   "malformed_fixture_rows_ignored_for_unique_counts": 0,
   "mapped_family_counts": {
-    "1X2": 490,
-    "BTTS": 396,
-    "FT_TOTALS": 956
+    "1H": 38,
+    "1X2": 445,
+    "2H": 38,
+    "AWAY_TT": 38,
+    "BTTS": 382,
+    "FT_CORNERS": 37,
+    "FT_TOTALS": 847,
+    "HOME_TT": 38,
+    "TEAM_CORNERS": 11
   },
   "minimum_true_close_rows": 50,
   "model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.10",
@@ -82,67 +89,91 @@
   ],
   "pipeline_market_rows_loaded": 2000,
   "pipeline_signal_window_policy": "DEDUPED_BEFORE_LIMIT;NEWEST_FIRST_WITH_BOUNDED_MAX_SIGNALS;HISTORICAL_TRUE_CLV_PRESERVED_BY_CANONICAL_MERGE",
-  "previous_canonical_rows_preserved": 92,
+  "previous_canonical_rows_preserved": 96,
   "priced_entry_family_counts": {
-    "1X2": 473,
-    "BTTS": 325,
-    "FT_TOTALS": 691
+    "1H": 38,
+    "1X2": 428,
+    "2H": 38,
+    "AWAY_TT": 38,
+    "BTTS": 315,
+    "FT_CORNERS": 37,
+    "FT_TOTALS": 606,
+    "HOME_TT": 38,
+    "TEAM_CORNERS": 11
   },
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
   "schema_version": "1.0.0",
-  "signal_merge_strategy": "RECENT_PIPELINE_PRIORITY_THEN_DERIVATIVE_FAMILY_ROUND_ROBIN_THEN_LEGACY_FALLBACK",
+  "signal_merge_strategy": "RECENT_PIPELINE_90PCT_PRIORITY_WITH_DERIVATIVE_10PCT_RESERVE_THEN_UNUSED_CAPACITY_BACKFILL_THEN_LEGACY",
   "signal_rows_considered": 2000,
   "signal_source_counts": {
-    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 35,
+    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 40,
     "HISTORICAL_DEDICATED_CLOSE": 57,
     "PIPELINE_MATCH_TABLE": 14
   },
   "skip_reason_family_counts": {
     "INVALID_ENTRY_PRICE": {
       "1X2": 17,
-      "BTTS": 71
+      "BTTS": 67
     },
     "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": {
-      "1X2": 244,
-      "BTTS": 159,
-      "FT_TOTALS": 329
+      "1H": 38,
+      "1X2": 231,
+      "2H": 38,
+      "AWAY_TT": 6,
+      "BTTS": 155,
+      "FT_CORNERS": 37,
+      "FT_TOTALS": 298,
+      "HOME_TT": 6,
+      "TEAM_CORNERS": 11
     },
     "NO_LATER_PROVIDER_UPDATE": {
-      "1X2": 225,
-      "BTTS": 162,
-      "FT_TOTALS": 356
+      "1X2": 196,
+      "AWAY_TT": 29,
+      "BTTS": 157,
+      "FT_TOTALS": 302,
+      "HOME_TT": 30
     },
     "UNMAPPED_MARKET_FAMILY": {
-      "UNMAPPED": 158
+      "UNMAPPED": 126
     }
   },
   "skip_reason_market_counts": {
     "INVALID_ENTRY_PRICE": {
       "FT_1X2_RESEARCH | Match Winner / Side": 17,
-      "FT_BTTS_RESEARCH | Both Teams To Score": 71
+      "FT_BTTS_RESEARCH | Both Teams To Score": 67
     },
     "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": {
-      "1X2 | Match Winner": 244,
-      "BTTS | Both Teams Score": 159,
+      "1H | Goals Over/Under First Half": 38,
+      "1X2 | Match Winner": 231,
+      "2H | Goals Over/Under - Second Half": 38,
+      "BTTS | Both Teams Score": 155,
+      "FT_CORNERS | Away Corners Over/Under": 6,
+      "FT_CORNERS | Corners. Total (Range)": 2,
+      "FT_CORNERS | Home Corners Over/Under": 5,
+      "FT_CORNERS | Total Corners (3 way)": 35,
       "FT_TOTALS | Goals Over/Under": 5,
-      "TOTAL | Goals Over/Under": 324
+      "TEAM_TOTALS | Total - Away": 6,
+      "TEAM_TOTALS | Total - Home": 6,
+      "TOTAL | Goals Over/Under": 293
     },
     "NO_LATER_PROVIDER_UPDATE": {
-      "1X2 | Match Winner": 225,
-      "BTTS | Both Teams Score": 162,
+      "1X2 | Match Winner": 196,
+      "BTTS | Both Teams Score": 157,
       "FT_TOTALS | Goals Over/Under": 8,
-      "TOTAL | Goals Over/Under": 348
+      "TEAM_TOTALS | Total - Away": 29,
+      "TEAM_TOTALS | Total - Home": 30,
+      "TOTAL | Goals Over/Under": 294
     },
     "UNMAPPED_MARKET_FAMILY": {
-      "SPORTING_SCREEN | Research screen": 158
+      "SPORTING_SCREEN | Research screen": 126
     }
   },
   "skip_reasons": {
-    "INVALID_ENTRY_PRICE": 88,
-    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 732,
-    "NO_LATER_PROVIDER_UPDATE": 743,
-    "UNMAPPED_MARKET_FAMILY": 158
+    "INVALID_ENTRY_PRICE": 84,
+    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 820,
+    "NO_LATER_PROVIDER_UPDATE": 714,
+    "UNMAPPED_MARKET_FAMILY": 126
   },
   "snapshot_fixture_batch_size": 50,
   "status": "ACTIVE_TRUE_CLV_SAMPLE",
@@ -184,7 +215,6 @@
       1559656,
       1559658,
       1603388,
-      1603389,
       1619706,
       1639987,
       1639988,
@@ -1619,7 +1649,7 @@
       1643934
     ],
     "modeled_signal_unique_fixtures": 44,
-    "modeled_signal_without_later_real_close": 44,
+    "modeled_signal_without_later_real_close": 43,
     "modeled_signal_without_later_real_close_fixture_ids": [
       1350194,
       1350195,
@@ -1645,7 +1675,6 @@
       1561149,
       1581922,
       1603388,
-      1603389,
       1619157,
       1619706,
       1636934,
@@ -1696,7 +1725,7 @@
     ],
     "pending_future_fixtures": 25,
     "pending_timing": {
-      "already_kicked_off": 19,
+      "already_kicked_off": 18,
       "beyond_48h": 0,
       "missing_kickoff": 0,
       "within_12h": 25,
@@ -3131,18 +3160,39 @@
     ],
     "strict_capture_unique_fixtures": 1419,
     "true_clv_directional_target": 20,
-    "true_clv_fixture_ids": [],
-    "true_clv_unique_fixtures": 0,
-    "true_clv_unique_fixtures_remaining_to_directional": 20
+    "true_clv_fixture_ids": [
+      1603389
+    ],
+    "true_clv_unique_fixtures": 1,
+    "true_clv_unique_fixtures_remaining_to_directional": 19
   },
-  "team_totals_skip_fixture_counts": {},
-  "team_totals_skip_fixture_ids": {},
-  "tracked_rows": 106,
+  "team_totals_skip_fixture_counts": {
+    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 2,
+    "NO_LATER_PROVIDER_UPDATE": 9
+  },
+  "team_totals_skip_fixture_ids": {
+    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": [
+      1498860,
+      1619706
+    ],
+    "NO_LATER_PROVIDER_UPDATE": [
+      1493152,
+      1493729,
+      1508571,
+      1549804,
+      1559658,
+      1603388,
+      1639987,
+      1639988,
+      1639989
+    ]
+  },
+  "tracked_rows": 111,
   "unique_fixtures_by_family": {
     "1X2": 48,
-    "AWAY_TT": 6,
+    "AWAY_TT": 7,
     "BTTS": 17,
     "FT_TOTALS": 6,
-    "HOME_TT": 5
+    "HOME_TT": 6
   }
 }
