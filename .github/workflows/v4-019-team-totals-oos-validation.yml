@@ -1,3 +1,4 @@
+# v233 CI dependency closure: install runtime requirements for validation tests
 # v233 canonical refresh after Phase17 2026-10-05
 # v231.1 refresh after canonical derivative anti-starvation 2026-10-04
 # V4-019 strict FT team totals refresh: 2026-09-24
@@ -39,7 +40,7 @@ jobs:
         working-directory: runtime
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest -r mcp_gateway/requirements.txt
           PYTHONPATH=. pytest -q tests/test_v4_019_team_totals_oos.py
 
       - name: Build current Team Totals OOS report
