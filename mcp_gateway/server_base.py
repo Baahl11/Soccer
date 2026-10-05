@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import threading
 from datetime import date as Date, datetime, timezone as dt_timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from typing import Any
@@ -25,6 +26,29 @@ GITHUB_WORKFLOW_PATH = ".github/workflows/soccer-edge-scheduler.yml"
 GITHUB_ISSUER = "https://token.actions.githubusercontent.com"
 GITHUB_JWKS_URL = "https://token.actions.githubusercontent.com/.well-known/jwks"
 _JWK_CLIENT = PyJWKClient(GITHUB_JWKS_URL, cache_keys=True)
+
+# Render production has a 512 MiB instance. DB-heavy validation endpoints and the
+# scheduler must never overlap in-process; concurrent audits previously caused
+# OOM kills and 502s. This gate changes only execution concurrency, never model,
+# market, strict-close, gate, threshold, or provider-budget semantics.
+_DB_HEAVY_GATE = threading.Lock()
+
+def _acquire_db_heavy_gate(operation: str) -> Response | None:
+    if _DB_HEAVY_GATE.acquire(blocking=False):
+        return None
+    return JSONResponse(
+        {
+            "error": "db_heavy_busy",
+            "operation": operation,
+            "retryable": True,
+            "provider_requests_added": 0,
+        },
+        status_code=409,
+    )
+
+def _release_db_heavy_gate() -> None:
+    _DB_HEAVY_GATE.release()
+
 
 TRANSPORT_SECURITY = TransportSecuritySettings(
     enable_dns_rebinding_protection=True,
@@ -463,18 +487,24 @@ async def internal_research_derivative_market_audit(request: Request) -> Respons
     except (TypeError, ValueError):
         return JSONResponse({"error": "invalid_research_derivative_audit_parameters"}, status_code=400)
 
+    busy = _acquire_db_heavy_gate("research_derivative_market_audit")
+    if busy is not None:
+        return busy
     try:
-        result = await asyncio.to_thread(
-            research_derivative_postgres_audit.build_from_postgres,
-            lookback_days=lookback_days,
-            max_rows=max_rows,
-        )
-        return JSONResponse(result)
-    except Exception as exc:
-        return JSONResponse(
-            {"error": "research_derivative_market_audit_failed", "detail": str(exc)[:500]},
-            status_code=500,
-        )
+        try:
+            result = await asyncio.to_thread(
+                research_derivative_postgres_audit.build_from_postgres,
+                lookback_days=lookback_days,
+                max_rows=max_rows,
+            )
+            return JSONResponse(result)
+        except Exception as exc:
+            return JSONResponse(
+                {"error": "research_derivative_market_audit_failed", "detail": str(exc)[:500]},
+                status_code=500,
+            )
+    finally:
+        _release_db_heavy_gate()
 
 
 @mcp.custom_route("/internal/player-props-clv-v4/build", methods=["POST"])
@@ -503,6 +533,9 @@ async def internal_player_props_clv_v4_build(request: Request) -> Response:
     env = os.environ.copy()
     env.setdefault("MALLOC_ARENA_MAX", "1")
     env.setdefault("PYTHONMALLOC", "malloc")
+    busy = _acquire_db_heavy_gate("player_props_clv")
+    if busy is not None:
+        return busy
     try:
         proc = await asyncio.create_subprocess_exec(
             sys.executable,
@@ -541,6 +574,8 @@ async def internal_player_props_clv_v4_build(request: Request) -> Response:
             {"error": "player_props_clv_v4_build_failed", "detail": str(exc)[:500]},
             status_code=500,
         )
+    finally:
+        _release_db_heavy_gate()
 
 
 @mcp.custom_route("/internal/player-props-oos-v4/build", methods=["POST"])
@@ -566,18 +601,24 @@ async def internal_player_props_oos_v4_build(request: Request) -> Response:
     except (TypeError, ValueError):
         return JSONResponse({"error": "invalid_player_props_oos_parameters"}, status_code=400)
 
+    busy = _acquire_db_heavy_gate("player_props_oos")
+    if busy is not None:
+        return busy
     try:
-        result = await asyncio.to_thread(
-            player_props_oos_postgres_v4.build_from_postgres,
-            lookback_days=lookback_days,
-            max_rows=max_rows,
-        )
-        return JSONResponse(result)
-    except Exception as exc:
-        return JSONResponse(
-            {"error": "player_props_oos_v4_build_failed", "detail": str(exc)[:500]},
-            status_code=500,
-        )
+        try:
+            result = await asyncio.to_thread(
+                player_props_oos_postgres_v4.build_from_postgres,
+                lookback_days=lookback_days,
+                max_rows=max_rows,
+            )
+            return JSONResponse(result)
+        except Exception as exc:
+            return JSONResponse(
+                {"error": "player_props_oos_v4_build_failed", "detail": str(exc)[:500]},
+                status_code=500,
+            )
+    finally:
+        _release_db_heavy_gate()
 
 
 @mcp.custom_route("/internal/player-props-phase15-coverage-audit", methods=["POST"])
@@ -714,6 +755,9 @@ async def internal_tick(request: Request) -> Response:
 
     env = os.environ.copy()
     env.setdefault("MALLOC_ARENA_MAX", "2")
+    busy = _acquire_db_heavy_gate("scheduler_tick")
+    if busy is not None:
+        return busy
     try:
         proc = await asyncio.create_subprocess_exec(
             sys.executable,
@@ -762,6 +806,8 @@ async def internal_tick(request: Request) -> Response:
         return Response(content=stdout, media_type="application/json", status_code=200)
     except Exception as exc:
         return JSONResponse({"error": "tick_failed", "detail": str(exc)[:500]}, status_code=500)
+    finally:
+        _release_db_heavy_gate()
 
 
 @mcp.custom_route("/internal/oos-calibration-v4/build", methods=["POST"])
@@ -824,18 +870,24 @@ async def internal_clv_v4_build(request: Request) -> Response:
     except (TypeError, ValueError):
         return JSONResponse({"error": "invalid_clv_build_parameters"}, status_code=400)
 
+    busy = _acquire_db_heavy_gate("phase17_clv")
+    if busy is not None:
+        return busy
     try:
-        result = await asyncio.to_thread(
-            clv_postgres_v4.build_from_postgres,
-            lookback_days=lookback_days,
-            max_signals=max_signals,
-        )
-        return JSONResponse(result)
-    except Exception as exc:
-        return JSONResponse(
-            {"error": "clv_v4_build_failed", "detail": str(exc)[:500]},
-            status_code=500,
-        )
+        try:
+            result = await asyncio.to_thread(
+                clv_postgres_v4.build_from_postgres,
+                lookback_days=lookback_days,
+                max_signals=max_signals,
+            )
+            return JSONResponse(result)
+        except Exception as exc:
+            return JSONResponse(
+                {"error": "clv_v4_build_failed", "detail": str(exc)[:500]},
+                status_code=500,
+            )
+    finally:
+        _release_db_heavy_gate()
 
 
 @mcp.custom_route("/internal/promotion-shadow-v4/build", methods=["POST"])
