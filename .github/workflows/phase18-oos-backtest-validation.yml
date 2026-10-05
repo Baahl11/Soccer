@@ -1,3 +1,4 @@
+# v233 CI dependency closure: install runtime requirements for validation tests
 # v174 canonical CLV auto-refresh + dynamic consistency gates
 name: Phase 18 OOS Backtest Validation - v160 Frozen OOS Evidence
 
@@ -41,7 +42,7 @@ jobs:
         working-directory: runtime
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest -r mcp_gateway/requirements.txt
           PYTHONPATH=. pytest -q tests/test_phase18_oos_backtest_v4.py
 
       - name: Build current OOS/backtest framework report
