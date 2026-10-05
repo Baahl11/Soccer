@@ -388,7 +388,19 @@ def load_primary_clv_maturation_backlog(
                 )
                 SELECT ous.*
                 FROM oldest_unresolved_signal ous
-                ORDER BY ous.kickoff ASC, ous.fixture_id ASC, ous.market_family ASC
+                LEFT JOIN LATERAL (
+                    SELECT COUNT(DISTINCT m.captured_at)::BIGINT AS later_capture_visits
+                    FROM soccer_market_snapshots m
+                    WHERE m.fixture_id = ous.fixture_id
+                      AND m.captured_at > ous.signal_generated_at
+                      AND m.captured_at < ous.kickoff
+                      AND LOWER(TRIM(COALESCE(m.market, ''))) = LOWER(TRIM(COALESCE(ous.market, '')))
+                ) visit ON TRUE
+                ORDER BY
+                    COALESCE(visit.later_capture_visits, 0) ASC,
+                    ous.kickoff ASC,
+                    ous.fixture_id ASC,
+                    ous.market_family ASC
                 LIMIT %s
                 """,
                 (cutoff, now, lookahead, cutoff, now, lookahead, limit),
@@ -506,6 +518,7 @@ def load_primary_clv_maturation_backlog(
         "strict_close_semantics_changed": False,
         "historical_rows_mutated": False,
         "selection_logic_changed": False,
+        "backlog_priority_policy": "FEWEST_LATER_CAPTURE_VISITS_THEN_KICKOFF",
     }
 
 
