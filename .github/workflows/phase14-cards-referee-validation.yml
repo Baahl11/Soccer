@@ -1,3 +1,4 @@
+# v233 CI dependency closure: install runtime requirements for validation tests
 # v233 canonical refresh after Phase17 2026-10-05
 # refresh after cards-props taxonomy v144
 name: Phase 14 Cards Referee Validation
@@ -38,7 +39,7 @@ jobs:
         working-directory: runtime
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest -r mcp_gateway/requirements.txt
           PYTHONPATH=. pytest -q tests/test_phase14_cards_referee_v4.py
 
       - name: Build Phase 14 validation report
