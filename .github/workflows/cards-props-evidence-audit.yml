@@ -1,3 +1,4 @@
+# v234.3 allow full DB-only cards/props evidence audit
 # v234 continuous completion refresh 2026-10-05
 name: Cards Props Evidence Audit
 
@@ -57,7 +58,7 @@ jobs:
           TOKEN=$(get_oidc_token)
           echo "::add-mask::$TOKEN"
 
-          HTTP_CODE=$(curl -sS --max-time 120 -o /tmp/research_derivative_market_audit.json -w "%{http_code}" \
+          HTTP_CODE=$(curl -sS --max-time 360 -o /tmp/research_derivative_market_audit.json -w "%{http_code}" \
             -X POST \
             -H "Authorization: Bearer ${TOKEN}" \
             -H "Content-Type: application/json" \
