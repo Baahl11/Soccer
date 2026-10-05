@@ -296,7 +296,7 @@ def test_pipeline_loader_bounded_window_is_recent_first():
     query = " ".join(conn.cursor_instance.query.split())
 
     assert rows == []
-    assert "ORDER BY p.generated_at_utc DESC LIMIT %s" in query
+    assert "ORDER BY generated_at DESC LIMIT %s" in query
     assert "ORDER BY p.generated_at_utc ASC LIMIT %s" not in query
 
 
