@@ -820,22 +820,33 @@ def _load_event_candidate_ids(conn, *, lookback_days: int, max_rows: int) -> lis
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT e.event_id
-            FROM soccer_refresh_events e
-            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
-            WHERE e.generated_at >= %s
-              AND e.generated_at < f.kickoff
-              AND e.stage IN ('T-40','T-30','T-20','T-10')
-              AND e.payload ? 'market'
-              AND (
-                    e.payload ? 'player_shots_intelligence'
-                 OR e.payload ? 'player_sot_intelligence'
-                 OR e.payload ? 'player_goalscorer_intelligence'
-                 OR e.payload ? 'player_assists_intelligence'
-                 OR e.payload ? 'player_cards_intelligence'
-                 OR e.payload ? 'gk_saves_intelligence'
-              )
-            ORDER BY e.generated_at DESC
+            WITH ranked AS (
+                SELECT
+                    e.event_id,
+                    e.fixture_id,
+                    e.generated_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY e.fixture_id
+                        ORDER BY e.generated_at ASC, e.event_id ASC
+                    ) AS fixture_visit_rank
+                FROM soccer_refresh_events e
+                JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                WHERE e.generated_at >= %s
+                  AND e.generated_at < f.kickoff
+                  AND e.stage IN ('T-40','T-30','T-20','T-10')
+                  AND e.payload ? 'market'
+                  AND (
+                        e.payload ? 'player_shots_intelligence'
+                     OR e.payload ? 'player_sot_intelligence'
+                     OR e.payload ? 'player_goalscorer_intelligence'
+                     OR e.payload ? 'player_assists_intelligence'
+                     OR e.payload ? 'player_cards_intelligence'
+                     OR e.payload ? 'gk_saves_intelligence'
+                  )
+            )
+            SELECT event_id
+            FROM ranked
+            ORDER BY fixture_visit_rank ASC, generated_at DESC, fixture_id ASC
             LIMIT %s
             """,
             (cutoff, max_rows),
@@ -891,7 +902,7 @@ def _load_event_signals(
     )
     _trace_stage('event_candidates_done', rows=len(candidate_ids), batch_size=bounded_batch)
 
-    signals: list[dict[str, Any]] = []
+    oldest_signals: dict[tuple[Any, ...], dict[str, Any]] = {}
     diagnostics: dict[str, Any] = {}
     loaded_rows = 0
     for offset in range(0, len(candidate_ids), bounded_batch):
@@ -919,18 +930,43 @@ def _load_event_signals(
                 f"player props event batch hydration failed after retry at offset {offset}: {last_error}"
             )
         loaded_rows += len(events)
-        signals.extend(extract_shadow_signals(events, diagnostics))
+        batch_signals = extract_shadow_signals(events, diagnostics)
+        for signal in batch_signals:
+            key = (
+                int(signal.get("fixture_id") or 0),
+                str(signal.get("market_family") or ""),
+                _norm(signal.get("market")),
+                str(signal.get("bookmaker_id") or signal.get("bookmaker") or ""),
+                str(signal.get("player_id") or ""),
+                str(signal.get("side") or ""),
+                _num(signal.get("line")),
+            )
+            current = oldest_signals.get(key)
+            signal_at = _dt(signal.get("signal_timestamp"))
+            current_at = _dt(current.get("signal_timestamp")) if current else None
+            if current is None or (
+                signal_at is not None
+                and (current_at is None or signal_at < current_at)
+            ):
+                oldest_signals[key] = signal
         _trace_stage(
             'event_batch_done',
             loaded_rows=loaded_rows,
             candidate_rows=len(candidate_ids),
-            signals=len(signals),
+            signals=len(oldest_signals),
         )
-        del events, batch_ids
+        del events, batch_signals, batch_ids
         gc.collect()
 
+    diagnostics["candidate_event_policy"] = {
+        "policy": "FIXTURE_VISIT_RANK_OLDEST_FIRST_WITH_RECENT_FIXTURE_TIEBREAK",
+        "candidate_event_rows": len(candidate_ids),
+        "anchored_exact_instruments": len(oldest_signals),
+        "provider_requests_added": 0,
+        "strict_close_semantics_changed": False,
+    }
     del candidate_ids
-    return signals, diagnostics, loaded_rows
+    return list(oldest_signals.values()), diagnostics, loaded_rows
 
 
 
