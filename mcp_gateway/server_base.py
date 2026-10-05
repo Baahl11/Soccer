@@ -644,18 +644,24 @@ async def internal_player_props_phase15_coverage_audit(request: Request) -> Resp
     except (TypeError, ValueError):
         return JSONResponse({"error": "invalid_phase15_coverage_audit_parameters"}, status_code=400)
 
+    busy = _acquire_db_heavy_gate("player_props_phase15_coverage_audit")
+    if busy is not None:
+        return busy
     try:
-        result = await asyncio.to_thread(
-            player_props_phase15_coverage_audit.build_from_postgres,
-            lookback_days=lookback_days,
-            max_rows=max_rows,
-        )
-        return JSONResponse(result)
-    except Exception as exc:
-        return JSONResponse(
-            {"error": "player_props_phase15_coverage_audit_failed", "detail": str(exc)[:500]},
-            status_code=500,
-        )
+        try:
+            result = await asyncio.to_thread(
+                player_props_phase15_coverage_audit.build_from_postgres,
+                lookback_days=lookback_days,
+                max_rows=max_rows,
+            )
+            return JSONResponse(result)
+        except Exception as exc:
+            return JSONResponse(
+                {"error": "player_props_phase15_coverage_audit_failed", "detail": str(exc)[:500]},
+                status_code=500,
+            )
+    finally:
+        _release_db_heavy_gate()
 
 
 @mcp.custom_route("/internal/player-props-postgame-backfill-v4/run", methods=["POST"])
