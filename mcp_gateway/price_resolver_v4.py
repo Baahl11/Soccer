@@ -3025,6 +3025,97 @@ def _attach_market_to_event(event: dict[str, Any], markets: list[dict[str, Any]]
     }
 
 
+def _build_paid_odds_1x2_research_row(
+    source_row: dict[str, Any],
+    event: dict[str, Any],
+    markets: list[dict[str, Any]],
+    *,
+    source_status: str,
+    calibration_state: dict[str, Any] | None = None,
+    model_version: str | None = None,
+) -> dict[str, Any] | None:
+    """Materialize one research-only 1X2 signal from an already-paid fresh odds payload.
+
+    This closes a collection gap where a fixture could be fetched for FT Totals/BTTS,
+    the same provider payload already contained Match Winner, but no persisted 1X2
+    signal row was emitted. The sidecar adds zero provider requests and cannot affect
+    canonical BET logic or promotion decisions.
+    """
+    raw = _event_projection(event)
+    candidates = [
+        ("Home", _num(raw.get("raw_home_win_prob"))),
+        ("Draw", _num(raw.get("raw_draw_prob"))),
+        ("Away", _num(raw.get("raw_away_win_prob"))),
+    ]
+    usable = [(selection, probability) for selection, probability in candidates if probability is not None]
+    if not usable:
+        return None
+    selection, p_raw = max(usable, key=lambda item: float(item[1]))
+    offer = choose_reference_offer(markets, family="1X2", selection=selection, line=None)
+    if offer is None:
+        return None
+
+    fixture = event.get("fixture") if isinstance(event.get("fixture"), dict) else {}
+    row = {
+        "row_type": source_row.get("row_type") or "research_visibility",
+        "row_index": source_row.get("row_index"),
+        "event_type": source_row.get("event_type") or event.get("event_type") or "SOCCER_REFRESH",
+        "stage": source_row.get("stage") or event.get("stage"),
+        "classification": source_row.get("classification") or "WATCH",
+        "event_classification": source_row.get("event_classification") or source_row.get("classification") or "WATCH",
+        "fixture_id": source_row.get("fixture_id") or fixture.get("fixture_id"),
+        "kickoff": source_row.get("kickoff") or fixture.get("kickoff"),
+        "league": source_row.get("league") or fixture.get("league"),
+        "country": source_row.get("country") or fixture.get("country"),
+        "home": source_row.get("home") or source_row.get("home_team") or fixture.get("home_team"),
+        "away": source_row.get("away") or source_row.get("away_team") or fixture.get("away_team"),
+        "status": source_row.get("status") or fixture.get("status"),
+        "data_tier": source_row.get("data_tier"),
+        "market_family": "1X2",
+        "market": offer.get("market"),
+        "selection": selection,
+        "line": None,
+        "price": round(float(offer["decimal_price"]), 3),
+        "decimal_price": round(float(offer["decimal_price"]), 3),
+        "bookmaker": offer.get("bookmaker"),
+        "bookmaker_id": offer.get("bookmaker_id"),
+        "market_id": offer.get("market_id"),
+        "provider_update": offer.get("provider_update"),
+        "p_market_fair": round(float(offer["fair_probability"]), 6),
+        "market_fair_probability": round(float(offer["fair_probability"]), 6),
+        "p_raw": round(float(p_raw), 6),
+        "prob_edge_pp": round((float(p_raw) - float(offer["fair_probability"])) * 100.0, 4),
+        "model_signal": "RESEARCH_ONLY",
+        "model_signal_score": source_row.get("model_signal_score"),
+        "execution_status": "RESEARCH_ONLY",
+        "reason": "1X2_PAID_ODDS_RESEARCH_ENTRY",
+        "market_use": "1X2_TRUE_CLV_ENTRY_RESEARCH_ONLY",
+        "blockers": ["RESEARCH_ONLY", "NO_PRODUCTION_PROMOTION"],
+        "research_only": True,
+        "actionable": False,
+        "bet_eligible": False,
+        "decision_weight": 0.0,
+        "production_promotion_allowed": False,
+        "price_resolution_status": source_status,
+        "price_resolution_source": offer.get("source"),
+        "price_resolution_provider_update": offer.get("provider_update"),
+        "price_resolution_bookmaker_count": offer.get("bookmaker_count"),
+        "price_resolution_reference_policy": offer.get("reference_policy"),
+        "paid_odds_1x2_reuse": True,
+        "paid_odds_1x2_reuse_provider_requests_added": 0,
+    }
+    _apply_phase16_calibration(
+        row,
+        event,
+        family="1X2",
+        selection=selection,
+        p_raw=p_raw,
+        calibration_state=calibration_state or {},
+        model_version=model_version,
+    )
+    return row
+
+
 def _enrich_row(
     row: dict[str, Any],
     event: dict[str, Any],
@@ -3109,6 +3200,15 @@ async def resolve_payload(
     provider_daily_remaining: int | None = None
     counts: dict[str, int] = defaultdict(int)
     fixture_cache: dict[int, tuple[list[dict[str, Any]], str]] = {}
+    paid_odds_1x2_reuse_rows_added = 0
+    paid_odds_1x2_reuse_fixtures: set[int] = {
+        int(row["fixture_id"])
+        for row in rows
+        if isinstance(row, dict)
+        and row.get("fixture_id") is not None
+        and str(row.get("market_family") or "").upper() in {"1X2", "FT_1X2", "FT_1X2_RESEARCH", "MATCH_WINNER"}
+        and _num(row.get("price")) is not None
+    }
 
     targets = [
         row for row in rows
@@ -3170,6 +3270,28 @@ async def resolve_payload(
                 row["price_resolution_status"] = status
                 resolved_status = status
             counts[resolved_status] += 1
+
+            # Reuse a fresh provider payload that was already paid for by another
+            # primary market to persist one research-only 1X2 entry for this
+            # fixture. This creates the missing entry anchor without any extra
+            # /odds request, threshold change, gate change, or BET promotion.
+            if (
+                markets
+                and str(status).startswith("PRICE_API")
+                and fixture_id not in paid_odds_1x2_reuse_fixtures
+            ):
+                sidecar = _build_paid_odds_1x2_research_row(
+                    row,
+                    event,
+                    markets,
+                    source_status=str(status),
+                    calibration_state=calibration_state or {},
+                    model_version=str(payload.get("model_version") or ""),
+                )
+                if sidecar is not None:
+                    rows.append(sidecar)
+                    paid_odds_1x2_reuse_fixtures.add(fixture_id)
+                    paid_odds_1x2_reuse_rows_added += 1
 
     # Zero-provider-call calibration hydration for rows that already carried a
     # real price + de-vigged fair probability into the research table. These
@@ -4146,6 +4268,10 @@ async def resolve_payload(
         "existing_price_calibrated_rows_added": existing_price_calibrated_rows_added,
         "existing_price_calibration_status_counts": dict(sorted(existing_price_calibration_status_counts.items())),
         "existing_price_calibration_provider_requests_added": 0,
+        "paid_odds_1x2_reuse_rows_added": paid_odds_1x2_reuse_rows_added,
+        "paid_odds_1x2_reuse_fixture_count": len(paid_odds_1x2_reuse_fixtures),
+        "paid_odds_1x2_reuse_provider_requests_added": 0,
+        "paid_odds_1x2_reuse_policy": "FRESH_ALREADY_PAID_PRICE_API_PAYLOAD_ONLY;ONE_MODEL_TOP_SELECTION_PER_FIXTURE;RESEARCH_ONLY;ZERO_EXTRA_PROVIDER_CALLS",
         "primary_clv_maturation_source": primary_maturation.get("source"),
         "primary_clv_maturation_candidates": primary_maturation_candidates,
         "primary_clv_maturation_candidate_family_counts": dict(primary_maturation.get("candidate_family_counts") or {}),
