@@ -117,6 +117,17 @@ jobs:
           echo "::add-mask::$OIDC_TOKEN"
           HTTP_CODE=$(post_tick "$OIDC_TOKEN")
 
+          if [ "$HTTP_CODE" = "409" ] && jq -e '.error == "db_heavy_busy"' /tmp/soccer_tick.json >/dev/null 2>&1; then
+            for busy_attempt in 1 2 3; do
+              echo "::notice::DB-heavy runtime busy; retrying scheduler tick ($busy_attempt/3)"
+              sleep 20
+              OIDC_TOKEN=$(get_oidc_token)
+              echo "::add-mask::$OIDC_TOKEN"
+              HTTP_CODE=$(post_tick "$OIDC_TOKEN")
+              if [ "$HTTP_CODE" != "409" ]; then break; fi
+            done
+          fi
+
           if [ "$HTTP_CODE" = "401" ] && jq -e '(.detail // "") | test("Signature has expired"; "i")' /tmp/soccer_tick.json >/dev/null; then
             echo "::warning::OIDC token expired during Render wake/tick; retrying once with a fresh token"
             OIDC_TOKEN=$(get_oidc_token)
