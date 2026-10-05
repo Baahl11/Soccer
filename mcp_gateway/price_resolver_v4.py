@@ -1258,6 +1258,89 @@ def _primary_maturation_family_accounting(
     matured = {str(value).upper() for value in matured_families if str(value).upper() in evaluated}
     return evaluated, evaluated - matured
 
+PRIMARY_CLV_MATURATION_PRIMARY_FAMILIES = {"1X2", "BTTS", "FT_TOTALS"}
+PRIMARY_CLV_MATURATION_DERIVATIVE_FAMILIES = {"1H", "2H", "FT_CORNERS", "TEAM_CORNERS"}
+
+
+def _primary_maturation_event_families(event: dict[str, Any]) -> set[str]:
+    meta = (
+        event.get("primary_clv_maturation")
+        if isinstance(event.get("primary_clv_maturation"), dict)
+        else {}
+    )
+    return {
+        str(signal.get("market_family") or "").upper()
+        for signal in (meta.get("signals") or [])
+        if isinstance(signal, dict)
+        and str(signal.get("market_family") or "").upper()
+        in (PRIMARY_CLV_MATURATION_PRIMARY_FAMILIES | PRIMARY_CLV_MATURATION_DERIVATIVE_FAMILIES)
+    }
+
+
+def _fair_order_primary_maturation_events(
+    events: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Prevent derivative CLV starvation without adding calls or changing eligibility.
+
+    Mixed fixtures are maximally efficient because one already-authorized /odds
+    request can evaluate primary and derivative families together. Remaining
+    primary-only and derivative-only events are interleaved 3:1, preserving a
+    75% primary preference while guaranteeing derivative opportunities whenever
+    both queues are populated. The function only reorders existing candidates.
+    """
+    mixed: list[dict[str, Any]] = []
+    primary_only: list[dict[str, Any]] = []
+    derivative_only: list[dict[str, Any]] = []
+    other: list[dict[str, Any]] = []
+
+    for event in events:
+        families = _primary_maturation_event_families(event)
+        has_primary = bool(families & PRIMARY_CLV_MATURATION_PRIMARY_FAMILIES)
+        has_derivative = bool(families & PRIMARY_CLV_MATURATION_DERIVATIVE_FAMILIES)
+        if has_primary and has_derivative:
+            mixed.append(event)
+        elif has_primary:
+            primary_only.append(event)
+        elif has_derivative:
+            derivative_only.append(event)
+        else:
+            other.append(event)
+
+    ordered: list[dict[str, Any]] = list(mixed)
+    p_index = 0
+    d_index = 0
+    while p_index < len(primary_only) or d_index < len(derivative_only):
+        for _ in range(3):
+            if p_index >= len(primary_only):
+                break
+            ordered.append(primary_only[p_index])
+            p_index += 1
+        if d_index < len(derivative_only):
+            ordered.append(derivative_only[d_index])
+            d_index += 1
+        elif p_index < len(primary_only):
+            continue
+
+        if p_index >= len(primary_only):
+            while d_index < len(derivative_only):
+                ordered.append(derivative_only[d_index])
+                d_index += 1
+
+    ordered.extend(other)
+    return ordered, {
+        "policy": "MIXED_FIRST_THEN_3_PRIMARY_TO_1_DERIVATIVE_WITHIN_EXISTING_CAP",
+        "mixed_fixture_events": len(mixed),
+        "primary_only_fixture_events": len(primary_only),
+        "derivative_only_fixture_events": len(derivative_only),
+        "other_fixture_events": len(other),
+        "input_fixture_events": len(events),
+        "output_fixture_events": len(ordered),
+        "provider_requests_added": 0,
+        "provider_budget_changed": False,
+        "strict_close_semantics_changed": False,
+        "eligibility_changed": False,
+    }
+
 def _load_one_h_clv_maturation_backlog(
     *,
     lookback_days: int = TEAM_TOTALS_DIVERSITY_LOOKBACK_DAYS,
@@ -3530,6 +3613,10 @@ async def resolve_payload(
         existing_meta["signals"] = existing_signals
         existing["primary_clv_maturation"] = existing_meta
 
+    primary_maturation_events, primary_maturation_ordering = _fair_order_primary_maturation_events(
+        primary_maturation_events
+    )
+
     family_counts = defaultdict(int, primary_maturation.get("candidate_family_counts") or {})
     for derivative_maturation in (one_h_maturation, two_h_maturation, corners_maturation):
         for family, count in (derivative_maturation.get("candidate_family_counts") or {}).items():
@@ -4385,6 +4472,7 @@ async def resolve_payload(
         "paid_odds_btts_reuse_policy": "FRESH_ALREADY_PAID_PRICE_API_PAYLOAD_ONLY;BTTS_YES_MODEL_SIGNAL_PER_FIXTURE;RESEARCH_ONLY;ZERO_EXTRA_PROVIDER_CALLS",
         "primary_clv_maturation_source": primary_maturation.get("source"),
         "primary_clv_maturation_candidates": primary_maturation_candidates,
+        "primary_clv_maturation_ordering": primary_maturation_ordering,
         "primary_clv_maturation_candidate_family_counts": dict(primary_maturation.get("candidate_family_counts") or {}),
         "primary_clv_maturation_candidate_source_counts": dict(primary_maturation.get("candidate_source_counts") or {}),
         "primary_clv_maturation_selected_family_counts": dict(primary_maturation.get("selected_family_counts") or {}),
