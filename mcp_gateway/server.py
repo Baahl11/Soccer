@@ -9,6 +9,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from mcp_gateway import player_props_shots_anchor_patch_v4
+from mcp_gateway import primary_clv_anchor_v4
 from mcp_gateway import server_base as _base_server
 from mcp_gateway import signal_ledger_postgres_delta_v4
 from mcp_gateway import team_totals_phase17_anchor_patch_v4
@@ -49,6 +50,24 @@ async def internal_team_totals_capture_signal_reconciliation_v4_build(request: R
         return JSONResponse(result)
     except Exception as exc:
         return JSONResponse({"error":"team_totals_capture_signal_reconciliation_failed","detail":str(exc)[:500]}, status_code=500)
+
+
+@mcp.custom_route("/internal/post-v223-visit-matrix-v4/build", methods=["POST"])
+async def internal_post_v223_visit_matrix_v4_build(request: Request) -> Response:
+    try:
+        _base_server._github_oidc_claims(request, {".github/workflows/v232-post-v223-visit-matrix.yml"})
+    except Exception as exc:
+        return JSONResponse({"error":"unauthorized","detail":str(exc)[:200]}, status_code=401)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    try:
+        limit = max(1, min(int((body or {}).get("limit", 500)), 2000))
+        result = await asyncio.to_thread(primary_clv_anchor_v4.build_post_v223_visit_matrix, limit=limit)
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse({"error":"post_v223_visit_matrix_failed","detail":str(exc)[:500]}, status_code=500)
 
 
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
@@ -237,6 +256,11 @@ class V215SignalLedgerRouter:
         if scope.get("type") == "http":
             path = scope.get("path")
             method = str(scope.get("method") or "").upper()
+            if path == "/internal/post-v223-visit-matrix-v4/build" and method == "POST":
+                request = Request(scope, receive=receive)
+                response = await internal_post_v223_visit_matrix_v4_build(request)
+                await response(scope, receive, send)
+                return
             if path == "/internal/team-totals-capture-signal-reconciliation-v4/build" and method == "POST":
                 request = Request(scope, receive=receive)
                 response = await internal_team_totals_capture_signal_reconciliation_v4_build(request)
