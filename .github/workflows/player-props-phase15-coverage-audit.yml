@@ -1,3 +1,4 @@
+# v236 serialize DB-heavy runtime workflows to prevent Render 502 contention
 name: Phase15 Coverage Reconciliation Audit
 
 on:
@@ -16,8 +17,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: phase15-coverage-reconciliation-audit
-  cancel-in-progress: true
+  group: soccer-edge-db-heavy-runtime
+  cancel-in-progress: false
 
 jobs:
   audit:
