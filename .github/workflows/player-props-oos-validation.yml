@@ -1,3 +1,4 @@
+# v236 serialize DB-heavy runtime workflows to prevent Render 502 contention
 # v234.2 allow full DB-only Player Props OOS runtime
 # v234 continuous completion refresh 2026-10-05
 # v158 reconciliation refresh 2026-09-25
@@ -19,8 +20,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: player-props-oos-calibration-validation
-  cancel-in-progress: true
+  group: soccer-edge-db-heavy-runtime
+  cancel-in-progress: false
 
 jobs:
   validate:
