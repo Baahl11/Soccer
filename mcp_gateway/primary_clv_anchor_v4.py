@@ -4,7 +4,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from mcp_gateway import price_resolver_v4 as price
+from mcp_gateway import clv_postgres_v4 as clv, price_resolver_v4 as price
 
 MODEL_VERSION = "SOCCER_PRIMARY_CLV_ANCHOR_V4_1.1.0"
 ANCHOR_POLICY = "OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL"
@@ -525,24 +525,34 @@ def load_primary_clv_maturation_backlog(
 POST_V223_LIVE_AT = datetime(2026, 10, 4, 7, 13, 43, tzinfo=timezone.utc)
 
 def build_post_v223_visit_matrix(*, limit: int = 500) -> dict[str, Any]:
-    """DB-only cohort audit: signal -> repeated pre-kickoff snapshots -> provider chronology."""
+    """DB-only cohort audit: signal -> repeated pre-kickoff exact-instrument snapshots -> strict-close."""
     if not price.persistence.persistence_configured():
-        return {"status":"POSTGRES_NOT_CONFIGURED","rows":[],"provider_requests_added":0}
+        return {"status": "POSTGRES_NOT_CONFIGURED", "rows": [], "provider_requests_added": 0}
+
     price.persistence.ensure_schema()
+    bounded_limit = max(1, min(int(limit), 2000))
     with price.persistence._connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
                 WITH raw_signal AS (
-                    SELECT (mm.row->>'fixture_id')::BIGINT fixture_id,
-                           UPPER(mm.row->>'market_family') market_family,
-                           mm.row->>'market' market,
-                           p.generated_at_utc signal_generated_at,
-                           f.kickoff
+                    SELECT
+                        (mm.row->>'fixture_id')::BIGINT AS fixture_id,
+                        UPPER(mm.row->>'market_family') AS market_family,
+                        mm.row->>'market' AS market,
+                        mm.row->>'selection' AS selection,
+                        mm.row->>'line' AS line,
+                        mm.row->>'price' AS entry_price,
+                        mm.row->>'p_market_fair' AS entry_fair_probability,
+                        p.generated_at_utc AS signal_generated_at,
+                        f.kickoff
                     FROM soccer_pipeline_runs p
                     CROSS JOIN LATERAL jsonb_array_elements(
-                      CASE WHEN jsonb_typeof(COALESCE(p.payload->'market_mismatch_rows','[]'::jsonb))='array'
-                           THEN COALESCE(p.payload->'market_mismatch_rows','[]'::jsonb) ELSE '[]'::jsonb END
+                        CASE
+                            WHEN jsonb_typeof(COALESCE(p.payload->'market_mismatch_rows','[]'::jsonb))='array'
+                            THEN COALESCE(p.payload->'market_mismatch_rows','[]'::jsonb)
+                            ELSE '[]'::jsonb
+                        END
                     ) mm(row)
                     JOIN soccer_fixtures f ON f.fixture_id=(mm.row->>'fixture_id')::BIGINT
                     WHERE p.generated_at_utc >= %s
@@ -550,84 +560,320 @@ def build_post_v223_visit_matrix(*, limit: int = 500) -> dict[str, Any]:
                       AND UPPER(mm.row->>'market_family') IN ('1X2','FT_TOTALS','BTTS')
                       AND COALESCE((mm.row->>'rankable')::boolean,false)=true
                       AND NULLIF(mm.row->>'market','') IS NOT NULL
+                      AND NULLIF(mm.row->>'selection','') IS NOT NULL
                       AND NULLIF(mm.row->>'price','') IS NOT NULL
+
                     UNION ALL
-                    SELECT (mt.row->>'fixture_id')::BIGINT,
-                           CASE WHEN UPPER(mt.row->>'market_family') IN ('TOTAL','FT_TOTALS_RESEARCH') THEN 'FT_TOTALS'
-                                WHEN UPPER(mt.row->>'market_family') IN ('FT_BTTS','FT_BTTS_RESEARCH') THEN 'BTTS'
-                                WHEN UPPER(mt.row->>'market_family') IN ('FT_1X2','FT_1X2_RESEARCH','MATCH_WINNER') THEN '1X2'
-                                ELSE UPPER(mt.row->>'market_family') END,
-                           mt.row->>'market', p.generated_at_utc, f.kickoff
+
+                    SELECT
+                        (mt.row->>'fixture_id')::BIGINT,
+                        CASE
+                            WHEN UPPER(mt.row->>'market_family') IN ('TOTAL','FT_TOTALS_RESEARCH') THEN 'FT_TOTALS'
+                            WHEN UPPER(mt.row->>'market_family') IN ('FT_BTTS','FT_BTTS_RESEARCH') THEN 'BTTS'
+                            WHEN UPPER(mt.row->>'market_family') IN ('FT_1X2','FT_1X2_RESEARCH','MATCH_WINNER') THEN '1X2'
+                            ELSE UPPER(mt.row->>'market_family')
+                        END,
+                        mt.row->>'market',
+                        mt.row->>'selection',
+                        mt.row->>'line',
+                        mt.row->>'price',
+                        mt.row->>'p_market_fair',
+                        p.generated_at_utc,
+                        f.kickoff
                     FROM soccer_pipeline_runs p
                     CROSS JOIN LATERAL jsonb_array_elements(
-                      CASE WHEN jsonb_typeof(COALESCE(p.payload->'match_table_rows','[]'::jsonb))='array'
-                           THEN COALESCE(p.payload->'match_table_rows','[]'::jsonb) ELSE '[]'::jsonb END
+                        CASE
+                            WHEN jsonb_typeof(COALESCE(p.payload->'match_table_rows','[]'::jsonb))='array'
+                            THEN COALESCE(p.payload->'match_table_rows','[]'::jsonb)
+                            ELSE '[]'::jsonb
+                        END
                     ) mt(row)
                     JOIN soccer_fixtures f ON f.fixture_id=(mt.row->>'fixture_id')::BIGINT
                     WHERE p.generated_at_utc >= %s
                       AND p.generated_at_utc < f.kickoff
-                      AND CASE WHEN UPPER(mt.row->>'market_family') IN ('TOTAL','FT_TOTALS_RESEARCH') THEN 'FT_TOTALS'
-                               WHEN UPPER(mt.row->>'market_family') IN ('FT_BTTS','FT_BTTS_RESEARCH') THEN 'BTTS'
-                               WHEN UPPER(mt.row->>'market_family') IN ('FT_1X2','FT_1X2_RESEARCH','MATCH_WINNER') THEN '1X2'
-                               ELSE UPPER(mt.row->>'market_family') END IN ('1X2','FT_TOTALS','BTTS')
+                      AND CASE
+                            WHEN UPPER(mt.row->>'market_family') IN ('TOTAL','FT_TOTALS_RESEARCH') THEN 'FT_TOTALS'
+                            WHEN UPPER(mt.row->>'market_family') IN ('FT_BTTS','FT_BTTS_RESEARCH') THEN 'BTTS'
+                            WHEN UPPER(mt.row->>'market_family') IN ('FT_1X2','FT_1X2_RESEARCH','MATCH_WINNER') THEN '1X2'
+                            ELSE UPPER(mt.row->>'market_family')
+                          END IN ('1X2','FT_TOTALS','BTTS')
                       AND NULLIF(mt.row->>'market','') IS NOT NULL
+                      AND NULLIF(mt.row->>'selection','') IS NOT NULL
                       AND jsonb_typeof(mt.row->'price')='number'
                       AND (mt.row->>'price')::DOUBLE PRECISION > 1.0
-                ), anchor AS (
-                    SELECT DISTINCT ON (fixture_id,market_family)
-                           fixture_id,market_family,market,signal_generated_at,kickoff
+                ),
+                anchor AS (
+                    SELECT DISTINCT ON (fixture_id, market_family)
+                        fixture_id,
+                        market_family,
+                        market,
+                        selection,
+                        line,
+                        entry_price,
+                        entry_fair_probability,
+                        signal_generated_at,
+                        kickoff
                     FROM raw_signal
-                    ORDER BY fixture_id,market_family,signal_generated_at ASC
+                    ORDER BY fixture_id, market_family, signal_generated_at ASC
+                ),
+                anchor_limited AS (
+                    SELECT *
+                    FROM anchor
+                    ORDER BY kickoff DESC, fixture_id ASC, market_family ASC
+                    LIMIT %s
                 )
-                SELECT a.fixture_id,a.market_family,a.market,a.signal_generated_at,a.kickoff,
-                       COUNT(m.*)::BIGINT AS later_market_snapshot_visits,
-                       COUNT(DISTINCT m.captured_at)::BIGINT AS distinct_capture_visits,
-                       COUNT(*) FILTER (WHERE m.provider_update IS NOT NULL)::BIGINT AS visits_with_provider_update,
-                       COUNT(*) FILTER (WHERE m.provider_update > a.signal_generated_at)::BIGINT AS provider_update_advances,
-                       MIN(m.captured_at) AS first_later_capture_at,
-                       MAX(m.captured_at) AS last_later_capture_at,
-                       MAX(m.provider_update) AS max_provider_update,
-                       BOOL_OR(m.provider_update > a.signal_generated_at) AS strict_later_provider_update
-                FROM anchor a
+                SELECT
+                    a.fixture_id,
+                    a.market_family,
+                    a.market,
+                    a.selection,
+                    a.line,
+                    a.entry_price,
+                    a.entry_fair_probability,
+                    a.signal_generated_at,
+                    a.kickoff,
+                    m.captured_at,
+                    m.provider_update,
+                    m.bookmaker_id,
+                    m.bookmaker,
+                    m.values
+                FROM anchor_limited a
                 LEFT JOIN soccer_market_snapshots m
                   ON m.fixture_id=a.fixture_id
                  AND m.captured_at>a.signal_generated_at
                  AND m.captured_at<a.kickoff
                  AND LOWER(TRIM(COALESCE(m.market,'')))=LOWER(TRIM(COALESCE(a.market,'')))
-                GROUP BY a.fixture_id,a.market_family,a.market,a.signal_generated_at,a.kickoff
-                ORDER BY a.kickoff DESC,a.fixture_id,a.market_family
-                LIMIT %s
+                ORDER BY a.kickoff DESC, a.fixture_id, a.market_family, m.captured_at, m.bookmaker_id
                 """,
-                (POST_V223_LIVE_AT, POST_V223_LIVE_AT, max(1,min(int(limit),2000))),
+                (POST_V223_LIVE_AT, POST_V223_LIVE_AT, bounded_limit),
             )
-            cols=[d.name for d in cur.description]
-            rows=[dict(zip(cols,r)) for r in cur.fetchall()]
-    def iso(v):
-        return v.isoformat() if isinstance(v,datetime) else v
-    clean=[]
-    for row in rows:
-        clean.append({k:iso(v) for k,v in row.items()})
-    families={}
-    for fam in ("1X2","BTTS","FT_TOTALS"):
-        fr=[r for r in clean if r["market_family"]==fam]
-        revisited=[r for r in fr if int(r["distinct_capture_visits"] or 0)>=2]
-        advanced=[r for r in revisited if bool(r["strict_later_provider_update"])]
-        families[fam]={
-            "signals":len(fr),
-            "with_any_later_snapshot":sum(int(r["later_market_snapshot_visits"] or 0)>0 for r in fr),
-            "with_2plus_capture_visits":len(revisited),
-            "with_provider_update_advance":len(advanced),
-            "provider_update_advancement_rate":round(len(advanced)/len(revisited),6) if revisited else None,
+            cols = [d.name for d in cur.description]
+            raw_rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+
+    grouped: dict[tuple[int, str], dict[str, Any]] = {}
+    for raw in raw_rows:
+        fixture_id = int(raw["fixture_id"])
+        family = str(raw.get("market_family") or "").upper()
+        key = (fixture_id, family)
+        signal_at = raw.get("signal_generated_at")
+        kickoff = raw.get("kickoff")
+        record = grouped.setdefault(
+            key,
+            {
+                "fixture_id": fixture_id,
+                "market_family": family,
+                "market": raw.get("market"),
+                "selection": raw.get("selection"),
+                "line": price._num(raw.get("line")),
+                "entry_price": price._num(raw.get("entry_price")),
+                "entry_fair_probability": price._num(raw.get("entry_fair_probability")),
+                "signal_generated_at": signal_at,
+                "kickoff": kickoff,
+                "_snapshots": [],
+            },
+        )
+        if record["line"] is None:
+            _, parsed_line = price._parse_value(record.get("selection"))
+            record["line"] = parsed_line
+
+        if raw.get("captured_at") is None:
+            continue
+        record["_snapshots"].append(
+            {
+                "captured_at": raw.get("captured_at"),
+                "provider_update": raw.get("provider_update"),
+                "bookmaker_id": raw.get("bookmaker_id"),
+                "bookmaker": raw.get("bookmaker"),
+                "values": raw.get("values") if isinstance(raw.get("values"), list) else [],
+            }
+        )
+
+    def _iso(value: Any) -> Any:
+        return value.isoformat() if isinstance(value, datetime) else value
+
+    clean: list[dict[str, Any]] = []
+    for record in grouped.values():
+        signal_at = record["signal_generated_at"]
+        selection = record.get("selection")
+        line = record.get("line")
+        entry_price = record.get("entry_price")
+        entry_fair = record.get("entry_fair_probability")
+        if entry_fair is None and entry_price is not None and entry_price > 1.0:
+            entry_fair = 1.0 / entry_price
+
+        by_capture: dict[Any, list[dict[str, Any]]] = defaultdict(list)
+        for snap in record.pop("_snapshots"):
+            by_capture[snap.get("captured_at")].append(snap)
+
+        visits: list[dict[str, Any]] = []
+        market_snapshot_rows = 0
+        exact_instrument_snapshot_rows = 0
+        strict_snapshot_rows = 0
+        for captured_at in sorted(by_capture, key=lambda value: value or datetime.min.replace(tzinfo=timezone.utc)):
+            snaps = by_capture[captured_at]
+            market_snapshot_rows += len(snaps)
+            provider_updates = [
+                clv._as_utc_datetime(snap.get("provider_update"))
+                for snap in snaps
+                if clv._as_utc_datetime(snap.get("provider_update")) is not None
+            ]
+            max_provider_update = max(provider_updates) if provider_updates else None
+            provider_update_advanced = bool(
+                max_provider_update is not None
+                and signal_at is not None
+                and max_provider_update > signal_at
+            )
+
+            fair_values: list[float] = []
+            price_values: list[float] = []
+            exact_rows = 0
+            for snap in snaps:
+                values = snap.get("values") if isinstance(snap.get("values"), list) else []
+                fair, closing_price = clv._group_fair_probability(values, selection, line)
+                if fair is not None:
+                    exact_rows += 1
+                    fair_values.append(float(fair))
+                    if closing_price is not None:
+                        price_values.append(float(closing_price))
+
+            exact_instrument_present = exact_rows > 0
+            exact_instrument_snapshot_rows += exact_rows
+            strict_close_eligible = exact_instrument_present and provider_update_advanced
+            if strict_close_eligible:
+                strict_snapshot_rows += exact_rows
+
+            closing_fair = sorted(fair_values)[len(fair_values) // 2] if fair_values else None
+            closing_price = sorted(price_values)[len(price_values) // 2] if price_values else None
+            probability_clv = (
+                round((closing_fair - entry_fair) * 100.0, 6)
+                if strict_close_eligible and closing_fair is not None and entry_fair is not None
+                else None
+            )
+            price_clv = (
+                round((entry_price / closing_price - 1.0) * 100.0, 6)
+                if strict_close_eligible
+                and entry_price is not None
+                and closing_price is not None
+                and closing_price > 1.0
+                else None
+            )
+
+            visits.append(
+                {
+                    "captured_at": _iso(captured_at),
+                    "provider_update": _iso(max_provider_update),
+                    "market_snapshot_rows": len(snaps),
+                    "exact_instrument_snapshot_rows": exact_rows,
+                    "provider_update_advanced": provider_update_advanced,
+                    "exact_instrument_present": exact_instrument_present,
+                    "strict_close_eligible": strict_close_eligible,
+                    "closing_fair_probability": round(closing_fair, 8) if closing_fair is not None else None,
+                    "closing_price": round(closing_price, 6) if closing_price is not None else None,
+                    "probability_clv_pp": probability_clv,
+                    "price_clv_pct": price_clv,
+                }
+            )
+
+        strict_visits = [visit for visit in visits if visit["strict_close_eligible"]]
+        latest_strict = strict_visits[-1] if strict_visits else None
+        record.update(
+            {
+                "entry_fair_probability": round(entry_fair, 8) if entry_fair is not None else None,
+                "signal_generated_at": _iso(signal_at),
+                "kickoff": _iso(record.get("kickoff")),
+                "later_market_snapshot_visits": market_snapshot_rows,
+                "distinct_capture_visits": len(visits),
+                "visits_with_provider_update": sum(visit["provider_update"] is not None for visit in visits),
+                "provider_update_advances": sum(visit["provider_update_advanced"] for visit in visits),
+                "exact_instrument_later_visits": sum(visit["exact_instrument_present"] for visit in visits),
+                "strict_close_eligible_visits": len(strict_visits),
+                "exact_market_present": bool(visits),
+                "exact_instrument_present": any(visit["exact_instrument_present"] for visit in visits),
+                "strict_close_eligible": bool(strict_visits),
+                "true_clv_comparable": bool(
+                    latest_strict
+                    and (
+                        latest_strict.get("probability_clv_pp") is not None
+                        or latest_strict.get("price_clv_pct") is not None
+                    )
+                ),
+                "latest_probability_clv_pp": (
+                    latest_strict.get("probability_clv_pp") if latest_strict else None
+                ),
+                "latest_price_clv_pct": (
+                    latest_strict.get("price_clv_pct") if latest_strict else None
+                ),
+                "first_later_capture_at": visits[0]["captured_at"] if visits else None,
+                "last_later_capture_at": visits[-1]["captured_at"] if visits else None,
+                "max_provider_update": _iso(
+                    max(
+                        (
+                            clv._as_utc_datetime(visit.get("provider_update"))
+                            for visit in visits
+                            if clv._as_utc_datetime(visit.get("provider_update")) is not None
+                        ),
+                        default=None,
+                    )
+                ),
+                "strict_later_provider_update": any(visit["provider_update_advanced"] for visit in visits),
+                "visits": visits,
+                "market_snapshot_rows": market_snapshot_rows,
+                "exact_instrument_snapshot_rows": exact_instrument_snapshot_rows,
+                "strict_instrument_snapshot_rows": strict_snapshot_rows,
+            }
+        )
+        clean.append(record)
+
+    clean.sort(
+        key=lambda row: (
+            str(row.get("kickoff") or ""),
+            int(row.get("fixture_id") or 0),
+            str(row.get("market_family") or ""),
+        ),
+        reverse=True,
+    )
+
+    families: dict[str, dict[str, Any]] = {}
+    for fam in ("1X2", "BTTS", "FT_TOTALS"):
+        family_rows = [row for row in clean if row["market_family"] == fam]
+        revisited = [row for row in family_rows if int(row["distinct_capture_visits"] or 0) >= 2]
+        advanced = [row for row in revisited if bool(row["strict_later_provider_update"])]
+        exact = [row for row in family_rows if bool(row["exact_instrument_present"])]
+        strict = [row for row in family_rows if bool(row["strict_close_eligible"])]
+        comparable = [row for row in family_rows if bool(row["true_clv_comparable"])]
+        families[fam] = {
+            "signals": len(family_rows),
+            "with_any_later_snapshot": sum(bool(row["exact_market_present"]) for row in family_rows),
+            "with_2plus_capture_visits": len(revisited),
+            "with_provider_update_advance": len(advanced),
+            "with_exact_instrument_later_quote": len(exact),
+            "strict_close_eligible": len(strict),
+            "true_clv_comparable": len(comparable),
+            "provider_update_advancement_rate": (
+                round(len(advanced) / len(revisited), 6) if revisited else None
+            ),
+            "strict_close_conversion_rate": (
+                round(len(strict) / len(family_rows), 6) if family_rows else None
+            ),
         }
+
     return {
-        "schema_version":"1.0.0",
-        "model_version":"SOCCER_POST_V223_VISIT_MATRIX_V1",
-        "cohort_start_utc":POST_V223_LIVE_AT.isoformat(),
-        "generated_at_utc":datetime.now(timezone.utc).isoformat(),
-        "family_summary":families,
-        "rows":clean,
-        "provider_requests_added":0,
-        "strict_close_semantics_changed":False,
-        "models_changed":False,"thresholds_changed":False,"gates_changed":False,
-        "provider_budget_changed":False,"canonical_bet_logic_changed":False,
+        "schema_version": "2.0.0",
+        "model_version": "SOCCER_POST_V223_VISIT_MATRIX_V2",
+        "cohort_start_utc": POST_V223_LIVE_AT.isoformat(),
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "family_summary": families,
+        "rows": clean,
+        "provider_requests_added": 0,
+        "strict_close_semantics_changed": False,
+        "models_changed": False,
+        "thresholds_changed": False,
+        "gates_changed": False,
+        "provider_budget_changed": False,
+        "canonical_bet_logic_changed": False,
+        "note": (
+            "true_clv_comparable is a DB-only exact-instrument comparability diagnostic using the "
+            "same fair-probability/price math as canonical Phase17; canonical promotion counts remain "
+            "owned by the Phase17 report and are not mutated here."
+        ),
     }
