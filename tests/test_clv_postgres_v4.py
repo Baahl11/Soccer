@@ -300,10 +300,14 @@ def test_derivative_team_totals_keep_home_and_away_family_identity():
 class _FakeCursor:
     def __init__(self):
         self.query = ""
+        self.queries = []
+        self.executions = []
         self.description = []
 
     def execute(self, query, params):
         self.query = query
+        self.queries.append(query)
+        self.executions.append((query, params))
 
     def fetchall(self):
         return []
@@ -375,7 +379,7 @@ def test_pipeline_loader_does_not_duplicate_full_event_payload():
 def test_derivative_sql_loader_includes_team_totals_observed_exact_rows():
     conn = _FakeConn()
     rows = v._load_derivative_signals(conn, lookback_days=30, max_rows=10)
-    query = conn.cursor_instance.query
+    query = "\n".join(conn.cursor_instance.queries)
 
     assert rows == []
     assert "team_totals_intelligence" in query
@@ -387,12 +391,21 @@ def test_derivative_sql_loader_includes_team_totals_observed_exact_rows():
 def test_derivative_sql_allows_early_research_only_for_team_totals():
     conn = _FakeConn()
     rows = v._load_derivative_signals(conn, lookback_days=30, max_rows=10)
-    query = conn.cursor_instance.query
 
     assert rows == []
-    assert "d.signal_source = 'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'" in query
-    assert "e.stage = ANY(%s)" in query
-    assert "TEAM_TOTALS_RESEARCH_STAGES" not in query
+    team_query, team_params = next(
+        (query, params)
+        for query, params in conn.cursor_instance.executions
+        if "team_totals_intelligence" in query
+    )
+    one_h_query, one_h_params = next(
+        (query, params)
+        for query, params in conn.cursor_instance.executions
+        if "one_h_goals_intelligence" in query
+    )
+    assert "e.stage = ANY(%s)" in team_query
+    assert list(v.TEAM_TOTALS_RESEARCH_STAGES) in team_params
+    assert list(v.SIGNAL_STAGES) in one_h_params
 
 
 def test_legacy_loader_keeps_only_best_market_and_sport_metadata():
@@ -589,7 +602,7 @@ def test_v199_cards_derivative_sources_keep_match_and_team_price_identity():
 def test_v199_cards_sql_loader_reads_persisted_match_and_team_card_rows():
     conn = _FakeConn()
     rows = v._load_derivative_signals(conn, lookback_days=30, max_rows=10)
-    query = conn.cursor_instance.query
+    query = "\n".join(conn.cursor_instance.queries)
 
     assert rows == []
     assert "cards_intelligence_live" in query
