@@ -435,79 +435,88 @@ def _load_legacy_signals(conn, *, lookback_days: int, max_rows: int) -> list[dic
 
 
 def _load_derivative_signals(conn, *, lookback_days: int, max_rows: int) -> list[dict[str, Any]]:
+    """Load bounded oldest-first derivative evidence without a global window sort.
+
+    Each derivative family is queried independently, ordered by generated_at ASC,
+    and bounded before the cross-family merge. _merge_signals then keeps the oldest
+    exact-instrument anchor already loaded for families that require point-in-time
+    anchoring. This avoids the previous global ROW_NUMBER over every expanded JSON
+    market row while preserving strict-close semantics.
+    """
     cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(lookback_days)))
+    per_family_limit = max(100, min(int(max_rows), 2000))
+    source_configs = (
+        ("TEAM_TOTALS", "team_totals_intelligence", "observed_exact_market_rows",
+         "DERIVATIVE_INTELLIGENCE:team_totals_intelligence", TEAM_TOTALS_RESEARCH_STAGES),
+        ("1H", "one_h_goals_intelligence", "observed_market_rows",
+         "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence", SIGNAL_STAGES),
+        ("2H", "two_h_goals_intelligence", "observed_market_rows",
+         "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence", SIGNAL_STAGES),
+        ("FT_CORNERS", "corners_intelligence", "observed_market_rows",
+         "DERIVATIVE_INTELLIGENCE:corners_intelligence", SIGNAL_STAGES),
+        ("TEAM_CORNERS", "team_corners_intelligence", "observed_market_rows",
+         "DERIVATIVE_INTELLIGENCE:team_corners_intelligence", SIGNAL_STAGES),
+        ("CARDS", "cards_intelligence_live", "observed_explicit_yellow_market_rows",
+         "DERIVATIVE_INTELLIGENCE:cards_intelligence_live", SIGNAL_STAGES),
+        ("TEAM_CARDS", "team_cards_intelligence", "observed_market_rows",
+         "DERIVATIVE_INTELLIGENCE:team_cards_intelligence", SIGNAL_STAGES),
+    )
+    rows: list[dict[str, Any]] = []
     with conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT
-                e.fixture_id,
-                e.generated_at,
-                e.stage,
-                e.classification,
-                jsonb_build_object(
-                    'tier', e.payload -> 'tier',
-                    'model_signal', e.payload -> 'model_signal',
-                    'sporting_shortlist', e.payload -> 'sporting_shortlist'
-                ) AS event_payload,
-                f.kickoff,
-                f.league,
-                f.home_team,
-                f.away_team,
-                p.payload ->> 'model_version' AS model_version,
-                p.payload ->> 'version' AS automation_version,
-                d.market_candidate,
-                d.signal_source
-            FROM soccer_refresh_events e
-            JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
-            LEFT JOIN soccer_pipeline_runs p ON p.generated_at_utc = e.generated_at
-            CROSS JOIN LATERAL (
+        for family_hint, container_key, rows_key, signal_source, stages in source_configs:
+            cur.execute(
+                f"""
                 SELECT
-                    jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_TOTALS'::text), true) AS market_candidate,
-                    'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'::text AS signal_source
-                FROM jsonb_array_elements(
-                    COALESCE(e.payload -> 'team_totals_intelligence' -> 'observed_exact_market_rows', '[]'::jsonb)
-                ) AS t(row_value)
-                UNION ALL
-                SELECT jsonb_set(row_value, '{market_family}', to_jsonb('1H'::text), true),
-                       'DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence'::text
-                FROM jsonb_array_elements(COALESCE(e.payload -> 'one_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)) AS h(row_value)
-                UNION ALL
-                SELECT jsonb_set(row_value, '{market_family}', to_jsonb('2H'::text), true),
-                       'DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence'::text
-                FROM jsonb_array_elements(COALESCE(e.payload -> 'two_h_goals_intelligence' -> 'observed_market_rows', '[]'::jsonb)) AS sh(row_value)
-                UNION ALL
-                SELECT jsonb_set(row_value, '{market_family}', to_jsonb('FT_CORNERS'::text), true),
-                       'DERIVATIVE_INTELLIGENCE:corners_intelligence'::text
-                FROM jsonb_array_elements(COALESCE(e.payload -> 'corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)) AS c(row_value)
-                UNION ALL
-                SELECT jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_CORNERS'::text), true),
-                       'DERIVATIVE_INTELLIGENCE:team_corners_intelligence'::text
-                FROM jsonb_array_elements(COALESCE(e.payload -> 'team_corners_intelligence' -> 'observed_market_rows', '[]'::jsonb)) AS tc(row_value)
-                UNION ALL
-                SELECT jsonb_set(row_value, '{market_family}', to_jsonb('CARDS'::text), true),
-                       'DERIVATIVE_INTELLIGENCE:cards_intelligence_live'::text
-                FROM jsonb_array_elements(COALESCE(e.payload -> 'cards_intelligence_live' -> 'observed_explicit_yellow_market_rows', '[]'::jsonb)) AS cards(row_value)
-                UNION ALL
-                SELECT jsonb_set(row_value, '{market_family}', to_jsonb('TEAM_CARDS'::text), true),
-                       'DERIVATIVE_INTELLIGENCE:team_cards_intelligence'::text
-                FROM jsonb_array_elements(COALESCE(e.payload -> 'team_cards_intelligence' -> 'observed_market_rows', '[]'::jsonb)) AS team_cards(row_value)
-            ) AS d
-            WHERE e.generated_at >= %s
-              AND (
-                    e.stage = ANY(%s)
-                    OR (
-                        d.signal_source = 'DERIVATIVE_INTELLIGENCE:team_totals_intelligence'
-                        AND e.stage = ANY(%s)
-                    )
-                  )
-              AND e.generated_at < f.kickoff
-            ORDER BY e.generated_at DESC
-            LIMIT %s
-            """,
-            (cutoff, list(SIGNAL_STAGES), list(TEAM_TOTALS_RESEARCH_STAGES), max(1, int(max_rows))),
-        )
-        columns = [desc.name for desc in cur.description]
-        return [dict(zip(columns, row)) for row in cur.fetchall()]
+                    e.fixture_id,
+                    e.generated_at,
+                    e.stage,
+                    e.classification,
+                    jsonb_build_object(
+                        'tier', e.payload -> 'tier',
+                        'model_signal', e.payload -> 'model_signal',
+                        'sporting_shortlist', e.payload -> 'sporting_shortlist'
+                    ) AS event_payload,
+                    f.kickoff,
+                    f.league,
+                    f.home_team,
+                    f.away_team,
+                    p.payload ->> 'model_version' AS model_version,
+                    p.payload ->> 'version' AS automation_version,
+                    jsonb_set(sig.row, '{{market_family}}', to_jsonb(%s::text), true) AS market_candidate,
+                    %s::text AS signal_source
+                FROM soccer_refresh_events e
+                JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+                LEFT JOIN soccer_pipeline_runs p ON p.generated_at_utc = e.generated_at
+                CROSS JOIN LATERAL jsonb_array_elements(
+                    CASE
+                        WHEN jsonb_typeof(
+                            COALESCE(e.payload -> %s -> %s, '[]'::jsonb)
+                        ) = 'array'
+                        THEN COALESCE(e.payload -> %s -> %s, '[]'::jsonb)
+                        ELSE '[]'::jsonb
+                    END
+                ) AS sig(row)
+                WHERE e.generated_at >= %s
+                  AND e.stage = ANY(%s)
+                  AND e.generated_at < f.kickoff
+                ORDER BY e.generated_at ASC
+                LIMIT %s
+                """,
+                (
+                    family_hint,
+                    signal_source,
+                    container_key,
+                    rows_key,
+                    container_key,
+                    rows_key,
+                    cutoff,
+                    list(stages),
+                    per_family_limit,
+                ),
+            )
+            columns = [desc.name for desc in cur.description]
+            rows.extend(dict(zip(columns, row)) for row in cur.fetchall())
+    return rows
 
 
 def _derivative_signals_from_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
