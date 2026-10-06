@@ -954,11 +954,30 @@ def build_from_postgres(*, lookback_days: int = 30, max_signals: int = 5000) -> 
             lookback_days=lookback_days,
             max_rows=max_signals,
         )
-        derivative_signals_raw, derivative_anchor_diagnostics = _apply_targeted_oldest_derivative_anchors(
-            conn,
-            derivative_signals_raw,
-            lookback_days=lookback_days,
-        )
+        target_anchor_rows = [
+            row for row in derivative_signals_raw
+            if str(_family(row.get("market_candidate") or {}) or "UNMAPPED")
+            in DERIVATIVE_OLDEST_ANCHOR_FAMILIES
+        ]
+        target_anchor_keys = {
+            _derivative_instrument_identity(row)
+            for row in target_anchor_rows
+        }
+        derivative_anchor_diagnostics = {
+            "policy": "PER_FAMILY_OLDEST_FIRST_BOUNDED_LOAD_THEN_IN_MEMORY_EXACT_INSTRUMENT_DEDUPE",
+            "target_fixture_count": len({
+                int(row["fixture_id"])
+                for row in target_anchor_rows
+                if row.get("fixture_id") is not None
+            }),
+            "target_instrument_count": len(target_anchor_keys),
+            "history_rows_scanned": 0,
+            "anchors_resolved": len(target_anchor_keys),
+            "anchors_replaced": 0,
+            "provider_requests_added": 0,
+            "strict_close_semantics_changed": False,
+            "redundant_targeted_history_scan_skipped": True,
+        }
         derivative_period_team_total_rows_excluded = sum(
             1 for signal in derivative_signals_raw if _is_period_team_total_signal(signal)
         )
