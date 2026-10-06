@@ -1,3 +1,4 @@
+# v237.1 bound recent canonical derivative CLV validation to 14d/1000; historical merge preserved
 # v239 make Phase17 curl timeout retry loop effective
 # v237 post-anchor-fix canonical derivative CLV validation
 # v238 live validate oldest derivative exact-instrument anchors
@@ -107,7 +108,7 @@ jobs:
               -X POST \
               -H "Authorization: Bearer ${TOKEN}" \
               -H "Content-Type: application/json" \
-              -d '{"lookback_days":60,"max_signals":2000}' \
+              -d '{"lookback_days":14,"max_signals":1000}' \
               https://soccer-edge-api.onrender.com/internal/clv-v4/build)
 
             MODEL_VERSION=$(jq -r '.model_version // empty' /tmp/clv_v4.json 2>/dev/null || true)
