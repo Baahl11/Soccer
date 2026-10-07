@@ -359,7 +359,10 @@ async def run_tick() -> dict[str, Any]:
         max_api_calls=budget_plan["total_price_resolver_budget"],
     )
 
-    payload["ft_totals_settlement_capture"] = ft_totals_settlement_capture.attach(payload)
+    payload["ft_totals_settlement_capture"] = ft_totals_settlement_capture.attach(
+        payload,
+        include_historical_line_coverage=False,
+    )
 
     # Count Cards/Props after every paid odds path has run, including the
     # primary price resolver. Cache replays remain visible diagnostically but

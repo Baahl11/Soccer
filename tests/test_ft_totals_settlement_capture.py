@@ -162,3 +162,46 @@ def test_attach_adds_capture_and_historical_coverage_without_decision_changes(mo
     event = payload["events"][0]
     assert event["ft_totals_settlement_capture"]["cache_replay"] is True
     assert event["ft_goals_intelligence"]["observed_settlement_aware_lines"] == [2.25]
+
+
+
+def test_attach_can_defer_historical_line_coverage_in_live_runtime(monkeypatch):
+    monkeypatch.setattr(
+        capture.ft_totals_line_coverage_checkpoint,
+        "build",
+        lambda: (_ for _ in ()).throw(
+            AssertionError("historical coverage query must stay out of live runtime")
+        ),
+    )
+    payload = {
+        "events": [
+            {
+                "event_type": "SOCCER_REFRESH",
+                "stage": "T-20",
+                "fixture": {"fixture_id": 88},
+                "raw_projection": {"raw_total_goals": 2.6},
+                "market": {
+                    "source": "API_FOOTBALL_ODDS_V3",
+                    "resolution_status": "PRICE_API_RESOLVED",
+                    "markets": [
+                        {
+                            "market": "Goals Over/Under",
+                            "bookmaker": "Book A",
+                            "values": [
+                                {"selection": "Over", "line": 2.5, "decimal_price": 1.95},
+                                {"selection": "Under", "line": 2.5, "decimal_price": 1.91},
+                            ],
+                        }
+                    ],
+                },
+            }
+        ]
+    }
+
+    summary = capture.attach(payload, include_historical_line_coverage=False)
+
+    assert summary["rows_captured"] == 2
+    assert summary["historical_line_coverage"]["status"] == "DEFERRED_TO_OFFLINE_VALIDATION"
+    assert summary["historical_line_coverage"]["provider_requests_added"] == 0
+    assert summary["canonical_bet_logic_changed"] is False
+    assert summary["model_weights_changed"] is False

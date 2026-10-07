@@ -269,12 +269,29 @@ def capture_event(event: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def attach(payload: dict[str, Any]) -> dict[str, Any]:
+def attach(
+    payload: dict[str, Any],
+    *,
+    include_historical_line_coverage: bool = True,
+) -> dict[str, Any]:
     paid_odds_reuse = ft_totals_paid_odds_reuse.attach(
         payload,
         ft_totals_paid_odds_reuse.drain(),
     )
-    historical_line_coverage = ft_totals_line_coverage_checkpoint.build()
+    historical_line_coverage = (
+        ft_totals_line_coverage_checkpoint.build()
+        if include_historical_line_coverage
+        else {
+            "schema_version": ft_totals_line_coverage_checkpoint.SCHEMA_VERSION,
+            "model_version": ft_totals_line_coverage_checkpoint.MODEL_VERSION,
+            "status": "DEFERRED_TO_OFFLINE_VALIDATION",
+            "reason": "KEEP_180_DAY_MARKET_HISTORY_QUERY_OUT_OF_LIVE_RUNTIME",
+            "lookback_days": ft_totals_line_coverage_checkpoint.LOOKBACK_DAYS,
+            "provider_requests_added": 0,
+            "decision_weight": 0.0,
+            "production_promotion_allowed": False,
+        }
+    )
     events_with_rows = 0
     rows_captured = 0
     fresh_provider_rows = 0
