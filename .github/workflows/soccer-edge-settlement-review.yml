@@ -30,13 +30,24 @@ jobs:
         with: {ref: soccer-edge-mcp-v1, path: engine, fetch-depth: 1}
 
       - name: Compile settlement review modules
-        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py engine/mcp_gateway/shadow_settlement_v4.py engine/mcp_gateway/shadow_selection_diagnostics_v4.py engine/mcp_gateway/promotion_shadow_ledger_v4.py engine/mcp_gateway/settlement_postgres_v4.py engine/mcp_gateway/settlement_merge_v4.py
+        run: python -m py_compile engine/mcp_gateway/build_signal_ledger.py engine/mcp_gateway/evaluate_postgame.py engine/mcp_gateway/analyze_settlement_segments.py engine/mcp_gateway/review_settlement_promotion_gates.py engine/mcp_gateway/analyze_settlement_coverage.py engine/mcp_gateway/build_postgame_backfill_queue.py engine/mcp_gateway/shadow_settlement_v4.py engine/mcp_gateway/shadow_selection_diagnostics_v4.py engine/mcp_gateway/promotion_shadow_ledger_v4.py engine/mcp_gateway/settlement_postgres_v4.py engine/mcp_gateway/settlement_merge_v4.py engine/mcp_gateway/canonical_clv_outcome_v4.py
 
       - name: Build historical signal ledger
         run: python engine/mcp_gateway/build_signal_ledger.py --history-dir state/soccer_edge_state/history --output state/soccer_edge_state/analysis/signal_ledger.jsonl --summary-output state/soccer_edge_state/analysis/signal_ledger_summary.json
 
       - name: Evaluate postgame outcomes and settlement ledger
         run: python engine/mcp_gateway/evaluate_postgame.py --ledger state/soccer_edge_state/analysis/signal_ledger.jsonl --output state/soccer_edge_state/analysis/postgame_evaluation.jsonl --summary-output state/soccer_edge_state/analysis/postgame_summary.json --settlement-output state/soccer_edge_state/analysis/bet_settlement_ledger.jsonl --market-summary-output state/soccer_edge_state/analysis/market_performance_summary.json
+
+      - name: Grade canonical 1X2 and Team Totals True CLV outcomes
+        run: |
+          PYTHONPATH=engine python -m mcp_gateway.canonical_clv_outcome_v4 \
+            --clv-tracking state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl \
+            --signal-ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --output state/soccer_edge_state/analysis/canonical_clv_outcome_v4.jsonl \
+            --summary-output state/soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json
+          jq -e '.production_promotion_allowed == false' state/soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json >/dev/null
+          jq -e '.families["1X2"] | type == "object"' state/soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json >/dev/null
+          jq -e '.families.TEAM_TOTALS | type == "object"' state/soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json >/dev/null
 
       - name: Refresh canonical settlement ledger from Postgres
         shell: bash
@@ -195,6 +206,8 @@ jobs:
             soccer_edge_state/analysis/postgame_summary.json \
             soccer_edge_state/analysis/bet_settlement_ledger.jsonl \
             soccer_edge_state/analysis/market_performance_summary.json \
+            soccer_edge_state/analysis/canonical_clv_outcome_v4.jsonl \
+            soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json \
             soccer_edge_state/analysis/shadow_settlement_ledger_v4.jsonl \
             soccer_edge_state/analysis/shadow_performance_summary_v4.json \
             soccer_edge_state/analysis/shadow_selection_diagnostics_v4.json \
