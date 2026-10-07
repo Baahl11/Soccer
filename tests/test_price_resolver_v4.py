@@ -2543,3 +2543,13 @@ def test_price_resolver_source_uses_batch_cache_for_primary_and_spillover():
     assert "await asyncio.to_thread(_load_cached_markets, fixture_id" not in source
     assert "JOIN (VALUES" in batch_source
     assert "m.captured_at >= target.cutoff" in batch_source
+
+
+def test_schema_has_strict_close_market_lookup_index():
+    from pathlib import Path
+
+    schema = Path(v.persistence.__file__).with_name("schema.sql").read_text(encoding="utf-8")
+    assert "idx_soccer_market_fixture_market_close" in schema
+    assert "(LOWER(TRIM(COALESCE(market, ''))))" in schema
+    assert "provider_update DESC" in schema
+    assert "WHERE provider_update IS NOT NULL" in schema
