@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
 
 from mcp_gateway import formation_matchup_fm4_style_ablation_v1 as fm4
 
@@ -42,8 +43,9 @@ def _row(i: int) -> dict:
 def _source(n=80):
     rows = [_row(i) for i in range(1, n + 1)]
     rows.sort(key=lambda row: row["fixture_id"])
+    start = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
     for idx, row in enumerate(rows):
-        row["kickoff_local"] = f"2026-01-{(idx % 28) + 1:02d}T{(idx // 28) % 24:02d}:00:00+00:00"
+        row["kickoff_local"] = (start + timedelta(hours=12 * idx)).isoformat()
     return {
         "model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
         "status": "RESEARCH_ONLY_FORMATION_MATCHUP_ENGINE",
@@ -140,9 +142,8 @@ def test_style_ablation_has_forward_only_evaluations_after_training_gate():
         assert row["eligible_fixtures"] > 0
         assert row["production_enabled"] is False
         assert row["decision_weight"] == 0.0
-    first = min(
-        row["fixture_id"]
-        for row in report["evaluation_rows"]
-        if row["target"] == "SHOTS"
-    )
-    assert first > fm4.MIN_STYLE_TRAIN_N
+    shot_rows = [
+        row for row in report["evaluation_rows"] if row["target"] == "SHOTS"
+    ]
+    assert min(row["training_rows_home"] for row in shot_rows) >= fm4.MIN_STYLE_TRAIN_N
+    assert min(row["training_rows_away"] for row in shot_rows) >= fm4.MIN_STYLE_TRAIN_N
