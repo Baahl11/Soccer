@@ -906,6 +906,153 @@ async def performance(request: Request) -> JSONResponse:
     )
 
 
+def _match_market_group(candidate: dict[str, Any]) -> str:
+    market = _dict(candidate.get("market"))
+    family = str(market.get("family") or "").upper()
+    name = str(market.get("name") or "").upper()
+    text = f"{family} {name}"
+    if "CORNER" in text:
+        return "CORNERS"
+    if "CARD" in text or "BOOKING" in text:
+        return "CARDS"
+    if "PLAYER" in text or "PROP" in text:
+        return "PLAYERS"
+    if (
+        family in {"FT_TOTALS", "TEAM_TOTALS", "BTTS", "FIRST_HALF", "SECOND_HALF"}
+        or "GOAL" in text
+        or "TOTAL" in text
+    ):
+        return "GOALS"
+    return "GENERAL"
+
+
+def build_match_contract(
+    payload: dict[str, Any],
+    fixture_value: Any,
+) -> dict[str, Any] | None:
+    """Build one persisted-fixture intelligence packet without new provider calls."""
+
+    raw_rows = subscriber_preview_data_v231._fixture_rows(payload, fixture_value)
+    if not raw_rows:
+        return None
+
+    candidates = _sort_candidates([adapt_candidate(row) for row in raw_rows])
+    selected_raw = max(raw_rows, key=lambda row: _candidate_score(adapt_candidate(row)))
+    selected = adapt_candidate(selected_raw)
+    selected_v231 = subscriber_ui_contract_v231.adapt_market_row(selected_raw)
+    detail = subscriber_preview_data_v231._match_detail(payload, selected_v231) or {}
+
+    groups: dict[str, list[dict[str, Any]]] = {
+        "GOALS": [],
+        "CORNERS": [],
+        "CARDS": [],
+        "PLAYERS": [],
+        "GENERAL": [],
+    }
+    for candidate in candidates:
+        groups[_match_market_group(candidate)].append(candidate)
+
+    model_context_raw = _dict(detail.get("model_context"))
+    model_context = {
+        "confidence": model_context_raw.get("confidence"),
+        "data_quality": model_context_raw.get("data_quality"),
+        "lineup": model_context_raw.get("lineup"),
+        "model_disagreement": model_context_raw.get("model_disagreement"),
+        "models_agreeing": model_context_raw.get("models_agreeing"),
+        "models_total": model_context_raw.get("models_total"),
+        "model_version": model_context_raw.get("model_version"),
+        "stage": model_context_raw.get("stage"),
+        "provider_update": model_context_raw.get("provider_update"),
+        "bookmaker": model_context_raw.get("bookmaker"),
+    }
+
+    availability = _dict(selected.get("availability"))
+    evidence = _dict(selected.get("evidence"))
+    projections = _dict(selected.get("projections"))
+    market = _dict(selected.get("market"))
+    decision = _dict(selected.get("decision"))
+    model = _dict(selected.get("model"))
+    freshness = _dict(selected.get("freshness"))
+
+    missing: list[str] = []
+    if not detail.get("outcome_probabilities"):
+        missing.append("OUTCOME_PROBABILITIES")
+    if not detail.get("expected_goals"):
+        missing.append("EXPECTED_GOALS")
+    if not detail.get("score_matrix"):
+        missing.append("SCORE_MATRIX")
+    if not detail.get("sport_profile"):
+        missing.append("SPORT_PROFILE")
+    if availability.get("confidence") is None:
+        missing.append("AVAILABILITY_CONFIDENCE")
+    if market.get("price", {}).get("value") is None:
+        missing.append("EXACT_PRICE")
+
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "model_version": MODEL_VERSION,
+        "status": "MATCH_INTELLIGENCE_READY",
+        "source": SOURCE,
+        "generated_at_utc": payload.get("generated_at_utc"),
+        "fixture": _fixture(selected_raw),
+        "selected_candidate": selected,
+        "decision_summary": {
+            "classification": decision.get("classification"),
+            "display_bucket": decision.get("display_bucket"),
+            "tier": decision.get("tier"),
+            "execution_status": decision.get("execution_status"),
+            "stage": decision.get("stage"),
+            "reason_display": decision.get("reason_display"),
+        },
+        "projection_ladder": {
+            "raw_sport_probability": projections.get("raw_sport_probability"),
+            "market_shrunk_probability": projections.get("market_shrunk_probability"),
+            "calibrated_model_probability": projections.get("calibrated_model_probability"),
+            "fair_market_probability": projections.get("fair_market_probability"),
+            "breakeven_probability": projections.get("breakeven_probability"),
+            "probability_edge_pp": projections.get("probability_edge_pp"),
+            "estimated_ev": projections.get("estimated_ev"),
+            "estimated_ev_pct": projections.get("estimated_ev_pct"),
+        },
+        "availability": availability,
+        "evidence": {
+            "sporting_reasons": list(evidence.get("sporting_reasons") or []),
+            "market_reasons": list(evidence.get("market_reasons") or []),
+            "blockers": list(evidence.get("blockers") or []),
+            "invalidation_conditions": list(
+                evidence.get("invalidation_conditions") or []
+            ),
+        },
+        "market_context": {
+            "selected": market,
+            "candidate_count": len(candidates),
+            "candidates": candidates,
+            "groups": groups,
+        },
+        "sport_context": {
+            "outcome_probabilities": detail.get("outcome_probabilities"),
+            "expected_goals": detail.get("expected_goals"),
+            "score_matrix": detail.get("score_matrix") or [],
+            "sport_profile": detail.get("sport_profile") or [],
+        },
+        "model_context": {
+            **model_context,
+            "selected_model": model,
+            "freshness": freshness,
+        },
+        "data_disclosure": {
+            "persisted_fixture_row_count": len(raw_rows),
+            "missing_sections": missing,
+            "unknown_policy": "NOT VERIFIED",
+            "provider_requests_added": 0,
+        },
+        "provider_requests_added": 0,
+        "canonical_bet_logic_changed": False,
+        "model_weights_changed": False,
+        "production_promotion_allowed": False,
+    }
+
+
 async def match_detail(request: Request) -> JSONResponse:
     entitlement, error = await _resolve_entitlement(request)
     if error is not None:
@@ -930,37 +1077,10 @@ async def match_detail(request: Request) -> JSONResponse:
     if payload is None:
         return _no_store({"error": "NO_PERSISTED_PIPELINE_RUN"}, status_code=503)
 
-    raw_rows = subscriber_preview_data_v231._fixture_rows(payload, fixture_value)
-    if not raw_rows:
+    result = build_match_contract(payload, fixture_value)
+    if result is None:
         return _no_store({"error": "FIXTURE_NOT_IN_PERSISTED_SNAPSHOT"}, status_code=404)
-
-    candidates = _sort_candidates([adapt_candidate(row) for row in raw_rows])
-    selected_raw = max(raw_rows, key=lambda row: _candidate_score(adapt_candidate(row)))
-    selected_v231 = subscriber_ui_contract_v231.adapt_market_row(selected_raw)
-    detail = subscriber_preview_data_v231._match_detail(payload, selected_v231) or {}
-
-    return _no_store(
-        {
-            "schema_version": SCHEMA_VERSION,
-            "model_version": MODEL_VERSION,
-            "source": SOURCE,
-            "generated_at_utc": payload.get("generated_at_utc"),
-            "fixture": _fixture(selected_raw),
-            "candidates": candidates,
-            "selected_candidate": adapt_candidate(selected_raw),
-            "sport_context": {
-                "outcome_probabilities": detail.get("outcome_probabilities"),
-                "expected_goals": detail.get("expected_goals"),
-                "score_matrix": detail.get("score_matrix") or [],
-                "sport_profile": detail.get("sport_profile") or [],
-                "model_context": detail.get("model_context") or {},
-            },
-            "provider_requests_added": 0,
-            "canonical_bet_logic_changed": False,
-            "model_weights_changed": False,
-            "production_promotion_allowed": False,
-        }
-    )
+    return _no_store(result)
 
 
 def contract() -> dict[str, Any]:
