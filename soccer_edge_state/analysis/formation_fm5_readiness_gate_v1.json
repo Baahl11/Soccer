@@ -1,0 +1,123 @@
+{
+  "automatic_integration_allowed": false,
+  "blockers": [
+    "FM2_FT_CORNERS_SPORT_OOS_NOT_READY",
+    "FM2_TEAM_CORNERS_SPORT_OOS_NOT_READY",
+    "FM4_GOALS_STYLE_OOS_NOT_READY",
+    "FM4_PERSONNEL_OUTCOME_ABLATION_NOT_READY",
+    "FM4_PERSONNEL_SAMPLE_NOT_READY",
+    "FM4_SHOTS_STYLE_OOS_NOT_READY",
+    "FM4_SOT_STYLE_OOS_NOT_READY",
+    "FM4_STYLE_HISTORY_2_LT_100"
+  ],
+  "canonical_bet_logic_changed": false,
+  "corners": {
+    "blockers": [
+      "FM2_FT_CORNERS_SPORT_OOS_NOT_READY",
+      "FM2_TEAM_CORNERS_SPORT_OOS_NOT_READY"
+    ],
+    "ft_corners": {
+      "all_required_lines_improve_brier_and_log_loss": true,
+      "component_ready_for_fm5_review": false,
+      "formation_adjusted_evaluations": 43,
+      "mae_improves": true,
+      "minimum_required": 100,
+      "minimum_stable_lift_leagues": 2,
+      "stable_lift_league_count": 0
+    },
+    "source_model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.5.0",
+    "team_corners": {
+      "away_mae_improves": true,
+      "both_side_mae_improve": true,
+      "component_ready_for_fm5_review": false,
+      "formation_adjusted_evaluations": 43,
+      "home_mae_improves": true,
+      "league_venue_stability_review_ready": false,
+      "minimum_required": 100,
+      "total_mae_improves": true
+    }
+  },
+  "decision_weight": 0.0,
+  "fm4": {
+    "blockers": [
+      "FM4_STYLE_HISTORY_2_LT_100",
+      "FM4_GOALS_STYLE_OOS_NOT_READY",
+      "FM4_SHOTS_STYLE_OOS_NOT_READY",
+      "FM4_SOT_STYLE_OOS_NOT_READY",
+      "FM4_PERSONNEL_SAMPLE_NOT_READY",
+      "FM4_PERSONNEL_OUTCOME_ABLATION_NOT_READY"
+    ],
+    "leakage_contract_clean": true,
+    "minimum_prior_style_rows": 100,
+    "personnel": {
+      "component_ready_for_fm5_review": false,
+      "minimum_required": 100,
+      "outcome_ablation_ready": false,
+      "rows_with_both_last3_core_return_rate": 0,
+      "rows_with_both_previous_coach_comparable": 0,
+      "rows_with_both_prior_confirmed_xi": 0,
+      "sample_ready": false,
+      "source_blockers": [
+        "PERSONNEL_PRIOR_XI_0_LT_100",
+        "COACH_CONTINUITY_COMPARABLE_0_LT_100",
+        "LAST3_CORE_CONTINUITY_0_LT_100",
+        "PERSONNEL_OUTCOME_ABLATION_NOT_YET_VALIDATED"
+      ]
+    },
+    "prior_style_rows_both_teams_n_ge_3": 2,
+    "source_model_version": "FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.0.0",
+    "style_ready_targets": [],
+    "targets": {
+      "GOALS": {
+        "away_mae_improves": false,
+        "eligible_fixtures": 0,
+        "home_mae_improves": false,
+        "minimum_required": 100,
+        "source_blockers": [
+          "STYLE_ABLATION_0_LT_100",
+          "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
+        ],
+        "style_component_ready_for_fm5_review": false,
+        "total_mae_improves": false
+      },
+      "SHOTS": {
+        "away_mae_improves": false,
+        "eligible_fixtures": 0,
+        "home_mae_improves": false,
+        "minimum_required": 100,
+        "source_blockers": [
+          "STYLE_ABLATION_0_LT_100",
+          "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
+        ],
+        "style_component_ready_for_fm5_review": false,
+        "total_mae_improves": false
+      },
+      "SOT": {
+        "away_mae_improves": false,
+        "eligible_fixtures": 0,
+        "home_mae_improves": false,
+        "minimum_required": 100,
+        "source_blockers": [
+          "STYLE_ABLATION_0_LT_100",
+          "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
+        ],
+        "style_component_ready_for_fm5_review": false,
+        "total_mae_improves": false
+      }
+    }
+  },
+  "gates_changed": false,
+  "historical_predictions_rewritten": false,
+  "integration_review_allowed": false,
+  "market_prices_consumed": false,
+  "model_version": "FORMATION_FM5_READINESS_GATE_V1.0.0",
+  "model_weights_changed": false,
+  "policy": "SPORT_FIRST; NO_MARKET_INPUT_TO_RAW_PROJECTION; READINESS_ONLY; NO_AUTOMATIC_WEIGHT_OR_PRODUCTION_CHANGE; EACH_COMPONENT_REQUIRES VERSIONED_MANUAL_INTEGRATION_AFTER_OOS_GATE",
+  "production_enabled": false,
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "ready_components": [],
+  "schema_version": "1.0.0",
+  "status": "FM5_BLOCKED_EVIDENCE_GATES",
+  "thresholds_changed": false
+}
