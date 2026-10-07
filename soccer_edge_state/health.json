@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-07T13:58:54.954782+00:00",
-  "generated_at_local": "2026-10-07T07:58:54.954782-06:00",
+  "generated_at_utc": "2026-10-07T14:24:25.669151+00:00",
+  "generated_at_local": "2026-10-07T08:24:25.669151-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 378,
-  "due_fixture_count": 152,
+  "due_fixture_count": 132,
   "event_count": 9,
-  "actionable_refresh_count": 0,
+  "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 42,
-  "last_daily_remaining": 5138,
+  "api_calls_this_tick": 43,
+  "last_daily_remaining": 5047,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -47,11 +47,11 @@
     "unique_leagues_scanned": 99,
     "unique_countries_scanned": 72,
     "league_allowlist_applied": false,
-    "market_capture_handoff_fixture_count": 157,
+    "market_capture_handoff_fixture_count": 156,
     "market_capture_handoff_tier_counts": {
-      "C": 122,
-      "D": 112,
+      "D": 107,
       "B": 25,
+      "C": 121,
       "A": 10
     },
     "market_capture_handoff_source": "IN_PROCESS_BULK_COVERAGE",
@@ -63,7 +63,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-07T13:58:54.954782+00:00",
+    "generated_at_utc": "2026-10-07T14:24:25.669151+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -76,9 +76,9 @@
         "rows": 50,
         "unique_fixtures": 50,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 3,
-        "evaluated_signal_rows_this_tick": 3,
-        "strict_later_quote_rows_this_tick": 0,
+        "candidate_signal_rows_this_tick": 5,
+        "evaluated_signal_rows_this_tick": 5,
+        "strict_later_quote_rows_this_tick": 2,
         "not_matured_rows_this_tick": 3,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
@@ -101,9 +101,9 @@
         "rows": 6,
         "unique_fixtures": 6,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 1,
-        "evaluated_signal_rows_this_tick": 1,
-        "strict_later_quote_rows_this_tick": 0,
+        "candidate_signal_rows_this_tick": 2,
+        "evaluated_signal_rows_this_tick": 2,
+        "strict_later_quote_rows_this_tick": 1,
         "not_matured_rows_this_tick": 1,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
@@ -128,9 +128,9 @@
         "rows": 17,
         "unique_fixtures": 17,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 3,
-        "evaluated_signal_rows_this_tick": 3,
-        "strict_later_quote_rows_this_tick": 0,
+        "candidate_signal_rows_this_tick": 5,
+        "evaluated_signal_rows_this_tick": 5,
+        "strict_later_quote_rows_this_tick": 2,
         "not_matured_rows_this_tick": 3,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
@@ -233,9 +233,9 @@
         "rows": 343,
         "unique_fixtures": 44,
         "minimum_rows": 50,
-        "candidate_fixtures_this_tick": 1,
-        "strict_later_quote_refreshes_this_tick": 0,
-        "unchanged_provider_updates_this_tick": 1,
+        "candidate_fixtures_this_tick": 3,
+        "strict_later_quote_refreshes_this_tick": 1,
+        "unchanged_provider_updates_this_tick": 2,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
         "canonical_state_loaded": true
@@ -693,52 +693,52 @@
       "style_profile": {
         "field_prior_coverage": {
           "blocked_share": {
-            "away_rows_n_ge_1": 14,
-            "away_rows_n_ge_3": 0,
-            "both_rows_n_ge_1": 4,
+            "away_rows_n_ge_1": 23,
+            "away_rows_n_ge_3": 1,
+            "both_rows_n_ge_1": 11,
             "both_rows_n_ge_3": 0,
-            "home_rows_n_ge_1": 17,
-            "home_rows_n_ge_3": 0
+            "home_rows_n_ge_1": 24,
+            "home_rows_n_ge_3": 1
           },
           "box_share": {
-            "away_rows_n_ge_1": 12,
-            "away_rows_n_ge_3": 0,
-            "both_rows_n_ge_1": 4,
+            "away_rows_n_ge_1": 21,
+            "away_rows_n_ge_3": 1,
+            "both_rows_n_ge_1": 11,
             "both_rows_n_ge_3": 0,
-            "home_rows_n_ge_1": 16,
-            "home_rows_n_ge_3": 0
+            "home_rows_n_ge_1": 23,
+            "home_rows_n_ge_3": 1
           },
           "fouls": {
-            "away_rows_n_ge_1": 12,
-            "away_rows_n_ge_3": 0,
-            "both_rows_n_ge_1": 4,
+            "away_rows_n_ge_1": 21,
+            "away_rows_n_ge_3": 1,
+            "both_rows_n_ge_1": 11,
             "both_rows_n_ge_3": 0,
-            "home_rows_n_ge_1": 16,
-            "home_rows_n_ge_3": 0
+            "home_rows_n_ge_1": 23,
+            "home_rows_n_ge_3": 1
           },
           "possession": {
-            "away_rows_n_ge_1": 14,
-            "away_rows_n_ge_3": 0,
-            "both_rows_n_ge_1": 4,
+            "away_rows_n_ge_1": 23,
+            "away_rows_n_ge_3": 1,
+            "both_rows_n_ge_1": 11,
             "both_rows_n_ge_3": 0,
-            "home_rows_n_ge_1": 17,
-            "home_rows_n_ge_3": 0
+            "home_rows_n_ge_1": 24,
+            "home_rows_n_ge_3": 1
           },
           "shot_accuracy": {
-            "away_rows_n_ge_1": 14,
-            "away_rows_n_ge_3": 0,
-            "both_rows_n_ge_1": 4,
+            "away_rows_n_ge_1": 23,
+            "away_rows_n_ge_3": 1,
+            "both_rows_n_ge_1": 11,
             "both_rows_n_ge_3": 0,
-            "home_rows_n_ge_1": 17,
-            "home_rows_n_ge_3": 0
+            "home_rows_n_ge_1": 24,
+            "home_rows_n_ge_3": 1
           },
           "yellow_cards": {
-            "away_rows_n_ge_1": 14,
-            "away_rows_n_ge_3": 0,
-            "both_rows_n_ge_1": 4,
+            "away_rows_n_ge_1": 23,
+            "away_rows_n_ge_3": 1,
+            "both_rows_n_ge_1": 11,
             "both_rows_n_ge_3": 0,
-            "home_rows_n_ge_1": 17,
-            "home_rows_n_ge_3": 0
+            "home_rows_n_ge_1": 24,
+            "home_rows_n_ge_3": 1
           }
         },
         "fields": [
@@ -757,24 +757,24 @@
         "minimum_prior_team_style_matches": 3,
         "missing_prior_style_profile_rows": 299,
         "prior_density": {
-          "rows_with_away_any_prior_style": 14,
-          "rows_with_away_min_field_n_ge_1": 12,
-          "rows_with_away_min_field_n_ge_2": 0,
-          "rows_with_away_min_field_n_ge_3": 0,
-          "rows_with_both_any_prior_style": 4,
-          "rows_with_both_min_field_n_ge_1": 4,
-          "rows_with_both_min_field_n_ge_2": 0,
+          "rows_with_away_any_prior_style": 23,
+          "rows_with_away_min_field_n_ge_1": 21,
+          "rows_with_away_min_field_n_ge_2": 3,
+          "rows_with_away_min_field_n_ge_3": 1,
+          "rows_with_both_any_prior_style": 11,
+          "rows_with_both_min_field_n_ge_1": 11,
+          "rows_with_both_min_field_n_ge_2": 1,
           "rows_with_both_min_field_n_ge_3": 0,
-          "rows_with_home_any_prior_style": 17,
-          "rows_with_home_min_field_n_ge_1": 16,
-          "rows_with_home_min_field_n_ge_2": 0,
-          "rows_with_home_min_field_n_ge_3": 0
+          "rows_with_home_any_prior_style": 24,
+          "rows_with_home_min_field_n_ge_1": 23,
+          "rows_with_home_min_field_n_ge_2": 6,
+          "rows_with_home_min_field_n_ge_3": 1
         },
         "profile_failure_reasons": {
-          "AWAY_MIN_FIELD_LT_3": 14,
-          "AWAY_NO_PRIOR_STYLE_HISTORY": 285,
-          "HOME_MIN_FIELD_LT_3": 17,
-          "HOME_NO_PRIOR_STYLE_HISTORY": 282
+          "AWAY_MIN_FIELD_LT_3": 22,
+          "AWAY_NO_PRIOR_STYLE_HISTORY": 276,
+          "HOME_MIN_FIELD_LT_3": 23,
+          "HOME_NO_PRIOR_STYLE_HISTORY": 275
         },
         "ridge_alpha": 8.0,
         "source_date_range": {
@@ -785,12 +785,12 @@
         "source_teams_present_anywhere_in_tactical_history": 520,
         "source_unique_teams": 520,
         "style_eligible_source_rows": 0,
-        "tactical_events_before_source_start": 19,
+        "tactical_events_before_source_start": 31,
         "tactical_history_date_range": {
-          "earliest": "2026-09-12T01:30:00+00:00",
+          "earliest": "2026-08-07T18:45:00+00:00",
           "latest": "2026-09-23T05:30:00+00:00"
         },
-        "tactical_history_fixtures_loaded": 2419,
+        "tactical_history_fixtures_loaded": 2431,
         "tactical_history_unique_teams": 4034
       },
       "targets": {
@@ -1717,11 +1717,11 @@
     "fallback_used": false,
     "fallback_reason": null,
     "fallback_source": null,
-    "candidate_count": 4,
+    "candidate_count": 5,
     "candidate_family_counts": {
-      "1X2": 3,
-      "BTTS": 3,
-      "FT_TOTALS": 1
+      "1X2": 5,
+      "BTTS": 5,
+      "FT_TOTALS": 2
     },
     "legacy_mode": "EMERGENCY_FALLBACK_ONLY"
   },
