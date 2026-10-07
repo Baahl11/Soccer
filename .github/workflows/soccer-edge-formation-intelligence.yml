@@ -21,9 +21,11 @@ on:
       - "mcp_gateway/formation_matchup_engine_v1.py"
       - "mcp_gateway/formation_matchup_fm3_oos_v1.py"
       - "mcp_gateway/formation_matchup_fm4_style_ablation_v1.py"
+      - "mcp_gateway/formation_personnel_history_backfill_v1.py"
       - "tests/test_formation_matchup_engine_v1.py"
       - "tests/test_formation_matchup_fm3_oos_v1.py"
       - "tests/test_formation_matchup_fm4_style_ablation_v1.py"
+      - "tests/test_formation_personnel_history_backfill_v1.py"
       - "tests/test_corners_side_specific_formation.py"
       - "mcp_gateway/automation_v17.py"
 
@@ -61,6 +63,7 @@ jobs:
             tests/test_formation_matchup_engine_v1.py \
             tests/test_formation_matchup_fm3_oos_v1.py \
             tests/test_formation_matchup_fm4_style_ablation_v1.py \
+            tests/test_formation_personnel_history_backfill_v1.py \
             tests/test_corners_side_specific_formation.py
 
       - name: Analyze formation intelligence
