@@ -53,7 +53,7 @@ jobs:
       - name: Validate research-only safety contract
         run: |
           REPORT=state/soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json
-          jq -e '.model_version == "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.0"' "$REPORT" >/dev/null
+          jq -e '.model_version == "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.1"' "$REPORT" >/dev/null
           jq -e '.status == "RESEARCH_ONLY_CANONICAL_CLV_OUTCOME"' "$REPORT" >/dev/null
           jq -e '.production_promotion_allowed == false' "$REPORT" >/dev/null
           jq -e '.real_wagers_assumed == false' "$REPORT" >/dev/null
@@ -63,7 +63,7 @@ jobs:
           jq -e '.canonical_bet_logic_changed == false' "$REPORT" >/dev/null
           jq -e '(.families["1X2"] | type) == "object"' "$REPORT" >/dev/null
           jq -e '(.families.TEAM_TOTALS | type) == "object"' "$REPORT" >/dev/null
-          jq -e '.families.TEAM_TOTALS.fixture_equal_weight_roi.policy == "MEAN_OF_EXACT_SIGNAL_ROI_WITHIN_FIXTURE_THEN_EQUAL_WEIGHT_ACROSS_FIXTURES"' "$REPORT" >/dev/null
+          jq -e '.families.TEAM_TOTALS.fixture_equal_weight_roi.policy == "MEAN_OF_EXACT_SIGNAL_ROI_WITHIN_FIXTURE_THEN_EQUAL_WEIGHT_ACROSS_FIXTURES"' "$REPORT" >/dev/null\n          jq -e '.probability_semantics.signal_fair_probability == "DEVIG_MARKET_FAIR_PROBABILITY"' "$REPORT" >/dev/null\n          jq -e '.probability_semantics.soccer_model_probability_scored_here == false' "$REPORT" >/dev/null
           jq '{model_version,status,raw_supported_clv_rows,exact_signal_rows_after_dedup,duplicate_exact_rows_collapsed,families,recalibration_gate}' "$REPORT"
 
       - name: Persist canonical outcome research
