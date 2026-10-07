@@ -29,11 +29,31 @@ jobs:
             soccer_edge_state/analysis/primary_clv_anchor_normalization_v4.json
           sparse-checkout-cone-mode: false
 
-      - name: Warm runtime
+      - name: Wait for runtime branch deploy
+        shell: bash
         run: |
-          curl -sS --max-time 90 --retry 2 --retry-delay 5 \
-            https://soccer-edge-api.onrender.com/health >/tmp/health.json
-          cat /tmp/health.json
+          set -euo pipefail
+          EXPECTED_SHA=$(curl -fsS \
+            https://api.github.com/repos/Baahl11/Soccer/commits/soccer-edge-mcp-v1 \
+            | jq -r '.sha')
+          test -n "$EXPECTED_SHA"
+          echo "Expected runtime SHA: $EXPECTED_SHA"
+
+          for attempt in $(seq 1 24); do
+            curl -sS --max-time 90 --retry 1 --retry-delay 3 \
+              https://soccer-edge-api.onrender.com/health >/tmp/health.json || true
+            DEPLOYED_SHA=$(jq -r '.render_git_commit // empty' /tmp/health.json 2>/dev/null || true)
+            if [ "$DEPLOYED_SHA" = "$EXPECTED_SHA" ]; then
+              cat /tmp/health.json
+              exit 0
+            fi
+            echo "Waiting for Render runtime: attempt=$attempt deployed=$DEPLOYED_SHA expected=$EXPECTED_SHA"
+            sleep 5
+          done
+
+          echo "::error::Render did not reach expected runtime SHA"
+          cat /tmp/health.json || true
+          exit 1
 
       - name: Backfill normalized anchors and compare with legacy
         shell: bash
