@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.1.0"
+MODEL_VERSION = "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.1.1"
 MIN_CALIBRATION_SAMPLE = 300
 MIN_TRUE_CLV_ROWS = 50
 
@@ -48,6 +48,7 @@ def build_report(
     market_summary: dict[str, Any],
     true_clv_rows: Iterable[dict[str, Any]],
     multiclass_oos: dict[str, Any] | None = None,
+    canonical_outcome: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     sample = int(calibration.get("sample_fixtures") or 0)
     top1 = _num(calibration.get("top1_accuracy"))
@@ -87,6 +88,14 @@ def build_report(
     effective_sample = canonical_source_rows if multiclass_oos else sample
 
     clv = summarize_true_clv(true_clv_rows)
+    canonical_outcome = canonical_outcome if isinstance(canonical_outcome, dict) else {}
+    outcome_families = canonical_outcome.get("families") if isinstance(canonical_outcome.get("families"), dict) else {}
+    outcome_1x2 = outcome_families.get("1X2") if isinstance(outcome_families.get("1X2"), dict) else {}
+    probability_semantics = (
+        canonical_outcome.get("probability_semantics")
+        if isinstance(canonical_outcome.get("probability_semantics"), dict)
+        else {}
+    )
     family = (
         (market_summary.get("by_market_family") or {}).get("FT_1X2")
         if isinstance(market_summary.get("by_market_family"), dict)
@@ -165,6 +174,30 @@ def build_report(
             "hit_rate_ex_push": _num(family.get("hit_rate_ex_push")),
             "roi_units": _num(family.get("roi_units")),
         },
+        "canonical_clv_outcome_context": {
+            "available": bool(outcome_1x2),
+            "source_model_version": canonical_outcome.get("model_version"),
+            "source_status": canonical_outcome.get("status"),
+            "rows": int(outcome_1x2.get("rows") or 0),
+            "settled": int(outcome_1x2.get("settled") or 0),
+            "settled_unique_fixtures": int(outcome_1x2.get("settled_unique_fixtures") or 0),
+            "hypothetical_roi_per_priced_settled_observation": _num(
+                outcome_1x2.get("hypothetical_roi_per_priced_settled_observation")
+            ),
+            "fixture_equal_weight_roi": (
+                outcome_1x2.get("fixture_equal_weight_roi")
+                if isinstance(outcome_1x2.get("fixture_equal_weight_roi"), dict)
+                else {}
+            ),
+            "market_fair_brier": _num(outcome_1x2.get("market_fair_brier")),
+            "market_fair_log_loss": _num(outcome_1x2.get("market_fair_log_loss")),
+            "market_fair_calibration_gap_pp": _num(
+                outcome_1x2.get("market_fair_calibration_gap_pp")
+            ),
+            "probability_semantics": probability_semantics,
+            "decision_weight": 0.0,
+            "promotion_gate_effect": "NONE_RESEARCH_CONTEXT_ONLY",
+        },
         "blockers": blockers,
         "warnings": warnings,
         "notes": [
@@ -172,6 +205,8 @@ def build_report(
             "The historical class-prior challenger is retained only as descriptive legacy context when canonical multiclass OOS is supplied.",
             "True CLV is counted only from canonical 1X2/Match Winner observations.",
             "This gate validates calibration evidence; it does not alter runtime probabilities or bet classification.",
+            "Canonical CLV outcome context is research-only settlement/market benchmarking and has zero effect on V4-017 blockers or promotion eligibility.",
+            "Its Brier/log-loss fields score de-vig market fair probabilities, not Soccer model probabilities.",
         ],
     }
 
@@ -209,6 +244,7 @@ def main() -> None:
     parser.add_argument("--market-summary", required=True)
     parser.add_argument("--true-clv-tracking", required=True)
     parser.add_argument("--multiclass-oos-report")
+    parser.add_argument("--canonical-outcome-summary")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     report = build_report(
@@ -217,6 +253,7 @@ def main() -> None:
         _load_json(args.market_summary),
         _load_jsonl(args.true_clv_tracking),
         _load_json(args.multiclass_oos_report) if args.multiclass_oos_report else {},
+        _load_json(args.canonical_outcome_summary) if args.canonical_outcome_summary else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
