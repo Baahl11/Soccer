@@ -13,7 +13,7 @@ from mcp_gateway import automation_v2 as v2
 from mcp_gateway import persistence as persistence_base
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.1.0"
+MODEL_VERSION = "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.2.0"
 RESEARCH_KEY = "FM4_TACTICAL_HISTORY_V1"
 MAX_FIXTURES_PER_RUN = 8
 MAX_DISCOVERY_TEAM_CALLS_PER_RUN = 8
@@ -107,7 +107,10 @@ def _candidate_rows(
                     SELECT 1
                     FROM soccer_refresh_events e
                     WHERE e.fixture_id = f.fixture_id
-                      AND e.stage = 'FM4_TACTICAL_BACKFILL'
+                      AND e.stage IN (
+                          'FM4_TACTICAL_BACKFILL',
+                          'FM4_TACTICAL_BACKFILL_INCOMPLETE'
+                      )
               )
             ORDER BY f.kickoff DESC, f.fixture_id DESC
             LIMIT %s
@@ -375,16 +378,105 @@ def _existing_team_counts(conn: Any, team_ids: set[int]) -> Counter[int]:
     return counts
 
 
+def _successful_league_counts(conn: Any) -> Counter[int]:
+    counts: Counter[int] = Counter()
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT payload->'fixture'->>'league_id' AS league_id
+            FROM soccer_refresh_events
+            WHERE stage = 'FM4_TACTICAL_BACKFILL'
+              AND payload ? 'fixture'
+            """
+        )
+        for (league_raw,) in cur.fetchall():
+            try:
+                league_id = int(league_raw)
+            except (TypeError, ValueError):
+                continue
+            counts[league_id] += 1
+    return counts
+
+
+def _persist_incomplete_attempt(
+    conn: Any,
+    *,
+    candidate: dict[str, Any],
+    compact: dict[str, Any],
+    generated_at: datetime,
+) -> None:
+    fixture_id = int(candidate["fixture_id"])
+    payload = {
+        "event_type": "RESEARCH_BACKFILL_DIAGNOSTIC",
+        "stage": "FM4_TACTICAL_BACKFILL_INCOMPLETE",
+        "classification": "PASS",
+        "bet_eligible": False,
+        "actionable": False,
+        "decision_weight": 0.0,
+        "fixture": {
+            "fixture_id": fixture_id,
+            "kickoff": (
+                candidate["kickoff"].isoformat()
+                if isinstance(candidate.get("kickoff"), datetime)
+                else candidate.get("kickoff")
+            ),
+            "league_id": candidate.get("league_id"),
+            "league": candidate.get("league"),
+            "season": candidate.get("season"),
+            "home_team_id": candidate.get("home_team_id"),
+            "home_team": candidate.get("home_team"),
+            "away_team_id": candidate.get("away_team_id"),
+            "away_team": candidate.get("away_team"),
+        },
+        "provider_observation": {
+            "team_rows": len(compact.get("teams") or []),
+            "observed_team_ids": [
+                row.get("team_id")
+                for row in (compact.get("teams") or [])
+                if isinstance(row, dict)
+            ],
+            "status": "PROVIDER_STATS_INCOMPLETE",
+            "retrieved_at": generated_at.isoformat(),
+        },
+        "retroactive_prediction_rewrite": False,
+        "retroactive_market_created": False,
+        "retroactive_bet_created": False,
+        "production_promotion_allowed": False,
+    }
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO soccer_refresh_events (
+                fixture_id, stage, event_type, classification, availability_confidence,
+                bet_eligible, data_tier, generated_at, payload
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+            """,
+            (
+                fixture_id,
+                "FM4_TACTICAL_BACKFILL_INCOMPLETE",
+                "RESEARCH_BACKFILL_DIAGNOSTIC",
+                "PASS",
+                None,
+                False,
+                None,
+                generated_at,
+                json.dumps(payload),
+            ),
+        )
+
+
 def select_candidates(
     rows: list[dict[str, Any]],
     *,
     team_ids: set[int],
     prior_counts: Counter[int],
     max_fixtures: int,
+    successful_league_counts: Counter[int] | None = None,
 ) -> list[dict[str, Any]]:
     pool = [dict(row) for row in rows]
     selected: list[dict[str, Any]] = []
     temp = Counter(prior_counts)
+    successful_league_counts = Counter(successful_league_counts or {})
     used: set[int] = set()
 
     while pool and len(selected) < max_fixtures:
@@ -410,6 +502,11 @@ def select_candidates(
             undercovered = int(target_home and home_count < MIN_PRIOR_MATCHES_TARGET) + int(
                 target_away and away_count < MIN_PRIOR_MATCHES_TARGET
             )
+            try:
+                league_id = int(row.get("league_id") or 0)
+            except (TypeError, ValueError):
+                league_id = 0
+            league_success = int(successful_league_counts.get(league_id) or 0)
             kickoff = row.get("kickoff")
             kickoff_ts = kickoff.timestamp() if isinstance(kickoff, datetime) else 0.0
             score = (
@@ -417,6 +514,7 @@ def select_candidates(
                 -both_target,
                 min(home_count, away_count),
                 max(home_count, away_count),
+                -league_success,
                 -kickoff_ts,
                 fid,
             )
@@ -792,11 +890,13 @@ async def run_backfill(
                 lookback_days=lookback_days,
             )
 
+        successful_league_counts = _successful_league_counts(conn)
         candidates = select_candidates(
             pool,
             team_ids=target_set,
             prior_counts=prior_counts,
             max_fixtures=max_fixtures,
+            successful_league_counts=successful_league_counts,
         )
 
         for candidate in candidates:
@@ -819,6 +919,12 @@ async def run_backfill(
                 compact = compact_tactical_stats(raw)
                 if not _sufficient_stats(compact):
                     incomplete += 1
+                    _persist_incomplete_attempt(
+                        conn,
+                        candidate=candidate,
+                        compact=compact,
+                        generated_at=datetime.now(timezone.utc),
+                    )
                     details.append(
                         {
                             "fixture_id": fixture_id,
@@ -874,6 +980,7 @@ async def run_backfill(
         "provided_team_season_count": len(provided_team_seasons),
         "candidate_pool_rows": len(pool),
         "selected_fixture_count": len(candidates),
+        "successful_league_counts": dict(sorted(successful_league_counts.items())),
         "fixture_discovery": {
             "max_team_calls_per_run": MAX_DISCOVERY_TEAM_CALLS_PER_RUN,
             "attempted_team_calls": discovery_attempted,
@@ -905,7 +1012,9 @@ async def run_backfill(
             "PERSIST FIXTURE/RESULT IDENTITY IN CANONICAL POSTGRES; "
             "EXACT PROVIDER FIXTURE STATISTICS ONLY; MAX EIGHT STATISTICS REQUESTS PER RUN; "
             "MAX EIGHT FIXTURE-DISCOVERY TEAM REQUESTS PER RUN; STOP AT DAILY RESERVE GUARD; "
-            "PERSIST DISCOVERY AND RETRIEVAL PROVENANCE; NO SYNTHETIC TACTICAL VALUES; "
+            "PERSIST DISCOVERY, RETRIEVAL PROVENANCE, AND INCOMPLETE-STATS ATTEMPTS; "
+            "DO NOT REQUERY KNOWN INCOMPLETE HISTORICAL FIXTURES; PRIORITIZE LEAGUES WITH "
+            "VERIFIED SUCCESSFUL STATISTICS CAPTURE AS A TIE-BREAKER; NO SYNTHETIC TACTICAL VALUES; "
             "MAY EXPAND OFFLINE HISTORICAL FEATURE RESEARCH BUT NEVER REWRITE ORIGINAL "
             "PREGAME PREDICTIONS, MARKETS, CLV, BETS, OR PRODUCTION DECISIONS."
         ),
