@@ -15,7 +15,7 @@
       "GOALS:STYLE_ABLATION_0_LT_100",
       "GOALS:STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES",
       "LAST3_CORE_CONTINUITY_0_LT_100",
-      "PERSONNEL_OUTCOME_ABLATION_NOT_YET_VALIDATED",
+      "PERSONNEL_GOALS_ABLATION_0_LT_100",
       "PERSONNEL_PRIOR_XI_0_LT_100",
       "SHOTS:STYLE_ABLATION_0_LT_100",
       "SHOTS:STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES",
@@ -34,17 +34,18 @@
     "model_weights_changed": false,
     "odds_consumed": false,
     "personnel_continuity_materialized": true,
-    "personnel_outcome_ablation_used": false,
+    "personnel_outcome_ablation_goals_ready": false,
+    "personnel_outcome_ablation_used": true,
     "production_enabled": false,
     "provider_requests_added": 0
   },
-  "model_version": "FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.0.0",
+  "model_version": "FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.1.0",
   "personnel_overlay": {
     "blockers": [
       "PERSONNEL_PRIOR_XI_0_LT_100",
       "COACH_CONTINUITY_COMPARABLE_0_LT_100",
       "LAST3_CORE_CONTINUITY_0_LT_100",
-      "PERSONNEL_OUTCOME_ABLATION_NOT_YET_VALIDATED"
+      "PERSONNEL_GOALS_ABLATION_0_LT_100"
     ],
     "coach_continuity": {
       "away_comparable_rows": 0,
@@ -68,6 +69,221 @@
     "decision_weight": 0.0,
     "history_fixtures_loaded": 42,
     "minimum_review_fixtures": 100,
+    "outcome_ablation": {
+      "blockers": [
+        "PERSONNEL_GOALS_ABLATION_0_LT_100",
+        "PERSONNEL_SHOTS_ABLATION_0_LT_100",
+        "PERSONNEL_SOT_ABLATION_0_LT_100"
+      ],
+      "current_match_outcome_used_as_input": false,
+      "decision_weight": 0.0,
+      "evaluation_rows": [],
+      "feature_complete_rows": 0,
+      "feature_names": [
+        "home_previous_xi_overlap_rate",
+        "away_previous_xi_overlap_rate",
+        "home_last3_core_return_rate",
+        "away_last3_core_return_rate",
+        "home_coach_same_as_previous",
+        "away_coach_same_as_previous",
+        "home_new_starter_count_vs_previous",
+        "away_new_starter_count_vs_previous"
+      ],
+      "goals_ready_for_fm5": false,
+      "inferred_player_roles_used": false,
+      "market_prices_consumed": false,
+      "minimum_review_fixtures": 100,
+      "minimum_training_rows": 30,
+      "model_version": "FORMATION_PERSONNEL_OUTCOME_ABLATION_V1.0.0",
+      "odds_consumed": false,
+      "personnel_rows": 18,
+      "policy": "SPORT_FIRST; STRICT_PRIOR_ONLY_PERSONNEL_FEATURES; CURRENT_OUTCOME_ADDED_TO_TRAINING_ONLY_AFTER_PREDICTION; NO_MARKET; NO_INFERRED_PLAYER_ROLES; ZERO_DECISION_WEIGHT",
+      "production_enabled": false,
+      "production_promotion_allowed": false,
+      "provider_requests_added": 0,
+      "ready_targets": [],
+      "schema_version": "1.0.0",
+      "source_rows": 299,
+      "status": "RESEARCH_HOLD",
+      "targets": {
+        "GOALS": {
+          "baseline": {
+            "away": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "home": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "total": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            }
+          },
+          "blockers": [
+            "PERSONNEL_GOALS_ABLATION_0_LT_100"
+          ],
+          "decision_weight": 0.0,
+          "eligible_fixtures": 0,
+          "improvement": {
+            "away_mae_delta": null,
+            "away_mae_improves": false,
+            "home_mae_delta": null,
+            "home_mae_improves": false,
+            "total_mae_delta": null,
+            "total_mae_improves": false
+          },
+          "minimum_review_fixtures": 100,
+          "personnel_challenger": {
+            "away": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "home": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "total": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            }
+          },
+          "production_enabled": false,
+          "status": "RESEARCH_HOLD"
+        },
+        "SHOTS": {
+          "baseline": {
+            "away": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "home": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "total": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            }
+          },
+          "blockers": [
+            "PERSONNEL_SHOTS_ABLATION_0_LT_100"
+          ],
+          "decision_weight": 0.0,
+          "eligible_fixtures": 0,
+          "improvement": {
+            "away_mae_delta": null,
+            "away_mae_improves": false,
+            "home_mae_delta": null,
+            "home_mae_improves": false,
+            "total_mae_delta": null,
+            "total_mae_improves": false
+          },
+          "minimum_review_fixtures": 100,
+          "personnel_challenger": {
+            "away": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "home": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "total": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            }
+          },
+          "production_enabled": false,
+          "status": "RESEARCH_HOLD"
+        },
+        "SOT": {
+          "baseline": {
+            "away": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "home": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "total": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            }
+          },
+          "blockers": [
+            "PERSONNEL_SOT_ABLATION_0_LT_100"
+          ],
+          "decision_weight": 0.0,
+          "eligible_fixtures": 0,
+          "improvement": {
+            "away_mae_delta": null,
+            "away_mae_improves": false,
+            "home_mae_delta": null,
+            "home_mae_improves": false,
+            "total_mae_delta": null,
+            "total_mae_improves": false
+          },
+          "minimum_review_fixtures": 100,
+          "personnel_challenger": {
+            "away": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "home": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            },
+            "total": {
+              "mae": null,
+              "mean_error": null,
+              "n": 0,
+              "rmse": null
+            }
+          },
+          "production_enabled": false,
+          "status": "RESEARCH_HOLD"
+        }
+      }
+    },
+    "outcome_ablation_ready": false,
+    "outcome_ablation_ready_targets": [],
     "player_role_continuity": "PROVIDER_POSITION_AND_GRID_ONLY_NO_INFERRED_ROLE",
     "position_continuity": {
       "definition": "SAME_PROVIDER_POSITION_OR_GRID_FOR_STARTERS_OVERLAPPING_PREVIOUS_CONFIRMED_XI",
@@ -860,7 +1076,7 @@
       "mean_home_new_starters_vs_previous": null,
       "mean_home_previous_xi_overlap_rate": null
     },
-    "status": "RESEARCH_ONLY_PERSONNEL_CONTINUITY"
+    "status": "RESEARCH_ONLY_PERSONNEL_OUTCOME_ABLATION"
   },
   "personnel_rows": [
     {
