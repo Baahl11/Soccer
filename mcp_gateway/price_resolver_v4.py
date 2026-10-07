@@ -746,23 +746,25 @@ def _load_cached_markets_batch(
         fixture_id: now - timedelta(minutes=_freshness_minutes(stage))
         for fixture_id, stage in ordered
     }
-    earliest_cutoff = min(cutoff_by_fixture.values())
-    fixture_ids = [fixture_id for fixture_id, _stage in ordered]
-    placeholders = ", ".join(["%s"] * len(fixture_ids))
+    target_values_sql = ", ".join(["(%s, %s)"] * len(ordered))
+    query_params: list[Any] = []
+    for fixture_id, _stage in ordered:
+        query_params.extend([fixture_id, cutoff_by_fixture[fixture_id]])
 
     persistence.ensure_schema()
     with persistence._connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 f"""
-                SELECT fixture_id, bookmaker_id, bookmaker, market_id, market, values,
-                       provider_update, captured_at
-                FROM soccer_market_snapshots
-                WHERE fixture_id IN ({placeholders})
-                  AND captured_at >= %s
-                ORDER BY fixture_id, captured_at DESC, snapshot_id DESC
+                SELECT m.fixture_id, m.bookmaker_id, m.bookmaker, m.market_id, m.market,
+                       m.values, m.provider_update, m.captured_at
+                FROM soccer_market_snapshots m
+                JOIN (VALUES {target_values_sql}) AS target(fixture_id, cutoff)
+                  ON m.fixture_id = target.fixture_id
+                 AND m.captured_at >= target.cutoff
+                ORDER BY m.fixture_id, m.captured_at DESC, m.snapshot_id DESC
                 """,
-                tuple(fixture_ids) + (earliest_cutoff,),
+                tuple(query_params),
             )
             rows = cur.fetchall()
             columns = [desc.name for desc in cur.description]
