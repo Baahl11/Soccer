@@ -328,6 +328,7 @@ jobs:
               "FM3": root / "analysis/formation_matchup_fm3_oos_v1.json",
               "FM4": root / "analysis/formation_matchup_fm4_style_ablation_v1.json",
               "FM5": root / "analysis/formation_fm5_readiness_gate_v1.json",
+              "FORMATION_LIFECYCLE": root / "analysis/formation_lifecycle_health_v1.json",
               "PROSPECTIVE": root / "analysis/prospective_evaluation_summary_v1.json",
           }
 
@@ -533,6 +534,8 @@ jobs:
               fm4_targets = fm4.get("targets") if isinstance(fm4.get("targets"), dict) else {}
               fm5 = reports.get("FM5", {})
               fm5 = fm5 if isinstance(fm5, dict) else {}
+              formation_lifecycle = reports.get("FORMATION_LIFECYCLE", {})
+              formation_lifecycle = formation_lifecycle if isinstance(formation_lifecycle, dict) else {}
               target["formation_matchup_health"] = {
                   **fm_health,
                   "fm3_research": {
@@ -609,7 +612,21 @@ jobs:
                       "provider_requests_added": 0,
                       "production_promotion_allowed": False,
                   },
-                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json + formation_matchup_fm3_oos_v1.json + formation_matchup_fm4_style_ablation_v1.json + formation_fm5_readiness_gate_v1.json",
+                  "lifecycle": {
+                      "model_version": formation_lifecycle.get("model_version"),
+                      "status": formation_lifecycle.get("status") or "NOT_MATERIALIZED",
+                      "software_contracts_complete": formation_lifecycle.get("software_contracts_complete") is True,
+                      "phases": (
+                          formation_lifecycle.get("phases")
+                          if isinstance(formation_lifecycle.get("phases"), dict)
+                          else {}
+                      ),
+                      "evidence_blockers": list(formation_lifecycle.get("evidence_blockers") or []),
+                      "provider_requests_added": int(formation_lifecycle.get("provider_requests_added") or 0),
+                      "market_prices_consumed_to_create_sporting_projection": False,
+                      "production_promotion_allowed": False,
+                  },
+                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json + formation_matchup_fm3_oos_v1.json + formation_matchup_fm4_style_ablation_v1.json + formation_fm5_readiness_gate_v1.json + formation_lifecycle_health_v1.json",
                   "canonical_state_merged_by_scheduler": True,
               }
               apply_family(families, "CARDS", reports.get("CARDS", {}))
