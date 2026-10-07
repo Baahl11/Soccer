@@ -38,7 +38,7 @@ def feature_access(plan):
     return {key:key in allowed for key in FEATURE_LABELS}
 
 def plan_contract():
-    return {"schema_version":SCHEMA_VERSION,"model_version":MODEL_VERSION,"default_plan":FREE_PLAN,"billing_enabled":False,"entitlements_enforced":True,"authorization_source":"SUPABASE_RLS_WITH_VERIFIED_OWNER_OVERRIDE","missing_row_policy":"FREE","free_features":[FEATURE_LABELS[k] for k in FREE_FEATURE_IDS],"pro_features":[FEATURE_LABELS[k] for k in PRO_FEATURE_IDS if k not in FREE_FEATURE_IDS],"provider_requests_added":0}
+    return {"schema_version":SCHEMA_VERSION,"model_version":MODEL_VERSION,"default_plan":FREE_PLAN,"billing_enabled":False,"billing_infrastructure_present":True,"public_billing_launch_enabled":False,"entitlements_enforced":True,"authorization_source":"SUPABASE_RLS_WITH_VERIFIED_OWNER_OVERRIDE","missing_row_policy":"FREE","free_features":[FEATURE_LABELS[k] for k in FREE_FEATURE_IDS],"pro_features":[FEATURE_LABELS[k] for k in PRO_FEATURE_IDS if k not in FREE_FEATURE_IDS],"provider_requests_added":0}
 
 def effective_plan(row, *, now=None):
     if not isinstance(row,dict): return FREE_PLAN,"DEFAULT_FREE_NO_ENTITLEMENT_ROW"
@@ -63,7 +63,7 @@ def resolve_entitlement(access_token, *, client=None, auth_client=None, now=None
         return {"ok":True,"status":"OWNER_ENTITLEMENT_RESOLVED","authenticated":True,"user":{"id":user_id,"email":email,"role":"OWNER"},"persisted_entitlement":None,"effective_plan":PRO_PLAN,"effective_plan_reason":"VERIFIED_PRODUCT_OWNER","feature_access":feature_access(PRO_PLAN),"billing_enabled":False,"entitlements_enforced":True,"authorization_source":"VERIFIED_AUTH_EMAIL_OWNER_OVERRIDE","owner":True,"admin":True,"subscription_required":False,"provider_requests_added":0}
     owned_client=client is None; http=client or httpx.Client(timeout=REQUEST_TIMEOUT_SECONDS,follow_redirects=False)
     try:
-        response=http.get(f"{config['project_url']}/rest/v1/subscription_entitlements",headers={"apikey":str(config["publishable_key"]),"Authorization":f"Bearer {access_token}","Accept":"application/json"},params={"select":"user_id,plan,status,source,starts_at,valid_until,updated_at","user_id":f"eq.{user_id}","limit":"1"})
+        response=http.get(f"{config['project_url']}/rest/v1/subscription_entitlements",headers={"apikey":str(config["publishable_key"]),"Authorization":f"Bearer {access_token}","Accept":"application/json"},params={"select":"user_id,plan,status,source,starts_at,valid_until,current_period_end,cancel_at_period_end,updated_at","user_id":f"eq.{user_id}","limit":"1"})
         if response.status_code!=200:
             return {"ok":False,"status":f"ENTITLEMENT_LOOKUP_REJECTED_{response.status_code}","authenticated":True,"user":{"id":user_id,"email":email},"effective_plan":FREE_PLAN,"feature_access":feature_access(FREE_PLAN),"billing_enabled":False,"entitlements_enforced":True,"provider_requests_added":0}
         payload=response.json(); rows=payload if isinstance(payload,list) else []; row=rows[0] if rows and isinstance(rows[0],dict) else None; plan,reason=effective_plan(row,now=now)
