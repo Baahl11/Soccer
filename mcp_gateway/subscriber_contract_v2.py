@@ -542,12 +542,32 @@ def _is_watch(candidate: dict[str, Any]) -> bool:
 
 def _public_fixture(row: dict[str, Any]) -> dict[str, Any]:
     fixture = _fixture(row)
+    classification = _classification(row)
+    execution_status = _execution_status(row)
+    status_code = (
+        execution_status
+        or str(_first(row, "status", "stage") or "NOT VERIFIED").strip().upper()
+    )
+    if classification in _CANONICAL_CLASSIFICATIONS:
+        display_status = classification
+    elif status_code in _WATCH_EXECUTION_STATUSES:
+        display_status = "WATCH"
+    elif status_code == "RESEARCH_ONLY":
+        display_status = "RESEARCH"
+    else:
+        display_status = status_code.replace("_", " ")
     return {
         "fixture": fixture,
         "state": {
-            "status": _first(row, "execution_status", "status", "stage") or "NOT VERIFIED",
+            "classification": classification,
+            "display_status": display_status,
+            "status_code": status_code,
             "stage": _first(row, "stage"),
-            "reason": _first(row, "reason", "blocker"),
+            "reason_display": _display_reason(
+                _first(row, "reason", "blocker"),
+                execution_status,
+                classification,
+            ),
         },
     }
 
