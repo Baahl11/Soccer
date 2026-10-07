@@ -430,21 +430,49 @@ Implemented:
 - no retroactive market / CLV / bet creation;
 - automatic FM-4 rebuild workflow.
 
-### First backfill execution — NOT YET SUCCESSFUL AS A DATA EXPANSION
+### Historical fixture discovery — COMPLETE
 
-First workflow run:
+Provider-backed historical fixture discovery is now operational and bound to verified cohort seasons.
+
+Current backfill state:
 
 - target teams = 520;
-- local Postgres candidate pool = 0;
-- selected fixtures = 0;
-- provider calls = 0;
-- captured = 0.
+- local eligible historical candidate pool = 66;
+- materialized tactical-history fixtures = 12;
+- latest guarded batch attempted = 8;
+- latest batch captured = 2;
+- latest batch incomplete provider-stat rows = 6;
+- provider errors = 0;
+- latest daily provider remaining = 5,099.
 
-This proves the next blocker is **historical fixture discovery / ingestion before the cohort**, not provider-statistics quota.
+The earlier `candidate_pool_rows = 0` blocker is therefore resolved.
 
-The same workflow then failed in the offline FM-4 rebuild step because the runner lacked the `httpx` dependency loaded by the package bootstrap.
+The offline `httpx` / package-bootstrap dependency issue is also resolved; recent FM-4 workflows complete successfully.
 
-This is an implementation/workflow dependency issue, not a Soccer-model result.
+### Current FM-4 depth
+
+Current prior-style coverage:
+
+- source fixtures with both teams having any prior style history = 11;
+- source fixtures with both teams having complete n>=1 style history = 11;
+- source fixtures with both teams having complete n>=2 style history = 1;
+- source fixtures with both teams having complete n>=3 style history = 0;
+- style-eligible source rows = 0.
+
+So FM-4 remains blocked by **actual prior-history depth**, not discovery, IDs, workflow dependencies, or provider quota.
+
+### Backfill yield optimization v1.2
+
+Implemented and unit-tested:
+
+- do not re-request historical fixtures already proven to return incomplete statistics;
+- persist incomplete-stat attempts as research diagnostics;
+- use successful-statistics leagues only as a tie-breaker when candidate undercoverage is otherwise equal;
+- retain the 8 statistics-call limit per run;
+- retain the provider reserve guard;
+- no model/market/CLV/bet state is altered.
+
+Production remains disabled.
 
 ## FM-5 — BLOCKED
 
@@ -464,17 +492,28 @@ No production review until OOS / CLV / settlement / calibration gates pass.
 
 The current roadmap priority is:
 
-## P0 — FIX FM-4 HISTORICAL INPUT PIPELINE
+## P0 — FM-4 HISTORICAL DEPTH ACCUMULATION
 
-1. fix the offline rebuild dependency isolation (`httpx` / package bootstrap);
-2. add provider-backed historical fixture discovery because local Postgres contains zero eligible pre-cohort candidates for the target set;
-3. ingest only verified finalized fixtures strictly before each evaluated target;
-4. retain the 8-statistics-request batch cap;
-5. materialize backfilled tactical history with provenance;
-6. rerun FM-4;
-7. do not reduce the n>=3 prior-team-style gate.
+Discovery and workflow repair are complete.
 
-This is the highest-value immediate Sporting-Layer infrastructure task.
+Current work:
+
+1. continue guarded pre-cohort tactical backfill every 30 minutes;
+2. skip known no-stat historical fixtures instead of wasting repeat provider calls;
+3. prioritize undercovered teams first;
+4. retain the 8-statistics-request batch cap and daily reserve guard;
+5. materialize every successful capture with provenance;
+6. rerun FM-4 after every batch;
+7. continue until a meaningful prior-style sample exists;
+8. do not reduce the n>=3 prior-team-style gate.
+
+Current target for review:
+
+```text
+source fixtures with BOTH teams complete prior style n>=3 >= 100
+```
+
+This remains the highest-value immediate Sporting-Layer infrastructure task.
 
 ---
 
@@ -660,7 +699,10 @@ Older repository documentation that claims fixed accuracy, completion percentage
 The next engineering action is:
 
 ```text
-FM-4 historical fixture discovery + guarded tactical backfill repair
+FM-4 guarded tactical-history accumulation
+→ increase both-team prior-style n>=3 coverage
+→ rerun style/personnel ablation
+→ require OOS lift before FM-5
 ```
 
 while these continue automatically in parallel:
