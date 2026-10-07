@@ -1,0 +1,57 @@
+name: FE1 Subscriber Contract V2
+
+on:
+  push:
+    branches:
+      - fe1-subscriber-contract-v2
+    paths:
+      - mcp_gateway/subscriber_contract_v2.py
+      - mcp_gateway/__init__.py
+      - tests/test_subscriber_contract_v2.py
+      - .github/workflows/fe1-subscriber-contract-v2.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile V2 contract and route installer
+        run: |
+          python -m py_compile mcp_gateway/subscriber_contract_v2.py mcp_gateway/__init__.py
+      - name: Verify V2 routes are installed
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          import mcp_gateway
+          from mcp.server.fastmcp import FastMCP
+          app = FastMCP("v2-route-check", stateless_http=True, json_response=True).streamable_http_app()
+          paths = {getattr(route, "path", None) for route in app.router.routes}
+          required = {
+              "/app/api/v2/today",
+              "/app/api/v2/picks",
+              "/app/api/v2/leans",
+              "/app/api/v2/watches",
+              "/app/api/v2/performance",
+              "/app/api/v2/account",
+              "/app/api/v2/match/{fixture_id:int}",
+          }
+          missing = required - paths
+          assert not missing, f"missing V2 routes: {sorted(missing)}"
+          PY
+      - name: Run V2 and active frontend regressions
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_subscriber_contract_v2.py \
+            tests/test_fe0_frontend_stabilization.py \
+            tests/test_v233_frontend_completion_gate.py \
+            tests/test_v234_functional_mockup_completion.py \
+            tests/test_subscriber_ui_contract_v231.py \
+            tests/test_v4_023_subscriber_preview_data.py \
+            tests/test_phase24_product_views_v4.py
