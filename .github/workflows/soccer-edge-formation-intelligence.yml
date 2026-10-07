@@ -45,6 +45,14 @@ jobs:
             --history-dir state/soccer_edge_state/history \
             --output state/soccer_edge_state/analysis/formation_intelligence.json
 
+      - name: Analyze formation matchup engine v1
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=engine python engine/mcp_gateway/formation_matchup_engine_v1.py \
+            --history-dir state/soccer_edge_state/history \
+            --output state/soccer_edge_state/analysis/formation_matchup_engine_v1.json
+
       - name: Analyze corners baseline
         shell: bash
         run: |
@@ -54,9 +62,15 @@ jobs:
             --output state/soccer_edge_state/analysis/corners_baseline.json
           python - <<'PY'
           import json
-          for p in ('state/soccer_edge_state/analysis/formation_intelligence.json','state/soccer_edge_state/analysis/corners_baseline.json'):
+          for p in ('state/soccer_edge_state/analysis/formation_intelligence.json','state/soccer_edge_state/analysis/formation_matchup_engine_v1.json','state/soccer_edge_state/analysis/corners_baseline.json'):
               d=json.load(open(p, encoding='utf-8'))
               summary={k:d.get(k) for k in ('status','fixtures_with_confirmed_both_formations_and_final','fixtures_with_postgame_corners_and_formations','rows_with_verified_postgame_corners','walk_forward_evaluations','formation_adjusted_evaluations')}
+              if p.endswith('formation_matchup_engine_v1.json'):
+                  summary['model_version']=d.get('model_version')
+                  summary['fixtures_with_verified_formation_pair_and_final']=d.get('fixtures_with_verified_formation_pair_and_final')
+                  summary['unique_matchups']=d.get('unique_matchups')
+                  summary['matchups_n_ge_8']=d.get('matchups_n_ge_8')
+                  summary['metric_rows']=d.get('metric_rows')
               if p.endswith('corners_baseline.json'):
                   lift=d.get('formation_lift_by_league')
                   assert isinstance(lift, dict)
@@ -89,7 +103,7 @@ jobs:
           set -euo pipefail
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
-          git add -f soccer_edge_state/analysis/formation_intelligence.json soccer_edge_state/analysis/corners_baseline.json
+          git add -f soccer_edge_state/analysis/formation_intelligence.json soccer_edge_state/analysis/formation_matchup_engine_v1.json soccer_edge_state/analysis/corners_baseline.json
           if git diff --cached --quiet; then
             exit 0
           fi
