@@ -87,6 +87,7 @@ def build_rows(history_dir: str) -> list[dict[str, Any]]:
                 "kickoff_local": rec.get("kickoff_local"),
                 "league_id": rec.get("league_id"),
                 "league": rec.get("league"),
+                "season": rec.get("season"),
                 "home_team_id": rec.get("home_team_id"),
                 "home_team": rec.get("home_team"),
                 "away_team_id": rec.get("away_team_id"),
