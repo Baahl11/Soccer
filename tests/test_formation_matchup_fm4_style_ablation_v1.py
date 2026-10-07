@@ -227,17 +227,19 @@ def test_build_report_materializes_personnel_continuity_without_decision_weight(
 
     personnel = report["personnel_overlay"]
     coverage = personnel["coverage"]
-    assert personnel["status"] == "RESEARCH_ONLY_PERSONNEL_CONTINUITY"
+    assert personnel["status"] == "RESEARCH_ONLY_PERSONNEL_OUTCOME_ABLATION"
     assert coverage["current_both_xi_confirmed_rows"] == 5
     assert coverage["rows_with_both_prior_confirmed_xi"] == 4
     assert coverage["rows_with_both_previous_coach_comparable"] == 4
     assert coverage["rows_with_both_last3_core_return_rate"] == 2
     assert personnel["production_enabled"] is False
     assert personnel["decision_weight"] == 0.0
-    assert "PERSONNEL_OUTCOME_ABLATION_NOT_YET_VALIDATED" in personnel["blockers"]
+    assert any(blocker.startswith("PERSONNEL_GOALS_ABLATION_") for blocker in personnel["blockers"])
     assert "PERSONNEL_OVERLAY_NOT_MATERIALIZED" not in personnel["blockers"]
     assert report["health"]["personnel_continuity_materialized"] is True
-    assert report["health"]["personnel_outcome_ablation_used"] is False
+    assert report["health"]["personnel_outcome_ablation_used"] is True
+    assert personnel["outcome_ablation"]["production_enabled"] is False
+    assert personnel["outcome_ablation_ready"] is False
     assert report["health"]["coach_continuity_used"] is False
     assert report["health"]["inferred_player_roles_used"] is False
 
