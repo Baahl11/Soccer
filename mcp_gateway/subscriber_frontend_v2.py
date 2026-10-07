@@ -225,14 +225,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   const num=v=>{{const n=Number(v);return Number.isFinite(n)?n:null}};
   const pp=v=>{{const n=num(v);return n===null?'—':(n>=0?'+':'')+n.toFixed(1)+' pp'}};
   const ev=v=>{{const n=num(v);return n===null?'—':(n>=0?'+':'')+(Math.abs(n)<=1?n*100:n).toFixed(1)+'%'}};
-  const initials=name=>String(name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase().slice(0,3);
+  const initials=name=>String(name||'?').split(/\\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase().slice(0,3);
   const dt=raw=>{{if(!raw)return ['TBD','Kickoff'];const d=new Date(raw);if(Number.isNaN(d.getTime()))return [String(raw),'Kickoff'];return [new Intl.DateTimeFormat(undefined,{{hour:'2-digit',minute:'2-digit'}}).format(d),new Intl.DateTimeFormat(undefined,{{month:'short',day:'numeric'}}).format(d)]}};
   const api=async(path)=>{{const h={{}};if(token())h.Authorization='Bearer '+token();const r=await fetch((cfg.api_base||'/app/api/v2')+path,{{headers:h,cache:'no-store'}});const d=await r.json().catch(()=>({{}}));if(!r.ok)throw Object.assign(new Error(d.error||('HTTP '+r.status)),{{status:r.status,data:d}});return d}};
   const authFetch=async(path,body)=>{{if(!cfg.auth_configured)throw new Error('AUTH_NOT_CONFIGURED');const r=await fetch(cfg.supabase_url+path,{{method:'POST',headers:{{apikey:cfg.publishable_key,'Content-Type':'application/json'}},body:JSON.stringify(body)}});const d=await r.json().catch(()=>({{}}));if(!r.ok)throw new Error(d.error_description||d.msg||d.error||('HTTP '+r.status));return d}};
   const classification=c=>String(c?.decision?.classification||'').toUpperCase();
   const fixture=c=>c?.fixture||{{}},market=c=>c?.market||{{}},proj=c=>c?.projections||{{}},avail=c=>c?.availability||{{}};
   const premium=()=>!!ACCESS?.premium_unlocked;
-  function crest(url,name){{const src=String(url||'');return '<span class="crest '+(src?'has-img':'')+'">'+(src?'<img loading="lazy" decoding="async" src="'+esc(src)+'" alt="'+esc(name)+' crest" onerror="this.style.display=\'none\';this.parentElement.classList.remove(\'has-img\')">':'')+'<span class="fallback">'+esc(initials(name))+'</span></span>'}}
+  function crest(url,name){{const src=String(url||'');return '<span class="crest '+(src?'has-img':'')+'">'+(src?'<img loading="lazy" decoding="async" src="'+esc(src)+'" alt="'+esc(name)+' crest" onerror="this.style.display=\\'none\\';this.parentElement.classList.remove(\\'has-img\\')">':'')+'<span class="fallback">'+esc(initials(name))+'</span></span>'}}
   function priceText(c){{const p=market(c).price||{{}},v=num(p.value),f=String(p.format||'NOT VERIFIED');if(v===null)return 'Price NOT VERIFIED';if(f==='DECIMAL')return v.toFixed(2)+(p.bookmaker?' · '+p.bookmaker:'');return String(v)+' · format '+f}}
   function evidence(c){{const e=c?.evidence||{{}},s=(e.sporting_reasons||[])[0],m=(e.market_reasons||[])[0],b=(e.blockers||[])[0];if(s)return '<b>Sport:</b> '+esc(s);if(m)return '<b>Market:</b> '+esc(m);if(b)return '<b>Blocker:</b> '+esc(b);return 'No additional persisted explanation in this snapshot.'}}
   function decisionClass(c){{const x=classification(c);return x==='BET'?'bet':x==='LEAN'?'lean':'watch'}}
