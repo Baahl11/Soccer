@@ -139,5 +139,7 @@ def test_stale_render_report_does_not_count_as_personnel_history_artifact():
         },
     )
 
-    assert report["phases"]["FM4"]["personnel_backfill_artifact_materialized"] is False
+    fm4 = report["phases"]["FM4"]
+    assert fm4["personnel_backfill_artifact_materialized"] is False
+    assert fm4["personnel_backfill_status"] == "BLOCKED_STALE_RENDER_RUNTIME"
     assert "FM4_PERSONNEL_BACKFILL_ARTIFACT_NOT_MATERIALIZED" in report["evidence_blockers"]
