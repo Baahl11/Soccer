@@ -340,6 +340,9 @@ async def run_tick() -> dict[str, Any]:
         "gates_changed": False,
         "canonical_bet_logic_changed": False,
         "normalized_signal_storage": True,
+        "primary_loader_mode": "NORMALIZED_RELATIONAL_WITH_EMERGENCY_LEGACY_FALLBACK",
+        "legacy_loader_normal_hot_path": False,
+        "legacy_loader_mode": "EMERGENCY_FALLBACK_ONLY",
         "legacy_pipeline_json_expansion_in_live_loader": bool(
             primary_loader_fallback.get("used")
         ),
