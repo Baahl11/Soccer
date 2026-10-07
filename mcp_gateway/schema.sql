@@ -200,6 +200,14 @@ WHERE stage IN ('T-40','T-30','T-20','T-10')
     OR payload ? 'gk_saves_intelligence'
   );
 CREATE INDEX IF NOT EXISTS idx_soccer_market_fixture_time ON soccer_market_snapshots (fixture_id, captured_at DESC);
+CREATE INDEX IF NOT EXISTS idx_soccer_market_fixture_market_close
+ON soccer_market_snapshots (
+    fixture_id,
+    (LOWER(TRIM(COALESCE(market, '')))),
+    captured_at DESC,
+    provider_update DESC
+)
+WHERE provider_update IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_soccer_market_ft_totals_coverage
 ON soccer_market_snapshots (captured_at DESC, fixture_id, bookmaker_id, market_id)
 WHERE LOWER(TRIM(COALESCE(market, ''))) IN (
