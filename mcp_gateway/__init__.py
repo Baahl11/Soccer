@@ -95,6 +95,7 @@ def _install_subscriber_app_routes() -> None:
             content_factory_http_v4,
             subscriber_product_v235,
             subscriber_contract_v2,
+            subscriber_frontend_v2,
             subscriber_preview_data_v231,
             subscriber_preview_maturity_v232,
             subscriber_preview_performance_v231,
@@ -109,6 +110,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/internal/content-packages", content_factory_http_v4.content_packages, methods=["POST"], name="v225_content_packages"))
         if "/app" not in existing_paths:
             additions.append(Route("/app", subscriber_product_v235.app_page, methods=["GET"], name="v235_subscriber_product"))
+        if "/app-v2" not in existing_paths:
+            additions.append(Route("/app-v2", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_preview"))
         if "/app/data" not in existing_paths:
             additions.append(Route("/app/data", subscriber_product_v235.app_data, methods=["GET"], name="v235_subscriber_data"))
         if "/app/match" not in existing_paths:
