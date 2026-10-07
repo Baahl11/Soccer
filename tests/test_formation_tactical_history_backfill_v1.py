@@ -204,6 +204,42 @@ def test_eligible_discovered_fixture_requires_final_precohort_match():
 
 
 def test_backfill_version_has_historical_discovery():
-    assert v.MODEL_VERSION == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.1.0"
+    assert v.MODEL_VERSION == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.2.0"
     assert v.MAX_FIXTURES_PER_RUN == 8
     assert v.MAX_DISCOVERY_TEAM_CALLS_PER_RUN == 8
+
+
+def test_candidate_selection_uses_successful_league_as_tiebreaker():
+    now = datetime(2026, 9, 10, tzinfo=timezone.utc)
+    rows = [
+        {
+            "fixture_id": 10,
+            "kickoff": now,
+            "league_id": 100,
+            "home_team_id": 1,
+            "away_team_id": 2,
+        },
+        {
+            "fixture_id": 11,
+            "kickoff": now,
+            "league_id": 200,
+            "home_team_id": 3,
+            "away_team_id": 4,
+        },
+    ]
+    selected = v.select_candidates(
+        rows,
+        team_ids={1, 2, 3, 4},
+        prior_counts=Counter(),
+        max_fixtures=1,
+        successful_league_counts=Counter({200: 5, 100: 0}),
+    )
+    assert selected[0]["fixture_id"] == 11
+
+
+def test_backfill_source_excludes_known_incomplete_fixture_stage():
+    import inspect
+
+    source = inspect.getsource(v._candidate_rows)
+    assert "FM4_TACTICAL_BACKFILL_INCOMPLETE" in source
+    assert "FM4_TACTICAL_BACKFILL" in source
