@@ -297,6 +297,7 @@ jobs:
               "CORNERS": root / "analysis/v4_022_corners_oos_validation.json",
               "CARDS": root / "analysis/phase14_cards_referee_validation.json",
               "PLAYER_PROPS": root / "analysis/phase15_player_props_validation.json",
+              "PRIMARY_CLV_FUNNEL": root / "analysis/primary_clv_maturation_funnel_v4.json",
           }
 
           reports = {}
@@ -347,6 +348,51 @@ jobs:
                   continue
               for family in ("FT_TOTALS", "1X2", "BTTS", "TEAM_TOTALS", "1H", "2H"):
                   apply_family(families, family, reports.get(family, {}))
+
+              primary_funnel = reports.get("PRIMARY_CLV_FUNNEL", {})
+              primary_funnel = primary_funnel if isinstance(primary_funnel, dict) else {}
+              primary_families = (
+                  primary_funnel.get("families")
+                  if isinstance(primary_funnel.get("families"), dict)
+                  else {}
+              )
+              for family in ("1X2", "BTTS", "FT_TOTALS"):
+                  funnel_row = primary_families.get(family)
+                  funnel_row = funnel_row if isinstance(funnel_row, dict) else {}
+                  if not funnel_row:
+                      continue
+                  row = families.setdefault(family, {})
+                  row["canonical_remaining_to_gate"] = int(
+                      funnel_row.get("remaining_to_gate") or 0
+                  )
+                  row["canonical_equivalent_post_v223_signals"] = int(
+                      ((funnel_row.get("post_v223_canonical_equivalent_audit") or {}).get("signals") or 0)
+                  )
+                  row["canonical_equivalent_post_v223_true_clv_comparable"] = int(
+                      ((funnel_row.get("post_v223_canonical_equivalent_audit") or {}).get("true_clv_comparable") or 0)
+                  )
+                  row["canonical_equivalent_post_v223_skip_reasons"] = (
+                      (funnel_row.get("post_v223_canonical_equivalent_audit") or {}).get("skip_reason_counts")
+                      if isinstance(
+                          (funnel_row.get("post_v223_canonical_equivalent_audit") or {}).get("skip_reason_counts"),
+                          dict,
+                      )
+                      else {}
+                  )
+                  row["current_phase17_skip_reasons"] = (
+                      funnel_row.get("current_phase17_skip_reasons")
+                      if isinstance(funnel_row.get("current_phase17_skip_reasons"), dict)
+                      else {}
+                  )
+                  row["maturation_state"] = (
+                      funnel_row.get("maturation_state") or row.get("maturation_state")
+                  )
+
+              target["primary_clv_maturation_funnel"] = {
+                  **primary_funnel,
+                  "canonical_state_source": "soccer-edge-state/analysis/primary_clv_maturation_funnel_v4.json",
+                  "canonical_state_merged_by_scheduler": True,
+              }
               corners = reports.get("CORNERS", {})
               corner_views = corners.get("family_views") if isinstance(corners, dict) else {}
               corner_views = corner_views if isinstance(corner_views, dict) else {}
@@ -423,7 +469,7 @@ jobs:
           health_path.write_text(json.dumps(health, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
 
-          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.core_slate_floor_reconciliation | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object") and (.v4_014_model_disagreement_engine | type == "object") and (.v4_015_confidence_engine_v1 | type == "object") and (.v4_016_ft_totals_production_validation | type == "object") and (.v4_017_1x2_calibration_validation | type == "object") and (.v4_018_btts_calibration_validation | type == "object") and (.v4_019_team_totals_oos_validation | type == "object") and (.v4_020_1h_oos_validation | type == "object") and (.v4_021_2h_oos_validation | type == "object") and (.v4_022_corners_oos_validation | type == "object") and (.phase14_cards_referee_validation | type == "object") and (.phase15_player_props_validation | type == "object") and (.phase16_market_mismatch_finder | type == "object") and (.phase17_clv_engine | type == "object") and (.phase18_oos_backtest_framework | type == "object") and (.phase19_promotion_framework | type == "object") and (.phase20_bankroll_risk_engine | type == "object") and (.phase21_alert_engine | type == "object") and (.phase22_live_inplay_engine | type == "object") and (.phase23_mlops_model_registry | type == "object") and (.phase24_final_product_experience | type == "object") and (.dashboard_views | type == "object") and (.phase21_alert_audit_rows | type == "array") and (.market_mismatch_rows | type == "array") and (.price_resolution_v4 | type == "object") and (.formation_matchup_health | type == "object") and (.player_props_clv_maturation_funnel | type == "object")' soccer_edge_state/latest.json >/dev/null
+          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.core_slate_floor_reconciliation | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object") and (.v4_014_model_disagreement_engine | type == "object") and (.v4_015_confidence_engine_v1 | type == "object") and (.v4_016_ft_totals_production_validation | type == "object") and (.v4_017_1x2_calibration_validation | type == "object") and (.v4_018_btts_calibration_validation | type == "object") and (.v4_019_team_totals_oos_validation | type == "object") and (.v4_020_1h_oos_validation | type == "object") and (.v4_021_2h_oos_validation | type == "object") and (.v4_022_corners_oos_validation | type == "object") and (.phase14_cards_referee_validation | type == "object") and (.phase15_player_props_validation | type == "object") and (.phase16_market_mismatch_finder | type == "object") and (.phase17_clv_engine | type == "object") and (.phase18_oos_backtest_framework | type == "object") and (.phase19_promotion_framework | type == "object") and (.phase20_bankroll_risk_engine | type == "object") and (.phase21_alert_engine | type == "object") and (.phase22_live_inplay_engine | type == "object") and (.phase23_mlops_model_registry | type == "object") and (.phase24_final_product_experience | type == "object") and (.dashboard_views | type == "object") and (.phase21_alert_audit_rows | type == "array") and (.market_mismatch_rows | type == "array") and (.price_resolution_v4 | type == "object") and (.formation_matchup_health | type == "object") and (.primary_clv_maturation_funnel | type == "object") and (.player_props_clv_maturation_funnel | type == "object")' soccer_edge_state/latest.json >/dev/null
           test -s soccer_edge_state/latest.json
           # Git history is an operational audit trail, not the canonical full-tick store.
           # Full payloads are durable in Postgres. Keep one compact record per tick so a
