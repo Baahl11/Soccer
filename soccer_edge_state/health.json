@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.6-runtime-stabilization",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-07T05:12:28.388034+00:00",
-  "generated_at_local": "2026-10-06T23:12:28.388034-06:00",
+  "generated_at_utc": "2026-10-07T05:24:12.410377+00:00",
+  "generated_at_local": "2026-10-06T23:24:12.410377-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 800,
   "due_fixture_count": 278,
-  "event_count": 23,
+  "event_count": 14,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 66,
-  "last_daily_remaining": 6727,
+  "api_calls_this_tick": 38,
+  "last_daily_remaining": 6691,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -61,7 +61,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-07T05:12:28.388034+00:00",
+    "generated_at_utc": "2026-10-07T05:24:12.410377+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -785,6 +785,56 @@
       "status": "RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION",
       "source_fixtures": 299,
       "style_profile": {
+        "field_prior_coverage": {
+          "blocked_share": {
+            "away_rows_n_ge_1": 14,
+            "away_rows_n_ge_3": 0,
+            "both_rows_n_ge_1": 4,
+            "both_rows_n_ge_3": 0,
+            "home_rows_n_ge_1": 17,
+            "home_rows_n_ge_3": 0
+          },
+          "box_share": {
+            "away_rows_n_ge_1": 12,
+            "away_rows_n_ge_3": 0,
+            "both_rows_n_ge_1": 4,
+            "both_rows_n_ge_3": 0,
+            "home_rows_n_ge_1": 16,
+            "home_rows_n_ge_3": 0
+          },
+          "fouls": {
+            "away_rows_n_ge_1": 12,
+            "away_rows_n_ge_3": 0,
+            "both_rows_n_ge_1": 4,
+            "both_rows_n_ge_3": 0,
+            "home_rows_n_ge_1": 16,
+            "home_rows_n_ge_3": 0
+          },
+          "possession": {
+            "away_rows_n_ge_1": 14,
+            "away_rows_n_ge_3": 0,
+            "both_rows_n_ge_1": 4,
+            "both_rows_n_ge_3": 0,
+            "home_rows_n_ge_1": 17,
+            "home_rows_n_ge_3": 0
+          },
+          "shot_accuracy": {
+            "away_rows_n_ge_1": 14,
+            "away_rows_n_ge_3": 0,
+            "both_rows_n_ge_1": 4,
+            "both_rows_n_ge_3": 0,
+            "home_rows_n_ge_1": 17,
+            "home_rows_n_ge_3": 0
+          },
+          "yellow_cards": {
+            "away_rows_n_ge_1": 14,
+            "away_rows_n_ge_3": 0,
+            "both_rows_n_ge_1": 4,
+            "both_rows_n_ge_3": 0,
+            "home_rows_n_ge_1": 17,
+            "home_rows_n_ge_3": 0
+          }
+        },
         "fields": [
           "possession",
           "shot_accuracy",
@@ -798,7 +848,30 @@
         "minimum_prior_residual_training_rows": 30,
         "minimum_prior_team_style_matches": 3,
         "missing_prior_style_profile_rows": 299,
+        "prior_density": {
+          "rows_with_away_any_prior_style": 14,
+          "rows_with_away_min_field_n_ge_1": 12,
+          "rows_with_away_min_field_n_ge_2": 0,
+          "rows_with_away_min_field_n_ge_3": 0,
+          "rows_with_both_any_prior_style": 4,
+          "rows_with_both_min_field_n_ge_1": 4,
+          "rows_with_both_min_field_n_ge_2": 0,
+          "rows_with_both_min_field_n_ge_3": 0,
+          "rows_with_home_any_prior_style": 17,
+          "rows_with_home_min_field_n_ge_1": 16,
+          "rows_with_home_min_field_n_ge_2": 0,
+          "rows_with_home_min_field_n_ge_3": 0
+        },
+        "profile_failure_reasons": {
+          "AWAY_MIN_FIELD_LT_3": 14,
+          "AWAY_NO_PRIOR_STYLE_HISTORY": 285,
+          "HOME_MIN_FIELD_LT_3": 17,
+          "HOME_NO_PRIOR_STYLE_HISTORY": 282
+        },
         "ridge_alpha": 8.0,
+        "source_team_overlap_pct": 100.0,
+        "source_teams_present_anywhere_in_tactical_history": 520,
+        "source_unique_teams": 520,
         "style_eligible_source_rows": 0,
         "tactical_history_fixtures_loaded": 2419,
         "tactical_history_unique_teams": 4034
@@ -818,9 +891,7 @@
           },
           "blockers": [
             "STYLE_ABLATION_0_LT_100",
-            "HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-            "AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-            "TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE"
+            "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
           ],
           "production_enabled": false,
           "decision_weight": 0.0
@@ -839,9 +910,7 @@
           },
           "blockers": [
             "STYLE_ABLATION_0_LT_100",
-            "HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-            "AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-            "TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE"
+            "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
           ],
           "production_enabled": false,
           "decision_weight": 0.0
@@ -860,9 +929,7 @@
           },
           "blockers": [
             "STYLE_ABLATION_0_LT_100",
-            "HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-            "AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-            "TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE"
+            "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
           ],
           "production_enabled": false,
           "decision_weight": 0.0
@@ -877,19 +944,13 @@
       },
       "health": {
         "blockers": [
-          "GOALS:AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-          "GOALS:HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
           "GOALS:STYLE_ABLATION_0_LT_100",
-          "GOALS:TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+          "GOALS:STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES",
           "PERSONNEL_OVERLAY_NOT_MATERIALIZED",
-          "SHOTS:AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-          "SHOTS:HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
           "SHOTS:STYLE_ABLATION_0_LT_100",
-          "SHOTS:TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-          "SOT:AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
-          "SOT:HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+          "SHOTS:STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES",
           "SOT:STYLE_ABLATION_0_LT_100",
-          "SOT:TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE"
+          "SOT:STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
         ],
         "canonical_bet_logic_changed": false,
         "coach_continuity_used": false,
