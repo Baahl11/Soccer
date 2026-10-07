@@ -1,0 +1,134 @@
+name: Formation Lifecycle Health
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 * * * *"
+  push:
+    branches:
+      - main
+      - soccer-edge-mcp-v1
+    paths:
+      - ".github/workflows/formation-lifecycle-health.yml"
+      - "mcp_gateway/formation_lifecycle_health_v1.py"
+      - "mcp_gateway/formation_fm5_readiness_gate_v1.py"
+      - "mcp_gateway/formation_fm5_raw_projection_v1.py"
+      - "mcp_gateway/formation_fm6_market_validation_v1.py"
+      - "mcp_gateway/formation_fm7_promotion_review_v1.py"
+      - "tests/test_formation_lifecycle_health_v1.py"
+      - "tests/test_formation_fm5_readiness_gate_v1.py"
+      - "tests/test_formation_fm5_raw_projection_v1.py"
+      - "tests/test_formation_fm6_market_validation_v1.py"
+      - "tests/test_formation_fm7_promotion_review_v1.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: formation-lifecycle-health
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout canonical state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+
+      - name: Checkout engine
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: engine
+          fetch-depth: 1
+
+      - name: Validate lifecycle contracts
+        working-directory: engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q pytest -r mcp_gateway/requirements.txt
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_formation_lifecycle_health_v1.py \
+            tests/test_formation_fm5_readiness_gate_v1.py \
+            tests/test_formation_fm5_raw_projection_v1.py \
+            tests/test_formation_fm6_market_validation_v1.py \
+            tests/test_formation_fm7_promotion_review_v1.py
+
+      - name: Build lifecycle health
+        shell: bash
+        run: |
+          set -euo pipefail
+          FM4=state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          FM5=state/soccer_edge_state/analysis/formation_fm5_readiness_gate_v1.json
+          PROSPECTIVE=state/soccer_edge_state/analysis/prospective_evaluation_summary_v1.json
+          PERSONNEL=state/soccer_edge_state/analysis/fm4_personnel_history_backfill_report.json
+          OUT=state/soccer_edge_state/analysis/formation_lifecycle_health_v1.json
+
+          test -s "$FM4"
+          test -s "$FM5"
+          test -s "$PROSPECTIVE"
+
+          ARGS=(
+            --fm4-report "$FM4"
+            --fm5-readiness "$FM5"
+            --prospective "$PROSPECTIVE"
+            --output "$OUT"
+          )
+          if [ -s "$PERSONNEL" ]; then
+            ARGS+=(--personnel-backfill "$PERSONNEL")
+          fi
+
+          PYTHONPATH=engine python engine/mcp_gateway/formation_lifecycle_health_v1.py "${ARGS[@]}"
+
+          jq -e '
+            .model_version == "FORMATION_LIFECYCLE_HEALTH_V1.0.0"
+            and .software_contracts_complete == true
+            and .provider_requests_added == 0
+            and .market_prices_consumed_to_create_sporting_projection == false
+            and .historical_predictions_rewritten == false
+            and .model_weights_changed == false
+            and .thresholds_changed == false
+            and .canonical_bet_logic_changed == false
+            and .production_promotion_allowed == false
+            and .phases.FM5.production_enabled == false
+            and .phases.FM6.production_enabled == false
+            and .phases.FM7.production_enabled == false
+          ' "$OUT" >/dev/null
+
+          jq '{
+            status,
+            software_contracts_complete,
+            phases,
+            evidence_blockers,
+            production_promotion_allowed
+          }' "$OUT"
+
+      - name: Persist lifecycle health
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/formation_lifecycle_health_v1.json
+          if git diff --cached --quiet; then
+            echo "No lifecycle health changes"
+            exit 0
+          fi
+          git commit -m "Update formation FM4-FM7 lifecycle health"
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin soccer-edge-state
+            if git rebase --autostash origin/soccer-edge-state \
+              && git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 3))
+          done
+          exit 1
