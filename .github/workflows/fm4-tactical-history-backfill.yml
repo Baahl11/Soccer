@@ -160,6 +160,7 @@ jobs:
             provided_team_season_count,
             candidate_pool_rows,
             selected_fixture_count,
+            successful_league_counts,
             fixture_discovery,
             attempted,
             captured,
@@ -173,7 +174,7 @@ jobs:
           }' /tmp/fm4_tactical_backfill.json
 
           jq -e '
-            .model_version == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.1.0"
+            .model_version == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.2.0"
             and .statistics_provider_requests_added <= 8
             and .fixture_discovery_provider_requests_added <= 8
             and .provider_requests_added <= 16
