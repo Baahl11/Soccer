@@ -2536,7 +2536,10 @@ def test_price_resolver_source_uses_batch_cache_for_primary_and_spillover():
     import inspect
 
     source = inspect.getsource(v.resolve_payload)
+    batch_source = inspect.getsource(v._load_cached_markets_batch)
     assert "_load_cached_markets_batch" in source
     assert "primary_cached_markets" in source
     assert "spillover_cached_markets" in source
     assert "await asyncio.to_thread(_load_cached_markets, fixture_id" not in source
+    assert "JOIN (VALUES" in batch_source
+    assert "m.captured_at >= target.cutoff" in batch_source
