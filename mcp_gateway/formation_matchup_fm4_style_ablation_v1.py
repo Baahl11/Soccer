@@ -512,16 +512,19 @@ def build_report(
         blockers: list[str] = []
         if n < 100:
             blockers.append(f"STYLE_ABLATION_{n}_LT_100")
-        for side, baseline_metric, challenger_metric in (
-            ("HOME", base_home, style_home),
-            ("AWAY", base_away, style_away),
-            ("TOTAL", base_total, style_total),
-        ):
-            if not _improves(
-                _num(baseline_metric.get("mae")),
-                _num(challenger_metric.get("mae")),
+        if n == 0:
+            blockers.append("STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES")
+        else:
+            for side, baseline_metric, challenger_metric in (
+                ("HOME", base_home, style_home),
+                ("AWAY", base_away, style_away),
+                ("TOTAL", base_total, style_total),
             ):
-                blockers.append(f"{side}_STYLE_MAE_NOT_BETTER_THAN_BASELINE")
+                if not _improves(
+                    _num(baseline_metric.get("mae")),
+                    _num(challenger_metric.get("mae")),
+                ):
+                    blockers.append(f"{side}_STYLE_MAE_NOT_BETTER_THAN_BASELINE")
         targets[target] = {
             "status": "OOS_REVIEW_ELIGIBLE" if not blockers else "RESEARCH_HOLD",
             "eligible_fixtures": n,
