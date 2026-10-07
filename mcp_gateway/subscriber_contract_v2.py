@@ -12,6 +12,7 @@ from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
 from mcp_gateway import subscriber_preview_data_v231
+from mcp_gateway import subscriber_saved_items_v4
 from mcp_gateway import subscriber_ui_contract_v231
 from mcp_gateway import subscriber_validation_metrics_v231
 from mcp_gateway import subscription_entitlements_v4
@@ -982,6 +983,79 @@ async def performance(request: Request) -> JSONResponse:
     return _no_store(build_performance_contract(track_record, validation))
 
 
+
+def _my_edge_allowed(entitlement: dict[str, Any]) -> bool:
+    access = _access(entitlement)
+    features = _dict(access.get("feature_access"))
+    return bool(access.get("premium_unlocked")) and features.get("favorites_alerts") is True
+
+
+async def my_edge(request: Request) -> JSONResponse:
+    token = supabase_auth_v4.bearer_token(request.headers.get("authorization"))
+    if not token:
+        return _no_store({"error": "AUTH_REQUIRED", "resource": "my_edge"}, status_code=401)
+
+    entitlement, error = await _resolve_entitlement(request)
+    if error is not None:
+        return error
+    assert entitlement is not None
+    if not _my_edge_allowed(entitlement):
+        return _no_store({"error": "PRO_REQUIRED", "resource": "my_edge"}, status_code=403)
+
+    if request.method == "GET":
+        result = await asyncio.to_thread(subscriber_saved_items_v4.list_saved, token)
+    elif request.method == "POST":
+        try:
+            body = await request.json()
+        except Exception:
+            return _no_store({"error": "INVALID_JSON"}, status_code=400)
+        if not isinstance(body, dict):
+            return _no_store({"error": "INVALID_ITEM_PAYLOAD"}, status_code=400)
+        result = await asyncio.to_thread(subscriber_saved_items_v4.save_item, token, body)
+    elif request.method == "DELETE":
+        item_key = str(request.query_params.get("item_key") or "").strip()
+        if not item_key:
+            return _no_store({"error": "ITEM_KEY_REQUIRED"}, status_code=400)
+        result = await asyncio.to_thread(
+            subscriber_saved_items_v4.delete_item,
+            token,
+            item_key,
+        )
+    else:
+        return _no_store({"error": "METHOD_NOT_ALLOWED"}, status_code=405)
+
+    if not result.get("ok"):
+        status = str(result.get("status") or "MY_EDGE_UNAVAILABLE")
+        code = 400 if status in {
+            "ITEM_TYPE_NOT_ALLOWED",
+            "VALID_FIXTURE_ID_REQUIRED",
+            "ITEM_KEY_REQUIRED",
+        } else 503
+        return _no_store(
+            {
+                "error": status,
+                "resource": "my_edge",
+                "provider_requests_added": 0,
+            },
+            status_code=code,
+        )
+
+    return _no_store(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "model_version": MODEL_VERSION,
+            "status": result.get("status"),
+            "resource": "my_edge",
+            "rows": result.get("rows") if isinstance(result.get("rows"), list) else None,
+            "row": result.get("row") if isinstance(result.get("row"), dict) else None,
+            "item_key": result.get("item_key"),
+            "provider_requests_added": 0,
+            "canonical_bet_logic_changed": False,
+            "model_weights_changed": False,
+            "production_promotion_allowed": False,
+        }
+    )
+
 def _match_market_group(candidate: dict[str, Any]) -> str:
     market = _dict(candidate.get("market"))
     family = str(market.get("family") or "").upper()
@@ -1163,11 +1237,13 @@ def contract() -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
-        "resources": ["today", "picks", "leans", "watches", "match", "performance", "account"],
+        "resources": ["today", "picks", "leans", "watches", "match", "performance", "my_edge", "account"],
         "raw_sport_probability_is_distinct": True,
         "market_shrunk_probability_is_distinct": True,
         "calibrated_probability_is_distinct": True,
         "fair_market_probability_is_distinct": True,
+        "my_edge_persistence": "SUPABASE_RLS_SUBSCRIBER_SAVED_ITEMS",
+        "my_edge_model_input_allowed": False,
         "frontend_creates_bet_or_lean": False,
         "missing_verification_policy": "NOT VERIFIED",
         "free_premium_values_redacted": True,
