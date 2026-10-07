@@ -191,7 +191,8 @@ jobs:
             daily_budget_mode,
             database_persisted,
             database_error,
-            core_slate_floor_reconciliation:(.core_slate_floor_reconciliation // {})
+            core_slate_floor_reconciliation:(.core_slate_floor_reconciliation // {}),
+            market_maturation_health:(.market_maturation_health // {})
           }' /tmp/soccer_tick.json > soccer_edge_state/health.json
 
           # latest.json is intentionally compact. The full tick is already durable in
@@ -227,6 +228,7 @@ jobs:
             decision_separation:(.decision_separation // {}),
             price_resolution_v4:(.price_resolution_v4 // {}),
             price_resolution_checkpoint:(.price_resolution_checkpoint // {}),
+            market_maturation_health:(.market_maturation_health // {}),
             player_props_clv_maturation_funnel:(.player_props_clv_maturation_funnel // {}),
             v4_005_score_matrix_observability:(.v4_005_score_matrix_observability // {}),
             elastic_deep_dive_cap,
