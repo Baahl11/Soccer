@@ -9,6 +9,7 @@ from starlette.responses import JSONResponse
 
 from mcp_gateway import persistence as persistence_base
 from mcp_gateway import product_views_v4
+from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
 from mcp_gateway import subscriber_preview_data_v231
 from mcp_gateway import subscriber_ui_contract_v231
@@ -884,24 +885,95 @@ async def performance(request: Request) -> JSONResponse:
     access = _access(entitlement)
     if not access["premium_unlocked"]:
         return _no_store({"error": "PRO_REQUIRED", "resource": "performance"}, status_code=403)
-    result = await asyncio.to_thread(subscriber_validation_metrics_v231.load_validation_metrics)
+
+    track_record, validation = await asyncio.gather(
+        asyncio.to_thread(public_performance_v4.load_snapshot),
+        asyncio.to_thread(subscriber_validation_metrics_v231.load_validation_metrics),
+    )
+
+    bet_only = _dict(track_record.get("bet_only"))
+    research_lean = _dict(track_record.get("research_lean"))
+    settlement = _dict(track_record.get("settlement"))
+    true_clv = _dict(track_record.get("true_clv"))
+
     return _no_store(
         {
             "schema_version": SCHEMA_VERSION,
             "model_version": MODEL_VERSION,
-            "status": result.get("status"),
-            "performance_kind": "PERSISTED_VALIDATION_EVIDENCE",
-            "rows": result.get("rows") or [],
-            "weighted_avg_clv_pp": result.get("weighted_avg_clv_pp"),
-            "totals": result.get("totals") or {},
-            "errors": result.get("errors") or {},
-            "note": (
-                "Validation/OOS evidence is not the same as a customer BET-only realized ledger. "
-                "The UI must label it accordingly."
+            "status": (
+                "VERIFIED_PERFORMANCE_READY"
+                if track_record.get("status") == "ACTIVE"
+                else "VERIFIED_PERFORMANCE_SAMPLE_NOT_READY"
             ),
+            "performance_policy": {
+                "headline_scope": "CANONICAL_BET_SETTLEMENT_ONLY",
+                "leans_in_headline": False,
+                "research_oos_is_realized_bet_performance": False,
+                "historical_reconstruction_performed": (
+                    track_record.get("historical_reconstruction_performed") is True
+                ),
+                "settlement_backfill_performed": (
+                    track_record.get("settlement_backfill_performed") is True
+                ),
+            },
+            "bet_track_record": {
+                "status": track_record.get("status"),
+                "sample_status": bet_only.get("sample_status"),
+                "directional_minimum": bet_only.get("directional_minimum"),
+                "settled": bet_only.get("settled"),
+                "win": bet_only.get("win"),
+                "loss": bet_only.get("loss"),
+                "push": bet_only.get("push"),
+                "ungraded": bet_only.get("ungraded"),
+                "hit_rate_ex_push": bet_only.get("hit_rate_ex_push"),
+                "roi_units": bet_only.get("roi_units"),
+                "families": list(bet_only.get("families") or []),
+            },
+            "research_lean": {
+                "classification": research_lean.get("classification"),
+                "settled": research_lean.get("settled"),
+                "win": research_lean.get("win"),
+                "loss": research_lean.get("loss"),
+                "push": research_lean.get("push"),
+                "ungraded": research_lean.get("ungraded"),
+                "hit_rate_ex_push": research_lean.get("hit_rate_ex_push"),
+                "roi_units": research_lean.get("roi_units"),
+                "families": list(research_lean.get("families") or []),
+                "headline_eligible": False,
+            },
+            "settlement": settlement,
+            "true_clv": true_clv,
+            "validation_evidence": {
+                "status": validation.get("status"),
+                "kind": "PERSISTED_VALIDATION_OOS_EVIDENCE",
+                "rows": validation.get("rows") or [],
+                "weighted_avg_clv_pp": validation.get("weighted_avg_clv_pp"),
+                "totals": validation.get("totals") or {},
+                "errors": validation.get("errors") or {},
+            },
+            "notes": [
+                (
+                    "Headline performance uses canonical settled BET rows only. "
+                    "LEAN rows are displayed separately and never improve the BET headline."
+                ),
+                (
+                    "Validation/OOS evidence is research evidence, not realized customer "
+                    "BET performance."
+                ),
+                (
+                    "Small samples remain visibly labeled; no performance claim is upgraded "
+                    "because of presentation."
+                ),
+            ],
+            "source": {
+                "bet_track_record_model_version": track_record.get("model_version"),
+                "validation_model_version": validation.get("model_version"),
+                "generated_at_utc": track_record.get("generated_at_utc"),
+            },
             "provider_requests_added": 0,
             "canonical_bet_logic_changed": False,
             "model_weights_changed": False,
+            "production_promotion_allowed": False,
         }
     )
 
