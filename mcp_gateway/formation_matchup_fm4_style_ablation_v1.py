@@ -11,8 +11,9 @@ from typing import Any
 
 from mcp_gateway import formation_matchup_engine_v1 as fm1
 from mcp_gateway import formation_matchup_fm3_oos_v1 as fm3
+from mcp_gateway import formation_personnel_outcome_ablation_v1 as personnel_ablation
 
-MODEL_VERSION = "FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.0.0"
+MODEL_VERSION = "FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.1.0"
 SCHEMA_VERSION = "1.0.0"
 MIN_TEAM_STYLE_N = 3
 MIN_STYLE_TRAIN_N = 30
@@ -1085,11 +1086,14 @@ def build_report(
     both_last3_n = int(
         personnel_coverage["rows_with_both_last3_core_return_rate"]
     )
+    personnel_outcome = personnel_ablation.build_report(rows, personnel_rows)
+    personnel_goals_ready = personnel_outcome.get("goals_ready_for_fm5") is True
+
     if current_xi_n == 0:
         personnel_status = "NOT_MATERIALIZED"
         personnel_blockers.append("PERSONNEL_OVERLAY_NOT_MATERIALIZED")
     else:
-        personnel_status = "RESEARCH_ONLY_PERSONNEL_CONTINUITY"
+        personnel_status = "RESEARCH_ONLY_PERSONNEL_OUTCOME_ABLATION"
         if both_prior_n < 100:
             personnel_blockers.append(f"PERSONNEL_PRIOR_XI_{both_prior_n}_LT_100")
         if both_coach_n < 100:
@@ -1100,7 +1104,18 @@ def build_report(
             personnel_blockers.append(
                 f"LAST3_CORE_CONTINUITY_{both_last3_n}_LT_100"
             )
-        personnel_blockers.append("PERSONNEL_OUTCOME_ABLATION_NOT_YET_VALIDATED")
+
+    goals_ablation = (
+        personnel_outcome.get("targets", {}).get("GOALS", {})
+        if isinstance(personnel_outcome.get("targets"), dict)
+        else {}
+    )
+    if not personnel_goals_ready:
+        personnel_blockers.extend(
+            str(value)
+            for value in (goals_ablation.get("blockers") or [])
+            if value
+        )
 
     personnel = {
         "status": personnel_status,
@@ -1158,6 +1173,11 @@ def build_report(
         },
         "player_role_continuity": "PROVIDER_POSITION_AND_GRID_ONLY_NO_INFERRED_ROLE",
         "minimum_review_fixtures": 100,
+        "outcome_ablation": personnel_outcome,
+        "outcome_ablation_ready": personnel_goals_ready,
+        "outcome_ablation_ready_targets": list(
+            personnel_outcome.get("ready_targets") or []
+        ),
         "blockers": personnel_blockers,
         "production_enabled": False,
         "decision_weight": 0.0,
@@ -1248,7 +1268,8 @@ def build_report(
             "coach_continuity_materialized": current_xi_n > 0,
             "coach_continuity_used": False,
             "personnel_continuity_materialized": current_xi_n > 0,
-            "personnel_outcome_ablation_used": False,
+            "personnel_outcome_ablation_used": True,
+            "personnel_outcome_ablation_goals_ready": personnel_goals_ready,
             "production_enabled": False,
             "decision_weight": 0.0,
             "provider_requests_added": 0,
