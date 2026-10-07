@@ -1,13 +1,19 @@
 {
   "schema_version": "1.0.0",
-  "model_version": "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.1.0",
+  "model_version": "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.2.0",
   "status": "FM4_TACTICAL_HISTORY_BACKFILL_COMPLETE",
   "before": "2026-09-12T07:30:00+00:00",
   "lookback_days": 365,
   "target_team_count": 520,
   "provided_team_season_count": 520,
-  "candidate_pool_rows": 66,
+  "candidate_pool_rows": 64,
   "selected_fixture_count": 8,
+  "successful_league_counts": {
+    "2": 1,
+    "39": 6,
+    "40": 1,
+    "48": 4
+  },
   "fixture_discovery": {
     "max_team_calls_per_run": 8,
     "attempted_team_calls": 0,
@@ -17,61 +23,57 @@
     "details": []
   },
   "attempted": 8,
-  "captured": 2,
-  "incomplete": 6,
+  "captured": 0,
+  "incomplete": 8,
   "errors": 0,
   "details": [
     {
       "fixture_id": 1598622,
       "status": "PROVIDER_STATS_INCOMPLETE",
       "team_rows": 0,
-      "daily_remaining": 5106
-    },
-    {
-      "fixture_id": 1591929,
-      "status": "PROVIDER_STATS_INCOMPLETE",
-      "team_rows": 0,
-      "daily_remaining": 5105
-    },
-    {
-      "fixture_id": 1542350,
-      "status": "PROVIDER_STATS_INCOMPLETE",
-      "team_rows": 0,
-      "daily_remaining": 5104
+      "daily_remaining": 5098
     },
     {
       "fixture_id": 1560777,
       "status": "PROVIDER_STATS_INCOMPLETE",
       "team_rows": 0,
-      "daily_remaining": 5103
+      "daily_remaining": 5097
+    },
+    {
+      "fixture_id": 1550631,
+      "status": "PROVIDER_STATS_INCOMPLETE",
+      "team_rows": 0,
+      "daily_remaining": 5096
+    },
+    {
+      "fixture_id": 1542350,
+      "status": "PROVIDER_STATS_INCOMPLETE",
+      "team_rows": 0,
+      "daily_remaining": 5095
     },
     {
       "fixture_id": 1567736,
       "status": "PROVIDER_STATS_INCOMPLETE",
       "team_rows": 0,
-      "daily_remaining": 5102
+      "daily_remaining": 5094
     },
     {
       "fixture_id": 1589321,
       "status": "PROVIDER_STATS_INCOMPLETE",
       "team_rows": 0,
-      "daily_remaining": 5101
+      "daily_remaining": 5093
     },
     {
-      "fixture_id": 1557384,
-      "status": "CAPTURED",
-      "home_team_id": 33,
-      "away_team_id": 57,
-      "kickoff": "2026-08-30T15:30:00+00:00",
-      "daily_remaining": 5100
+      "fixture_id": 1598627,
+      "status": "PROVIDER_STATS_INCOMPLETE",
+      "team_rows": 0,
+      "daily_remaining": 5092
     },
     {
-      "fixture_id": 1557367,
-      "status": "CAPTURED",
-      "home_team_id": 42,
-      "away_team_id": 1346,
-      "kickoff": "2026-08-21T19:00:00+00:00",
-      "daily_remaining": 5099
+      "fixture_id": 1591929,
+      "status": "PROVIDER_STATS_INCOMPLETE",
+      "team_rows": 0,
+      "daily_remaining": 5091
     }
   ],
   "fixture_discovery_provider_requests_added": 0,
@@ -79,13 +81,13 @@
   "provider_requests_added": 8,
   "max_statistics_provider_requests_per_run": 8,
   "max_discovery_provider_requests_per_run": 8,
-  "daily_remaining_after_run": 5099,
+  "daily_remaining_after_run": 5091,
   "historical_research_feature_reconstruction_allowed": true,
   "retroactive_prediction_rewrite": false,
   "retroactive_market_created": false,
   "retroactive_bet_created": false,
   "decision_weight": 0.0,
   "production_promotion_allowed": false,
-  "policy": "DISCOVER ONLY VERIFIED FINALIZED FIXTURES STRICTLY BEFORE THE FM4 TARGET COHORT; PERSIST FIXTURE/RESULT IDENTITY IN CANONICAL POSTGRES; EXACT PROVIDER FIXTURE STATISTICS ONLY; MAX EIGHT STATISTICS REQUESTS PER RUN; MAX EIGHT FIXTURE-DISCOVERY TEAM REQUESTS PER RUN; STOP AT DAILY RESERVE GUARD; PERSIST DISCOVERY AND RETRIEVAL PROVENANCE; NO SYNTHETIC TACTICAL VALUES; MAY EXPAND OFFLINE HISTORICAL FEATURE RESEARCH BUT NEVER REWRITE ORIGINAL PREGAME PREDICTIONS, MARKETS, CLV, BETS, OR PRODUCTION DECISIONS.",
+  "policy": "DISCOVER ONLY VERIFIED FINALIZED FIXTURES STRICTLY BEFORE THE FM4 TARGET COHORT; PERSIST FIXTURE/RESULT IDENTITY IN CANONICAL POSTGRES; EXACT PROVIDER FIXTURE STATISTICS ONLY; MAX EIGHT STATISTICS REQUESTS PER RUN; MAX EIGHT FIXTURE-DISCOVERY TEAM REQUESTS PER RUN; STOP AT DAILY RESERVE GUARD; PERSIST DISCOVERY, RETRIEVAL PROVENANCE, AND INCOMPLETE-STATS ATTEMPTS; DO NOT REQUERY KNOWN INCOMPLETE HISTORICAL FIXTURES; PRIORITIZE LEAGUES WITH VERIFIED SUCCESSFUL STATISTICS CAPTURE AS A TIE-BREAKER; NO SYNTHETIC TACTICAL VALUES; MAY EXPAND OFFLINE HISTORICAL FEATURE RESEARCH BUT NEVER REWRITE ORIGINAL PREGAME PREDICTIONS, MARKETS, CLV, BETS, OR PRODUCTION DECISIONS.",
   "materialized_history_fixture_count": 12
 }
