@@ -15,7 +15,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 
 from mcp_gateway.persistence import persistence_configured
-from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, formation_postgres_audit, formation_tactical_history_backfill_v1, oos_prediction_ledger_v4, persistence as persistence_base, player_props_oos_postgres_v4, player_props_phase15_coverage_audit, player_props_postgame_backfill_v4, player_trend_registry_backfill_v4, product_dashboard_v4, product_views_v4, promotion_shadow_postgres_v4, research_derivative_postgres_audit, settlement_postgres_v4, training_dataset_v4
+from mcp_gateway import bivariate_poisson_v4, clv_postgres_v4, dixon_coles_v4, formation_postgres_audit, formation_tactical_history_backfill_v1, oos_prediction_ledger_v4, persistence as persistence_base, player_props_oos_postgres_v4, player_props_phase15_coverage_audit, player_props_postgame_backfill_v4, player_trend_registry_backfill_v4, product_dashboard_v4, product_views_v4, promotion_shadow_postgres_v4, prospective_evaluation_registry_v1, research_derivative_postgres_audit, settlement_postgres_v4, training_dataset_v4
 
 API_BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_TIMEZONE = os.getenv("SOCCER_TIMEZONE", "America/Mexico_City")
@@ -987,6 +987,40 @@ async def internal_promotion_shadow_v4_build(request: Request) -> Response:
             {"error": "promotion_shadow_v4_build_failed", "detail": str(exc)[:500]},
             status_code=500,
         )
+
+
+@mcp.custom_route("/internal/prospective-evaluation-registry-v1/build", methods=["POST"])
+async def internal_prospective_evaluation_registry_v1_build(request: Request) -> Response:
+    try:
+        _github_oidc_claims(
+            request,
+            {".github/workflows/prospective-evaluation-registry.yml"},
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {"error": "unauthorized", "detail": str(exc)[:200]},
+            status_code=401,
+        )
+
+    busy = _acquire_db_heavy_gate("prospective_evaluation_registry_v1")
+    if busy is not None:
+        return busy
+    try:
+        try:
+            report = await asyncio.to_thread(
+                prospective_evaluation_registry_v1.build_registry
+            )
+            return JSONResponse(report)
+        except Exception as exc:
+            return JSONResponse(
+                {
+                    "error": "prospective_evaluation_registry_v1_failed",
+                    "detail": str(exc)[:500],
+                },
+                status_code=500,
+            )
+    finally:
+        _release_db_heavy_gate()
 
 
 @mcp.custom_route("/internal/settlement-v4/build", methods=["POST"])
