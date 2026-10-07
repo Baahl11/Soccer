@@ -166,18 +166,75 @@ def _history_events(
                     {
                         "fixture_id": rec.get("fixture_id"),
                         "kickoff": kickoff,
+                        "history_available_at": kickoff,
                         "captured_at": (
                             rec.get("lineup_detail_at").isoformat()
                             if isinstance(rec.get("lineup_detail_at"), datetime)
                             else rec.get("lineup_detail_at")
                         ),
                         "stage": rec.get("lineup_detail_stage"),
+                        "source": "VERIFIED_PREKICKOFF_LINEUP",
+                        "retroactive_current_fixture_allowed": True,
                         "teams": detail_teams,
                     }
                 )
 
+        for fact in rec.get("historical_personnel_facts") or []:
+            if not isinstance(fact, dict):
+                continue
+            if fact.get("both_xi_confirmed") is not True:
+                continue
+            available_at = _dt(fact.get("historical_fact_available_at"))
+            if available_at == datetime.min.replace(tzinfo=timezone.utc):
+                continue
+            fact_teams = []
+            for team in fact.get("teams") or []:
+                if not isinstance(team, dict) or team.get("team_id") is None:
+                    continue
+                starters = [
+                    {
+                        "id": player.get("id"),
+                        "name": player.get("name"),
+                        "pos": player.get("pos"),
+                        "grid": player.get("grid"),
+                    }
+                    for player in (team.get("starters") or [])
+                    if isinstance(player, dict) and player.get("id") is not None
+                ]
+                if len(starters) < 11:
+                    continue
+                fact_teams.append(
+                    {
+                        "team_id": int(team.get("team_id")),
+                        "team": team.get("team"),
+                        "formation": team.get("formation"),
+                        "coach_id": team.get("coach_id"),
+                        "coach": team.get("coach"),
+                        "starters": starters,
+                    }
+                )
+            if len(fact_teams) == 2:
+                personnel_events.append(
+                    {
+                        "fixture_id": rec.get("fixture_id"),
+                        "kickoff": kickoff,
+                        "history_available_at": available_at,
+                        "captured_at": fact.get("retrieved_at"),
+                        "stage": "FM4_PERSONNEL_BACKFILL",
+                        "source": fact.get("source")
+                        or "HISTORICAL_PERSONNEL_BACKFILL",
+                        "retroactive_current_fixture_allowed": False,
+                        "teams": fact_teams,
+                    }
+                )
+
     tactical_events.sort(key=lambda row: (row["kickoff"], int(row.get("fixture_id") or 0)))
-    personnel_events.sort(key=lambda row: (row["kickoff"], int(row.get("fixture_id") or 0)))
+    personnel_events.sort(
+        key=lambda row: (
+            row.get("history_available_at") or row["kickoff"],
+            int(row.get("fixture_id") or 0),
+        )
+    )
     return tactical_events, personnel_events
 
 
@@ -647,7 +704,11 @@ def build_report(
         if history_dir:
             while (
                 personnel_index < len(personnel_events)
-                and personnel_events[personnel_index]["kickoff"] < row_kickoff
+                and (
+                    personnel_events[personnel_index].get("history_available_at")
+                    or personnel_events[personnel_index]["kickoff"]
+                )
+                < row_kickoff
             ):
                 personnel_event = personnel_events[personnel_index]
                 for team in personnel_event.get("teams") or []:
@@ -657,7 +718,14 @@ def build_report(
                     history_row["fixture_id"] = personnel_event.get("fixture_id")
                     history_row["kickoff"] = personnel_event.get("kickoff")
                     history_row["captured_at"] = personnel_event.get("captured_at")
+                    history_row["history_available_at"] = personnel_event.get(
+                        "history_available_at"
+                    )
                     history_row["stage"] = personnel_event.get("stage")
+                    history_row["source"] = personnel_event.get("source")
+                    history_row["retroactive_current_fixture_allowed"] = (
+                        personnel_event.get("retroactive_current_fixture_allowed") is True
+                    )
                     team_lineup_history[int(team.get("team_id"))].append(history_row)
                 personnel_index += 1
 
