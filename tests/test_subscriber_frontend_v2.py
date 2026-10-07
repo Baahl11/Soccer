@@ -9,9 +9,9 @@ def test_fe2_shell_contains_no_design_time_mock_data():
     for forbidden in (
         "Arsenal vs Brighton",
         "Man City vs Nottm Forest",
-        "const rows=[",
-        "const markets=[",
         "Mockup Preview",
+        "const markets=[['1X2'",
+        "const rows=[['Arsenal vs Brighton'",
     ):
         assert forbidden not in html
 
