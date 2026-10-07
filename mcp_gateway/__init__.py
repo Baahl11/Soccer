@@ -94,6 +94,7 @@ def _install_subscriber_app_routes() -> None:
         from mcp_gateway import (
             content_factory_http_v4,
             subscriber_product_v235,
+            subscriber_contract_v2,
             subscriber_preview_data_v231,
             subscriber_preview_maturity_v232,
             subscriber_preview_performance_v231,
@@ -114,6 +115,20 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app/match", subscriber_product_v235.match_data, methods=["GET"], name="v235_subscriber_match_data"))
         if "/app/fixture-identities" not in existing_paths:
             additions.append(Route("/app/fixture-identities", subscriber_today_v236.fixture_identities, methods=["GET"], name="v236_fixture_identities"))
+        if "/app/api/v2/today" not in existing_paths:
+            additions.append(Route("/app/api/v2/today", subscriber_contract_v2.today, methods=["GET"], name="subscriber_v2_today"))
+        if "/app/api/v2/picks" not in existing_paths:
+            additions.append(Route("/app/api/v2/picks", subscriber_contract_v2.picks, methods=["GET"], name="subscriber_v2_picks"))
+        if "/app/api/v2/leans" not in existing_paths:
+            additions.append(Route("/app/api/v2/leans", subscriber_contract_v2.leans, methods=["GET"], name="subscriber_v2_leans"))
+        if "/app/api/v2/watches" not in existing_paths:
+            additions.append(Route("/app/api/v2/watches", subscriber_contract_v2.watches, methods=["GET"], name="subscriber_v2_watches"))
+        if "/app/api/v2/performance" not in existing_paths:
+            additions.append(Route("/app/api/v2/performance", subscriber_contract_v2.performance, methods=["GET"], name="subscriber_v2_performance"))
+        if "/app/api/v2/account" not in existing_paths:
+            additions.append(Route("/app/api/v2/account", subscriber_contract_v2.account, methods=["GET"], name="subscriber_v2_account"))
+        if "/app/api/v2/match/{fixture_id:int}" not in existing_paths:
+            additions.append(Route("/app/api/v2/match/{fixture_id:int}", subscriber_contract_v2.match_detail, methods=["GET"], name="subscriber_v2_match"))
         if "/app-preview" not in existing_paths:
             additions.append(Route("/app-preview", legacy_preview_landing, methods=["GET"], name="v235_legacy_preview_redirect"))
         if "/app-preview/data" not in existing_paths:
