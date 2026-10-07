@@ -544,3 +544,107 @@ Continue:
 6. integrate a formation/style feature into RAW SPORT PROJECTION only if OOS lift is eventually demonstrated.
 
 Zero production weight is the correct state until those gates pass.
+
+
+---
+
+# 19. ROADMAP UPDATE — 2026-10-07 POST P1F / FM-4 BACKFILL ATTEMPT
+
+The broader Soccer roadmap is now tracked in:
+
+`14_SOCCER_EDGE_ENGINE_ROADMAP_STATUS_v1.0.md`
+
+## 19.1 FM-4 guarded historical backfill infrastructure — IMPLEMENTED
+
+Materialized:
+
+- `mcp_gateway/formation_tactical_history_backfill_v1.py`;
+- protected Render route `/internal/fm4-tactical-history-backfill-v1/run`;
+- `.github/workflows/fm4-tactical-history-backfill.yml`.
+
+Safety contract:
+
+- finalized historical fixtures only;
+- fixtures must precede the Formation Matchup target cohort;
+- exact provider `fixtures/statistics` observations only;
+- max 8 statistics requests per run;
+- daily provider reserve guard;
+- retrieval provenance persisted;
+- no synthetic tactical values;
+- no retroactive prediction rewrite;
+- no retroactive market, CLV or bet creation;
+- production decision weight = 0.
+
+## 19.2 First FM-4 backfill run — NO HISTORICAL CANDIDATES FOUND LOCALLY
+
+First workflow execution observed:
+
+```text
+target_team_count = 520
+candidate_pool_rows = 0
+selected_fixture_count = 0
+attempted = 0
+captured = 0
+provider_requests_added = 0
+```
+
+Interpretation:
+
+The next FM-4 bottleneck is not statistics quota.
+
+The local Postgres fixture/result store does not currently expose eligible finalized pre-cohort fixtures for the 520 target teams under the backfill query.
+
+Do **not** weaken the prior-history gate.
+
+Next required FM-4 task:
+
+```text
+HISTORICAL FIXTURE DISCOVERY / INGESTION
+↓
+VERIFIED PRE-COHORT FIXTURE IDS
+↓
+GUARDED FIXTURES/STATISTICS BACKFILL
+↓
+FM-4 PRIOR-ONLY STYLE REBUILD
+```
+
+## 19.3 Offline rebuild workflow dependency issue
+
+The same first workflow later failed at the FM-4 rebuild step because the GitHub runner did not contain the `httpx` dependency loaded by the package bootstrap.
+
+This is an implementation-environment issue.
+
+It is **not** evidence against the Formation Matchup model and did not alter production state.
+
+Required correction:
+
+- install/use the required lightweight runtime dependency in the offline job, or;
+- isolate the research module from unrelated commercial package imports.
+
+Prefer isolation when practical.
+
+## 19.4 FM-4 remains correctly blocked
+
+Current status remains:
+
+`RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION`
+
+Current critical blocker:
+
+`STYLE_HISTORY_DEPTH_BOTH_TEAMS_N_GE_3_0_LT_100`
+
+Production enabled = false.  
+Decision weight = 0.
+
+## 19.5 FM-5 remains blocked
+
+Do not integrate Formation/Style into RAW SPORT PROJECTION until:
+
+1. verified prior historical depth exists;
+2. style/personnel ablation has a meaningful OOS sample;
+3. challenger improves the appropriate independent baseline;
+4. lift is not concentrated in one league/matchup;
+5. no leakage exists.
+
+Nominal formation results alone are not sufficient.
+
