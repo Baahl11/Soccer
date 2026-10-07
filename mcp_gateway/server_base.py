@@ -757,6 +757,11 @@ async def internal_fm4_tactical_history_backfill_v1_run(request: Request) -> Res
     team_ids = body.get("team_ids")
     if not isinstance(team_ids, list):
         return JSONResponse({"error": "team_ids_required"}, status_code=400)
+    team_seasons = body.get("team_seasons")
+    if team_seasons is None:
+        team_seasons = {}
+    if not isinstance(team_seasons, dict):
+        return JSONResponse({"error": "team_seasons_must_be_object"}, status_code=400)
     before = str(body.get("before") or "").strip()
     if not before:
         return JSONResponse({"error": "before_required"}, status_code=400)
@@ -776,6 +781,7 @@ async def internal_fm4_tactical_history_backfill_v1_run(request: Request) -> Res
                 before=before,
                 lookback_days=lookback_days,
                 max_fixtures=max_fixtures,
+                team_seasons=team_seasons,
             )
             return JSONResponse(result)
         except Exception as exc:
