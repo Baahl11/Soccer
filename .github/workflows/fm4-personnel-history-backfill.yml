@@ -29,7 +29,7 @@ jobs:
         with:
           ref: soccer-edge-state
           path: state
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Checkout engine
         uses: actions/checkout@v4
@@ -102,12 +102,14 @@ jobs:
           }, indent=2))
           PY
 
-      - name: Wait for compatible Render runtime
+      - name: Wait for Render health
         shell: bash
         run: |
           set -euo pipefail
           for attempt in 1 2 3 4 5 6; do
-            if curl -fsS --max-time 30               https://soccer-edge-api.onrender.com/health               > /tmp/health.json; then
+            if curl -fsS --max-time 30 \
+              https://soccer-edge-api.onrender.com/health \
+              > /tmp/health.json; then
               cat /tmp/health.json
               exit 0
             fi
@@ -116,13 +118,16 @@ jobs:
           exit 1
 
       - name: Run guarded FM4 personnel history backfill
+        id: backfill_call
         shell: bash
         run: |
           set -euo pipefail
 
           get_oidc_token() {
             local response token
-            response=$(curl -fsS               -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}"               "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            response=$(curl -fsS \
+              -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
             token=$(echo "$response" | jq -r '.value // empty')
             test -n "$token"
             printf '%s' "$token"
@@ -132,20 +137,80 @@ jobs:
           echo "::add-mask::$TOKEN"
 
           HTTP_CODE=""
+          RUNTIME_AVAILABLE=true
+
           for attempt in 1 2 3 4 5 6; do
-            HTTP_CODE=$(curl -sS --max-time 180               -o /tmp/fm4_personnel_backfill.json               -w "%{http_code}"               -X POST               -H "Authorization: Bearer ${TOKEN}"               -H "Content-Type: application/json"               --data-binary @/tmp/fm4_personnel_backfill_request.json               https://soccer-edge-api.onrender.com/internal/fm4-personnel-history-backfill-v1/run               || true)
+            HTTP_CODE=$(curl -sS --max-time 180 \
+              -o /tmp/fm4_personnel_backfill.json \
+              -w "%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data-binary @/tmp/fm4_personnel_backfill_request.json \
+              https://soccer-edge-api.onrender.com/internal/fm4-personnel-history-backfill-v1/run \
+              || true)
 
             if [ "$HTTP_CODE" = "200" ]; then
               break
             fi
+
             echo "FM4 personnel backfill attempt $attempt returned HTTP $HTTP_CODE"
             cat /tmp/fm4_personnel_backfill.json || true
+
+            # A deterministic 404 means the deployed Render runtime predates
+            # the protected route. Retrying cannot repair deployment drift.
+            if [ "$HTTP_CODE" = "404" ]; then
+              RUNTIME_AVAILABLE=false
+              break
+            fi
+
             if [ "$attempt" -lt 6 ]; then
               sleep 20
               TOKEN=$(get_oidc_token)
               echo "::add-mask::$TOKEN"
             fi
           done
+
+          if [ "$RUNTIME_AVAILABLE" = "false" ]; then
+            DEPLOYED_COMMIT=$(jq -r '.render_git_commit // "UNKNOWN"' /tmp/health.json)
+            ENGINE_COMMIT=$(git -C engine rev-parse HEAD)
+            BEFORE=$(jq -r '.before' /tmp/fm4_personnel_backfill_request.json)
+            TARGET_TEAM_COUNT=$(jq -r '.team_ids | length' /tmp/fm4_personnel_backfill_request.json)
+
+            jq -n \
+              --arg deployed_commit "$DEPLOYED_COMMIT" \
+              --arg engine_commit "$ENGINE_COMMIT" \
+              --arg before "$BEFORE" \
+              --argjson target_team_count "$TARGET_TEAM_COUNT" \
+              '{
+                schema_version:"1.0.0",
+                model_version:"FM4_PERSONNEL_DEPLOYMENT_BLOCK_V1.0.0",
+                status:"BLOCKED_STALE_RENDER_RUNTIME",
+                reason:"PROTECTED_PERSONNEL_BACKFILL_ROUTE_NOT_DEPLOYED",
+                expected_route:"/internal/fm4-personnel-history-backfill-v1/run",
+                deployed_render_git_commit:$deployed_commit,
+                engine_branch_git_commit:$engine_commit,
+                before:$before,
+                target_team_count:$target_team_count,
+                attempted:0,
+                captured:0,
+                incomplete:0,
+                errors:0,
+                provider_requests_added:0,
+                prior_history_use_only:true,
+                retroactive_current_fixture_allowed:false,
+                retroactive_prediction_rewrite:false,
+                retroactive_market_created:false,
+                retroactive_bet_created:false,
+                decision_weight:0,
+                production_promotion_allowed:false,
+                materialized_personnel_history_fixture_count:0
+              }' > /tmp/fm4_personnel_deployment_block.json
+
+            cat /tmp/fm4_personnel_deployment_block.json
+            echo "runtime_available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           test "$HTTP_CODE" = "200"
 
@@ -179,7 +244,41 @@ jobs:
             and (.events | type == "array")
           ' /tmp/fm4_personnel_backfill.json >/dev/null
 
+          echo "runtime_available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Persist Render deployment blocker
+        if: steps.backfill_call.outputs.runtime_available == 'false'
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p soccer_edge_state/analysis
+          cp /tmp/fm4_personnel_deployment_block.json \
+            soccer_edge_state/analysis/fm4_personnel_history_backfill_report.json
+
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/fm4_personnel_history_backfill_report.json
+
+          if git diff --cached --quiet; then
+            echo "Deployment blocker state unchanged"
+            exit 0
+          fi
+
+          git commit -m "Record FM4 personnel Render deployment blocker"
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin soccer-edge-state
+            if git rebase --autostash origin/soccer-edge-state \
+              && git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 3))
+          done
+          exit 1
+
       - name: Merge FM4 personnel history
+        if: steps.backfill_call.outputs.runtime_available == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -263,54 +362,53 @@ jobs:
           PY
 
       - name: Rebuild FM4 style/personnel ablation
+        if: steps.backfill_call.outputs.runtime_available == 'true'
         env:
           PYTHONPATH: engine
         shell: bash
         run: |
           set -euo pipefail
-          python engine/mcp_gateway/formation_matchup_fm4_style_ablation_v1.py             --formation-report               state/soccer_edge_state/analysis/formation_matchup_engine_v1.json             --history-dir state/soccer_edge_state/history             --output               state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
-
-          jq '{
-            model_version,
-            status,
-            source_fixtures,
-            style_profile:{
-              history_source:.style_profile.history_source,
-              history_depth_status:.style_profile.history_depth_status,
-              tactical_history_fixtures_loaded:.style_profile.tactical_history_fixtures_loaded,
-              prior_density:.style_profile.prior_density,
-              profile_failure_reasons:.style_profile.profile_failure_reasons
-            },
-            personnel_overlay,
-            health
-          }' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          python engine/mcp_gateway/formation_matchup_fm4_style_ablation_v1.py \
+            --formation-report \
+              state/soccer_edge_state/analysis/formation_matchup_engine_v1.json \
+            --history-dir state/soccer_edge_state/history \
+            --output \
+              state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
 
           jq -e '
             .health.production_enabled == false
             and .health.decision_weight == 0
             and .health.odds_consumed == false
             and .health.market_prices_consumed == false
+            and .health.personnel_outcome_ablation_used == true
           ' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
 
       - name: Persist FM4 personnel research state
+        if: steps.backfill_call.outputs.runtime_available == 'true'
         working-directory: state
         shell: bash
         run: |
           set -euo pipefail
           git config user.name soccer-edge-bot
           git config user.email soccer-edge-bot@users.noreply.github.com
-          git add -f             soccer_edge_state/history/fm4_personnel_backfill.jsonl             soccer_edge_state/analysis/fm4_personnel_history_backfill_report.json             soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          git add -f \
+            soccer_edge_state/history/fm4_personnel_backfill.jsonl \
+            soccer_edge_state/analysis/fm4_personnel_history_backfill_report.json \
+            soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+
           if git diff --cached --quiet; then
             echo "No FM4 personnel research changes"
             exit 0
           fi
+
           git commit -m "Update FM4 personnel history backfill research"
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5 6; do
             git fetch origin soccer-edge-state
-            if git rebase --autostash origin/soccer-edge-state               && git push origin HEAD:soccer-edge-state; then
+            if git rebase --autostash origin/soccer-edge-state \
+              && git push origin HEAD:soccer-edge-state; then
               exit 0
             fi
             git rebase --abort >/dev/null 2>&1 || true
-            sleep $((attempt * 2))
+            sleep $((attempt * 3))
           done
           exit 1
