@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.6-runtime-stabilization",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-07T03:55:12.232131+00:00",
-  "generated_at_local": "2026-10-06T21:55:12.232131-06:00",
+  "generated_at_utc": "2026-10-07T04:18:57.499236+00:00",
+  "generated_at_local": "2026-10-06T22:18:57.499236-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 567,
-  "due_fixture_count": 130,
-  "event_count": 3,
+  "fixture_scan_count": 800,
+  "due_fixture_count": 259,
+  "event_count": 5,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 15,
-  "last_daily_remaining": 6989,
+  "api_calls_this_tick": 14,
+  "last_daily_remaining": 6976,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -22,12 +22,12 @@
     "min_fixture_count": 12,
     "min_daily_remaining": 4000,
     "triggered": true,
-    "reason": "PRIMARY_SLATE_MEETS_FLOOR_WITH_FUTURE_PREFETCH",
-    "primary_date": "2026-10-06",
+    "reason": "NOT_TODAY_PRIMARY_SLATE",
+    "primary_date": "2026-10-07",
     "reconciliation_date": null,
-    "primary_slate_count": 200,
+    "primary_slate_count": 233,
     "reconciliation_slate_count": 0,
-    "merged_slate_count": 567,
+    "merged_slate_count": 233,
     "api_slate_reconciliation_calls": 0,
     "provider_requests_added_max": 2,
     "future_prefetch_horizon_days": 2,
@@ -37,24 +37,20 @@
     "future_prefetch_provider_requests_added": 0,
     "future_prefetch_fixture_count": 367,
     "scan_dates": [
-      "2026-10-06",
-      "2026-10-07",
-      "2026-10-08"
+      "2026-10-07"
     ],
     "scan_date_counts": {
-      "2026-10-06": 200,
-      "2026-10-07": 233,
-      "2026-10-08": 134
+      "2026-10-07": 233
     },
-    "unique_leagues_scanned": 130,
-    "unique_countries_scanned": 76,
+    "unique_leagues_scanned": 61,
+    "unique_countries_scanned": 46,
     "league_allowlist_applied": false,
-    "market_capture_handoff_fixture_count": 193,
+    "market_capture_handoff_fixture_count": 106,
     "market_capture_handoff_tier_counts": {
-      "C": 160,
-      "D": 170,
-      "B": 23,
-      "A": 10
+      "C": 92,
+      "D": 123,
+      "B": 8,
+      "A": 6
     },
     "market_capture_handoff_source": "PERSISTED_BULK_COVERAGE_CACHE",
     "market_capture_handoff_provider_requests_added": 0,
@@ -65,7 +61,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-07T03:55:12.232131+00:00",
+    "generated_at_utc": "2026-10-07T04:18:57.499236+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -166,7 +162,9 @@
           "FT_CORNERS_TRUE_CLV_0_LT_50",
           "FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
         ],
-        "canonical_state_loaded": true
+        "canonical_state_loaded": true,
+        "formation_adjusted_evaluations": 39,
+        "minimum_formation_adjusted": 100
       },
       "TEAM_CORNERS": {
         "validation_status": "RESEARCH_HOLD",
@@ -183,7 +181,12 @@
           "PARENT_FT_CORNERS_NOT_REVIEW_READY",
           "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
         ],
-        "canonical_state_loaded": true
+        "canonical_state_loaded": true,
+        "side_specific_formation_adjusted_evaluations": 0,
+        "minimum_side_specific_formation_adjusted": 100,
+        "side_specific_home_mae_improves": false,
+        "side_specific_away_mae_improves": false,
+        "side_specific_both_side_mae_improve": false
       },
       "TEAM_TOTALS": {
         "validation_status": "OOS_REVIEW_ELIGIBLE",
@@ -586,6 +589,10 @@
       }
     },
     "canonical_state_source": "soccer-edge-state/analysis",
+    "canonical_state_merged_by_scheduler": true
+  },
+  "formation_matchup_health": {
+    "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json",
     "canonical_state_merged_by_scheduler": true
   }
 }
