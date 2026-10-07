@@ -11,6 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
+from mcp_gateway import subscriber_billing_v2
 from mcp_gateway import subscriber_preview_data_v231
 from mcp_gateway import subscriber_saved_items_v4
 from mcp_gateway import subscriber_ui_contract_v231
@@ -873,7 +874,11 @@ async def account(request: Request) -> JSONResponse:
             "access": access,
             "user": entitlement.get("user") if access["authenticated"] else None,
             "subscription_required": entitlement.get("subscription_required"),
+            "billing_state": subscriber_billing_v2.account_billing_state(entitlement),
             "provider_requests_added": 0,
+            "canonical_bet_logic_changed": False,
+            "model_weights_changed": False,
+            "production_promotion_allowed": False,
         }
     )
 
@@ -1258,6 +1263,8 @@ def contract() -> dict[str, Any]:
         "fair_market_probability_is_distinct": True,
         "my_edge_persistence": "SUPABASE_RLS_SUBSCRIBER_SAVED_ITEMS",
         "my_edge_model_input_allowed": False,
+        "billing_contract": "GUARDED_STRIPE_HOSTED_CHECKOUT_CUSTOMER_PORTAL",
+        "billing_model_input_allowed": False,
         "frontend_creates_bet_or_lean": False,
         "missing_verification_policy": "NOT VERIFIED",
         "free_premium_values_redacted": True,
