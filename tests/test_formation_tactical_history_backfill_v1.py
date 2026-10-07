@@ -146,3 +146,64 @@ def test_incomplete_provider_stats_do_not_qualify():
         ]
     }
     assert v._sufficient_stats(compact) is False
+
+
+def test_discovery_team_selection_prefers_missing_local_history_and_skips_done():
+    counts = Counter({10: 0, 20: 2, 30: 1, 40: 3})
+    selected = v._select_discovery_teams(
+        [10, 20, 30, 40],
+        local_counts=counts,
+        already_discovered={10},
+        max_calls=2,
+    )
+    assert selected == [30, 20]
+
+
+def test_eligible_discovered_fixture_requires_final_precohort_match():
+    before = datetime(2026, 9, 12, 7, 30, tzinfo=timezone.utc)
+    row = {
+        "fixture": {
+            "id": 123,
+            "date": "2026-09-01T18:00:00+00:00",
+            "timestamp": 1788285600,
+            "status": {"short": "FT", "long": "Match Finished", "elapsed": 90},
+            "venue": {"name": "Ground", "city": "City"},
+        },
+        "league": {
+            "id": 39,
+            "name": "League",
+            "country": "Country",
+            "season": 2026,
+            "round": "Round 1",
+        },
+        "teams": {
+            "home": {"id": 10, "name": "Home"},
+            "away": {"id": 20, "name": "Away"},
+        },
+        "goals": {"home": 2, "away": 1},
+        "score": {"fulltime": {"home": 2, "away": 1}},
+    }
+    fixture = v._eligible_discovered_fixture(
+        row,
+        team_id=10,
+        before=before,
+        lookback_days=365,
+    )
+    assert fixture is not None
+    assert fixture["fixture_id"] == 123
+    assert fixture["status"] == "FT"
+    assert fixture["kickoff"] < before
+
+    row["fixture"]["status"]["short"] = "NS"
+    assert v._eligible_discovered_fixture(
+        row,
+        team_id=10,
+        before=before,
+        lookback_days=365,
+    ) is None
+
+
+def test_backfill_version_has_historical_discovery():
+    assert v.MODEL_VERSION == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.1.0"
+    assert v.MAX_FIXTURES_PER_RUN == 8
+    assert v.MAX_DISCOVERY_TEAM_CALLS_PER_RUN == 8
