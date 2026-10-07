@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.6-runtime-stabilization",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-07T04:52:22.372342+00:00",
-  "generated_at_local": "2026-10-06T22:52:22.372342-06:00",
+  "generated_at_utc": "2026-10-07T04:58:23.107279+00:00",
+  "generated_at_local": "2026-10-06T22:58:23.107279-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 800,
   "due_fixture_count": 264,
   "event_count": 23,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 52,
-  "last_daily_remaining": 6913,
+  "api_calls_this_tick": 56,
+  "last_daily_remaining": 6903,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -22,19 +22,19 @@
     "min_fixture_count": 12,
     "min_daily_remaining": 4000,
     "triggered": true,
-    "reason": "ALREADY_RECONCILED_THIS_TICK",
+    "reason": "NOT_TODAY_PRIMARY_SLATE",
     "primary_date": "2026-10-07",
     "reconciliation_date": null,
     "primary_slate_count": 233,
     "reconciliation_slate_count": 0,
     "merged_slate_count": 233,
-    "api_slate_reconciliation_calls": 2,
+    "api_slate_reconciliation_calls": 0,
     "provider_requests_added_max": 2,
     "future_prefetch_horizon_days": 2,
     "future_prefetch_ttl_hours": 4,
-    "future_prefetch_cache_hits": 0,
-    "future_prefetch_cache_misses": 2,
-    "future_prefetch_provider_requests_added": 2,
+    "future_prefetch_cache_hits": 2,
+    "future_prefetch_cache_misses": 0,
+    "future_prefetch_provider_requests_added": 0,
     "future_prefetch_fixture_count": 367,
     "scan_dates": [
       "2026-10-07"
@@ -52,16 +52,16 @@
       "B": 8,
       "A": 6
     },
-    "market_capture_handoff_source": "IN_PROCESS_BULK_COVERAGE",
+    "market_capture_handoff_source": "PERSISTED_BULK_COVERAGE_CACHE",
     "market_capture_handoff_provider_requests_added": 0,
     "scope": "all fixtures returned by API-Football for selected dates; no league allowlist; no odds/model/tier/stake threshold change",
-    "provider_requests_added": 2,
+    "provider_requests_added": 0,
     "source": "V89_ACTIVE_RAW_SLATE_HOOK"
   },
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-07T04:52:22.372342+00:00",
+    "generated_at_utc": "2026-10-07T04:58:23.107279+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -630,20 +630,157 @@
     "canonical_state_merged_by_scheduler": true
   },
   "formation_matchup_health": {
-    "blockers": [],
-    "canonical_state_loaded": false,
+    "blockers": [
+      "RESEARCH_ONLY",
+      "SIDE_SPECIFIC_OOS_CHALLENGER_NOT_YET_PROMOTED",
+      "MARKET_VALIDATION_SEPARATE_AND_REQUIRED"
+    ],
+    "canonical_state_loaded": true,
     "decision_weight": 0.0,
-    "fixtures_with_verified_formation_pair_and_final": 0,
-    "leakage_policy": null,
-    "matchups_n_ge_8": 0,
-    "metric_rows": {},
+    "fixtures_with_verified_formation_pair_and_final": 299,
+    "leakage_policy": "PREKICKOFF_OR_AT_KICKOFF_ONLY",
+    "matchups_n_ge_8": 8,
+    "metric_rows": {
+      "away_corners": 217,
+      "away_shots": 217,
+      "away_sot": 219,
+      "home_corners": 217,
+      "home_shots": 217,
+      "home_sot": 219,
+      "total_corners": 217,
+      "total_shots": 217,
+      "total_sot": 219
+    },
     "minimum_stable_matchup_n": 8,
-    "model_version": null,
+    "model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
     "odds_consumed": false,
     "production_enabled": false,
-    "status": "NOT_MATERIALIZED",
-    "unique_matchups": 0,
-    "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json",
+    "status": "RESEARCH_ONLY_FORMATION_MATCHUP_ENGINE",
+    "unique_matchups": 81,
+    "fm3_research": {
+      "model_version": "FORMATION_MATCHUP_FM3_OOS_V1.0.0",
+      "status": "RESEARCH_ONLY_FM3_SHOTS_SOT_GOALS",
+      "source_fixtures": 299,
+      "targets": {
+        "GOALS": {
+          "status": "RESEARCH_HOLD",
+          "observed_rows": 299,
+          "baseline_evaluations": 298,
+          "formation_adjusted_evaluations": 79,
+          "minimum_formation_adjusted_review": 100,
+          "improvement": {
+            "away_mae_delta": 0.001388,
+            "away_mae_improves": false,
+            "direct_total_mae_delta": 0.011116,
+            "direct_total_mae_improves": false,
+            "home_mae_delta": 0.000395,
+            "home_mae_improves": false,
+            "total_mae_delta": 0.006178,
+            "total_mae_improves": false
+          },
+          "matchup_concentration": {
+            "eligible_matchups": 6,
+            "largest_matchup_evaluations": 53,
+            "largest_matchup_share": 0.670886
+          },
+          "blockers": [
+            "FORMATION_ADJUSTED_79_LT_100",
+            "HOME_MAE_NOT_BETTER_THAN_BASELINE",
+            "AWAY_MAE_NOT_BETTER_THAN_BASELINE",
+            "TOTAL_MAE_NOT_BETTER_THAN_BASELINE"
+          ],
+          "production_enabled": false,
+          "decision_weight": 0.0
+        },
+        "SHOTS": {
+          "status": "RESEARCH_HOLD",
+          "observed_rows": 217,
+          "baseline_evaluations": 216,
+          "formation_adjusted_evaluations": 49,
+          "minimum_formation_adjusted_review": 100,
+          "improvement": {
+            "away_mae_delta": 0.022115,
+            "away_mae_improves": false,
+            "direct_total_mae_delta": 0.118522,
+            "direct_total_mae_improves": false,
+            "home_mae_delta": 0.05987,
+            "home_mae_improves": false,
+            "total_mae_delta": 0.124614,
+            "total_mae_improves": false
+          },
+          "matchup_concentration": {
+            "eligible_matchups": 2,
+            "largest_matchup_evaluations": 43,
+            "largest_matchup_share": 0.877551
+          },
+          "blockers": [
+            "FORMATION_ADJUSTED_49_LT_100",
+            "HOME_MAE_NOT_BETTER_THAN_BASELINE",
+            "AWAY_MAE_NOT_BETTER_THAN_BASELINE",
+            "TOTAL_MAE_NOT_BETTER_THAN_BASELINE"
+          ],
+          "production_enabled": false,
+          "decision_weight": 0.0
+        },
+        "SOT": {
+          "status": "RESEARCH_HOLD",
+          "observed_rows": 219,
+          "baseline_evaluations": 218,
+          "formation_adjusted_evaluations": 49,
+          "minimum_formation_adjusted_review": 100,
+          "improvement": {
+            "away_mae_delta": 0.027031,
+            "away_mae_improves": false,
+            "direct_total_mae_delta": 0.118371,
+            "direct_total_mae_improves": false,
+            "home_mae_delta": 0.056847,
+            "home_mae_improves": false,
+            "total_mae_delta": 0.123263,
+            "total_mae_improves": false
+          },
+          "matchup_concentration": {
+            "eligible_matchups": 2,
+            "largest_matchup_evaluations": 43,
+            "largest_matchup_share": 0.877551
+          },
+          "blockers": [
+            "FORMATION_ADJUSTED_49_LT_100",
+            "HOME_MAE_NOT_BETTER_THAN_BASELINE",
+            "AWAY_MAE_NOT_BETTER_THAN_BASELINE",
+            "TOTAL_MAE_NOT_BETTER_THAN_BASELINE"
+          ],
+          "production_enabled": false,
+          "decision_weight": 0.0
+        }
+      },
+      "health": {
+        "blockers": [
+          "GOALS:AWAY_MAE_NOT_BETTER_THAN_BASELINE",
+          "GOALS:FORMATION_ADJUSTED_79_LT_100",
+          "GOALS:HOME_MAE_NOT_BETTER_THAN_BASELINE",
+          "GOALS:TOTAL_MAE_NOT_BETTER_THAN_BASELINE",
+          "SHOTS:AWAY_MAE_NOT_BETTER_THAN_BASELINE",
+          "SHOTS:FORMATION_ADJUSTED_49_LT_100",
+          "SHOTS:HOME_MAE_NOT_BETTER_THAN_BASELINE",
+          "SHOTS:TOTAL_MAE_NOT_BETTER_THAN_BASELINE",
+          "SOT:AWAY_MAE_NOT_BETTER_THAN_BASELINE",
+          "SOT:FORMATION_ADJUSTED_49_LT_100",
+          "SOT:HOME_MAE_NOT_BETTER_THAN_BASELINE",
+          "SOT:TOTAL_MAE_NOT_BETTER_THAN_BASELINE"
+        ],
+        "canonical_bet_logic_changed": false,
+        "decision_weight": 0.0,
+        "leakage_policy": "STRICT_PRIOR_ONLY_CHRONOLOGICAL_WALK_FORWARD",
+        "market_prices_consumed": false,
+        "model_weights_changed": false,
+        "odds_consumed": false,
+        "production_enabled": false,
+        "provider_requests_added": 0
+      },
+      "production_enabled": false,
+      "decision_weight": 0.0
+    },
+    "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json + formation_matchup_fm3_oos_v1.json",
     "canonical_state_merged_by_scheduler": true
   },
   "primary_clv_maturation_funnel": {
