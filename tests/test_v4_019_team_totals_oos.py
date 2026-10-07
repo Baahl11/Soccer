@@ -205,3 +205,58 @@ def test_v4_019_non_comparable_rows_do_not_count_as_true_clv_sample():
     assert summary["raw_team_total_rows_seen"] == 3
     assert summary["rows"] == 1
     assert summary["unique_fixtures"] == 1
+
+
+def test_v4_019_outcome_context_is_observability_only():
+    validation = {
+        "evaluated_fixtures": 500,
+        "evaluated_probability_rows": 6000,
+        "by_line": {"0.5": {"n": 2000}, "1.5": {"n": 2000}, "2.5": {"n": 2000}},
+        "by_role_line_selection": {
+            "HOME:0.5:OVER": {"n": 500, "mean_probability": 0.72, "observed_rate": 0.78},
+            "AWAY:0.5:OVER": {"n": 500, "mean_probability": 0.67, "observed_rate": 0.73},
+        },
+        "promotion_gate": {"enabled": False},
+    }
+    clv_rows = [
+        {
+            "market_family": "HOME_TT" if i % 2 == 0 else "AWAY_TT",
+            "market": "Total - Home" if i % 2 == 0 else "Total - Away",
+            "fixture_id": i,
+            "clv_probability_pp": 0.01,
+        }
+        for i in range(50)
+    ]
+    outcome = {
+        "model_version": "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.1",
+        "status": "RESEARCH_ONLY_CANONICAL_CLV_OUTCOME",
+        "probability_semantics": {
+            "signal_fair_probability": "DEVIG_MARKET_FAIR_PROBABILITY",
+            "soccer_model_probability_scored_here": False,
+        },
+        "families": {
+            "TEAM_TOTALS": {
+                "rows": 335,
+                "unique_fixtures": 43,
+                "settled": 202,
+                "settled_unique_fixtures": 24,
+                "hypothetical_roi_per_priced_settled_observation": -0.096,
+                "fixture_equal_weight_roi": {"unique_fixtures": 24},
+                "market_fair_brier": 0.165,
+                "market_fair_log_loss": 0.503,
+                "market_fair_calibration_gap_pp": -2.67,
+                "by_team_role": {},
+                "by_line": {},
+                "by_selection": {},
+            }
+        },
+    }
+
+    without = v.build_report(validation, clv_rows)
+    with_context = v.build_report(validation, clv_rows, outcome)
+
+    assert with_context["blockers"] == without["blockers"]
+    assert with_context["status"] == without["status"]
+    assert with_context["canonical_clv_outcome_context"]["available"] is True
+    assert with_context["canonical_clv_outcome_context"]["decision_weight"] == 0.0
+    assert with_context["canonical_clv_outcome_context"]["promotion_gate_effect"] == "NONE_RESEARCH_CONTEXT_ONLY"
