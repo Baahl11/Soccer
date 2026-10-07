@@ -69,6 +69,8 @@ def test_ready_fm5_only_moves_fm6_to_research_not_production():
         fm5_readiness=_fm5(ready=True),
         prospective=_prospective(rows=40, allowed=False),
         personnel_backfill={
+            "model_version": "SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0",
+            "status": "RESEARCH_BACKFILL_COMPLETE",
             "captured": 8,
             "materialized_personnel_history_fixture_count": 120,
         },
@@ -87,6 +89,8 @@ def test_personnel_artifact_is_reported_without_changing_decision_weight():
         fm5_readiness=_fm5(),
         prospective=_prospective(),
         personnel_backfill={
+            "model_version": "SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0",
+            "status": "RESEARCH_BACKFILL_COMPLETE",
             "captured": 4,
             "materialized_personnel_history_fixture_count": 55,
         },
@@ -106,6 +110,8 @@ def test_lifecycle_never_claims_production_from_sample_count_alone():
         fm5_readiness=_fm5(ready=True),
         prospective=_prospective(rows=150, allowed=True),
         personnel_backfill={
+            "model_version": "SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0",
+            "status": "RESEARCH_BACKFILL_COMPLETE",
             "captured": 8,
             "materialized_personnel_history_fixture_count": 160,
         },
