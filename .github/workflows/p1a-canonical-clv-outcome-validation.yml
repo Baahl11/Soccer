@@ -1,0 +1,85 @@
+name: P1A Canonical CLV Outcome Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/p1a-canonical-clv-outcome-validation.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: p1a-canonical-clv-outcome-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout state evidence
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl
+            soccer_edge_state/analysis/signal_ledger.jsonl
+            soccer_edge_state/analysis/canonical_clv_outcome_v4.jsonl
+            soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Checkout engine
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: engine
+          fetch-depth: 1
+
+      - name: Compile canonical outcome grader
+        run: python -m py_compile engine/mcp_gateway/canonical_clv_outcome_v4.py
+
+      - name: Grade 1X2 and Team Totals canonical True CLV observations
+        run: |
+          python engine/mcp_gateway/canonical_clv_outcome_v4.py \
+            --clv-tracking state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl \
+            --signal-ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
+            --output state/soccer_edge_state/analysis/canonical_clv_outcome_v4.jsonl \
+            --summary-output state/soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json
+
+      - name: Validate research-only safety contract
+        run: |
+          REPORT=state/soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json
+          jq -e '.model_version == "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.0"' "$REPORT" >/dev/null
+          jq -e '.status == "RESEARCH_ONLY_CANONICAL_CLV_OUTCOME"' "$REPORT" >/dev/null
+          jq -e '.production_promotion_allowed == false' "$REPORT" >/dev/null
+          jq -e '.real_wagers_assumed == false' "$REPORT" >/dev/null
+          jq -e '.provider_requests_added == 0' "$REPORT" >/dev/null
+          jq -e '.runtime_logic_changed == false' "$REPORT" >/dev/null
+          jq -e '.model_weights_changed == false' "$REPORT" >/dev/null
+          jq -e '.canonical_bet_logic_changed == false' "$REPORT" >/dev/null
+          jq -e '(.families["1X2"] | type) == "object"' "$REPORT" >/dev/null
+          jq -e '(.families.TEAM_TOTALS | type) == "object"' "$REPORT" >/dev/null
+          jq -e '.families.TEAM_TOTALS.fixture_equal_weight_roi.policy == "MEAN_OF_EXACT_SIGNAL_ROI_WITHIN_FIXTURE_THEN_EQUAL_WEIGHT_ACROSS_FIXTURES"' "$REPORT" >/dev/null
+          jq '{model_version,status,raw_supported_clv_rows,exact_signal_rows_after_dedup,duplicate_exact_rows_collapsed,families,recalibration_gate}' "$REPORT"
+
+      - name: Persist canonical outcome research
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name "soccer-edge-bot"
+          git config user.email "soccer-edge-bot@users.noreply.github.com"
+          git add -f soccer_edge_state/analysis/canonical_clv_outcome_v4.jsonl \
+            soccer_edge_state/analysis/canonical_clv_outcome_summary_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update P1A canonical CLV outcome research"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase --autostash origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
