@@ -45,7 +45,7 @@ def test_v219_contract_preserves_v215_free_and_pro_product_split():
     assert contract["default_plan"] == "FREE"
     assert contract["billing_enabled"] is False
     assert contract["entitlements_enforced"] is True
-    assert contract["authorization_source"] == "SUPABASE_RLS_SUBSCRIPTION_ENTITLEMENTS"
+    assert contract["authorization_source"] == "SUPABASE_RLS_WITH_VERIFIED_OWNER_OVERRIDE"
     assert contract["provider_requests_added"] == 0
     assert "Today's verified slate" in contract["free_features"]
     assert "Strong signal desk" in contract["pro_features"]
