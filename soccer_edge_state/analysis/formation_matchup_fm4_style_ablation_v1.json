@@ -45,6 +45,56 @@
   "source_model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
   "status": "RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION",
   "style_profile": {
+    "field_prior_coverage": {
+      "blocked_share": {
+        "away_rows_n_ge_1": 14,
+        "away_rows_n_ge_3": 0,
+        "both_rows_n_ge_1": 4,
+        "both_rows_n_ge_3": 0,
+        "home_rows_n_ge_1": 17,
+        "home_rows_n_ge_3": 0
+      },
+      "box_share": {
+        "away_rows_n_ge_1": 12,
+        "away_rows_n_ge_3": 0,
+        "both_rows_n_ge_1": 4,
+        "both_rows_n_ge_3": 0,
+        "home_rows_n_ge_1": 16,
+        "home_rows_n_ge_3": 0
+      },
+      "fouls": {
+        "away_rows_n_ge_1": 12,
+        "away_rows_n_ge_3": 0,
+        "both_rows_n_ge_1": 4,
+        "both_rows_n_ge_3": 0,
+        "home_rows_n_ge_1": 16,
+        "home_rows_n_ge_3": 0
+      },
+      "possession": {
+        "away_rows_n_ge_1": 14,
+        "away_rows_n_ge_3": 0,
+        "both_rows_n_ge_1": 4,
+        "both_rows_n_ge_3": 0,
+        "home_rows_n_ge_1": 17,
+        "home_rows_n_ge_3": 0
+      },
+      "shot_accuracy": {
+        "away_rows_n_ge_1": 14,
+        "away_rows_n_ge_3": 0,
+        "both_rows_n_ge_1": 4,
+        "both_rows_n_ge_3": 0,
+        "home_rows_n_ge_1": 17,
+        "home_rows_n_ge_3": 0
+      },
+      "yellow_cards": {
+        "away_rows_n_ge_1": 14,
+        "away_rows_n_ge_3": 0,
+        "both_rows_n_ge_1": 4,
+        "both_rows_n_ge_3": 0,
+        "home_rows_n_ge_1": 17,
+        "home_rows_n_ge_3": 0
+      }
+    },
     "fields": [
       "possession",
       "shot_accuracy",
@@ -58,7 +108,30 @@
     "minimum_prior_residual_training_rows": 30,
     "minimum_prior_team_style_matches": 3,
     "missing_prior_style_profile_rows": 299,
+    "prior_density": {
+      "rows_with_away_any_prior_style": 14,
+      "rows_with_away_min_field_n_ge_1": 12,
+      "rows_with_away_min_field_n_ge_2": 0,
+      "rows_with_away_min_field_n_ge_3": 0,
+      "rows_with_both_any_prior_style": 4,
+      "rows_with_both_min_field_n_ge_1": 4,
+      "rows_with_both_min_field_n_ge_2": 0,
+      "rows_with_both_min_field_n_ge_3": 0,
+      "rows_with_home_any_prior_style": 17,
+      "rows_with_home_min_field_n_ge_1": 16,
+      "rows_with_home_min_field_n_ge_2": 0,
+      "rows_with_home_min_field_n_ge_3": 0
+    },
+    "profile_failure_reasons": {
+      "AWAY_MIN_FIELD_LT_3": 14,
+      "AWAY_NO_PRIOR_STYLE_HISTORY": 285,
+      "HOME_MIN_FIELD_LT_3": 17,
+      "HOME_NO_PRIOR_STYLE_HISTORY": 282
+    },
     "ridge_alpha": 8.0,
+    "source_team_overlap_pct": 100.0,
+    "source_teams_present_anywhere_in_tactical_history": 520,
+    "source_unique_teams": 520,
     "style_eligible_source_rows": 0,
     "tactical_history_fixtures_loaded": 2419,
     "tactical_history_unique_teams": 4034
