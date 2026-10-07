@@ -118,3 +118,20 @@ def test_lifecycle_never_claims_production_from_sample_count_alone():
     assert report["production_promotion_allowed"] is False
     assert report["model_weights_changed"] is False
     assert report["canonical_bet_logic_changed"] is False
+
+
+def test_stale_render_report_does_not_count_as_personnel_history_artifact():
+    report = health.build_health(
+        fm4_report=_fm4(),
+        fm5_readiness=_fm5(),
+        prospective=_prospective(),
+        personnel_backfill={
+            "model_version": "FM4_PERSONNEL_DEPLOYMENT_BLOCK_V1.0.0",
+            "status": "BLOCKED_STALE_RENDER_RUNTIME",
+            "captured": 0,
+            "materialized_personnel_history_fixture_count": 0,
+        },
+    )
+
+    assert report["phases"]["FM4"]["personnel_backfill_artifact_materialized"] is False
+    assert "FM4_PERSONNEL_BACKFILL_ARTIFACT_NOT_MATERIALIZED" in report["evidence_blockers"]
