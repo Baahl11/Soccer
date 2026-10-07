@@ -71,3 +71,49 @@ def test_v4_017_accepts_canonical_multiclass_oos_challenger_but_keeps_clv_gate()
     assert report["calibration_sample"]["n"] == 407
     assert report["status"] == "RESEARCH_HOLD"
     assert report["production_promotion_allowed"] is False
+
+
+def test_v4_017_outcome_context_is_observability_only():
+    calibration = {
+        "sample_fixtures": 500,
+        "top1_accuracy": 0.46,
+        "multiclass_brier": 0.64,
+        "multiclass_log_loss": 1.07,
+        "calibration_by_outcome": {"D": {"20-30%": {"n": 100}}},
+    }
+    prior = {
+        "baseline": {"brier": 0.65, "log_loss": 1.08},
+        "challenger": {"brier": 0.64, "log_loss": 1.07},
+        "improvement": {"brier_delta": -0.01, "log_loss_delta": -0.01, "accuracy_delta_pp": 1.0},
+    }
+    clv = [{"market": "Match Winner", "fixture_id": i, "clv_probability_pp": 0.01} for i in range(50)]
+    market = {"by_market_family": {"FT_1X2": {"settled": 25, "roi_units": 1.0, "hit_rate_ex_push": 0.52}}}
+    outcome = {
+        "model_version": "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.1",
+        "status": "RESEARCH_ONLY_CANONICAL_CLV_OUTCOME",
+        "probability_semantics": {
+            "signal_fair_probability": "DEVIG_MARKET_FAIR_PROBABILITY",
+            "soccer_model_probability_scored_here": False,
+        },
+        "families": {
+            "1X2": {
+                "rows": 50,
+                "settled": 43,
+                "settled_unique_fixtures": 43,
+                "hypothetical_roi_per_priced_settled_observation": -0.4,
+                "fixture_equal_weight_roi": {"unique_fixtures": 43},
+                "market_fair_brier": 0.15,
+                "market_fair_log_loss": 0.47,
+                "market_fair_calibration_gap_pp": 11.8,
+            }
+        },
+    }
+
+    without = v.build_report(calibration, prior, market, clv)
+    with_context = v.build_report(calibration, prior, market, clv, None, outcome)
+
+    assert with_context["blockers"] == without["blockers"]
+    assert with_context["status"] == without["status"]
+    assert with_context["canonical_clv_outcome_context"]["available"] is True
+    assert with_context["canonical_clv_outcome_context"]["decision_weight"] == 0.0
+    assert with_context["canonical_clv_outcome_context"]["promotion_gate_effect"] == "NONE_RESEARCH_CONTEXT_ONLY"
