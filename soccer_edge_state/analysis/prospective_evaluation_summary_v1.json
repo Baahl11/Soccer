@@ -1,0 +1,67 @@
+{
+  "append_only_selection_policy": true,
+  "canonical_selection_rows": 0,
+  "canonical_selection_unique_fixtures": 0,
+  "endpoint_summary": {
+    "by_track": {},
+    "graded_bet_sample": {
+      "loss": 0,
+      "push": 0,
+      "roi_per_settled_unit": null,
+      "roi_units": 0.0,
+      "rows": 0,
+      "settled": 0,
+      "unique_fixtures": 0,
+      "unsettled": 0,
+      "win": 0
+    },
+    "graded_bet_target": 100,
+    "material_recalibration_allowed": false,
+    "selection_rows": 0,
+    "selection_unique_fixtures": 0
+  },
+  "historical_predictions_rewritten": false,
+  "model_version": "SOCCER_PROSPECTIVE_EVALUATION_REGISTRY_V1.0.0",
+  "model_weights_changed": false,
+  "new_selection_rows_this_run": 0,
+  "outcomes_used_for_selection": false,
+  "policy": {
+    "1X2": {
+      "advanced_cap_shadow": "INCLUDE_TIER_A_OR_S_WATCH_ONLY_WHEN_ALL_DATA_AVAILABILITY_XI_GK_GATES_PASS AND_ABS_RAW_MINUS_MARKET_FAIR_LT_12PP",
+      "counts_toward_100_graded_bets": "RUNTIME_TIER_B_ONLY",
+      "market": "Match Winner / Winner",
+      "runtime_tier_b": "INCLUDE_IF_EVENT_CLASSIFICATION_BET_AND_TIER_B"
+    },
+    "TEAM_TOTALS": {
+      "counts_toward_100_graded_bets": false,
+      "minimum_raw_edge_pp": 0.0,
+      "reason": "NO_VALIDATED_TEAM_TOTALS_PRODUCTION_DECISION_RULE_YET",
+      "selection_rule": "WITHIN_FIRST_ELIGIBLE_T10_EVENT_CHOOSE_HIGHEST_POSITIVE_RAW_EDGE_VS_MARKET_FAIR_PP; TIE_BREAK_TEAM_ROLE_LINE_SELECTION_MARKET_BOOKMAKER",
+      "source": "team_totals_intelligence.observed_exact_market_rows"
+    },
+    "cohort_start_utc": "2026-10-07T14:30:00+00:00",
+    "data_tiers": [
+      "A",
+      "B"
+    ],
+    "lineup_gate": "BOTH_XI_AND_BOTH_GOALKEEPERS_CONFIRMED",
+    "market_prices_never_used_to_create_raw_sport_projection": true,
+    "minimum_availability_confidence": 0.85,
+    "one_selection_per_fixture_per_track": true,
+    "outcomes_never_used_for_selection": true,
+    "point_in_time_source": "soccer_refresh_events.payload",
+    "production_promotion_allowed": false,
+    "sporting_gate": "SPORTING_SHORTLIST_SHORTLISTED_TRUE",
+    "stage": "T-10"
+  },
+  "policy_hash": "854b31b3283800c2fd5d19a537fe56e48eee9d9f3cb421cb5a6157df04db5e19",
+  "production_promotion_allowed": false,
+  "provider_requests_added": 0,
+  "runtime_selection_logic_changed": false,
+  "schema_version": "1.0.0",
+  "selection_rewrite_allowed": false,
+  "settlement_rows": 0,
+  "settlement_updates_separate": true,
+  "status": "PROSPECTIVE_EVALUATION_REGISTRY_ACTIVE",
+  "thresholds_changed": false
+}
