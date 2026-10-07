@@ -41,7 +41,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install focused test dependencies
-        run: python -m pip install --disable-pip-version-check -q pytest httpx "psycopg[binary]"
+        run: python -m pip install --disable-pip-version-check -q pytest -r engine/mcp_gateway/requirements.txt
 
       - name: Run formation matchup focused tests
         working-directory: engine
