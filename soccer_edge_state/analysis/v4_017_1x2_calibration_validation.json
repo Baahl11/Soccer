@@ -9,6 +9,35 @@
     "top1_accuracy": 0.466
   },
   "canonical_bet_logic_changed": false,
+  "canonical_clv_outcome_context": {
+    "available": true,
+    "decision_weight": 0.0,
+    "fixture_equal_weight_roi": {
+      "mean_hypothetical_roi_units_per_fixture": -0.439767,
+      "policy": "MEAN_OF_EXACT_SIGNAL_ROI_WITHIN_FIXTURE_THEN_EQUAL_WEIGHT_ACROSS_FIXTURES",
+      "sum_fixture_equal_weight_units": -18.91,
+      "unique_fixtures": 43
+    },
+    "hypothetical_roi_per_priced_settled_observation": -0.439767,
+    "market_fair_brier": 0.148244,
+    "market_fair_calibration_gap_pp": 11.799042,
+    "market_fair_log_loss": 0.473568,
+    "probability_semantics": {
+      "market_fair_brier_log_loss_only": true,
+      "model_calibration_sources": [
+        "V4-017_1X2",
+        "V4-019_TEAM_TOTALS"
+      ],
+      "signal_fair_probability": "DEVIG_MARKET_FAIR_PROBABILITY",
+      "soccer_model_probability_scored_here": false
+    },
+    "promotion_gate_effect": "NONE_RESEARCH_CONTEXT_ONLY",
+    "rows": 50,
+    "settled": 43,
+    "settled_unique_fixtures": 43,
+    "source_model_version": "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.1",
+    "source_status": "RESEARCH_ONLY_CANONICAL_CLV_OUTCOME"
+  },
   "canonical_multiclass_oos": {
     "available": true,
     "baseline": {
@@ -33,13 +62,15 @@
     "walk_forward_folds": 14
   },
   "manual_review_required": true,
-  "model_version": "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.1.0",
+  "model_version": "SOCCER_1X2_CALIBRATION_VALIDATION_V4_1.1.1",
   "model_weights_changed": false,
   "notes": [
     "Canonical 1X2 calibration evidence uses current-model chronological walk-forward temperature scaling and must improve both multiclass Brier and log loss.",
     "The historical class-prior challenger is retained only as descriptive legacy context when canonical multiclass OOS is supplied.",
     "True CLV is counted only from canonical 1X2/Match Winner observations.",
-    "This gate validates calibration evidence; it does not alter runtime probabilities or bet classification."
+    "This gate validates calibration evidence; it does not alter runtime probabilities or bet classification.",
+    "Canonical CLV outcome context is research-only settlement/market benchmarking and has zero effect on V4-017 blockers or promotion eligibility.",
+    "Its Brier/log-loss fields score de-vig market fair probabilities, not Soccer model probabilities."
   ],
   "prior_calibration_challenger": {
     "baseline": {
