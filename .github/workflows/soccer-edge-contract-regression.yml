@@ -170,17 +170,32 @@ jobs:
           ' "$LATEST" >/dev/null
 
           if [ -s "$PERSONNEL" ]; then
-            jq -e '
-              .model_version == "SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0"
-              and .prior_history_use_only == true
-              and .retroactive_current_fixture_allowed == false
-              and .retroactive_prediction_rewrite == false
-              and .retroactive_market_created == false
-              and .retroactive_bet_created == false
-              and .decision_weight == 0
-              and .production_promotion_allowed == false
-              and .provider_requests_added <= 8
-            ' "$PERSONNEL" >/dev/null
+            if jq -e '.status == "BLOCKED_STALE_RENDER_RUNTIME"' "$PERSONNEL" >/dev/null; then
+              jq -e '
+                .model_version == "FM4_PERSONNEL_DEPLOYMENT_BLOCK_V1.0.0"
+                and .reason == "PROTECTED_PERSONNEL_BACKFILL_ROUTE_NOT_DEPLOYED"
+                and .provider_requests_added == 0
+                and .prior_history_use_only == true
+                and .retroactive_current_fixture_allowed == false
+                and .retroactive_prediction_rewrite == false
+                and .retroactive_market_created == false
+                and .retroactive_bet_created == false
+                and .decision_weight == 0
+                and .production_promotion_allowed == false
+              ' "$PERSONNEL" >/dev/null
+            else
+              jq -e '
+                .model_version == "SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0"
+                and .prior_history_use_only == true
+                and .retroactive_current_fixture_allowed == false
+                and .retroactive_prediction_rewrite == false
+                and .retroactive_market_created == false
+                and .retroactive_bet_created == false
+                and .decision_weight == 0
+                and .production_promotion_allowed == false
+                and .provider_requests_added <= 8
+              ' "$PERSONNEL" >/dev/null
+            fi
           else
             echo "::notice::FM4 personnel state artifact has not materialized yet; code contract is covered by regression tests."
           fi
