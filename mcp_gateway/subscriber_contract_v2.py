@@ -1002,8 +1002,16 @@ async def my_edge(request: Request) -> JSONResponse:
     if not _my_edge_allowed(entitlement):
         return _no_store({"error": "PRO_REQUIRED", "resource": "my_edge"}, status_code=403)
 
+    user_id = str(_dict(entitlement.get("user")).get("id") or "").strip()
+    if not user_id:
+        return _no_store({"error": "AUTH_INVALID_USER_PAYLOAD", "resource": "my_edge"}, status_code=401)
+
     if request.method == "GET":
-        result = await asyncio.to_thread(subscriber_saved_items_v4.list_saved, token)
+        result = await asyncio.to_thread(
+            subscriber_saved_items_v4.list_saved,
+            token,
+            verified_user_id=user_id,
+        )
     elif request.method == "POST":
         try:
             body = await request.json()
@@ -1011,7 +1019,12 @@ async def my_edge(request: Request) -> JSONResponse:
             return _no_store({"error": "INVALID_JSON"}, status_code=400)
         if not isinstance(body, dict):
             return _no_store({"error": "INVALID_ITEM_PAYLOAD"}, status_code=400)
-        result = await asyncio.to_thread(subscriber_saved_items_v4.save_item, token, body)
+        result = await asyncio.to_thread(
+            subscriber_saved_items_v4.save_item,
+            token,
+            body,
+            verified_user_id=user_id,
+        )
     elif request.method == "DELETE":
         item_key = str(request.query_params.get("item_key") or "").strip()
         if not item_key:
@@ -1020,6 +1033,7 @@ async def my_edge(request: Request) -> JSONResponse:
             subscriber_saved_items_v4.delete_item,
             token,
             item_key,
+            verified_user_id=user_id,
         )
     else:
         return _no_store({"error": "METHOD_NOT_ALLOWED"}, status_code=405)
