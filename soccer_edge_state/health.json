@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-07T16:20:53.722760+00:00",
-  "generated_at_local": "2026-10-07T10:20:53.722760-06:00",
+  "generated_at_utc": "2026-10-07T16:38:53.901026+00:00",
+  "generated_at_local": "2026-10-07T10:38:53.901026-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 378,
-  "due_fixture_count": 110,
-  "event_count": 9,
-  "actionable_refresh_count": 1,
+  "due_fixture_count": 84,
+  "event_count": 13,
+  "actionable_refresh_count": 2,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 47,
-  "last_daily_remaining": 4600,
+  "api_calls_this_tick": 50,
+  "last_daily_remaining": 4541,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -49,7 +49,7 @@
     "league_allowlist_applied": false,
     "market_capture_handoff_fixture_count": 149,
     "market_capture_handoff_tier_counts": {
-      "D": 97,
+      "D": 94,
       "C": 116,
       "A": 10,
       "B": 23
@@ -63,7 +63,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-07T16:20:53.722760+00:00",
+    "generated_at_utc": "2026-10-07T16:38:53.901026+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -76,10 +76,10 @@
         "rows": 50,
         "unique_fixtures": 50,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 9,
+        "candidate_signal_rows_this_tick": 11,
         "evaluated_signal_rows_this_tick": 8,
-        "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 8,
+        "strict_later_quote_rows_this_tick": 1,
+        "not_matured_rows_this_tick": 7,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
         "canonical_state_loaded": true,
@@ -101,10 +101,10 @@
         "rows": 6,
         "unique_fixtures": 6,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 5,
+        "candidate_signal_rows_this_tick": 7,
         "evaluated_signal_rows_this_tick": 3,
-        "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 3,
+        "strict_later_quote_rows_this_tick": 1,
+        "not_matured_rows_this_tick": 2,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
           "FT_TOTALS_TRUE_CLV_6_LT_50"
@@ -128,10 +128,10 @@
         "rows": 17,
         "unique_fixtures": 17,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 10,
+        "candidate_signal_rows_this_tick": 12,
         "evaluated_signal_rows_this_tick": 8,
-        "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 8,
+        "strict_later_quote_rows_this_tick": 1,
+        "not_matured_rows_this_tick": 7,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
           "BTTS_TRUE_CLV_17_LT_50"
@@ -232,8 +232,8 @@
         "rows": 343,
         "unique_fixtures": 44,
         "minimum_rows": 50,
-        "candidate_fixtures_this_tick": 2,
-        "strict_later_quote_refreshes_this_tick": 2,
+        "candidate_fixtures_this_tick": 0,
+        "strict_later_quote_refreshes_this_tick": 0,
         "unchanged_provider_updates_this_tick": 0,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
@@ -784,12 +784,12 @@
         "source_teams_present_anywhere_in_tactical_history": 520,
         "source_unique_teams": 520,
         "style_eligible_source_rows": 2,
-        "tactical_events_before_source_start": 42,
+        "tactical_events_before_source_start": 43,
         "tactical_history_date_range": {
-          "earliest": "2026-07-25T16:00:00+00:00",
+          "earliest": "2026-07-25T13:00:00+00:00",
           "latest": "2026-09-23T05:30:00+00:00"
         },
-        "tactical_history_fixtures_loaded": 2442,
+        "tactical_history_fixtures_loaded": 2443,
         "tactical_history_unique_teams": 4034
       },
       "targets": {
@@ -878,7 +878,7 @@
           "source_rows": 299
         },
         "decision_weight": 0.0,
-        "history_fixtures_loaded": 53,
+        "history_fixtures_loaded": 57,
         "minimum_review_fixtures": 100,
         "outcome_ablation": {
           "blockers": [
@@ -2053,7 +2053,7 @@
           "personnel_backfill_status": "FM4_PERSONNEL_HISTORY_BACKFILL_COMPLETE",
           "personnel_both_prior_xi_rows": 0,
           "personnel_current_both_xi_rows": 18,
-          "personnel_history_fixture_count": 11,
+          "personnel_history_fixture_count": 15,
           "personnel_outcome_ablation_ready": false,
           "production_enabled": false,
           "status": "RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION",
@@ -2114,11 +2114,11 @@
     "fallback_used": false,
     "fallback_reason": null,
     "fallback_source": null,
-    "candidate_count": 11,
+    "candidate_count": 13,
     "candidate_family_counts": {
-      "1X2": 9,
-      "BTTS": 10,
-      "FT_TOTALS": 5
+      "1X2": 11,
+      "BTTS": 12,
+      "FT_TOTALS": 7
     },
     "legacy_mode": "EMERGENCY_FALLBACK_ONLY"
   },
