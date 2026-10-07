@@ -42,7 +42,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check -q -r engine/mcp_gateway/requirements.txt
+          python -m pip install --disable-pip-version-check -q pytest -r engine/mcp_gateway/requirements.txt
+
+      - name: Run FM4 personnel backfill regression guards
+        working-directory: engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_formation_personnel_history_backfill_v1.py \
+            tests/test_formation_matchup_fm4_style_ablation_v1.py
 
       - name: Build target cohort payload
         shell: bash
