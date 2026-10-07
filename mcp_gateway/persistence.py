@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from mcp_gateway import feature_snapshot_v4
+from mcp_gateway import feature_snapshot_v4, primary_clv_signal_anchor_store_v4
 
 _SCHEMA_READY = False
 _SCHEMA_LOCK = threading.Lock()
@@ -319,6 +319,7 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                     json.dumps({key: value for key, value in tick.items() if key not in {"events", "shortlist_state"}}),
                 ),
             )
+            primary_clv_signal_anchor_store_v4.persist_tick_anchor_rows(cur, tick)
             # Multiple research/maturation events for the same fixture and
             # stage can legitimately be produced within one scheduler tick. The
             # relational schema keeps (fixture_id, stage, generated_at) unique,
