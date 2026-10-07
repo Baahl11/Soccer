@@ -193,7 +193,8 @@ jobs:
             database_persisted,
             database_error,
             core_slate_floor_reconciliation:(.core_slate_floor_reconciliation // {}),
-            market_maturation_health:(.market_maturation_health // {})
+            market_maturation_health:(.market_maturation_health // {}),
+            formation_matchup_health:(.formation_matchup_health // {})
           }' /tmp/soccer_tick.json > soccer_edge_state/health.json
 
           # latest.json is intentionally compact. The full tick is already durable in
@@ -230,6 +231,7 @@ jobs:
             price_resolution_v4:(.price_resolution_v4 // {}),
             price_resolution_checkpoint:(.price_resolution_checkpoint // {}),
             market_maturation_health:(.market_maturation_health // {}),
+            formation_matchup_health:(.formation_matchup_health // {}),
             player_props_clv_maturation_funnel:(.player_props_clv_maturation_funnel // {}),
             v4_005_score_matrix_observability:(.v4_005_score_matrix_observability // {}),
             elastic_deep_dive_cap,
@@ -349,6 +351,44 @@ jobs:
               corner_views = corner_views if isinstance(corner_views, dict) else {}
               for family in ("FT_CORNERS", "TEAM_CORNERS"):
                   apply_family(families, family, corners, corner_views.get(family))
+
+              ft_corners = corners.get("ft_corners") if isinstance(corners, dict) else {}
+              ft_corners = ft_corners if isinstance(ft_corners, dict) else {}
+              team_corners = corners.get("team_corners") if isinstance(corners, dict) else {}
+              team_corners = team_corners if isinstance(team_corners, dict) else {}
+              side_specific = team_corners.get("side_specific_formation_challenger")
+              side_specific = side_specific if isinstance(side_specific, dict) else {}
+              if "FT_CORNERS" in families:
+                  families["FT_CORNERS"]["formation_adjusted_evaluations"] = int(
+                      ft_corners.get("formation_adjusted_evaluations") or 0
+                  )
+                  families["FT_CORNERS"]["minimum_formation_adjusted"] = int(
+                      ft_corners.get("minimum_formation_adjusted") or 100
+                  )
+              if "TEAM_CORNERS" in families:
+                  families["TEAM_CORNERS"]["side_specific_formation_adjusted_evaluations"] = int(
+                      side_specific.get("formation_adjusted_evaluations") or 0
+                  )
+                  families["TEAM_CORNERS"]["minimum_side_specific_formation_adjusted"] = int(
+                      side_specific.get("minimum_formation_adjusted") or 100
+                  )
+                  families["TEAM_CORNERS"]["side_specific_home_mae_improves"] = (
+                      side_specific.get("home_mae_improves") is True
+                  )
+                  families["TEAM_CORNERS"]["side_specific_away_mae_improves"] = (
+                      side_specific.get("away_mae_improves") is True
+                  )
+                  families["TEAM_CORNERS"]["side_specific_both_side_mae_improve"] = (
+                      side_specific.get("both_side_mae_improve") is True
+                  )
+
+              fm_health = corners.get("formation_matchup_health") if isinstance(corners, dict) else {}
+              fm_health = fm_health if isinstance(fm_health, dict) else {}
+              target["formation_matchup_health"] = {
+                  **fm_health,
+                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json",
+                  "canonical_state_merged_by_scheduler": True,
+              }
               apply_family(families, "CARDS", reports.get("CARDS", {}))
 
               props = reports.get("PLAYER_PROPS", {})
@@ -382,7 +422,7 @@ jobs:
           health_path.write_text(json.dumps(health, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
 
-          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.core_slate_floor_reconciliation | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object") and (.v4_014_model_disagreement_engine | type == "object") and (.v4_015_confidence_engine_v1 | type == "object") and (.v4_016_ft_totals_production_validation | type == "object") and (.v4_017_1x2_calibration_validation | type == "object") and (.v4_018_btts_calibration_validation | type == "object") and (.v4_019_team_totals_oos_validation | type == "object") and (.v4_020_1h_oos_validation | type == "object") and (.v4_021_2h_oos_validation | type == "object") and (.v4_022_corners_oos_validation | type == "object") and (.phase14_cards_referee_validation | type == "object") and (.phase15_player_props_validation | type == "object") and (.phase16_market_mismatch_finder | type == "object") and (.phase17_clv_engine | type == "object") and (.phase18_oos_backtest_framework | type == "object") and (.phase19_promotion_framework | type == "object") and (.phase20_bankroll_risk_engine | type == "object") and (.phase21_alert_engine | type == "object") and (.phase22_live_inplay_engine | type == "object") and (.phase23_mlops_model_registry | type == "object") and (.phase24_final_product_experience | type == "object") and (.dashboard_views | type == "object") and (.phase21_alert_audit_rows | type == "array") and (.market_mismatch_rows | type == "array") and (.price_resolution_v4 | type == "object") and (.player_props_clv_maturation_funnel | type == "object")' soccer_edge_state/latest.json >/dev/null
+          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.core_slate_floor_reconciliation | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object") and (.v4_014_model_disagreement_engine | type == "object") and (.v4_015_confidence_engine_v1 | type == "object") and (.v4_016_ft_totals_production_validation | type == "object") and (.v4_017_1x2_calibration_validation | type == "object") and (.v4_018_btts_calibration_validation | type == "object") and (.v4_019_team_totals_oos_validation | type == "object") and (.v4_020_1h_oos_validation | type == "object") and (.v4_021_2h_oos_validation | type == "object") and (.v4_022_corners_oos_validation | type == "object") and (.phase14_cards_referee_validation | type == "object") and (.phase15_player_props_validation | type == "object") and (.phase16_market_mismatch_finder | type == "object") and (.phase17_clv_engine | type == "object") and (.phase18_oos_backtest_framework | type == "object") and (.phase19_promotion_framework | type == "object") and (.phase20_bankroll_risk_engine | type == "object") and (.phase21_alert_engine | type == "object") and (.phase22_live_inplay_engine | type == "object") and (.phase23_mlops_model_registry | type == "object") and (.phase24_final_product_experience | type == "object") and (.dashboard_views | type == "object") and (.phase21_alert_audit_rows | type == "array") and (.market_mismatch_rows | type == "array") and (.price_resolution_v4 | type == "object") and (.formation_matchup_health | type == "object") and (.player_props_clv_maturation_funnel | type == "object")' soccer_edge_state/latest.json >/dev/null
           test -s soccer_edge_state/latest.json
           # Git history is an operational audit trail, not the canonical full-tick store.
           # Full payloads are durable in Postgres. Keep one compact record per tick so a
