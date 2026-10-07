@@ -565,3 +565,262 @@ The highest-value football-specific process currently running is FM-4 tactical-h
 The highest-value evaluation process currently running is the new prospective append-only registry so future calibration uses decisions frozen before outcomes.
 
 **Resume from this file, not from chat history.**
+
+
+---
+
+# 16. CODE-COMPLETE ADDENDUM — 2026-10-07
+
+**This section supersedes earlier numerical snapshots in this file wherever they conflict.**  
+Earlier sections remain useful as the chronological engineering record.
+
+## Current branch heads
+
+```text
+main
+de728e8e395167cd6bc3b2564dbe191b115fe77d
+Surface FM4-FM7 lifecycle health in scheduler
+
+soccer-edge-mcp-v1
+24156202f82e363db0f139b59347e3c2e6d8ab50
+Run formation lifecycle health contract in runtime CI
+
+soccer-edge-state
+f6a0bd87c444e4e78a1936379287257d2eed4245
+Update Phase 19 promotion framework report
+```
+
+These are resume references only. Do not reset branches to these hashes.
+
+## Formation software lifecycle status
+
+The formation engineering chain is now materially implemented through the production-review boundary:
+
+```text
+FM-4 STYLE/PERSONNEL ABLATION
+  FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.1.0
+
+FM-4 PERSONNEL OUTCOME ABLATION
+  FORMATION_PERSONNEL_OUTCOME_ABLATION_V1.0.0
+
+FM-5 READINESS GATE
+  FORMATION_FM5_READINESS_GATE_V1.0.0
+
+FM-5 RAW SPORT PROJECTION CONTRACT
+  FORMATION_FM5_RAW_SPORT_PROJECTION_V1.0.0
+
+FM-6 EXACT MARKET VALIDATION CONTRACT
+  FORMATION_FM6_EXACT_MARKET_VALIDATION_V1.0.0
+
+FM-7 PROMOTION REVIEW CONTRACT
+  FORMATION_FM7_PROMOTION_REVIEW_V1.0.0
+
+FORMATION LIFECYCLE HEALTH
+  FORMATION_LIFECYCLE_HEALTH_V1.0.0
+```
+
+Canonical lifecycle state currently reports:
+
+```text
+status = SOFTWARE_CONTRACTS_COMPLETE_EVIDENCE_ACCUMULATING
+software_contracts_complete = true
+production_promotion_allowed = false
+model_weights_changed = false
+thresholds_changed = false
+canonical_bet_logic_changed = false
+market_prices_consumed_to_create_sporting_projection = false
+historical_predictions_rewritten = false
+```
+
+This means **software completion is no longer the same thing as evidence readiness**.
+
+FM-5, FM-6 and FM-7 exist as guarded contracts, but cannot acquire production weight merely because the code exists.
+
+## FM-4 current evidence
+
+Latest canonical FM-4 state:
+
+```text
+model_version = FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.1.0
+status = RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION
+
+tactical_history_fixtures_loaded = 2441
+tactical_history_unique_teams = 4034
+source_unique_teams = 520
+source_team_overlap_pct = 100%
+
+both teams complete prior style n>=1 = 12
+both teams complete prior style n>=2 = 3
+both teams complete prior style n>=3 = 2
+style_eligible_source_rows = 2
+
+required both-team prior style n>=3 = 100
+```
+
+Current personnel state:
+
+```text
+current both-XI rows = 18
+both teams with prior confirmed XI = 0
+both teams with previous-coach comparison = 0
+both teams with last-3 core-return feature = 0
+personnel outcome ablation ready = false
+```
+
+The personnel outcome ablation is now implemented rather than a placeholder. It remains blocked by genuine prior-personnel history.
+
+## Corners current evidence
+
+Latest FM-5 readiness input reports:
+
+```text
+FT Corners formation-adjusted evaluations = 44 / 100
+Team Corners formation-adjusted evaluations = 44 / 100
+
+FT Corners MAE improves = true
+required line Brier/log-loss improvement = true
+
+Team Corners home MAE improves = true
+Team Corners away MAE improves = true
+Team Corners both-side MAE improves = true
+Team Corners total MAE improves = true
+
+stable FT-Corners lift leagues = 0 / 2
+league/venue stability review ready = false
+```
+
+Therefore Corners remains research-only despite improved directional performance.
+
+## FM-5 current gate
+
+```text
+status = FM5_BLOCKED_EVIDENCE_GATES
+ready_components = []
+integration_review_allowed = false
+automatic_integration_allowed = false
+production_enabled = false
+decision_weight = 0
+```
+
+Primary blockers:
+
+```text
+FM4_STYLE_HISTORY_2_LT_100
+FM4_GOALS_STYLE_OOS_NOT_READY
+FM4_SHOTS_STYLE_OOS_NOT_READY
+FM4_SOT_STYLE_OOS_NOT_READY
+FM4_PERSONNEL_SAMPLE_NOT_READY
+FM4_PERSONNEL_OUTCOME_ABLATION_NOT_READY
+FM2_FT_CORNERS_SPORT_OOS_NOT_READY
+FM2_TEAM_CORNERS_SPORT_OOS_NOT_READY
+```
+
+## FM-6 / FM-7 current state
+
+FM-6 is coded to compare only an already-created FM-5 sporting projection against an exact market instrument.
+
+It requires:
+
+- exact market family;
+- exact selection;
+- exact line where applicable;
+- exact decimal price;
+- bookmaker;
+- source;
+- market capture timestamp;
+- market snapshot after the raw sporting feature timestamp;
+- market snapshot strictly before kickoff.
+
+FM-6 cannot create a sporting thesis and currently has zero production weight.
+
+FM-7 is coded as a production-review gate, not an auto-promotion mechanism.
+
+It requires, among other evidence:
+
+- an FM-5 component that passed sporting OOS gates;
+- FM-6 exact-market validation;
+- clean strict-close chronology;
+- True CLV gate;
+- calibration gate;
+- multi-league stability;
+- concentration gate;
+- stable OOS lift;
+- at least 100 prospective graded bets;
+- material recalibration permission;
+- append-only selections with no outcome leakage;
+- manual approval;
+- rollback model pointer.
+
+Automatic activation remains prohibited.
+
+## Prospective sample
+
+```text
+canonical selection rows = 0
+graded-bet rows = 0 / 100
+material recalibration allowed = false
+```
+
+No historical research rows are being relabeled to accelerate this sample.
+
+## CI / regression state
+
+Recent successful validation includes:
+
+```text
+Soccer Edge V4 Runtime Tests:
+  520 passed
+
+Formation Intelligence:
+  latest repaired run = success
+
+Contract Regression:
+  FM5 / FM6 / FM7 / CLV / prospective / formation contracts = passing
+
+Scheduler:
+  state-push retry hardening = active
+  latest validated scheduler runs = success
+
+Formation Lifecycle Health:
+  scheduled materialization = success
+```
+
+The regression suite verifies zero production weight and no market leakage for the new formation stages.
+
+## Remaining operational deployment blocker
+
+The FM-4 personnel history source code and protected route exist in `soccer-edge-mcp-v1`, but the current Render runtime observed by the workflow is still deployed from:
+
+```text
+render_git_commit = fda8a25dc81731d2867746d7433ce5905e7fb00e
+```
+
+The protected personnel backfill route was added later, so the live service currently returns:
+
+```text
+HTTP 404
+/internal/fm4-personnel-history-backfill-v1/run
+```
+
+As a result:
+
+```text
+fm4_personnel_history_backfill_report.json = NOT MATERIALIZED
+```
+
+This is now a **deployment/runtime synchronization blocker**, not a missing model implementation.
+
+Do not weaken the personnel gate to work around it.
+
+## Current definition of “done”
+
+Engineering can be considered code-complete when:
+
+1. FM4-FM7 contracts remain green in CI;
+2. lifecycle health remains materialized;
+3. scheduler health exposes the lifecycle state;
+4. Render is synchronized to the engine revision containing the protected personnel route;
+5. the personnel backfill workflow executes successfully and materializes its canonical state artifact.
+
+Evidence completion is separate and will continue naturally after code completion.
+
