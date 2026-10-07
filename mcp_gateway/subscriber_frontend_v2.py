@@ -294,7 +294,32 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   }}
   function renderPlan(){{ACCESS=DATA?.access||ACCESS||{{}};const plan=ACCESS?.display_role||ACCESS?.effective_plan||(token()?'FREE':'EXPLORER');$('planChip').textContent=String(plan).toUpperCase();$('accountBtn').textContent=token()?'Account':'Sign in';$('accountPageBtn').textContent=token()?'Manage account':'Sign in';$('accountPlan').textContent=premium()?'Edge Pro':'Explorer';$('accountCopy').textContent=premium()?'Premium decision evidence is unlocked for this account.':'Browse the verified slate and watch states. Premium probability, price and evidence fields remain redacted.';$('signOut').classList.toggle('hidden',!token())}}
   function renderMeta(){{const raw=DATA?.generated_at_utc||DATA?.generated_at_local||'persisted';$('snapshotText').textContent='Persisted snapshot · '+raw;$('todayStamp').textContent=raw;$('freshChip').textContent=DATA?.status==='SUBSCRIBER_CONTRACT_V2_READY'?'VERIFIED SNAPSHOT':'CHECK STATE'}}
-  async function loadToday(){{DATA=await api('/today');ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate()}}
+  async function recoverSession(){{
+    const refresh=localStorage.getItem(RK)||'';
+    if(refresh&&cfg.auth_configured){{
+      try{{
+        const d=await authFetch('/auth/v1/token?grant_type=refresh_token',{{refresh_token:refresh}});
+        if(d.access_token){{
+          localStorage.setItem(AK,d.access_token);
+          if(d.refresh_token)localStorage.setItem(RK,d.refresh_token);
+          return true;
+        }}
+      }}catch(_e){{/* invalid/expired refresh falls through to anonymous recovery */}}
+    }}
+    localStorage.removeItem(AK);
+    localStorage.removeItem(RK);
+    return false;
+  }}
+  async function loadToday(){{
+    try{{DATA=await api('/today')}}
+    catch(e){{
+      if(e?.status===401&&token()){{
+        await recoverSession();
+        DATA=await api('/today');
+      }}else throw e
+    }}
+    ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate()
+  }}
   async function openMatch(fid){{if(!fid)return;activate('matches');const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{box.innerHTML=lock('Match Intelligence',1);return}}box.innerHTML=empty('Loading match intelligence','Reading persisted fixture evidence…');try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d)}}catch(e){{box.innerHTML=empty('Match detail unavailable',e.message)}}}}
   function detailKV(label,value){{return '<div class="item"><span>'+esc(label)+'</span><span>'+esc(value??'NOT VERIFIED')+'</span></div>'}}
   function marketTable(rows){{if(!rows?.length)return empty('No persisted market rows','This market family has no persisted candidate rows for the fixture.');
