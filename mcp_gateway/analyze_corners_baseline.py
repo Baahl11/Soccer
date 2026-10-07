@@ -49,7 +49,11 @@ def shrink_ratio(numer_sum: float, denom_sum: float, n: int, pseudo_n: float = 8
 def metrics_for_evals(evals: list[dict[str, Any]], prefix: str) -> dict[str, Any]:
     if not evals:
         return {"n": 0, "mae_total_corners": None, "lines": {}}
-    lam_key = "baseline_total_lambda" if prefix == "base" else "challenger_total_lambda"
+    lam_key = {
+        "base": "baseline_total_lambda",
+        "challenger": "challenger_total_lambda",
+        "side_challenger": "side_challenger_total_lambda",
+    }[prefix]
     out = {
         "n": len(evals),
         "mae_total_corners": round(
@@ -73,6 +77,51 @@ def metrics_for_evals(evals: list[dict[str, Any]], prefix: str) -> dict[str, Any
             ),
         }
     return out
+
+
+def side_specific_metrics(evals: list[dict[str, Any]], prefix: str) -> dict[str, Any]:
+    if not evals:
+        return {
+            "n": 0,
+            "mae_home_corners": None,
+            "mae_away_corners": None,
+            "mae_total_corners": None,
+        }
+    if prefix == "base":
+        home_key = "baseline_home_lambda"
+        away_key = "baseline_away_lambda"
+    elif prefix == "side_challenger":
+        home_key = "side_challenger_home_lambda"
+        away_key = "side_challenger_away_lambda"
+    else:
+        raise ValueError(f"unsupported side metrics prefix: {prefix}")
+
+    return {
+        "n": len(evals),
+        "mae_home_corners": round(
+            sum(abs(float(x[home_key]) - x["actual_home_corners"]) for x in evals) / len(evals),
+            6,
+        ),
+        "mae_away_corners": round(
+            sum(abs(float(x[away_key]) - x["actual_away_corners"]) for x in evals) / len(evals),
+            6,
+        ),
+        "mae_total_corners": round(
+            sum(
+                abs(
+                    (float(x[home_key]) + float(x[away_key]))
+                    - x["actual_total_corners"]
+                )
+                for x in evals
+            )
+            / len(evals),
+            6,
+        ),
+        "mean_predicted_home": round(sum(float(x[home_key]) for x in evals) / len(evals), 4),
+        "mean_predicted_away": round(sum(float(x[away_key]) for x in evals) / len(evals), 4),
+        "mean_actual_home": round(sum(x["actual_home_corners"] for x in evals) / len(evals), 4),
+        "mean_actual_away": round(sum(x["actual_away_corners"] for x in evals) / len(evals), 4),
+    }
 
 
 def formation_lift_by_league(evals: list[dict[str, Any]]) -> dict[str, Any]:
@@ -350,6 +399,8 @@ def main() -> None:
     league_hist: dict[Any, list[dict[str, Any]]] = defaultdict(list)
     global_hist: list[dict[str, Any]] = []
     matchup_residuals: dict[str, list[float]] = defaultdict(list)
+    home_matchup_residuals: dict[str, list[float]] = defaultdict(list)
+    away_matchup_residuals: dict[str, list[float]] = defaultdict(list)
     evals: list[dict[str, Any]] = []
 
     for r in rows:
@@ -375,12 +426,32 @@ def main() -> None:
             base_lam = home_lam + away_lam
             matchup = r.get("matchup")
             hist = matchup_residuals.get(matchup or "", []) if matchup else []
+            home_hist = home_matchup_residuals.get(matchup or "", []) if matchup else []
+            away_hist = away_matchup_residuals.get(matchup or "", []) if matchup else []
+
             formation_scale = 1.0
             if matchup and len(hist) >= 8:
                 raw = sum(hist) / len(hist)
                 formation_scale = (len(hist) * raw + 20.0) / (len(hist) + 20.0)
                 formation_scale = max(0.85, min(1.15, formation_scale))
             challenger_lam = base_lam * formation_scale
+
+            home_formation_scale = 1.0
+            away_formation_scale = 1.0
+            if matchup and len(home_hist) >= 8:
+                home_raw = sum(home_hist) / len(home_hist)
+                home_formation_scale = (len(home_hist) * home_raw + 20.0) / (len(home_hist) + 20.0)
+                home_formation_scale = max(0.85, min(1.15, home_formation_scale))
+            if matchup and len(away_hist) >= 8:
+                away_raw = sum(away_hist) / len(away_hist)
+                away_formation_scale = (len(away_hist) * away_raw + 20.0) / (len(away_hist) + 20.0)
+                away_formation_scale = max(0.85, min(1.15, away_formation_scale))
+
+            side_challenger_home_lam = home_lam * home_formation_scale
+            side_challenger_away_lam = away_lam * away_formation_scale
+            side_challenger_total_lam = (
+                side_challenger_home_lam + side_challenger_away_lam
+            )
             item = {
                 "fixture_id": r["fixture_id"], "kickoff_local": r["kickoff_local"],
                 "league_id": r["league_id"], "matchup": matchup,
@@ -388,6 +459,11 @@ def main() -> None:
                 "baseline_home_lambda": round(home_lam, 5), "baseline_away_lambda": round(away_lam, 5),
                 "baseline_total_lambda": round(base_lam, 5), "formation_scale": round(formation_scale, 5),
                 "challenger_total_lambda": round(challenger_lam, 5),
+                "home_formation_scale": round(home_formation_scale, 5),
+                "away_formation_scale": round(away_formation_scale, 5),
+                "side_challenger_home_lambda": round(side_challenger_home_lam, 5),
+                "side_challenger_away_lambda": round(side_challenger_away_lam, 5),
+                "side_challenger_total_lambda": round(side_challenger_total_lam, 5),
                 "actual_home_corners": r["home_corners"], "actual_away_corners": r["away_corners"],
                 "actual_total_corners": r["total_corners"],
             }
@@ -395,17 +471,29 @@ def main() -> None:
                 key = str(line).replace(".", "_")
                 item[f"base_over_{key}"] = round(pois_over(base_lam, line), 6)
                 item[f"challenger_over_{key}"] = round(pois_over(challenger_lam, line), 6)
+                item[f"side_challenger_over_{key}"] = round(
+                    pois_over(side_challenger_total_lam, line), 6
+                )
             evals.append(item)
             if matchup and base_lam > 0:
                 matchup_residuals[matchup].append(r["total_corners"] / base_lam)
+            if matchup and home_lam > 0:
+                home_matchup_residuals[matchup].append(r["home_corners"] / home_lam)
+            if matchup and away_lam > 0:
+                away_matchup_residuals[matchup].append(r["away_corners"] / away_lam)
         # Residual history must only be generated after a baseline prediction exists.
         league_hist[r["league_id"]].append(r)
         global_hist.append(r)
 
     bm = metrics_for_evals(evals, "base"); cm = metrics_for_evals(evals, "challenger")
     formation_evals = sum(1 for x in evals if x["prior_matchup_n"] >= 8)
+    side_adjusted = [x for x in evals if int(x.get("prior_matchup_n") or 0) >= 8]
+    side_base = side_specific_metrics(side_adjusted, "base")
+    side_challenger = side_specific_metrics(side_adjusted, "side_challenger")
+    side_base_total = metrics_for_evals(side_adjusted, "base")
+    side_challenger_total = metrics_for_evals(side_adjusted, "side_challenger")
     report = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "status": "RESEARCH_ONLY_CORNERS_BASELINE",
         "policy": "NO_ACTIONABLE_CORNERS_PICK; WALK_FORWARD_ONLY; FORMATION_MUST_ADD_OOS_LIFT_OVER_TEAM_LEAGUE_BASELINE",
         "rows_with_verified_postgame_corners": len(rows),
@@ -414,6 +502,39 @@ def main() -> None:
         "baseline_method": "LEAGUE_HOME_AWAY_CORNERS_X_SHRUNK_TEAM_ATTACK_X_OPPONENT_DEFENSE_WEAKNESS",
         "baseline": bm,
         "formation_challenger": cm,
+        "side_specific_formation_challenger": {
+            "status": "RESEARCH_ONLY_SIDE_SPECIFIC_FORMATION_CHALLENGER",
+            "method": (
+                "BASELINE_HOME_AWAY_LAMBDAS_X_PRIOR_DIRECTIONAL_FORMATION_MATCHUP_RESIDUALS"
+            ),
+            "minimum_prior_same_matchup": 8,
+            "shrinkage_pseudo_n": 20,
+            "scale_clip": [0.85, 1.15],
+            "formation_adjusted_evaluations": len(side_adjusted),
+            "baseline_side_metrics": side_base,
+            "challenger_side_metrics": side_challenger,
+            "baseline_total_line_metrics": side_base_total,
+            "challenger_total_line_metrics": side_challenger_total,
+            "improvement": {
+                "home_mae_improves": (
+                    side_base.get("mae_home_corners") is not None
+                    and side_challenger.get("mae_home_corners") is not None
+                    and side_challenger["mae_home_corners"] < side_base["mae_home_corners"]
+                ),
+                "away_mae_improves": (
+                    side_base.get("mae_away_corners") is not None
+                    and side_challenger.get("mae_away_corners") is not None
+                    and side_challenger["mae_away_corners"] < side_base["mae_away_corners"]
+                ),
+                "total_mae_improves": (
+                    side_base.get("mae_total_corners") is not None
+                    and side_challenger.get("mae_total_corners") is not None
+                    and side_challenger["mae_total_corners"] < side_base["mae_total_corners"]
+                ),
+            },
+            "production_enabled": False,
+            "decision_weight": 0.0,
+        },
         "formation_lift_by_league": formation_lift_by_league(evals),
         "formation_eligibility_audit": formation_eligibility_audit(fixtures, evals),
         "promotion_gate": {
