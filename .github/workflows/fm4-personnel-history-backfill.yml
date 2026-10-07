@@ -412,3 +412,60 @@ jobs:
             sleep $((attempt * 3))
           done
           exit 1
+
+      - name: Refresh formation lifecycle health after personnel attempt
+        if: success() && steps.backfill_call.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          FM4=state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          FM5=state/soccer_edge_state/analysis/formation_fm5_readiness_gate_v1.json
+          PROSPECTIVE=state/soccer_edge_state/analysis/prospective_evaluation_summary_v1.json
+          PERSONNEL=state/soccer_edge_state/analysis/fm4_personnel_history_backfill_report.json
+          OUT=state/soccer_edge_state/analysis/formation_lifecycle_health_v1.json
+
+          test -s "$FM4"
+          test -s "$FM5"
+          test -s "$PROSPECTIVE"
+          test -s "$PERSONNEL"
+
+          PYTHONPATH=engine python engine/mcp_gateway/formation_lifecycle_health_v1.py \
+            --fm4-report "$FM4" \
+            --fm5-readiness "$FM5" \
+            --prospective "$PROSPECTIVE" \
+            --personnel-backfill "$PERSONNEL" \
+            --output "$OUT"
+
+          jq -e '
+            .software_contracts_complete == true
+            and .phases.FM4.personnel_backfill_status != null
+            and .provider_requests_added == 0
+            and .production_promotion_allowed == false
+          ' "$OUT" >/dev/null
+
+      - name: Persist refreshed formation lifecycle health
+        if: success() && steps.backfill_call.outcome == 'success'
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/formation_lifecycle_health_v1.json
+
+          if git diff --cached --quiet; then
+            echo "No lifecycle health changes after personnel attempt"
+            exit 0
+          fi
+
+          git commit -m "Refresh formation lifecycle health after personnel attempt"
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin soccer-edge-state
+            if git rebase --autostash origin/soccer-edge-state \
+              && git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 3))
+          done
+          exit 1
