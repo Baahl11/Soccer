@@ -23,6 +23,8 @@ on:
       - "mcp_gateway/formation_tactical_history_backfill_v1.py"
       - "mcp_gateway/formation_personnel_history_backfill_v1.py"
       - "mcp_gateway/formation_matchup_fm4_style_ablation_v1.py"
+      - "mcp_gateway/formation_fm5_readiness_gate_v1.py"
+      - "mcp_gateway/formation_fm5_raw_projection_v1.py"
       - "mcp_gateway/prospective_evaluation_registry_v1.py"
       - "tests/test_clv_postgres_v4.py"
       - "tests/test_price_resolver_v4.py"
@@ -32,6 +34,8 @@ on:
       - "tests/test_formation_tactical_history_backfill_v1.py"
       - "tests/test_formation_personnel_history_backfill_v1.py"
       - "tests/test_formation_matchup_fm4_style_ablation_v1.py"
+      - "tests/test_formation_fm5_readiness_gate_v1.py"
+      - "tests/test_formation_fm5_raw_projection_v1.py"
       - "tests/test_prospective_evaluation_registry_v1.py"
 
 permissions:
@@ -80,6 +84,8 @@ jobs:
             tests/test_formation_tactical_history_backfill_v1.py \
             tests/test_formation_personnel_history_backfill_v1.py \
             tests/test_formation_matchup_fm4_style_ablation_v1.py \
+            tests/test_formation_fm5_readiness_gate_v1.py \
+            tests/test_formation_fm5_raw_projection_v1.py \
             tests/test_prospective_evaluation_registry_v1.py
 
       - name: Validate canonical research and market contracts
