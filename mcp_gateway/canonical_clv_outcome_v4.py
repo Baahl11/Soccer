@@ -280,7 +280,7 @@ def _grade_row(row: dict[str, Any], result: dict[str, Any] | None) -> dict[str, 
         "selection": row.get("selection"),
         "line": _signal_line(row),
         "signal_price": price,
-        "signal_fair_probability": probability,
+        "signal_market_fair_probability": probability,
         "entry_timestamp": row.get("entry_timestamp"),
         "stage": row.get("stage"),
         "classification": row.get("classification"),
@@ -294,8 +294,8 @@ def _grade_row(row: dict[str, Any], result: dict[str, Any] | None) -> dict[str, 
         "settlement_status": outcome,
         "settled": outcome in {"WIN", "LOSS", "PUSH"},
         "hypothetical_roi_units": roi,
-        "brier": _brier(probability, y) if scored and y is not None else None,
-        "log_loss": _logloss(probability, y) if scored and y is not None else None,
+        "market_fair_brier": _brier(probability, y) if scored and y is not None else None,
+        "market_fair_log_loss": _logloss(probability, y) if scored and y is not None else None,
         "real_wager_assumed": False,
     }
 
@@ -330,9 +330,9 @@ def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     ]
     scored = [
         row for row in decided
-        if _num(row.get("signal_fair_probability")) is not None
-        and _num(row.get("brier")) is not None
-        and _num(row.get("log_loss")) is not None
+        if _num(row.get("signal_market_fair_probability")) is not None
+        and _num(row.get("market_fair_brier")) is not None
+        and _num(row.get("market_fair_log_loss")) is not None
     ]
     clv = [
         float(row["clv_probability_pp"])
@@ -340,13 +340,13 @@ def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
         if _num(row.get("clv_probability_pp")) is not None
     ]
     roi = [float(row["hypothetical_roi_units"]) for row in priced]
-    probabilities = [float(row["signal_fair_probability"]) for row in scored]
+    probabilities = [float(row["signal_market_fair_probability"]) for row in scored]
     observed = [
         1 if row.get("settlement_status") == "WIN" else 0
         for row in scored
     ]
-    briers = [float(row["brier"]) for row in scored]
-    losses = [float(row["log_loss"]) for row in scored]
+    briers = [float(row["market_fair_brier"]) for row in scored]
+    losses = [float(row["market_fair_log_loss"]) for row in scored]
     return {
         "rows": len(rows),
         "unique_fixtures": len({
