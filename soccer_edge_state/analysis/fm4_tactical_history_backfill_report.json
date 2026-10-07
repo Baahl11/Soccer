@@ -6,7 +6,7 @@
   "lookback_days": 365,
   "target_team_count": 520,
   "provided_team_season_count": 520,
-  "candidate_pool_rows": 64,
+  "candidate_pool_rows": 56,
   "selected_fixture_count": 8,
   "successful_league_counts": {
     "2": 1,
@@ -23,57 +23,67 @@
     "details": []
   },
   "attempted": 8,
-  "captured": 0,
-  "incomplete": 8,
+  "captured": 5,
+  "incomplete": 3,
   "errors": 0,
   "details": [
     {
-      "fixture_id": 1598622,
-      "status": "PROVIDER_STATS_INCOMPLETE",
-      "team_rows": 0,
-      "daily_remaining": 5098
+      "fixture_id": 1582365,
+      "status": "CAPTURED",
+      "home_team_id": 42,
+      "away_team_id": 50,
+      "kickoff": "2026-08-16T14:00:00+00:00",
+      "daily_remaining": 5006
     },
     {
-      "fixture_id": 1560777,
+      "fixture_id": 1542343,
       "status": "PROVIDER_STATS_INCOMPLETE",
       "team_rows": 0,
-      "daily_remaining": 5097
+      "daily_remaining": 5005
     },
     {
-      "fixture_id": 1550631,
+      "fixture_id": 1583492,
       "status": "PROVIDER_STATS_INCOMPLETE",
       "team_rows": 0,
-      "daily_remaining": 5096
+      "daily_remaining": 5004
     },
     {
-      "fixture_id": 1542350,
+      "fixture_id": 1546721,
       "status": "PROVIDER_STATS_INCOMPLETE",
       "team_rows": 0,
-      "daily_remaining": 5095
+      "daily_remaining": 5003
     },
     {
-      "fixture_id": 1567736,
-      "status": "PROVIDER_STATS_INCOMPLETE",
-      "team_rows": 0,
-      "daily_remaining": 5094
+      "fixture_id": 1557396,
+      "status": "CAPTURED",
+      "home_team_id": 65,
+      "away_team_id": 47,
+      "kickoff": "2026-09-05T14:00:00+00:00",
+      "daily_remaining": 5002
     },
     {
-      "fixture_id": 1589321,
-      "status": "PROVIDER_STATS_INCOMPLETE",
-      "team_rows": 0,
-      "daily_remaining": 5093
+      "fixture_id": 1557386,
+      "status": "CAPTURED",
+      "home_team_id": 47,
+      "away_team_id": 34,
+      "kickoff": "2026-08-29T16:30:00+00:00",
+      "daily_remaining": 5006
     },
     {
-      "fixture_id": 1598627,
-      "status": "PROVIDER_STATS_INCOMPLETE",
-      "team_rows": 0,
-      "daily_remaining": 5092
+      "fixture_id": 1557378,
+      "status": "CAPTURED",
+      "home_team_id": 35,
+      "away_team_id": 45,
+      "kickoff": "2026-08-29T14:00:00+00:00",
+      "daily_remaining": 5005
     },
     {
-      "fixture_id": 1591929,
-      "status": "PROVIDER_STATS_INCOMPLETE",
-      "team_rows": 0,
-      "daily_remaining": 5091
+      "fixture_id": 1557383,
+      "status": "CAPTURED",
+      "home_team_id": 40,
+      "away_team_id": 65,
+      "kickoff": "2026-08-29T11:30:00+00:00",
+      "daily_remaining": 5004
     }
   ],
   "fixture_discovery_provider_requests_added": 0,
@@ -81,7 +91,7 @@
   "provider_requests_added": 8,
   "max_statistics_provider_requests_per_run": 8,
   "max_discovery_provider_requests_per_run": 8,
-  "daily_remaining_after_run": 5091,
+  "daily_remaining_after_run": 5004,
   "historical_research_feature_reconstruction_allowed": true,
   "retroactive_prediction_rewrite": false,
   "retroactive_market_created": false,
@@ -89,5 +99,5 @@
   "decision_weight": 0.0,
   "production_promotion_allowed": false,
   "policy": "DISCOVER ONLY VERIFIED FINALIZED FIXTURES STRICTLY BEFORE THE FM4 TARGET COHORT; PERSIST FIXTURE/RESULT IDENTITY IN CANONICAL POSTGRES; EXACT PROVIDER FIXTURE STATISTICS ONLY; MAX EIGHT STATISTICS REQUESTS PER RUN; MAX EIGHT FIXTURE-DISCOVERY TEAM REQUESTS PER RUN; STOP AT DAILY RESERVE GUARD; PERSIST DISCOVERY, RETRIEVAL PROVENANCE, AND INCOMPLETE-STATS ATTEMPTS; DO NOT REQUERY KNOWN INCOMPLETE HISTORICAL FIXTURES; PRIORITIZE LEAGUES WITH VERIFIED SUCCESSFUL STATISTICS CAPTURE AS A TIE-BREAKER; NO SYNTHETIC TACTICAL VALUES; MAY EXPAND OFFLINE HISTORICAL FEATURE RESEARCH BUT NEVER REWRITE ORIGINAL PREGAME PREDICTIONS, MARKETS, CLV, BETS, OR PRODUCTION DECISIONS.",
-  "materialized_history_fixture_count": 12
+  "materialized_history_fixture_count": 17
 }
