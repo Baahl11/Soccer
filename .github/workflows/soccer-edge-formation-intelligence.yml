@@ -93,10 +93,12 @@ jobs:
           set -euo pipefail
           PYTHONPATH=engine python engine/mcp_gateway/formation_matchup_fm4_style_ablation_v1.py \
             --formation-report state/soccer_edge_state/analysis/formation_matchup_engine_v1.json \
+            --history-dir state/soccer_edge_state/history \
             --output state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
           jq -e '.status == "RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
           jq -e '.health.odds_consumed == false and .health.current_match_postgame_style_consumed == false' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
           jq -e '.personnel_overlay.status == "NOT_MATERIALIZED"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+          jq -e '.style_profile.history_source == "ALL_PRIOR_VERIFIED_TACTICAL_HISTORY"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
           jq -e '.health.production_enabled == false and .health.decision_weight == 0' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
 
       - name: Analyze corners baseline
