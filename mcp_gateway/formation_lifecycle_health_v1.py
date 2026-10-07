@@ -61,7 +61,10 @@ def build_health(
         str(value) for value in (f5.get("ready_components") or []) if value
     ]
 
-    personnel_artifact = bool(personnel)
+    personnel_artifact = (
+        personnel.get("model_version") == "SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0"
+        and personnel.get("status") != "BLOCKED_STALE_RENDER_RUNTIME"
+    )
     personnel_captured = _int(personnel.get("captured"))
     personnel_history_fixtures = _int(
         personnel.get("materialized_personnel_history_fixture_count")
