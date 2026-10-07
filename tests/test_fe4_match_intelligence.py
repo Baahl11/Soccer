@@ -138,24 +138,23 @@ def test_fe4_match_contract_returns_none_for_unknown_fixture():
 def test_fe4_frontend_contains_all_match_intelligence_tabs():
     html = subscriber_frontend_v2.render()
 
-    for tab in (
-        "Overview",
-        "Sport",
-        "Goals",
-        "Corners",
-        "Cards",
-        "Players",
-        "Availability",
-        "Market",
-        "Model",
+    for tab_id, label in (
+        ("overview", "Overview"),
+        ("sport", "Sport"),
+        ("goals", "Goals"),
+        ("corners", "Corners"),
+        ("cards", "Cards"),
+        ("players", "Players"),
+        ("availability", "Availability"),
+        ("market", "Market"),
+        ("model", "Model"),
     ):
-        assert f">{tab}</button>" in html
+        assert f"['{tab_id}','{label}']" in html
 
     assert "data-detail-tab" in html
     assert "data-detail-section" in html
     assert "Raw Sport" in html or "RAW SPORT" in html
     assert "Market shrink" in html or "MARKET SHRUNK" in html
-
 
 def test_fe4_frontend_preserves_missing_data_language():
     html = subscriber_frontend_v2.render()
