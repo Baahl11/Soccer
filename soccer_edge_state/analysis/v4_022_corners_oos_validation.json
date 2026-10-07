@@ -5,6 +5,8 @@
     "FT_CORNERS_TRUE_CLV_0_LT_50",
     "PARENT_FT_CORNERS_NOT_REVIEW_READY",
     "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY",
+    "TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_39_LT_100",
+    "TEAM_CORNERS_SIDE_SPECIFIC_HOME_AWAY_MAE_NOT_BOTH_BETTER",
     "TEAM_CORNERS_TRUE_CLV_0_LT_50"
   ],
   "canonical_bet_logic_changed": false,
@@ -30,6 +32,8 @@
     },
     "TEAM_CORNERS": {
       "blockers": [
+        "TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_39_LT_100",
+        "TEAM_CORNERS_SIDE_SPECIFIC_HOME_AWAY_MAE_NOT_BOTH_BETTER",
         "TEAM_CORNERS_TRUE_CLV_0_LT_50",
         "PARENT_FT_CORNERS_NOT_REVIEW_READY",
         "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
@@ -47,6 +51,35 @@
       },
       "warnings": []
     }
+  },
+  "formation_matchup_health": {
+    "blockers": [
+      "RESEARCH_ONLY",
+      "SIDE_SPECIFIC_OOS_CHALLENGER_NOT_YET_PROMOTED",
+      "MARKET_VALIDATION_SEPARATE_AND_REQUIRED"
+    ],
+    "canonical_state_loaded": true,
+    "decision_weight": 0.0,
+    "fixtures_with_verified_formation_pair_and_final": 299,
+    "leakage_policy": "PREKICKOFF_OR_AT_KICKOFF_ONLY",
+    "matchups_n_ge_8": 8,
+    "metric_rows": {
+      "away_corners": 217,
+      "away_shots": 217,
+      "away_sot": 219,
+      "home_corners": 217,
+      "home_shots": 217,
+      "home_sot": 219,
+      "total_corners": 217,
+      "total_shots": 217,
+      "total_sot": 219
+    },
+    "minimum_stable_matchup_n": 8,
+    "model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
+    "odds_consumed": false,
+    "production_enabled": false,
+    "status": "RESEARCH_ONLY_FORMATION_MATCHUP_ENGINE",
+    "unique_matchups": 81
   },
   "ft_corners": {
     "all_required_lines_improve_brier_and_log_loss": true,
@@ -2188,10 +2221,95 @@
       9.5,
       10.5
     ],
+    "side_specific_formation_challenger": {
+      "away_mae_improves": false,
+      "baseline_side_metrics": {
+        "mae_away_corners": 1.718044,
+        "mae_home_corners": 2.243792,
+        "mae_total_corners": 2.696926,
+        "mean_actual_away": 4.1026,
+        "mean_actual_home": 4.5385,
+        "mean_predicted_away": 4.1364,
+        "mean_predicted_home": 5.4796,
+        "n": 39
+      },
+      "baseline_total_line_metrics": {
+        "lines": {
+          "10.5": {
+            "accuracy_at_0_5": 0.7179,
+            "brier": 0.212036,
+            "log_loss": 0.615991
+          },
+          "8.5": {
+            "accuracy_at_0_5": 0.5128,
+            "brier": 0.258299,
+            "log_loss": 0.710207
+          },
+          "9.5": {
+            "accuracy_at_0_5": 0.5897,
+            "brier": 0.248186,
+            "log_loss": 0.689533
+          }
+        },
+        "mae_total_corners": 2.696925,
+        "mean_actual_total": 8.641,
+        "mean_predicted_total": 9.616,
+        "n": 39
+      },
+      "both_side_mae_improve": false,
+      "challenger_side_metrics": {
+        "mae_away_corners": 1.733948,
+        "mae_home_corners": 2.158512,
+        "mae_total_corners": 2.50162,
+        "mean_actual_away": 4.1026,
+        "mean_actual_home": 4.5385,
+        "mean_predicted_away": 3.8794,
+        "mean_predicted_home": 4.9928,
+        "n": 39
+      },
+      "challenger_total_line_metrics": {
+        "lines": {
+          "10.5": {
+            "accuracy_at_0_5": 0.7179,
+            "brier": 0.208899,
+            "log_loss": 0.61145
+          },
+          "8.5": {
+            "accuracy_at_0_5": 0.5128,
+            "brier": 0.252457,
+            "log_loss": 0.698181
+          },
+          "9.5": {
+            "accuracy_at_0_5": 0.6923,
+            "brier": 0.227312,
+            "log_loss": 0.647637
+          }
+        },
+        "mae_total_corners": 2.501619,
+        "mean_actual_total": 8.641,
+        "mean_predicted_total": 8.8721,
+        "n": 39
+      },
+      "decision_weight": 0.0,
+      "formation_adjusted_evaluations": 39,
+      "home_mae_improves": true,
+      "materialized": true,
+      "method": "BASELINE_HOME_AWAY_LAMBDAS_X_PRIOR_DIRECTIONAL_FORMATION_MATCHUP_RESIDUALS",
+      "minimum_formation_adjusted": 100,
+      "minimum_prior_same_matchup": 8,
+      "production_enabled": false,
+      "scale_clip": [
+        0.85,
+        1.15
+      ],
+      "shrinkage_pseudo_n": 20,
+      "status": "RESEARCH_ONLY_SIDE_SPECIFIC_FORMATION_CHALLENGER",
+      "total_mae_improves": true
+    },
     "walk_forward_evaluations": 244
   },
   "manual_review_required": true,
-  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.4.0",
+  "model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.5.0",
   "model_weights_changed": false,
   "notes": [
     "Corners OOS is evaluated separately from goals markets because market microstructure and variance differ.",
@@ -2200,7 +2318,9 @@
     "Team corners require stable home/away line calibration and cannot inherit evidence from FT corners or goals.",
     "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only.",
     "Historical source promotion_gate.enabled flags are descriptive metadata only; V4-022 blockers now name the missing evidence explicitly.",
-    "FT Corners requires formation lift to be materialized and stable across at least two review-sized leagues before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability."
+    "FT Corners requires formation lift to be materialized and stable across at least two review-sized leagues before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability.",
+    "The side-specific formation challenger is tracked explicitly for Team Corners; it must improve both home and away MAE before it can support Team Corners promotion.",
+    "Formation Matchup Engine health is observability-only here and retains zero decision weight until its independent research and market gates pass."
   ],
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
@@ -6740,7 +6860,92 @@
       3.5,
       4.5,
       5.5
-    ]
+    ],
+    "side_specific_formation_challenger": {
+      "away_mae_improves": false,
+      "baseline_side_metrics": {
+        "mae_away_corners": 1.718044,
+        "mae_home_corners": 2.243792,
+        "mae_total_corners": 2.696926,
+        "mean_actual_away": 4.1026,
+        "mean_actual_home": 4.5385,
+        "mean_predicted_away": 4.1364,
+        "mean_predicted_home": 5.4796,
+        "n": 39
+      },
+      "baseline_total_line_metrics": {
+        "lines": {
+          "10.5": {
+            "accuracy_at_0_5": 0.7179,
+            "brier": 0.212036,
+            "log_loss": 0.615991
+          },
+          "8.5": {
+            "accuracy_at_0_5": 0.5128,
+            "brier": 0.258299,
+            "log_loss": 0.710207
+          },
+          "9.5": {
+            "accuracy_at_0_5": 0.5897,
+            "brier": 0.248186,
+            "log_loss": 0.689533
+          }
+        },
+        "mae_total_corners": 2.696925,
+        "mean_actual_total": 8.641,
+        "mean_predicted_total": 9.616,
+        "n": 39
+      },
+      "both_side_mae_improve": false,
+      "challenger_side_metrics": {
+        "mae_away_corners": 1.733948,
+        "mae_home_corners": 2.158512,
+        "mae_total_corners": 2.50162,
+        "mean_actual_away": 4.1026,
+        "mean_actual_home": 4.5385,
+        "mean_predicted_away": 3.8794,
+        "mean_predicted_home": 4.9928,
+        "n": 39
+      },
+      "challenger_total_line_metrics": {
+        "lines": {
+          "10.5": {
+            "accuracy_at_0_5": 0.7179,
+            "brier": 0.208899,
+            "log_loss": 0.61145
+          },
+          "8.5": {
+            "accuracy_at_0_5": 0.5128,
+            "brier": 0.252457,
+            "log_loss": 0.698181
+          },
+          "9.5": {
+            "accuracy_at_0_5": 0.6923,
+            "brier": 0.227312,
+            "log_loss": 0.647637
+          }
+        },
+        "mae_total_corners": 2.501619,
+        "mean_actual_total": 8.641,
+        "mean_predicted_total": 8.8721,
+        "n": 39
+      },
+      "decision_weight": 0.0,
+      "formation_adjusted_evaluations": 39,
+      "home_mae_improves": true,
+      "materialized": true,
+      "method": "BASELINE_HOME_AWAY_LAMBDAS_X_PRIOR_DIRECTIONAL_FORMATION_MATCHUP_RESIDUALS",
+      "minimum_formation_adjusted": 100,
+      "minimum_prior_same_matchup": 8,
+      "production_enabled": false,
+      "scale_clip": [
+        0.85,
+        1.15
+      ],
+      "shrinkage_pseudo_n": 20,
+      "status": "RESEARCH_ONLY_SIDE_SPECIFIC_FORMATION_CHALLENGER",
+      "total_mae_improves": true
+    }
   },
   "ticket": "V4-022",
   "true_clv": {
