@@ -338,6 +338,11 @@ class V215SignalLedgerRouter:
         if scope.get("type") == "http":
             path = scope.get("path")
             method = str(scope.get("method") or "").upper()
+            if path == "/internal/primary-clv-anchor-normalization-v4/build" and method == "POST":
+                request = Request(scope, receive=receive)
+                response = await internal_primary_clv_anchor_normalization_v4_build(request)
+                await response(scope, receive, send)
+                return
             if path == "/internal/post-v223-visit-matrix-v4/build" and method == "POST":
                 request = Request(scope, receive=receive)
                 response = await internal_post_v223_visit_matrix_v4_build(request)
