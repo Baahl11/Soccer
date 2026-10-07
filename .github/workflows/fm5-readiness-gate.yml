@@ -1,0 +1,119 @@
+name: FM5 Sporting Integration Readiness Gate
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "5 * * * *"
+  push:
+    branches:
+      - main
+      - soccer-edge-mcp-v1
+    paths:
+      - ".github/workflows/fm5-readiness-gate.yml"
+      - "mcp_gateway/formation_fm5_readiness_gate_v1.py"
+      - "tests/test_formation_fm5_readiness_gate_v1.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fm5-readiness-gate
+  cancel-in-progress: false
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout canonical state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+
+      - name: Checkout engine
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: engine
+          fetch-depth: 1
+
+      - name: Run FM5 readiness regression tests
+        working-directory: engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q pytest
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_formation_fm5_readiness_gate_v1.py
+
+      - name: Build FM5 readiness report
+        shell: bash
+        run: |
+          set -euo pipefail
+          FM4=state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          CORNERS=state/soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+          OUT=state/soccer_edge_state/analysis/formation_fm5_readiness_gate_v1.json
+
+          test -s "$FM4"
+          test -s "$CORNERS"
+
+          PYTHONPATH=engine python engine/mcp_gateway/formation_fm5_readiness_gate_v1.py \
+            --fm4-report "$FM4" \
+            --corners-report "$CORNERS" \
+            --output "$OUT"
+
+          jq -e '
+            .model_version == "FORMATION_FM5_READINESS_GATE_V1.0.0"
+            and .automatic_integration_allowed == false
+            and .production_enabled == false
+            and .decision_weight == 0
+            and .market_prices_consumed == false
+            and .provider_requests_added == 0
+            and .model_weights_changed == false
+            and .thresholds_changed == false
+            and .gates_changed == false
+            and .canonical_bet_logic_changed == false
+            and .historical_predictions_rewritten == false
+            and .production_promotion_allowed == false
+          ' "$OUT" >/dev/null
+
+          jq '{
+            model_version,
+            status,
+            ready_components,
+            integration_review_allowed,
+            automatic_integration_allowed,
+            blockers,
+            fm4:{
+              prior_style_rows_both_teams_n_ge_3:.fm4.prior_style_rows_both_teams_n_ge_3,
+              style_ready_targets:.fm4.style_ready_targets,
+              personnel:.fm4.personnel
+            },
+            corners
+          }' "$OUT"
+
+      - name: Persist FM5 readiness state
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/formation_fm5_readiness_gate_v1.json
+          if git diff --cached --quiet; then
+            echo "No FM5 readiness changes"
+            exit 0
+          fi
+          git commit -m "Update FM5 sporting integration readiness gate"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase --autostash origin/soccer-edge-state \
+              && git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          exit 1
