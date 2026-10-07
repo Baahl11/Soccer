@@ -67,10 +67,15 @@ jobs:
           }, indent=2))
           PY
 
-      - name: Install Playwright
+      - name: Install Playwright client
+        shell: bash
         run: |
+          set -euo pipefail
           python -m pip install -q playwright
-          python -m playwright install --with-deps chromium
+          BROWSER_PATH="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          test -n "$BROWSER_PATH"
+          echo "BROWSER_PATH=$BROWSER_PATH" >> "$GITHUB_ENV"
+          "$BROWSER_PATH" --version
 
       - name: Validate rendered JavaScript syntax
         shell: bash
@@ -164,7 +169,10 @@ jobs:
                   failures.append(f"{name}: console errors={console_errors}")
 
           with sync_playwright() as p:
-              browser = p.chromium.launch()
+              browser = p.chromium.launch(
+                  executable_path=os.environ["BROWSER_PATH"],
+                  args=["--no-sandbox", "--disable-dev-shm-usage"],
+              )
               audit(browser.new_page(), "desktop-1440", 1440, 1100)
               audit(browser.new_page(), "mobile-390", 390, 844)
               browser.close()
