@@ -234,3 +234,19 @@ def test_v2_contract_firewall_is_explicit():
     assert contract["canonical_bet_logic_changed"] is False
     assert contract["model_weights_changed"] is False
     assert contract["production_promotion_allowed"] is False
+
+
+def test_v2_percentage_point_fields_are_not_heuristically_rescaled():
+    candidate = subscriber_contract_v2.adapt_candidate(
+        _base_row(
+            classification="BET",
+            prob_edge_pp=0.8,
+            estimated_ev=0.012,
+            ev_pct=1.2,
+        )
+    )
+    projections = candidate["projections"]
+
+    assert projections["probability_edge_pp"] == 0.8
+    assert projections["estimated_ev"] == 0.012
+    assert projections["estimated_ev_pct"] == 1.2
