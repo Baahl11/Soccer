@@ -147,3 +147,96 @@ def test_style_ablation_has_forward_only_evaluations_after_training_gate():
     ]
     assert min(row["training_rows_home"] for row in shot_rows) >= fm4.MIN_STYLE_TRAIN_N
     assert min(row["training_rows_away"] for row in shot_rows) >= fm4.MIN_STYLE_TRAIN_N
+
+
+def _lineup_team(team_id: int, start: int, coach_id: int = 900) -> dict:
+    return {
+        "team_id": team_id,
+        "team": f"Team {team_id}",
+        "formation": "4-3-3",
+        "coach_id": coach_id,
+        "coach": f"Coach {coach_id}",
+        "starters": [
+            {
+                "id": start + offset,
+                "name": f"P{start + offset}",
+                "pos": "G" if offset == 0 else "D" if offset < 5 else "M" if offset < 9 else "F",
+                "grid": f"{1 + offset // 4}:{1 + offset % 4}",
+            }
+            for offset in range(11)
+        ],
+    }
+
+
+def test_verified_personnel_features_use_player_ids_and_provider_positions_only():
+    previous = _lineup_team(10, 100, coach_id=900)
+    current = _lineup_team(10, 100, coach_id=900)
+    current["starters"][-1] = {
+        "id": 999,
+        "name": "New",
+        "pos": "F",
+        "grid": "4:3",
+    }
+
+    features = fm4._personnel_features(current, [previous])
+
+    assert features is not None
+    assert features["prior_confirmed_xi_count"] == 1
+    assert features["previous_xi_overlap_count"] == 10
+    assert features["previous_xi_overlap_rate"] == round(10 / 11, 6)
+    assert features["new_starter_count_vs_previous"] == 1
+    assert features["coach_same_as_previous"] is True
+    assert features["coach_consecutive_prior_matches"] == 1
+    assert features["position_comparable_starters"] == 10
+    assert features["position_continuity_rate"] == 1.0
+
+
+def test_build_report_materializes_personnel_continuity_without_decision_weight(monkeypatch):
+    source = _source(5)
+    personnel_events = []
+    for row in source["rows"]:
+        fixture_id = int(row["fixture_id"])
+        home_start = 100
+        if fixture_id >= 2:
+            home = _lineup_team(10, 100, coach_id=900)
+            home["starters"][-1] = {
+                "id": 9000 + fixture_id,
+                "name": "Rotated",
+                "pos": "F",
+                "grid": "4:3",
+            }
+        else:
+            home = _lineup_team(10, home_start, coach_id=900)
+        away = _lineup_team(20, 200, coach_id=901)
+        personnel_events.append(
+            {
+                "fixture_id": fixture_id,
+                "kickoff": fm4._dt(row["kickoff_local"]),
+                "captured_at": fm4._dt(row["kickoff_local"]) - timedelta(minutes=20),
+                "stage": "T-20",
+                "teams": [home, away],
+            }
+        )
+
+    monkeypatch.setattr(
+        fm4,
+        "_history_events",
+        lambda _: ([], personnel_events),
+    )
+    report = fm4.build_report(source, history_dir="unused")
+
+    personnel = report["personnel_overlay"]
+    coverage = personnel["coverage"]
+    assert personnel["status"] == "RESEARCH_ONLY_PERSONNEL_CONTINUITY"
+    assert coverage["current_both_xi_confirmed_rows"] == 5
+    assert coverage["rows_with_both_prior_confirmed_xi"] == 4
+    assert coverage["rows_with_both_previous_coach_comparable"] == 4
+    assert coverage["rows_with_both_last3_core_return_rate"] == 2
+    assert personnel["production_enabled"] is False
+    assert personnel["decision_weight"] == 0.0
+    assert "PERSONNEL_OUTCOME_ABLATION_NOT_YET_VALIDATED" in personnel["blockers"]
+    assert "PERSONNEL_OVERLAY_NOT_MATERIALIZED" not in personnel["blockers"]
+    assert report["health"]["personnel_continuity_materialized"] is True
+    assert report["health"]["personnel_outcome_ablation_used"] is False
+    assert report["health"]["coach_continuity_used"] is False
+    assert report["health"]["inferred_player_roles_used"] is False
