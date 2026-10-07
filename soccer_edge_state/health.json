@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-07T19:16:19.526876+00:00",
-  "generated_at_local": "2026-10-07T13:16:19.526876-06:00",
+  "generated_at_utc": "2026-10-07T19:31:44.792832+00:00",
+  "generated_at_local": "2026-10-07T13:31:44.792832-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 233,
-  "due_fixture_count": 47,
+  "due_fixture_count": 49,
   "event_count": 8,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 36,
-  "last_daily_remaining": 4247,
+  "api_calls_this_tick": 33,
+  "last_daily_remaining": 4234,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -45,9 +45,9 @@
     "unique_leagues_scanned": 61,
     "unique_countries_scanned": 46,
     "league_allowlist_applied": false,
-    "market_capture_handoff_fixture_count": 39,
+    "market_capture_handoff_fixture_count": 36,
     "market_capture_handoff_tier_counts": {
-      "C": 27,
+      "C": 24,
       "D": 5,
       "A": 6,
       "B": 6
@@ -61,7 +61,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-07T19:16:19.526876+00:00",
+    "generated_at_utc": "2026-10-07T19:31:44.792832+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -76,8 +76,8 @@
         "minimum_rows": 50,
         "candidate_signal_rows_this_tick": 7,
         "evaluated_signal_rows_this_tick": 7,
-        "strict_later_quote_rows_this_tick": 5,
-        "not_matured_rows_this_tick": 2,
+        "strict_later_quote_rows_this_tick": 1,
+        "not_matured_rows_this_tick": 6,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
         "canonical_state_loaded": true,
@@ -99,10 +99,10 @@
         "rows": 8,
         "unique_fixtures": 8,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 4,
-        "evaluated_signal_rows_this_tick": 4,
-        "strict_later_quote_rows_this_tick": 3,
-        "not_matured_rows_this_tick": 1,
+        "candidate_signal_rows_this_tick": 3,
+        "evaluated_signal_rows_this_tick": 3,
+        "strict_later_quote_rows_this_tick": 1,
+        "not_matured_rows_this_tick": 2,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
           "FT_TOTALS_TRUE_CLV_8_LT_50"
@@ -128,8 +128,8 @@
         "minimum_rows": 50,
         "candidate_signal_rows_this_tick": 7,
         "evaluated_signal_rows_this_tick": 7,
-        "strict_later_quote_rows_this_tick": 5,
-        "not_matured_rows_this_tick": 2,
+        "strict_later_quote_rows_this_tick": 2,
+        "not_matured_rows_this_tick": 5,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
           "BTTS_TRUE_CLV_20_LT_50"
@@ -230,9 +230,9 @@
         "rows": 385,
         "unique_fixtures": 50,
         "minimum_rows": 50,
-        "candidate_fixtures_this_tick": 3,
-        "strict_later_quote_refreshes_this_tick": 2,
-        "unchanged_provider_updates_this_tick": 1,
+        "candidate_fixtures_this_tick": 0,
+        "strict_later_quote_refreshes_this_tick": 0,
+        "unchanged_provider_updates_this_tick": 0,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
         "canonical_state_loaded": true
@@ -2198,7 +2198,7 @@
     "candidate_family_counts": {
       "1X2": 7,
       "BTTS": 7,
-      "FT_TOTALS": 4
+      "FT_TOTALS": 3
     },
     "legacy_mode": "EMERGENCY_FALLBACK_ONLY"
   },
