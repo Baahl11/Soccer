@@ -824,3 +824,117 @@ Engineering can be considered code-complete when:
 
 Evidence completion is separate and will continue naturally after code completion.
 
+
+
+---
+
+# 17. RENDER SYNCHRONIZATION RESOLVED — 2026-10-07
+
+This section supersedes the deployment blocker described in Section 16.
+
+The confirmed Render workspace is:
+
+```text
+Baahl
+```
+
+Service:
+
+```text
+soccer-edge-api
+branch = soccer-edge-mcp-v1
+```
+
+A manual deploy was triggered after Render failed to auto-deploy later branch commits.
+
+Successful deployed engine commit:
+
+```text
+2869ca085fcdad826280247653319ec4ce2572bd
+```
+
+Render deployment result:
+
+```text
+deploy = dep-db36jonlk1mc739jpr3g
+status = succeeded
+```
+
+The live health endpoint subsequently reported:
+
+```text
+render_git_commit = 2869ca085fcdad826280247653319ec4ce2572bd
+status = ok
+```
+
+The protected personnel route is now deployed and operational:
+
+```text
+POST /internal/fm4-personnel-history-backfill-v1/run
+HTTP 200
+```
+
+## First successful post-deploy personnel backfill
+
+The guarded FM-4 personnel backfill was re-run end-to-end after deployment synchronization.
+
+Result:
+
+```text
+attempted = 8
+captured = 7
+incomplete = 1
+errors = 0
+provider_requests_added = 8
+materialized_personnel_history_fixture_count = 7
+daily_remaining_after_run = 4694
+production_promotion_allowed = false
+decision_weight = 0
+```
+
+Canonical personnel artifact:
+
+```text
+soccer_edge_state/analysis/fm4_personnel_history_backfill_report.json
+status = FM4_PERSONNEL_HISTORY_BACKFILL_COMPLETE
+model_version = SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0
+```
+
+The stale Render deployment blocker is therefore **resolved**.
+
+## Current personnel evidence after first successful backfill
+
+FM-4 now reports:
+
+```text
+personnel_history_fixtures_loaded = 49
+current both-XI target rows = 18
+both teams with prior confirmed XI = 0
+both teams with previous-coach comparable history = 0
+both teams with last-3 core return rate = 0
+personnel outcome ablation ready = false
+```
+
+Interpretation:
+
+The remaining personnel blocker is now genuine historical depth/overlap, not deployment.
+
+Continue guarded prior-personnel accumulation. Do not lower the 100-row gate.
+
+## Lifecycle state after deployment repair
+
+```text
+status = SOFTWARE_CONTRACTS_COMPLETE_EVIDENCE_ACCUMULATING
+personnel_backfill_artifact_materialized = true
+personnel_backfill_status = FM4_PERSONNEL_HISTORY_BACKFILL_COMPLETE
+personnel_backfill_last_run_captured = 7
+personnel_history_fixture_count = 7
+FM5 = FM5_BLOCKED_EVIDENCE_GATES
+FM6 = BLOCKED_WAITING_FM5_SPORTING_COMPONENT
+FM7 = BLOCKED_UPSTREAM_FM5
+production_promotion_allowed = false
+```
+
+There is no remaining known formation-engine code blocker in the active FM4-FM7 path.
+
+The remaining blockers are evidence accumulation and normal gated evaluation.
