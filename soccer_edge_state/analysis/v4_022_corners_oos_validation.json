@@ -53,19 +53,33 @@
     }
   },
   "formation_matchup_health": {
-    "blockers": [],
-    "canonical_state_loaded": false,
+    "blockers": [
+      "RESEARCH_ONLY",
+      "SIDE_SPECIFIC_OOS_CHALLENGER_NOT_YET_PROMOTED",
+      "MARKET_VALIDATION_SEPARATE_AND_REQUIRED"
+    ],
+    "canonical_state_loaded": true,
     "decision_weight": 0.0,
-    "fixtures_with_verified_formation_pair_and_final": 0,
-    "leakage_policy": null,
-    "matchups_n_ge_8": 0,
-    "metric_rows": {},
+    "fixtures_with_verified_formation_pair_and_final": 299,
+    "leakage_policy": "PREKICKOFF_OR_AT_KICKOFF_ONLY",
+    "matchups_n_ge_8": 8,
+    "metric_rows": {
+      "away_corners": 217,
+      "away_shots": 217,
+      "away_sot": 219,
+      "home_corners": 217,
+      "home_shots": 217,
+      "home_sot": 219,
+      "total_corners": 217,
+      "total_shots": 217,
+      "total_sot": 219
+    },
     "minimum_stable_matchup_n": 8,
-    "model_version": null,
+    "model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
     "odds_consumed": false,
     "production_enabled": false,
-    "status": "NOT_MATERIALIZED",
-    "unique_matchups": 0
+    "status": "RESEARCH_ONLY_FORMATION_MATCHUP_ENGINE",
+    "unique_matchups": 81
   },
   "ft_corners": {
     "all_required_lines_improve_brier_and_log_loss": true,
