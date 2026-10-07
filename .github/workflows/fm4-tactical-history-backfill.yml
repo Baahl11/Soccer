@@ -2,6 +2,8 @@ name: FM4 Tactical History Backfill
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
   push:
     branches: [main]
     paths:
@@ -33,6 +35,12 @@ jobs:
           ref: soccer-edge-mcp-v1
           path: engine
           fetch-depth: 1
+
+      - name: Install gateway research dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q -r engine/mcp_gateway/requirements.txt
 
       - name: Build target cohort payload
         shell: bash
@@ -127,18 +135,23 @@ jobs:
             target_team_count,
             candidate_pool_rows,
             selected_fixture_count,
+            fixture_discovery,
             attempted,
             captured,
             incomplete,
             errors,
+            fixture_discovery_provider_requests_added,
+            statistics_provider_requests_added,
             provider_requests_added,
             daily_remaining_after_run,
             details
           }' /tmp/fm4_tactical_backfill.json
 
           jq -e '
-            .model_version == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.0.0"
-            and .provider_requests_added <= 8
+            .model_version == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.1.0"
+            and .statistics_provider_requests_added <= 8
+            and .fixture_discovery_provider_requests_added <= 8
+            and .provider_requests_added <= 16
             and .retroactive_prediction_rewrite == false
             and .retroactive_market_created == false
             and .retroactive_bet_created == false
