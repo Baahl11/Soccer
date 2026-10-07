@@ -123,11 +123,12 @@ jobs:
                   term in body_text
                   for term in ("Arsenal vs Brighton", "Man City vs Nottm Forest", "Mockup Preview")
               )
+              nav_prefix = ".mobile-nav " if width <= 1050 else ".side "
               primary = [
-                  page.locator('[data-page="today"]').first.is_visible(),
-                  page.locator('[data-page="picks"]').first.is_visible(),
-                  page.locator('[data-page="leans"]').first.is_visible(),
-                  page.locator('[data-page="matches"]').first.is_visible(),
+                  page.locator(nav_prefix + '[data-page="today"]').is_visible(),
+                  page.locator(nav_prefix + '[data-page="picks"]').is_visible(),
+                  page.locator(nav_prefix + '[data-page="leans"]').is_visible(),
+                  page.locator(nav_prefix + '[data-page="matches"]').is_visible(),
               ]
 
               screenshot = out / f"{name}.png"
@@ -172,12 +173,15 @@ jobs:
               json.dumps(report, ensure_ascii=False, indent=2),
               encoding="utf-8",
           )
+          (out / "visual-failures.json").write_text(
+              json.dumps(failures, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
           print(json.dumps(report, ensure_ascii=False, indent=2))
           if failures:
               print("VISUAL_AUDIT_FAILURES")
               for failure in failures:
                   print(" -", failure)
-              raise SystemExit(1)
           PY
 
       - name: Publish visual audit snapshots
@@ -194,6 +198,7 @@ jobs:
           cp /tmp/frontend-audit/desktop-1440.png .
           cp /tmp/frontend-audit/mobile-390.png .
           cp /tmp/frontend-audit/visual-report.json .
+          cp /tmp/frontend-audit/visual-failures.json .
           cp /tmp/frontend-audit/health.json .
           cp /tmp/frontend-audit/today.json .
           git add .
@@ -202,3 +207,16 @@ jobs:
           git push --force origin frontend-audit-artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enforce visual audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          failures = json.loads(Path("/tmp/frontend-audit/visual-failures.json").read_text())
+          if failures:
+              raise SystemExit("Visual audit failed: " + " | ".join(failures))
+          print("VISUAL_AUDIT_PASS")
+          PY
