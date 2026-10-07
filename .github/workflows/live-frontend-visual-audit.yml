@@ -71,6 +71,20 @@ jobs:
           python -m pip install -q playwright
           python -m playwright install --with-deps chromium
 
+      - name: Validate rendered JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("/tmp/frontend-audit/app-v2.html").read_text()
+          match = re.search(r'<script id="soccer-edge-v2-app">(.*?)</script>', html, re.S)
+          assert match, "V2 app script not found"
+          Path("/tmp/frontend-audit/app-v2.js").write_text(match.group(1), encoding="utf-8")
+          PY
+          node --check /tmp/frontend-audit/app-v2.js
+
       - name: Capture desktop and mobile visual audits
         shell: bash
         run: |
@@ -78,23 +92,30 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import time
           from pathlib import Path
           from playwright.sync_api import sync_playwright
 
           base = os.environ["BASE_URL"]
           out = Path("/tmp/frontend-audit")
           report = {}
+          failures = []
 
           def audit(page, name, width, height):
+              console_errors = []
+              page_errors = []
+              failed_requests = []
+              page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
+              page.on("pageerror", lambda exc: page_errors.append(str(exc)))
+              page.on("requestfailed", lambda req: failed_requests.append({"url": req.url, "failure": str(req.failure)}))
               page.set_viewport_size({"width": width, "height": height})
               response = page.goto(base + "/app-v2", wait_until="networkidle", timeout=60000)
               assert response and response.ok, f"{name} page status={response.status if response else None}"
-              page.wait_for_function(
-                  "() => document.getElementById('boot')?.classList.contains('hidden')",
-                  timeout=30000,
-              )
+              page.wait_for_timeout(6000)
+
               active = page.locator(".page.active").count()
               boot_visible = page.locator("#boot").is_visible()
+              boot_copy = page.locator("#bootCopy").inner_text() if page.locator("#bootCopy").count() else None
               body_text = page.locator("body").inner_text()
               overflow = page.evaluate("() => document.documentElement.scrollWidth - document.documentElement.clientWidth")
               mock_found = any(
@@ -107,29 +128,43 @@ jobs:
                   page.locator('[data-page="leans"]').first.is_visible(),
                   page.locator('[data-page="matches"]').first.is_visible(),
               ]
-              assert active == 1, f"{name}: active pages={active}"
-              assert not boot_visible, f"{name}: boot still visible"
-              assert not mock_found, f"{name}: mock content visible"
-              assert all(primary), f"{name}: primary navigation missing"
-              assert overflow <= 2, f"{name}: horizontal overflow {overflow}px"
 
               screenshot = out / f"{name}.png"
               page.screenshot(path=str(screenshot), full_page=True)
-              report[name] = {
+              row = {
                   "viewport": [width, height],
                   "active_pages": active,
                   "boot_visible": boot_visible,
+                  "boot_copy": boot_copy,
                   "horizontal_overflow_px": overflow,
                   "mock_content_visible": mock_found,
-                  "body_text_excerpt": body_text[:2000],
+                  "primary_navigation_visible": primary,
+                  "console_errors": console_errors,
+                  "page_errors": page_errors,
+                  "failed_requests": failed_requests,
+                  "body_text_excerpt": body_text[:2500],
               }
+              report[name] = row
+
+              if active != 1:
+                  failures.append(f"{name}: active pages={active}")
+              if boot_visible:
+                  failures.append(f"{name}: boot still visible: {boot_copy}")
+              if mock_found:
+                  failures.append(f"{name}: mock content visible")
+              if not all(primary):
+                  failures.append(f"{name}: primary navigation missing")
+              if overflow > 2:
+                  failures.append(f"{name}: horizontal overflow {overflow}px")
+              if page_errors:
+                  failures.append(f"{name}: page errors={page_errors}")
+              if console_errors:
+                  failures.append(f"{name}: console errors={console_errors}")
 
           with sync_playwright() as p:
               browser = p.chromium.launch()
-              desktop = browser.new_page()
-              audit(desktop, "desktop-1440", 1440, 1100)
-              mobile = browser.new_page()
-              audit(mobile, "mobile-390", 390, 844)
+              audit(browser.new_page(), "desktop-1440", 1440, 1100)
+              audit(browser.new_page(), "mobile-390", 390, 844)
               browser.close()
 
           (out / "visual-report.json").write_text(
@@ -137,6 +172,11 @@ jobs:
               encoding="utf-8",
           )
           print(json.dumps(report, ensure_ascii=False, indent=2))
+          if failures:
+              print("VISUAL_AUDIT_FAILURES")
+              for failure in failures:
+                  print(" -", failure)
+              raise SystemExit(1)
           PY
 
       - name: Publish visual audit snapshots
