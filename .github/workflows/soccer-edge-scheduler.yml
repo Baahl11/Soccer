@@ -299,6 +299,7 @@ jobs:
               "PLAYER_PROPS": root / "analysis/phase15_player_props_validation.json",
               "PRIMARY_CLV_FUNNEL": root / "analysis/primary_clv_maturation_funnel_v4.json",
               "FM3": root / "analysis/formation_matchup_fm3_oos_v1.json",
+              "FM4": root / "analysis/formation_matchup_fm4_style_ablation_v1.json",
           }
 
           reports = {}
@@ -435,6 +436,9 @@ jobs:
               fm3 = reports.get("FM3", {})
               fm3 = fm3 if isinstance(fm3, dict) else {}
               fm3_targets = fm3.get("targets") if isinstance(fm3.get("targets"), dict) else {}
+              fm4 = reports.get("FM4", {})
+              fm4 = fm4 if isinstance(fm4, dict) else {}
+              fm4_targets = fm4.get("targets") if isinstance(fm4.get("targets"), dict) else {}
               target["formation_matchup_health"] = {
                   **fm_health,
                   "fm3_research": {
@@ -461,7 +465,42 @@ jobs:
                       "production_enabled": False,
                       "decision_weight": 0.0,
                   },
-                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json + formation_matchup_fm3_oos_v1.json",
+                  "fm4_research": {
+                      "model_version": fm4.get("model_version"),
+                      "status": fm4.get("status") or "NOT_MATERIALIZED",
+                      "source_fixtures": int(fm4.get("source_fixtures") or 0),
+                      "style_profile": (
+                          fm4.get("style_profile")
+                          if isinstance(fm4.get("style_profile"), dict)
+                          else {}
+                      ),
+                      "targets": {
+                          key: {
+                              "status": value.get("status"),
+                              "eligible_fixtures": int(value.get("eligible_fixtures") or 0),
+                              "minimum_review_fixtures": int(value.get("minimum_review_fixtures") or 100),
+                              "improvement": value.get("improvement") if isinstance(value.get("improvement"), dict) else {},
+                              "blockers": list(value.get("blockers") or []),
+                              "production_enabled": value.get("production_enabled") is True,
+                              "decision_weight": float(value.get("decision_weight") or 0.0),
+                          }
+                          for key, value in fm4_targets.items()
+                          if isinstance(value, dict)
+                      },
+                      "personnel_overlay": (
+                          fm4.get("personnel_overlay")
+                          if isinstance(fm4.get("personnel_overlay"), dict)
+                          else {}
+                      ),
+                      "health": (
+                          fm4.get("health")
+                          if isinstance(fm4.get("health"), dict)
+                          else {}
+                      ),
+                      "production_enabled": False,
+                      "decision_weight": 0.0,
+                  },
+                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json + formation_matchup_fm3_oos_v1.json + formation_matchup_fm4_style_ablation_v1.json",
                   "canonical_state_merged_by_scheduler": True,
               }
               apply_family(families, "CARDS", reports.get("CARDS", {}))
