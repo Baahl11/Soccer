@@ -9,6 +9,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from mcp_gateway import player_props_shots_anchor_patch_v4
+from mcp_gateway import price_resolver_v4
 from mcp_gateway import primary_clv_anchor_v4
 from mcp_gateway import primary_clv_anchor_normalized_v4
 from mcp_gateway import primary_clv_signal_anchor_store_v4
