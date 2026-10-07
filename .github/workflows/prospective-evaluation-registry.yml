@@ -114,6 +114,9 @@ jobs:
                   rows.append(json.loads(line))
               return rows
 
+          selections_path.touch(exist_ok=True)
+          settlements_path.touch(exist_ok=True)
+
           existing = read_jsonl(selections_path)
           existing_by_key = {
               (int(row["fixture_id"]), str(row["track"])): row
