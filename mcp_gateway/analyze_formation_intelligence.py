@@ -100,6 +100,7 @@ def load_history(history_dir: str) -> dict[int, dict[str, Any]]:
                         "kickoff_local": fx.get("kickoff"),
                         "league_id": fx.get("league_id"),
                         "league": fx.get("league"),
+                        "season": fx.get("season"),
                         "home_team_id": fx.get("home_team_id"),
                         "home_team": fx.get("home_team"),
                         "away_team_id": fx.get("away_team_id"),
@@ -129,6 +130,8 @@ def load_history(history_dir: str) -> dict[int, dict[str, Any]]:
                     })
                     if fx.get("kickoff"):
                         rec["kickoff_local"] = fx.get("kickoff")
+                    if fx.get("season") is not None:
+                        rec["season"] = fx.get("season")
                     lineup = event.get("lineups")
                     audit = rec["lineup_audit"]
                     audit["events_total"] += 1
