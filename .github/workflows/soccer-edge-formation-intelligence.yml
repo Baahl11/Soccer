@@ -15,8 +15,10 @@ on:
       - "mcp_gateway/analyze_corners_baseline.py"
       - "mcp_gateway/formation_matchup_engine_v1.py"
       - "mcp_gateway/formation_matchup_fm3_oos_v1.py"
+      - "mcp_gateway/formation_matchup_fm4_style_ablation_v1.py"
       - "tests/test_formation_matchup_engine_v1.py"
       - "tests/test_formation_matchup_fm3_oos_v1.py"
+      - "tests/test_formation_matchup_fm4_style_ablation_v1.py"
       - "tests/test_corners_side_specific_formation.py"
       - "mcp_gateway/automation_v17.py"
 
@@ -53,6 +55,7 @@ jobs:
           PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_formation_matchup_engine_v1.py \
             tests/test_formation_matchup_fm3_oos_v1.py \
+            tests/test_formation_matchup_fm4_style_ablation_v1.py \
             tests/test_corners_side_specific_formation.py
 
       - name: Analyze formation intelligence
@@ -83,6 +86,18 @@ jobs:
           jq -e '.health.production_enabled == false and .health.decision_weight == 0' state/soccer_edge_state/analysis/formation_matchup_fm3_oos_v1.json >/dev/null
           jq -e '(.targets.SHOTS | type) == "object" and (.targets.SOT | type) == "object" and (.targets.GOALS | type) == "object"' state/soccer_edge_state/analysis/formation_matchup_fm3_oos_v1.json >/dev/null
 
+      - name: Analyze FM-4 prior-only style/personnel ablation
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=engine python engine/mcp_gateway/formation_matchup_fm4_style_ablation_v1.py \
+            --formation-report state/soccer_edge_state/analysis/formation_matchup_engine_v1.json \
+            --output state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          jq -e '.status == "RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+          jq -e '.health.odds_consumed == false and .health.current_match_postgame_style_consumed == false' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+          jq -e '.personnel_overlay.status == "NOT_MATERIALIZED"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+          jq -e '.health.production_enabled == false and .health.decision_weight == 0' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+
       - name: Analyze corners baseline
         shell: bash
         run: |
@@ -92,7 +107,7 @@ jobs:
             --output state/soccer_edge_state/analysis/corners_baseline.json
           python - <<'PY'
           import json
-          for p in ('state/soccer_edge_state/analysis/formation_intelligence.json','state/soccer_edge_state/analysis/formation_matchup_engine_v1.json','state/soccer_edge_state/analysis/formation_matchup_fm3_oos_v1.json','state/soccer_edge_state/analysis/corners_baseline.json'):
+          for p in ('state/soccer_edge_state/analysis/formation_intelligence.json','state/soccer_edge_state/analysis/formation_matchup_engine_v1.json','state/soccer_edge_state/analysis/formation_matchup_fm3_oos_v1.json','state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json','state/soccer_edge_state/analysis/corners_baseline.json'):
               d=json.load(open(p, encoding='utf-8'))
               summary={k:d.get(k) for k in ('status','fixtures_with_confirmed_both_formations_and_final','fixtures_with_postgame_corners_and_formations','rows_with_verified_postgame_corners','walk_forward_evaluations','formation_adjusted_evaluations')}
               if p.endswith('formation_matchup_engine_v1.json'):
@@ -114,6 +129,20 @@ jobs:
                       }
                       for key,value in (d.get('targets') or {}).items()
                   }
+                  summary['health']=d.get('health')
+              if p.endswith('formation_matchup_fm4_style_ablation_v1.json'):
+                  summary['model_version']=d.get('model_version')
+                  summary['style_profile']=d.get('style_profile')
+                  summary['targets']={
+                      key:{
+                          'status': value.get('status'),
+                          'eligible_fixtures': value.get('eligible_fixtures'),
+                          'improvement': value.get('improvement'),
+                          'blockers': value.get('blockers'),
+                      }
+                      for key,value in (d.get('targets') or {}).items()
+                  }
+                  summary['personnel_overlay']=d.get('personnel_overlay')
                   summary['health']=d.get('health')
               if p.endswith('corners_baseline.json'):
                   lift=d.get('formation_lift_by_league')
@@ -157,7 +186,7 @@ jobs:
           set -euo pipefail
           git config user.name "soccer-edge-bot"
           git config user.email "soccer-edge-bot@users.noreply.github.com"
-          git add -f soccer_edge_state/analysis/formation_intelligence.json soccer_edge_state/analysis/formation_matchup_engine_v1.json soccer_edge_state/analysis/formation_matchup_fm3_oos_v1.json soccer_edge_state/analysis/corners_baseline.json
+          git add -f soccer_edge_state/analysis/formation_intelligence.json soccer_edge_state/analysis/formation_matchup_engine_v1.json soccer_edge_state/analysis/formation_matchup_fm3_oos_v1.json soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json soccer_edge_state/analysis/corners_baseline.json
           if git diff --cached --quiet; then
             exit 0
           fi
