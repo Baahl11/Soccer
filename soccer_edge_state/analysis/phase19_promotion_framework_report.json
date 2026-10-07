@@ -490,7 +490,7 @@
         "FT_CORNERS_TRUE_CLV_0_LT_50",
         "FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
       ],
-      "validation_model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.4.0",
+      "validation_model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.5.0",
       "validation_status": "RESEARCH_HOLD",
       "warnings": [],
       "watch_shadow_negative_directional_stages": [],
@@ -510,6 +510,8 @@
         "ROI_MISSING",
         "STABILITY_MISSING",
         "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+        "VALIDATION:TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_39_LT_100",
+        "VALIDATION:TEAM_CORNERS_SIDE_SPECIFIC_HOME_AWAY_MAE_NOT_BOTH_BETTER",
         "VALIDATION:TEAM_CORNERS_TRUE_CLV_0_LT_50",
         "VALIDATION:PARENT_FT_CORNERS_NOT_REVIEW_READY",
         "VALIDATION:TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
@@ -545,11 +547,13 @@
       "true_clv_rows": 0,
       "unique_fixtures": 0,
       "validation_blockers": [
+        "TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_39_LT_100",
+        "TEAM_CORNERS_SIDE_SPECIFIC_HOME_AWAY_MAE_NOT_BOTH_BETTER",
         "TEAM_CORNERS_TRUE_CLV_0_LT_50",
         "PARENT_FT_CORNERS_NOT_REVIEW_READY",
         "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
       ],
-      "validation_model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.4.0",
+      "validation_model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.5.0",
       "validation_status": "RESEARCH_HOLD",
       "warnings": [],
       "watch_shadow_negative_directional_stages": [],
@@ -1864,6 +1868,8 @@
           "ROI_MISSING",
           "STABILITY_MISSING",
           "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+          "VALIDATION:TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_39_LT_100",
+          "VALIDATION:TEAM_CORNERS_SIDE_SPECIFIC_HOME_AWAY_MAE_NOT_BOTH_BETTER",
           "VALIDATION:TEAM_CORNERS_TRUE_CLV_0_LT_50",
           "VALIDATION:PARENT_FT_CORNERS_NOT_REVIEW_READY",
           "VALIDATION:TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
@@ -1933,6 +1939,12 @@
         "validation": {
           "numeric_deficits": [
             {
+              "actual": 39,
+              "gate": "TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_39_LT_100",
+              "remaining": 61.0,
+              "required": 100
+            },
+            {
               "actual": 0,
               "gate": "TEAM_CORNERS_TRUE_CLV_0_LT_50",
               "remaining": 50.0,
@@ -1940,6 +1952,7 @@
             }
           ],
           "qualitative_blockers": [
+            "TEAM_CORNERS_SIDE_SPECIFIC_HOME_AWAY_MAE_NOT_BOTH_BETTER",
             "PARENT_FT_CORNERS_NOT_REVIEW_READY",
             "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
           ],
