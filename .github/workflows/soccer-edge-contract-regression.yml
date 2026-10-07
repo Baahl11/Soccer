@@ -1,0 +1,210 @@
+name: Soccer Edge Contract Regression
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 7 * * *"
+  push:
+    branches:
+      - main
+      - soccer-edge-mcp-v1
+    paths:
+      - ".github/workflows/soccer-edge-contract-regression.yml"
+      - ".github/workflows/fm4-tactical-history-backfill.yml"
+      - ".github/workflows/fm4-personnel-history-backfill.yml"
+      - ".github/workflows/prospective-evaluation-registry.yml"
+      - ".github/workflows/soccer-edge-scheduler.yml"
+      - "mcp_gateway/clv_postgres_v4.py"
+      - "mcp_gateway/price_resolver_v4.py"
+      - "mcp_gateway/primary_clv_anchor_v4.py"
+      - "mcp_gateway/primary_clv_anchor_normalized_v4.py"
+      - "mcp_gateway/derivative_clv_anchor_v4.py"
+      - "mcp_gateway/team_totals_clv_anchor_v4.py"
+      - "mcp_gateway/formation_tactical_history_backfill_v1.py"
+      - "mcp_gateway/formation_personnel_history_backfill_v1.py"
+      - "mcp_gateway/formation_matchup_fm4_style_ablation_v1.py"
+      - "mcp_gateway/prospective_evaluation_registry_v1.py"
+      - "tests/test_clv_postgres_v4.py"
+      - "tests/test_price_resolver_v4.py"
+      - "tests/test_primary_clv_anchor_v4.py"
+      - "tests/test_derivative_clv_anchor_v4.py"
+      - "tests/test_team_totals_clv_anchor_v4.py"
+      - "tests/test_formation_tactical_history_backfill_v1.py"
+      - "tests/test_formation_personnel_history_backfill_v1.py"
+      - "tests/test_formation_matchup_fm4_style_ablation_v1.py"
+      - "tests/test_prospective_evaluation_registry_v1.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: soccer-edge-contract-regression
+  cancel-in-progress: false
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout engine
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: engine
+          fetch-depth: 1
+
+      - name: Checkout canonical state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Install focused regression dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -q pytest -r engine/mcp_gateway/requirements.txt
+
+      - name: Run core immutable-contract regression suite
+        working-directory: engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_clv_postgres_v4.py \
+            tests/test_price_resolver_v4.py \
+            tests/test_primary_clv_anchor_v4.py \
+            tests/test_derivative_clv_anchor_v4.py \
+            tests/test_team_totals_clv_anchor_v4.py \
+            tests/test_formation_tactical_history_backfill_v1.py \
+            tests/test_formation_personnel_history_backfill_v1.py \
+            tests/test_formation_matchup_fm4_style_ablation_v1.py \
+            tests/test_prospective_evaluation_registry_v1.py
+
+      - name: Validate canonical research and market contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          FM4=state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          TACTICAL=state/soccer_edge_state/analysis/fm4_tactical_history_backfill_report.json
+          PROSPECTIVE=state/soccer_edge_state/analysis/prospective_evaluation_summary_v1.json
+          FUNNEL=state/soccer_edge_state/analysis/primary_clv_maturation_funnel_v4.json
+          LATEST=state/soccer_edge_state/latest.json
+          PERSONNEL=state/soccer_edge_state/analysis/fm4_personnel_history_backfill_report.json
+
+          for path in "$FM4" "$TACTICAL" "$PROSPECTIVE" "$FUNNEL" "$LATEST"; do
+            test -s "$path"
+          done
+
+          jq -e '
+            .status == "RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION"
+            and .health.production_enabled == false
+            and .health.decision_weight == 0
+            and .health.odds_consumed == false
+            and .health.market_prices_consumed == false
+            and .health.current_match_postgame_style_consumed == false
+            and .health.inferred_player_roles_used == false
+            and .style_profile.minimum_prior_team_style_matches == 3
+          ' "$FM4" >/dev/null
+
+          jq -e '
+            .model_version == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.2.0"
+            and .retroactive_prediction_rewrite == false
+            and .retroactive_market_created == false
+            and .retroactive_bet_created == false
+            and .production_promotion_allowed == false
+            and .statistics_provider_requests_added <= 8
+            and .fixture_discovery_provider_requests_added <= 8
+          ' "$TACTICAL" >/dev/null
+
+          jq -e '
+            .status == "PROSPECTIVE_EVALUATION_REGISTRY_ACTIVE"
+            and .append_only_selection_policy == true
+            and .selection_rewrite_allowed == false
+            and .settlement_updates_separate == true
+            and .outcomes_used_for_selection == false
+            and .policy.outcomes_never_used_for_selection == true
+            and .policy.market_prices_never_used_to_create_raw_sport_projection == true
+            and .production_promotion_allowed == false
+            and .endpoint_summary.material_recalibration_allowed == false
+            and .endpoint_summary.graded_bet_target == 100
+          ' "$PROSPECTIVE" >/dev/null
+
+          jq -e '
+            .canonical_bet_logic_changed == false
+            and .strict_close_semantics_changed == false
+            and .models_changed == false
+            and .thresholds_changed == false
+            and .gates_changed == false
+            and .provider_budget_changed == false
+            and .production_promotion_allowed == false
+          ' "$FUNNEL" >/dev/null
+
+          jq -e '
+            .primary_clv_loader_health.normalized_storage == true
+            and .primary_clv_loader_health.legacy_json_expansion_used == false
+            and .primary_clv_loader_health.fallback_used == false
+            and .prospective_evaluation_health.selection_append_only == true
+            and .prospective_evaluation_health.outcomes_used_for_selection == false
+            and .prospective_evaluation_health.material_recalibration_allowed == false
+          ' "$LATEST" >/dev/null
+
+          if [ -s "$PERSONNEL" ]; then
+            jq -e '
+              .model_version == "SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0"
+              and .prior_history_use_only == true
+              and .retroactive_current_fixture_allowed == false
+              and .retroactive_prediction_rewrite == false
+              and .retroactive_market_created == false
+              and .retroactive_bet_created == false
+              and .decision_weight == 0
+              and .production_promotion_allowed == false
+              and .provider_requests_added <= 8
+            ' "$PERSONNEL" >/dev/null
+          else
+            echo "::notice::FM4 personnel state artifact has not materialized yet; code contract is covered by regression tests."
+          fi
+
+      - name: Emit code-complete contract summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("state/soccer_edge_state")
+          fm4 = json.loads((root / "analysis/formation_matchup_fm4_style_ablation_v1.json").read_text())
+          prospective = json.loads((root / "analysis/prospective_evaluation_summary_v1.json").read_text())
+          funnel = json.loads((root / "analysis/primary_clv_maturation_funnel_v4.json").read_text())
+          personnel_path = root / "analysis/fm4_personnel_history_backfill_report.json"
+
+          summary = {
+              "status": "CODE_CONTRACTS_PASS",
+              "fm4_production_enabled": fm4["health"]["production_enabled"],
+              "fm4_decision_weight": fm4["health"]["decision_weight"],
+              "fm4_prior_style_n_ge_3": (
+                  fm4.get("style_profile", {})
+                  .get("prior_density", {})
+                  .get("rows_with_both_min_field_n_ge_3")
+              ),
+              "prospective_graded_bet_rows": (
+                  prospective.get("endpoint_summary", {})
+                  .get("graded_bet_sample", {})
+                  .get("rows")
+              ),
+              "prospective_graded_bet_target": (
+                  prospective.get("endpoint_summary", {})
+                  .get("graded_bet_target")
+              ),
+              "true_clv": {
+                  key: value.get("canonical_true_clv_rows")
+                  for key, value in (funnel.get("families") or {}).items()
+              },
+              "personnel_artifact_materialized": personnel_path.exists(),
+              "production_promotion_allowed": False,
+          }
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
