@@ -1,0 +1,52 @@
+name: FE9 PWA Readiness
+
+on:
+  push:
+    branches:
+      - fe9-pwa-readiness
+    paths:
+      - mcp_gateway/subscriber_pwa_v2.py
+      - mcp_gateway/subscriber_frontend_v2.py
+      - mcp_gateway/__init__.py
+      - tests/test_fe9_pwa_readiness.py
+      - .github/workflows/fe9-pwa-readiness.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile PWA surface
+        run: |
+          python -W error::SyntaxWarning -m py_compile             mcp_gateway/subscriber_pwa_v2.py             mcp_gateway/subscriber_frontend_v2.py             mcp_gateway/__init__.py
+      - name: Validate rendered JavaScript syntax
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          import re
+          from pathlib import Path
+          from mcp_gateway import subscriber_frontend_v2
+          html = subscriber_frontend_v2.render()
+          match = re.search(r'<script id="soccer-edge-v2-app">(.*?)</script>', html, re.S)
+          assert match, "V2 app script not found"
+          Path("/tmp/app-v2.js").write_text(match.group(1), encoding="utf-8")
+          PY
+          node --check /tmp/app-v2.js
+      - name: Validate service worker JavaScript syntax
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          from pathlib import Path
+          from mcp_gateway import subscriber_pwa_v2
+          Path("/tmp/sw.js").write_text(subscriber_pwa_v2.service_worker_script(), encoding="utf-8")
+          PY
+          node --check /tmp/sw.js
+      - name: Run FE9 and product regressions
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider             tests/test_fe9_pwa_readiness.py             tests/test_fe8_landing_conversion.py             tests/test_fe7_subscriptions.py             tests/test_fe6_my_edge.py             tests/test_subscriber_frontend_v2.py
