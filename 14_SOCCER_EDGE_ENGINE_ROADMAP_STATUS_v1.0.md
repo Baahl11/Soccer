@@ -730,3 +730,104 @@ Only demonstrated OOS lift may advance to FM-5 raw sporting projection integrati
 ---
 
 **SPORT FIRST. MARKET SECOND.**
+
+
+---
+
+# 11. CODE-COMPLETE ROADMAP UPDATE — 2026-10-07
+
+This section supersedes earlier formation/corners counts and implementation labels in this file where they conflict.
+
+## Engineering status
+
+The formation roadmap is now implemented through FM-7 as guarded research/review contracts:
+
+```text
+FM-4  STYLE + PERSONNEL OUTCOME ABLATION      IMPLEMENTED / RESEARCH_HOLD
+FM-5  READINESS + RAW SPORT PROJECTION        IMPLEMENTED / EVIDENCE_BLOCKED
+FM-6  EXACT MARKET VALIDATION                 IMPLEMENTED / UPSTREAM_BLOCKED
+FM-7  PRODUCTION REVIEW + ACTIVATION PLAN     IMPLEMENTED / UPSTREAM_BLOCKED
+```
+
+The canonical lifecycle artifact is:
+
+```text
+soccer_edge_state/analysis/formation_lifecycle_health_v1.json
+```
+
+Current lifecycle status:
+
+```text
+SOFTWARE_CONTRACTS_COMPLETE_EVIDENCE_ACCUMULATING
+```
+
+This does **not** mean production-ready.
+
+## Current FM-4 evidence
+
+```text
+both-team complete prior style n>=3 = 2 / 100
+style-eligible source rows = 2
+tactical history fixtures loaded = 2441
+
+current both-XI rows = 18
+both-team prior confirmed-XI rows = 0
+personnel GOALS outcome ablation eligible rows = 0 / 100
+```
+
+FM-4 remains research-only.
+
+## Current Corners evidence
+
+```text
+FT Corners formation-adjusted = 44 / 100
+Team Corners formation-adjusted = 44 / 100
+
+Home MAE improves = true
+Away MAE improves = true
+Both-side MAE improves = true
+Total MAE improves = true
+
+stable FT-Corners lift leagues = 0 / 2
+league/venue stability ready = false
+```
+
+The previous Away-side MAE blocker has improved, but sample/stability gates still block advancement.
+
+## Current FM-5 readiness
+
+```text
+ready_components = []
+integration_review_allowed = false
+production_enabled = false
+decision_weight = 0
+```
+
+No formation/style/personnel component may enter the raw sporting projection until its OOS evidence gate passes.
+
+## Current FM-6 rule
+
+FM-6 code exists, but it can only evaluate an exact market **after** a valid FM-5 sporting candidate exists.
+
+It cannot use price, bookmaker, odds, CLV or breakeven data to construct the raw sporting projection.
+
+## Current FM-7 rule
+
+FM-7 code exists, but production review requires all evidence gates plus the Project minimum prospective sample.
+
+Current prospective graded sample:
+
+```text
+0 / 100
+```
+
+Automatic activation is prohibited.
+
+## Remaining code-completion deployment task
+
+The protected FM-4 personnel-history route exists in source but has not yet reached the deployed Render runtime.
+
+Until Render is synchronized, the personnel backfill workflow receives HTTP 404 and the canonical personnel history report cannot materialize.
+
+Do not work around this deployment issue by lowering personnel-history requirements.
+
