@@ -40,7 +40,7 @@ jobs:
 
       - name: Grade canonical 1X2 and Team Totals True CLV outcomes
         run: |
-          PYTHONPATH=engine python -m mcp_gateway.canonical_clv_outcome_v4 \
+          python engine/mcp_gateway/canonical_clv_outcome_v4.py \
             --clv-tracking state/soccer_edge_state/analysis/clv_v4_postgres_tracking.jsonl \
             --signal-ledger state/soccer_edge_state/analysis/signal_ledger.jsonl \
             --output state/soccer_edge_state/analysis/canonical_clv_outcome_v4.jsonl \
