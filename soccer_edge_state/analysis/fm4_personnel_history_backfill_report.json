@@ -1,81 +1,81 @@
 {
   "attempted": 8,
   "before": "2026-09-12T07:30:00+00:00",
-  "candidate_pool_rows": 60,
-  "captured": 4,
-  "daily_remaining_after_run": 4584,
+  "candidate_pool_rows": 52,
+  "captured": 8,
+  "daily_remaining_after_run": 4438,
   "decision_weight": 0.0,
   "details": [
     {
-      "both_goalkeepers_confirmed": false,
-      "both_xi_confirmed": true,
-      "daily_remaining": 4591,
-      "fixture_id": 1550631,
-      "status": "PROVIDER_LINEUP_INCOMPLETE",
-      "team_rows": 2
+      "away_team_id": 47,
+      "daily_remaining": 4445,
+      "fixture_id": 1557396,
+      "home_team_id": 65,
+      "kickoff": "2026-09-05T14:00:00+00:00",
+      "status": "CAPTURED"
     },
     {
-      "away_team_id": 57,
-      "daily_remaining": 4590,
-      "fixture_id": 1557384,
+      "away_team_id": 34,
+      "daily_remaining": 4444,
+      "fixture_id": 1557386,
+      "home_team_id": 47,
+      "kickoff": "2026-08-29T16:30:00+00:00",
+      "status": "CAPTURED"
+    },
+    {
+      "away_team_id": 45,
+      "daily_remaining": 4443,
+      "fixture_id": 1557378,
+      "home_team_id": 35,
+      "kickoff": "2026-08-29T14:00:00+00:00",
+      "status": "CAPTURED"
+    },
+    {
+      "away_team_id": 13976,
+      "daily_remaining": 4442,
+      "fixture_id": 1635697,
       "home_team_id": 33,
-      "kickoff": "2026-08-30T15:30:00+00:00",
+      "kickoff": "2026-09-10T19:00:00+00:00",
       "status": "CAPTURED"
-    },
-    {
-      "away_team_id": 1346,
-      "daily_remaining": 4589,
-      "fixture_id": 1557367,
-      "home_team_id": 42,
-      "kickoff": "2026-08-21T19:00:00+00:00",
-      "status": "CAPTURED"
-    },
-    {
-      "both_goalkeepers_confirmed": false,
-      "both_xi_confirmed": true,
-      "daily_remaining": 4588,
-      "fixture_id": 1589321,
-      "status": "PROVIDER_LINEUP_INCOMPLETE",
-      "team_rows": 2
     },
     {
       "away_team_id": 50,
-      "daily_remaining": 4587,
-      "fixture_id": 1582365,
-      "home_team_id": 42,
-      "kickoff": "2026-08-16T14:00:00+00:00",
+      "daily_remaining": 4441,
+      "fixture_id": 1635654,
+      "home_team_id": 212,
+      "kickoff": "2026-09-08T19:00:00+00:00",
       "status": "CAPTURED"
     },
     {
-      "both_goalkeepers_confirmed": false,
-      "both_xi_confirmed": true,
-      "daily_remaining": 4586,
-      "fixture_id": 1542343,
-      "status": "PROVIDER_LINEUP_INCOMPLETE",
-      "team_rows": 2
+      "away_team_id": 65,
+      "daily_remaining": 4440,
+      "fixture_id": 1557383,
+      "home_team_id": 40,
+      "kickoff": "2026-08-29T11:30:00+00:00",
+      "status": "CAPTURED"
     },
     {
-      "both_goalkeepers_confirmed": false,
-      "both_xi_confirmed": true,
-      "daily_remaining": 4585,
-      "fixture_id": 1583492,
-      "status": "PROVIDER_LINEUP_INCOMPLETE",
-      "team_rows": 2
+      "away_team_id": 45,
+      "daily_remaining": 4439,
+      "fixture_id": 1623101,
+      "home_team_id": 59,
+      "kickoff": "2026-08-26T19:00:00+00:00",
+      "status": "CAPTURED"
     },
     {
-      "away_team_id": 1321,
-      "daily_remaining": 4584,
-      "fixture_id": 1546721,
-      "home_team_id": 38,
-      "kickoff": "2026-07-25T13:00:00+00:00",
+      "away_team_id": 1335,
+      "daily_remaining": 4438,
+      "fixture_id": 1623092,
+      "home_team_id": 47,
+      "kickoff": "2026-08-26T18:45:00+00:00",
       "status": "CAPTURED"
     }
   ],
   "errors": 0,
   "historical_fact_delay_hours": 4,
-  "incomplete": 4,
+  "incomplete": 0,
   "lookback_days": 365,
-  "materialized_personnel_history_fixture_count": 15,
+  "materialized_personnel_history_fixture_count": 23,
   "max_provider_requests_per_run": 8,
   "model_version": "SOCCER_FM4_PERSONNEL_HISTORY_BACKFILL_V1.0.0",
   "policy": "FINALIZED_PRECOHORT_FIXTURES_ONLY; SOURCE_FIXTURE_MUST_END_AT_LEAST_FOUR_HOURS BEFORE_TARGET_COHORT; EXACT_API_FOOTBALL_FIXTURES_LINEUPS_ONLY; BOTH_XI_AND_GK_REQUIRED; MAX_EIGHT_LINEUP_REQUESTS_PER_RUN; KNOWN_INCOMPLETE_FIXTURES_NOT_REQUERIED; BACKFILLED_XI_CAN_ONLY_BE_USED_AS_PRIOR_PERSONNEL_HISTORY_FOR_LATER_TARGET_FIXTURES; NEVER_RETROACTIVELY_TREAT_AS_CURRENT_PREGAME_LINEUP_OR_FORMATION; NO_PREDICTION_MARKET_CLV_BET_REWRITE.",
