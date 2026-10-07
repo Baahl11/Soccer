@@ -212,7 +212,7 @@ def test_v129_captures_exclusion_audit_only_during_upstream_tick_and_restores_lo
     assert sentinel_calls
     assert sentinel_calls[0][1].get("include_diagnostics") is False
     assert price._load_primary_clv_maturation_backlog is original_loader
-    assert payload["version"] == "4.38.7-normalized-primary-clv-anchor"
+    assert payload["version"] == "4.38.8-normalized-primary-clv-anchor-fallback"
     repair = payload["v213_primary_clv_anchor_repair"]
     assert repair["signal_anchor_policy"] == anchor.ANCHOR_POLICY
     assert repair["strict_close_semantics_changed"] is False
@@ -315,3 +315,56 @@ def test_v129_runtime_uses_current_tick_team_totals_audit_and_emits_health(monke
     assert health["status"] == "OBSERVABILITY_ONLY"
     assert health["families"]["BTTS"]["maturation_state"] == "WAITING_STRICT_LATER_QUOTE"
     assert health["families"]["TEAM_TOTALS"]["maturation_state"] == "CLV_GATE_MET"
+
+
+def test_v129_uses_legacy_primary_loader_only_on_normalized_exception(monkeypatch):
+    legacy_report = {
+        "candidate_events": [],
+        "candidate_count": 0,
+        "candidate_family_counts": {},
+        "candidate_source_counts": {},
+        "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V3_OLDEST_UNRESOLVED",
+        "signal_anchor_policy": anchor.ANCHOR_POLICY,
+        "diagnostic_schema_version": anchor.DIAGNOSTIC_SCHEMA_VERSION,
+        "diagnostic_status": "DEFERRED_OFFLINE",
+        "diagnostic_family_counts": {},
+        "diagnostic_window": {},
+        "provider_requests_added": 0,
+        "selection_logic_changed": False,
+    }
+    legacy_calls = []
+
+    def broken_normalized(*args, **kwargs):
+        raise RuntimeError("normalized store unavailable")
+
+    def fake_legacy(*args, **kwargs):
+        legacy_calls.append((args, kwargs))
+        return legacy_report
+
+    async def fake_v128_run_tick():
+        observed = price._load_primary_clv_maturation_backlog()
+        assert observed is legacy_report
+        return {"events": [], "model_version": "SOCCER EDGE ENGINE v1.7"}
+
+    monkeypatch.setattr(normalized, "load_primary_clv_maturation_backlog", broken_normalized)
+    monkeypatch.setattr(anchor, "load_primary_clv_maturation_backlog", fake_legacy)
+    monkeypatch.setattr(automation_v129.v128, "run_tick", fake_v128_run_tick)
+    monkeypatch.setattr(
+        automation_v129.dynamic_strength_challenger_v4,
+        "build_report",
+        lambda events: {"status": "TEST"},
+    )
+
+    payload = asyncio.run(automation_v129.run_tick())
+
+    assert legacy_calls
+    assert legacy_calls[0][1].get("include_diagnostics") is False
+    repair = payload["v213_primary_clv_anchor_repair"]
+    assert repair["legacy_pipeline_json_expansion_in_live_loader"] is True
+    fallback = repair["normalized_loader_fallback"]
+    assert fallback["used"] is True
+    assert fallback["reason"] == "NORMALIZED_PRIMARY_CLV_LOADER_EXCEPTION"
+    assert fallback["normalized_error_type"] == "RuntimeError"
+    audit = payload["v216_7_primary_clv_maturation_exclusion_audit"]
+    assert audit["loader_observation"]["fallback_used"] is True
+    assert audit["loader_observation"]["fallback_source"] == legacy_report["source"]
