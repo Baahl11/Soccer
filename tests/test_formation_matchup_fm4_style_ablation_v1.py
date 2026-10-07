@@ -240,3 +240,18 @@ def test_build_report_materializes_personnel_continuity_without_decision_weight(
     assert report["health"]["personnel_outcome_ablation_used"] is False
     assert report["health"]["coach_continuity_used"] is False
     assert report["health"]["inferred_player_roles_used"] is False
+
+
+def test_fm4_exposes_history_depth_blocker_without_relaxing_style_gate():
+    source = _source(8)
+    report = fm4.build_report(source, history_dir=None)
+
+    style = report["style_profile"]
+    assert style["history_depth_status"] == "INSUFFICIENT_PRIOR_DEPTH"
+    assert "Do not relax MIN_TEAM_STYLE_N" in style["history_depth_policy"]
+    assert any(
+        blocker.startswith("STYLE_HISTORY_DEPTH_BOTH_TEAMS_N_GE_3_")
+        for blocker in report["health"]["blockers"]
+    )
+    assert report["health"]["production_enabled"] is False
+    assert report["health"]["decision_weight"] == 0.0
