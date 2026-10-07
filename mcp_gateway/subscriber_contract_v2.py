@@ -87,11 +87,9 @@ def _probability(value: Any) -> float | None:
 
 
 def _pp(value: Any) -> float | None:
-    number = _number(value)
-    if number is None:
-        return None
-    # Explicit probability-edge fields historically exist in both 0-1 and pp units.
-    return number * 100.0 if -1.0 <= number <= 1.0 else number
+    # Only fields explicitly named in percentage-point units are accepted here.
+    # Never rescale them heuristically: 0.8 pp must remain 0.8 pp, not 80 pp.
+    return _number(value)
 
 
 def _text_list(row: dict[str, Any], *keys: str) -> list[str]:
@@ -309,7 +307,8 @@ def adapt_candidate(row: dict[str, Any]) -> dict[str, Any]:
     )
     p_breakeven = _probability(_first(row, "p_breakeven", "breakeven_probability"))
     edge_pp = _pp(_first(row, "prob_edge_pp", "edge_pp", "raw_edge_vs_market_fair_pp"))
-    estimated_ev = _number(_first(row, "estimated_ev", "ev_pct"))
+    estimated_ev = _number(_first(row, "estimated_ev"))
+    estimated_ev_pct = _number(_first(row, "ev_pct"))
 
     blockers = _text_list(row, "blockers")
     blocker = _first(row, "blocker")
@@ -353,6 +352,7 @@ def adapt_candidate(row: dict[str, Any]) -> dict[str, Any]:
             "breakeven_probability": p_breakeven,
             "probability_edge_pp": edge_pp,
             "estimated_ev": estimated_ev,
+            "estimated_ev_pct": estimated_ev_pct,
         },
         "availability": _availability(row),
         "evidence": {
@@ -410,6 +410,7 @@ def _candidate_score(candidate: dict[str, Any]) -> int:
         "breakeven_probability",
         "probability_edge_pp",
         "estimated_ev",
+        "estimated_ev_pct",
     ):
         if projections.get(key) is not None:
             score += 2
