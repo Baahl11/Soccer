@@ -26,6 +26,14 @@ It does **not** replace:
 
 If this status document conflicts with a governing Project file, the governing file wins.
 
+## Active resume checkpoint
+
+For exact implementation state, branch heads, live blockers, and the current resume point, read:
+
+`15_SOCCER_ENGINE_IMPLEMENTATION_CHECKPOINT_2026-10-07.md`
+
+That checkpoint is the preferred recovery source after chat/UI interruption. Do not reconstruct current state from legacy roadmap documents or memory when the checkpoint is available.
+
 ---
 
 # 2. NON-NEGOTIABLE MODEL ORDER
