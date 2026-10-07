@@ -1,0 +1,269 @@
+name: FM4 Tactical History Backfill
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fm4-tactical-history-backfill.yml"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: fm4-tactical-history-backfill
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - name: Checkout engine
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: engine
+          fetch-depth: 1
+
+      - name: Build target cohort payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT=state/soccer_edge_state/analysis/formation_matchup_engine_v1.json
+          test -s "$REPORT"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.load(open("state/soccer_edge_state/analysis/formation_matchup_engine_v1.json", encoding="utf-8"))
+          rows = [row for row in report.get("rows") or [] if isinstance(row, dict)]
+          team_ids = sorted({
+              int(value)
+              for row in rows
+              for value in (row.get("home_team_id"), row.get("away_team_id"))
+              if value is not None
+          })
+          kickoffs = sorted(
+              str(row.get("kickoff_local"))
+              for row in rows
+              if row.get("kickoff_local")
+          )
+          if not team_ids or not kickoffs:
+              raise SystemExit("formation cohort is missing team IDs or kickoff timestamps")
+          payload = {
+              "team_ids": team_ids,
+              "before": kickoffs[0],
+              "lookback_days": 365,
+              "max_fixtures": 8,
+          }
+          Path("/tmp/fm4_backfill_request.json").write_text(
+              json.dumps(payload, separators=(",", ":")),
+              encoding="utf-8",
+          )
+          print(json.dumps({
+              "target_team_count": len(team_ids),
+              "before": kickoffs[0],
+              "max_fixtures": 8,
+          }, indent=2))
+          PY
+
+      - name: Wait for compatible Render runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 30 https://soccer-edge-api.onrender.com/health > /tmp/health.json; then
+              cat /tmp/health.json
+              exit 0
+            fi
+            sleep 15
+          done
+          exit 1
+
+      - name: Run guarded FM4 tactical history backfill
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS               -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}"               "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          TOKEN=$(get_oidc_token)
+          echo "::add-mask::$TOKEN"
+
+          HTTP_CODE=""
+          for attempt in 1 2 3 4 5 6; do
+            HTTP_CODE=$(curl -sS --max-time 180               -o /tmp/fm4_tactical_backfill.json               -w "%{http_code}"               -X POST               -H "Authorization: Bearer ${TOKEN}"               -H "Content-Type: application/json"               --data-binary @/tmp/fm4_backfill_request.json               https://soccer-edge-api.onrender.com/internal/fm4-tactical-history-backfill-v1/run || true)
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              break
+            fi
+            echo "FM4 backfill attempt $attempt returned HTTP $HTTP_CODE"
+            cat /tmp/fm4_tactical_backfill.json || true
+            sleep 20
+            TOKEN=$(get_oidc_token)
+            echo "::add-mask::$TOKEN"
+          done
+
+          test "$HTTP_CODE" = "200"
+          jq '{
+            status,
+            model_version,
+            before,
+            target_team_count,
+            candidate_pool_rows,
+            selected_fixture_count,
+            attempted,
+            captured,
+            incomplete,
+            errors,
+            provider_requests_added,
+            daily_remaining_after_run,
+            details
+          }' /tmp/fm4_tactical_backfill.json
+
+          jq -e '
+            .model_version == "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.0.0"
+            and .provider_requests_added <= 8
+            and .retroactive_prediction_rewrite == false
+            and .retroactive_market_created == false
+            and .retroactive_bet_created == false
+            and .production_promotion_allowed == false
+            and (.events | type == "array")
+          ' /tmp/fm4_tactical_backfill.json >/dev/null
+
+      - name: Merge FM4 tactical history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p state/soccer_edge_state/history state/soccer_edge_state/analysis
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          incoming = json.load(open("/tmp/fm4_tactical_backfill.json", encoding="utf-8"))
+          history_path = Path("state/soccer_edge_state/history/fm4_tactical_backfill.jsonl")
+
+          merged = {}
+          if history_path.exists():
+              for line in history_path.read_text(encoding="utf-8").splitlines():
+                  if not line.strip():
+                      continue
+                  try:
+                      tick = json.loads(line)
+                  except Exception:
+                      continue
+                  for event in tick.get("events") or []:
+                      if not isinstance(event, dict):
+                          continue
+                      fixture_id = (event.get("fixture") or {}).get("fixture_id")
+                      if fixture_id is not None:
+                          merged[int(fixture_id)] = event
+
+          for event in incoming.get("events") or []:
+              if not isinstance(event, dict):
+                  continue
+              fixture_id = (event.get("fixture") or {}).get("fixture_id")
+              if fixture_id is not None:
+                  merged[int(fixture_id)] = event
+
+          now = datetime.now(timezone.utc).isoformat()
+          tick = {
+              "schema_version": "1.0.0",
+              "generated_at_utc": now,
+              "generated_at_local": now,
+              "source": "FM4_TACTICAL_HISTORY_BACKFILL",
+              "events": sorted(
+                  merged.values(),
+                  key=lambda event: (
+                      str((event.get("fixture") or {}).get("kickoff") or ""),
+                      int((event.get("fixture") or {}).get("fixture_id") or 0),
+                  ),
+              ),
+          }
+          history_path.write_text(
+              json.dumps(tick, ensure_ascii=False, separators=(",", ":")) + "\n",
+              encoding="utf-8",
+          )
+
+          report_path = Path("state/soccer_edge_state/analysis/fm4_tactical_history_backfill_report.json")
+          report_path.write_text(
+              json.dumps(
+                  {
+                      **{k: v for k, v in incoming.items() if k != "events"},
+                      "materialized_history_fixture_count": len(merged),
+                  },
+                  ensure_ascii=False,
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps({
+              "materialized_history_fixture_count": len(merged),
+              "newly_captured": len(incoming.get("events") or []),
+          }, indent=2))
+          PY
+
+      - name: Rebuild FM4 style ablation
+        env:
+          PYTHONPATH: engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/formation_matchup_fm4_style_ablation_v1.py             --formation-report state/soccer_edge_state/analysis/formation_matchup_engine_v1.json             --history-dir state/soccer_edge_state/history             --output state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+
+          jq '{
+            model_version,
+            status,
+            source_fixtures,
+            style_profile:{
+              history_source:.style_profile.history_source,
+              history_depth_status:.style_profile.history_depth_status,
+              tactical_history_fixtures_loaded:.style_profile.tactical_history_fixtures_loaded,
+              tactical_events_before_source_start:.style_profile.tactical_events_before_source_start,
+              source_team_overlap_pct:.style_profile.source_team_overlap_pct,
+              prior_density:.style_profile.prior_density,
+              profile_failure_reasons:.style_profile.profile_failure_reasons
+            },
+            health
+          }' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+
+          jq -e '
+            .health.production_enabled == false
+            and .health.decision_weight == 0
+            and .health.odds_consumed == false
+            and .health.market_prices_consumed == false
+          ' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+
+      - name: Persist FM4 research state
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f             soccer_edge_state/history/fm4_tactical_backfill.jsonl             soccer_edge_state/analysis/fm4_tactical_history_backfill_report.json             soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update FM4 tactical history backfill research"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase --autostash origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
