@@ -14,7 +14,7 @@ import httpx
 
 from mcp_gateway import calibration_v4, one_x_two_multiclass_oos_v4, persistence, research_derivative_postgres_audit as derivative_audit
 
-MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.20.0"
+MODEL_VERSION = "SOCCER_PRICE_RESOLVER_V4_1.21.0"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://v3.football.api-sports.io").rstrip("/")
 DEFAULT_MAX_API_CALLS = int(os.getenv("SOCCER_PRICE_RESOLVER_MAX_API_CALLS", "25"))
 DEFAULT_TIMEOUT_SECONDS = float(os.getenv("SOCCER_PRICE_RESOLVER_TIMEOUT_SECONDS", "12"))
@@ -645,6 +645,44 @@ def _freshness_minutes(stage: Any) -> int:
     return int(FRESHNESS_MINUTES.get(str(stage or "").upper(), 30))
 
 
+def _normalize_cached_market_rows(
+    rows: list[Any],
+    columns: list[str],
+    *,
+    cutoff_by_fixture: dict[int, datetime] | None = None,
+) -> dict[int, list[dict[str, Any]]]:
+    out: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    seen_by_fixture: dict[int, set[tuple[Any, ...]]] = defaultdict(set)
+    for raw in rows:
+        row = dict(zip(columns, raw))
+        try:
+            fixture_id = int(row.get("fixture_id"))
+        except (TypeError, ValueError):
+            continue
+        captured_at = row.pop("captured_at", None)
+        cutoff = (cutoff_by_fixture or {}).get(fixture_id)
+        if cutoff is not None and isinstance(captured_at, datetime) and captured_at < cutoff:
+            continue
+        provider_update = row.get("provider_update")
+        if isinstance(provider_update, datetime):
+            row["provider_update"] = provider_update.isoformat()
+        row["values"] = _normalize_market_values(
+            str(row.get("market") or ""),
+            row.get("values") or [],
+        )
+        key = (
+            row.get("bookmaker_id"),
+            row.get("market_id"),
+            str(row.get("values")),
+        )
+        if key in seen_by_fixture[fixture_id]:
+            continue
+        seen_by_fixture[fixture_id].add(key)
+        row["source"] = "POSTGRES_MARKET_SNAPSHOT_CACHE"
+        out[fixture_id].append(row)
+    return dict(out)
+
+
 def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
     if not persistence.persistence_configured():
         return []
@@ -654,7 +692,8 @@ def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT fixture_id, bookmaker_id, bookmaker, market_id, market, values, provider_update
+                SELECT fixture_id, bookmaker_id, bookmaker, market_id, market, values,
+                       provider_update, captured_at
                 FROM soccer_market_snapshots
                 WHERE fixture_id = %s
                   AND captured_at >= %s
@@ -664,22 +703,79 @@ def _load_cached_markets(fixture_id: int, stage: Any) -> list[dict[str, Any]]:
             )
             rows = cur.fetchall()
             columns = [desc.name for desc in cur.description]
+    return _normalize_cached_market_rows(
+        rows,
+        columns,
+        cutoff_by_fixture={int(fixture_id): cutoff},
+    ).get(int(fixture_id), [])
 
-    seen: set[tuple[Any, ...]] = set()
-    out: list[dict[str, Any]] = []
-    for raw in rows:
-        row = dict(zip(columns, raw))
-        provider_update = row.get("provider_update")
-        if isinstance(provider_update, datetime):
-            row["provider_update"] = provider_update.isoformat()
-        row["values"] = _normalize_market_values(str(row.get("market") or ""), row.get("values") or [])
-        key = (row.get("bookmaker_id"), row.get("market_id"), str(row.get("values")))
-        if key in seen:
+
+def _load_cached_markets_batch(
+    fixture_stage_pairs: list[tuple[int, Any]],
+) -> dict[int, list[dict[str, Any]]]:
+    """Load fresh cached odds for many fixtures with one Postgres query.
+
+    The first stage seen for a fixture is authoritative, matching the historical
+    fixture_cache behavior in resolve_payload. In non-persistent unit-test
+    environments we delegate to the single-fixture loader so existing test
+    monkeypatches remain valid.
+    """
+    ordered: list[tuple[int, Any]] = []
+    seen_fixtures: set[int] = set()
+    for fixture_id_raw, stage in fixture_stage_pairs:
+        try:
+            fixture_id = int(fixture_id_raw)
+        except (TypeError, ValueError):
             continue
-        seen.add(key)
-        row["source"] = "POSTGRES_MARKET_SNAPSHOT_CACHE"
-        out.append(row)
-    return out
+        if fixture_id in seen_fixtures:
+            continue
+        seen_fixtures.add(fixture_id)
+        ordered.append((fixture_id, stage))
+
+    if not ordered:
+        return {}
+
+    if not persistence.persistence_configured():
+        return {
+            fixture_id: _load_cached_markets(fixture_id, stage)
+            for fixture_id, stage in ordered
+        }
+
+    now = datetime.now(timezone.utc)
+    cutoff_by_fixture = {
+        fixture_id: now - timedelta(minutes=_freshness_minutes(stage))
+        for fixture_id, stage in ordered
+    }
+    earliest_cutoff = min(cutoff_by_fixture.values())
+    fixture_ids = [fixture_id for fixture_id, _stage in ordered]
+    placeholders = ", ".join(["%s"] * len(fixture_ids))
+
+    persistence.ensure_schema()
+    with persistence._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT fixture_id, bookmaker_id, bookmaker, market_id, market, values,
+                       provider_update, captured_at
+                FROM soccer_market_snapshots
+                WHERE fixture_id IN ({placeholders})
+                  AND captured_at >= %s
+                ORDER BY fixture_id, captured_at DESC, snapshot_id DESC
+                """,
+                tuple(fixture_ids) + (earliest_cutoff,),
+            )
+            rows = cur.fetchall()
+            columns = [desc.name for desc in cur.description]
+
+    normalized = _normalize_cached_market_rows(
+        rows,
+        columns,
+        cutoff_by_fixture=cutoff_by_fixture,
+    )
+    return {
+        fixture_id: normalized.get(fixture_id, [])
+        for fixture_id, _stage in ordered
+    }
 
 
 def _is_ft_team_total_market(market: dict[str, Any]) -> bool:
@@ -3389,6 +3485,23 @@ async def resolve_payload(
         and row.get("fixture_id") is not None
     ]
 
+    primary_cache_pairs: list[tuple[int, Any]] = []
+    primary_cache_seen: set[int] = set()
+    for row in targets:
+        fixture_id = int(row["fixture_id"])
+        if fixture_id in primary_cache_seen:
+            continue
+        primary_cache_seen.add(fixture_id)
+        primary_cache_pairs.append((fixture_id, row.get("stage")))
+    primary_cached_markets = await asyncio.to_thread(
+        _load_cached_markets_batch,
+        primary_cache_pairs,
+    )
+    primary_cache_batch_fixture_count = len(primary_cache_pairs)
+    primary_cache_batch_hit_fixtures = sum(
+        1 for markets in primary_cached_markets.values() if markets
+    )
+
     calibration_source = "INJECTED"
     async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SECONDS, follow_redirects=True) as client:
         if calibration_state is None:
@@ -3399,7 +3512,7 @@ async def resolve_payload(
             event = events[event_index] if isinstance(event_index, int) and 0 <= event_index < len(events) and isinstance(events[event_index], dict) else {}
 
             if fixture_id not in fixture_cache:
-                cached = await asyncio.to_thread(_load_cached_markets, fixture_id, row.get("stage"))
+                cached = primary_cached_markets.get(fixture_id, [])
                 if cached:
                     fixture_cache[fixture_id] = (cached, "PRICE_CACHE_HIT")
                 elif not api_key:
@@ -4251,6 +4364,22 @@ async def resolve_payload(
 
     # First pass: consume only already-fetched primary payloads or fresh Postgres
     # market snapshots. This can increase fixture diversity with zero provider calls.
+    spillover_cache_pairs = [
+        (int(record["fixture_id"]), (record.get("event") or {}).get("stage"))
+        for record in candidate_records
+        if int(record["fixture_id"]) not in fixture_cache
+    ]
+    spillover_cached_markets = await asyncio.to_thread(
+        _load_cached_markets_batch,
+        spillover_cache_pairs,
+    )
+    spillover_cache_batch_fixture_count = len(
+        {fixture_id for fixture_id, _stage in spillover_cache_pairs}
+    )
+    spillover_cache_batch_hit_fixtures = sum(
+        1 for markets in spillover_cached_markets.values() if markets
+    )
+
     unresolved_records: list[dict[str, Any]] = []
     for record in candidate_records:
         fixture_id = int(record["fixture_id"])
@@ -4320,7 +4449,7 @@ async def resolve_payload(
                         research_spillover_maturation_unchanged_provider_updates += 1
                     continue
 
-        cached = await asyncio.to_thread(_load_cached_markets, fixture_id, event.get("stage"))
+        cached = spillover_cached_markets.get(fixture_id, [])
         if cached:
             if is_maturation:
                 # A persisted cache row is not new closing evidence. The maturation
@@ -4450,6 +4579,16 @@ async def resolve_payload(
         "api_calls_added": calls,
         "max_api_calls": budget,
         "resolution_counts": dict(sorted(counts.items())),
+        "cache_batching": {
+            "enabled": True,
+            "db_query_policy": "ONE_BATCH_QUERY_PRIMARY_PLUS_ONE_BATCH_QUERY_SPILLOVER_MAX",
+            "primary_requested_fixtures": primary_cache_batch_fixture_count,
+            "primary_hit_fixtures": primary_cache_batch_hit_fixtures,
+            "spillover_requested_fixtures": spillover_cache_batch_fixture_count,
+            "spillover_hit_fixtures": spillover_cache_batch_hit_fixtures,
+            "single_fixture_n_plus_one_removed": True,
+            "semantic_change": False,
+        },
         "provider": "API_FOOTBALL",
         "endpoint": "/odds?fixture=<id>",
         "catalog_policy": "/odds/bookmakers and /odds/bets are metadata catalogs; fixture /odds response is authoritative for prices.",
