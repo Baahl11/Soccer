@@ -150,6 +150,14 @@ def build_health(
                     overlay.get("outcome_ablation_ready") is True
                 ),
                 "personnel_backfill_artifact_materialized": personnel_artifact,
+                "personnel_backfill_status": personnel.get("status") or "NOT_MATERIALIZED",
+                "personnel_backfill_reason": personnel.get("reason"),
+                "personnel_backfill_deployed_render_git_commit": personnel.get(
+                    "deployed_render_git_commit"
+                ),
+                "personnel_backfill_engine_branch_git_commit": personnel.get(
+                    "engine_branch_git_commit"
+                ),
                 "personnel_backfill_last_run_captured": personnel_captured,
                 "personnel_history_fixture_count": personnel_history_fixtures,
                 "production_enabled": False,
