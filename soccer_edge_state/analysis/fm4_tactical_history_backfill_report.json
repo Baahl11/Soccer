@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "model_version": "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.1.0",
+  "status": "FM4_TACTICAL_HISTORY_BACKFILL_COMPLETE",
+  "before": "2026-09-12T07:30:00+00:00",
+  "lookback_days": 365,
+  "target_team_count": 520,
+  "candidate_pool_rows": 0,
+  "selected_fixture_count": 0,
+  "fixture_discovery": {
+    "max_team_calls_per_run": 8,
+    "attempted_team_calls": 8,
+    "successful_team_calls": 0,
+    "errors": 8,
+    "persisted_fixture_rows": 0,
+    "details": [
+      {
+        "team_id": 33,
+        "status": "DISCOVERY_ERROR",
+        "error": "API-Football error on fixtures: {'season': 'The Season field is required.'}",
+        "daily_remaining": null
+      },
+      {
+        "team_id": 38,
+        "status": "DISCOVERY_ERROR",
+        "error": "API-Football error on fixtures: {'season': 'The Season field is required.'}",
+        "daily_remaining": null
+      },
+      {
+        "team_id": 39,
+        "status": "DISCOVERY_ERROR",
+        "error": "API-Football error on fixtures: {'season': 'The Season field is required.'}",
+        "daily_remaining": null
+      },
+      {
+        "team_id": 40,
+        "status": "DISCOVERY_ERROR",
+        "error": "API-Football error on fixtures: {'season': 'The Season field is required.'}",
+        "daily_remaining": null
+      },
+      {
+        "team_id": 42,
+        "status": "DISCOVERY_ERROR",
+        "error": "API-Football error on fixtures: {'season': 'The Season field is required.'}",
+        "daily_remaining": null
+      },
+      {
+        "team_id": 45,
+        "status": "DISCOVERY_ERROR",
+        "error": "API-Football error on fixtures: {'season': 'The Season field is required.'}",
+        "daily_remaining": null
+      },
+      {
+        "team_id": 47,
+        "status": "DISCOVERY_ERROR",
+        "error": "API-Football error on fixtures: {'season': 'The Season field is required.'}",
+        "daily_remaining": null
+      },
+      {
+        "team_id": 50,
+        "status": "DISCOVERY_ERROR",
+        "error": "API-Football error on fixtures: {'season': 'The Season field is required.'}",
+        "daily_remaining": null
+      }
+    ]
+  },
+  "attempted": 0,
+  "captured": 0,
+  "incomplete": 0,
+  "errors": 0,
+  "details": [],
+  "fixture_discovery_provider_requests_added": 8,
+  "statistics_provider_requests_added": 0,
+  "provider_requests_added": 8,
+  "max_statistics_provider_requests_per_run": 8,
+  "max_discovery_provider_requests_per_run": 8,
+  "daily_remaining_after_run": null,
+  "historical_research_feature_reconstruction_allowed": true,
+  "retroactive_prediction_rewrite": false,
+  "retroactive_market_created": false,
+  "retroactive_bet_created": false,
+  "decision_weight": 0.0,
+  "production_promotion_allowed": false,
+  "policy": "DISCOVER ONLY VERIFIED FINALIZED FIXTURES STRICTLY BEFORE THE FM4 TARGET COHORT; PERSIST FIXTURE/RESULT IDENTITY IN CANONICAL POSTGRES; EXACT PROVIDER FIXTURE STATISTICS ONLY; MAX EIGHT STATISTICS REQUESTS PER RUN; MAX EIGHT FIXTURE-DISCOVERY TEAM REQUESTS PER RUN; STOP AT DAILY RESERVE GUARD; PERSIST DISCOVERY AND RETRIEVAL PROVENANCE; NO SYNTHETIC TACTICAL VALUES; MAY EXPAND OFFLINE HISTORICAL FEATURE RESEARCH BUT NEVER REWRITE ORIGINAL PREGAME PREDICTIONS, MARKETS, CLV, BETS, OR PRODUCTION DECISIONS.",
+  "materialized_history_fixture_count": 0
+}
