@@ -1,3 +1,10 @@
+> **LEGACY / NOT GOVERNING — 2026-10-07**  
+> This document is retained for historical reference only. Claims such as fixed accuracy percentages, completion percentages, legacy production readiness, frontend/monetization priority, old API limits, or old architecture are **not** the current SPORTS EDGE ENGINE roadmap unless explicitly revalidated.  
+> Current Soccer authority: `00_PROJECT_CHARTER.md`, `11_SOCCER_DATA_API_PROTOCOL_v1.0.md`, `12_SOCCER_EDGE_ENGINE_MASTER_v1.0.md`, `13_SOCCER_FORMATION_MATCHUP_ENGINE_IMPLEMENTATION_PLAN_v1.0.md`, and `14_SOCCER_EDGE_ENGINE_ROADMAP_STATUS_v1.0.md`.  
+> Current priority is model/data validation and SPORT-FIRST evidence, not monetization or pick volume.
+
+---
+
 # 📋 LISTA DE TAREAS PENDIENTES POR PRIORIDAD
 ## Soccer Prediction System - Estado Actual Post-Integración
 
