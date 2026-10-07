@@ -228,6 +228,17 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   const initials=name=>String(name||'?').split(/\\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase().slice(0,3);
   const dt=raw=>{{if(!raw)return ['TBD','Kickoff'];const d=new Date(raw);if(Number.isNaN(d.getTime()))return [String(raw),'Kickoff'];return [new Intl.DateTimeFormat(undefined,{{hour:'2-digit',minute:'2-digit'}}).format(d),new Intl.DateTimeFormat(undefined,{{month:'short',day:'numeric'}}).format(d)]}};
   const api=async(path)=>{{const h={{}};if(token())h.Authorization='Bearer '+token();const r=await fetch((cfg.api_base||'/app/api/v2')+path,{{headers:h,cache:'no-store'}});const d=await r.json().catch(()=>({{}}));if(!r.ok)throw Object.assign(new Error(d.error||('HTTP '+r.status)),{{status:r.status,data:d}});return d}};
+  const publicJson=async(path)=>{{const r=await fetch(path,{{cache:'no-store'}});const d=await r.json().catch(()=>({{}}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}};
+  function candidateRows(){{return [...(DATA?.picks?.rows||[]),...(DATA?.leans?.rows||[]),...(DATA?.watches?.rows||[])]}}
+  function fixtureTargets(){{return [...(DATA?.slate?.rows||[]),...candidateRows()]}}
+  async function enrichIdentities(){{
+    const targets=fixtureTargets(),ids=[...new Set(targets.map(x=>x?.fixture?.fixture_id).filter(x=>x!==null&&x!==undefined&&String(x).length))];
+    if(!ids.length)return;
+    try{{
+      const d=await publicJson('/app/fixture-identities?ids='+encodeURIComponent(ids.join(','))),map=new Map((d.rows||[]).map(x=>[String(x.fixture_id),x]));
+      for(const item of targets){{const f=item?.fixture||{{}},identity=map.get(String(f.fixture_id||''));if(!identity)continue;item.fixture={{...f,...identity}}}}
+    }}catch(_){{/* presentation enrichment is optional; canonical decision payload remains untouched */}}
+  }}
   const authFetch=async(path,body)=>{{if(!cfg.auth_configured)throw new Error('AUTH_NOT_CONFIGURED');const r=await fetch(cfg.supabase_url+path,{{method:'POST',headers:{{apikey:cfg.publishable_key,'Content-Type':'application/json'}},body:JSON.stringify(body)}});const d=await r.json().catch(()=>({{}}));if(!r.ok)throw new Error(d.error_description||d.msg||d.error||('HTTP '+r.status));return d}};
   const classification=c=>String(c?.decision?.classification||'').toUpperCase();
   const fixture=c=>c?.fixture||{{}},market=c=>c?.market||{{}},proj=c=>c?.projections||{{}},avail=c=>c?.availability||{{}};
@@ -270,7 +281,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   }}
   function renderPlan(){{ACCESS=DATA?.access||ACCESS||{{}};const plan=ACCESS?.display_role||ACCESS?.effective_plan||(token()?'FREE':'EXPLORER');$('planChip').textContent=String(plan).toUpperCase();$('accountBtn').textContent=token()?'Account':'Sign in';$('accountPageBtn').textContent=token()?'Manage account':'Sign in';$('accountPlan').textContent=premium()?'Edge Pro':'Explorer';$('accountCopy').textContent=premium()?'Premium decision evidence is unlocked for this account.':'Browse the verified slate and watch states. Premium probability, price and evidence fields remain redacted.';$('signOut').classList.toggle('hidden',!token())}}
   function renderMeta(){{const raw=DATA?.generated_at_utc||DATA?.generated_at_local||'persisted';$('snapshotText').textContent='Persisted snapshot · '+raw;$('todayStamp').textContent=raw;$('freshChip').textContent=DATA?.status==='SUBSCRIBER_CONTRACT_V2_READY'?'VERIFIED SNAPSHOT':'CHECK STATE'}}
-  async function loadToday(){{DATA=await api('/today');ACCESS=DATA.access||{{}};renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate()}}
+  async function loadToday(){{DATA=await api('/today');ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate()}}
   async function openMatch(fid){{if(!fid)return;activate('matches');const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{box.innerHTML=lock('Match Intelligence',1);return}}box.innerHTML=empty('Loading match intelligence','Reading persisted fixture evidence…');try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d)}}catch(e){{box.innerHTML=empty('Match detail unavailable',e.message)}}}}
   function renderMatch(d){{const box=$('matchDetail'),f=d?.fixture||{{}},c=d?.selected_candidate||{{}},p=c?.projections||{{}},a=c?.availability||{{}},ctx=d?.sport_context||{{}},xg=ctx.expected_goals||null,probs=ctx.outcome_probabilities||null;
     box.innerHTML='<div class="match-detail"><div class="detail-head"><div><div class="eyebrow">'+esc(f.league||f.country||'Competition')+'</div><h2>'+esc((f.home_team||'Home')+' vs '+(f.away_team||'Away'))+'</h2><div class="sub">'+esc(f.kickoff||'Kickoff NOT VERIFIED')+'</div></div><span class="decision '+decisionClass(c)+'">'+esc(decisionLabel(c))+'</span></div>'+
