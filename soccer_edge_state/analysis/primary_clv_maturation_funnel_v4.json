@@ -1,0 +1,112 @@
+{
+  "canonical_bet_logic_changed": false,
+  "canonical_clv_model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.11",
+  "families": {
+    "1X2": {
+      "audit_comparable_minus_canonical_unique_fixtures": 0,
+      "canonical_true_clv_rows": 50,
+      "canonical_true_clv_unique_fixtures": 50,
+      "current_phase17_mapped_rows": 95,
+      "current_phase17_priced_rows": 94,
+      "current_phase17_skip_reasons": {
+        "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 39,
+        "NO_LATER_PROVIDER_UPDATE": 53,
+        "NO_SELECTION_MATCH_AT_CLOSE": 0
+      },
+      "maturation_state": "CLV_GATE_MET",
+      "minimum_true_clv_rows": 50,
+      "post_v223_canonical_equivalent_audit": {
+        "same_book_preferred_rows": 2,
+        "signals": 67,
+        "skip_reason_counts": {
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 21,
+          "NO_LATER_PROVIDER_UPDATE": 44
+        },
+        "strict_close_conversion_rate": 0.029851,
+        "strict_close_eligible": 2,
+        "true_clv_comparable": 2,
+        "unique_fixtures": 67,
+        "with_2plus_capture_visits": 26,
+        "with_any_later_snapshot": 46,
+        "with_exact_instrument_later_quote": 46,
+        "with_provider_update_advance": 2
+      },
+      "remaining_to_gate": 0
+    },
+    "BTTS": {
+      "audit_comparable_minus_canonical_unique_fixtures": 0,
+      "canonical_true_clv_rows": 17,
+      "canonical_true_clv_unique_fixtures": 17,
+      "current_phase17_mapped_rows": 148,
+      "current_phase17_priced_rows": 140,
+      "current_phase17_skip_reasons": {
+        "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 58,
+        "NO_LATER_PROVIDER_UPDATE": 82,
+        "NO_SELECTION_MATCH_AT_CLOSE": 0
+      },
+      "maturation_state": "NATURAL_MATURATION_REQUIRED",
+      "minimum_true_clv_rows": 50,
+      "post_v223_canonical_equivalent_audit": {
+        "same_book_preferred_rows": 0,
+        "signals": 106,
+        "skip_reason_counts": {
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 36,
+          "NO_LATER_PROVIDER_UPDATE": 70
+        },
+        "strict_close_conversion_rate": 0.0,
+        "strict_close_eligible": 0,
+        "true_clv_comparable": 0,
+        "unique_fixtures": 106,
+        "with_2plus_capture_visits": 39,
+        "with_any_later_snapshot": 70,
+        "with_exact_instrument_later_quote": 70,
+        "with_provider_update_advance": 0
+      },
+      "remaining_to_gate": 33
+    },
+    "FT_TOTALS": {
+      "audit_comparable_minus_canonical_unique_fixtures": 0,
+      "canonical_true_clv_rows": 6,
+      "canonical_true_clv_unique_fixtures": 6,
+      "current_phase17_mapped_rows": 126,
+      "current_phase17_priced_rows": 98,
+      "current_phase17_skip_reasons": {
+        "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 33,
+        "NO_LATER_PROVIDER_UPDATE": 65,
+        "NO_SELECTION_MATCH_AT_CLOSE": 0
+      },
+      "maturation_state": "NATURAL_MATURATION_REQUIRED",
+      "minimum_true_clv_rows": 50,
+      "post_v223_canonical_equivalent_audit": {
+        "same_book_preferred_rows": 0,
+        "signals": 80,
+        "skip_reason_counts": {
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 20,
+          "NO_LATER_PROVIDER_UPDATE": 60
+        },
+        "strict_close_conversion_rate": 0.0,
+        "strict_close_eligible": 0,
+        "true_clv_comparable": 0,
+        "unique_fixtures": 80,
+        "with_2plus_capture_visits": 29,
+        "with_any_later_snapshot": 60,
+        "with_exact_instrument_later_quote": 60,
+        "with_provider_update_advance": 0
+      },
+      "remaining_to_gate": 44
+    }
+  },
+  "gates_changed": false,
+  "generated_at_utc": "2026-10-07T04:50:25.143498+00:00",
+  "model_version": "SOCCER_PRIMARY_CLV_MATURATION_FUNNEL_V4_1.0.0",
+  "models_changed": false,
+  "policy": "AUDIT_ONLY; CANONICAL COUNTS REMAIN OWNED_BY_PHASE17; VISIT_MATRIX_ROWS_CANNOT_ENTER TRUE_CLV UNTIL EXACT HISTORICAL BACKFILL_RECONCILIATION REPLAYS THE CANONICAL MATCHER",
+  "production_promotion_allowed": false,
+  "provider_budget_changed": false,
+  "provider_requests_added": 0,
+  "schema_version": "1.0.0",
+  "status": "OBSERVABILITY_ONLY",
+  "strict_close_semantics_changed": false,
+  "thresholds_changed": false,
+  "visit_matrix_model_version": "SOCCER_POST_V223_VISIT_MATRIX_V3_CANONICAL_EQUIVALENT"
+}
