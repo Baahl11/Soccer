@@ -51,6 +51,7 @@ jobs:
           set -euo pipefail
           PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_formation_personnel_history_backfill_v1.py \
+            tests/test_formation_personnel_outcome_ablation_v1.py \
             tests/test_formation_matchup_fm4_style_ablation_v1.py
 
       - name: Build target cohort payload
