@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from mcp_gateway import automation_v129
 from mcp_gateway import price_resolver_v4 as price
 from mcp_gateway import primary_clv_anchor_v4 as anchor
+from mcp_gateway import primary_clv_anchor_normalized_v4 as normalized
 
 
 _MAIN_COLUMNS = (
@@ -198,7 +199,7 @@ def test_v129_captures_exclusion_audit_only_during_upstream_tick_and_restores_lo
         assert observed is sentinel_report
         return {"events": [], "model_version": "SOCCER EDGE ENGINE v1.7"}
 
-    monkeypatch.setattr(anchor, "load_primary_clv_maturation_backlog", sentinel_loader)
+    monkeypatch.setattr(normalized, "load_primary_clv_maturation_backlog", sentinel_loader)
     monkeypatch.setattr(automation_v129.v128, "run_tick", fake_v128_run_tick)
     monkeypatch.setattr(
         automation_v129.dynamic_strength_challenger_v4,
@@ -211,7 +212,7 @@ def test_v129_captures_exclusion_audit_only_during_upstream_tick_and_restores_lo
     assert sentinel_calls
     assert sentinel_calls[0][1].get("include_diagnostics") is False
     assert price._load_primary_clv_maturation_backlog is original_loader
-    assert payload["version"] == "4.38.6-runtime-stabilization"
+    assert payload["version"] == "4.38.7-normalized-primary-clv-anchor"
     repair = payload["v213_primary_clv_anchor_repair"]
     assert repair["signal_anchor_policy"] == anchor.ANCHOR_POLICY
     assert repair["strict_close_semantics_changed"] is False
