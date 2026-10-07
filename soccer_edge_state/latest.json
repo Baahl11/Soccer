@@ -4,8 +4,8 @@
   "service": "soccer-edge-automation",
   "version": "4.38.6-runtime-stabilization",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-07T04:20:46.756801+00:00",
-  "generated_at_local": "2026-10-06T22:20:46.756801-06:00",
+  "generated_at_utc": "2026-10-07T04:21:51.999206+00:00",
+  "generated_at_local": "2026-10-06T22:21:51.999206-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 800,
   "due_fixture_count": 259,
@@ -15,7 +15,7 @@
   "api_calls_this_tick": 2,
   "max_api_calls_per_tick": 70,
   "effective_max_api_calls_per_tick": 70,
-  "last_daily_remaining": 6971,
+  "last_daily_remaining": 6969,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -258,7 +258,7 @@
         "phase": "PRE_V121_UPSTREAM",
         "quota_global_cap": 70,
         "quota_upstream_cap": 50,
-        "quota_remaining_basis": 6972
+        "quota_remaining_basis": 6970
       },
       "reserved_price_phase_release": {
         "released": false,
@@ -451,7 +451,7 @@
       "standard_leftover_budget": 25,
       "diversity_catchup_overflow_budget": 0,
       "total_price_resolver_budget": 25,
-      "daily_remaining_before_price_resolver": 6971,
+      "daily_remaining_before_price_resolver": 6969,
       "daily_budget_mode": "NORMAL",
       "catchup_enabled": false,
       "overflow_above_global_tick_cap_allowed": false,
@@ -468,7 +468,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-07T04:20:46.756801+00:00",
+    "generated_at_utc": "2026-10-07T04:21:51.999206+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -1049,7 +1049,7 @@
   "elastic_deep_dive_cap_reason": "GT_6000",
   "elastic_request_cap": 70,
   "elastic_request_cap_reason": "GT_6000",
-  "elastic_quota_remaining_basis": 6971,
+  "elastic_quota_remaining_basis": 6969,
   "fair_scheduler": {
     "schema_version": "1.2.0",
     "policy": "WEIGHTED_FAIR_WITH_GUARDED_COVERAGE_CATCHUP_AND_LEAGUE_ROUND_ROBIN_AND_POSTPLAN_MATURITY_FLOOR",
@@ -1987,7 +1987,7 @@
       "api_calls_this_tick": 2,
       "max_api_calls_per_tick": 70,
       "effective_max_api_calls_per_tick": 70,
-      "last_daily_remaining": 6971,
+      "last_daily_remaining": 6969,
       "daily_budget_mode": "NORMAL",
       "fixture_scan_count": 800,
       "due_fixture_count": 259,
@@ -1997,8 +1997,8 @@
     "control_tower": {
       "schema_version": "2.1.0",
       "status": "LIVE",
-      "generated_at_utc": "2026-10-07T04:20:46.756801+00:00",
-      "generated_at_local": "2026-10-06T22:20:46.756801-06:00",
+      "generated_at_utc": "2026-10-07T04:21:51.999206+00:00",
+      "generated_at_local": "2026-10-06T22:21:51.999206-06:00",
       "pipeline_version": "4.38.6-runtime-stabilization",
       "model_version": "SOCCER EDGE ENGINE v1.7",
       "system_health": {
@@ -2006,10 +2006,10 @@
         "postgres": "HEALTHY",
         "scheduler": "TICK_OBSERVED",
         "api_football": "HEALTHY",
-        "api_football_remaining": 6971,
+        "api_football_remaining": 6969,
         "daily_budget_mode": "NORMAL",
         "galaxy": "NOT_VERIFIED",
-        "last_tick": "2026-10-06T22:20:46.756801-06:00"
+        "last_tick": "2026-10-06T22:21:51.999206-06:00"
       },
       "pipeline": {
         "fixtures_scanned": 800,
@@ -2133,10 +2133,12 @@
         "schema_version": "1.4.0",
         "model_version": "SOCCER_MATURITY_SNAPSHOT_V4_1.4.0",
         "status": "OK",
-        "generated_at_utc": "2026-10-07T04:20:48.806357+00:00",
+        "generated_at_utc": "2026-10-07T04:21:53.919627+00:00",
         "reports_loaded": 13,
         "reports_expected": 13,
-        "errors": {},
+        "errors": {
+          "signal_summary_artifact_timestamp": "HTTPStatusError: Client error '403 rate limit exceeded' for url 'https://api.github.com/repos/Baahl11/Soccer/commits?path=soccer_edge_state%2Fanalysis%2Fsignal_ledger_summary.js"
+        },
         "gates": {
           "1x2_true_clv": {
             "current": 50,
@@ -2196,15 +2198,13 @@
           "schema_version": "1.1.0",
           "model_version": "SOCCER_MATURATION_WATCHDOGS_V4_1.1.0",
           "status": "WATCH",
-          "generated_at_utc": "2026-10-07T04:20:49.013721+00:00",
+          "generated_at_utc": "2026-10-07T04:21:54.099130+00:00",
           "watchdogs": {
             "signal_close_freshness": {
-              "status": "OK",
-              "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
+              "status": "NOT_VERIFIED",
+              "reason": "SIGNAL_REPORT_ARTIFACT_TIMESTAMP_UNAVAILABLE",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-07T03:53:04+00:00",
-                "age_hours": 0.46,
                 "close_stage_rows": 1850
               },
               "decision_weight": 0.0,
@@ -2216,7 +2216,7 @@
               "source": "signal_ledger_summary.json",
               "evidence": {
                 "last_evidence_at": "2026-10-07T03:33:19.018703+00:00",
-                "age_hours": 0.79,
+                "age_hours": 0.81,
                 "close_stage_rows": 1850
               },
               "decision_weight": 0.0,
@@ -2303,7 +2303,7 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 2.64,
+                "stagnation_hours": 2.66,
                 "increased_counters": [],
                 "counter_count": 41
               },
@@ -2318,15 +2318,15 @@
                 "provider_calls": 30322,
                 "provider_call_delta": 0,
                 "evidence_growth_delta": 0,
-                "stagnation_hours": 2.64
+                "stagnation_hours": 2.66
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
             }
           },
           "watch_count": 2,
-          "ok_count": 6,
-          "not_verified_count": 0,
+          "ok_count": 5,
+          "not_verified_count": 1,
           "stagnation_window_hours": 48,
           "provider_requests_added": 0,
           "production_promotion_allowed": false,
@@ -2346,7 +2346,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-07T04:19:09.491836+00:00"
+            "updated_at_utc": "2026-10-07T04:20:49.190954+00:00"
           },
           "save": {
             "schema_version": "1.0.0",
@@ -2355,7 +2355,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-07T04:20:49.190954+00:00"
+            "updated_at_utc": "2026-10-07T04:21:54.113307+00:00"
           },
           "provider_requests_added": 0,
           "production_promotion_allowed": false
@@ -2530,12 +2530,10 @@
           },
           "monitoring": {
             "report_freshness": {
-              "status": "OK",
-              "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
+              "status": "NOT_VERIFIED",
+              "reason": "SIGNAL_REPORT_ARTIFACT_TIMESTAMP_UNAVAILABLE",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-07T03:53:04+00:00",
-                "age_hours": 0.46,
                 "close_stage_rows": 1850
               },
               "decision_weight": 0.0,
@@ -2547,7 +2545,7 @@
               "source": "signal_ledger_summary.json",
               "evidence": {
                 "last_evidence_at": "2026-10-07T03:33:19.018703+00:00",
-                "age_hours": 0.79,
+                "age_hours": 0.81,
                 "close_stage_rows": 1850
               },
               "decision_weight": 0.0,
@@ -2558,7 +2556,7 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 2.64,
+                "stagnation_hours": 2.66,
                 "increased_counters": [],
                 "counter_count": 41
               },
@@ -2575,7 +2573,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-07T04:19:09.491836+00:00"
+                "updated_at_utc": "2026-10-07T04:20:49.190954+00:00"
               },
               "save": {
                 "schema_version": "1.0.0",
@@ -2584,7 +2582,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-07T04:20:49.190954+00:00"
+                "updated_at_utc": "2026-10-07T04:21:54.113307+00:00"
               },
               "provider_requests_added": 0,
               "production_promotion_allowed": false
@@ -2767,12 +2765,10 @@
         },
         "monitoring": {
           "report_freshness": {
-            "status": "OK",
-            "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
+            "status": "NOT_VERIFIED",
+            "reason": "SIGNAL_REPORT_ARTIFACT_TIMESTAMP_UNAVAILABLE",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "report_updated_at": "2026-10-07T03:53:04+00:00",
-              "age_hours": 0.46,
               "close_stage_rows": 1850
             },
             "decision_weight": 0.0,
@@ -2784,7 +2780,7 @@
             "source": "signal_ledger_summary.json",
             "evidence": {
               "last_evidence_at": "2026-10-07T03:33:19.018703+00:00",
-              "age_hours": 0.79,
+              "age_hours": 0.81,
               "close_stage_rows": 1850
             },
             "decision_weight": 0.0,
@@ -2795,7 +2791,7 @@
             "reason": "MATURATION_EVIDENCE_MONITORING",
             "source": "POSTGRES:maturation_watchdog_state",
             "evidence": {
-              "stagnation_hours": 2.64,
+              "stagnation_hours": 2.66,
               "increased_counters": [],
               "counter_count": 41
             },
@@ -2812,7 +2808,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-07T04:19:09.491836+00:00"
+              "updated_at_utc": "2026-10-07T04:20:49.190954+00:00"
             },
             "save": {
               "schema_version": "1.0.0",
@@ -2821,7 +2817,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-07T04:20:49.190954+00:00"
+              "updated_at_utc": "2026-10-07T04:21:54.113307+00:00"
             },
             "provider_requests_added": 0,
             "production_promotion_allowed": false
