@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.0"
+MODEL_VERSION = "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.1"
 SUPPORTED_FAMILIES = {"1X2", "HOME_TT", "AWAY_TT"}
 PROJECT_RECALIBRATION_MIN_GRADED_BETS = 100
 
@@ -370,16 +370,16 @@ def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
             round(sum(roi) / len(roi), 6) if roi else None
         ),
         "fixture_equal_weight_roi": _fixture_equal_weight_roi(rows),
-        "probability_scored_rows": len(scored),
-        "mean_signal_fair_probability": (
+        "market_fair_probability_scored_rows": len(scored),
+        "mean_signal_market_fair_probability": (
             round(sum(probabilities) / len(probabilities), 6) if probabilities else None
         ),
         "observed_selected_outcome_rate": (
             round(sum(observed) / len(observed), 6) if observed else None
         ),
-        "brier": round(sum(briers) / len(briers), 6) if briers else None,
-        "log_loss": round(sum(losses) / len(losses), 6) if losses else None,
-        "calibration_gap_pp": (
+        "market_fair_brier": round(sum(briers) / len(briers), 6) if briers else None,
+        "market_fair_log_loss": round(sum(losses) / len(losses), 6) if losses else None,
+        "market_fair_calibration_gap_pp": (
             round((sum(probabilities) / len(probabilities) - sum(observed) / len(observed)) * 100.0, 6)
             if probabilities and observed else None
         ),
@@ -460,6 +460,12 @@ def build(
             "1X2": one_summary,
             "TEAM_TOTALS": tt_summary,
         },
+        "probability_semantics": {
+            "signal_fair_probability": "DEVIG_MARKET_FAIR_PROBABILITY",
+            "market_fair_brier_log_loss_only": True,
+            "soccer_model_probability_scored_here": False,
+            "model_calibration_sources": ["V4-017_1X2", "V4-019_TEAM_TOTALS"],
+        },
         "recalibration_gate": {
             "project_minimum_graded_bets": PROJECT_RECALIBRATION_MIN_GRADED_BETS,
             "material_recalibration_allowed": False,
@@ -472,7 +478,7 @@ def build(
             "1X2 true-CLV rows are one exact captured selection per fixture in the current canonical cohort.",
             "Team Totals can contain multiple sides/lines in the same fixture, so exact-row ROI is diagnostic rather than portfolio ROI.",
             "Fixture-equal-weight ROI is reported to reduce domination by fixtures with many Team Total observations.",
-            "Brier/log-loss score the captured selected outcome probability only when a final result exists.",
+            "Brier/log-loss here score the captured de-vig MARKET fair probability, not the Soccer model probability; model calibration remains in V4-017/V4-019.",
             "No betting price is used to construct or modify the raw sporting projection in this report.",
         ],
     }
