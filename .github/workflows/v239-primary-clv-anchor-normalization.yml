@@ -1,0 +1,112 @@
+name: v239 Primary CLV Anchor Normalization
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v239-primary-clv-anchor-normalization.yml"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: v239-primary-clv-anchor-normalization
+  cancel-in-progress: false
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/primary_clv_anchor_normalization_v4.json
+          sparse-checkout-cone-mode: false
+
+      - name: Warm runtime
+        run: |
+          curl -sS --max-time 90 --retry 2 --retry-delay 5 \
+            https://soccer-edge-api.onrender.com/health >/tmp/health.json
+          cat /tmp/health.json
+
+      - name: Backfill normalized anchors and compare with legacy
+        shell: bash
+        run: |
+          set -euo pipefail
+          response=$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          TOKEN=$(echo "$response" | jq -r '.value // empty')
+          test -n "$TOKEN"
+          echo "::add-mask::$TOKEN"
+
+          curl -fsS --max-time 360 --retry 1 --retry-delay 5 \
+            -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"lookback_days":180,"max_runs":100000,"lookahead_minutes":180,"limit":80}' \
+            https://soccer-edge-api.onrender.com/internal/primary-clv-anchor-normalization-v4/build \
+            -o /tmp/primary-clv-anchor-normalization.json
+
+          jq '{
+            status,
+            model_version,
+            materialization:{
+              status:.materialization.status,
+              runs_in_window:.materialization.runs_in_window,
+              max_runs:.materialization.max_runs,
+              run_limit_saturated:.materialization.run_limit_saturated,
+              inserted_rows:.materialization.inserted_rows,
+              family_counts:.materialization.family_counts
+            },
+            comparison:{
+              status:.comparison.status,
+              equivalent:.comparison.equivalent,
+              legacy_candidate_events:.comparison.legacy_candidate_events,
+              normalized_candidate_events:.comparison.normalized_candidate_events,
+              legacy_signal_keys:.comparison.legacy_signal_keys,
+              normalized_signal_keys:.comparison.normalized_signal_keys,
+              missing_from_normalized_count:.comparison.missing_from_normalized_count,
+              extra_in_normalized_count:.comparison.extra_in_normalized_count
+            }
+          }' /tmp/primary-clv-anchor-normalization.json
+
+          jq -e '
+            .status == "EQUIVALENT"
+            and .materialization.status == "OK"
+            and .materialization.run_limit_saturated == false
+            and .comparison.status == "EQUIVALENT"
+            and .comparison.equivalent == true
+            and .comparison.missing_from_normalized_count == 0
+            and .comparison.extra_in_normalized_count == 0
+            and .provider_requests_added == 0
+            and .strict_close_semantics_changed == false
+            and .models_changed == false
+            and .thresholds_changed == false
+            and .gates_changed == false
+            and .provider_budget_changed == false
+            and .canonical_bet_logic_changed == false
+            and .production_promotion_allowed == false
+          ' /tmp/primary-clv-anchor-normalization.json >/dev/null
+
+      - name: Persist equivalence report
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p soccer_edge_state/analysis
+          cp /tmp/primary-clv-anchor-normalization.json \
+            soccer_edge_state/analysis/primary_clv_anchor_normalization_v4.json
+
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/primary_clv_anchor_normalization_v4.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Persist primary CLV anchor normalization equivalence"
+          git pull --rebase origin soccer-edge-state
+          git push origin HEAD:soccer-edge-state
