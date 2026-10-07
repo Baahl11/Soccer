@@ -181,6 +181,143 @@ def _tactical_history_events(history_dir: str) -> list[dict[str, Any]]:
     return _history_events(history_dir)[0]
 
 
+def _team_from_personnel_event(
+    event: dict[str, Any] | None,
+    team_id: int,
+) -> dict[str, Any] | None:
+    if not isinstance(event, dict) or not team_id:
+        return None
+    for team in event.get("teams") or []:
+        if not isinstance(team, dict):
+            continue
+        try:
+            candidate_id = int(team.get("team_id") or 0)
+        except (TypeError, ValueError):
+            continue
+        if candidate_id == team_id:
+            return team
+    return None
+
+
+def _starter_map(team: dict[str, Any] | None) -> dict[int, dict[str, Any]]:
+    if not isinstance(team, dict):
+        return {}
+    out: dict[int, dict[str, Any]] = {}
+    for player in team.get("starters") or []:
+        if not isinstance(player, dict) or player.get("id") is None:
+            continue
+        try:
+            pid = int(player.get("id"))
+        except (TypeError, ValueError):
+            continue
+        out[pid] = {
+            "pos": player.get("pos"),
+            "grid": player.get("grid"),
+        }
+    return out
+
+
+def _personnel_features(
+    current: dict[str, Any] | None,
+    prior: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    current_map = _starter_map(current)
+    if len(current_map) < 11:
+        return None
+
+    prior = [row for row in prior if isinstance(row, dict)]
+    previous = prior[-1] if prior else None
+    previous_map = _starter_map(previous)
+    overlap_ids = set(current_map) & set(previous_map)
+    denominator = float(len(current_map))
+
+    comparable_pos = [
+        pid
+        for pid in overlap_ids
+        if current_map[pid].get("pos") not in (None, "")
+        and previous_map[pid].get("pos") not in (None, "")
+    ]
+    comparable_grid = [
+        pid
+        for pid in overlap_ids
+        if current_map[pid].get("grid") not in (None, "")
+        and previous_map[pid].get("grid") not in (None, "")
+    ]
+
+    current_coach = current.get("coach_id") if isinstance(current, dict) else None
+    previous_coach = previous.get("coach_id") if isinstance(previous, dict) else None
+    coach_same_previous = (
+        bool(current_coach == previous_coach)
+        if current_coach is not None and previous_coach is not None
+        else None
+    )
+    coach_consecutive_prior_matches = 0
+    if current_coach is not None:
+        for row in reversed(prior):
+            prior_coach = row.get("coach_id")
+            if prior_coach is None or prior_coach != current_coach:
+                break
+            coach_consecutive_prior_matches += 1
+
+    last3 = prior[-3:]
+    core_return_rate = None
+    if len(last3) == 3:
+        appearances = {
+            pid: sum(int(pid in _starter_map(prev)) for prev in last3)
+            for pid in current_map
+        }
+        core_return_rate = sum(int(count >= 2) for count in appearances.values()) / denominator
+
+    return {
+        "current_starter_count": len(current_map),
+        "prior_confirmed_xi_count": len(prior),
+        "previous_xi_overlap_count": len(overlap_ids) if previous is not None else None,
+        "previous_xi_overlap_rate": (
+            round(len(overlap_ids) / denominator, 6)
+            if previous is not None
+            else None
+        ),
+        "new_starter_count_vs_previous": (
+            len(current_map) - len(overlap_ids)
+            if previous is not None
+            else None
+        ),
+        "last3_core_return_rate": (
+            round(core_return_rate, 6) if core_return_rate is not None else None
+        ),
+        "position_continuity_rate": (
+            round(
+                sum(
+                    int(current_map[pid].get("pos") == previous_map[pid].get("pos"))
+                    for pid in comparable_pos
+                )
+                / len(comparable_pos),
+                6,
+            )
+            if comparable_pos
+            else None
+        ),
+        "position_comparable_starters": len(comparable_pos),
+        "grid_continuity_rate": (
+            round(
+                sum(
+                    int(current_map[pid].get("grid") == previous_map[pid].get("grid"))
+                    for pid in comparable_grid
+                )
+                / len(comparable_grid),
+                6,
+            )
+            if comparable_grid
+            else None
+        ),
+        "grid_comparable_starters": len(comparable_grid),
+        "coach_id": current_coach,
+        "previous_coach_id": previous_coach,
+        "coach_same_as_previous": coach_same_previous,
+        "coach_consecutive_prior_matches": coach_consecutive_prior_matches,
+    }
+
+
 def _append_style_observation(
     team_style: dict[int, dict[str, list[float]]],
     team_id: int,
