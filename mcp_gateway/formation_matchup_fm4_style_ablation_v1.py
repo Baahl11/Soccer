@@ -371,6 +371,42 @@ def build_report(
     style_eligible_rows = 0
     missing_style_profile_rows = 0
     geometry_missing_rows = 0
+    source_team_ids = {
+        int(row.get("home_team_id") or 0)
+        for row in rows
+        if int(row.get("home_team_id") or 0)
+    } | {
+        int(row.get("away_team_id") or 0)
+        for row in rows
+        if int(row.get("away_team_id") or 0)
+    }
+    source_team_overlap = source_team_ids & tactical_team_ids
+    prior_density = {
+        "rows_with_home_any_prior_style": 0,
+        "rows_with_away_any_prior_style": 0,
+        "rows_with_both_any_prior_style": 0,
+        "rows_with_home_min_field_n_ge_1": 0,
+        "rows_with_away_min_field_n_ge_1": 0,
+        "rows_with_both_min_field_n_ge_1": 0,
+        "rows_with_home_min_field_n_ge_2": 0,
+        "rows_with_away_min_field_n_ge_2": 0,
+        "rows_with_both_min_field_n_ge_2": 0,
+        "rows_with_home_min_field_n_ge_3": 0,
+        "rows_with_away_min_field_n_ge_3": 0,
+        "rows_with_both_min_field_n_ge_3": 0,
+    }
+    profile_failure_reasons: dict[str, int] = defaultdict(int)
+    field_prior_coverage = {
+        field: {
+            "home_rows_n_ge_1": 0,
+            "away_rows_n_ge_1": 0,
+            "both_rows_n_ge_1": 0,
+            "home_rows_n_ge_3": 0,
+            "away_rows_n_ge_3": 0,
+            "both_rows_n_ge_3": 0,
+        }
+        for field in STYLE_FIELDS
+    }
     evaluation_rows: list[dict[str, Any]] = []
 
     for row in rows:
@@ -395,8 +431,46 @@ def build_report(
 
         home_id = int(row.get("home_team_id") or 0)
         away_id = int(row.get("away_team_id") or 0)
-        home_profile, home_style_n = _profile(team_style[home_id])
-        away_profile, away_style_n = _profile(team_style[away_id])
+        home_history = team_style[home_id]
+        away_history = team_style[away_id]
+        home_counts = {field: len(home_history.get(field, [])) for field in STYLE_FIELDS}
+        away_counts = {field: len(away_history.get(field, [])) for field in STYLE_FIELDS}
+        home_any = max(home_counts.values(), default=0) > 0
+        away_any = max(away_counts.values(), default=0) > 0
+        home_min = min(home_counts.values(), default=0)
+        away_min = min(away_counts.values(), default=0)
+
+        prior_density["rows_with_home_any_prior_style"] += int(home_any)
+        prior_density["rows_with_away_any_prior_style"] += int(away_any)
+        prior_density["rows_with_both_any_prior_style"] += int(home_any and away_any)
+        for threshold in (1, 2, 3):
+            prior_density[f"rows_with_home_min_field_n_ge_{threshold}"] += int(home_min >= threshold)
+            prior_density[f"rows_with_away_min_field_n_ge_{threshold}"] += int(away_min >= threshold)
+            prior_density[f"rows_with_both_min_field_n_ge_{threshold}"] += int(
+                home_min >= threshold and away_min >= threshold
+            )
+
+        for field in STYLE_FIELDS:
+            h = int(home_counts.get(field) or 0)
+            a = int(away_counts.get(field) or 0)
+            field_prior_coverage[field]["home_rows_n_ge_1"] += int(h >= 1)
+            field_prior_coverage[field]["away_rows_n_ge_1"] += int(a >= 1)
+            field_prior_coverage[field]["both_rows_n_ge_1"] += int(h >= 1 and a >= 1)
+            field_prior_coverage[field]["home_rows_n_ge_3"] += int(h >= 3)
+            field_prior_coverage[field]["away_rows_n_ge_3"] += int(a >= 3)
+            field_prior_coverage[field]["both_rows_n_ge_3"] += int(h >= 3 and a >= 3)
+
+        if not home_any:
+            profile_failure_reasons["HOME_NO_PRIOR_STYLE_HISTORY"] += 1
+        elif home_min < MIN_TEAM_STYLE_N:
+            profile_failure_reasons["HOME_MIN_FIELD_LT_3"] += 1
+        if not away_any:
+            profile_failure_reasons["AWAY_NO_PRIOR_STYLE_HISTORY"] += 1
+        elif away_min < MIN_TEAM_STYLE_N:
+            profile_failure_reasons["AWAY_MIN_FIELD_LT_3"] += 1
+
+        home_profile, home_style_n = _profile(home_history)
+        away_profile, away_style_n = _profile(away_history)
         features = _style_features(
             home_profile,
             away_profile,
@@ -583,6 +657,16 @@ def build_report(
             ),
             "tactical_history_fixtures_loaded": len(tactical_events),
             "tactical_history_unique_teams": len(tactical_team_ids),
+            "source_unique_teams": len(source_team_ids),
+            "source_teams_present_anywhere_in_tactical_history": len(source_team_overlap),
+            "source_team_overlap_pct": (
+                round(len(source_team_overlap) / len(source_team_ids) * 100.0, 2)
+                if source_team_ids
+                else 0.0
+            ),
+            "prior_density": prior_density,
+            "profile_failure_reasons": dict(sorted(profile_failure_reasons.items())),
+            "field_prior_coverage": field_prior_coverage,
             "fields": list(STYLE_FIELDS),
             "minimum_prior_team_style_matches": MIN_TEAM_STYLE_N,
             "minimum_prior_residual_training_rows": MIN_STYLE_TRAIN_N,
