@@ -298,6 +298,7 @@ jobs:
               "CARDS": root / "analysis/phase14_cards_referee_validation.json",
               "PLAYER_PROPS": root / "analysis/phase15_player_props_validation.json",
               "PRIMARY_CLV_FUNNEL": root / "analysis/primary_clv_maturation_funnel_v4.json",
+              "FM3": root / "analysis/formation_matchup_fm3_oos_v1.json",
           }
 
           reports = {}
@@ -431,9 +432,36 @@ jobs:
 
               fm_health = corners.get("formation_matchup_health") if isinstance(corners, dict) else {}
               fm_health = fm_health if isinstance(fm_health, dict) else {}
+              fm3 = reports.get("FM3", {})
+              fm3 = fm3 if isinstance(fm3, dict) else {}
+              fm3_targets = fm3.get("targets") if isinstance(fm3.get("targets"), dict) else {}
               target["formation_matchup_health"] = {
                   **fm_health,
-                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json",
+                  "fm3_research": {
+                      "model_version": fm3.get("model_version"),
+                      "status": fm3.get("status") or "NOT_MATERIALIZED",
+                      "source_fixtures": int(fm3.get("source_fixtures") or 0),
+                      "targets": {
+                          key: {
+                              "status": value.get("status"),
+                              "observed_rows": int(value.get("observed_rows") or 0),
+                              "baseline_evaluations": int(value.get("baseline_evaluations") or 0),
+                              "formation_adjusted_evaluations": int(value.get("formation_adjusted_evaluations") or 0),
+                              "minimum_formation_adjusted_review": int(value.get("minimum_formation_adjusted_review") or 100),
+                              "improvement": value.get("improvement") if isinstance(value.get("improvement"), dict) else {},
+                              "matchup_concentration": value.get("matchup_concentration") if isinstance(value.get("matchup_concentration"), dict) else {},
+                              "blockers": list(value.get("blockers") or []),
+                              "production_enabled": value.get("production_enabled") is True,
+                              "decision_weight": float(value.get("decision_weight") or 0.0),
+                          }
+                          for key, value in fm3_targets.items()
+                          if isinstance(value, dict)
+                      },
+                      "health": fm3.get("health") if isinstance(fm3.get("health"), dict) else {},
+                      "production_enabled": False,
+                      "decision_weight": 0.0,
+                  },
+                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json + formation_matchup_fm3_oos_v1.json",
                   "canonical_state_merged_by_scheduler": True,
               }
               apply_family(families, "CARDS", reports.get("CARDS", {}))
