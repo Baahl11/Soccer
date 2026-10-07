@@ -157,9 +157,9 @@ def test_missing_final_remains_ungraded_and_does_not_fake_probability_score():
 
     assert ledger[0]["settlement_status"] == "NO_FINAL"
     assert ledger[0]["settled"] is False
-    assert ledger[0]["brier"] is None
+    assert ledger[0]["market_fair_brier"] is None
     assert summary["families"]["1X2"]["settled"] == 0
-    assert summary["families"]["1X2"]["probability_scored_rows"] == 0
+    assert summary["families"]["1X2"]["market_fair_probability_scored_rows"] == 0
 
 
 def test_non_target_clv_families_are_not_pulled_into_p1a_report():
