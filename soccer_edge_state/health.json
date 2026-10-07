@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-07T15:23:35.406442+00:00",
-  "generated_at_local": "2026-10-07T09:23:35.406442-06:00",
+  "generated_at_utc": "2026-10-07T15:31:08.657096+00:00",
+  "generated_at_local": "2026-10-07T09:31:08.657096-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 378,
-  "due_fixture_count": 127,
-  "event_count": 10,
-  "actionable_refresh_count": 3,
+  "due_fixture_count": 122,
+  "event_count": 11,
+  "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 45,
-  "last_daily_remaining": 4844,
+  "api_calls_this_tick": 54,
+  "last_daily_remaining": 4757,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -49,8 +49,8 @@
     "league_allowlist_applied": false,
     "market_capture_handoff_fixture_count": 152,
     "market_capture_handoff_tier_counts": {
-      "D": 104,
       "C": 118,
+      "D": 99,
       "B": 24,
       "A": 10
     },
@@ -63,7 +63,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-07T15:23:35.406442+00:00",
+    "generated_at_utc": "2026-10-07T15:31:08.657096+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -76,10 +76,10 @@
         "rows": 50,
         "unique_fixtures": 50,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 5,
-        "evaluated_signal_rows_this_tick": 5,
+        "candidate_signal_rows_this_tick": 7,
+        "evaluated_signal_rows_this_tick": 7,
         "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 5,
+        "not_matured_rows_this_tick": 7,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
         "canonical_state_loaded": true,
@@ -101,7 +101,7 @@
         "rows": 6,
         "unique_fixtures": 6,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 1,
+        "candidate_signal_rows_this_tick": 2,
         "evaluated_signal_rows_this_tick": 1,
         "strict_later_quote_rows_this_tick": 0,
         "not_matured_rows_this_tick": 1,
@@ -128,10 +128,10 @@
         "rows": 17,
         "unique_fixtures": 17,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 4,
-        "evaluated_signal_rows_this_tick": 4,
+        "candidate_signal_rows_this_tick": 8,
+        "evaluated_signal_rows_this_tick": 8,
         "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 4,
+        "not_matured_rows_this_tick": 8,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
           "BTTS_TRUE_CLV_17_LT_50"
@@ -155,10 +155,10 @@
         "rows": 0,
         "unique_fixtures": 0,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 14,
-        "evaluated_signal_rows_this_tick": 1,
+        "candidate_signal_rows_this_tick": 40,
+        "evaluated_signal_rows_this_tick": 3,
         "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 1,
+        "not_matured_rows_this_tick": 3,
         "maturation_state": "WAITING_STRICT_LATER_QUOTE",
         "canonical_blockers": [
           "CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
@@ -173,10 +173,10 @@
         "rows": 0,
         "unique_fixtures": 0,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 16,
-        "evaluated_signal_rows_this_tick": 1,
+        "candidate_signal_rows_this_tick": 48,
+        "evaluated_signal_rows_this_tick": 3,
         "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 1,
+        "not_matured_rows_this_tick": 3,
         "maturation_state": "WAITING_STRICT_LATER_QUOTE",
         "canonical_blockers": [
           "HALFTIME_CONDITIONED_CHALLENGER_DOES_NOT_BEAT_BASELINE",
@@ -190,11 +190,11 @@
         "rows": 0,
         "unique_fixtures": 0,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 0,
-        "evaluated_signal_rows_this_tick": 0,
+        "candidate_signal_rows_this_tick": 64,
+        "evaluated_signal_rows_this_tick": 2,
         "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 0,
-        "maturation_state": "NO_CURRENT_CLV_PROGRESS",
+        "not_matured_rows_this_tick": 2,
+        "maturation_state": "WAITING_STRICT_LATER_QUOTE",
         "canonical_blockers": [
           "FORMATION_ADJUSTED_43_LT_100",
           "FT_CORNERS_TRUE_CLV_0_LT_50",
@@ -1707,14 +1707,115 @@
       "decision_weight": 0.0
     },
     "fm5_readiness": {
-      "model_version": null,
-      "status": "NOT_MATERIALIZED",
+      "model_version": "FORMATION_FM5_READINESS_GATE_V1.0.0",
+      "status": "FM5_BLOCKED_EVIDENCE_GATES",
       "ready_components": [],
       "integration_review_allowed": false,
       "automatic_integration_allowed": false,
-      "blockers": [],
-      "fm4": {},
-      "corners": {},
+      "blockers": [
+        "FM2_FT_CORNERS_SPORT_OOS_NOT_READY",
+        "FM2_TEAM_CORNERS_SPORT_OOS_NOT_READY",
+        "FM4_GOALS_STYLE_OOS_NOT_READY",
+        "FM4_PERSONNEL_OUTCOME_ABLATION_NOT_READY",
+        "FM4_PERSONNEL_SAMPLE_NOT_READY",
+        "FM4_SHOTS_STYLE_OOS_NOT_READY",
+        "FM4_SOT_STYLE_OOS_NOT_READY",
+        "FM4_STYLE_HISTORY_2_LT_100"
+      ],
+      "fm4": {
+        "blockers": [
+          "FM4_STYLE_HISTORY_2_LT_100",
+          "FM4_GOALS_STYLE_OOS_NOT_READY",
+          "FM4_SHOTS_STYLE_OOS_NOT_READY",
+          "FM4_SOT_STYLE_OOS_NOT_READY",
+          "FM4_PERSONNEL_SAMPLE_NOT_READY",
+          "FM4_PERSONNEL_OUTCOME_ABLATION_NOT_READY"
+        ],
+        "leakage_contract_clean": true,
+        "minimum_prior_style_rows": 100,
+        "personnel": {
+          "component_ready_for_fm5_review": false,
+          "minimum_required": 100,
+          "outcome_ablation_ready": false,
+          "rows_with_both_last3_core_return_rate": 0,
+          "rows_with_both_previous_coach_comparable": 0,
+          "rows_with_both_prior_confirmed_xi": 0,
+          "sample_ready": false,
+          "source_blockers": [
+            "PERSONNEL_PRIOR_XI_0_LT_100",
+            "COACH_CONTINUITY_COMPARABLE_0_LT_100",
+            "LAST3_CORE_CONTINUITY_0_LT_100",
+            "PERSONNEL_OUTCOME_ABLATION_NOT_YET_VALIDATED"
+          ]
+        },
+        "prior_style_rows_both_teams_n_ge_3": 2,
+        "source_model_version": "FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.0.0",
+        "style_ready_targets": [],
+        "targets": {
+          "GOALS": {
+            "away_mae_improves": false,
+            "eligible_fixtures": 0,
+            "home_mae_improves": false,
+            "minimum_required": 100,
+            "source_blockers": [
+              "STYLE_ABLATION_0_LT_100",
+              "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
+            ],
+            "style_component_ready_for_fm5_review": false,
+            "total_mae_improves": false
+          },
+          "SHOTS": {
+            "away_mae_improves": false,
+            "eligible_fixtures": 0,
+            "home_mae_improves": false,
+            "minimum_required": 100,
+            "source_blockers": [
+              "STYLE_ABLATION_0_LT_100",
+              "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
+            ],
+            "style_component_ready_for_fm5_review": false,
+            "total_mae_improves": false
+          },
+          "SOT": {
+            "away_mae_improves": false,
+            "eligible_fixtures": 0,
+            "home_mae_improves": false,
+            "minimum_required": 100,
+            "source_blockers": [
+              "STYLE_ABLATION_0_LT_100",
+              "STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
+            ],
+            "style_component_ready_for_fm5_review": false,
+            "total_mae_improves": false
+          }
+        }
+      },
+      "corners": {
+        "blockers": [
+          "FM2_FT_CORNERS_SPORT_OOS_NOT_READY",
+          "FM2_TEAM_CORNERS_SPORT_OOS_NOT_READY"
+        ],
+        "ft_corners": {
+          "all_required_lines_improve_brier_and_log_loss": true,
+          "component_ready_for_fm5_review": false,
+          "formation_adjusted_evaluations": 43,
+          "mae_improves": true,
+          "minimum_required": 100,
+          "minimum_stable_lift_leagues": 2,
+          "stable_lift_league_count": 0
+        },
+        "source_model_version": "SOCCER_CORNERS_OOS_VALIDATION_V4_1.5.0",
+        "team_corners": {
+          "away_mae_improves": true,
+          "both_side_mae_improve": true,
+          "component_ready_for_fm5_review": false,
+          "formation_adjusted_evaluations": 43,
+          "home_mae_improves": true,
+          "league_venue_stability_review_ready": false,
+          "minimum_required": 100,
+          "total_mae_improves": true
+        }
+      },
       "production_enabled": false,
       "decision_weight": 0.0,
       "market_prices_consumed": false,
@@ -1731,11 +1832,11 @@
     "fallback_used": false,
     "fallback_reason": null,
     "fallback_source": null,
-    "candidate_count": 5,
+    "candidate_count": 9,
     "candidate_family_counts": {
-      "1X2": 5,
-      "BTTS": 4,
-      "FT_TOTALS": 1
+      "1X2": 7,
+      "BTTS": 8,
+      "FT_TOTALS": 2
     },
     "legacy_mode": "EMERGENCY_FALLBACK_ONLY"
   },
