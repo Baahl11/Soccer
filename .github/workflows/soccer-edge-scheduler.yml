@@ -274,6 +274,114 @@ jobs:
             market_mismatch_correlated_suppressed:(.market_mismatch_correlated_suppressed // []),
             latest_payload_policy:"COMPACT_OPERATIONAL_VIEW_FULL_TICK_IN_POSTGRES_COMPACT_HISTORY_IN_GIT"
           }' /tmp/soccer_tick.json > soccer_edge_state/latest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("soccer_edge_state")
+          latest_path = root / "latest.json"
+          health_path = root / "health.json"
+          latest = json.loads(latest_path.read_text(encoding="utf-8"))
+          health = json.loads(health_path.read_text(encoding="utf-8"))
+
+          report_paths = {
+              "FT_TOTALS": root / "analysis/v4_016_ft_totals_production_validation.json",
+              "1X2": root / "analysis/v4_017_1x2_calibration_validation.json",
+              "BTTS": root / "analysis/v4_018_btts_calibration_validation.json",
+              "TEAM_TOTALS": root / "analysis/v4_019_team_totals_oos_validation.json",
+              "1H": root / "analysis/v4_020_1h_oos_validation.json",
+              "2H": root / "analysis/v4_021_2h_oos_validation.json",
+              "CORNERS": root / "analysis/v4_022_corners_oos_validation.json",
+              "CARDS": root / "analysis/phase14_cards_referee_validation.json",
+              "PLAYER_PROPS": root / "analysis/phase15_player_props_validation.json",
+          }
+
+          reports = {}
+          for key, report_path in report_paths.items():
+              try:
+                  reports[key] = json.loads(report_path.read_text(encoding="utf-8"))
+              except Exception:
+                  reports[key] = {}
+
+          def state_for(row):
+              rows = int(row.get("rows") or 0)
+              minimum = int(row.get("minimum_rows") or 50)
+              if rows >= minimum:
+                  return "CLV_GATE_MET"
+              if int(row.get("strict_later_quote_rows_this_tick") or row.get("strict_later_quote_refreshes_this_tick") or 0) > 0:
+                  return "ADVANCING_THIS_TICK"
+              if (
+                  int(row.get("evaluated_signal_rows_this_tick") or 0) > 0
+                  and int(row.get("not_matured_rows_this_tick") or row.get("unchanged_provider_updates_this_tick") or 0) > 0
+              ):
+                  return "WAITING_STRICT_LATER_QUOTE"
+              if int(row.get("candidate_signal_rows_this_tick") or row.get("candidate_fixtures_this_tick") or 0) > 0:
+                  return "CANDIDATES_QUEUED"
+              if rows > 0:
+                  return "MATURATING"
+              return "NO_CURRENT_CLV_PROGRESS"
+
+          def apply_family(families, family, report, view=None):
+              source = view if isinstance(view, dict) else report
+              source = source if isinstance(source, dict) else {}
+              true_clv = source.get("true_clv")
+              true_clv = true_clv if isinstance(true_clv, dict) else {}
+              row = families.setdefault(family, {})
+              row["validation_status"] = source.get("status") or report.get("status") or report.get("validation_status")
+              row["rows"] = int(true_clv.get("rows") or 0)
+              row["unique_fixtures"] = int(true_clv.get("unique_fixtures") or 0)
+              row["minimum_rows"] = int(true_clv.get("minimum_rows") or 50)
+              row["canonical_blockers"] = list(source.get("blockers") or report.get("blockers") or [])
+              row["canonical_state_loaded"] = True
+              row["maturation_state"] = state_for(row)
+
+          for target in (latest, health):
+              mh = target.get("market_maturation_health")
+              if not isinstance(mh, dict):
+                  continue
+              families = mh.get("families")
+              if not isinstance(families, dict):
+                  continue
+              for family in ("FT_TOTALS", "1X2", "BTTS", "TEAM_TOTALS", "1H", "2H"):
+                  apply_family(families, family, reports.get(family, {}))
+              corners = reports.get("CORNERS", {})
+              corner_views = corners.get("family_views") if isinstance(corners, dict) else {}
+              corner_views = corner_views if isinstance(corner_views, dict) else {}
+              for family in ("FT_CORNERS", "TEAM_CORNERS"):
+                  apply_family(families, family, corners, corner_views.get(family))
+              apply_family(families, "CARDS", reports.get("CARDS", {}))
+
+              props = reports.get("PLAYER_PROPS", {})
+              props_true = props.get("true_clv") if isinstance(props, dict) else {}
+              props_true = props_true if isinstance(props_true, dict) else {}
+              props_views = props_true.get("by_family")
+              props_views = props_views if isinstance(props_views, dict) else {}
+              for source_key, family in (
+                  ("shots", "PROP_SHOTS"),
+                  ("sot", "PROP_SOT"),
+                  ("goalscorer", "PROP_GOALSCORER"),
+                  ("assists", "PROP_ASSISTS"),
+                  ("cards", "PROP_CARDS"),
+                  ("gk_saves", "PROP_GK_SAVES"),
+              ):
+                  view = props_views.get(source_key)
+                  view = view if isinstance(view, dict) else {}
+                  row = families.setdefault(family, {})
+                  row["validation_status"] = props.get("status") or props.get("validation_status")
+                  row["rows"] = int(view.get("rows") or 0)
+                  row["unique_fixtures"] = int(view.get("unique_fixtures") or 0)
+                  row["minimum_rows"] = int(view.get("minimum_rows") or 50)
+                  row["canonical_blockers"] = list(props.get("blockers") or [])
+                  row["canonical_state_loaded"] = True
+                  row["maturation_state"] = state_for(row)
+
+              mh["canonical_state_source"] = "soccer-edge-state/analysis"
+              mh["canonical_state_merged_by_scheduler"] = True
+
+          latest_path.write_text(json.dumps(latest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          health_path.write_text(json.dumps(health, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+
           jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.core_slate_floor_reconciliation | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object") and (.v4_014_model_disagreement_engine | type == "object") and (.v4_015_confidence_engine_v1 | type == "object") and (.v4_016_ft_totals_production_validation | type == "object") and (.v4_017_1x2_calibration_validation | type == "object") and (.v4_018_btts_calibration_validation | type == "object") and (.v4_019_team_totals_oos_validation | type == "object") and (.v4_020_1h_oos_validation | type == "object") and (.v4_021_2h_oos_validation | type == "object") and (.v4_022_corners_oos_validation | type == "object") and (.phase14_cards_referee_validation | type == "object") and (.phase15_player_props_validation | type == "object") and (.phase16_market_mismatch_finder | type == "object") and (.phase17_clv_engine | type == "object") and (.phase18_oos_backtest_framework | type == "object") and (.phase19_promotion_framework | type == "object") and (.phase20_bankroll_risk_engine | type == "object") and (.phase21_alert_engine | type == "object") and (.phase22_live_inplay_engine | type == "object") and (.phase23_mlops_model_registry | type == "object") and (.phase24_final_product_experience | type == "object") and (.dashboard_views | type == "object") and (.phase21_alert_audit_rows | type == "array") and (.market_mismatch_rows | type == "array") and (.price_resolution_v4 | type == "object") and (.player_props_clv_maturation_funnel | type == "object")' soccer_edge_state/latest.json >/dev/null
           test -s soccer_edge_state/latest.json
           # Git history is an operational audit trail, not the canonical full-tick store.
