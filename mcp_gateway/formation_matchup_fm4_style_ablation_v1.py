@@ -166,7 +166,11 @@ def _history_events(
                     {
                         "fixture_id": rec.get("fixture_id"),
                         "kickoff": kickoff,
-                        "captured_at": rec.get("lineup_detail_at"),
+                        "captured_at": (
+                            rec.get("lineup_detail_at").isoformat()
+                            if isinstance(rec.get("lineup_detail_at"), datetime)
+                            else rec.get("lineup_detail_at")
+                        ),
                         "stage": rec.get("lineup_detail_stage"),
                         "teams": detail_teams,
                     }
