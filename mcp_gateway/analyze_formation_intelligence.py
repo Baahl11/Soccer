@@ -105,6 +105,9 @@ def load_history(history_dir: str) -> dict[int, dict[str, Any]]:
                         "away_team_id": fx.get("away_team_id"),
                         "away_team": fx.get("away_team"),
                         "lineup_obs": [],
+                        "lineup_detail": None,
+                        "lineup_detail_at": None,
+                        "lineup_detail_stage": None,
                         "projection_obs": [],
                         "result": None,
                         "tactical_stats": None,
@@ -166,6 +169,44 @@ def load_history(history_dir: str) -> dict[int, dict[str, Any]]:
                         raw_af = raw_forms.get(aid)
 
                         if lineup.get("both_xi_confirmed"):
+                            if is_pre and generated is not None:
+                                compact_teams = []
+                                for team_row in teams:
+                                    if not isinstance(team_row, dict):
+                                        continue
+                                    team_id = team_row.get("team_id")
+                                    starters = [
+                                        {
+                                            "id": player.get("id"),
+                                            "name": player.get("name"),
+                                            "pos": player.get("pos"),
+                                            "grid": player.get("grid"),
+                                        }
+                                        for player in (team_row.get("starters") or [])
+                                        if isinstance(player, dict) and player.get("id") is not None
+                                    ]
+                                    if team_id is None or len(starters) < 11:
+                                        continue
+                                    compact_teams.append(
+                                        {
+                                            "team_id": int(team_id),
+                                            "team": team_row.get("team"),
+                                            "formation": team_row.get("formation"),
+                                            "coach_id": team_row.get("coach_id"),
+                                            "coach": team_row.get("coach"),
+                                            "starters": starters,
+                                        }
+                                    )
+                                if len(compact_teams) == 2:
+                                    previous_at = rec.get("lineup_detail_at")
+                                    if previous_at is None or generated >= previous_at:
+                                        rec["lineup_detail"] = {
+                                            "teams": compact_teams,
+                                            "both_xi_confirmed": True,
+                                            "lineup_state": lineup.get("lineup_state"),
+                                        }
+                                        rec["lineup_detail_at"] = generated
+                                        rec["lineup_detail_stage"] = event.get("stage")
                             if hf and af:
                                 if is_pre:
                                     audit["valid_both_prekickoff"] += 1
