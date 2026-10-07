@@ -33,6 +33,7 @@ def render() -> str:
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Soccer Edge</title>
 <meta name="theme-color" content="#06111a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a2a3f'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Arial' font-size='22' font-weight='700' fill='%235fbfff'%3ESE%3C/text%3E%3C/svg%3E">
 <style>
 :root{{
   --bg:#050b11;--bg2:#07121b;--panel:#091a27;--panel2:#0b2130;--line:#15364a;--line2:#23516b;
