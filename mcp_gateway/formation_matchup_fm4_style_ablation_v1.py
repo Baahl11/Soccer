@@ -532,6 +532,30 @@ def build_report(
         tactical_events, personnel_events = [], []
     tactical_index = 0
     personnel_index = 0
+    source_kickoffs = [
+        _dt(row.get("kickoff_local"))
+        for row in rows
+        if row.get("kickoff_local")
+    ]
+    source_kickoffs = [
+        value
+        for value in source_kickoffs
+        if value != datetime.min.replace(tzinfo=timezone.utc)
+    ]
+    tactical_kickoffs = [event["kickoff"] for event in tactical_events]
+    source_earliest = min(source_kickoffs) if source_kickoffs else None
+    source_latest = max(source_kickoffs) if source_kickoffs else None
+    tactical_earliest = min(tactical_kickoffs) if tactical_kickoffs else None
+    tactical_latest = max(tactical_kickoffs) if tactical_kickoffs else None
+    tactical_events_before_source_start = (
+        sum(
+            1
+            for event in tactical_events
+            if source_earliest and event["kickoff"] < source_earliest
+        )
+        if source_earliest
+        else 0
+    )
     personnel_by_fixture = {
         int(event.get("fixture_id") or 0): event
         for event in personnel_events
@@ -1073,6 +1097,14 @@ def build_report(
     }
     global_blockers.extend(personnel_blockers)
 
+    both_prior_style_n = int(
+        prior_density.get("rows_with_both_min_field_n_ge_3") or 0
+    )
+    if both_prior_style_n < 100:
+        global_blockers.append(
+            f"STYLE_HISTORY_DEPTH_BOTH_TEAMS_N_GE_3_{both_prior_style_n}_LT_100"
+        )
+
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
@@ -1089,6 +1121,24 @@ def build_report(
                 "ALL_PRIOR_VERIFIED_TACTICAL_HISTORY"
                 if history_dir
                 else "FORMATION_ROWS_ONLY_FALLBACK"
+            ),
+            "source_date_range": {
+                "earliest": source_earliest.isoformat() if source_earliest else None,
+                "latest": source_latest.isoformat() if source_latest else None,
+            },
+            "tactical_history_date_range": {
+                "earliest": tactical_earliest.isoformat() if tactical_earliest else None,
+                "latest": tactical_latest.isoformat() if tactical_latest else None,
+            },
+            "tactical_events_before_source_start": tactical_events_before_source_start,
+            "history_depth_status": (
+                "INSUFFICIENT_PRIOR_DEPTH"
+                if both_prior_style_n < 100
+                else "REVIEW_DENSITY_REACHED"
+            ),
+            "history_depth_policy": (
+                "Do not relax MIN_TEAM_STYLE_N or use future/post-target tactical data. "
+                "Accumulate verified earlier match statistics or perform a separately budgeted historical backfill."
             ),
             "tactical_history_fixtures_loaded": len(tactical_events),
             "tactical_history_unique_teams": len(tactical_team_ids),
