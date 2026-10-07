@@ -958,3 +958,49 @@ FE-0 stabilization
 ```
 
 The existing mockup and product work should be preserved as design/product reference, not as the long-term rendering architecture.
+
+
+---
+
+## Remediation status — 2026-10-07
+
+The audit remediation is now actively implemented.
+
+```text
+FE-0 Frontend stabilization       COMPLETE / MERGED
+FE-1 Subscriber API v2            COMPLETE / MERGED
+FE-2 Premium shell preview        COMPLETE / MERGED / LIVE ON /app-v2
+```
+
+### FE-0
+
+- production first paint is gated behind one loading surface;
+- V230 mock JavaScript bootstrap is retired from the active path;
+- app and preview readiness are coordinated through explicit events;
+- duplicate startup fetches were removed from V234/V235;
+- V236/V237 startup MutationObserver/timer loops were removed;
+- active FE-0 regression CI is green.
+
+### FE-1
+
+- a versioned read-only subscriber contract is available under `/app/api/v2/*`;
+- Picks requires an explicit persisted BET classification;
+- Leans requires an explicit persisted LEAN classification;
+- READY/STRONG is never promoted into BET by the frontend;
+- Raw Sport, Market-Shrunk, calibrated model, fair market and breakeven probabilities remain distinct;
+- missing XI/GK/injury/weather evidence remains NOT VERIFIED;
+- FREE/anonymous premium values are server-redacted;
+- active FE-1 CI is green.
+
+### FE-2
+
+- a clean commercial preview exists at `/app-v2`;
+- primary subscriber navigation is Today, Picks, Leans, Matches, Performance, My Edge and Account;
+- operator surfaces are not in primary customer navigation;
+- the shell uses one bootstrap controller;
+- no design-time mock picks are embedded;
+- Match Intelligence consumes the V2 contract;
+- billing mutations are intentionally not enabled in the preview;
+- active FE-2 CI is green.
+
+The old `/app` remains the production customer route until the live visual/browser audit of `/app-v2` passes and the replacement is explicitly executed.
