@@ -201,9 +201,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   </section>
 
   <section id="account" class="page account-page">
-    <div class="page-head"><div><h1>Account</h1><div class="sub">Authentication and entitlement state are resolved server-side.</div></div></div>
+    <div class="page-head"><div><h1>Account</h1><div class="sub">Authentication, entitlement and subscription lifecycle are resolved server-side.</div></div></div>
     <div class="panel account-card"><div><h2 id="accountPlan">Explorer</h2><p id="accountCopy">Browse the verified slate and watch states. Premium decision evidence stays redacted until entitlement permits it.</p></div><button id="accountPageBtn" class="primary">Sign in</button></div>
-    <div class="panel"><div class="panel-head"><h3>Commercial readiness</h3></div><div class="sub">Subscription infrastructure already exists, but this preview does not initiate billing. Checkout/paywall polish is governed by FE-7.</div></div>
+    <div id="billingBody" class="panel"><div class="empty"><b>Open Account to load subscription state.</b>Checkout remains disabled until the public billing launch gate is explicitly enabled.</div></div>
   </section>
 </main>
 </div>
@@ -224,7 +224,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 (() => {{
   const AK='soccer_edge_access_token',RK='soccer_edge_refresh_token';
   const cfg=(()=>{{try{{return JSON.parse(document.getElementById('soccer-edge-v2-config')?.textContent||'{{}}')}}catch(_){{return {{}}}}}})();
-  let DATA=null,ACCESS=null,PERF_LOADED=false,MYEDGE_LOADED=false,SAVED_ROWS=[];
+  let DATA=null,ACCESS=null,PERF_LOADED=false,MYEDGE_LOADED=false,SAVED_ROWS=[],ACCOUNT_LOADED=false,ACCOUNT_DATA=null;
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]));
   const token=()=>localStorage.getItem(AK)||'';
@@ -237,6 +237,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   const dt=raw=>{{if(!raw)return ['TBD','Kickoff'];const d=new Date(raw);if(Number.isNaN(d.getTime()))return [String(raw),'Kickoff'];return [new Intl.DateTimeFormat(undefined,{{hour:'2-digit',minute:'2-digit'}}).format(d),new Intl.DateTimeFormat(undefined,{{month:'short',day:'numeric'}}).format(d)]}};
   const api=async(path)=>{{const h={{}};if(token())h.Authorization='Bearer '+token();const r=await fetch((cfg.api_base||'/app/api/v2')+path,{{headers:h,cache:'no-store'}});const d=await r.json().catch(()=>({{}}));if(!r.ok)throw Object.assign(new Error(d.error||('HTTP '+r.status)),{{status:r.status,data:d}});return d}};
   const apiWrite=async(path,method,body)=>{{const h={{Authorization:'Bearer '+token(),'Content-Type':'application/json'}},opts={{method,headers:h,cache:'no-store'}};if(body!==undefined&&body!==null)opts.body=JSON.stringify(body);const r=await fetch((cfg.api_base||'/app/api/v2')+path,opts),d=await r.json().catch(()=>({{}}));if(!r.ok)throw Object.assign(new Error(d.error||('HTTP '+r.status)),{{status:r.status,data:d}});return d}};
+  const billingCall=async(slug,body={{}})=>{{if(!token())throw new Error('AUTH_REQUIRED');if(!cfg.supabase_url||!cfg.publishable_key)throw new Error('BILLING_CONFIGURATION_UNAVAILABLE');const r=await fetch(cfg.supabase_url+'/functions/v1/'+slug,{{method:'POST',headers:{{Authorization:'Bearer '+token(),apikey:cfg.publishable_key,'Content-Type':'application/json'}},body:JSON.stringify(body)}}),d=await r.json().catch(()=>({{}}));if(!r.ok)throw Object.assign(new Error(d.error||('HTTP '+r.status)),{{status:r.status,data:d}});return d}};
   const publicJson=async(path)=>{{const r=await fetch(path,{{cache:'no-store'}});const d=await r.json().catch(()=>({{}}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}};
   function candidateRows(){{return [...(DATA?.picks?.rows||[]),...(DATA?.leans?.rows||[]),...(DATA?.watches?.rows||[])]}}
   function fixtureTargets(){{return [...(DATA?.slate?.rows||[]),...candidateRows()]}}
@@ -328,6 +329,23 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   async function removeSaved(key){{if(!key)return;try{{await apiWrite('/my-edge?item_key='+encodeURIComponent(key),'DELETE',null);SAVED_ROWS=SAVED_ROWS.filter(x=>x.item_key!==key);renderMyEdge(SAVED_ROWS)}}catch(e){{$('savedBody').innerHTML=empty('Could not remove item',e.message)}}}}
   async function loadMyEdge(force=false){{const box=$('savedBody');if(!token()){{box.innerHTML=empty('Sign in to use My Edge','Saved items are attached to your authenticated account.');return}}if(!premium()){{box.innerHTML=lock('My Edge',0);return}}if(MYEDGE_LOADED&&!force){{renderMyEdge(SAVED_ROWS);return}}box.innerHTML=empty('Loading My Edge','Reading your account-saved items…');try{{const d=await api('/my-edge');MYEDGE_LOADED=true;renderMyEdge(d.rows||[])}}catch(e){{box.innerHTML=empty('My Edge unavailable',e.message)}}}}
 
+  function checkoutQueryStatus(){{const q=new URLSearchParams(location.search),value=q.get('checkout');return value==='success'?'Checkout completed. Your PRO access updates only after the verified Stripe webhook persists the entitlement.':value==='cancel'?'Checkout canceled. No subscription change was assumed.':null}}
+  function renderBillingState(account){{ACCOUNT_DATA=account||{{}};const box=$('billingBody'),state=account?.billing_state||{{}},billing=state.billing||{{}},markets=billing.markets||{{}},owner=state.owner_or_admin_override===true,status=state.status||state.effective_plan_reason||'NOT VERIFIED',queryNote=checkoutQueryStatus();
+    if(!account?.access?.authenticated){{box.innerHTML='<div class="panel-head"><h3>Edge Pro</h3><span class="decision">SIGN IN</span></div><div class="sub">Sign in before managing a subscription. Billing market and price are never inferred from language or location.</div>';return}}
+    if(owner){{box.innerHTML='<div class="panel-head"><h3>Internal Pro access</h3><span class="decision bet">OWNER / ADMIN</span></div><div class="sub">This account has verified internal Pro access. It is never prompted to purchase a subscription.</div>';return}}
+    const entries=Object.entries(markets),options='<option value="">Choose billing market</option>'+entries.map(([key,v])=>'<option value="'+esc(key)+'">'+esc(key==='US'?'United States':'Mexico / LATAM')+' — '+esc(v.display_price||'Price NOT VERIFIED')+'</option>').join('');
+    const lifecycle='<div class="detail-list">'+detailKV('Effective plan',state.effective_plan||'FREE')+detailKV('Subscription status',status)+detailKV('Current period end',state.current_period_end||'NOT VERIFIED')+detailKV('Cancel at period end',state.cancel_at_period_end===null||state.cancel_at_period_end===undefined?'NOT VERIFIED':state.cancel_at_period_end?'YES':'NO')+'</div>';
+    let action='';
+    if(state.manage_subscription_eligible)action='<button id="manageBillingBtn" type="button" class="primary">Manage subscription</button>';
+    else if(state.upgrade_eligible)action='<select id="billingMarket" style="width:100%;margin:10px 0 8px;padding:9px;border-radius:8px;border:1px solid #1d4359;background:#071722;color:#eff7fb">'+options+'</select><button id="upgradeBillingBtn" type="button" class="primary">Upgrade with Stripe Checkout</button>';
+    else if(!billing.public_launch_enabled)action='<div class="badge warn">Billing infrastructure ready · public launch disabled</div>';
+    else if(String(state.effective_plan||'').toUpperCase()==='PRO')action='<div class="badge good">Edge Pro active</div>';
+    box.innerHTML='<div class="panel-head"><div><h3>Edge Pro subscription</h3><div class="sub">Stripe-hosted Checkout · Customer Portal · webhook-authoritative entitlement</div></div><span class="fresh-chip">'+esc(billing.status||'BILLING STATE')+'</span></div>'+lifecycle+'<div style="margin-top:12px">'+action+'</div>'+(queryNote?'<div class="reason"><b>Checkout:</b> '+esc(queryNote)+'</div>':'')+'<div class="reason"><b>Pricing:</b> '+entries.map(([k,v])=>esc((k==='US'?'US':'MX/LATAM')+' '+(v.display_price||'NOT VERIFIED'))).join(' · ')+'<br>Choose your billing market explicitly. The browser never sends a Stripe Price ID.</div>';
+    const upgrade=$('upgradeBillingBtn');if(upgrade)upgrade.onclick=async()=>{{const market=$('billingMarket')?.value||'';if(!['US','MX_LATAM'].includes(market)){{upgrade.textContent='Choose billing market first';return}}upgrade.disabled=true;upgrade.textContent='Opening secure Checkout…';try{{const d=await billingCall(billing.checkout_function||'create-checkout-session',{{billing_market:market}});if(!d.url)throw new Error('CHECKOUT_URL_MISSING');location.href=d.url}}catch(e){{upgrade.disabled=false;upgrade.textContent=e.message}}}};
+    const manage=$('manageBillingBtn');if(manage)manage.onclick=async()=>{{manage.disabled=true;manage.textContent='Opening portal…';try{{const d=await billingCall(billing.portal_function||'create-customer-portal',{{}});if(!d.url)throw new Error('PORTAL_URL_MISSING');location.href=d.url}}catch(e){{manage.disabled=false;manage.textContent=e.message}}}}
+  }}
+  async function loadAccount(force=false){{const box=$('billingBody');if(ACCOUNT_LOADED&&!force){{renderBillingState(ACCOUNT_DATA);return}}box.innerHTML=empty('Loading subscription state','Reading verified entitlement and billing lifecycle…');try{{const d=await api('/account');ACCOUNT_LOADED=true;renderBillingState(d)}}catch(e){{box.innerHTML=empty('Account unavailable',e.message)}}}}
+
   function performanceFamilyRows(rows){{if(!rows?.length)return '<tr><td colspan="7">No verified BET-family settlement sample.</td></tr>';return rows.map(r=>'<tr><td>'+esc(r.market_family||'N/V')+'</td><td>'+esc(r.settled??'—')+'</td><td>'+esc((r.win??0)+'-'+(r.loss??0)+'-'+(r.push??0))+'</td><td>'+pct(r.hit_rate_ex_push)+'</td><td>'+units(r.roi_units)+'</td><td>'+esc(r.ungraded??'—')+'</td><td>'+esc(r.status||'N/V')+'</td></tr>').join('')}}
   function validationRows(rows){{if(!rows?.length)return '<tr><td colspan="7">No persisted OOS/validation rows available.</td></tr>';return rows.map(r=>'<tr><td>'+esc(r.label||'N/V')+'</td><td>'+esc(r.sample_n??'—')+'</td><td>'+esc(r.settled??'—')+'</td><td>'+esc(r.roi_units??'—')+'</td><td>'+esc(r.avg_clv_pp??'—')+'</td><td>'+esc(r.brier??'—')+'</td><td>'+esc(r.status||'N/V')+'</td></tr>').join('')}}
   async function loadPerformance(){{if(PERF_LOADED)return;PERF_LOADED=true;const box=$('performanceBody');if(!premium()){{box.innerHTML=lock('Verified Performance',0);return}}box.innerHTML=empty('Loading performance','Reading canonical settlement and validation evidence…');try{{const d=await api('/performance'),bet=d.bet_track_record||{{}},lean=d.research_lean||{{}},settlement=d.settlement||{{}},clv=d.true_clv||{{}},validation=d.validation_evidence||{{}},notes=d.notes||[];
@@ -342,7 +360,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     box.innerHTML=headline+trust+betFamilies+leanResearch+validationBlock+noteHtml
   }}catch(e){{box.innerHTML=empty('Performance unavailable',e.message)}}}}
 
-  function activate(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));window.scrollTo({{top:0,behavior:'smooth'}});if(id==='performance')loadPerformance();if(id==='myedge')loadMyEdge()}}
+  function activate(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));window.scrollTo({{top:0,behavior:'smooth'}});if(id==='performance')loadPerformance();if(id==='myedge')loadMyEdge();if(id==='account')loadAccount()}}
   document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>activate(b.dataset.page));document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>activate(b.dataset.go));
   const modal=$('authModal'),openAuth=()=>{{modal.classList.add('open');modal.setAttribute('aria-hidden','false')}},closeAuth=()=>{{modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}};
   $('accountBtn').onclick=()=>token()?activate('account'):openAuth();$('accountPageBtn').onclick=openAuth;$('closeAuth').onclick=closeAuth;
@@ -383,6 +401,9 @@ def contract() -> dict[str, Any]:
         "research_oos_separate_from_realized_bets": True,
         "my_edge_persistence": "SUPABASE_RLS_SUBSCRIBER_SAVED_ITEMS",
         "my_edge_model_input_allowed": False,
+        "billing_surface": "GUARDED_STRIPE_HOSTED_CHECKOUT_CUSTOMER_PORTAL",
+        "browser_sends_stripe_price_id": False,
+        "public_billing_launch_default": False,
         "frontend_creates_bet_or_lean": False,
         "provider_requests_added": 0,
         "canonical_bet_logic_changed": False,
