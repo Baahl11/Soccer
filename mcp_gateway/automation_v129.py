@@ -12,7 +12,7 @@ from mcp_gateway import team_totals_clv_anchor_v4
 from mcp_gateway import team_totals_close_provenance_v4
 
 MODEL_VERSION = v128.MODEL_VERSION
-AUTOMATION_VERSION = "4.38.7-normalized-primary-clv-anchor"
+AUTOMATION_VERSION = "4.38.8-normalized-primary-clv-anchor-fallback"
 
 
 def _int_map(value: Any) -> dict[str, int]:
@@ -209,11 +209,37 @@ async def run_tick() -> dict[str, Any]:
     original_corners_loader = price_resolver_v4._load_corners_clv_maturation_backlog
     original_team_totals_loader = price_resolver_v4._load_team_totals_maturation_backlog
     primary_loader_observation: dict[str, Any] = {}
+    primary_loader_fallback: dict[str, Any] = {
+        "used": False,
+        "reason": None,
+        "normalized_error_type": None,
+        "normalized_error": None,
+        "fallback_source": None,
+    }
     team_totals_candidate_events: list[dict[str, Any]] = []
 
     def observed_primary_loader(*args: Any, **kwargs: Any) -> dict[str, Any]:
         kwargs.setdefault("include_diagnostics", False)
-        report = primary_clv_anchor_normalized_v4.load_primary_clv_maturation_backlog(*args, **kwargs)
+        try:
+            report = primary_clv_anchor_normalized_v4.load_primary_clv_maturation_backlog(
+                *args, **kwargs
+            )
+        except Exception as exc:
+            # Emergency-only compatibility fallback. The normalized relational
+            # loader is the normal hot path; legacy JSON expansion is used only
+            # if that loader itself fails, preserving scheduler continuity.
+            report = primary_clv_anchor_v4.load_primary_clv_maturation_backlog(
+                *args, **kwargs
+            )
+            primary_loader_fallback.update(
+                {
+                    "used": True,
+                    "reason": "NORMALIZED_PRIMARY_CLV_LOADER_EXCEPTION",
+                    "normalized_error_type": type(exc).__name__,
+                    "normalized_error": str(exc)[:500],
+                    "fallback_source": report.get("source"),
+                }
+            )
         primary_loader_observation.clear()
         primary_loader_observation.update(
             {
@@ -229,7 +255,13 @@ async def run_tick() -> dict[str, Any]:
                 "provider_requests_added": int(report.get("provider_requests_added") or 0),
                 "selection_logic_changed": bool(report.get("selection_logic_changed", False)),
                 "normalized_storage": bool(report.get("normalized_storage", False)),
-                "legacy_json_expansion_used": bool(report.get("legacy_json_expansion_used", True)),
+                "legacy_json_expansion_used": bool(
+                    primary_loader_fallback.get("used")
+                    or report.get("legacy_json_expansion_used", False)
+                ),
+                "fallback_used": bool(primary_loader_fallback.get("used")),
+                "fallback_reason": primary_loader_fallback.get("reason"),
+                "fallback_source": primary_loader_fallback.get("fallback_source"),
             }
         )
         return report
@@ -308,7 +340,10 @@ async def run_tick() -> dict[str, Any]:
         "gates_changed": False,
         "canonical_bet_logic_changed": False,
         "normalized_signal_storage": True,
-        "legacy_pipeline_json_expansion_in_live_loader": False,
+        "legacy_pipeline_json_expansion_in_live_loader": bool(
+            primary_loader_fallback.get("used")
+        ),
+        "normalized_loader_fallback": dict(primary_loader_fallback),
         "frontend_changed": False,
         "policy": (
             "SELECT_OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_FIXTURE_FAMILY; "
