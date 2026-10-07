@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check -q pytest
+          python -m pip install --disable-pip-version-check -q pytest -r mcp_gateway/requirements.txt
           PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_formation_fm5_readiness_gate_v1.py
 
