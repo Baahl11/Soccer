@@ -1,0 +1,31 @@
+name: FE8 Landing Conversion
+
+on:
+  push:
+    branches:
+      - fe8-landing-conversion
+    paths:
+      - mcp_gateway/landing_page_v2.py
+      - mcp_gateway/__init__.py
+      - tests/test_fe8_landing_conversion.py
+      - .github/workflows/fe8-landing-conversion.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile landing surface
+        run: |
+          python -W error::SyntaxWarning -m py_compile             mcp_gateway/landing_page_v2.py             mcp_gateway/__init__.py
+      - name: Run FE8 conversion regressions
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider             tests/test_fe8_landing_conversion.py             tests/test_fe7_subscriptions.py             tests/test_fe6_my_edge.py             tests/test_subscriber_frontend_v2.py

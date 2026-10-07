@@ -93,6 +93,7 @@ def _install_subscriber_app_routes() -> None:
         app = original(self, *args, **kwargs)
         from mcp_gateway import (
             content_factory_http_v4,
+            landing_page_v2,
             subscriber_product_v235,
             subscriber_contract_v2,
             subscriber_frontend_v2,
@@ -108,6 +109,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/", auth_landing, methods=["GET"], name="v226_auth_landing"))
         if "/internal/content-packages" not in existing_paths:
             additions.append(Route("/internal/content-packages", content_factory_http_v4.content_packages, methods=["POST"], name="v225_content_packages"))
+        if "/landing-v2" not in existing_paths:
+            additions.append(Route("/landing-v2", landing_page_v2.landing_page, methods=["GET"], name="landing_v2_preview"))
         if "/app" not in existing_paths:
             additions.append(Route("/app", subscriber_product_v235.app_page, methods=["GET"], name="v235_subscriber_product"))
         if "/app-v2" not in existing_paths:
