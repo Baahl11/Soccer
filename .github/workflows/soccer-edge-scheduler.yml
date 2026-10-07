@@ -327,6 +327,7 @@ jobs:
               "PRIMARY_CLV_FUNNEL": root / "analysis/primary_clv_maturation_funnel_v4.json",
               "FM3": root / "analysis/formation_matchup_fm3_oos_v1.json",
               "FM4": root / "analysis/formation_matchup_fm4_style_ablation_v1.json",
+              "PROSPECTIVE": root / "analysis/prospective_evaluation_summary_v1.json",
           }
 
           reports = {}
@@ -368,7 +369,70 @@ jobs:
               row["canonical_state_loaded"] = True
               row["maturation_state"] = state_for(row)
 
+          prospective = reports.get("PROSPECTIVE", {})
+          prospective = prospective if isinstance(prospective, dict) else {}
+          endpoint_summary = (
+              prospective.get("endpoint_summary")
+              if isinstance(prospective.get("endpoint_summary"), dict)
+              else {}
+          )
+          by_track = (
+              endpoint_summary.get("by_track")
+              if isinstance(endpoint_summary.get("by_track"), dict)
+              else {}
+          )
+          graded = (
+              endpoint_summary.get("graded_bet_sample")
+              if isinstance(endpoint_summary.get("graded_bet_sample"), dict)
+              else {}
+          )
+          graded_settled = int(graded.get("settled") or 0)
+          graded_target = int(endpoint_summary.get("graded_bet_target") or 100)
+
           for target in (latest, health):
+              target["prospective_evaluation_health"] = {
+                  "status": prospective.get("status") or "NOT_MATERIALIZED",
+                  "model_version": prospective.get("model_version"),
+                  "policy_hash": prospective.get("policy_hash"),
+                  "cohort_start_utc": (
+                      (prospective.get("policy") or {}).get("cohort_start_utc")
+                      if isinstance(prospective.get("policy"), dict)
+                      else None
+                  ),
+                  "canonical_selection_rows": int(
+                      prospective.get("canonical_selection_rows") or 0
+                  ),
+                  "canonical_selection_unique_fixtures": int(
+                      prospective.get("canonical_selection_unique_fixtures") or 0
+                  ),
+                  "one_x_two": (
+                      by_track.get("1X2")
+                      if isinstance(by_track.get("1X2"), dict)
+                      else {}
+                  ),
+                  "team_totals": (
+                      by_track.get("TEAM_TOTALS")
+                      if isinstance(by_track.get("TEAM_TOTALS"), dict)
+                      else {}
+                  ),
+                  "graded_bet_sample": graded,
+                  "graded_bet_target": graded_target,
+                  "graded_bet_remaining": max(0, graded_target - graded_settled),
+                  "material_recalibration_allowed": (
+                      endpoint_summary.get("material_recalibration_allowed") is True
+                  ),
+                  "team_totals_counts_toward_graded_bet_gate": False,
+                  "selection_append_only": (
+                      prospective.get("append_only_selection_policy") is True
+                  ),
+                  "outcomes_used_for_selection": False,
+                  "production_promotion_allowed": False,
+                  "canonical_state_source": (
+                      "soccer-edge-state/analysis/prospective_evaluation_summary_v1.json"
+                  ),
+                  "canonical_state_merged_by_scheduler": True,
+              }
+
               mh = target.get("market_maturation_health")
               if not isinstance(mh, dict):
                   continue
@@ -563,7 +627,7 @@ jobs:
           health_path.write_text(json.dumps(health, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
 
-          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.core_slate_floor_reconciliation | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object") and (.v4_014_model_disagreement_engine | type == "object") and (.v4_015_confidence_engine_v1 | type == "object") and (.v4_016_ft_totals_production_validation | type == "object") and (.v4_017_1x2_calibration_validation | type == "object") and (.v4_018_btts_calibration_validation | type == "object") and (.v4_019_team_totals_oos_validation | type == "object") and (.v4_020_1h_oos_validation | type == "object") and (.v4_021_2h_oos_validation | type == "object") and (.v4_022_corners_oos_validation | type == "object") and (.phase14_cards_referee_validation | type == "object") and (.phase15_player_props_validation | type == "object") and (.phase16_market_mismatch_finder | type == "object") and (.phase17_clv_engine | type == "object") and (.phase18_oos_backtest_framework | type == "object") and (.phase19_promotion_framework | type == "object") and (.phase20_bankroll_risk_engine | type == "object") and (.phase21_alert_engine | type == "object") and (.phase22_live_inplay_engine | type == "object") and (.phase23_mlops_model_registry | type == "object") and (.phase24_final_product_experience | type == "object") and (.dashboard_views | type == "object") and (.phase21_alert_audit_rows | type == "array") and (.market_mismatch_rows | type == "array") and (.price_resolution_v4 | type == "object") and (.formation_matchup_health | type == "object") and (.primary_clv_loader_health | type == "object") and (.primary_clv_maturation_funnel | type == "object") and (.player_props_clv_maturation_funnel | type == "object")' soccer_edge_state/latest.json >/dev/null
+          jq -e '.generated_at_utc and (.fixture_scan_count != null) and (.database_persisted != null) and (.v4_005_score_matrix_observability | type == "object") and (.v4_006_fair_scheduler | type == "object") and (.core_slate_floor_reconciliation | type == "object") and (.v4_007_feature_snapshot_schema | type == "object") and (.v4_008_reproducible_training_dataset | type == "object") and (.v4_009_dixon_coles_baseline | type == "object") and (.v4_010_bivariate_poisson_baseline | type == "object") and (.v4_011_lightgbm_goals_challenger | type == "object") and (.v4_012_ensemble_v1 | type == "object") and (.v4_013_calibration_engine_v1 | type == "object") and (.v4_014_model_disagreement_engine | type == "object") and (.v4_015_confidence_engine_v1 | type == "object") and (.v4_016_ft_totals_production_validation | type == "object") and (.v4_017_1x2_calibration_validation | type == "object") and (.v4_018_btts_calibration_validation | type == "object") and (.v4_019_team_totals_oos_validation | type == "object") and (.v4_020_1h_oos_validation | type == "object") and (.v4_021_2h_oos_validation | type == "object") and (.v4_022_corners_oos_validation | type == "object") and (.phase14_cards_referee_validation | type == "object") and (.phase15_player_props_validation | type == "object") and (.phase16_market_mismatch_finder | type == "object") and (.phase17_clv_engine | type == "object") and (.phase18_oos_backtest_framework | type == "object") and (.phase19_promotion_framework | type == "object") and (.phase20_bankroll_risk_engine | type == "object") and (.phase21_alert_engine | type == "object") and (.phase22_live_inplay_engine | type == "object") and (.phase23_mlops_model_registry | type == "object") and (.phase24_final_product_experience | type == "object") and (.dashboard_views | type == "object") and (.phase21_alert_audit_rows | type == "array") and (.market_mismatch_rows | type == "array") and (.price_resolution_v4 | type == "object") and (.formation_matchup_health | type == "object") and (.prospective_evaluation_health | type == "object") and (.primary_clv_loader_health | type == "object") and (.primary_clv_maturation_funnel | type == "object") and (.player_props_clv_maturation_funnel | type == "object")' soccer_edge_state/latest.json >/dev/null
           test -s soccer_edge_state/latest.json
           # Git history is an operational audit trail, not the canonical full-tick store.
           # Full payloads are durable in Postgres. Keep one compact record per tick so a
