@@ -111,9 +111,11 @@ jobs:
               console_errors = []
               page_errors = []
               failed_requests = []
+              http_errors = []
               page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
               page.on("pageerror", lambda exc: page_errors.append(str(exc)))
               page.on("requestfailed", lambda req: failed_requests.append({"url": req.url, "failure": str(req.failure)}))
+              page.on("response", lambda res: http_errors.append({"url": res.url, "status": res.status}) if res.status >= 400 else None)
               page.set_viewport_size({"width": width, "height": height})
               response = page.goto(base + "/app-v2", wait_until="networkidle", timeout=60000)
               assert response and response.ok, f"{name} page status={response.status if response else None}"
@@ -149,6 +151,7 @@ jobs:
                   "console_errors": console_errors,
                   "page_errors": page_errors,
                   "failed_requests": failed_requests,
+                  "http_errors": http_errors,
                   "body_text_excerpt": body_text[:2500],
               }
               report[name] = row
@@ -167,6 +170,8 @@ jobs:
                   failures.append(f"{name}: page errors={page_errors}")
               if console_errors:
                   failures.append(f"{name}: console errors={console_errors}")
+              if http_errors:
+                  failures.append(f"{name}: HTTP errors={http_errors}")
 
           with sync_playwright() as p:
               browser = p.chromium.launch(
