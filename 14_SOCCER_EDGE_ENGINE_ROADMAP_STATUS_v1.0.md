@@ -831,3 +831,64 @@ Until Render is synchronized, the personnel backfill workflow receives HTTP 404 
 
 Do not work around this deployment issue by lowering personnel-history requirements.
 
+
+
+---
+
+# 12. RENDER/PERSONNEL DEPLOYMENT RESOLVED — 2026-10-07
+
+The deployment blocker documented in the previous section is resolved.
+
+Render workspace:
+
+```text
+Baahl
+```
+
+Service:
+
+```text
+soccer-edge-api
+```
+
+Live deployed engine commit:
+
+```text
+2869ca085fcdad826280247653319ec4ce2572bd
+```
+
+The protected FM-4 personnel-history route is now available and the post-deploy workflow completed successfully.
+
+First successful batch:
+
+```text
+attempted = 8
+captured = 7
+incomplete = 1
+errors = 0
+provider requests = 8
+materialized canonical personnel history fixtures = 7
+```
+
+Current FM-4 personnel evidence remains below review gates:
+
+```text
+both-team prior confirmed XI rows = 0 / 100
+both-team previous-coach comparable rows = 0 / 100
+both-team last-3 core-return rows = 0 / 100
+personnel GOALS outcome ablation = 0 / 100
+```
+
+Therefore the roadmap is now:
+
+```text
+CODE IMPLEMENTATION COMPLETE THROUGH FM-7
++
+RENDER ROUTE SYNCHRONIZED
++
+PERSONNEL BACKFILL OPERATIONAL
+→ continue evidence accumulation
+→ no production promotion
+```
+
+No threshold was reduced, no historical prediction was rewritten, no retroactive bet/market was created, and the personnel component retains zero decision weight.
