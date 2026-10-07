@@ -665,14 +665,19 @@ jobs:
           git add -A soccer_edge_state
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Soccer Edge tick ${RUN_DATE}"
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5 6; do
             git fetch origin soccer-edge-state
-            git rebase origin/soccer-edge-state
+            if ! git rebase --autostash origin/soccer-edge-state; then
+              git rebase --abort >/dev/null 2>&1 || true
+              echo "State rebase failed; retrying (attempt $attempt/6)"
+              sleep $((attempt * 3))
+              continue
+            fi
             if git push origin HEAD:soccer-edge-state; then exit 0; fi
-            echo "Concurrent soccer-edge-state update detected; retrying push (attempt $attempt/3)"
-            sleep $((attempt * 2))
+            echo "State push failed or raced; retrying (attempt $attempt/6)"
+            sleep $((attempt * 3))
           done
-          echo "Failed to persist scheduler state after 3 retries"
+          echo "Failed to persist scheduler state after 6 retries"
           exit 1
 
       - name: Deliver compact live alerts
