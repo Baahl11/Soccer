@@ -327,6 +327,7 @@ jobs:
               "PRIMARY_CLV_FUNNEL": root / "analysis/primary_clv_maturation_funnel_v4.json",
               "FM3": root / "analysis/formation_matchup_fm3_oos_v1.json",
               "FM4": root / "analysis/formation_matchup_fm4_style_ablation_v1.json",
+              "FM5": root / "analysis/formation_fm5_readiness_gate_v1.json",
               "PROSPECTIVE": root / "analysis/prospective_evaluation_summary_v1.json",
           }
 
@@ -530,6 +531,8 @@ jobs:
               fm4 = reports.get("FM4", {})
               fm4 = fm4 if isinstance(fm4, dict) else {}
               fm4_targets = fm4.get("targets") if isinstance(fm4.get("targets"), dict) else {}
+              fm5 = reports.get("FM5", {})
+              fm5 = fm5 if isinstance(fm5, dict) else {}
               target["formation_matchup_health"] = {
                   **fm_health,
                   "fm3_research": {
@@ -591,7 +594,22 @@ jobs:
                       "production_enabled": False,
                       "decision_weight": 0.0,
                   },
-                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json + formation_matchup_fm3_oos_v1.json + formation_matchup_fm4_style_ablation_v1.json",
+                  "fm5_readiness": {
+                      "model_version": fm5.get("model_version"),
+                      "status": fm5.get("status") or "NOT_MATERIALIZED",
+                      "ready_components": list(fm5.get("ready_components") or []),
+                      "integration_review_allowed": fm5.get("integration_review_allowed") is True,
+                      "automatic_integration_allowed": False,
+                      "blockers": list(fm5.get("blockers") or []),
+                      "fm4": fm5.get("fm4") if isinstance(fm5.get("fm4"), dict) else {},
+                      "corners": fm5.get("corners") if isinstance(fm5.get("corners"), dict) else {},
+                      "production_enabled": False,
+                      "decision_weight": 0.0,
+                      "market_prices_consumed": False,
+                      "provider_requests_added": 0,
+                      "production_promotion_allowed": False,
+                  },
+                  "canonical_state_source": "soccer-edge-state/analysis/v4_022_corners_oos_validation.json + formation_matchup_fm3_oos_v1.json + formation_matchup_fm4_style_ablation_v1.json + formation_fm5_readiness_gate_v1.json",
                   "canonical_state_merged_by_scheduler": True,
               }
               apply_family(families, "CARDS", reports.get("CARDS", {}))
