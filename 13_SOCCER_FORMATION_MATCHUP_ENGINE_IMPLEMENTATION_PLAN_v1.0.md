@@ -391,3 +391,156 @@ The broader roadmap can continue while formation samples accumulate.
 Never: “The market says Over, therefore this formation matchup is an Over matchup.”
 
 Correct: “Verified football evidence indicates that this specific tactical matchup changes expected production. Now, and only now, compare that sporting projection with the market.”
+
+
+---
+
+# 18. IMPLEMENTATION STATUS — 2026-10-07
+
+## FM-0 — COMPLETE
+
+- Governance and implementation plan materialized.
+- Production promotion remains disabled.
+- No market input enters formation research.
+
+## FM-1 — COMPLETE
+
+Materialized:
+
+- `mcp_gateway/formation_matchup_engine_v1.py`
+- `soccer_edge_state/analysis/formation_matchup_engine_v1.json`
+
+Current canonical state:
+
+- 299 fixtures with verified pre-kickoff formation pair and final result;
+- 81 directional formation matchups;
+- 8 matchups with n >= 8;
+- side-specific goals, corners, shots and SOT materialized;
+- odds consumed = false;
+- decision weight = 0.
+
+## FM-2 — COMPLETE AS RESEARCH CHALLENGER
+
+The side-specific Corners/Team Corners challenger is integrated into V4-022 and health.
+
+Current evidence:
+
+- 39 formation-adjusted side-specific evaluations;
+- Home Corners MAE improves;
+- Total Corners MAE improves;
+- Away Corners MAE does not yet improve;
+- minimum review gate remains 100.
+
+Status:
+
+`RESEARCH_HOLD`
+
+No production promotion.
+
+## FM-3 — IMPLEMENTED / RESEARCH_HOLD
+
+Materialized:
+
+- `mcp_gateway/formation_matchup_fm3_oos_v1.py`
+- `soccer_edge_state/analysis/formation_matchup_fm3_oos_v1.json`
+
+Current OOS evidence:
+
+### GOALS
+
+- observed rows: 299;
+- baseline evaluations: 298;
+- formation-adjusted evaluations: 79;
+- Home/Away/Total MAE do not improve vs baseline.
+
+### SHOTS
+
+- observed rows: 217;
+- baseline evaluations: 216;
+- formation-adjusted evaluations: 49;
+- Home/Away/Total MAE do not improve;
+- eligible sample is highly concentrated in two formation matchups.
+
+### SOT
+
+- observed rows: 219;
+- baseline evaluations: 218;
+- formation-adjusted evaluations: 49;
+- Home/Away/Total MAE do not improve;
+- eligible sample is highly concentrated in two formation matchups.
+
+Conclusion:
+
+Nominal formation-vs-formation is **not currently validated as an additive production feature for Shots, SOT or Goals**.
+
+Do not promote or tune toward these results.
+
+## FM-4 — IMPLEMENTED / BLOCKED BY PRIOR HISTORY DEPTH
+
+The prior-only style/personnel ablation is materialized as:
+
+- `mcp_gateway/formation_matchup_fm4_style_ablation_v1.py`
+- `soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json`
+
+Verified diagnosis:
+
+- 520 unique teams appear in the 299 source fixtures;
+- all 520 appear somewhere in the tactical-history store;
+- therefore team-ID mapping is not the blocker;
+- however the project history store begins only immediately before the Formation Matchup cohort;
+- only a very small number of source fixtures have any prior tactical observations;
+- zero source fixtures currently have both teams with >=3 complete prior observations across every required style field.
+
+Current style fields:
+
+- possession;
+- shot accuracy;
+- box share;
+- blocked-shot share;
+- fouls;
+- yellow cards.
+
+The system must **not**:
+
+- lower the minimum prior-match requirement merely to create samples;
+- use post-target matches;
+- use current-match postgame statistics in its own prediction;
+- infer missing player roles or coach continuity.
+
+FM-4 now exposes an explicit historical-depth blocker and coverage window.
+
+Status:
+
+`RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION`
+
+Production enabled = false.  
+Decision weight = 0.
+
+## Historical backfill policy
+
+A tactical-history backfill may be added only as a separate offline process with:
+
+- bounded provider-request budget;
+- exact fixture IDs and timestamps;
+- provider-supported match statistics only;
+- no synthetic tactical values;
+- no rewriting of original pregame predictions;
+- strict cutoff before each evaluated fixture;
+- persisted provenance and retrieval timestamps.
+
+Backfilled data may expand the research sample, but it may not retroactively alter an already-issued historical prediction.
+
+## Roadmap continuation rule
+
+FM-3 and FM-4 blockers do **not** justify delaying the broader Soccer roadmap.
+
+Continue:
+
+1. accumulate Corners/Team Corners formation samples toward the 100-adjusted gate;
+2. keep 1X2 + Team Totals result/settlement evaluation active;
+3. keep FT Totals + BTTS True CLV maturation active;
+4. accumulate deeper verified tactical and personnel history;
+5. rerun FM-3/FM-4 automatically as sample depth increases;
+6. integrate a formation/style feature into RAW SPORT PROJECTION only if OOS lift is eventually demonstrated.
+
+Zero production weight is the correct state until those gates pass.
