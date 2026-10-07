@@ -120,3 +120,20 @@ def test_fe3_frontend_prefers_customer_safe_watch_copy_and_bucket():
     assert "d.reason_display" in html
     assert "d.classification||d.display_bucket||'WATCH'" in html
     assert "s.display_status||'NOT VERIFIED'" in html
+
+
+def test_fe3_frontend_enriches_presentation_identity_without_provider_calls():
+    html = subscriber_frontend_v2.render()
+    contract = subscriber_frontend_v2.contract()
+
+    assert "/app/fixture-identities?ids=" in html
+    assert "presentation enrichment is optional" in html
+    assert "api-sports.io" not in html
+    assert contract["provider_requests_added"] == 0
+    assert contract["canonical_bet_logic_changed"] is False
+
+
+def test_fe3_frontend_uses_inline_favicon_instead_of_external_favicon_request():
+    html = subscriber_frontend_v2.render()
+
+    assert '<link rel="icon" href="data:image/svg+xml,' in html
