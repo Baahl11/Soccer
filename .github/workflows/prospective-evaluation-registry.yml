@@ -1,0 +1,294 @@
+name: Prospective Evaluation Registry
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "50 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/prospective-evaluation-registry.yml"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: prospective-evaluation-registry
+  cancel-in-progress: false
+
+jobs:
+  registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+
+      - name: Wait for compatible runtime and build prospective registry
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          get_oidc_token() {
+            local response token
+            response=$(curl -fsS               -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}"               "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            token=$(echo "$response" | jq -r '.value // empty')
+            test -n "$token"
+            printf '%s' "$token"
+          }
+
+          READY=0
+          for attempt in 1 2 3 4 5 6; do
+            curl -fsS --max-time 30               https://soccer-edge-api.onrender.com/health >/tmp/prospective-health.json || true
+
+            TOKEN=$(get_oidc_token)
+            echo "::add-mask::$TOKEN"
+            HTTP_CODE=$(curl -sS --max-time 180               -o /tmp/prospective-registry.json               -w "%{http_code}"               -X POST               -H "Authorization: Bearer ${TOKEN}"               -H "Content-Type: application/json"               -d '{}'               https://soccer-edge-api.onrender.com/internal/prospective-evaluation-registry-v1/build || true)
+
+            MODEL_VERSION=$(jq -r '.model_version // empty' /tmp/prospective-registry.json 2>/dev/null || true)
+            if [ "$HTTP_CODE" = "200" ] && [ "$MODEL_VERSION" = "SOCCER_PROSPECTIVE_EVALUATION_REGISTRY_V1.0.0" ]; then
+              READY=1
+              break
+            fi
+
+            echo "::notice::Prospective registry runtime not fresh yet (attempt $attempt/6, http=$HTTP_CODE, model=$MODEL_VERSION)"
+            if [ "$attempt" -lt 6 ]; then sleep 20; fi
+          done
+
+          test "$READY" = "1"
+          jq -e '
+            .status == "PROSPECTIVE_EVALUATION_REGISTRY_ACTIVE"
+            and .model_version == "SOCCER_PROSPECTIVE_EVALUATION_REGISTRY_V1.0.0"
+            and .policy.cohort_start_utc == "2026-10-07T14:30:00+00:00"
+            and .policy.outcomes_never_used_for_selection == true
+            and .policy.market_prices_never_used_to_create_raw_sport_projection == true
+            and .provider_requests_added == 0
+            and .runtime_selection_logic_changed == false
+            and .model_weights_changed == false
+            and .thresholds_changed == false
+            and .historical_predictions_rewritten == false
+            and .outcomes_used_for_selection == false
+            and .production_promotion_allowed == false
+            and (.selection_rows | type == "array")
+            and (.settlement_rows | type == "array")
+          ' /tmp/prospective-registry.json >/dev/null
+
+          jq '{
+            model_version,
+            status,
+            policy_hash,
+            policy,
+            summary,
+            provider_requests_added,
+            production_promotion_allowed
+          }' /tmp/prospective-registry.json
+
+      - name: Merge immutable selections and mutable settlements
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p state/soccer_edge_state/analysis
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          incoming = json.load(open("/tmp/prospective-registry.json", encoding="utf-8"))
+          analysis = Path("state/soccer_edge_state/analysis")
+          selections_path = analysis / "prospective_evaluation_registry_v1.jsonl"
+          settlements_path = analysis / "prospective_evaluation_settlement_v1.jsonl"
+          summary_path = analysis / "prospective_evaluation_summary_v1.json"
+
+          def read_jsonl(path):
+              rows = []
+              if not path.exists():
+                  return rows
+              for line in path.read_text(encoding="utf-8").splitlines():
+                  if not line.strip():
+                      continue
+                  rows.append(json.loads(line))
+              return rows
+
+          existing = read_jsonl(selections_path)
+          existing_by_key = {
+              (int(row["fixture_id"]), str(row["track"])): row
+              for row in existing
+          }
+
+          immutable_fields = (
+              "policy_hash",
+              "track",
+              "candidate_type",
+              "counts_toward_100_graded_bets",
+              "event_id",
+              "fixture_id",
+              "generated_at_utc",
+              "stage",
+              "kickoff",
+              "model_version",
+              "data_tier",
+              "availability_confidence",
+              "team_role",
+              "team_id",
+              "market",
+              "selection",
+              "line",
+              "decimal_price",
+              "bookmaker",
+              "p_raw",
+              "p_market_fair",
+              "p_shrunk",
+              "prob_edge_pp",
+              "estimated_ev",
+              "tier",
+              "runtime_classification",
+              "probability_model",
+              "raw_edge_vs_market_fair_pp",
+              "provider_update",
+          )
+
+          appended = []
+          for row in incoming.get("selection_rows") or []:
+              key = (int(row["fixture_id"]), str(row["track"]))
+              prior = existing_by_key.get(key)
+              if prior is None:
+                  existing_by_key[key] = row
+                  appended.append(row)
+                  continue
+
+              mismatches = {
+                  field: {"stored": prior.get(field), "incoming": row.get(field)}
+                  for field in immutable_fields
+                  if prior.get(field) != row.get(field)
+              }
+              if mismatches:
+                  raise SystemExit(
+                      "IMMUTABLE_PROSPECTIVE_SELECTION_MISMATCH "
+                      + json.dumps({"key": key, "mismatches": mismatches}, sort_keys=True)
+                  )
+
+          if appended:
+              with selections_path.open("a", encoding="utf-8") as handle:
+                  for row in appended:
+                      handle.write(
+                          json.dumps(row, ensure_ascii=False, sort_keys=True)
+                          + "\n"
+                      )
+
+          canonical_selections = read_jsonl(selections_path)
+          canonical_keys = {
+              (int(row["fixture_id"]), str(row["track"]))
+              for row in canonical_selections
+          }
+
+          existing_settlements = {
+              (int(row["fixture_id"]), str(row["track"])): row
+              for row in read_jsonl(settlements_path)
+          }
+          for row in incoming.get("settlement_rows") or []:
+              key = (int(row["fixture_id"]), str(row["track"]))
+              if key not in canonical_keys:
+                  raise SystemExit(
+                      "SETTLEMENT_WITHOUT_FROZEN_SELECTION "
+                      + json.dumps({"key": key})
+                  )
+              existing_settlements[key] = row
+
+          settlement_rows = [
+              existing_settlements[key]
+              for key in sorted(existing_settlements)
+              if key in canonical_keys
+          ]
+          settlements_path.write_text(
+              "".join(
+                  json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n"
+                  for row in settlement_rows
+              ),
+              encoding="utf-8",
+          )
+
+          endpoint_summary = incoming.get("summary") or {}
+          summary = {
+              "schema_version": incoming.get("schema_version"),
+              "model_version": incoming.get("model_version"),
+              "status": incoming.get("status"),
+              "policy": incoming.get("policy"),
+              "policy_hash": incoming.get("policy_hash"),
+              "canonical_selection_rows": len(canonical_selections),
+              "canonical_selection_unique_fixtures": len({
+                  int(row["fixture_id"]) for row in canonical_selections
+              }),
+              "new_selection_rows_this_run": len(appended),
+              "settlement_rows": len(settlement_rows),
+              "endpoint_summary": endpoint_summary,
+              "append_only_selection_policy": True,
+              "selection_rewrite_allowed": False,
+              "settlement_updates_separate": True,
+              "outcomes_used_for_selection": False,
+              "provider_requests_added": incoming.get("provider_requests_added"),
+              "runtime_selection_logic_changed": incoming.get("runtime_selection_logic_changed"),
+              "model_weights_changed": incoming.get("model_weights_changed"),
+              "thresholds_changed": incoming.get("thresholds_changed"),
+              "historical_predictions_rewritten": incoming.get("historical_predictions_rewritten"),
+              "production_promotion_allowed": False,
+          }
+          summary_path.write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True)
+              + "\n",
+              encoding="utf-8",
+          )
+
+          print(json.dumps({
+              "canonical_selection_rows": len(canonical_selections),
+              "new_selection_rows_this_run": len(appended),
+              "settlement_rows": len(settlement_rows),
+              "graded_bet_sample": endpoint_summary.get("graded_bet_sample"),
+              "by_track": endpoint_summary.get("by_track"),
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Validate append-only research contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          SUMMARY=state/soccer_edge_state/analysis/prospective_evaluation_summary_v1.json
+          jq -e '
+            .append_only_selection_policy == true
+            and .selection_rewrite_allowed == false
+            and .settlement_updates_separate == true
+            and .outcomes_used_for_selection == false
+            and .provider_requests_added == 0
+            and .runtime_selection_logic_changed == false
+            and .model_weights_changed == false
+            and .thresholds_changed == false
+            and .historical_predictions_rewritten == false
+            and .production_promotion_allowed == false
+          ' "$SUMMARY" >/dev/null
+
+      - name: Persist prospective evaluation state
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f             soccer_edge_state/analysis/prospective_evaluation_registry_v1.jsonl             soccer_edge_state/analysis/prospective_evaluation_settlement_v1.jsonl             soccer_edge_state/analysis/prospective_evaluation_summary_v1.json
+          if git diff --cached --quiet; then
+            echo "No prospective registry changes"
+            exit 0
+          fi
+          git commit -m "Update prospective 1X2 and Team Totals evaluation registry"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase --autostash origin/soccer-edge-state && git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          exit 1
