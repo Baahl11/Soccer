@@ -1,0 +1,254 @@
+{
+  "evaluation_rows": [],
+  "formation_geometry": {
+    "allowed_fields": [
+      "back_line",
+      "front_line",
+      "outfield_lines",
+      "central_layers"
+    ],
+    "role_inference_used": false
+  },
+  "health": {
+    "blockers": [
+      "GOALS:AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+      "GOALS:HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+      "GOALS:STYLE_ABLATION_0_LT_100",
+      "GOALS:TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+      "PERSONNEL_OVERLAY_NOT_MATERIALIZED",
+      "SHOTS:AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+      "SHOTS:HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+      "SHOTS:STYLE_ABLATION_0_LT_100",
+      "SHOTS:TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+      "SOT:AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+      "SOT:HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+      "SOT:STYLE_ABLATION_0_LT_100",
+      "SOT:TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE"
+    ],
+    "canonical_bet_logic_changed": false,
+    "coach_continuity_used": false,
+    "current_match_postgame_style_consumed": false,
+    "decision_weight": 0.0,
+    "inferred_player_roles_used": false,
+    "leakage_policy": "STRICT_PRIOR_ONLY_STYLE_HISTORY",
+    "market_prices_consumed": false,
+    "model_weights_changed": false,
+    "odds_consumed": false,
+    "production_enabled": false,
+    "provider_requests_added": 0
+  },
+  "model_version": "FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.0.0",
+  "personnel_overlay": {
+    "coach_continuity": "NOT_VERIFIED_IN_CANONICAL_PREGAME_FEATURES",
+    "player_role_continuity": "NOT_VERIFIED_IN_CANONICAL_PREGAME_FEATURES",
+    "reason": "FM-4 does not infer player roles or coach continuity from names/formation. A versioned pre-kickoff personnel source is required first.",
+    "starter_continuity_score": "NOT_MATERIALIZED",
+    "status": "NOT_MATERIALIZED"
+  },
+  "policy": "SPORT_FIRST; PRIOR_MATCHES_ONLY_FOR_STYLE; CURRENT_MATCH_POSTGAME_STATS_NEVER_USED_AS_INPUT; CURRENT_FORMATION_GEOMETRY_VERIFIED_ONLY; NO_MARKET; NO_INFERRED_PLAYER_ROLES_OR_COACH_CONTINUITY",
+  "schema_version": "1.0.0",
+  "source_fixtures": 299,
+  "source_model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
+  "status": "RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION",
+  "style_profile": {
+    "fields": [
+      "possession",
+      "shot_accuracy",
+      "box_share",
+      "blocked_share",
+      "fouls",
+      "yellow_cards"
+    ],
+    "formation_geometry_missing_rows": 0,
+    "minimum_prior_residual_training_rows": 30,
+    "minimum_prior_team_style_matches": 3,
+    "missing_prior_style_profile_rows": 299,
+    "ridge_alpha": 8.0,
+    "style_eligible_source_rows": 0
+  },
+  "targets": {
+    "GOALS": {
+      "baseline": {
+        "away": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "home": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "total": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        }
+      },
+      "blockers": [
+        "STYLE_ABLATION_0_LT_100",
+        "HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+        "AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+        "TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE"
+      ],
+      "decision_weight": 0.0,
+      "eligible_fixtures": 0,
+      "improvement": {
+        "away_mae_delta": null,
+        "away_mae_improves": false,
+        "home_mae_delta": null,
+        "home_mae_improves": false,
+        "total_mae_delta": null,
+        "total_mae_improves": false
+      },
+      "minimum_review_fixtures": 100,
+      "production_enabled": false,
+      "status": "RESEARCH_HOLD",
+      "style_challenger": {
+        "away": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "home": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "total": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        }
+      }
+    },
+    "SHOTS": {
+      "baseline": {
+        "away": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "home": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "total": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        }
+      },
+      "blockers": [
+        "STYLE_ABLATION_0_LT_100",
+        "HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+        "AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+        "TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE"
+      ],
+      "decision_weight": 0.0,
+      "eligible_fixtures": 0,
+      "improvement": {
+        "away_mae_delta": null,
+        "away_mae_improves": false,
+        "home_mae_delta": null,
+        "home_mae_improves": false,
+        "total_mae_delta": null,
+        "total_mae_improves": false
+      },
+      "minimum_review_fixtures": 100,
+      "production_enabled": false,
+      "status": "RESEARCH_HOLD",
+      "style_challenger": {
+        "away": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "home": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "total": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        }
+      }
+    },
+    "SOT": {
+      "baseline": {
+        "away": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "home": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "total": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        }
+      },
+      "blockers": [
+        "STYLE_ABLATION_0_LT_100",
+        "HOME_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+        "AWAY_STYLE_MAE_NOT_BETTER_THAN_BASELINE",
+        "TOTAL_STYLE_MAE_NOT_BETTER_THAN_BASELINE"
+      ],
+      "decision_weight": 0.0,
+      "eligible_fixtures": 0,
+      "improvement": {
+        "away_mae_delta": null,
+        "away_mae_improves": false,
+        "home_mae_delta": null,
+        "home_mae_improves": false,
+        "total_mae_delta": null,
+        "total_mae_improves": false
+      },
+      "minimum_review_fixtures": 100,
+      "production_enabled": false,
+      "status": "RESEARCH_HOLD",
+      "style_challenger": {
+        "away": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "home": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        },
+        "total": {
+          "mae": null,
+          "mean_error": null,
+          "n": 0,
+          "rmse": null
+        }
+      }
+    }
+  }
+}
