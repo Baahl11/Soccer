@@ -943,17 +943,131 @@ def build_report(
         }
         global_blockers.extend(f"{target}:{blocker}" for blocker in blockers)
 
+    def _mean_non_null(values: list[Any]) -> float | None:
+        nums = [_num(value) for value in values]
+        nums = [value for value in nums if value is not None]
+        return round(sum(nums) / len(nums), 6) if nums else None
+
+    home_overlap_values = [
+        row["home"].get("previous_xi_overlap_rate") for row in personnel_rows
+    ]
+    away_overlap_values = [
+        row["away"].get("previous_xi_overlap_rate") for row in personnel_rows
+    ]
+    fixture_overlap_values = [
+        row.get("mean_previous_xi_overlap_rate") for row in personnel_rows
+    ]
+    home_core_values = [
+        row["home"].get("last3_core_return_rate") for row in personnel_rows
+    ]
+    away_core_values = [
+        row["away"].get("last3_core_return_rate") for row in personnel_rows
+    ]
+    home_new_starters = [
+        row["home"].get("new_starter_count_vs_previous") for row in personnel_rows
+    ]
+    away_new_starters = [
+        row["away"].get("new_starter_count_vs_previous") for row in personnel_rows
+    ]
+    home_coach_comparable = [
+        row["home"].get("coach_same_as_previous")
+        for row in personnel_rows
+        if row["home"].get("coach_same_as_previous") is not None
+    ]
+    away_coach_comparable = [
+        row["away"].get("coach_same_as_previous")
+        for row in personnel_rows
+        if row["away"].get("coach_same_as_previous") is not None
+    ]
+
+    personnel_blockers: list[str] = []
+    current_xi_n = int(personnel_coverage["current_both_xi_confirmed_rows"])
+    both_prior_n = int(personnel_coverage["rows_with_both_prior_confirmed_xi"])
+    both_coach_n = int(
+        personnel_coverage["rows_with_both_previous_coach_comparable"]
+    )
+    both_last3_n = int(
+        personnel_coverage["rows_with_both_last3_core_return_rate"]
+    )
+    if current_xi_n == 0:
+        personnel_status = "NOT_MATERIALIZED"
+        personnel_blockers.append("PERSONNEL_OVERLAY_NOT_MATERIALIZED")
+    else:
+        personnel_status = "RESEARCH_ONLY_PERSONNEL_CONTINUITY"
+        if both_prior_n < 100:
+            personnel_blockers.append(f"PERSONNEL_PRIOR_XI_{both_prior_n}_LT_100")
+        if both_coach_n < 100:
+            personnel_blockers.append(
+                f"COACH_CONTINUITY_COMPARABLE_{both_coach_n}_LT_100"
+            )
+        if both_last3_n < 100:
+            personnel_blockers.append(
+                f"LAST3_CORE_CONTINUITY_{both_last3_n}_LT_100"
+            )
+        personnel_blockers.append("PERSONNEL_OUTCOME_ABLATION_NOT_YET_VALIDATED")
+
     personnel = {
-        "status": "NOT_MATERIALIZED",
-        "coach_continuity": "NOT_VERIFIED_IN_CANONICAL_PREGAME_FEATURES",
-        "player_role_continuity": "NOT_VERIFIED_IN_CANONICAL_PREGAME_FEATURES",
-        "starter_continuity_score": "NOT_MATERIALIZED",
-        "reason": (
-            "FM-4 does not infer player roles or coach continuity from names/formation. "
-            "A versioned pre-kickoff personnel source is required first."
-        ),
+        "status": personnel_status,
+        "source": "CONFIRMED_API_PREKICKOFF_LINEUP_COMPACT",
+        "history_fixtures_loaded": len(personnel_events),
+        "coverage": personnel_coverage,
+        "starter_continuity": {
+            "mean_home_previous_xi_overlap_rate": _mean_non_null(
+                home_overlap_values
+            ),
+            "mean_away_previous_xi_overlap_rate": _mean_non_null(
+                away_overlap_values
+            ),
+            "mean_fixture_previous_xi_overlap_rate": _mean_non_null(
+                fixture_overlap_values
+            ),
+            "mean_home_new_starters_vs_previous": _mean_non_null(
+                home_new_starters
+            ),
+            "mean_away_new_starters_vs_previous": _mean_non_null(
+                away_new_starters
+            ),
+            "mean_home_last3_core_return_rate": _mean_non_null(
+                home_core_values
+            ),
+            "mean_away_last3_core_return_rate": _mean_non_null(
+                away_core_values
+            ),
+        },
+        "coach_continuity": {
+            "home_comparable_rows": len(home_coach_comparable),
+            "away_comparable_rows": len(away_coach_comparable),
+            "home_same_as_previous_rate": (
+                round(
+                    sum(int(value is True) for value in home_coach_comparable)
+                    / len(home_coach_comparable),
+                    6,
+                )
+                if home_coach_comparable
+                else None
+            ),
+            "away_same_as_previous_rate": (
+                round(
+                    sum(int(value is True) for value in away_coach_comparable)
+                    / len(away_coach_comparable),
+                    6,
+                )
+                if away_coach_comparable
+                else None
+            ),
+        },
+        "position_continuity": {
+            "definition": "SAME_PROVIDER_POSITION_OR_GRID_FOR_STARTERS_OVERLAPPING_PREVIOUS_CONFIRMED_XI",
+            "role_inference_used": False,
+        },
+        "player_role_continuity": "PROVIDER_POSITION_AND_GRID_ONLY_NO_INFERRED_ROLE",
+        "minimum_review_fixtures": 100,
+        "blockers": personnel_blockers,
+        "production_enabled": False,
+        "decision_weight": 0.0,
+        "rows": personnel_rows[-500:],
     }
-    global_blockers.append("PERSONNEL_OVERLAY_NOT_MATERIALIZED")
+    global_blockers.extend(personnel_blockers)
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -963,7 +1077,8 @@ def build_report(
         "source_fixtures": int(source.get("fixtures_with_verified_formation_pair_and_final") or len(rows)),
         "policy": (
             "SPORT_FIRST; PRIOR_MATCHES_ONLY_FOR_STYLE; CURRENT_MATCH_POSTGAME_STATS_NEVER_USED_AS_INPUT; "
-            "CURRENT_FORMATION_GEOMETRY_VERIFIED_ONLY; NO_MARKET; NO_INFERRED_PLAYER_ROLES_OR_COACH_CONTINUITY"
+            "CURRENT_FORMATION_GEOMETRY_VERIFIED_ONLY; CONFIRMED_PREKICKOFF_XI_AND_COACH_IDENTITIES_ONLY; "
+            "NO_MARKET; NO_INFERRED_PLAYER_ROLES; PERSONNEL_FEATURES_HAVE_ZERO_DECISION_WEIGHT"
         ),
         "style_profile": {
             "history_source": (
@@ -1003,12 +1118,15 @@ def build_report(
         "targets": targets,
         "personnel_overlay": personnel,
         "health": {
-            "leakage_policy": "STRICT_PRIOR_ONLY_STYLE_HISTORY",
+            "leakage_policy": "STRICT_PRIOR_ONLY_STYLE_AND_PERSONNEL_HISTORY",
             "odds_consumed": False,
             "market_prices_consumed": False,
             "current_match_postgame_style_consumed": False,
             "inferred_player_roles_used": False,
+            "coach_continuity_materialized": current_xi_n > 0,
             "coach_continuity_used": False,
+            "personnel_continuity_materialized": current_xi_n > 0,
+            "personnel_outcome_ablation_used": False,
             "production_enabled": False,
             "decision_weight": 0.0,
             "provider_requests_added": 0,
@@ -1017,6 +1135,7 @@ def build_report(
             "blockers": sorted(set(global_blockers)),
         },
         "evaluation_rows": evaluation_rows[-1000:],
+        "personnel_rows": personnel_rows[-500:],
     }
 
 
