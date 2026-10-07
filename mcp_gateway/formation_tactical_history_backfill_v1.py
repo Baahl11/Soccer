@@ -155,6 +155,59 @@ def _local_prior_fixture_counts(
     return counts
 
 
+def _source_season_by_team(
+    conn: Any,
+    *,
+    team_ids: list[int],
+    before: datetime,
+) -> dict[int, int]:
+    """Resolve each target team's nearest canonical cohort season."""
+    target = set(team_ids)
+    rows: list[tuple[Any, Any, Any, Any]] = []
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT home_team_id, away_team_id, season, kickoff
+            FROM soccer_fixtures
+            WHERE season IS NOT NULL
+              AND kickoff >= %s
+              AND kickoff < %s
+              AND (
+                    home_team_id = ANY(%s)
+                 OR away_team_id = ANY(%s)
+              )
+            ORDER BY kickoff ASC
+            """,
+            (
+                before - timedelta(days=14),
+                before + timedelta(days=45),
+                team_ids,
+                team_ids,
+            ),
+        )
+        rows = cur.fetchall()
+
+    best: dict[int, tuple[float, int]] = {}
+    for home_raw, away_raw, season_raw, kickoff_raw in rows:
+        try:
+            season = int(season_raw)
+            kickoff = _parse_dt(kickoff_raw)
+        except (TypeError, ValueError):
+            continue
+        distance = abs((kickoff - before).total_seconds())
+        for raw in (home_raw, away_raw):
+            try:
+                team_id = int(raw)
+            except (TypeError, ValueError):
+                continue
+            if team_id not in target:
+                continue
+            current = best.get(team_id)
+            if current is None or distance < current[0]:
+                best[team_id] = (distance, season)
+    return {team_id: season for team_id, (_distance, season) in best.items()}
+
+
 def _already_discovered_teams(conn: Any, *, before: datetime) -> set[int]:
     with conn.cursor() as cur:
         cur.execute(
@@ -610,6 +663,11 @@ async def run_backfill(
                 lookback_days=lookback_days,
             )
             already_discovered = _already_discovered_teams(conn, before=before_dt)
+            source_seasons = _source_season_by_team(
+                conn,
+                team_ids=unique_team_ids,
+                before=before_dt,
+            )
             discovery_team_ids = _select_discovery_teams(
                 unique_team_ids,
                 local_counts=local_counts,
@@ -628,12 +686,22 @@ async def run_backfill(
                         }
                     )
                     break
+                season = source_seasons.get(team_id)
+                if season is None:
+                    discovery_details.append(
+                        {
+                            "team_id": team_id,
+                            "status": "SKIPPED_SOURCE_SEASON_NOT_VERIFIED",
+                        }
+                    )
+                    continue
                 discovery_attempted += 1
                 try:
                     raw = await provider_get(
                         "fixtures",
                         {
                             "team": team_id,
+                            "season": season,
                             "from": discovery_from,
                             "to": discovery_to,
                             "timezone": "UTC",
@@ -673,6 +741,7 @@ async def run_backfill(
                             "endpoint": "fixtures",
                             "params": {
                                 "team": team_id,
+                                "season": season,
                                 "from": discovery_from,
                                 "to": discovery_to,
                                 "timezone": "UTC",
@@ -683,6 +752,7 @@ async def run_backfill(
                     discovery_details.append(
                         {
                             "team_id": team_id,
+                            "season": season,
                             "status": "DISCOVERED",
                             "provider_fixture_count": len(provider_rows),
                             "persisted_fixture_count": persisted_for_team,
@@ -694,6 +764,7 @@ async def run_backfill(
                     discovery_details.append(
                         {
                             "team_id": team_id,
+                            "season": season,
                             "status": "DISCOVERY_ERROR",
                             "error": str(exc)[:180],
                             "daily_remaining": daily_remaining,
