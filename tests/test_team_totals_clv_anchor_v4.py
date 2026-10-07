@@ -195,4 +195,4 @@ def test_v129_activates_restores_and_publishes_team_totals_audit(monkeypatch):
     assert audit["status"] == "OBSERVABILITY_ONLY"
     assert audit["provider_requests_added"] == 0
     assert audit["selection_logic_changed"] is False
-    assert payload["version"] == "4.38.6-runtime-stabilization"
+    assert payload["version"] == "4.38.7-normalized-primary-clv-anchor"
