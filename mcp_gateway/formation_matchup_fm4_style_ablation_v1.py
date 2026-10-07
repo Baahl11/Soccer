@@ -9,6 +9,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
+from mcp_gateway import formation_matchup_engine_v1 as fm1
 from mcp_gateway import formation_matchup_fm3_oos_v1 as fm3
 
 MODEL_VERSION = "FORMATION_MATCHUP_FM4_STYLE_ABLATION_V1.0.0"
@@ -64,6 +65,85 @@ def _formation_geometry(value: Any) -> dict[str, float] | None:
         "outfield_lines": float(len(parts)),
         "central_layers": float(sum(parts[1:-1])) if len(parts) > 2 else 0.0,
     }
+
+
+def _tactical_history_events(history_dir: str) -> list[dict[str, Any]]:
+    fixtures = fm1.formation_v2._enhanced_load_history(history_dir)
+    events: list[dict[str, Any]] = []
+    for rec in fixtures.values():
+        kickoff = _dt(rec.get("kickoff_local"))
+        if kickoff == datetime.min.replace(tzinfo=timezone.utc):
+            continue
+        home_id = int(rec.get("home_team_id") or 0)
+        away_id = int(rec.get("away_team_id") or 0)
+        if not home_id or not away_id:
+            continue
+
+        home_shots, away_shots, _ = fm1.metric_triplet(rec, "total_shots")
+        home_sot, away_sot, _ = fm1.metric_triplet(rec, "shots_on_goal")
+        home_inside, away_inside, _ = fm1.metric_triplet(rec, "shots_inside_box")
+        home_blocked, away_blocked, _ = fm1.metric_triplet(rec, "blocked_shots")
+        home_possession, away_possession, _ = fm1.metric_triplet(rec, "possession")
+        home_fouls, away_fouls, _ = fm1.metric_triplet(rec, "fouls")
+        home_yellow, away_yellow, _ = fm1.metric_triplet(rec, "yellow_cards")
+
+        def obs(shots, sot, inside, blocked, possession, fouls, yellow):
+            return {
+                "possession": possession,
+                "shot_accuracy": (
+                    sot / shots if sot is not None and shots is not None and shots > 0 else None
+                ),
+                "box_share": (
+                    inside / shots if inside is not None and shots is not None and shots > 0 else None
+                ),
+                "blocked_share": (
+                    blocked / shots if blocked is not None and shots is not None and shots > 0 else None
+                ),
+                "fouls": fouls,
+                "yellow_cards": yellow,
+            }
+
+        events.append(
+            {
+                "fixture_id": rec.get("fixture_id"),
+                "kickoff": kickoff,
+                "home_team_id": home_id,
+                "away_team_id": away_id,
+                "home_observation": obs(
+                    home_shots,
+                    home_sot,
+                    home_inside,
+                    home_blocked,
+                    home_possession,
+                    home_fouls,
+                    home_yellow,
+                ),
+                "away_observation": obs(
+                    away_shots,
+                    away_sot,
+                    away_inside,
+                    away_blocked,
+                    away_possession,
+                    away_fouls,
+                    away_yellow,
+                ),
+            }
+        )
+    events.sort(key=lambda row: (row["kickoff"], int(row.get("fixture_id") or 0)))
+    return events
+
+
+def _append_style_observation(
+    team_style: dict[int, dict[str, list[float]]],
+    team_id: int,
+    observation: dict[str, Any],
+) -> None:
+    if not team_id:
+        return
+    for field in STYLE_FIELDS:
+        value = _num(observation.get(field))
+        if value is not None:
+            team_style[team_id][field].append(value)
 
 
 def _team_observation(row: dict[str, Any], role: str) -> dict[str, float | None]:
@@ -243,7 +323,10 @@ def _improves(base: float | None, challenger: float | None) -> bool:
     return base is not None and challenger is not None and challenger < base
 
 
-def build_report(source: dict[str, Any]) -> dict[str, Any]:
+def build_report(
+    source: dict[str, Any],
+    history_dir: str | None = None,
+) -> dict[str, Any]:
     rows = [
         dict(row)
         for row in (source.get("rows") or [])
@@ -254,6 +337,17 @@ def build_report(source: dict[str, Any]) -> dict[str, Any]:
     team_style: dict[int, dict[str, list[float]]] = defaultdict(
         lambda: {field: [] for field in STYLE_FIELDS}
     )
+    tactical_events = (
+        _tactical_history_events(history_dir)
+        if history_dir
+        else []
+    )
+    tactical_index = 0
+    tactical_team_ids = {
+        int(event["home_team_id"]) for event in tactical_events
+    } | {
+        int(event["away_team_id"]) for event in tactical_events
+    }
 
     target_state: dict[str, dict[str, Any]] = {}
     for target, (home_key, away_key) in fm3.TARGETS.items():
@@ -280,6 +374,25 @@ def build_report(source: dict[str, Any]) -> dict[str, Any]:
     evaluation_rows: list[dict[str, Any]] = []
 
     for row in rows:
+        row_kickoff = _dt(row.get("kickoff_local"))
+        if history_dir:
+            while (
+                tactical_index < len(tactical_events)
+                and tactical_events[tactical_index]["kickoff"] < row_kickoff
+            ):
+                event = tactical_events[tactical_index]
+                _append_style_observation(
+                    team_style,
+                    int(event["home_team_id"]),
+                    event["home_observation"],
+                )
+                _append_style_observation(
+                    team_style,
+                    int(event["away_team_id"]),
+                    event["away_observation"],
+                )
+                tactical_index += 1
+
         home_id = int(row.get("home_team_id") or 0)
         away_id = int(row.get("away_team_id") or 0)
         home_profile, home_style_n = _profile(team_style[home_id])
@@ -379,16 +492,12 @@ def build_report(source: dict[str, Any]) -> dict[str, Any]:
             state["away_attack"][away_id].append(actual_away)
             state["away_concede"][away_id].append(actual_home)
 
-        # Update style histories only after all target predictions for this match.
-        home_obs = _team_observation(row, "home")
-        away_obs = _team_observation(row, "away")
-        for field in STYLE_FIELDS:
-            home_value = _num(home_obs.get(field))
-            away_value = _num(away_obs.get(field))
-            if home_value is not None:
-                team_style[home_id][field].append(home_value)
-            if away_value is not None:
-                team_style[away_id][field].append(away_value)
+        # Fallback for isolated unit tests without a broader tactical-history source.
+        # Production/offline research passes history_dir and consumes only strictly
+        # earlier tactical events above.
+        if not history_dir:
+            _append_style_observation(team_style, home_id, _team_observation(row, "home"))
+            _append_style_observation(team_style, away_id, _team_observation(row, "away"))
 
     targets: dict[str, Any] = {}
     global_blockers: list[str] = []
@@ -464,6 +573,13 @@ def build_report(source: dict[str, Any]) -> dict[str, Any]:
             "CURRENT_FORMATION_GEOMETRY_VERIFIED_ONLY; NO_MARKET; NO_INFERRED_PLAYER_ROLES_OR_COACH_CONTINUITY"
         ),
         "style_profile": {
+            "history_source": (
+                "ALL_PRIOR_VERIFIED_TACTICAL_HISTORY"
+                if history_dir
+                else "FORMATION_ROWS_ONLY_FALLBACK"
+            ),
+            "tactical_history_fixtures_loaded": len(tactical_events),
+            "tactical_history_unique_teams": len(tactical_team_ids),
             "fields": list(STYLE_FIELDS),
             "minimum_prior_team_style_matches": MIN_TEAM_STYLE_N,
             "minimum_prior_residual_training_rows": MIN_STYLE_TRAIN_N,
@@ -512,10 +628,14 @@ def main() -> None:
         description="FM-4 prior-only style and personnel readiness ablation."
     )
     parser.add_argument("--formation-report", required=True)
+    parser.add_argument("--history-dir")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
-    report = build_report(_load(args.formation_report))
+    report = build_report(
+        _load(args.formation_report),
+        history_dir=args.history_dir,
+    )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2, sort_keys=True)
