@@ -122,17 +122,32 @@ def _headers(config: dict[str, Any], access_token: str) -> dict[str, str]:
     }
 
 
-def list_saved(access_token: str, *, client: httpx.Client | None = None) -> dict[str, Any]:
-    auth = _auth_user(access_token)
-    if not auth["ok"]:
+def list_saved(
+    access_token: str,
+    *,
+    verified_user_id: str | None = None,
+    client: httpx.Client | None = None,
+) -> dict[str, Any]:
+    user_id = _text(verified_user_id, limit=64)
+    if not user_id:
+        auth = _auth_user(access_token)
+        if not auth["ok"]:
+            return {
+                "ok": False,
+                "status": auth["status"],
+                "rows": [],
+                "provider_requests_added": 0,
+            }
+        user_id = str(_dict(auth.get("user")).get("id"))
+    try:
+        config = _config()
+    except RuntimeError as exc:
         return {
             "ok": False,
-            "status": auth["status"],
+            "status": str(exc),
             "rows": [],
             "provider_requests_added": 0,
         }
-    config = _config()
-    user_id = str(_dict(auth.get("user")).get("id"))
     owned = client is None
     http = client or httpx.Client(timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=False)
     try:
@@ -180,16 +195,20 @@ def save_item(
     access_token: str,
     item: dict[str, Any],
     *,
+    verified_user_id: str | None = None,
     client: httpx.Client | None = None,
 ) -> dict[str, Any]:
-    auth = _auth_user(access_token)
-    if not auth["ok"]:
-        return {
-            "ok": False,
-            "status": auth["status"],
-            "row": None,
-            "provider_requests_added": 0,
-        }
+    user_id = _text(verified_user_id, limit=64)
+    if not user_id:
+        auth = _auth_user(access_token)
+        if not auth["ok"]:
+            return {
+                "ok": False,
+                "status": auth["status"],
+                "row": None,
+                "provider_requests_added": 0,
+            }
+        user_id = str(_dict(auth.get("user")).get("id"))
     try:
         normalized = sanitize_item(item)
     except ValueError as exc:
@@ -200,8 +219,15 @@ def save_item(
             "provider_requests_added": 0,
         }
 
-    config = _config()
-    user_id = str(_dict(auth.get("user")).get("id"))
+    try:
+        config = _config()
+    except RuntimeError as exc:
+        return {
+            "ok": False,
+            "status": str(exc),
+            "row": None,
+            "provider_requests_added": 0,
+        }
     body = {"user_id": user_id, **normalized}
     owned = client is None
     http = client or httpx.Client(timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=False)
@@ -247,11 +273,15 @@ def delete_item(
     access_token: str,
     item_key: str,
     *,
+    verified_user_id: str | None = None,
     client: httpx.Client | None = None,
 ) -> dict[str, Any]:
-    auth = _auth_user(access_token)
-    if not auth["ok"]:
-        return {"ok": False, "status": auth["status"], "provider_requests_added": 0}
+    user_id = _text(verified_user_id, limit=64)
+    if not user_id:
+        auth = _auth_user(access_token)
+        if not auth["ok"]:
+            return {"ok": False, "status": auth["status"], "provider_requests_added": 0}
+        user_id = str(_dict(auth.get("user")).get("id"))
     key = _text(item_key, limit=220)
     if not key:
         return {
@@ -260,8 +290,10 @@ def delete_item(
             "provider_requests_added": 0,
         }
 
-    config = _config()
-    user_id = str(_dict(auth.get("user")).get("id"))
+    try:
+        config = _config()
+    except RuntimeError as exc:
+        return {"ok": False, "status": str(exc), "provider_requests_added": 0}
     owned = client is None
     http = client or httpx.Client(timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=False)
     try:
