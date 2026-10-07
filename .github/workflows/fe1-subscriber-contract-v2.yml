@@ -26,6 +26,25 @@ jobs:
       - name: Compile V2 contract and route installer
         run: |
           python -m py_compile mcp_gateway/subscriber_contract_v2.py mcp_gateway/__init__.py
+      - name: Verify V2 routes are installed
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          import mcp_gateway
+          from mcp.server.fastmcp import FastMCP
+          app = FastMCP("v2-route-check", stateless_http=True, json_response=True).streamable_http_app()
+          paths = {getattr(route, "path", None) for route in app.router.routes}
+          required = {
+              "/app/api/v2/today",
+              "/app/api/v2/picks",
+              "/app/api/v2/leans",
+              "/app/api/v2/watches",
+              "/app/api/v2/performance",
+              "/app/api/v2/account",
+              "/app/api/v2/match/{fixture_id:int}",
+          }
+          missing = required - paths
+          assert not missing, f"missing V2 routes: {sorted(missing)}"
+          PY
       - name: Run V2 and active frontend regressions
         run: |
           PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
