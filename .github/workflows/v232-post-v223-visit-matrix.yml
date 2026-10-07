@@ -23,6 +23,8 @@ jobs:
           ref: soccer-edge-state
           sparse-checkout: |
             soccer_edge_state/analysis/post_v223_visit_matrix_v4.json
+            soccer_edge_state/analysis/clv_v4_postgres_report.json
+            soccer_edge_state/analysis/primary_clv_maturation_funnel_v4.json
           sparse-checkout-cone-mode: false
       - name: Build DB-only visit matrix
         shell: bash
@@ -38,16 +40,100 @@ jobs:
             https://soccer-edge-api.onrender.com/internal/post-v223-visit-matrix-v4/build \
             -o /tmp/v232.json
           jq '{model_version,cohort_start_utc,generated_at_utc,family_summary,provider_requests_added}' /tmp/v232.json
-          jq -e '.model_version=="SOCCER_POST_V223_VISIT_MATRIX_V2" and .provider_requests_added==0 and .strict_close_semantics_changed==false and .provider_budget_changed==false' /tmp/v232.json >/dev/null
+          jq -e '.model_version=="SOCCER_POST_V223_VISIT_MATRIX_V3_CANONICAL_EQUIVALENT" and .provider_requests_added==0 and .strict_close_semantics_changed==false and .provider_budget_changed==false' /tmp/v232.json >/dev/null
           mkdir -p soccer_edge_state/analysis
           cp /tmp/v232.json soccer_edge_state/analysis/post_v223_visit_matrix_v4.json
+
+      - name: Build canonical primary maturation funnel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          matrix = json.load(open("soccer_edge_state/analysis/post_v223_visit_matrix_v4.json", encoding="utf-8"))
+          clv = json.load(open("soccer_edge_state/analysis/clv_v4_postgres_report.json", encoding="utf-8"))
+          family_counts = clv.get("family_counts") if isinstance(clv.get("family_counts"), dict) else {}
+          unique_counts = clv.get("unique_fixtures_by_family") if isinstance(clv.get("unique_fixtures_by_family"), dict) else {}
+          skip_by_reason = clv.get("skip_reason_family_counts") if isinstance(clv.get("skip_reason_family_counts"), dict) else {}
+          mapped = clv.get("mapped_family_counts") if isinstance(clv.get("mapped_family_counts"), dict) else {}
+          priced = clv.get("priced_entry_family_counts") if isinstance(clv.get("priced_entry_family_counts"), dict) else {}
+          matrix_families = matrix.get("family_summary") if isinstance(matrix.get("family_summary"), dict) else {}
+
+          families = {}
+          for family in ("1X2", "BTTS", "FT_TOTALS"):
+              visit = matrix_families.get(family) if isinstance(matrix_families.get(family), dict) else {}
+              canonical_rows = int(family_counts.get(family) or 0)
+              canonical_fixtures = int(unique_counts.get(family) or 0)
+              audit_comparable = int(visit.get("true_clv_comparable") or 0)
+              recent_no_snapshot = int((skip_by_reason.get("NO_LATER_PREKICKOFF_MARKET_SNAPSHOT") or {}).get(family) or 0)
+              recent_no_provider = int((skip_by_reason.get("NO_LATER_PROVIDER_UPDATE") or {}).get(family) or 0)
+              recent_no_selection = int((skip_by_reason.get("NO_SELECTION_MATCH_AT_CLOSE") or {}).get(family) or 0)
+              gap = max(audit_comparable - canonical_fixtures, 0)
+              if gap > 0:
+                  state = "CANONICAL_HISTORICAL_COVERAGE_GAP_REQUIRES_EXACT_BACKFILL_RECONCILIATION"
+              elif canonical_rows >= 50:
+                  state = "CLV_GATE_MET"
+              else:
+                  state = "NATURAL_MATURATION_REQUIRED"
+              families[family] = {
+                  "canonical_true_clv_rows": canonical_rows,
+                  "canonical_true_clv_unique_fixtures": canonical_fixtures,
+                  "minimum_true_clv_rows": 50,
+                  "remaining_to_gate": max(50 - canonical_rows, 0),
+                  "current_phase17_mapped_rows": int(mapped.get(family) or 0),
+                  "current_phase17_priced_rows": int(priced.get(family) or 0),
+                  "current_phase17_skip_reasons": {
+                      "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": recent_no_snapshot,
+                      "NO_LATER_PROVIDER_UPDATE": recent_no_provider,
+                      "NO_SELECTION_MATCH_AT_CLOSE": recent_no_selection,
+                  },
+                  "post_v223_canonical_equivalent_audit": visit,
+                  "audit_comparable_minus_canonical_unique_fixtures": gap,
+                  "maturation_state": state,
+              }
+
+          report = {
+              "schema_version": "1.0.0",
+              "model_version": "SOCCER_PRIMARY_CLV_MATURATION_FUNNEL_V4_1.0.0",
+              "status": "OBSERVABILITY_ONLY",
+              "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+              "canonical_clv_model_version": clv.get("model_version"),
+              "visit_matrix_model_version": matrix.get("model_version"),
+              "families": families,
+              "provider_requests_added": 0,
+              "strict_close_semantics_changed": False,
+              "models_changed": False,
+              "thresholds_changed": False,
+              "gates_changed": False,
+              "provider_budget_changed": False,
+              "canonical_bet_logic_changed": False,
+              "production_promotion_allowed": False,
+              "policy": (
+                  "AUDIT_ONLY; CANONICAL COUNTS REMAIN OWNED_BY_PHASE17; "
+                  "VISIT_MATRIX_ROWS_CANNOT_ENTER TRUE_CLV UNTIL EXACT HISTORICAL "
+                  "BACKFILL_RECONCILIATION REPLAYS THE CANONICAL MATCHER"
+              ),
+          }
+          out = Path("soccer_edge_state/analysis/primary_clv_maturation_funnel_v4.json")
+          out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(json.dumps(report, indent=2, sort_keys=True))
+          PY
+
+          R=soccer_edge_state/analysis/primary_clv_maturation_funnel_v4.json
+          jq -e '.status=="OBSERVABILITY_ONLY" and .provider_requests_added==0' "$R" >/dev/null
+          jq -e '.strict_close_semantics_changed==false and .models_changed==false and .thresholds_changed==false and .gates_changed==false' "$R" >/dev/null
+          jq -e '(.families.BTTS | type)=="object" and (.families.FT_TOTALS | type)=="object"' "$R" >/dev/null
       - name: Persist audit
         shell: bash
         run: |
           set -euo pipefail
           git config user.name soccer-edge-bot
           git config user.email soccer-edge-bot@users.noreply.github.com
-          git add -f soccer_edge_state/analysis/post_v223_visit_matrix_v4.json
+          git add -f soccer_edge_state/analysis/post_v223_visit_matrix_v4.json \
+            soccer_edge_state/analysis/primary_clv_maturation_funnel_v4.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Persist post-v223 CLV visit matrix"
           git pull --rebase origin soccer-edge-state
