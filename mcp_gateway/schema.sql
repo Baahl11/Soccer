@@ -187,6 +187,19 @@ CREATE TABLE IF NOT EXISTS soccer_results (
     payload JSONB NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS soccer_research_backfill_discovery (
+    research_key TEXT NOT NULL,
+    team_id BIGINT NOT NULL,
+    cutoff TIMESTAMPTZ NOT NULL,
+    lookback_days INTEGER NOT NULL,
+    attempted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    provider_status TEXT NOT NULL,
+    provider_fixture_count INTEGER NOT NULL DEFAULT 0,
+    persisted_fixture_count INTEGER NOT NULL DEFAULT 0,
+    payload JSONB,
+    PRIMARY KEY (research_key, team_id, cutoff)
+);
+
 CREATE TABLE IF NOT EXISTS soccer_alerts (
     alert_id BIGSERIAL PRIMARY KEY,
     fixture_id BIGINT,
@@ -258,3 +271,6 @@ CREATE INDEX IF NOT EXISTS idx_soccer_training_builds_asof ON soccer_training_da
 
 ALTER TABLE soccer_training_dataset_rows ADD COLUMN IF NOT EXISTS provenance JSONB;
 ALTER TABLE soccer_training_dataset_rows ADD COLUMN IF NOT EXISTS row_payload JSONB;
+
+CREATE INDEX IF NOT EXISTS idx_soccer_research_backfill_discovery_attempted
+ON soccer_research_backfill_discovery (research_key, attempted_at DESC);
