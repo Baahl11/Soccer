@@ -55,13 +55,15 @@ def test_fe2_consumes_only_v2_customer_contract_for_decision_data():
     assert "/app/data" not in html
 
 
-def test_fe2_preview_does_not_enable_billing_mutations():
+def test_fe2_billing_surface_keeps_price_ids_out_and_launch_default_off():
     html = subscriber_frontend_v2.render()
+    contract = subscriber_frontend_v2.contract()
 
-    assert "create-checkout-session" not in html
-    assert "create-customer-portal" not in html
-    assert "Subscription infrastructure already exists" in html
-
+    assert "price_1ULUp1BE8LWeAYkQBNijFI03" not in html
+    assert "price_1ULUp7BE8LWeAYkQbanCnbG7" not in html
+    assert contract["billing_mutations_enabled"] is False
+    assert contract["public_billing_launch_default"] is False
+    assert contract["browser_sends_stripe_price_id"] is False
 
 def test_fe2_has_one_customer_bootstrap_controller():
     html = subscriber_frontend_v2.render()
