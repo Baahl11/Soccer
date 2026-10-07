@@ -126,6 +126,60 @@ def _execution_status(row: dict[str, Any]) -> str | None:
     value = _first(row, "execution_status", "decision_status")
     return str(value).strip().upper() if value not in (None, "") else None
 
+def _display_reason(
+    reason: Any,
+    execution_status: str | None,
+    classification: str | None,
+) -> str | None:
+    """Translate persisted internal state into concise subscriber language.
+
+    This is presentation only. It never changes the canonical classification.
+    """
+
+    raw = str(reason or "").strip()
+    status = str(execution_status or "").strip().upper()
+
+    if "Per-tick API budget reached" in raw:
+        return (
+            "Data refresh deferred by the request budget; required inputs are "
+            "not fully verified yet."
+        )
+    if "PAID_ODDS_RESEARCH_ENTRY" in raw:
+        return "Research-only market evaluation; production BET gate not passed."
+    if "SPORTING_SCREEN_PASS" in raw:
+        return (
+            "Sporting screen passed; the verified market/value requirements "
+            "for a BET are not yet satisfied."
+        )
+
+    status_copy = {
+        "WAIT_MARKET": "Waiting for a verified market.",
+        "WAIT_PRICE": "Waiting for an actionable verified price.",
+        "WAIT_FRESH_QUOTE": "Waiting for a fresh actionable market quote.",
+        "WAIT_XI": "Waiting for confirmed starting XI.",
+        "WAIT_GK": "Waiting for confirmed goalkeepers.",
+        "WAIT_AVAILABILITY": "Waiting for material availability verification.",
+        "RESEARCH_ONLY": "Research only; production BET gate not passed.",
+        "PASS": "No actionable betting edge in the current verified snapshot.",
+    }
+    if status in status_copy:
+        return status_copy[status]
+
+    if raw:
+        # Preserve the source meaning while avoiding code-like underscore labels.
+        return raw.replace("_", " ").strip()
+    if classification == "WATCH":
+        return "Waiting for the remaining verified conditions required for action."
+    return None
+
+
+def _display_bucket(classification: str | None, execution_status: str | None) -> str | None:
+    if classification in _CANONICAL_CLASSIFICATIONS:
+        return classification
+    if str(execution_status or "").upper() in _WATCH_EXECUTION_STATUSES:
+        return "WATCH"
+    return None
+
 
 def _fixture(row: dict[str, Any]) -> dict[str, Any]:
     nested = _dict(row.get("fixture"))
@@ -328,10 +382,16 @@ def adapt_candidate(row: dict[str, Any]) -> dict[str, Any]:
         "fixture": _fixture(row),
         "decision": {
             "classification": classification,
+            "display_bucket": _display_bucket(classification, execution_status),
             "tier": tier,
             "execution_status": execution_status,
             "stage": _first(row, "stage"),
-            "reason": _first(row, "reason"),
+            "reason_code": _first(row, "reason"),
+            "reason_display": _display_reason(
+                _first(row, "reason"),
+                execution_status,
+                classification,
+            ),
             "is_canonical_bet": classification == "BET",
             "is_canonical_lean": classification == "LEAN",
         },
@@ -500,9 +560,10 @@ def _public_watch(candidate: dict[str, Any]) -> dict[str, Any]:
         "fixture": fixture,
         "decision": {
             "classification": decision.get("classification"),
+            "display_bucket": decision.get("display_bucket"),
             "execution_status": decision.get("execution_status"),
             "stage": decision.get("stage"),
-            "reason": decision.get("reason"),
+            "reason_display": decision.get("reason_display"),
         },
         "market": {
             "family": market.get("family"),
