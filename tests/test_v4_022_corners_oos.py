@@ -369,3 +369,137 @@ def test_v4_022_distinguishes_materialized_but_not_ready_team_corner_stability()
     assert "TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY" in blockers
 
 
+
+
+def test_v4_022_tracks_side_specific_formation_challenger_for_team_corners():
+    baseline = {
+        "walk_forward_evaluations": 244,
+        "formation_adjusted_evaluations": 39,
+        "baseline": {
+            "mae_total_corners": 2.6,
+            "lines": {
+                "8.5": {"brier": 0.25, "log_loss": 0.70},
+                "9.5": {"brier": 0.25, "log_loss": 0.70},
+                "10.5": {"brier": 0.22, "log_loss": 0.63},
+            },
+        },
+        "formation_challenger": {
+            "mae_total_corners": 2.5,
+            "lines": {
+                "8.5": {"brier": 0.24, "log_loss": 0.69},
+                "9.5": {"brier": 0.24, "log_loss": 0.69},
+                "10.5": {"brier": 0.21, "log_loss": 0.62},
+            },
+        },
+        "side_specific_formation_challenger": {
+            "status": "RESEARCH_ONLY_SIDE_SPECIFIC_FORMATION_CHALLENGER",
+            "formation_adjusted_evaluations": 39,
+            "minimum_prior_same_matchup": 8,
+            "shrinkage_pseudo_n": 20,
+            "scale_clip": [0.85, 1.15],
+            "baseline_side_metrics": {
+                "n": 39,
+                "mae_home_corners": 2.24,
+                "mae_away_corners": 1.71,
+                "mae_total_corners": 2.69,
+            },
+            "challenger_side_metrics": {
+                "n": 39,
+                "mae_home_corners": 2.15,
+                "mae_away_corners": 1.73,
+                "mae_total_corners": 2.50,
+            },
+            "baseline_total_line_metrics": {"n": 39, "lines": {}},
+            "challenger_total_line_metrics": {"n": 39, "lines": {}},
+            "improvement": {
+                "home_mae_improves": True,
+                "away_mae_improves": False,
+                "total_mae_improves": True,
+            },
+            "production_enabled": False,
+            "decision_weight": 0.0,
+        },
+        "formation_lift_by_league": {
+            "review_ready": False,
+            "review_eligible_leagues": [],
+            "stable_lift_leagues": [],
+            "negative_lift_leagues": [],
+        },
+    }
+    team = {
+        "evaluated_fixtures": 244,
+        "evaluated_rows": 1464,
+        "by_role_line": {
+            "HOME|3.5": {"n": 244},
+            "HOME|4.5": {"n": 244},
+            "HOME|5.5": {"n": 244},
+            "AWAY|3.5": {"n": 244},
+            "AWAY|4.5": {"n": 244},
+            "AWAY|5.5": {"n": 244},
+        },
+        "by_league": {"39": {"n": 100}},
+        "league_venue_stability": {"review_ready": False, "segments": {}},
+    }
+    formation = {
+        "status": "RESEARCH_ONLY_FORMATION_MATCHUP_ENGINE",
+        "model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
+        "production_enabled": False,
+        "decision_weight": 0.0,
+        "minimum_stable_matchup_n": 8,
+        "fixtures_with_verified_formation_pair_and_final": 299,
+        "unique_matchups": 81,
+        "matchups_n_ge_8": 8,
+        "metric_rows": {"total_corners": 217, "home_corners": 217, "away_corners": 217},
+        "health": {
+            "odds_consumed": False,
+            "leakage_policy": "PREKICKOFF_OR_AT_KICKOFF_ONLY",
+            "blockers": ["RESEARCH_ONLY"],
+        },
+    }
+
+    report = v.build_report(baseline, team, [], formation)
+    side = report["team_corners"]["side_specific_formation_challenger"]
+    assert side["formation_adjusted_evaluations"] == 39
+    assert side["home_mae_improves"] is True
+    assert side["away_mae_improves"] is False
+    assert side["both_side_mae_improve"] is False
+    blockers = report["family_views"]["TEAM_CORNERS"]["blockers"]
+    assert "TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_39_LT_100" in blockers
+    assert "TEAM_CORNERS_SIDE_SPECIFIC_HOME_AWAY_MAE_NOT_BOTH_BETTER" in blockers
+
+
+def test_v4_022_exposes_formation_matchup_health_without_decision_weight():
+    report = v.build_report(
+        {
+            "walk_forward_evaluations": 0,
+            "formation_adjusted_evaluations": 0,
+            "baseline": {},
+            "formation_challenger": {},
+        },
+        {},
+        [],
+        {
+            "status": "RESEARCH_ONLY_FORMATION_MATCHUP_ENGINE",
+            "model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
+            "production_enabled": False,
+            "decision_weight": 0.0,
+            "minimum_stable_matchup_n": 8,
+            "fixtures_with_verified_formation_pair_and_final": 299,
+            "unique_matchups": 81,
+            "matchups_n_ge_8": 8,
+            "metric_rows": {"total_corners": 217, "total_shots": 217, "total_sot": 217},
+            "health": {
+                "odds_consumed": False,
+                "leakage_policy": "PREKICKOFF_OR_AT_KICKOFF_ONLY",
+                "blockers": ["RESEARCH_ONLY"],
+            },
+        },
+    )
+    health = report["formation_matchup_health"]
+    assert health["canonical_state_loaded"] is True
+    assert health["fixtures_with_verified_formation_pair_and_final"] == 299
+    assert health["unique_matchups"] == 81
+    assert health["matchups_n_ge_8"] == 8
+    assert health["production_enabled"] is False
+    assert health["decision_weight"] == 0.0
+    assert health["odds_consumed"] is False
