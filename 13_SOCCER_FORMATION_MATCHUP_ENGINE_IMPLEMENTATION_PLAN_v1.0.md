@@ -648,3 +648,59 @@ Do not integrate Formation/Style into RAW SPORT PROJECTION until:
 
 Nominal formation results alone are not sufficient.
 
+
+
+---
+
+# 20. ROADMAP UPDATE — 2026-10-07 FM-4 DISCOVERY RESOLVED
+
+FM-4 historical fixture discovery is now operational.
+
+Current canonical research state:
+
+```text
+target teams                                  520
+eligible historical candidate pool            66
+materialized tactical-history fixtures         12
+both teams with any prior style history        11 source fixtures
+both teams complete prior style n>=1           11 source fixtures
+both teams complete prior style n>=2            1 source fixture
+both teams complete prior style n>=3            0 source fixtures
+style-eligible source rows                      0
+```
+
+Latest guarded batch:
+
+```text
+attempted statistics fixtures   8
+captured complete stats         2
+provider stats incomplete       6
+provider errors                 0
+daily provider remaining     5099
+```
+
+Therefore:
+
+- historical fixture discovery is no longer the blocker;
+- verified cohort season mapping is no longer the blocker;
+- offline rebuild dependencies are no longer the blocker;
+- provider quota is not the blocker;
+- the remaining blocker is genuine prior tactical-history depth.
+
+Backfill v1.2 adds:
+
+- durable incomplete-stat attempt markers;
+- no repeat calls for known incomplete historical fixtures;
+- successful-statistics league tie-breaking;
+- continued undercovered-team priority;
+- unchanged max 8 statistics calls per run;
+- unchanged daily reserve guard;
+- no synthetic data;
+- no historical forecast rewrite;
+- production decision weight = 0.
+
+FM-4 remains:
+
+`RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION`
+
+Do not advance to FM-5 until the prior-only style/personnel challenger demonstrates meaningful OOS lift.
