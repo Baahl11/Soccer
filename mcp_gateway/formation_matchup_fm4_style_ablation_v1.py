@@ -67,9 +67,12 @@ def _formation_geometry(value: Any) -> dict[str, float] | None:
     }
 
 
-def _tactical_history_events(history_dir: str) -> list[dict[str, Any]]:
+def _history_events(
+    history_dir: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     fixtures = fm1.formation_v2._enhanced_load_history(history_dir)
-    events: list[dict[str, Any]] = []
+    tactical_events: list[dict[str, Any]] = []
+    personnel_events: list[dict[str, Any]] = []
     for rec in fixtures.values():
         kickoff = _dt(rec.get("kickoff_local"))
         if kickoff == datetime.min.replace(tzinfo=timezone.utc):
@@ -103,7 +106,7 @@ def _tactical_history_events(history_dir: str) -> list[dict[str, Any]]:
                 "yellow_cards": yellow,
             }
 
-        events.append(
+        tactical_events.append(
             {
                 "fixture_id": rec.get("fixture_id"),
                 "kickoff": kickoff,
@@ -129,8 +132,53 @@ def _tactical_history_events(history_dir: str) -> list[dict[str, Any]]:
                 ),
             }
         )
-    events.sort(key=lambda row: (row["kickoff"], int(row.get("fixture_id") or 0)))
-    return events
+
+        lineup_detail = rec.get("lineup_detail")
+        if isinstance(lineup_detail, dict) and lineup_detail.get("both_xi_confirmed") is True:
+            detail_teams = []
+            for team in lineup_detail.get("teams") or []:
+                if not isinstance(team, dict) or team.get("team_id") is None:
+                    continue
+                starters = [
+                    {
+                        "id": player.get("id"),
+                        "name": player.get("name"),
+                        "pos": player.get("pos"),
+                        "grid": player.get("grid"),
+                    }
+                    for player in (team.get("starters") or [])
+                    if isinstance(player, dict) and player.get("id") is not None
+                ]
+                if len(starters) < 11:
+                    continue
+                detail_teams.append(
+                    {
+                        "team_id": int(team.get("team_id")),
+                        "team": team.get("team"),
+                        "formation": team.get("formation"),
+                        "coach_id": team.get("coach_id"),
+                        "coach": team.get("coach"),
+                        "starters": starters,
+                    }
+                )
+            if len(detail_teams) == 2:
+                personnel_events.append(
+                    {
+                        "fixture_id": rec.get("fixture_id"),
+                        "kickoff": kickoff,
+                        "captured_at": rec.get("lineup_detail_at"),
+                        "stage": rec.get("lineup_detail_stage"),
+                        "teams": detail_teams,
+                    }
+                )
+
+    tactical_events.sort(key=lambda row: (row["kickoff"], int(row.get("fixture_id") or 0)))
+    personnel_events.sort(key=lambda row: (row["kickoff"], int(row.get("fixture_id") or 0)))
+    return tactical_events, personnel_events
+
+
+def _tactical_history_events(history_dir: str) -> list[dict[str, Any]]:
+    return _history_events(history_dir)[0]
 
 
 def _append_style_observation(
