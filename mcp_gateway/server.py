@@ -10,6 +10,8 @@ from starlette.responses import JSONResponse, Response
 
 from mcp_gateway import player_props_shots_anchor_patch_v4
 from mcp_gateway import primary_clv_anchor_v4
+from mcp_gateway import primary_clv_anchor_normalized_v4
+from mcp_gateway import primary_clv_signal_anchor_store_v4
 from mcp_gateway import server_base as _base_server
 from mcp_gateway import signal_ledger_postgres_delta_v4
 from mcp_gateway import team_totals_phase17_anchor_patch_v4
@@ -50,6 +52,85 @@ async def internal_team_totals_capture_signal_reconciliation_v4_build(request: R
         return JSONResponse(result)
     except Exception as exc:
         return JSONResponse({"error":"team_totals_capture_signal_reconciliation_failed","detail":str(exc)[:500]}, status_code=500)
+
+
+@mcp.custom_route("/internal/primary-clv-anchor-normalization-v4/build", methods=["POST"])
+async def internal_primary_clv_anchor_normalization_v4_build(request: Request) -> Response:
+    try:
+        _base_server._github_oidc_claims(
+            request,
+            {".github/workflows/v239-primary-clv-anchor-normalization.yml"},
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {"error": "unauthorized", "detail": str(exc)[:200]},
+            status_code=401,
+        )
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    try:
+        lookback_days = max(1, min(int(body.get("lookback_days", 180)), 730))
+        max_runs = max(100, min(int(body.get("max_runs", 100000)), 200000))
+        lookahead_minutes = max(
+            20,
+            min(
+                int(body.get("lookahead_minutes", price_resolver_v4.PRIMARY_CLV_MATURATION_LOOKAHEAD_MINUTES)),
+                1440,
+            ),
+        )
+        limit = max(
+            1,
+            min(
+                int(body.get("limit", price_resolver_v4.PRIMARY_CLV_MATURATION_BACKLOG_LIMIT)),
+                1000,
+            ),
+        )
+        materialization = await asyncio.to_thread(
+            primary_clv_signal_anchor_store_v4.materialize_historical_anchors,
+            lookback_days=lookback_days,
+            max_runs=max_runs,
+        )
+        comparison = await asyncio.to_thread(
+            primary_clv_anchor_normalized_v4.compare_with_legacy,
+            lookback_days=lookback_days,
+            lookahead_minutes=lookahead_minutes,
+            limit=limit,
+        )
+        return JSONResponse(
+            {
+                "status": (
+                    "EQUIVALENT"
+                    if materialization.get("status") == "OK"
+                    and materialization.get("run_limit_saturated") is not True
+                    and comparison.get("equivalent") is True
+                    else "REVIEW_REQUIRED"
+                ),
+                "model_version": "SOCCER_PRIMARY_CLV_ANCHOR_NORMALIZATION_V4_1.0.0",
+                "materialization": materialization,
+                "comparison": comparison,
+                "provider_requests_added": 0,
+                "strict_close_semantics_changed": False,
+                "models_changed": False,
+                "thresholds_changed": False,
+                "gates_changed": False,
+                "provider_budget_changed": False,
+                "canonical_bet_logic_changed": False,
+                "production_promotion_allowed": False,
+            }
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "error": "primary_clv_anchor_normalization_failed",
+                "detail": str(exc)[:500],
+            },
+            status_code=500,
+        )
 
 
 @mcp.custom_route("/internal/post-v223-visit-matrix-v4/build", methods=["POST"])
