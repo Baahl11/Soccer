@@ -97,6 +97,7 @@ def _install_subscriber_app_routes() -> None:
             subscriber_product_v235,
             subscriber_contract_v2,
             subscriber_frontend_v2,
+            subscriber_pwa_v2,
             subscriber_preview_data_v231,
             subscriber_preview_maturity_v232,
             subscriber_preview_performance_v231,
@@ -115,6 +116,12 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app", subscriber_product_v235.app_page, methods=["GET"], name="v235_subscriber_product"))
         if "/app-v2" not in existing_paths:
             additions.append(Route("/app-v2", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_preview"))
+        if "/app.webmanifest" not in existing_paths:
+            additions.append(Route("/app.webmanifest", subscriber_pwa_v2.manifest, methods=["GET"], name="subscriber_pwa_manifest"))
+        if "/sw.js" not in existing_paths:
+            additions.append(Route("/sw.js", subscriber_pwa_v2.service_worker, methods=["GET"], name="subscriber_pwa_service_worker"))
+        if "/pwa/icon.svg" not in existing_paths:
+            additions.append(Route("/pwa/icon.svg", subscriber_pwa_v2.icon, methods=["GET"], name="subscriber_pwa_icon"))
         if "/app/data" not in existing_paths:
             additions.append(Route("/app/data", subscriber_product_v235.app_data, methods=["GET"], name="v235_subscriber_data"))
         if "/app/match" not in existing_paths:
