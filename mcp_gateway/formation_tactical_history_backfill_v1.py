@@ -584,6 +584,7 @@ async def run_backfill(
     lookback_days: int = 365,
     max_fixtures: int = MAX_FIXTURES_PER_RUN,
     max_discovery_teams: int = MAX_DISCOVERY_TEAM_CALLS_PER_RUN,
+    team_seasons: dict[Any, Any] | None = None,
 ) -> dict[str, Any]:
     unique_team_ids = sorted(
         {
@@ -602,6 +603,15 @@ async def run_backfill(
         0,
         min(int(max_discovery_teams), MAX_DISCOVERY_TEAM_CALLS_PER_RUN),
     )
+    provided_team_seasons: dict[int, int] = {}
+    for team_raw, season_raw in (team_seasons or {}).items():
+        try:
+            team_id = int(team_raw)
+            season = int(season_raw)
+        except (TypeError, ValueError):
+            continue
+        if team_id in unique_team_ids and season > 0:
+            provided_team_seasons[team_id] = season
 
     if not persistence_base.persistence_configured():
         return {
@@ -668,6 +678,10 @@ async def run_backfill(
                 team_ids=unique_team_ids,
                 before=before_dt,
             )
+            # Canonical formation research state may carry the verified fixture
+            # season even when the live Postgres fixture table is sparse. Prefer
+            # those explicit values over inference.
+            source_seasons.update(provided_team_seasons)
             discovery_team_ids = _select_discovery_teams(
                 unique_team_ids,
                 local_counts=local_counts,
@@ -857,6 +871,7 @@ async def run_backfill(
         "before": before_dt.isoformat(),
         "lookback_days": lookback_days,
         "target_team_count": len(unique_team_ids),
+        "provided_team_season_count": len(provided_team_seasons),
         "candidate_pool_rows": len(pool),
         "selected_fixture_count": len(candidates),
         "fixture_discovery": {
