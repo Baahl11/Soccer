@@ -522,12 +522,18 @@ def build_report(
     team_style: dict[int, dict[str, list[float]]] = defaultdict(
         lambda: {field: [] for field in STYLE_FIELDS}
     )
-    tactical_events = (
-        _tactical_history_events(history_dir)
-        if history_dir
-        else []
-    )
+    if history_dir:
+        tactical_events, personnel_events = _history_events(history_dir)
+    else:
+        tactical_events, personnel_events = [], []
     tactical_index = 0
+    personnel_index = 0
+    personnel_by_fixture = {
+        int(event.get("fixture_id") or 0): event
+        for event in personnel_events
+        if int(event.get("fixture_id") or 0)
+    }
+    team_lineup_history: dict[int, list[dict[str, Any]]] = defaultdict(list)
     tactical_team_ids = {
         int(event["home_team_id"]) for event in tactical_events
     } | {
@@ -593,10 +599,40 @@ def build_report(
         for field in STYLE_FIELDS
     }
     evaluation_rows: list[dict[str, Any]] = []
+    personnel_rows: list[dict[str, Any]] = []
+    personnel_coverage = {
+        "source_rows": len(rows),
+        "current_both_xi_confirmed_rows": 0,
+        "rows_with_home_prior_confirmed_xi": 0,
+        "rows_with_away_prior_confirmed_xi": 0,
+        "rows_with_both_prior_confirmed_xi": 0,
+        "rows_with_home_previous_coach_comparable": 0,
+        "rows_with_away_previous_coach_comparable": 0,
+        "rows_with_both_previous_coach_comparable": 0,
+        "rows_with_home_last3_core_return_rate": 0,
+        "rows_with_away_last3_core_return_rate": 0,
+        "rows_with_both_last3_core_return_rate": 0,
+    }
 
     for row in rows:
         row_kickoff = _dt(row.get("kickoff_local"))
         if history_dir:
+            while (
+                personnel_index < len(personnel_events)
+                and personnel_events[personnel_index]["kickoff"] < row_kickoff
+            ):
+                personnel_event = personnel_events[personnel_index]
+                for team in personnel_event.get("teams") or []:
+                    if not isinstance(team, dict) or team.get("team_id") is None:
+                        continue
+                    history_row = dict(team)
+                    history_row["fixture_id"] = personnel_event.get("fixture_id")
+                    history_row["kickoff"] = personnel_event.get("kickoff")
+                    history_row["captured_at"] = personnel_event.get("captured_at")
+                    history_row["stage"] = personnel_event.get("stage")
+                    team_lineup_history[int(team.get("team_id"))].append(history_row)
+                personnel_index += 1
+
             while (
                 tactical_index < len(tactical_events)
                 and tactical_events[tactical_index]["kickoff"] < row_kickoff
