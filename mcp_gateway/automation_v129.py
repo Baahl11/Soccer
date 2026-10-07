@@ -9,10 +9,196 @@ from mcp_gateway import primary_clv_anchor_v4
 from mcp_gateway import derivative_clv_anchor_v4
 from mcp_gateway import team_totals_clv_anchor_v4
 from mcp_gateway import team_totals_close_provenance_v4
-from mcp_gateway import team_totals_close_provenance_history_v4
 
 MODEL_VERSION = v128.MODEL_VERSION
-AUTOMATION_VERSION = "4.38.5-team-totals-close-provenance-audit"
+AUTOMATION_VERSION = "4.38.6-runtime-stabilization"
+
+
+def _int_map(value: Any) -> dict[str, int]:
+    if not isinstance(value, dict):
+        return {}
+    output: dict[str, int] = {}
+    for key, raw in value.items():
+        try:
+            output[str(key).upper()] = int(raw or 0)
+        except (TypeError, ValueError):
+            output[str(key).upper()] = 0
+    return output
+
+
+def _true_clv_view(payload: dict[str, Any], family: str) -> dict[str, Any]:
+    family = family.upper()
+    validation_key = {
+        "FT_TOTALS": "v4_016_ft_totals_production_validation",
+        "1X2": "v4_017_1x2_calibration_validation",
+        "BTTS": "v4_018_btts_calibration_validation",
+        "TEAM_TOTALS": "v4_019_team_totals_oos_validation",
+        "1H": "v4_020_1h_oos_validation",
+        "2H": "v4_021_2h_oos_validation",
+        "CARDS": "phase14_cards_referee_validation",
+        "PLAYER_PROPS": "phase15_player_props_validation",
+    }.get(family)
+    if family in {"FT_CORNERS", "TEAM_CORNERS"}:
+        validation = payload.get("v4_022_corners_oos_validation")
+        validation = validation if isinstance(validation, dict) else {}
+        family_views = validation.get("family_views")
+        family_views = family_views if isinstance(family_views, dict) else {}
+        view = family_views.get(family)
+        view = view if isinstance(view, dict) else {}
+        true_clv = view.get("true_clv")
+        true_clv = true_clv if isinstance(true_clv, dict) else {}
+        return {
+            "validation_status": view.get("status") or validation.get("status"),
+            "rows": int(true_clv.get("rows") or 0),
+            "unique_fixtures": int(true_clv.get("unique_fixtures") or 0),
+            "minimum_rows": int(true_clv.get("minimum_rows") or 50),
+        }
+    validation = payload.get(validation_key) if validation_key else {}
+    validation = validation if isinstance(validation, dict) else {}
+    true_clv = validation.get("true_clv")
+    true_clv = true_clv if isinstance(true_clv, dict) else {}
+    return {
+        "validation_status": validation.get("status") or validation.get("validation_status"),
+        "rows": int(true_clv.get("rows") or 0),
+        "unique_fixtures": int(true_clv.get("unique_fixtures") or 0),
+        "minimum_rows": int(true_clv.get("minimum_rows") or 50),
+    }
+
+
+def _market_maturation_health(payload: dict[str, Any]) -> dict[str, Any]:
+    price = payload.get("price_resolution_v4")
+    price = price if isinstance(price, dict) else {}
+    candidates = _int_map(price.get("primary_clv_maturation_candidate_family_counts"))
+    evaluated = _int_map(price.get("primary_clv_maturation_family_evaluation_counts"))
+    refreshed = _int_map(price.get("primary_clv_maturation_family_refresh_counts"))
+    not_matured = _int_map(price.get("primary_clv_maturation_not_matured_family_counts"))
+
+    families: dict[str, dict[str, Any]] = {}
+    for family in ("1X2", "FT_TOTALS", "BTTS", "1H", "2H", "FT_CORNERS", "TEAM_CORNERS"):
+        clv = _true_clv_view(payload, family)
+        row = {
+            **clv,
+            "candidate_signal_rows_this_tick": candidates.get(family, 0),
+            "evaluated_signal_rows_this_tick": evaluated.get(family, 0),
+            "strict_later_quote_rows_this_tick": refreshed.get(family, 0),
+            "not_matured_rows_this_tick": not_matured.get(family, 0),
+        }
+        if row["rows"] >= row["minimum_rows"]:
+            state = "CLV_GATE_MET"
+        elif row["strict_later_quote_rows_this_tick"] > 0:
+            state = "ADVANCING_THIS_TICK"
+        elif row["evaluated_signal_rows_this_tick"] > 0 and row["not_matured_rows_this_tick"] > 0:
+            state = "WAITING_STRICT_LATER_QUOTE"
+        elif row["candidate_signal_rows_this_tick"] > 0:
+            state = "CANDIDATES_QUEUED"
+        elif row["rows"] > 0:
+            state = "MATURATING"
+        else:
+            state = "NO_CURRENT_CLV_PROGRESS"
+        row["maturation_state"] = state
+        families[family] = row
+
+    team_clv = _true_clv_view(payload, "TEAM_TOTALS")
+    team_candidates = int(price.get("research_spillover_maturation_candidates") or 0)
+    team_refreshes = int(price.get("research_spillover_maturation_later_real_quote_refreshes") or 0)
+    team_unchanged = int(price.get("research_spillover_maturation_unchanged_provider_updates") or 0)
+    families["TEAM_TOTALS"] = {
+        **team_clv,
+        "candidate_fixtures_this_tick": team_candidates,
+        "strict_later_quote_refreshes_this_tick": team_refreshes,
+        "unchanged_provider_updates_this_tick": team_unchanged,
+        "maturation_state": (
+            "CLV_GATE_MET"
+            if team_clv["rows"] >= team_clv["minimum_rows"]
+            else "ADVANCING_THIS_TICK"
+            if team_refreshes > 0
+            else "WAITING_STRICT_LATER_QUOTE"
+            if team_candidates > 0 and team_unchanged > 0
+            else "CANDIDATES_QUEUED"
+            if team_candidates > 0
+            else "MATURATING"
+            if team_clv["rows"] > 0
+            else "NO_CURRENT_CLV_PROGRESS"
+        ),
+    }
+
+    cards_clv = _true_clv_view(payload, "CARDS")
+    families["CARDS"] = {
+        **cards_clv,
+        "maturation_state": (
+            "CLV_GATE_MET"
+            if cards_clv["rows"] >= cards_clv["minimum_rows"]
+            else "MATURATING"
+            if cards_clv["rows"] > 0
+            else "NO_CURRENT_CLV_PROGRESS"
+        ),
+        "runtime_capture_telemetry": "NOT_EXPOSED_BY_PRICE_RESOLVER",
+    }
+
+    props_validation = payload.get("phase15_player_props_validation")
+    props_validation = props_validation if isinstance(props_validation, dict) else {}
+    props_true_clv = props_validation.get("true_clv")
+    props_true_clv = props_true_clv if isinstance(props_true_clv, dict) else {}
+    props_by_family = props_true_clv.get("by_family")
+    props_by_family = props_by_family if isinstance(props_by_family, dict) else {}
+    prop_candidates = _int_map(price.get("player_props_clv_maturation_candidate_family_counts"))
+    prop_evaluated = _int_map(price.get("player_props_clv_maturation_family_evaluation_counts"))
+    prop_refreshed = _int_map(price.get("player_props_clv_maturation_family_refresh_counts"))
+    prop_not_matured = _int_map(price.get("player_props_clv_maturation_not_matured_family_counts"))
+    for source_key, family in (
+        ("shots", "PROP_SHOTS"),
+        ("sot", "PROP_SOT"),
+        ("goalscorer", "PROP_GOALSCORER"),
+        ("assists", "PROP_ASSISTS"),
+        ("cards", "PROP_CARDS"),
+        ("gk_saves", "PROP_GK_SAVES"),
+    ):
+        view = props_by_family.get(source_key)
+        view = view if isinstance(view, dict) else {}
+        lookup_keys = {source_key.upper(), family, family.replace("PROP_", "")}
+        candidate_count = max((prop_candidates.get(key, 0) for key in lookup_keys), default=0)
+        evaluation_count = max((prop_evaluated.get(key, 0) for key in lookup_keys), default=0)
+        refresh_count = max((prop_refreshed.get(key, 0) for key in lookup_keys), default=0)
+        not_matured_count = max((prop_not_matured.get(key, 0) for key in lookup_keys), default=0)
+        rows = int(view.get("rows") or 0)
+        minimum_rows = int(view.get("minimum_rows") or 50)
+        families[family] = {
+            "validation_status": props_validation.get("status") or props_validation.get("validation_status"),
+            "rows": rows,
+            "unique_fixtures": int(view.get("unique_fixtures") or 0),
+            "minimum_rows": minimum_rows,
+            "candidate_signal_rows_this_tick": candidate_count,
+            "evaluated_signal_rows_this_tick": evaluation_count,
+            "strict_later_quote_rows_this_tick": refresh_count,
+            "not_matured_rows_this_tick": not_matured_count,
+            "maturation_state": (
+                "CLV_GATE_MET"
+                if rows >= minimum_rows
+                else "ADVANCING_THIS_TICK"
+                if refresh_count > 0
+                else "WAITING_STRICT_LATER_QUOTE"
+                if evaluation_count > 0 and not_matured_count > 0
+                else "CANDIDATES_QUEUED"
+                if candidate_count > 0
+                else "MATURATING"
+                if rows > 0
+                else "NO_CURRENT_CLV_PROGRESS"
+            ),
+        }
+
+    return {
+        "schema_version": "1.0.0",
+        "status": "OBSERVABILITY_ONLY",
+        "generated_at_utc": payload.get("generated_at_utc"),
+        "strict_close_semantics_changed": False,
+        "model_weights_changed": False,
+        "thresholds_changed": False,
+        "gates_changed": False,
+        "decision_weight": 0.0,
+        "runtime_heavy_history_policy": "DEFER_TO_OFFLINE_VALIDATION",
+        "families": families,
+    }
+
 
 
 async def run_tick() -> dict[str, Any]:
@@ -25,6 +211,7 @@ async def run_tick() -> dict[str, Any]:
     team_totals_candidate_events: list[dict[str, Any]] = []
 
     def observed_primary_loader(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        kwargs.setdefault("include_diagnostics", False)
         report = primary_clv_anchor_v4.load_primary_clv_maturation_backlog(*args, **kwargs)
         primary_loader_observation.clear()
         primary_loader_observation.update(
@@ -35,6 +222,7 @@ async def run_tick() -> dict[str, Any]:
                 "candidate_family_counts": dict(report.get("candidate_family_counts") or {}),
                 "candidate_source_counts": dict(report.get("candidate_source_counts") or {}),
                 "diagnostic_schema_version": report.get("diagnostic_schema_version"),
+                "diagnostic_status": report.get("diagnostic_status"),
                 "diagnostic_family_counts": dict(report.get("diagnostic_family_counts") or {}),
                 "diagnostic_window": dict(report.get("diagnostic_window") or {}),
                 "provider_requests_added": int(report.get("provider_requests_added") or 0),
@@ -80,14 +268,14 @@ async def run_tick() -> dict[str, Any]:
         resolved_events=events,
         captured_at=payload.get("generated_at_utc"),
     )
-    historical_team_totals_close_audit = team_totals_close_provenance_history_v4.load_report()
-    if historical_team_totals_close_audit.get("status") == "NO_DATABASE":
-        team_totals_close_audit = current_tick_team_totals_close_audit
-    else:
-        historical_team_totals_close_audit["current_tick_candidate_audit"] = (
-            current_tick_team_totals_close_audit
-        )
-        team_totals_close_audit = historical_team_totals_close_audit
+    team_totals_close_audit = dict(current_tick_team_totals_close_audit)
+    team_totals_close_audit.update(
+        {
+            "runtime_scope": "CURRENT_TICK_ONLY",
+            "historical_audit_status": "DEFERRED_TO_OFFLINE_VALIDATION",
+            "historical_audit_reason": "KEEP_LARGE_SNAPSHOT_HISTORY_OUT_OF_512MB_LIVE_RUNTIME",
+        }
+    )
 
     payload["v212_dynamic_strength_challenger"] = dynamic_strength_challenger_v4.build_report(events)
     payload["v212_checkpoint"] = (
@@ -202,8 +390,8 @@ async def run_tick() -> dict[str, Any]:
         "gates_changed": False,
         "production_promotion_allowed": False,
         "purpose": (
-            "COUNT PRICED/FUTURE/T55/STRICT-LATER-QUOTE/UNRESOLVED FIXTURES PER PRIMARY FAMILY "
-            "WITHOUT CHANGING WHICH FIXTURES ENTER MATURATION"
+            "LIVE RUNTIME RECORDS THE PRIMARY ANCHOR/CANDIDATE COUNTS ONLY; THE HEAVY HISTORICAL "
+            "EXCLUSION QUERY IS DEFERRED TO OFFLINE VALIDATION TO PROTECT SCHEDULER MEMORY/LATENCY"
         ),
     }
     payload["v216_8_team_totals_close_provenance_audit"] = team_totals_close_audit
@@ -211,14 +399,13 @@ async def run_tick() -> dict[str, Any]:
     if isinstance(price_resolution, dict):
         price_resolution["team_totals_close_provenance_audit"] = team_totals_close_audit
     payload["v216_8_checkpoint"] = (
-        "TEAM TOTALS CLOSE PROVENANCE AUDIT ACTIVE: recent kicked-off modeled Team Totals are "
-        "audited from a fixture-scoped Postgres read that fetches only the minimal derivative JSON, "
-        "then expands and deduplicates exact market/side/line signals in Python. The audit is "
-        "independent of the Phase17 2,000-signal cap and still requires captured_at/provider_update "
-        "strictly after the authentic signal and before kickoff. Observability only: no provider "
-        "calls, selection changes, history rewrite, cap change, gate/threshold changes, decision "
-        "weight, or production promotion."
+        "TEAM TOTALS LIVE CLOSE PROVENANCE IS CURRENT-TICK ONLY. Historical Team Totals provenance "
+        "remains available to offline validation jobs but is intentionally excluded from the live "
+        "scheduler process so tens of thousands of snapshot JSON rows cannot exhaust the 512 MiB "
+        "runtime. Strict captured_at/provider_update chronology is unchanged; no model, threshold, "
+        "gate, budget, history, or production-decision semantics changed."
     )
+    payload["market_maturation_health"] = _market_maturation_health(payload)
     payload["version"] = AUTOMATION_VERSION
     payload["model_version"] = MODEL_VERSION
     return payload

@@ -249,11 +249,6 @@ async def _main() -> int:
             "market_residual_build_report",
         )
         install_sync_timing(
-            automation_v129.team_totals_close_provenance_history_v4,
-            "load_report",
-            "team_totals_history_audit",
-        )
-        install_sync_timing(
             automation_v129.team_totals_close_provenance_v4,
             "build_report",
             "team_totals_current_tick_audit",

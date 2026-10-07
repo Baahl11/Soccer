@@ -49,6 +49,7 @@ class _FakeCursor:
         self.query = ""
         self.params = None
         self.description = [SimpleNamespace(name=name) for name in _MAIN_COLUMNS]
+        self.execute_count = 0
 
     def __enter__(self):
         return self
@@ -57,6 +58,7 @@ class _FakeCursor:
         return False
 
     def execute(self, query, params):
+        self.execute_count += 1
         self.query = query
         self.params = params
         if "priced_signal_rows" in query and "WITH raw_signal AS" in query:
@@ -207,8 +209,9 @@ def test_v129_captures_exclusion_audit_only_during_upstream_tick_and_restores_lo
     payload = asyncio.run(automation_v129.run_tick())
 
     assert sentinel_calls
+    assert sentinel_calls[0][1].get("include_diagnostics") is False
     assert price._load_primary_clv_maturation_backlog is original_loader
-    assert payload["version"] == "4.38.5-team-totals-close-provenance-audit"
+    assert payload["version"] == "4.38.6-runtime-stabilization"
     repair = payload["v213_primary_clv_anchor_repair"]
     assert repair["signal_anchor_policy"] == anchor.ANCHOR_POLICY
     assert repair["strict_close_semantics_changed"] is False
@@ -221,3 +224,93 @@ def test_v129_captures_exclusion_audit_only_during_upstream_tick_and_restores_lo
     observation = audit["loader_observation"]
     assert observation["diagnostic_family_counts"]["1X2"]["priced_signal_rows"] == 393
     assert observation["diagnostic_family_counts"]["1X2"]["outside_lookahead_active_fixtures"] == 18
+
+
+
+def test_live_primary_anchor_can_skip_heavy_exclusion_diagnostics(monkeypatch):
+    signal_at = datetime(2026, 10, 6, 18, 0, tzinfo=timezone.utc)
+    kickoff = datetime(2026, 10, 6, 19, 0, tzinfo=timezone.utc)
+    cursor = _FakeCursor(
+        [
+            (
+                98765,
+                "BTTS",
+                "Both Teams Score",
+                signal_at,
+                "MATCH_TABLE_PRICED_RESEARCH",
+                1,
+                "League",
+                "Country",
+                2026,
+                "Round",
+                kickoff,
+                "NS",
+                "Not Started",
+                1,
+                "Home",
+                2,
+                "Away",
+                "Venue",
+                "City",
+            )
+        ],
+        diagnostic_rows=[("BTTS", 100, 50, 50, 5, 1, 0, 1)],
+    )
+    connection = _FakeConnection(cursor)
+    monkeypatch.setattr(price.persistence, "persistence_configured", lambda: True)
+    monkeypatch.setattr(price.persistence, "ensure_schema", lambda: None)
+    monkeypatch.setattr(price.persistence, "_connect", lambda: connection)
+
+    report = anchor.load_primary_clv_maturation_backlog(
+        lookback_days=30,
+        lookahead_minutes=180,
+        limit=80,
+        include_diagnostics=False,
+    )
+
+    assert cursor.execute_count == 1
+    assert report["candidate_count"] == 1
+    assert report["diagnostic_status"] == "DEFERRED_OFFLINE"
+    assert report["diagnostic_family_counts"] == {}
+
+
+def test_v129_runtime_uses_current_tick_team_totals_audit_and_emits_health(monkeypatch):
+    async def fake_v128_run_tick():
+        return {
+            "events": [],
+            "model_version": "SOCCER EDGE ENGINE v1.7",
+            "generated_at_utc": "2026-10-07T02:00:00+00:00",
+            "price_resolution_v4": {
+                "primary_clv_maturation_candidate_family_counts": {"BTTS": 2},
+                "primary_clv_maturation_family_evaluation_counts": {"BTTS": 2},
+                "primary_clv_maturation_family_refresh_counts": {},
+                "primary_clv_maturation_not_matured_family_counts": {"BTTS": 2},
+                "research_spillover_maturation_candidates": 1,
+                "research_spillover_maturation_later_real_quote_refreshes": 0,
+                "research_spillover_maturation_unchanged_provider_updates": 1,
+            },
+            "v4_018_btts_calibration_validation": {
+                "status": "RESEARCH_HOLD",
+                "true_clv": {"rows": 17, "unique_fixtures": 17, "minimum_rows": 50},
+            },
+            "v4_019_team_totals_oos_validation": {
+                "status": "OOS_REVIEW_ELIGIBLE",
+                "true_clv": {"rows": 341, "unique_fixtures": 43, "minimum_rows": 50},
+            },
+        }
+
+    monkeypatch.setattr(automation_v129.v128, "run_tick", fake_v128_run_tick)
+    monkeypatch.setattr(
+        automation_v129.dynamic_strength_challenger_v4,
+        "build_report",
+        lambda events: {"status": "TEST"},
+    )
+
+    payload = asyncio.run(automation_v129.run_tick())
+    audit = payload["v216_8_team_totals_close_provenance_audit"]
+    assert audit["runtime_scope"] == "CURRENT_TICK_ONLY"
+    assert audit["historical_audit_status"] == "DEFERRED_TO_OFFLINE_VALIDATION"
+    health = payload["market_maturation_health"]
+    assert health["status"] == "OBSERVABILITY_ONLY"
+    assert health["families"]["BTTS"]["maturation_state"] == "WAITING_STRICT_LATER_QUOTE"
+    assert health["families"]["TEAM_TOTALS"]["maturation_state"] == "CLV_GATE_MET"

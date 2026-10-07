@@ -197,6 +197,7 @@ def load_primary_clv_maturation_backlog(
     lookback_days: int | None = None,
     lookahead_minutes: int | None = None,
     limit: int | None = None,
+    include_diagnostics: bool = True,
 ) -> dict[str, Any]:
     """Load primary CLV work using the oldest still-unresolved real signal.
 
@@ -407,11 +408,15 @@ def load_primary_clv_maturation_backlog(
             )
             rows = cur.fetchall()
             columns = [desc.name for desc in cur.description]
-            diagnostics = _load_exclusion_diagnostics(
-                cur,
-                cutoff=cutoff,
-                now=now,
-                lookahead=lookahead,
+            diagnostics = (
+                _load_exclusion_diagnostics(
+                    cur,
+                    cutoff=cutoff,
+                    now=now,
+                    lookahead=lookahead,
+                )
+                if include_diagnostics
+                else {}
             )
 
     grouped: dict[int, dict[str, Any]] = {}
@@ -505,6 +510,7 @@ def load_primary_clv_maturation_backlog(
         "source": "POSTGRES_PRIMARY_CLV_MATURATION_BACKLOG_V3_OLDEST_UNRESOLVED",
         "signal_anchor_policy": ANCHOR_POLICY,
         "diagnostic_schema_version": DIAGNOSTIC_SCHEMA_VERSION,
+        "diagnostic_status": "INLINE" if include_diagnostics else "DEFERRED_OFFLINE",
         "diagnostic_family_counts": diagnostics,
         "diagnostic_window": {
             "lookback_days": lookback_days,
