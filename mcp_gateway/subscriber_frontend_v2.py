@@ -208,7 +208,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 </main>
 </div>
 <nav class="mobile-nav">
-  <button class="active" data-page="today">Today</button><button data-page="picks">Picks</button><button data-page="leans">Leans</button><button data-page="matches">Matches</button><button data-page="performance">Results</button><button data-page="account">Account</button>
+  <button class="active" data-page="today">Today</button><button data-page="picks">Picks</button><button data-page="leans">Leans</button><button data-page="matches">Matches</button><button data-page="performance">Results</button><button data-page="myedge">My Edge</button><button data-page="account">Account</button>
 </nav>
 
 <div id="authModal" class="modal" aria-hidden="true"><div class="modal-card">
