@@ -37,6 +37,18 @@ jobs:
           path: engine
           fetch-depth: 1
 
+      - name: Install focused test dependency
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Run formation matchup focused tests
+        working-directory: engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_formation_matchup_engine_v1.py \
+            tests/test_corners_side_specific_formation.py
+
       - name: Analyze formation intelligence
         shell: bash
         run: |
@@ -81,6 +93,16 @@ jobs:
                       'negative_lift_leagues': lift.get('negative_lift_leagues'),
                   }
                   audit=d.get('formation_eligibility_audit') or {}
+                  side=d.get('side_specific_formation_challenger') or {}
+                  summary['side_specific_formation_challenger']={
+                      'status': side.get('status'),
+                      'formation_adjusted_evaluations': side.get('formation_adjusted_evaluations'),
+                      'baseline_side_metrics': side.get('baseline_side_metrics'),
+                      'challenger_side_metrics': side.get('challenger_side_metrics'),
+                      'improvement': side.get('improvement'),
+                      'production_enabled': side.get('production_enabled'),
+                      'decision_weight': side.get('decision_weight'),
+                  }
                   summary['formation_eligibility_audit']={
                       'audit_schema': 'formation_eligibility_v2_2',
                       'oos_evaluations': audit.get('oos_evaluations'),
