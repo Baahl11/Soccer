@@ -8,7 +8,7 @@ import re
 from typing import Any, Iterable
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.4.0"
+MODEL_VERSION = "SOCCER_CORNERS_OOS_VALIDATION_V4_1.5.0"
 MIN_FT_OOS = 150
 MIN_FORMATION_ADJUSTED = 100
 MIN_TEAM_ROWS = 400
@@ -93,15 +93,81 @@ def _line_improvement(baseline: dict[str, Any], challenger: dict[str, Any], line
     }
 
 
+def _side_specific_formation_summary(baseline_report: dict[str, Any]) -> dict[str, Any]:
+    source = baseline_report.get("side_specific_formation_challenger")
+    source = source if isinstance(source, dict) else {}
+    baseline_side = source.get("baseline_side_metrics")
+    baseline_side = baseline_side if isinstance(baseline_side, dict) else {}
+    challenger_side = source.get("challenger_side_metrics")
+    challenger_side = challenger_side if isinstance(challenger_side, dict) else {}
+    baseline_total = source.get("baseline_total_line_metrics")
+    baseline_total = baseline_total if isinstance(baseline_total, dict) else {}
+    challenger_total = source.get("challenger_total_line_metrics")
+    challenger_total = challenger_total if isinstance(challenger_total, dict) else {}
+    improvement = source.get("improvement")
+    improvement = improvement if isinstance(improvement, dict) else {}
+
+    n = int(source.get("formation_adjusted_evaluations") or challenger_side.get("n") or 0)
+    return {
+        "materialized": bool(source),
+        "status": source.get("status"),
+        "method": source.get("method"),
+        "formation_adjusted_evaluations": n,
+        "minimum_formation_adjusted": MIN_FORMATION_ADJUSTED,
+        "minimum_prior_same_matchup": int(source.get("minimum_prior_same_matchup") or 0),
+        "shrinkage_pseudo_n": int(source.get("shrinkage_pseudo_n") or 0),
+        "scale_clip": source.get("scale_clip") if isinstance(source.get("scale_clip"), list) else [],
+        "baseline_side_metrics": baseline_side,
+        "challenger_side_metrics": challenger_side,
+        "baseline_total_line_metrics": baseline_total,
+        "challenger_total_line_metrics": challenger_total,
+        "home_mae_improves": improvement.get("home_mae_improves") is True,
+        "away_mae_improves": improvement.get("away_mae_improves") is True,
+        "total_mae_improves": improvement.get("total_mae_improves") is True,
+        "both_side_mae_improve": (
+            improvement.get("home_mae_improves") is True
+            and improvement.get("away_mae_improves") is True
+        ),
+        "production_enabled": source.get("production_enabled") is True,
+        "decision_weight": _num(source.get("decision_weight")) or 0.0,
+    }
+
+
+def _formation_matchup_health(report: dict[str, Any] | None) -> dict[str, Any]:
+    report = report if isinstance(report, dict) else {}
+    health = report.get("health")
+    health = health if isinstance(health, dict) else {}
+    return {
+        "canonical_state_loaded": bool(report),
+        "status": report.get("status") or "NOT_MATERIALIZED",
+        "model_version": report.get("model_version"),
+        "fixtures_with_verified_formation_pair_and_final": int(
+            report.get("fixtures_with_verified_formation_pair_and_final") or 0
+        ),
+        "unique_matchups": int(report.get("unique_matchups") or 0),
+        "matchups_n_ge_8": int(report.get("matchups_n_ge_8") or 0),
+        "minimum_stable_matchup_n": int(report.get("minimum_stable_matchup_n") or 8),
+        "metric_rows": report.get("metric_rows") if isinstance(report.get("metric_rows"), dict) else {},
+        "production_enabled": report.get("production_enabled") is True,
+        "decision_weight": _num(report.get("decision_weight")) or 0.0,
+        "odds_consumed": health.get("odds_consumed") is True,
+        "leakage_policy": health.get("leakage_policy"),
+        "blockers": list(health.get("blockers") or []),
+    }
+
+
 def build_report(
     baseline_report: dict[str, Any],
     team_report: dict[str, Any],
     true_clv_rows: Iterable[dict[str, Any]],
+    formation_matchup_report: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     baseline = baseline_report.get("baseline") if isinstance(baseline_report.get("baseline"), dict) else {}
     challenger = baseline_report.get("formation_challenger") if isinstance(baseline_report.get("formation_challenger"), dict) else {}
     ft_gate = baseline_report.get("promotion_gate") if isinstance(baseline_report.get("promotion_gate"), dict) else {}
     team_gate = team_report.get("promotion_gate") if isinstance(team_report.get("promotion_gate"), dict) else {}
+    side_specific = _side_specific_formation_summary(baseline_report)
+    formation_health = _formation_matchup_health(formation_matchup_report)
 
     ft_n = int(baseline_report.get("walk_forward_evaluations") or baseline.get("n") or 0)
     formation_n = int(baseline_report.get("formation_adjusted_evaluations") or 0)
@@ -154,6 +220,15 @@ def build_report(
 
     if team_rows < MIN_TEAM_ROWS:
         team_blockers.append(f"TEAM_CORNERS_ROWS_{team_rows}_LT_{MIN_TEAM_ROWS}")
+    side_n = int(side_specific.get("formation_adjusted_evaluations") or 0)
+    if not side_specific.get("materialized"):
+        team_blockers.append("TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_NOT_MATERIALIZED")
+    elif side_n < MIN_FORMATION_ADJUSTED:
+        team_blockers.append(
+            f"TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_{side_n}_LT_{MIN_FORMATION_ADJUSTED}"
+        )
+    if side_specific.get("materialized") and not side_specific.get("both_side_mae_improve"):
+        team_blockers.append("TEAM_CORNERS_SIDE_SPECIFIC_HOME_AWAY_MAE_NOT_BOTH_BETTER")
     if team_clv["rows"] < MIN_TRUE_CLV_ROWS:
         team_blockers.append(f"TEAM_CORNERS_TRUE_CLV_{team_clv['rows']}_LT_{MIN_TRUE_CLV_ROWS}")
     parent_ft_review_ready = (
@@ -201,6 +276,7 @@ def build_report(
             "line_improvements": line_improvements,
             "all_required_lines_improve_brier_and_log_loss": all_ft_lines_improve,
             "required_lines": list(FT_LINES),
+            "side_specific_formation_challenger": side_specific,
         },
         "team_corners": {
             "evaluated_fixtures": team_fixtures,
@@ -211,7 +287,9 @@ def build_report(
             "missing_required_lines": missing_team_lines,
             "overall": team_report.get("overall") if isinstance(team_report.get("overall"), dict) else {},
             "league_venue_stability": venue_stability if isinstance(venue_stability, dict) else {},
+            "side_specific_formation_challenger": side_specific,
         },
+        "formation_matchup_health": formation_health,
         "true_clv": {
             **clv,
             "minimum_rows": MIN_TRUE_CLV_ROWS,
@@ -252,6 +330,8 @@ def build_report(
             "FT_CORNERS and TEAM_CORNERS true-CLV evidence is reported in separate family_views; aggregate corners CLV remains diagnostic only.",
             "Historical source promotion_gate.enabled flags are descriptive metadata only; V4-022 blockers now name the missing evidence explicitly.",
             "FT Corners requires formation lift to be materialized and stable across at least two review-sized leagues before review; Team Corners requires an adequate parent FT model plus materialized league/venue stability.",
+            "The side-specific formation challenger is tracked explicitly for Team Corners; it must improve both home and away MAE before it can support Team Corners promotion.",
+            "Formation Matchup Engine health is observability-only here and retains zero decision weight until its independent research and market gates pass.",
         ],
     }
 
@@ -287,12 +367,14 @@ def main() -> None:
     parser.add_argument("--baseline", required=True)
     parser.add_argument("--team-validation", required=True)
     parser.add_argument("--true-clv-tracking", required=True)
+    parser.add_argument("--formation-matchup")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     report = build_report(
         _load_json(args.baseline),
         _load_json(args.team_validation),
         _load_jsonl(args.true_clv_tracking),
+        _load_json(args.formation_matchup) if args.formation_matchup else {},
     )
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as handle:
