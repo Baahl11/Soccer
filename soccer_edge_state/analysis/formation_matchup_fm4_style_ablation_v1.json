@@ -20,7 +20,8 @@
       "SHOTS:STYLE_ABLATION_0_LT_100",
       "SHOTS:STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES",
       "SOT:STYLE_ABLATION_0_LT_100",
-      "SOT:STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES"
+      "SOT:STYLE_PROFILE_DENSITY_INSUFFICIENT_NO_ELIGIBLE_FIXTURES",
+      "STYLE_HISTORY_DEPTH_BOTH_TEAMS_N_GE_3_0_LT_100"
     ],
     "canonical_bet_logic_changed": false,
     "coach_continuity_materialized": true,
@@ -1702,6 +1703,8 @@
       "yellow_cards"
     ],
     "formation_geometry_missing_rows": 0,
+    "history_depth_policy": "Do not relax MIN_TEAM_STYLE_N or use future/post-target tactical data. Accumulate verified earlier match statistics or perform a separately budgeted historical backfill.",
+    "history_depth_status": "INSUFFICIENT_PRIOR_DEPTH",
     "history_source": "ALL_PRIOR_VERIFIED_TACTICAL_HISTORY",
     "minimum_prior_residual_training_rows": 30,
     "minimum_prior_team_style_matches": 3,
@@ -1727,10 +1730,19 @@
       "HOME_NO_PRIOR_STYLE_HISTORY": 282
     },
     "ridge_alpha": 8.0,
+    "source_date_range": {
+      "earliest": "2026-09-12T07:30:00+00:00",
+      "latest": "2026-09-22T22:30:00+00:00"
+    },
     "source_team_overlap_pct": 100.0,
     "source_teams_present_anywhere_in_tactical_history": 520,
     "source_unique_teams": 520,
     "style_eligible_source_rows": 0,
+    "tactical_events_before_source_start": 19,
+    "tactical_history_date_range": {
+      "earliest": "2026-09-12T01:30:00+00:00",
+      "latest": "2026-09-23T05:30:00+00:00"
+    },
     "tactical_history_fixtures_loaded": 2419,
     "tactical_history_unique_teams": 4034
   },
