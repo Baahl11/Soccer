@@ -2475,3 +2475,68 @@ def test_direct_1x2_target_does_not_duplicate_paid_odds_sidecar(monkeypatch):
     one_x_two=[row for row in payload["match_table_rows"] if row.get("market_family")=="1X2"]
     assert len(one_x_two)==1
     assert result["paid_odds_1x2_reuse_rows_added"]==0
+
+
+def test_cached_market_batch_fallback_preserves_single_loader_semantics(monkeypatch):
+    monkeypatch.setattr(v.persistence, "persistence_configured", lambda: False)
+    calls = []
+
+    def fake_single(fixture_id, stage):
+        calls.append((fixture_id, stage))
+        return [{"fixture_id": fixture_id, "stage": stage}] if fixture_id == 11 else []
+
+    monkeypatch.setattr(v, "_load_cached_markets", fake_single)
+    result = v._load_cached_markets_batch([
+        (11, "T-60"),
+        (11, "T-20"),
+        (12, "T-10"),
+    ])
+
+    assert calls == [(11, "T-60"), (12, "T-10")]
+    assert result[11][0]["fixture_id"] == 11
+    assert result[12] == []
+
+
+def test_cached_market_normalizer_keeps_per_fixture_freshness_and_dedupes():
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+    columns = [
+        "fixture_id",
+        "bookmaker_id",
+        "bookmaker",
+        "market_id",
+        "market",
+        "values",
+        "provider_update",
+        "captured_at",
+    ]
+    value = [{"value": "Over 2.5", "odd": "1.90"}]
+    rows = [
+        (1, 10, "Book", 5, "Goals Over/Under", value, now, now - timedelta(minutes=5)),
+        (1, 10, "Book", 5, "Goals Over/Under", value, now, now - timedelta(minutes=6)),
+        (2, 10, "Book", 5, "Goals Over/Under", value, now, now - timedelta(minutes=20)),
+    ]
+    result = v._normalize_cached_market_rows(
+        rows,
+        columns,
+        cutoff_by_fixture={
+            1: now - timedelta(minutes=10),
+            2: now - timedelta(minutes=15),
+        },
+    )
+
+    assert len(result[1]) == 1
+    assert 2 not in result
+    assert result[1][0]["source"] == "POSTGRES_MARKET_SNAPSHOT_CACHE"
+    assert "captured_at" not in result[1][0]
+
+
+def test_price_resolver_source_uses_batch_cache_for_primary_and_spillover():
+    import inspect
+
+    source = inspect.getsource(v.resolve_payload)
+    assert "_load_cached_markets_batch" in source
+    assert "primary_cached_markets" in source
+    assert "spillover_cached_markets" in source
+    assert "await asyncio.to_thread(_load_cached_markets, fixture_id" not in source
