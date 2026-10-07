@@ -8,17 +8,21 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from mcp_gateway import automation as base
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import persistence as persistence_base
 
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.0.0"
+MODEL_VERSION = "SOCCER_FM4_TACTICAL_HISTORY_BACKFILL_V1.1.0"
+RESEARCH_KEY = "FM4_TACTICAL_HISTORY_V1"
 MAX_FIXTURES_PER_RUN = 8
+MAX_DISCOVERY_TEAM_CALLS_PER_RUN = 8
 MIN_DAILY_REMAINING = 250
 MIN_REQUEST_INTERVAL_SECONDS = 0.8
 MIN_PRIOR_MATCHES_TARGET = 3
 MAX_TEAM_IDS = 800
 MAX_CANDIDATE_ROWS = 5000
+FINAL_STATUSES = {"FT", "AET", "PEN"}
 
 _STAT_MAP = {
     "shots on goal": "shots_on_goal",
@@ -112,6 +116,186 @@ def _candidate_rows(
         )
         cols = [desc.name for desc in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+def _local_prior_fixture_counts(
+    conn: Any,
+    *,
+    team_ids: list[int],
+    before: datetime,
+    lookback_days: int,
+) -> Counter[int]:
+    cutoff = before - timedelta(days=lookback_days)
+    counts: Counter[int] = Counter()
+    target = set(team_ids)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT f.home_team_id, f.away_team_id
+            FROM soccer_fixtures f
+            JOIN soccer_results r ON r.fixture_id = f.fixture_id
+            WHERE f.kickoff >= %s
+              AND f.kickoff < %s
+              AND r.final_status = ANY(%s)
+              AND (
+                    f.home_team_id = ANY(%s)
+                 OR f.away_team_id = ANY(%s)
+              )
+            """,
+            (cutoff, before, list(FINAL_STATUSES), team_ids, team_ids),
+        )
+        for home_raw, away_raw in cur.fetchall():
+            for raw in (home_raw, away_raw):
+                try:
+                    team_id = int(raw)
+                except (TypeError, ValueError):
+                    continue
+                if team_id in target:
+                    counts[team_id] += 1
+    return counts
+
+
+def _already_discovered_teams(conn: Any, *, before: datetime) -> set[int]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT team_id
+            FROM soccer_research_backfill_discovery
+            WHERE research_key = %s
+              AND cutoff = %s
+              AND provider_status = 'OK'
+            """,
+            (RESEARCH_KEY, before),
+        )
+        return {int(row[0]) for row in cur.fetchall()}
+
+
+def _select_discovery_teams(
+    team_ids: list[int],
+    *,
+    local_counts: Counter[int],
+    already_discovered: set[int],
+    max_calls: int,
+) -> list[int]:
+    candidates = [
+        int(team_id)
+        for team_id in team_ids
+        if int(team_id) not in already_discovered
+        and local_counts[int(team_id)] < MIN_PRIOR_MATCHES_TARGET
+    ]
+    candidates.sort(key=lambda team_id: (local_counts[team_id], team_id))
+    return candidates[: max(0, int(max_calls))]
+
+
+def _eligible_discovered_fixture(
+    row: dict[str, Any],
+    *,
+    team_id: int,
+    before: datetime,
+    lookback_days: int,
+) -> dict[str, Any] | None:
+    compact = base._compact_fixture(row)
+    try:
+        fixture_id = int(compact.get("fixture_id") or 0)
+        kickoff = _parse_dt(compact.get("kickoff"))
+        home_team_id = int(compact.get("home_team_id") or 0)
+        away_team_id = int(compact.get("away_team_id") or 0)
+    except (TypeError, ValueError):
+        return None
+    if not fixture_id:
+        return None
+    if str(compact.get("status") or "").upper() not in FINAL_STATUSES:
+        return None
+    if not (before - timedelta(days=lookback_days) <= kickoff < before):
+        return None
+    if team_id not in {home_team_id, away_team_id}:
+        return None
+    compact["kickoff"] = kickoff
+    return compact
+
+
+def _persist_discovered_fixture(
+    conn: Any,
+    *,
+    fixture: dict[str, Any],
+    retrieved_at: datetime,
+) -> None:
+    fixture_id = int(fixture["fixture_id"])
+    goals = fixture.get("goals") if isinstance(fixture.get("goals"), dict) else {}
+    score = fixture.get("score") if isinstance(fixture.get("score"), dict) else {}
+    with conn.cursor() as cur:
+        persistence_base._upsert_fixture(cur, fixture)
+        cur.execute(
+            """
+            INSERT INTO soccer_results (
+                fixture_id, final_status, home_goals, away_goals,
+                final_score, match_stats, graded_at, payload
+            ) VALUES (%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s,%s::jsonb)
+            ON CONFLICT (fixture_id) DO NOTHING
+            """,
+            (
+                fixture_id,
+                fixture.get("status"),
+                goals.get("home"),
+                goals.get("away"),
+                json.dumps(score),
+                json.dumps([]),
+                retrieved_at,
+                json.dumps(
+                    {
+                        "source": "API_FOOTBALL_FM4_HISTORICAL_DISCOVERY",
+                        "fixture": {
+                            key: (
+                                value.isoformat()
+                                if isinstance(value, datetime)
+                                else value
+                            )
+                            for key, value in fixture.items()
+                        },
+                        "retrieved_at": retrieved_at.isoformat(),
+                    }
+                ),
+            ),
+        )
+
+
+def _record_discovery(
+    conn: Any,
+    *,
+    team_id: int,
+    before: datetime,
+    lookback_days: int,
+    provider_status: str,
+    provider_fixture_count: int,
+    persisted_fixture_count: int,
+    payload: dict[str, Any],
+) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO soccer_research_backfill_discovery (
+                research_key, team_id, cutoff, lookback_days, attempted_at,
+                provider_status, provider_fixture_count, persisted_fixture_count, payload
+            ) VALUES (%s,%s,%s,%s,NOW(),%s,%s,%s,%s::jsonb)
+            ON CONFLICT (research_key, team_id, cutoff) DO UPDATE SET
+                lookback_days = EXCLUDED.lookback_days,
+                attempted_at = NOW(),
+                provider_status = EXCLUDED.provider_status,
+                provider_fixture_count = EXCLUDED.provider_fixture_count,
+                persisted_fixture_count = EXCLUDED.persisted_fixture_count,
+                payload = EXCLUDED.payload
+            """,
+            (
+                RESEARCH_KEY,
+                team_id,
+                before,
+                lookback_days,
+                provider_status,
+                provider_fixture_count,
+                persisted_fixture_count,
+                json.dumps(payload),
+            ),
+        )
 
 
 def _existing_team_counts(conn: Any, team_ids: set[int]) -> Counter[int]:
@@ -346,6 +530,7 @@ async def run_backfill(
     before: str,
     lookback_days: int = 365,
     max_fixtures: int = MAX_FIXTURES_PER_RUN,
+    max_discovery_teams: int = MAX_DISCOVERY_TEAM_CALLS_PER_RUN,
 ) -> dict[str, Any]:
     unique_team_ids = sorted(
         {
@@ -356,9 +541,14 @@ async def run_backfill(
     )[:MAX_TEAM_IDS]
     if not unique_team_ids:
         raise ValueError("team_ids required")
+
     before_dt = _parse_dt(before)
     lookback_days = max(30, min(int(lookback_days), 730))
     max_fixtures = max(1, min(int(max_fixtures), MAX_FIXTURES_PER_RUN))
+    max_discovery_teams = max(
+        0,
+        min(int(max_discovery_teams), MAX_DISCOVERY_TEAM_CALLS_PER_RUN),
+    )
 
     if not persistence_base.persistence_configured():
         return {
@@ -372,9 +562,32 @@ async def run_backfill(
     persistence_base.ensure_schema()
     daily_remaining = v2._LAST_DAILY_REMAINING
     attempted = captured = incomplete = errors = 0
+    discovery_attempted = discovery_success = discovery_errors = 0
+    discovered_fixture_rows = 0
     details: list[dict[str, Any]] = []
+    discovery_details: list[dict[str, Any]] = []
     events: list[dict[str, Any]] = []
     last_request_started = 0.0
+
+    async def provider_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
+        nonlocal daily_remaining, last_request_started
+        if daily_remaining is not None and daily_remaining <= MIN_DAILY_REMAINING:
+            raise RuntimeError("DAILY_PROVIDER_RESERVE_GUARD")
+        wait_for = MIN_REQUEST_INTERVAL_SECONDS - (
+            time.monotonic() - last_request_started
+        )
+        if wait_for > 0:
+            await asyncio.sleep(wait_for)
+        last_request_started = time.monotonic()
+        raw = await v2._ORIGINAL_API_GET(endpoint, params)
+        remaining = (raw.get("quota") or {}).get("daily_remaining")
+        try:
+            if remaining is not None:
+                daily_remaining = int(remaining)
+                v2._LAST_DAILY_REMAINING = daily_remaining
+        except (TypeError, ValueError):
+            pass
+        return raw
 
     with persistence_base._connect() as conn:
         target_set = set(unique_team_ids)
@@ -385,6 +598,115 @@ async def run_backfill(
             before=before_dt,
             lookback_days=lookback_days,
         )
+
+        # If the local canonical fixture/result store is too shallow, discover
+        # finalized historical fixtures directly from the same provider. This is
+        # fixture identity/result ingestion only; no sporting feature is inferred.
+        if len(pool) < max_fixtures and max_discovery_teams > 0:
+            local_counts = _local_prior_fixture_counts(
+                conn,
+                team_ids=unique_team_ids,
+                before=before_dt,
+                lookback_days=lookback_days,
+            )
+            already_discovered = _already_discovered_teams(conn, before=before_dt)
+            discovery_team_ids = _select_discovery_teams(
+                unique_team_ids,
+                local_counts=local_counts,
+                already_discovered=already_discovered,
+                max_calls=max_discovery_teams,
+            )
+            discovery_from = (before_dt - timedelta(days=lookback_days)).date().isoformat()
+            discovery_to = (before_dt - timedelta(seconds=1)).date().isoformat()
+
+            for team_id in discovery_team_ids:
+                if daily_remaining is not None and daily_remaining <= MIN_DAILY_REMAINING:
+                    discovery_details.append(
+                        {
+                            "team_id": team_id,
+                            "status": "SKIPPED_DAILY_RESERVE_GUARD",
+                        }
+                    )
+                    break
+                discovery_attempted += 1
+                try:
+                    raw = await provider_get(
+                        "fixtures",
+                        {
+                            "team": team_id,
+                            "from": discovery_from,
+                            "to": discovery_to,
+                            "timezone": "UTC",
+                        },
+                    )
+                    provider_rows = [
+                        row for row in (raw.get("response") or [])
+                        if isinstance(row, dict)
+                    ]
+                    persisted_for_team = 0
+                    for row in provider_rows:
+                        fixture = _eligible_discovered_fixture(
+                            row,
+                            team_id=team_id,
+                            before=before_dt,
+                            lookback_days=lookback_days,
+                        )
+                        if fixture is None:
+                            continue
+                        _persist_discovered_fixture(
+                            conn,
+                            fixture=fixture,
+                            retrieved_at=datetime.now(timezone.utc),
+                        )
+                        persisted_for_team += 1
+                    discovered_fixture_rows += persisted_for_team
+                    discovery_success += 1
+                    _record_discovery(
+                        conn,
+                        team_id=team_id,
+                        before=before_dt,
+                        lookback_days=lookback_days,
+                        provider_status="OK",
+                        provider_fixture_count=len(provider_rows),
+                        persisted_fixture_count=persisted_for_team,
+                        payload={
+                            "endpoint": "fixtures",
+                            "params": {
+                                "team": team_id,
+                                "from": discovery_from,
+                                "to": discovery_to,
+                                "timezone": "UTC",
+                            },
+                            "daily_remaining_after_call": daily_remaining,
+                        },
+                    )
+                    discovery_details.append(
+                        {
+                            "team_id": team_id,
+                            "status": "DISCOVERED",
+                            "provider_fixture_count": len(provider_rows),
+                            "persisted_fixture_count": persisted_for_team,
+                            "daily_remaining": daily_remaining,
+                        }
+                    )
+                except Exception as exc:
+                    discovery_errors += 1
+                    discovery_details.append(
+                        {
+                            "team_id": team_id,
+                            "status": "DISCOVERY_ERROR",
+                            "error": str(exc)[:180],
+                            "daily_remaining": daily_remaining,
+                        }
+                    )
+
+            pool = _candidate_rows(
+                conn,
+                team_ids=unique_team_ids,
+                before=before_dt,
+                lookback_days=lookback_days,
+            )
+
         candidates = select_candidates(
             pool,
             team_ids=target_set,
@@ -403,27 +725,12 @@ async def run_backfill(
                 )
                 break
 
-            wait_for = MIN_REQUEST_INTERVAL_SECONDS - (
-                time.monotonic() - last_request_started
-            )
-            if wait_for > 0:
-                await asyncio.sleep(wait_for)
-
             attempted += 1
-            last_request_started = time.monotonic()
             try:
-                raw = await v2._ORIGINAL_API_GET(
+                raw = await provider_get(
                     "fixtures/statistics",
                     {"fixture": fixture_id},
                 )
-                remaining = (raw.get("quota") or {}).get("daily_remaining")
-                try:
-                    if remaining is not None:
-                        daily_remaining = int(remaining)
-                        v2._LAST_DAILY_REMAINING = daily_remaining
-                except (TypeError, ValueError):
-                    pass
-
                 compact = compact_tactical_stats(raw)
                 if not _sufficient_stats(compact):
                     incomplete += 1
@@ -481,14 +788,25 @@ async def run_backfill(
         "target_team_count": len(unique_team_ids),
         "candidate_pool_rows": len(pool),
         "selected_fixture_count": len(candidates),
+        "fixture_discovery": {
+            "max_team_calls_per_run": MAX_DISCOVERY_TEAM_CALLS_PER_RUN,
+            "attempted_team_calls": discovery_attempted,
+            "successful_team_calls": discovery_success,
+            "errors": discovery_errors,
+            "persisted_fixture_rows": discovered_fixture_rows,
+            "details": discovery_details,
+        },
         "attempted": attempted,
         "captured": captured,
         "incomplete": incomplete,
         "errors": errors,
         "details": details,
         "events": events,
-        "provider_requests_added": attempted,
-        "max_provider_requests_per_run": MAX_FIXTURES_PER_RUN,
+        "fixture_discovery_provider_requests_added": discovery_attempted,
+        "statistics_provider_requests_added": attempted,
+        "provider_requests_added": discovery_attempted + attempted,
+        "max_statistics_provider_requests_per_run": MAX_FIXTURES_PER_RUN,
+        "max_discovery_provider_requests_per_run": MAX_DISCOVERY_TEAM_CALLS_PER_RUN,
         "daily_remaining_after_run": daily_remaining,
         "historical_research_feature_reconstruction_allowed": True,
         "retroactive_prediction_rewrite": False,
@@ -497,9 +815,11 @@ async def run_backfill(
         "decision_weight": 0.0,
         "production_promotion_allowed": False,
         "policy": (
-            "ONLY FINALIZED FIXTURES STRICTLY BEFORE THE FM4 TARGET COHORT; "
-            "EXACT PROVIDER FIXTURE STATISTICS ONLY; MAX EIGHT PROVIDER REQUESTS PER RUN; "
-            "STOP AT DAILY RESERVE GUARD; PERSIST RETRIEVAL PROVENANCE; "
+            "DISCOVER ONLY VERIFIED FINALIZED FIXTURES STRICTLY BEFORE THE FM4 TARGET COHORT; "
+            "PERSIST FIXTURE/RESULT IDENTITY IN CANONICAL POSTGRES; "
+            "EXACT PROVIDER FIXTURE STATISTICS ONLY; MAX EIGHT STATISTICS REQUESTS PER RUN; "
+            "MAX EIGHT FIXTURE-DISCOVERY TEAM REQUESTS PER RUN; STOP AT DAILY RESERVE GUARD; "
+            "PERSIST DISCOVERY AND RETRIEVAL PROVENANCE; NO SYNTHETIC TACTICAL VALUES; "
             "MAY EXPAND OFFLINE HISTORICAL FEATURE RESEARCH BUT NEVER REWRITE ORIGINAL "
             "PREGAME PREDICTIONS, MARKETS, CLV, BETS, OR PRODUCTION DECISIONS."
         ),
