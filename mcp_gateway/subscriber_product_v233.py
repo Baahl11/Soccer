@@ -83,10 +83,13 @@ def _interaction_script() -> str:
   }
 
   async function loadApp(){
-    try{APP=await api('/app/data')}catch(_){APP=null}
+    try{APP=await api('/app/data');window.__SOCCER_EDGE_APP_ERROR__=null}catch(e){APP=null;window.__SOCCER_EDGE_APP_ERROR__=String(e?.message||e)}
+    window.__SOCCER_EDGE_APP_DATA__=APP;window.__SOCCER_EDGE_APP_READY__=true;
+    window.dispatchEvent(new CustomEvent('soccer-edge:app-data-ready',{detail:APP}));
     syncAccount();
-    if(!APP)return;
+    if(!APP)return null;
     if(!token()||String(APP.effective_plan||'').toUpperCase()!=='PRO')renderExplorer(APP);
+    return APP;
   }
 
   function flatMatch(r){return [r.home_team||r.home,r.away_team||r.away].filter(Boolean).join(' vs ')||String(r.fixture_id||'Fixture')}
@@ -105,8 +108,15 @@ def _interaction_script() -> str:
   }
 
   async function loadPreview(){
-    if(!token())return;
-    try{PREVIEW=await api('/app-preview/data');syncAccount();setTimeout(()=>{wireRows();wireHero();wireFilters();wireTabs()},300)}catch(e){if(e.status!==403)console.warn('preview load',e.message)}
+    if(!token()){PREVIEW=null;return null}
+    const apply=d=>{PREVIEW=d||null;syncAccount();if(PREVIEW){wireRows();wireHero();wireFilters();wireTabs()}return PREVIEW};
+    if(window.__SOCCER_EDGE_PREVIEW_READY__)return apply(window.__SOCCER_EDGE_PREVIEW__);
+    return await new Promise(resolve=>{
+      let settled=false,timer=null;
+      const done=e=>{if(settled)return;settled=true;if(timer)clearTimeout(timer);window.removeEventListener('soccer-edge:preview-ready',done);resolve(apply(e?.detail??window.__SOCCER_EDGE_PREVIEW__??null))};
+      window.addEventListener('soccer-edge:preview-ready',done,{once:true});
+      timer=setTimeout(()=>done({detail:window.__SOCCER_EDGE_PREVIEW__??null}),4500);
+    });
   }
 
   function wireHero(){
@@ -163,7 +173,37 @@ def _interaction_script() -> str:
   $('v233SignUp')?.addEventListener('click',async()=>{try{const d=await authFetch('/auth/v1/signup',{email:$('v233Email').value,password:$('v233Password').value});if(d.access_token)localStorage.setItem(AK,d.access_token);if(d.refresh_token)localStorage.setItem(RK,d.refresh_token);$('v233AuthStatus').textContent=d.access_token?'Account created. Reloading…':'Account created. Check your email if confirmation is required.';if(d.access_token)setTimeout(()=>location.reload(),400)}catch(e){$('v233AuthStatus').textContent=e.message}});
   const prior=localStorage.getItem(MK)||'';if($('v233BillingMarket')&&['US','MX_LATAM'].includes(prior))$('v233BillingMarket').value=prior;
   document.title='Soccer Edge';document.querySelectorAll('.preview-chip').forEach(x=>{if(x.textContent.includes('PREVIEW'))x.textContent=x.textContent.replace('PREVIEW','LIVE')});
-  syncAccount();loadApp();loadPreview();setTimeout(()=>{wireRows();wireHero();wireTabs()},1000);
+  function waitForVisual(){
+    if(window.__SOCCER_EDGE_VISUAL_READY__)return Promise.resolve();
+    return new Promise(resolve=>{
+      let settled=false,timer=null;
+      const done=()=>{if(settled)return;settled=true;if(timer)clearTimeout(timer);window.removeEventListener('soccer-edge:visual-ready',done);resolve()};
+      window.addEventListener('soccer-edge:visual-ready',done,{once:true});
+      timer=setTimeout(done,5000);
+    });
+  }
+  function finishBoot(){
+    const pages=[...document.querySelectorAll('.page')],active=pages.filter(x=>x.classList.contains('active'));
+    if(active.length!==1){pages.forEach(x=>x.classList.remove('active'));document.getElementById('today')?.classList.add('active');document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page==='today'))}
+    document.body.classList.remove('se-booting');document.body.classList.add('se-ready');
+    const boot=document.getElementById('seBoot');if(boot)boot.setAttribute('aria-hidden','true');
+    window.__SOCCER_EDGE_BOOT_READY__=true;window.dispatchEvent(new CustomEvent('soccer-edge:boot-ready'));
+  }
+  function failBoot(err){
+    const boot=document.getElementById('seBoot');if(!boot)return;
+    const card=boot.querySelector('.se-boot-card');if(card)card.innerHTML=`<div class="se-boot-mark">SE</div><div class="se-boot-title">Snapshot unavailable</div><div class="se-boot-copy">${esc(err?.message||err||'Unable to load the verified snapshot.')} No values were fabricated.</div><button class="v233-secondary" type="button" onclick="location.reload()" style="margin-top:14px">Retry</button>`;
+  }
+  async function boot(){
+    syncAccount();
+    const app=await loadApp();
+    if(!app)throw new Error(window.__SOCCER_EDGE_APP_ERROR__||'Subscriber data unavailable');
+    await loadPreview();
+    wireRows();wireHero();wireTabs();
+    window.__SOCCER_EDGE_CORE_READY__=true;window.dispatchEvent(new CustomEvent('soccer-edge:core-ready'));
+    await waitForVisual();
+    finishBoot();
+  }
+  boot().catch(failBoot);
 })();
 </script>
 '''

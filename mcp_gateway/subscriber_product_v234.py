@@ -118,8 +118,15 @@ def _enhancement_fragment() -> str:
    const hero=document.querySelector('#today .hero-main');const top=DATA?.today?.top_edge;if(hero&&top?.match?.fixture_id)hero.onclick=()=>openFixture(top.match.fixture_id);
    document.querySelectorAll('#feedbody tr[data-v234-fixture]').forEach(tr=>tr.onclick=()=>openFixture(tr.dataset.v234Fixture));
  }
- async function init(){if(!token())return;try{DATA=await getJson('/app-preview/data');setupFilters();setupToolbar();setupTabs();bindFixtureClicks();setTimeout(()=>{renderFeed(DATA.edge_feed?.rows||[]);applyFilters('All');setupToolbar();setupTabs();bindFixtureClicks()},900)}catch(_){}}
- setTimeout(init,180);
+ function markReady(){window.__SOCCER_EDGE_V234_READY__=true;window.dispatchEvent(new CustomEvent('soccer-edge:v234-ready'))}
+ function applyPreview(data){DATA=data||null;if(DATA){setupFilters();setupToolbar();setupTabs();renderFeed(DATA.edge_feed?.rows||[]);applyFilters('All');setupToolbar();setupTabs();bindFixtureClicks()}markReady()}
+ async function init(){
+   if(!token()){markReady();return}
+   if(window.__SOCCER_EDGE_PREVIEW_READY__){applyPreview(window.__SOCCER_EDGE_PREVIEW__);return}
+   const done=e=>applyPreview(e?.detail??window.__SOCCER_EDGE_PREVIEW__??null);
+   window.addEventListener('soccer-edge:preview-ready',done,{once:true});
+ }
+ init();
 })();
 </script>
 '''

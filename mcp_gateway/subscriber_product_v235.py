@@ -210,10 +210,15 @@ button,.tab,.toolbtn,.v233-account-btn,.v233-primary,.v233-secondary{-webkit-tap
    if(!root)return;root.innerHTML=list.length?list.map(r=>{const [time,day]=kickoffParts(r.kickoff),home=r.home_team||r.home||'Home',away=r.away_team||r.away||'Away',state=rowStatus(r),ready=/READY|LIVE|STRONG/i.test(state);return `<div class="v235-fixture" data-fixture-id="${esc(r.fixture_id||'')}"><div class="v235-kickoff"><b>${esc(time)}</b>${esc(day)}</div><div class="v235-teams"><div class="v235-team">${logo(r.home_team_logo,home)}<span class="v235-team-name">${esc(home)}</span></div><div class="v235-team">${logo(r.away_team_logo,away)}<span class="v235-team-name">${esc(away)}</span></div></div><div class="v235-fixture-meta"><span class="v235-league">${esc(r.league||r.country||'Competition')}</span><span class="v235-state ${ready?'ready':''}">${esc(state)}</span></div></div>`}).join(''):'<div class="v235-empty">No upcoming persisted fixtures in the latest slate.</div>';
    root.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.style.display='none';const fb=img.nextElementSibling;if(fb)fb.style.display='inline'}));
  }
- async function refreshFullSlate(){
-   try{const token=localStorage.getItem(AK)||'',headers=token?{Authorization:`Bearer ${token}`}:{},res=await fetch('/app/data',{headers,cache:'no-store'}),data=await res.json();if(!res.ok)return;const pro=data?.pro?.todays_slate,free=data?.public?.verified_slate,slate=pro?.rows?.length?pro:free;renderFullSlate(slate?.rows||[],slate?.total)}catch(_){/* existing UI remains truthful */}
+ function refreshFullSlate(data){
+   const pro=data?.pro?.todays_slate,free=data?.public?.verified_slate,slate=pro?.rows?.length?pro:free;renderFullSlate(slate?.rows||[],slate?.total);
  }
- setTimeout(refreshFullSlate,220);setTimeout(refreshFullSlate,1200);
+ function markReady(){window.__SOCCER_EDGE_V235_READY__=true;window.dispatchEvent(new CustomEvent('soccer-edge:v235-ready'))}
+ function initFullSlate(){
+   if(window.__SOCCER_EDGE_APP_READY__){refreshFullSlate(window.__SOCCER_EDGE_APP_DATA__);markReady();return}
+   window.addEventListener('soccer-edge:app-data-ready',e=>{refreshFullSlate(e?.detail||null);markReady()},{once:true});
+ }
+ initFullSlate();
 })();
 </script>
 '''

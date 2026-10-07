@@ -246,13 +246,24 @@ _LIVE_SCRIPT = r'''
     neutralizeMocks();
     loadPublicTower();
     const token=localStorage.getItem(AK)||'';
-    if(!token){const live=document.querySelector('#today .header .live');if(live)live.innerHTML='<span class="dot" style="background:#eab95c"></span> LOGIN REQUIRED FOR LIVE PREVIEW';return}
+    if(!token){
+      const live=document.querySelector('#today .header .live');if(live)live.innerHTML='<span class="dot" style="background:#eab95c"></span> LOGIN REQUIRED FOR LIVE PREVIEW';
+      window.__SOCCER_EDGE_PREVIEW__=null;window.__SOCCER_EDGE_PERFORMANCE__=null;window.__SOCCER_EDGE_PREVIEW_READY__=true;
+      window.dispatchEvent(new CustomEvent('soccer-edge:preview-ready',{detail:null}));
+      return
+    }
     try{
       const results=await Promise.allSettled([fetchJson('/app-preview/data',token),fetchJson('/app-preview/performance',token)]);
       if(results[0].status!=='fulfilled')throw results[0].reason;
       LIVE=results[0].value;PERF=results[1].status==='fulfilled'?results[1].value:{status:'UNAVAILABLE',rows:[],error:String(results[1].reason||'Performance unavailable')};
       renderToday(LIVE);renderFeed(LIVE);renderMatch(LIVE);renderMarkets(LIVE);renderTower(LIVE);renderPerformance(PERF);renderResearch(LIVE,PERF);renderMyEdge(LIVE);
-    }catch(err){const live=document.querySelector('#today .header .live');if(live)live.innerHTML=`<span class="dot" style="background:#ff6679"></span> LIVE DATA ERROR · ${esc(err.message)}`}
+      window.__SOCCER_EDGE_PREVIEW__=LIVE;window.__SOCCER_EDGE_PERFORMANCE__=PERF;window.__SOCCER_EDGE_PREVIEW_READY__=true;
+      window.dispatchEvent(new CustomEvent('soccer-edge:preview-ready',{detail:LIVE}));
+    }catch(err){
+      const live=document.querySelector('#today .header .live');if(live)live.innerHTML=`<span class="dot" style="background:#ff6679"></span> LIVE DATA ERROR · ${esc(err.message)}`;
+      window.__SOCCER_EDGE_PREVIEW__=null;window.__SOCCER_EDGE_PERFORMANCE__=null;window.__SOCCER_EDGE_PREVIEW_ERROR__=String(err?.message||err);window.__SOCCER_EDGE_PREVIEW_READY__=true;
+      window.dispatchEvent(new CustomEvent('soccer-edge:preview-ready',{detail:null}));
+    }
   }
 
   loadLive();

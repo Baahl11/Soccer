@@ -146,7 +146,6 @@ _SCRIPT = r'''
   const AK='soccer_edge_access_token';
   let cachedRows=[];
   let identityByFixture={};
-  let slateObserver=null;
   const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const text=v=>String(v??'').trim();
   const initials=name=>text(name).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'FC';
@@ -201,7 +200,6 @@ _SCRIPT = r'''
     const panel=ensurePanel();if(!panel)return;const rows=cachedRows.map(merged);const count=rows.length;
     panel.innerHTML=`<div class="v236-slate-head"><div><h3>Upcoming Matches</h3><span class="v236-slate-sub">Full fixture browser · intelligence enriches progressively</span></div><span class="v236-slate-count">Full Slate (${count})</span></div><div class="v236-slate-list">${rows.length?rows.map(r=>{const [time,date]=kickoff(r.kickoff),home=r.home_team||'Home',away=r.away_team||'Away',[label,tone]=stateInfo(r.status);return `<article class="v236-fixture" data-fixture-id="${esc(r.fixture_id||'')}"><div class="v236-kickoff"><b>${esc(time)}</b><span class="v236-date">${esc(date)}</span></div><div class="v236-teams"><div class="v236-team home">${crest(r.home_team_logo,home)}<strong>${esc(home)}</strong></div><div class="v236-team away">${crest(r.away_team_logo,away)}<strong>${esc(away)}</strong></div></div><div class="v236-meta"><span class="v236-league">${esc(r.league||r.country||'Competition')}</span><span class="v236-state ${tone}">${esc(label)}</span></div></article>`}).join(''):'<div class="v231-empty">No upcoming persisted fixtures in the latest slate.</div>'}</div><div class="v236-slate-foot">Every fixture remains visible even before deep analysis. Missing model, market or XI data stays missing instead of hiding the match.</div>`;
     panel.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.style.display='none'}));
-    if(!slateObserver){slateObserver=new MutationObserver(()=>{if(!panel.querySelector('.v236-slate-list'))setTimeout(renderSlate,20)});slateObserver.observe(panel,{childList:true,subtree:false})}
   }
   function matchIdentityByLabel(label){
     const want=text(label).toLowerCase();if(!want)return null;
@@ -214,10 +212,20 @@ _SCRIPT = r'''
   function decorateSignals(){
     document.querySelectorAll('#today .signal-list .signal b').forEach(b=>{if(b.parentElement?.querySelector('.v236-signal-crests'))return;const r=matchIdentityByLabel(b.textContent);if(!r)return;const span=document.createElement('span');span.className='v236-signal-crests';span.innerHTML=`${crest(r.home_team_logo,r.home_team)}${crest(r.away_team_logo,r.away_team)}`;b.insertAdjacentElement('beforebegin',span);span.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.style.display='none'}))});
   }
-  async function refresh(){
-    try{const data=await loadAppData(),slate=data?.public?.verified_slate||data?.pro?.todays_slate||{};cachedRows=uniqueFixtures(slate.rows||[]);identityByFixture=await loadIdentities(cachedRows);renderSlate();decorateHero();decorateSignals()}catch(_){renderSlate()}
+  function waitFlag(flag,eventName,timeout=2500){
+    if(window[flag])return Promise.resolve();
+    return new Promise(resolve=>{let done=false,timer=null;const finish=()=>{if(done)return;done=true;if(timer)clearTimeout(timer);window.removeEventListener(eventName,finish);resolve()};window.addEventListener(eventName,finish,{once:true});timer=setTimeout(finish,timeout)});
   }
-  [260,1450,3000].forEach(ms=>setTimeout(refresh,ms));window.addEventListener('focus',()=>setTimeout(refresh,80));
+  async function refresh(dataOverride=null){
+    try{const data=dataOverride||window.__SOCCER_EDGE_APP_DATA__||await loadAppData(),slate=data?.public?.verified_slate||data?.pro?.todays_slate||{};cachedRows=uniqueFixtures(slate.rows||[]);identityByFixture=await loadIdentities(cachedRows);renderSlate();decorateHero();decorateSignals();return true}catch(_){renderSlate();return false}
+  }
+  async function start(data){
+    await Promise.all([waitFlag('__SOCCER_EDGE_V234_READY__','soccer-edge:v234-ready'),waitFlag('__SOCCER_EDGE_V235_READY__','soccer-edge:v235-ready')]);
+    await refresh(data||window.__SOCCER_EDGE_APP_DATA__||null);
+    window.__SOCCER_EDGE_TODAY_DATA__={rows:cachedRows,identities:identityByFixture};window.__SOCCER_EDGE_TODAY_READY__=true;
+    window.dispatchEvent(new CustomEvent('soccer-edge:today-ready',{detail:window.__SOCCER_EDGE_TODAY_DATA__}));
+  }
+  if(window.__SOCCER_EDGE_APP_READY__)start(window.__SOCCER_EDGE_APP_DATA__);else window.addEventListener('soccer-edge:app-data-ready',e=>start(e?.detail||null),{once:true});
 })();
 </script>
 '''
