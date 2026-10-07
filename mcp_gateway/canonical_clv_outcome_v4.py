@@ -8,8 +8,6 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Any, Iterable
 
-from mcp_gateway import evaluate_postgame as ep
-
 SCHEMA_VERSION = "1.0.0"
 MODEL_VERSION = "SOCCER_CANONICAL_CLV_OUTCOME_V4_1.0.0"
 SUPPORTED_FAMILIES = {"1X2", "HOME_TT", "AWAY_TT"}
@@ -192,19 +190,78 @@ def _logloss(p: float, y: int) -> float:
     return -(y * math.log(p) + (1 - y) * math.log(1 - p))
 
 
+def _norm(value: Any) -> str:
+    return " ".join(str(value or "").strip().lower().split())
+
+
+def _final_goals(result: dict[str, Any] | None) -> tuple[int | None, int | None]:
+    result = result if isinstance(result, dict) else {}
+    goals = result.get("goals")
+    goals = goals if isinstance(goals, dict) else {}
+    try:
+        return int(goals.get("home")), int(goals.get("away"))
+    except (TypeError, ValueError):
+        return None, None
+
+
+def _grade_over_under(value: int | float, line: float | None, selection: Any) -> str:
+    if line is None:
+        return "UNGRADABLE_LINE"
+    sel = _norm(selection)
+    is_over = sel.startswith("over")
+    is_under = sel.startswith("under")
+    if not (is_over or is_under):
+        return "UNGRADABLE_SELECTION"
+    if math.isclose(float(value), float(line)):
+        return "PUSH"
+    if is_over:
+        return "WIN" if float(value) > float(line) else "LOSS"
+    return "WIN" if float(value) < float(line) else "LOSS"
+
+
+def _grade_captured_signal(row: dict[str, Any], result: dict[str, Any] | None) -> str:
+    home_goals, away_goals = _final_goals(result)
+    if home_goals is None or away_goals is None:
+        return "NO_FINAL"
+    family = _family(row)
+    if family == "1X2":
+        actual = "home" if home_goals > away_goals else "away" if away_goals > home_goals else "draw"
+        selection = _norm(row.get("selection"))
+        if selection in {"home", "1", _norm(row.get("home_team"))}:
+            pick = "home"
+        elif selection in {"away", "2", _norm(row.get("away_team"))}:
+            pick = "away"
+        elif selection in {"draw", "x"}:
+            pick = "draw"
+        else:
+            return "UNGRADABLE_SELECTION"
+        return "WIN" if pick == actual else "LOSS"
+    if family in {"HOME_TT", "AWAY_TT"}:
+        team_goals = home_goals if family == "HOME_TT" else away_goals
+        return _grade_over_under(team_goals, _signal_line(row), row.get("selection"))
+    return "UNSUPPORTED_FAMILY"
+
+
+def _roi_units(outcome: str, price: float | None) -> float | None:
+    if price is None or price <= 1.0:
+        return None
+    if outcome == "WIN":
+        return round(price - 1.0, 6)
+    if outcome == "LOSS":
+        return -1.0
+    if outcome == "PUSH":
+        return 0.0
+    return None
+
+
 def _grade_row(row: dict[str, Any], result: dict[str, Any] | None) -> dict[str, Any]:
     family = _family(row)
     canonical_family = "1X2" if family == "1X2" else "TEAM_TOTALS"
     best = _normalized_market(row)
     fixture_id = _fixture_id(row)
-    outcome = ep.grade_market(
-        best,
-        result,
-        str(row.get("home_team") or ""),
-        str(row.get("away_team") or ""),
-    ) if result else "NO_FINAL"
+    outcome = _grade_captured_signal(row, result)
     price = _signal_price(row)
-    roi = ep.roi_units(outcome, price, 1.0)
+    roi = _roi_units(outcome, price)
     probability = _signal_probability(row)
     scored = outcome in {"WIN", "LOSS"} and probability is not None
     y = 1 if outcome == "WIN" else 0 if outcome == "LOSS" else None
