@@ -6,12 +6,13 @@ from mcp_gateway import automation_v128 as v128
 from mcp_gateway import dynamic_strength_challenger_v4
 from mcp_gateway import price_resolver_v4
 from mcp_gateway import primary_clv_anchor_v4
+from mcp_gateway import primary_clv_anchor_normalized_v4
 from mcp_gateway import derivative_clv_anchor_v4
 from mcp_gateway import team_totals_clv_anchor_v4
 from mcp_gateway import team_totals_close_provenance_v4
 
 MODEL_VERSION = v128.MODEL_VERSION
-AUTOMATION_VERSION = "4.38.6-runtime-stabilization"
+AUTOMATION_VERSION = "4.38.7-normalized-primary-clv-anchor"
 
 
 def _int_map(value: Any) -> dict[str, int]:
@@ -212,7 +213,7 @@ async def run_tick() -> dict[str, Any]:
 
     def observed_primary_loader(*args: Any, **kwargs: Any) -> dict[str, Any]:
         kwargs.setdefault("include_diagnostics", False)
-        report = primary_clv_anchor_v4.load_primary_clv_maturation_backlog(*args, **kwargs)
+        report = primary_clv_anchor_normalized_v4.load_primary_clv_maturation_backlog(*args, **kwargs)
         primary_loader_observation.clear()
         primary_loader_observation.update(
             {
@@ -227,6 +228,8 @@ async def run_tick() -> dict[str, Any]:
                 "diagnostic_window": dict(report.get("diagnostic_window") or {}),
                 "provider_requests_added": int(report.get("provider_requests_added") or 0),
                 "selection_logic_changed": bool(report.get("selection_logic_changed", False)),
+                "normalized_storage": bool(report.get("normalized_storage", False)),
+                "legacy_json_expansion_used": bool(report.get("legacy_json_expansion_used", True)),
             }
         )
         return report
@@ -304,6 +307,8 @@ async def run_tick() -> dict[str, Any]:
         "thresholds_changed": False,
         "gates_changed": False,
         "canonical_bet_logic_changed": False,
+        "normalized_signal_storage": True,
+        "legacy_pipeline_json_expansion_in_live_loader": False,
         "frontend_changed": False,
         "policy": (
             "SELECT_OLDEST_UNRESOLVED_POINT_IN_TIME_SIGNAL_PER_FIXTURE_FAMILY; "
