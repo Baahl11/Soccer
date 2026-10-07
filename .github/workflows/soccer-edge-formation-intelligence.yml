@@ -107,9 +107,9 @@ jobs:
             --output state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
           jq -e '.status == "RESEARCH_HOLD_FM4_STYLE_PERSONNEL_ABLATION"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
           jq -e '.health.odds_consumed == false and .health.current_match_postgame_style_consumed == false' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
-          jq -e '.personnel_overlay.status == "RESEARCH_ONLY_PERSONNEL_CONTINUITY"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
-          jq -e '.personnel_overlay.production_enabled == false and .personnel_overlay.decision_weight == 0' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
-          jq -e '.health.personnel_continuity_materialized == true and .health.personnel_outcome_ablation_used == false' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+          jq -e '.personnel_overlay.status == "RESEARCH_ONLY_PERSONNEL_OUTCOME_ABLATION"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+          jq -e '.personnel_overlay.production_enabled == false and .personnel_overlay.decision_weight == 0 and .personnel_overlay.outcome_ablation.production_enabled == false and .personnel_overlay.outcome_ablation.decision_weight == 0' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
+          jq -e '.health.personnel_continuity_materialized == true and .health.personnel_outcome_ablation_used == true' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
           jq -e '.style_profile.history_source == "ALL_PRIOR_VERIFIED_TACTICAL_HISTORY"' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
           jq -e '.health.production_enabled == false and .health.decision_weight == 0' state/soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json >/dev/null
 
