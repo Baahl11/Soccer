@@ -1,0 +1,163 @@
+name: Live Frontend Visual Audit
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/live-frontend-visual-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: live-frontend-visual-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: https://soccer-edge-api.onrender.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify live HTTP contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/frontend-audit
+          curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/health" > /tmp/frontend-audit/health.json
+          curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/today" > /tmp/frontend-audit/today.json
+          curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app-v2" > /tmp/frontend-audit/app-v2.html
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          health = json.loads(Path("/tmp/frontend-audit/health.json").read_text())
+          today = json.loads(Path("/tmp/frontend-audit/today.json").read_text())
+          html = Path("/tmp/frontend-audit/app-v2.html").read_text()
+
+          assert health.get("status") == "ok", health
+          assert today.get("schema_version") == "2.0.0", today
+          assert today.get("status") == "SUBSCRIBER_CONTRACT_V2_READY", today
+          assert '<script id="soccer-edge-v2-app">' in html
+          assert "Arsenal vs Brighton" not in html
+          assert "Control Tower" not in html
+          assert "Research Lab" not in html
+          assert html.count('id="boot"') == 1
+          assert "MutationObserver" not in html
+          assert "setTimeout(" not in html
+          print(json.dumps({
+              "render_git_commit": health.get("render_git_commit"),
+              "today_status": today.get("status"),
+              "counts": today.get("counts"),
+              "effective_plan": (today.get("access") or {}).get("effective_plan"),
+              "html_bytes": len(html.encode()),
+          }, indent=2))
+          PY
+
+      - name: Install Playwright
+        run: |
+          python -m pip install -q playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Capture desktop and mobile visual audits
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+
+          base = os.environ["BASE_URL"]
+          out = Path("/tmp/frontend-audit")
+          report = {}
+
+          def audit(page, name, width, height):
+              page.set_viewport_size({"width": width, "height": height})
+              response = page.goto(base + "/app-v2", wait_until="networkidle", timeout=60000)
+              assert response and response.ok, f"{name} page status={response.status if response else None}"
+              page.wait_for_function(
+                  "() => document.getElementById('boot')?.classList.contains('hidden')",
+                  timeout=30000,
+              )
+              active = page.locator(".page.active").count()
+              boot_visible = page.locator("#boot").is_visible()
+              body_text = page.locator("body").inner_text()
+              overflow = page.evaluate("() => document.documentElement.scrollWidth - document.documentElement.clientWidth")
+              mock_found = any(
+                  term in body_text
+                  for term in ("Arsenal vs Brighton", "Man City vs Nottm Forest", "Mockup Preview")
+              )
+              primary = [
+                  page.locator('[data-page="today"]').first.is_visible(),
+                  page.locator('[data-page="picks"]').first.is_visible(),
+                  page.locator('[data-page="leans"]').first.is_visible(),
+                  page.locator('[data-page="matches"]').first.is_visible(),
+              ]
+              assert active == 1, f"{name}: active pages={active}"
+              assert not boot_visible, f"{name}: boot still visible"
+              assert not mock_found, f"{name}: mock content visible"
+              assert all(primary), f"{name}: primary navigation missing"
+              assert overflow <= 2, f"{name}: horizontal overflow {overflow}px"
+
+              screenshot = out / f"{name}.png"
+              page.screenshot(path=str(screenshot), full_page=True)
+              report[name] = {
+                  "viewport": [width, height],
+                  "active_pages": active,
+                  "boot_visible": boot_visible,
+                  "horizontal_overflow_px": overflow,
+                  "mock_content_visible": mock_found,
+                  "body_text_excerpt": body_text[:2000],
+              }
+
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              desktop = browser.new_page()
+              audit(desktop, "desktop-1440", 1440, 1100)
+              mobile = browser.new_page()
+              audit(mobile, "mobile-390", 390, 844)
+              browser.close()
+
+          (out / "visual-report.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Publish visual audit snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/frontend-audit-repo
+          mkdir -p /tmp/frontend-audit-repo
+          cd /tmp/frontend-audit-repo
+          git init
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          cp /tmp/frontend-audit/desktop-1440.png .
+          cp /tmp/frontend-audit/mobile-390.png .
+          cp /tmp/frontend-audit/visual-report.json .
+          cp /tmp/frontend-audit/health.json .
+          cp /tmp/frontend-audit/today.json .
+          git add .
+          git commit -m "Update live frontend visual audit"
+          git branch -M frontend-audit-artifacts
+          git push --force origin frontend-audit-artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
