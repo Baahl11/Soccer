@@ -77,6 +77,39 @@ CREATE TABLE IF NOT EXISTS soccer_market_snapshots (
     provider_update TIMESTAMPTZ
 );
 
+CREATE TABLE IF NOT EXISTS soccer_primary_clv_signal_anchors (
+    anchor_id BIGSERIAL PRIMARY KEY,
+    fixture_id BIGINT NOT NULL,
+    market_family TEXT NOT NULL,
+    market TEXT NOT NULL,
+    selection TEXT NOT NULL,
+    line_text TEXT,
+    price_text TEXT,
+    signal_generated_at TIMESTAMPTZ NOT NULL,
+    candidate_source TEXT NOT NULL,
+    source_priority INTEGER NOT NULL,
+    source_row JSONB NOT NULL,
+    materialized_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_soccer_primary_clv_signal_anchor_identity
+ON soccer_primary_clv_signal_anchors (
+    fixture_id,
+    market_family,
+    (LOWER(TRIM(market))),
+    (LOWER(TRIM(selection))),
+    (COALESCE(line_text, '')),
+    signal_generated_at,
+    candidate_source
+);
+
+CREATE INDEX IF NOT EXISTS idx_soccer_primary_clv_signal_anchor_live
+ON soccer_primary_clv_signal_anchors (
+    signal_generated_at DESC,
+    fixture_id,
+    market_family
+);
+
 CREATE TABLE IF NOT EXISTS soccer_feature_snapshots (
     snapshot_id BIGSERIAL PRIMARY KEY,
     fixture_id BIGINT NOT NULL,
