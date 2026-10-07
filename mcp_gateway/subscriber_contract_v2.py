@@ -368,7 +368,26 @@ def adapt_candidate(row: dict[str, Any]) -> dict[str, Any]:
         },
         "model": {
             "version": _first(row, "model_version"),
+            "raw_sport_projection_version": _first(
+                row, "raw_sport_projection_version", "sport_projection_version"
+            ),
+            "market_shrink_version": _first(
+                row, "market_shrink_version", "shrinkage_version"
+            ),
             "generated_at": generated_at,
+        },
+        "freshness": {
+            "market_fresh": row.get("market_fresh")
+            if isinstance(row.get("market_fresh"), bool)
+            else None,
+            "provider_update": _first(
+                row,
+                "provider_update",
+                "provider_updated_at",
+                "market_updated_at",
+                "odds_updated_at",
+            ),
+            "snapshot_generated_at": generated_at,
         },
         "source": SOURCE,
     }
