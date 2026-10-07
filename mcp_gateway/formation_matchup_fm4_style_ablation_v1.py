@@ -652,6 +652,101 @@ def build_report(
 
         home_id = int(row.get("home_team_id") or 0)
         away_id = int(row.get("away_team_id") or 0)
+
+        fixture_id = int(row.get("fixture_id") or 0)
+        current_personnel_event = personnel_by_fixture.get(fixture_id)
+        current_home_lineup = _team_from_personnel_event(
+            current_personnel_event, home_id
+        )
+        current_away_lineup = _team_from_personnel_event(
+            current_personnel_event, away_id
+        )
+        home_personnel = _personnel_features(
+            current_home_lineup, team_lineup_history[home_id]
+        )
+        away_personnel = _personnel_features(
+            current_away_lineup, team_lineup_history[away_id]
+        )
+        if home_personnel is not None and away_personnel is not None:
+            personnel_coverage["current_both_xi_confirmed_rows"] += 1
+            home_prior = int(home_personnel.get("prior_confirmed_xi_count") or 0)
+            away_prior = int(away_personnel.get("prior_confirmed_xi_count") or 0)
+            personnel_coverage["rows_with_home_prior_confirmed_xi"] += int(home_prior > 0)
+            personnel_coverage["rows_with_away_prior_confirmed_xi"] += int(away_prior > 0)
+            personnel_coverage["rows_with_both_prior_confirmed_xi"] += int(
+                home_prior > 0 and away_prior > 0
+            )
+            home_coach_comparable = (
+                home_personnel.get("coach_same_as_previous") is not None
+            )
+            away_coach_comparable = (
+                away_personnel.get("coach_same_as_previous") is not None
+            )
+            personnel_coverage["rows_with_home_previous_coach_comparable"] += int(
+                home_coach_comparable
+            )
+            personnel_coverage["rows_with_away_previous_coach_comparable"] += int(
+                away_coach_comparable
+            )
+            personnel_coverage["rows_with_both_previous_coach_comparable"] += int(
+                home_coach_comparable and away_coach_comparable
+            )
+            home_last3 = home_personnel.get("last3_core_return_rate") is not None
+            away_last3 = away_personnel.get("last3_core_return_rate") is not None
+            personnel_coverage["rows_with_home_last3_core_return_rate"] += int(
+                home_last3
+            )
+            personnel_coverage["rows_with_away_last3_core_return_rate"] += int(
+                away_last3
+            )
+            personnel_coverage["rows_with_both_last3_core_return_rate"] += int(
+                home_last3 and away_last3
+            )
+
+            home_overlap = _num(home_personnel.get("previous_xi_overlap_rate"))
+            away_overlap = _num(away_personnel.get("previous_xi_overlap_rate"))
+            mean_overlap = (
+                round((home_overlap + away_overlap) / 2.0, 6)
+                if home_overlap is not None and away_overlap is not None
+                else None
+            )
+            overlap_gap = (
+                round(home_overlap - away_overlap, 6)
+                if home_overlap is not None and away_overlap is not None
+                else None
+            )
+            both_coach_same = (
+                bool(
+                    home_personnel.get("coach_same_as_previous")
+                    and away_personnel.get("coach_same_as_previous")
+                )
+                if home_coach_comparable and away_coach_comparable
+                else None
+            )
+            personnel_rows.append(
+                {
+                    "fixture_id": fixture_id,
+                    "kickoff_local": row.get("kickoff_local"),
+                    "home_team_id": home_id,
+                    "away_team_id": away_id,
+                    "captured_at": (
+                        current_personnel_event.get("captured_at")
+                        if isinstance(current_personnel_event, dict)
+                        else None
+                    ),
+                    "stage": (
+                        current_personnel_event.get("stage")
+                        if isinstance(current_personnel_event, dict)
+                        else None
+                    ),
+                    "home": home_personnel,
+                    "away": away_personnel,
+                    "mean_previous_xi_overlap_rate": mean_overlap,
+                    "xi_continuity_gap_home_minus_away": overlap_gap,
+                    "both_coach_same_as_previous": both_coach_same,
+                }
+            )
+
         home_history = team_style[home_id]
         away_history = team_style[away_id]
         home_counts = {field: len(home_history.get(field, [])) for field in STYLE_FIELDS}
