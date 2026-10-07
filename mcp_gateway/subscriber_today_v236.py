@@ -226,7 +226,6 @@ _SCRIPT = r'''
     window.dispatchEvent(new CustomEvent('soccer-edge:today-ready',{detail:window.__SOCCER_EDGE_TODAY_DATA__}));
   }
   if(window.__SOCCER_EDGE_APP_READY__)start(window.__SOCCER_EDGE_APP_DATA__);else window.addEventListener('soccer-edge:app-data-ready',e=>start(e?.detail||null),{once:true});
-  window.addEventListener('focus',()=>refresh(window.__SOCCER_EDGE_APP_DATA__||null));
 })();
 </script>
 '''
