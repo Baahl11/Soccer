@@ -138,7 +138,6 @@ async def run_tick() -> dict[str, Any]:
 
     dates = [local_now.date()]
     if local_now.hour >= 22:
-        from datetime import timedelta
         dates.append((local_now + timedelta(days=1)).date())
 
     fixtures: list[dict[str, Any]] = []
