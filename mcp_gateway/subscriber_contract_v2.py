@@ -1920,6 +1920,67 @@ def _relational_raw_sport_context(relational_evidence: dict[str, Any]) -> dict[s
         "goal_rate_semantics": "POISSON_LAMBDA_NOT_XG",
     }
 
+def _match_evidence_sections(relational_evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    """Expose persisted, independently sourced sport features without inventing values.
+
+    Only snapshot rows from this fixture are used. No provider calls, implied
+    confirmations, market promotions or derived statistics are introduced.
+    """
+    evidence = relational_evidence if isinstance(relational_evidence, dict) else {}
+    snapshots = evidence.get("feature_snapshots")
+    if not isinstance(snapshots, list) or not snapshots:
+        return []
+    latest = next((s for s in snapshots if isinstance(s, dict)), {})
+    features = _dict(_dict(latest.get("payload")).get("features"))
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for key, raw in features.items():
+        if not isinstance(key, str) or not isinstance(raw, dict):
+            continue
+        value = raw.get("value")
+        if value is None or isinstance(value, (dict, list)):
+            continue
+        if isinstance(value, str) and not value.strip():
+            continue
+        if isinstance(value, float) and not math.isfinite(value):
+            continue
+        source = str(raw.get("source") or "").strip()
+        sample_n = _number(raw.get("sample_n"))
+        # A provider's zero-game sample is not verified sporting performance.
+        if source == "API_FOOTBALL_TEAM_STATS" and sample_n is not None and sample_n <= 0:
+            continue
+        prefix = key.split(".", 1)[0]
+        category = {
+            "team_performance": "TEAMS",
+            "xg": "GOALS",
+            "goals": "GOALS",
+            "corners": "CORNERS",
+            "cards": "CARDS",
+            "players": "PLAYERS",
+            "player": "PLAYERS",
+            "availability": "AVAILABILITY",
+            "formation": "AVAILABILITY",
+            "context": "CONTEXT",
+            "territory": "CONTEXT",
+        }.get(prefix, "OTHER")
+        # Preserved source and field keys allow an exact audit of every shown value.
+        groups.setdefault(category, []).append({
+            "key": key,
+            "label": key.split(".", 1)[-1].replace("_", " ").strip().title(),
+            "value": value,
+            "source": source or None,
+            "sample_n": int(sample_n) if sample_n is not None and sample_n >= 0 else None,
+            "captured_at": raw.get("captured_at") or raw.get("freshness") or latest.get("captured_at"),
+            "model_version": raw.get("model_version") or latest.get("model_version"),
+            "status": "PERSISTED" if source else "SOURCE_NOT_VERIFIED",
+        })
+    order = ("TEAMS", "GOALS", "CORNERS", "CARDS", "PLAYERS", "AVAILABILITY", "CONTEXT", "OTHER")
+    return [
+        {"category": group, "items": groups[group], "snapshot_at": latest.get("captured_at"),
+         "data_tier": latest.get("data_tier")}
+        for group in order if groups.get(group)
+    ]
+
+
 def _match_fixture_with_registry_identity(
     selected_row: dict[str, Any], registry_fixture: dict[str, Any] | None
 ) -> dict[str, Any]:
@@ -2073,6 +2134,7 @@ def build_match_contract(
                 ),
             },
             "relational_evidence": relational_evidence,
+            "evidence_sections": _match_evidence_sections(relational_evidence),
             "data_disclosure": {
                 "persisted_fixture_row_count": 0,
                 "missing_sections": missing,
@@ -2257,6 +2319,7 @@ def build_match_contract(
             ),
         },
         "relational_evidence": relational_evidence,
+        "evidence_sections": _match_evidence_sections(relational_evidence),
         "data_disclosure": {
             "persisted_fixture_row_count": len(raw_rows),
             "missing_sections": missing,

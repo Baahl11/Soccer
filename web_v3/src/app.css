@@ -92,3 +92,17 @@ main{min-width:0}.topbar{height:48px;display:flex;align-items:center;justify-con
 @media(max-width:430px){
   .react-page{padding:9px 7px 76px}.coverage-kpis{gap:5px}.coverage-kpis span{font-size:3.9px}.coverage-kpis b{font-size:12px}.react-slate-row{padding:8px 7px}.slate-time b{font-size:7px}.slate-time span{font-size:4.4px}.mini-team b{font-size:6px}.coverage-tag b{font-size:4.8px}.coverage-tag span{font-size:4px}.mobile-product-nav button{font-size:5.4px}
 }
+
+/* Adaptive evidence sections: always explain available, missing and historic evidence. */
+.evidence-board{margin-top:9px;padding:13px;border:1px solid rgba(55,112,140,.4);border-radius:12px;background:linear-gradient(180deg,#091d29,#061720)}
+.evidence-board>header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.evidence-board>header b{font-size:12px}.evidence-board>header span{color:#7296a9;font-size:9px;letter-spacing:.03em}
+.evidence-board p{color:#93aebb;font-size:11px;line-height:1.5;margin:9px 0 2px}
+.evidence-group{border-top:1px solid rgba(63,111,133,.35)}.evidence-group summary{cursor:pointer;padding:10px 3px;font-size:12px;font-weight:850;color:#d5e8f1}
+.evidence-group summary small{display:inline;margin-left:9px;font-size:10px;color:#7693a3;font-weight:500}
+.evidence-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px;padding:4px 0 8px}
+.evidence-item{min-width:0;display:grid;align-content:start;gap:5px;padding:10px;background:#071925;border:1px solid #18394c;border-radius:8px}
+.evidence-item>span{color:#94abba;font-size:10px;overflow-wrap:anywhere}.evidence-item b{font-size:13px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.evidence-item small{font-size:9px;color:#718c9b;line-height:1.35;overflow-wrap:anywhere}
+.evidence-board .edge-panel{border:1px solid #173749;border-radius:8px;margin-bottom:9px}
+@media(max-width:430px){.evidence-board{padding:10px}.evidence-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.evidence-board>header span{font-size:8px}.evidence-item{padding:8px}.evidence-item b{font-size:11px}.evidence-item small{font-size:8px}}

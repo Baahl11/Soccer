@@ -517,3 +517,61 @@ def test_v2_registry_identity_does_not_overwrite_explicit_analysis_identity():
     assert selected["away_team_id"] == 20
     assert selected["home_team"] == "Alpha"
     assert selected["away_team"] == "Beta"
+
+
+
+def test_match_evidence_sections_show_only_actual_snapshot_values():
+    sections = subscriber_contract_v2._match_evidence_sections({
+        "feature_snapshots": [{
+            "captured_at": "2026-10-08T18:00:00Z",
+            "data_tier": "B",
+            "model_version": "v1",
+            "payload": {"features": {
+                "team_performance.home_goals_for_avg": {
+                    "value": 1.8, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 16
+                },
+                "corners.home_avg": {
+                    "value": 5.0, "source": "API_FOOTBALL_FIXTURES", "sample_n": 10
+                },
+                "cards.away_avg": {"value": None, "source": "API_FOOTBALL_FIXTURES"},
+                "players.no_matches": {
+                    "value": 12, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 0
+                },
+                "context.missing": {"value": ""},
+                "context.confirmed": {"value": False, "source": "PERSISTED_SNAPSHOT"},
+            }},
+        }]
+    })
+    assert [section["category"] for section in sections] == ["TEAMS", "CORNERS", "CONTEXT"]
+    assert sections[0]["items"][0]["value"] == 1.8
+    assert sections[0]["items"][0]["sample_n"] == 16
+    assert sections[0]["items"][0]["source"] == "API_FOOTBALL_TEAM_STATS"
+    assert sections[1]["items"][0]["value"] == 5.0
+    assert sections[2]["items"][0]["value"] is False
+    assert sections[0]["items"][0]["captured_at"] == "2026-10-08T18:00:00Z"
+
+
+def test_match_evidence_sections_accept_sparse_or_absent_snapshots():
+    assert subscriber_contract_v2._match_evidence_sections({}) == []
+    assert subscriber_contract_v2._match_evidence_sections({"feature_snapshots": [{"payload": {"features": {}}}]}) == []
+
+
+def test_fixture_without_analysis_still_exposes_persisted_sport_features():
+    registry = {
+        "fixture_id": 90210, "kickoff": "2026-10-08T20:00:00Z",
+        "league": "Test", "home_team_id": 11, "home_team": "Home",
+        "away_team_id": 12, "away_team": "Away",
+    }
+    relational = {
+        "counts": {"feature_snapshots": 1},
+        "feature_snapshots": [{"captured_at": "2026-10-08T18:00:00Z",
+                               "payload": {"features": {"team_performance.home_wins_total": {
+                                   "value": 8, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 10
+                               }}}}],
+    }
+    result = subscriber_contract_v2.build_match_contract(_payload([]), 90210, registry, relational)
+    assert result is not None
+    assert result["selected_candidate"] is None
+    assert result["evidence_sections"][0]["items"][0]["value"] == 8
+    assert result["model_weights_changed"] is False
+    assert result["canonical_bet_logic_changed"] is False

@@ -1,0 +1,31 @@
+name: Match Evidence Contract Regression
+
+on:
+  push:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/subscriber_contract_v2.py"
+      - "tests/test_subscriber_contract_v2.py"
+      - ".github/workflows/match-evidence-gate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Validate contract compilation
+        run: python -m py_compile mcp_gateway/subscriber_contract_v2.py
+      - name: Run subscriber and evidence regression tests
+        run: PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_subscriber_contract_v2.py

@@ -88,22 +88,22 @@ function ProbabilityPanel({ match }: { match: MatchCenterViewModel }) {
 
 function XgPanel({ match }: { match: MatchCenterViewModel }) {
   const xg = match.xg;
-  if (!xg) return <MissingPanel title="Expected Goals (λ)" section={match.sections.xg} />;
+  if (!xg) return <MissingPanel title="Projected Goals (λ)" section={match.sections.xg} />;
   const total = xg.home !== null && xg.away !== null ? xg.home + xg.away : null;
   const delta = xg.home !== null && xg.away !== null ? xg.home - xg.away : null;
   return (
     <article className="panel xg-panel">
-      <header><h3>Expected Goals (λ)</h3><span>SPORT</span></header>
+      <header><h3>Projected Goals (λ)</h3><span>SPORT MODEL</span></header>
       <div className="xg-values">
         <div><span>{match.home.name}</span><b>{xg.home === null ? "—" : xg.home.toFixed(2)}</b></div>
         <em>—</em>
         <div><span>{match.away.name}</span><b>{xg.away === null ? "—" : xg.away.toFixed(2)}</b></div>
       </div>
       <div className="xg-meta">
-        <div><span>TOTAL XG</span><b>{total === null ? "—" : total.toFixed(2)}</b></div>
+        <div><span>TOTAL λ</span><b>{total === null ? "—" : total.toFixed(2)}</b></div>
         <div><span>HOME DELTA</span><b>{delta === null ? "—" : (delta >= 0 ? "+" : "") + delta.toFixed(2)}</b></div>
       </div>
-      <div className="verified-copy">Persisted expected-goals inputs only</div>
+      <div className="verified-copy">{match.modelProvenance?.goalRateSemantics === "POISSON_LAMBDA_NOT_XG" ? "Poisson scoring rates, not independently verified xG" : "Persisted model scoring inputs · source shown in Model"}</div>
     </article>
   );
 }
@@ -226,6 +226,72 @@ function GoalsPanel({ match }: { match: MatchCenterViewModel }) {
       <div className="verified-copy">Distribution is hidden until a verified persisted goal-distribution source is exposed.</div>
     </article>
   );
+}
+
+
+const MATCH_TABS = ["Overview","Goals","Corners","Cards","Players","Market","Model"] as const;
+type MatchTab = typeof MATCH_TABS[number];
+
+function EvidenceBoard({ match, category }: { match: MatchCenterViewModel; category?: string }) {
+  const all = match.evidenceSections || [];
+  const groups = category ? all.filter((g) => g.category === category) : all;
+  if (!groups.length) return (
+    <article className="evidence-board">
+      <header><b>{category ? category + " evidence" : "Available sport evidence"}</b><span>NOT VERIFIED IN PERSISTED SNAPSHOT</span></header>
+      <p>No persisted feature values are available for this section of this fixture. This does not mean the sporting event has no statistics.</p>
+    </article>
+  );
+  return (
+    <section className="evidence-board">
+      <header><b>{category ? category + " evidence" : "Available sport evidence"}</b><span>PER-FIXTURE COVERAGE · {groups.reduce((sum,g) => sum + g.items.length,0)} FIELDS</span></header>
+      {groups.map(group => (
+        <details className="evidence-group" key={group.category} open={category !== undefined}>
+          <summary>{group.category} <small>{group.items.length} available · {group.dataTier ? "Tier " + group.dataTier : "Persisted snapshot"}</small></summary>
+          <div className="evidence-items">{group.items.map(item => (
+            <div className="evidence-item" key={item.key}>
+              <span>{item.label}</span>
+              <b>{typeof item.value === "boolean" ? (item.value ? "YES" : "NO") : String(item.value)}</b>
+              <small>{item.source || "SOURCE NOT VERIFIED"}{item.sampleN !== null ? " · n=" + item.sampleN : ""}{item.capturedAt ? " · " + item.capturedAt : ""}</small>
+            </div>
+          ))}</div>
+        </details>
+      ))}
+      <p>Historical or persisted feature values are for sporting context. Their presence does not prove current player availability or an actionable price.</p>
+    </section>
+  );
+}
+
+function MarketBoard({ match }: { match: MatchCenterViewModel }) {
+  const prices = match.marketRows || [];
+  return <section className="evidence-board">
+    <header><b>Market evidence</b><span>{match.edge ? "COMPARISON AVAILABLE" : "NOT ACTIONABLE / NOT VERIFIED"}</span></header>
+    {match.edge ? <EdgePanel match={match}/> : <p>Market edge is not calculable without a fresh verified price, bookmaker/source, captured timestamp and a defensible fair-market probability. Missing prices are never displayed as zero.</p>}
+    {prices.length ? <div className="evidence-items">{prices.map((row,i) =>
+      <div className="evidence-item" key={row.name+"-"+row.selection+"-"+i}>
+        <span>{row.family ? row.family+" · " : ""}{row.name}{row.line !== null ? " · "+row.line : ""}</span>
+        <b>{row.selection}{row.price !== null ? " · "+row.price.toFixed(2) : " · Price NOT VERIFIED"}</b>
+        <small>{row.bookmaker || row.source || "SOURCE NOT VERIFIED"}{row.capturedAt ? " · "+row.capturedAt : ""} · {row.fresh ? "FRESH FLAG" : "CURRENT PRICE NOT VERIFIED"}</small>
+      </div>
+    )}</div> : <p>No persisted market candidate rows are available for this fixture.</p>}
+  </section>;
+}
+
+function ModelBoard({ match }: { match: MatchCenterViewModel }) {
+  const provenance = match.modelProvenance;
+  return <section className="evidence-board">
+    <header><b>Model traceability</b><span>RAW SPORT BEFORE MARKET</span></header>
+    <div className="evidence-items">
+      {[
+        ["Projection source", provenance?.source || "NOT VERIFIED"],
+        ["Model version", provenance?.modelVersion || "NOT VERIFIED"],
+        ["Captured at", provenance?.capturedAt || "NOT VERIFIED"],
+        ["Goal-rate semantics", provenance?.goalRateSemantics || "NOT VERIFIED"],
+        ["Data quality", match.dataQuality],
+        ["Availability confidence", match.confidence === null ? "NOT VERIFIED" : String(match.confidence)+" / 100"],
+      ].map(([label,value]) => <div className="evidence-item" key={label}><span>{label}</span><b>{value}</b></div>)}
+    </div>
+    <p>Model outputs are calculations based on persisted inputs; they are not direct measurements or guarantees. Missing model provenance stays NOT VERIFIED.</p>
+  </section>;
 }
 
 function AuthModal({
@@ -407,6 +473,7 @@ function AppBody({
 }) {
   const modeLabel = match.sample ? "SAMPLE DESIGN MODE" : "LIVE CONTRACT";
   const classification = match.decision.classification || match.decision.displayBucket || "SPORT FIRST";
+  const [activeTab,setActiveTab] = useState<MatchTab>("Overview");
 
   return (
     <div className="app-shell">
@@ -437,7 +504,7 @@ function AppBody({
          view === "matches" ? <SlatePage mode="matches" items={slate} /> :
          <>
           <Hero match={match} />
-          <nav className="tabs">{["Overview","Goals","Corners","Cards","Players","Market","Model"].map((x,i)=><button className={i===0?"active":""} key={x}>{x}</button>)}</nav>
+          <nav className="tabs" aria-label="Match evidence sections">{MATCH_TABS.map(x=><button type="button" className={activeTab===x?"active":""} aria-current={activeTab===x?"page":undefined} onClick={()=>setActiveTab(x)} key={x}>{x}</button>)}</nav>
           <section className="content">
             <div className="title-row"><div><h1>Match Center</h1><p>What do we know, what is missing, and what deserves attention?</p></div><span>{match.league} · {match.sample ? "sample snapshot" : "persisted snapshot"}</span></div>
             <div className="status-strip">
@@ -446,8 +513,17 @@ function AppBody({
               <div><span>XI</span><b>{match.lineup}</b></div>
               <div><span>MARKET</span><b>{match.market}</b></div>
             </div>
-            <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/><EdgePanel match={match}/></div>
-            <div className="deck middle"><SportProfile match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div>
+            {activeTab === "Overview" && <>
+              <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/><EdgePanel match={match}/></div>
+              <div className="deck middle"><SportProfile match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div>
+              <EvidenceBoard match={match}/>
+            </>}
+            {activeTab === "Goals" && <><div className="deck middle"><XgPanel match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div><EvidenceBoard match={match} category="GOALS"/></>}
+            {activeTab === "Corners" && <EvidenceBoard match={match} category="CORNERS"/>}
+            {activeTab === "Cards" && <EvidenceBoard match={match} category="CARDS"/>}
+            {activeTab === "Players" && <EvidenceBoard match={match} category="PLAYERS"/>}
+            {activeTab === "Market" && <MarketBoard match={match}/>}
+            {activeTab === "Model" && <><ModelBoard match={match}/><EvidenceBoard match={match} category="CONTEXT"/><EvidenceBoard match={match} category="AVAILABILITY"/></>}
             <section className="primary-read">
               <span className="se">SE</span>
               <div><b>Primary read <em>{classification}</em></b><p>{match.decision.reason || "Sporting projection is built first. Market value is assessed only after the football case is established."}</p></div>
@@ -469,7 +545,7 @@ export default function App() {
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [view, setView] = useState<"today" | "matches" | "match">(
-    window.location.pathname.includes("/match/") ? "match" : "match"
+    window.location.pathname.includes("/match/") || new URLSearchParams(window.location.search).has("fixture_id") ? "match" : "today"
   );
   const [error, setError] = useState<string | null>(null);
 

@@ -151,7 +151,9 @@ function lockedView(fixture: Json, state: VerificationState, note: string): Matc
       over25: common,
     },
     missingSections: [],
-    disclosure: state + " · LIVE FIXTURE IDENTITY ONLY",
+    evidenceSections: [],
+    marketRows: [],
+    disclosure: state + " · FIXTURE IDENTITY ONLY",
   };
 }
 
@@ -247,6 +249,26 @@ function chooseOver25(payload: Json): MatchCenterViewModel["over25"] {
     };
   }
   return null;
+}
+
+function marketEvidenceRows(payload: Json): MatchCenterViewModel["marketRows"] {
+  const ctx = record(payload.market_context);
+  return rows(ctx.candidates).slice(0, 80).map((candidate) => {
+    const market = record(candidate.market), price = record(market.price), freshness = record(candidate.freshness);
+    const rawPrice = numberValue(price.value);
+    const priceValid = rawPrice !== null && rawPrice > 1 && String(price.format || "").toUpperCase() === "DECIMAL";
+    return {
+      family: typeof market.family === "string" ? market.family : null,
+      name: text(market.name ?? market.family, "Market"),
+      selection: text(market.selection, "Selection not verified"),
+      line: numberValue(market.line),
+      price: priceValid ? rawPrice : null,
+      bookmaker: typeof price.bookmaker === "string" ? price.bookmaker : null,
+      source: typeof price.source === "string" ? price.source : null,
+      capturedAt: typeof price.captured_at === "string" ? price.captured_at : null,
+      fresh: freshness.market_fresh === true && !!price.captured_at,
+    };
+  });
 }
 
 function adaptMatch(payload: Json): MatchCenterViewModel {
@@ -347,7 +369,15 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
       over25: over25 ? section("VERIFIED") : section("NOT_VERIFIED", "No verified Over 2.5 row with both RAW SPORT and fair-market probability is available."),
     },
     missingSections,
-    disclosure: "LIVE PERSISTED DATA · UNKNOWN = NOT VERIFIED · PROVIDER REQUESTS ADDED: 0",
+    evidenceSections: evidenceSections(payload),
+    marketRows: marketEvidenceRows(payload),
+    modelProvenance: {
+      source: typeof sport.source === "string" ? sport.source : null,
+      capturedAt: typeof sport.captured_at === "string" ? sport.captured_at : null,
+      modelVersion: typeof modelContext.model_version === "string" ? modelContext.model_version : null,
+      goalRateSemantics: typeof sport.goal_rate_semantics === "string" ? sport.goal_rate_semantics : null,
+    },
+    disclosure: "PERSISTED DATA · UNKNOWN = NOT VERIFIED · PROVIDER REQUESTS ADDED: 0",
   };
 }
 

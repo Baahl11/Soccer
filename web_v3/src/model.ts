@@ -32,6 +32,36 @@ export interface SectionState {
   note?: string;
 }
 
+export interface MarketEvidenceRow {
+  family: string | null;
+  name: string;
+  selection: string;
+  line: number | null;
+  price: number | null;
+  bookmaker: string | null;
+  source: string | null;
+  capturedAt: string | null;
+  fresh: boolean;
+}
+
+export interface EvidenceItem {
+  key: string;
+  label: string;
+  value: string | number | boolean;
+  source: string | null;
+  sampleN: number | null;
+  capturedAt: string | null;
+  modelVersion: string | null;
+  status: "PERSISTED" | "SOURCE_NOT_VERIFIED";
+}
+
+export interface EvidenceSection {
+  category: string;
+  items: EvidenceItem[];
+  snapshotAt: string | null;
+  dataTier: string | null;
+}
+
 export interface MatchCenterViewModel {
   sample: boolean;
   live: boolean;
@@ -79,5 +109,8 @@ export interface MatchCenterViewModel {
     over25: SectionState;
   };
   missingSections: string[];
+  evidenceSections?: EvidenceSection[];
+  marketRows?: MarketEvidenceRow[];
+  modelProvenance?: { source: string | null; capturedAt: string | null; modelVersion: string | null; goalRateSemantics: string | null };
   disclosure: string;
 }
