@@ -54,3 +54,11 @@ def test_golden_master_probability_hierarchy_and_color_contrast_pass():
     assert "prob.home b{font-size:15px" in html
     assert "home-p5{background:#42a087" in html
     assert "away-p5{background:#3d83a1" in html
+
+
+def test_golden_master_final_polish_pass():
+    html = ui_golden_master_v1._html()
+    assert "Golden Master final polish" in html
+    assert "align-items:center" in html
+    assert ".ou-gauge .lab.market{left:51%" in html
+    assert "grid-template-columns:minmax(0,1fr) 146px" in html
