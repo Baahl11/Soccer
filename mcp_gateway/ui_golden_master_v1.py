@@ -71,7 +71,7 @@ button{font:inherit}
 .live{display:flex;align-items:center;gap:4px;color:#57dcae;font-weight:900}
 .live i{width:6px;height:6px;border-radius:50%;background:#50d6a6;box-shadow:0 0 9px #50d6a6}
 .hero{
-  display:grid;grid-template-columns:minmax(0,1fr) 145px;gap:12px;padding:13px 14px 11px;border-bottom:1px solid rgba(45,93,117,.34);
+  display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:14px;padding:14px 15px 12px;border-bottom:1px solid rgba(45,93,117,.34);
   background:
     radial-gradient(circle at 22% 0,rgba(57,156,198,.12),transparent 30%),
     radial-gradient(circle at 79% 18%,rgba(53,201,162,.055),transparent 20%),
@@ -88,7 +88,7 @@ button{font:inherit}
 .hero-kicker{display:flex;align-items:center;gap:6px;margin:-2px 0 7px}
 .hero-kicker span{padding:3px 5px;border:1px solid #265a72;border-radius:999px;background:#0a2635;color:#72c9ee;font-size:4.5px;font-weight:900;letter-spacing:.08em}
 .hero-kicker b{font-size:5.2px;color:#6d8796;font-weight:800}
-.faceoff{display:grid;grid-template-columns:1fr 30px 1fr;gap:8px;align-items:center}
+.faceoff{display:grid;grid-template-columns:1fr 42px 1fr;gap:10px;align-items:center}
 .team{display:grid;justify-items:center;gap:5px;text-align:center;min-width:0}
 .crest{
   width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
@@ -108,8 +108,12 @@ button{font:inherit}
 .ars{background:linear-gradient(180deg,#e13a4b,#9b1424)}
 .bha{background:linear-gradient(180deg,#2e78d3,#174791)}
 .team b{font-size:13px;line-height:1.02;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.025em;font-weight:900}
-.team span{font-size:5.7px;color:#6a8391}
-.vs{text-align:center;font-size:9px;color:#557383;font-weight:950}
+.team span{font-size:5.4px;color:#6a8391;text-transform:uppercase;letter-spacing:.08em}
+.vs{
+  text-align:center;font-size:8px;color:#8aa1ad;font-weight:950;letter-spacing:.08em;position:relative
+}
+.vs::before,.vs::after{content:'';position:absolute;left:50%;transform:translateX(-50%);width:26px;height:1px;background:linear-gradient(90deg,transparent,#214a5e,transparent)}
+.vs::before{top:-8px}.vs::after{bottom:-8px}
 .quality{
   border:1px solid rgba(49,103,130,.42);border-radius:9px;
   background:linear-gradient(180deg,rgba(9,31,42,.72),rgba(6,22,30,.78));
@@ -140,10 +144,10 @@ background:radial-gradient(circle at 50% 0,rgba(52,150,190,.035),transparent 52%
     linear-gradient(180deg,rgba(9,28,39,.84),rgba(5,19,27,.9));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.028),0 14px 34px rgba(0,0,0,.18)
 }
-.top-deck{grid-template-columns:1.14fr .72fr .82fr}
-.mid-deck{grid-template-columns:.92fr .94fr 1.14fr;margin-top:7px}
+.top-deck{grid-template-columns:1.22fr .74fr .88fr}
+.mid-deck{grid-template-columns:.88fr 1.02fr 1.10fr;margin-top:8px}
 .module{
-  min-width:0;padding:9px;position:relative;background:transparent
+  min-width:0;padding:10px;position:relative;background:transparent
 }
 .module+.module{border-left:1px solid rgba(38,82,104,.5)}
 .module::before{
@@ -184,16 +188,17 @@ background:radial-gradient(circle at 50% 0,rgba(52,150,190,.035),transparent 52%
 .panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
 .panel-head h3{margin:0;font-size:7.5px;letter-spacing:-.015em;font-weight:900}.panel-head span{font-size:4.7px;color:#617b8b;font-weight:900;letter-spacing:.08em}
 .prob-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-.prob{padding:7px 3px;text-align:center;border:1px solid rgba(45,94,118,.42);border-radius:6px;
-background:linear-gradient(180deg,rgba(10,31,42,.66),rgba(7,24,33,.78));
-box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+.prob{padding:8px 4px 7px;text-align:center;border:1px solid rgba(45,94,118,.34);border-radius:6px;
+background:linear-gradient(180deg,rgba(10,31,42,.48),rgba(7,24,33,.62));
+box-shadow:inset 0 1px 0 rgba(255,255,255,.018)}
+.prob.home{border-color:rgba(75,216,163,.26);background:linear-gradient(180deg,rgba(30,88,72,.22),rgba(7,24,33,.58))}
 .prob span{display:block;color:#6e8797;font-size:4.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prob b{display:block;margin-top:3px;font-size:13px;letter-spacing:-.03em}.prob.home b{color:#59deb0}.prob.draw b{color:#ddb455}.prob.away b{color:#58b8e3}
+.prob b{display:block;margin-top:3px;font-size:14px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.prob.home b{color:#59deb0}.prob.draw b{color:#ddb455}.prob.away b{color:#58b8e3}
 .probbar{height:6px;display:flex;margin-top:7px;border-radius:999px;overflow:hidden;background:#102a39;box-shadow:inset 0 1px 2px #0007}
 .probbar i{height:100%}.probbar .home{background:var(--green)}.probbar .draw{background:var(--gold)}.probbar .away{background:var(--blue)}
 .xg{display:grid;grid-template-columns:1fr auto 1fr;gap:5px;align-items:end;text-align:center;padding:9px 0 3px}
 .xg span{display:block;color:#6c8594;font-size:4.7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.xg b{display:block;margin-top:4px;font-size:21px;letter-spacing:-.04em}.xg em{font-style:normal;color:#4e6a79;padding-bottom:5px}
+.xg b{display:block;margin-top:4px;font-size:23px;letter-spacing:-.055em;font-variant-numeric:tabular-nums}.xg em{font-style:normal;color:#4e6a79;padding-bottom:5px}
 .edge-bars{display:grid;gap:5px}
 .edge-row{display:grid;grid-template-columns:34px minmax(0,1fr) 29px;gap:4px;align-items:center}
 .edge-row span{font-size:4.6px;color:#6c8594}.edge-row b{font-size:5.2px;text-align:right}
@@ -207,14 +212,15 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .profile-row div{height:5px;background:#102a39;border-radius:999px;overflow:hidden}.profile-row i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#247b61,#53d5a7)}
 .profile-row b{font-size:4.9px;text-align:right}.profile-row b.good{color:#57dcae}.profile-row b.neutral{color:#d8ae52}
 .matrix{display:grid;grid-template-columns:14px repeat(5,1fr);gap:3px;align-items:center}
-.axis{font-size:3.9px;color:#617b8a;text-align:center}
-.cell{aspect-ratio:1;border:1px solid rgba(44,105,133,.55);border-radius:3px;display:grid;place-items:center;font-size:4px;font-weight:850;color:#edf8fc;
+.axis{font-size:4.5px;color:#6f8794;text-align:center;font-weight:850}
+.cell{aspect-ratio:1;border:1px solid rgba(44,105,133,.55);border-radius:3px;display:grid;place-items:center;font-size:4.6px;font-weight:900;color:#edf8fc;
 box-shadow:inset 0 1px 0 rgba(255,255,255,.02),0 1px 3px rgba(0,0,0,.18)}
 .c1{background:linear-gradient(180deg,#0b2634,#091f2b)}
 .c2{background:linear-gradient(180deg,#123e52,#0f3446)}
 .c3{background:linear-gradient(180deg,#185f79,#145068)}
 .c4{background:linear-gradient(180deg,#2380a0,#1b708d)}
-.c5{background:linear-gradient(180deg,#39a7cf,#2a90b5);box-shadow:0 0 14px rgba(57,167,207,.16)}
+.c5{background:linear-gradient(180deg,#39a7cf,#2a90b5);box-shadow:0 0 14px rgba(57,167,207,.16),inset 0 0 0 1px rgba(210,245,255,.10)}
+.cell.hot{outline:1px solid rgba(91,222,176,.72);outline-offset:1px;box-shadow:0 0 15px rgba(75,216,163,.17),inset 0 0 0 1px rgba(255,255,255,.08)}
 .matrix-note{margin-top:5px;color:#637d8c;font-size:4.4px;text-align:center}.matrix-note b{color:#cfe4ee}
 .market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .market-metric{padding:6px 3px;text-align:center;border:1px solid rgba(45,94,118,.4);border-radius:6px;
@@ -236,20 +242,21 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.025)
 }
 .read-mark{width:30px;height:30px;border-radius:7px;background:#0b322a;border:1px solid #26644f;display:grid;place-items:center;color:#62deb4;font-size:7px;font-weight:950}
-.read b{display:block;font-size:6.5px}.read p{margin:2px 0 0;color:#6f8796;font-size:4.9px;line-height:1.35}.read strong{font-size:7.5px;color:#59ddb0;white-space:nowrap}
+.read b{display:block;font-size:6.5px}.read-tag{display:inline-block;margin-left:5px;padding:2px 4px;border-radius:999px;background:#0b3028;border:1px solid #205845;color:#59d7aa;font-size:4px;letter-spacing:.08em;vertical-align:1px}.read p{margin:2px 0 0;color:#6f8796;font-size:4.9px;line-height:1.35}.read strong{font-size:7.5px;color:#59ddb0;white-space:nowrap}
 .audit-line{display:flex;justify-content:space-between;gap:8px;margin-top:7px;padding:0 2px;color:#526d7b;font-size:4.4px}
 .footer-note{padding:10px 12px 12px;text-align:center;color:#4f6a78;font-size:4.5px}
 
 .visual-strip{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:0 0 7px
+  display:grid;grid-template-columns:repeat(4,1fr);margin:0 0 8px;
+  border:1px solid rgba(44,92,116,.30);border-radius:8px;overflow:hidden;
+  background:rgba(6,21,30,.58);box-shadow:inset 0 1px 0 rgba(255,255,255,.014)
 }
 .visual-stat{
-  border:1px solid rgba(46,96,121,.34);border-radius:7px;padding:6px 7px;
-  background:linear-gradient(180deg,rgba(9,28,38,.72),rgba(6,21,29,.82));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.018)
+  padding:6px 8px;background:transparent;min-width:0
 }
-.visual-stat span{display:block;color:#617b8a;font-size:4.4px;font-weight:850;letter-spacing:.08em}
-.visual-stat b{display:block;margin-top:3px;font-size:8px}
+.visual-stat+.visual-stat{border-left:1px solid rgba(39,82,103,.42)}
+.visual-stat span{display:block;color:#607987;font-size:4.2px;font-weight:900;letter-spacing:.09em}
+.visual-stat b{display:block;margin-top:2px;font-size:7.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .spark{
   width:100%;height:34px;margin-top:5px;overflow:visible
 }
@@ -260,12 +267,12 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .microcopy{font-size:4.5px;color:#5f7988;line-height:1.35}
 @media(max-width:740px){
   .shell{display:block;border:0;max-width:none}.rail{display:none}.topbar{height:44px;padding:0 10px}
-  .hero{grid-template-columns:minmax(0,1fr) 106px;padding:10px}.crest{width:52px;height:52px}.shield{width:32px;height:39px}.team b{font-size:10.5px;max-width:118px}
+  .hero{grid-template-columns:minmax(0,1fr) 108px;padding:11px 10px 10px}.crest{width:54px;height:54px}.shield{width:33px;height:40px}.team b{font-size:11px;max-width:118px}
   .quality{border-radius:7px}.qrow{padding:6px}.qrow span{font-size:4.8px}.qrow b{font-size:5.2px}
   .tabs{padding:6px 7px}.tabs button{padding:6px 8px;font-size:6px}
   .content{padding:7px}.grid.top{grid-template-columns:1.15fr .72fr .86fr}.grid.mid{grid-template-columns:.92fr .93fr 1.15fr}
   .visual-strip{grid-template-columns:repeat(4,1fr)}.visual-stat{padding:5px}.visual-stat b{font-size:7px}
-  .panel{padding:7px}.panel-head h3{font-size:6.5px}.prob{padding:6px 2px}.prob b{font-size:10px}.xg b{font-size:17px}
+  .panel{padding:7px}.panel-head h3{font-size:6.8px}.prob{padding:7px 2px}.prob b{font-size:11px}.xg b{font-size:18px}
   .profile-row{grid-template-columns:54px minmax(0,1fr) 29px}.profile-row span{font-size:4.25px}.profile-row b{font-size:4.3px}
   .distribution{height:63px}
 }
@@ -273,15 +280,15 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
   .topbar .back{font-size:6px}.live-wrap{font-size:5.3px}.hero{grid-template-columns:minmax(0,1fr) 96px;gap:7px;padding:9px 8px 8px}
   .crest{width:48px;height:48px}.team b{font-size:9.5px;max-width:105px}.hero-meta{font-size:5px}.qrow{padding:5px}
   .content{padding:6px}.section-title h1{font-size:10.5px}.section-title p{font-size:4.8px}
-  .visual-strip{gap:4px}.visual-stat span{font-size:4px}.visual-stat b{font-size:6.5px}
+  .visual-strip{grid-template-columns:repeat(4,minmax(0,1fr))}.visual-stat{padding:5px 4px}.visual-stat span{font-size:3.8px}.visual-stat b{font-size:6.2px}
   .grid{gap:5px}.grid.top{grid-template-columns:1.18fr .82fr}.grid.top .edge-card{grid-column:1/-1}
   .grid.mid{grid-template-columns:1fr 1fr}.grid.mid .goals-card{grid-column:1/-1}
-  .top-deck{grid-template-columns:1.12fr .88fr}.top-deck .edge-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
-  .mid-deck{grid-template-columns:1fr 1fr}.mid-deck .goals-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
-  .module{padding:7px}.module+.module{border-left:1px solid rgba(38,82,104,.5)}
+  .top-deck{grid-template-columns:1.16fr .84fr}.top-deck .edge-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
+  .mid-deck{grid-template-columns:.92fr 1.08fr}.mid-deck .goals-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
+  .module{padding:8px}.module+.module{border-left:1px solid rgba(38,82,104,.5)}
   .edge-card{display:grid;grid-template-columns:1fr 80px;gap:7px}.edge-card .panel-head{grid-column:1/-1;margin-bottom:2px}.edge-bars{align-self:start}.edge-value{font-size:13px}
   .profile-row{grid-template-columns:53px minmax(0,1fr) 27px}
-  .goals-card{display:grid;grid-template-columns:112px minmax(0,1fr);column-gap:8px}.goals-card .panel-head{grid-column:1/-1}.goals-card .distribution{margin-top:0}.legend{margin-top:2px}
+  .goals-card{display:grid;grid-template-columns:118px minmax(0,1fr);column-gap:10px}.goals-card .panel-head{grid-column:1/-1}.goals-card .market-grid{align-self:start}.goals-card .dist-svg{height:84px;margin-top:0}.legend{margin-top:2px}
   .read{grid-template-columns:28px minmax(0,1fr) auto}.read-mark{width:28px;height:28px}
 }
 </style>
@@ -403,7 +410,7 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
             <div class="matrix">
               <span></span><span class="axis">0</span><span class="axis">1</span><span class="axis">2</span><span class="axis">3</span><span class="axis">4+</span>
               <span class="axis">0</span><div class="cell c1">2</div><div class="cell c2">5</div><div class="cell c2">6</div><div class="cell c1">3</div><div class="cell c1">1</div>
-              <span class="axis">1</span><div class="cell c2">5</div><div class="cell c4">9</div><div class="cell c5">11</div><div class="cell c3">7</div><div class="cell c1">2</div>
+              <span class="axis">1</span><div class="cell c2">5</div><div class="cell c4">9</div><div class="cell c5 hot">11</div><div class="cell c3">7</div><div class="cell c1">2</div>
               <span class="axis">2</span><div class="cell c2">4</div><div class="cell c5">10</div><div class="cell c4">9</div><div class="cell c3">6</div><div class="cell c1">2</div>
               <span class="axis">3</span><div class="cell c1">2</div><div class="cell c3">5</div><div class="cell c3">6</div><div class="cell c2">4</div><div class="cell c1">1</div>
               <span class="axis">4+</span><div class="cell c1">1</div><div class="cell c1">2</div><div class="cell c2">3</div><div class="cell c1">2</div><div class="cell c1">1</div>
@@ -423,6 +430,8 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
                 <linearGradient id="homeBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#58b8e8"/><stop offset="100%" stop-color="#2e96c7"/></linearGradient>
                 <linearGradient id="awayBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#59dda9"/><stop offset="100%" stop-color="#2dbb86"/></linearGradient>
               </defs>
+              <line x1="18" y1="20" x2="292" y2="20" class="dist-grid" opacity=".45"/>
+              <line x1="18" y1="46" x2="292" y2="46" class="dist-grid" opacity=".7"/>
               <line x1="18" y1="72" x2="292" y2="72" class="dist-grid"/>
               <g transform="translate(28,0)"><rect x="0" y="51" width="10" height="21" rx="2" class="dist-home"/><rect x="12" y="38" width="10" height="34" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">0</text></g>
               <g transform="translate(70,0)"><rect x="0" y="28" width="10" height="44" rx="2" class="dist-home"/><rect x="12" y="15" width="10" height="57" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">1</text></g>
@@ -437,7 +446,7 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 
         <section class="read">
           <div class="read-mark">SE</div>
-          <div><b>Primary read</b><p>Sporting projection is built first. Market value is assessed only after the football case is established.</p></div>
+          <div><b>Primary read <span class="read-tag">SPORT FIRST</span></b><p>Sporting projection is built first. Market value is assessed only after the football case is established.</p></div>
           <strong>+11.7 pp</strong>
         </section>
 
