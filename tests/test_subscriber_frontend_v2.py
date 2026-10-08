@@ -205,3 +205,15 @@ def test_fe2_match_center_mobile_uses_premium_dense_composition():
     assert "form-spark" in html
     assert "goal-card" in html
     assert "body:has(#matches.active .match-detail) .topbar" in html
+
+
+def test_fe2_sport_tab_matches_premium_visual_hierarchy():
+    html = subscriber_frontend_v2.render()
+
+    assert "Match result probability" in html
+    assert "Expected goals" in html
+    assert "Score matrix" in html
+    assert "Goal distribution" in html
+    assert "Team sport profile" in html
+    assert "from score matrix" in html
+    assert "goal-dist-bars" in html
