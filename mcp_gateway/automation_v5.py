@@ -464,6 +464,7 @@ async def _priority_event(
 
     if stage in v2.SPORTING_STAGES:
         cheap = await _cheap_sport_bundle(fx, now)
+        event["sporting"] = cheap
         raw_cheap = build_raw_projection(fx, cheap, None)
         cheap_screen = _screen_shortlist(raw_cheap)
         event["sporting_screen_initial"] = cheap_screen
@@ -483,6 +484,7 @@ async def _priority_event(
             return event
 
         refined_bundle = await _refine_sport_bundle(fx, cheap, now)
+        event["sporting"] = refined_bundle
         raw_internal = build_raw_projection(fx, refined_bundle, None)
         refined_screen = _screen_shortlist(raw_internal)
         event["sporting_screen_refined"] = refined_screen
