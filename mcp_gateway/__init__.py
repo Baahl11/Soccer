@@ -126,6 +126,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app-v3/match/{fixture_id:int}", subscriber_frontend_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_match_page"))
         if "/app-v3-react" not in existing_paths:
             additions.append(Route("/app-v3-react", subscriber_react_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_react_preview"))
+        if "/app-v3-react/match/{fixture_id:int}" not in existing_paths:
+            additions.append(Route("/app-v3-react/match/{fixture_id:int}", subscriber_react_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_react_match"))
         if "/app-v3-react/assets" not in existing_paths:
             additions.append(Mount("/app-v3-react/assets", app=subscriber_react_v3.assets, name="subscriber_frontend_v3_react_assets"))
         if "/design-lab/match-center" not in existing_paths:
