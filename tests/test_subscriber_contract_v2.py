@@ -575,3 +575,88 @@ def test_fixture_without_analysis_still_exposes_persisted_sport_features():
     assert result["evidence_sections"][0]["items"][0]["value"] == 8
     assert result["model_weights_changed"] is False
     assert result["canonical_bet_logic_changed"] is False
+
+
+def test_registry_only_fixture_retains_existing_persisted_raw_sport_projection():
+    """Regression: a later empty pipeline tick must not erase earlier visible sport data."""
+    registry = {
+        "fixture_id": 1612077,
+        "kickoff": "2026-10-08T22:00:00Z",
+        "league": "Reserve League",
+        "home_team_id": 18681, "home_team": "Boca Juniors Res.",
+        "away_team_id": 18683, "away_team": "Colón Res.",
+    }
+    relational = {
+        "counts": {
+            "refresh_events": 0, "market_snapshots": 1, "model_runs": 1,
+            "feature_snapshots": 1, "lineup_snapshots": 0, "availability_snapshots": 0,
+        },
+        "model_runs": [{
+            "run_timestamp": "2026-10-08T20:00:00Z",
+            "model_version": "v1-test",
+            "raw_projection": {
+                "projection_model": "POISSON_GOAL_RATE_BASELINE",
+                "raw_home_win_prob": 0.595,
+                "raw_draw_prob": 0.258,
+                "raw_away_win_prob": 0.147,
+                "raw_home_goal_rate": 1.51,
+                "raw_away_goal_rate": 0.60,
+                "top_scorelines": [{"home": 1, "away": 0, "prob": 0.183}],
+                "screen_scores": {"side_edge_score": 70.0},
+            },
+        }],
+        "feature_snapshots": [{
+            "captured_at": "2026-10-08T19:55:00Z",
+            "data_tier": "D",
+            "payload": {"features": {
+                "team_performance.home_goals_for_avg": {
+                    "value": 1.8, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 16,
+                }
+            }},
+        }],
+        "market_snapshots": [{
+            "captured_at": "2026-10-08T19:00:00Z",
+            "bookmaker": "Past-only", "values": [{"odds": 1.8}],
+        }],
+    }
+    result = subscriber_contract_v2.build_match_contract(
+        _payload([]), 1612077, registry_fixture=registry, relational_evidence=relational,
+    )
+    assert result is not None
+    assert result["sport_context"]["outcome_probabilities"]["home"] == 0.595
+    assert result["sport_context"]["expected_goals"]["home"] == 1.51
+    assert result["sport_context"]["expected_goals"]["away"] == 0.60
+    assert result["sport_context"]["score_matrix"][0]["score"] == "1-0"
+    assert result["sport_context"]["sport_profile"][0]["label"] == "Side edge"
+    assert result["sport_context"]["captured_at"] == "2026-10-08T20:00:00Z"
+    assert result["sport_context"]["snapshot_scope"] == "HISTORICAL_PERSISTED_SPORT_ONLY"
+    assert result["model_context"]["model_version"] == "v1-test"
+    assert result["availability"]["data_tier"] == "D"
+    assert result["availability"]["confidence"] is None
+    assert "OUTCOME_PROBABILITIES" in result["analyst_review"]["available_sections"]
+    assert "EXPECTED_GOALS" not in result["analyst_review"]["missing_sections"]
+    assert result["evidence_sections"][0]["items"][0]["value"] == 1.8
+    assert result["selected_candidate"] is None
+    assert result["projection_ladder"]["fair_market_probability"] is None
+    assert result["projection_ladder"]["probability_edge_pp"] is None
+    assert result["decision_summary"]["classification"] is None
+    assert result["canonical_bet_logic_changed"] is False
+    assert result["model_weights_changed"] is False
+
+
+def test_registry_only_fixture_with_no_model_does_not_invent_probabilities():
+    registry = {
+        "fixture_id": 88, "kickoff": "2026-10-08T22:00:00Z",
+        "league": "Test League", "home_team_id": 1, "home_team": "A",
+        "away_team_id": 2, "away_team": "B",
+    }
+    result = subscriber_contract_v2.build_match_contract(
+        _payload([]), 88, registry_fixture=registry,
+        relational_evidence={"counts": {"model_runs": 0}, "model_runs": [], "feature_snapshots": []},
+    )
+    assert result["sport_context"]["outcome_probabilities"] is None
+    assert result["sport_context"]["expected_goals"] is None
+    assert "OUTCOME_PROBABILITIES" in result["analyst_review"]["missing_sections"]
+    assert "OUTCOME_PROBABILITIES" not in result["analyst_review"]["available_sections"]
+    assert result["selected_candidate"] is None
+

@@ -2031,15 +2031,39 @@ def build_match_contract(
         if not isinstance(registry_fixture, dict):
             return None
         fixture = _registry_fixture(registry_fixture)
-        missing = [
-            "PERSISTED_ANALYSIS_ROWS",
-            "OUTCOME_PROBABILITIES",
-            "EXPECTED_GOALS",
-            "SCORE_MATRIX",
-            "SPORT_PROFILE",
-            "AVAILABILITY_CONFIDENCE",
-            "EXACT_PRICE",
-        ]
+        # A fixture can disappear from the *latest tick* while its raw sporting
+        # projection remains in soccer_model_runs or soccer_refresh_events.
+        # Recover the last persisted SPORT projection; never reuse an old market
+        # price, market-shrunk probability, or BET classification as current.
+        persisted_sport = _relational_raw_sport_context(relational_evidence)
+        latest_features = next(
+            (s for s in relational_evidence.get("feature_snapshots", [])
+             if isinstance(s, dict)),
+            {},
+        )
+        lineup_snapshot = _dict(relational_evidence.get("lineup"))
+        available = ["FIXTURE_IDENTITY"]
+        missing = ["PERSISTED_ANALYSIS_ROWS"]
+        for name, field in (
+            ("OUTCOME_PROBABILITIES", "outcome_probabilities"),
+            ("EXPECTED_GOALS", "expected_goals"),
+            ("SCORE_MATRIX", "score_matrix"),
+            ("SPORT_PROFILE", "sport_profile"),
+        ):
+            if persisted_sport.get(field):
+                available.append(name)
+            else:
+                missing.append(name)
+        missing.extend(["AVAILABILITY_CONFIDENCE", "EXACT_PRICE"])
+        if relational_count:
+            available.append("PERSISTED_EVIDENCE")
+        # A previous data tier and line-up snapshot are historical context,
+        # not evidence of fresh availability for a current bet.
+        lineup_state = lineup_snapshot.get("lineup_state")
+        availability_display = _availability({
+            "data_tier": latest_features.get("data_tier"),
+            "lineup_status": lineup_state,
+        })
         return {
             "schema_version": SCHEMA_VERSION,
             "model_version": MODEL_VERSION,
@@ -2074,7 +2098,7 @@ def build_match_contract(
                 "estimated_ev": None,
                 "estimated_ev_pct": None,
             },
-            "availability": _availability({}),
+            "availability": availability_display,
             "evidence": {
                 "sporting_reasons": [],
                 "market_reasons": [],
@@ -2094,10 +2118,8 @@ def build_match_contract(
                 },
             },
             "sport_context": {
-                "outcome_probabilities": None,
-                "expected_goals": None,
-                "score_matrix": [],
-                "sport_profile": [],
+                **persisted_sport,
+                "snapshot_scope": "HISTORICAL_PERSISTED_SPORT_ONLY",
             },
             "model_context": {
                 "confidence": None,
@@ -2106,7 +2128,7 @@ def build_match_contract(
                 "model_disagreement": None,
                 "models_agreeing": None,
                 "models_total": None,
-                "model_version": None,
+                "model_version": persisted_sport.get("model_version"),
                 "stage": None,
                 "provider_update": None,
                 "bookmaker": None,
@@ -2119,16 +2141,12 @@ def build_match_contract(
                 "persisted_evidence_count": relational_count,
                 "available_markets": list(relational_counts.get("market_names") or []),
                 "verified_price_markets": [],
-                "available_sections": (
-                    ["FIXTURE_IDENTITY", "PERSISTED_EVIDENCE"]
-                    if relational_count > 0
-                    else ["FIXTURE_IDENTITY"]
-                ),
+                "available_sections": available,
                 "missing_sections": missing,
                 "human_review_allowed": True,
                 "note": (
-                    "Persisted refresh, market, model, feature, lineup and availability evidence is shown below. "
-                    "Evidence outside the latest pipeline tick is not automatically a current BET signal."
+                    "Historical persisted sporting evidence remains visible with its original timestamp; "
+                    "no previous market quote or decision is promoted to a current BET signal."
                     if relational_count > 0
                     else "This screen exposes what is actually persisted for human review. No betting edge is implied by fixture presence alone."
                 ),

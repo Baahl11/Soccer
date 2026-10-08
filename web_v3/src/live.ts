@@ -37,6 +37,9 @@ function rows(value: unknown): Json[] {
 }
 
 function numberValue(value: unknown): number | null {
+  // Number(null), Number("") and Number(false) all yield zero; none is verified numeric evidence.
+  if (value === null || value === undefined || typeof value === "boolean" || typeof value === "object") return null;
+  if (typeof value === "string" && !value.trim()) return null;
   const n = typeof value === "number" ? value : Number(value);
   return Number.isFinite(n) ? n : null;
 }
@@ -206,6 +209,11 @@ function chooseEdge(payload: Json): MatchCenterViewModel["edge"] {
   const ladder = record(payload.projection_ladder);
   const selectedMarket = record(candidate.market);
   const price = record(selectedMarket.price);
+  const freshness = record(candidate.freshness);
+  const quote = numberValue(price.value);
+  // Never show a market gap without an actual sourced, timestamped, fresh decimal quote.
+  if (quote === null || quote <= 1 || String(price.format || "").toUpperCase() !== "DECIMAL"
+      || !(price.bookmaker || price.source) || !price.captured_at || freshness.market_fresh !== true) return null;
 
   const options: Array<[string, unknown]> = [
     ["CALIBRATED MODEL", ladder.calibrated_model_probability ?? projections.calibrated_model_probability],
@@ -214,15 +222,16 @@ function chooseEdge(payload: Json): MatchCenterViewModel["edge"] {
   ];
   const picked = options.map(([kind, value]) => [kind, percentValue(value)] as const).find(([, value]) => value !== null);
   const market = percentValue(ladder.fair_market_probability ?? projections.fair_market_probability);
-  if (!picked || market === null) return null;
+  if (!picked || market === null || market <= 0 || market >= 100) return null;
   const model = picked[1] as number;
+  if (model <= 0 || model >= 100) return null;
   const explicitGap = numberValue(ladder.probability_edge_pp ?? projections.probability_edge_pp);
   return {
     model: Number(model.toFixed(1)),
     market: Number(market.toFixed(1)),
     gap: Number((explicitGap ?? (model - market)).toFixed(1)),
-    fairPrice: numberValue(selectedMarket.fair_price),
-    marketPrice: numberValue(price.value),
+    fairPrice: (() => { const n = numberValue(selectedMarket.fair_price); return n !== null && n > 1 ? n : null; })(),
+    marketPrice: quote,
     modelKind: picked[0],
   };
 }
@@ -239,7 +248,12 @@ function chooseOver25(payload: Json): MatchCenterViewModel["over25"] {
     const projections = record(candidate.projections);
     const model = percentValue(projections.raw_sport_probability);
     const fair = percentValue(projections.fair_market_probability);
-    if (model === null || fair === null) continue;
+    const price = record(market.price);
+    const fresh = record(candidate.freshness);
+    const quote = numberValue(price.value);
+    if (model === null || fair === null || fair <= 0 || fair >= 100 ||
+        quote === null || quote <= 1 || String(price.format || "").toUpperCase() !== "DECIMAL" ||
+        !(price.bookmaker || price.source) || !price.captured_at || fresh.market_fresh !== true) continue;
     const explicit = numberValue(projections.probability_edge_pp);
     return {
       model: Number(model.toFixed(1)),
@@ -401,7 +415,7 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
     modelProvenance: {
       source: typeof sport.source === "string" ? sport.source : null,
       capturedAt: typeof sport.captured_at === "string" ? sport.captured_at : null,
-      modelVersion: typeof modelContext.model_version === "string" ? modelContext.model_version : null,
+      modelVersion: typeof (sport.model_version ?? modelContext.model_version) === "string" ? String(sport.model_version ?? modelContext.model_version) : null,
       goalRateSemantics: typeof sport.goal_rate_semantics === "string" ? sport.goal_rate_semantics : null,
     },
     disclosure: "PERSISTED DATA · UNKNOWN = NOT VERIFIED · PROVIDER REQUESTS ADDED: 0",
