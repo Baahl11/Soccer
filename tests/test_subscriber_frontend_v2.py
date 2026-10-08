@@ -103,3 +103,13 @@ def test_fe2_every_slate_fixture_is_openable_for_data_review():
     assert "Analyst review boundary" in html
     assert "document.querySelectorAll('.slate-row[data-fixture]')" in html
     assert '[data-intel="1"]' not in html
+
+def test_fe2_match_navigation_uses_dedicated_url_and_direct_boot_route():
+    html = subscriber_frontend_v2.render()
+
+    assert "'/app/match/'" in html
+    assert "routeMatchId()" in html
+    assert "history.pushState" in html
+    assert "← All matches" in html
+    assert "matchesBrowsePanel" in html
+
