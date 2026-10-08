@@ -37,3 +37,12 @@ def test_golden_master_includes_team_gf_ga_heatmaps():
     assert "Arsenal" in html and "Brighton" in html
     assert "GF × GA" in html
     assert "X = GF · Y = GA" in html
+
+
+def test_golden_master_compacts_matrices_and_refines_xg_and_goals():
+    html = ui_golden_master_v1._html()
+    assert "TOTAL XG" in html
+    assert "HOME DELTA" in html
+    assert "MODEL OVER 2.5" in html
+    assert "Market fair 55.3%" in html
+    assert "aspect-ratio:1.34/1" in html
