@@ -29,3 +29,11 @@ def test_golden_master_uses_restrained_glass_depth():
     assert "backdrop-filter:blur(16px)" in html
     assert "rgba(55,112,140,.34)" in html
     assert "linear-gradient(180deg,#58b8e8,#2e96c7)" in html
+
+
+def test_golden_master_includes_team_gf_ga_heatmaps():
+    html = ui_golden_master_v1._html()
+    assert "FT + SCORING PROFILE" in html
+    assert "Arsenal" in html and "Brighton" in html
+    assert "GF × GA" in html
+    assert "X = GF · Y = GA" in html
