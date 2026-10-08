@@ -746,6 +746,9 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
 
     with persistence_base._connect() as conn:
         with conn.cursor() as cur:
+            terminal_statuses = (
+                'FT','AET','PEN','CANC','PST','SUSP','INT','ABD','AWD','WO'
+            )
             cur.execute(
                 """
                 SELECT fixture_id, kickoff, status, league, country,
@@ -760,6 +763,44 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
                 (timezone_name, slate_day),
             )
             db_rows = cur.fetchall()
+
+            # Once the Mexico-Central calendar day has no pregame fixtures left,
+            # roll forward to the next persisted future slate instead of showing
+            # an empty Matches page. This never resurrects started/finished games
+            # and adds no provider request; it only reads the already-persisted
+            # fixture registry.
+            rolled_forward = False
+            if not db_rows:
+                cur.execute(
+                    """
+                    SELECT MIN((kickoff AT TIME ZONE %s)::date)
+                    FROM soccer_fixtures
+                    WHERE kickoff > CURRENT_TIMESTAMP
+                      AND COALESCE(status, 'NS') NOT IN
+                          ('FT','AET','PEN','CANC','PST','SUSP','INT','ABD','AWD','WO')
+                    """,
+                    (timezone_name,),
+                )
+                next_row = cur.fetchone()
+                next_day = next_row[0] if next_row and next_row[0] is not None else None
+                if next_day is not None:
+                    slate_day = str(next_day)
+                    rolled_forward = True
+                    cur.execute(
+                        """
+                        SELECT fixture_id, kickoff, status, league, country,
+                               home_team_id, home_team, away_team_id, away_team
+                        FROM soccer_fixtures
+                        WHERE (kickoff AT TIME ZONE %s)::date = %s::date
+                          AND kickoff > CURRENT_TIMESTAMP
+                          AND COALESCE(status, 'NS') NOT IN
+                              ('FT','AET','PEN','CANC','PST','SUSP','INT','ABD','AWD','WO')
+                        ORDER BY kickoff, fixture_id
+                        """,
+                        (timezone_name, slate_day),
+                    )
+                    db_rows = cur.fetchall()
+
             fixture_ids = [int(row[0]) for row in db_rows if row and row[0] is not None]
             evidence_by_fixture = _load_evidence_inventory(cur, fixture_ids)
 
@@ -783,10 +824,11 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
             }
         )
     return {
-        "status": "FULL_SLATE_READY",
+        "status": "NEXT_SLATE_READY" if rolled_forward else "FULL_SLATE_READY",
         "rows": rows,
         "slate_date": slate_day,
         "timezone": timezone_name,
+        "rolled_forward": rolled_forward,
     }
 
 
