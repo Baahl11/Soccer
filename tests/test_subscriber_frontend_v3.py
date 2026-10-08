@@ -30,3 +30,14 @@ def test_v3_normalizes_nested_registry_fixture_rows():
     assert "url.includes('/app/api/v2/today')" in html
     assert "Object.assign({}, row, row.fixture)" in html
     assert "/app-v3/match/" in html
+
+
+def test_v3_injects_mockup_match_intelligence_board():
+    html = subscriber_frontend_v3._html()
+    assert "MATCH INTELLIGENCE" in html
+    assert "Sport model snapshot" in html
+    assert "Result Probability" in html
+    assert "Edge Gap" in html
+    assert "Sport Profile" in html
+    assert "Goal Distribution" in html
+    assert "url.includes('/app/api/v2/match/')" in html
