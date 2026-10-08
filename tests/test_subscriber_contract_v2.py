@@ -482,3 +482,38 @@ def test_v2_match_contract_hydrates_sport_context_from_persisted_model_run():
     assert sport["sport_profile"][0]["label"] == "Side edge"
     assert "OUTCOME_PROBABILITIES" in result["analyst_review"]["available_sections"]
     assert "EXPECTED_GOALS" in result["analyst_review"]["available_sections"]
+
+
+def test_v2_match_contract_uses_registry_identity_when_analysis_row_omits_logos():
+    # Regression: React Match Center rendered initials even with real team IDs in the registry.
+    row = _base_row(home_team_id=None, away_team_id=None, home_team_logo=None, away_team_logo=None)
+    registry = {
+        "fixture_id": 101,
+        "kickoff": "2026-10-07T20:00:00Z",
+        "league": "Test League",
+        "country": "Test",
+        "home_team_id": 111,
+        "home_team": "Alpha",
+        "away_team_id": 222,
+        "away_team": "Beta",
+    }
+    result = subscriber_contract_v2.build_match_contract(_payload([row]), 101, registry)
+    assert result is not None
+    assert result["fixture"]["home_team_id"] == 111
+    assert result["fixture"]["away_team_id"] == 222
+    assert result["fixture"]["home_team_logo"] == "https://media.api-sports.io/football/teams/111.png"
+    assert result["fixture"]["away_team_logo"] == "https://media.api-sports.io/football/teams/222.png"
+    assert result["model_weights_changed"] is False
+    assert result["canonical_bet_logic_changed"] is False
+
+
+def test_v2_registry_identity_does_not_overwrite_explicit_analysis_identity():
+    row = _base_row()
+    selected = subscriber_contract_v2._match_fixture_with_registry_identity(row, {
+        "home_team_id": 111, "away_team_id": 222,
+        "home_team": "Wrong", "away_team": "Wrong",
+    })
+    assert selected["home_team_id"] == 10
+    assert selected["away_team_id"] == 20
+    assert selected["home_team"] == "Alpha"
+    assert selected["away_team"] == "Beta"

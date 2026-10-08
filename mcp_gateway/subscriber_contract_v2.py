@@ -1920,6 +1920,26 @@ def _relational_raw_sport_context(relational_evidence: dict[str, Any]) -> dict[s
         "goal_rate_semantics": "POISSON_LAMBDA_NOT_XG",
     }
 
+def _match_fixture_with_registry_identity(
+    selected_row: dict[str, Any], registry_fixture: dict[str, Any] | None
+) -> dict[str, Any]:
+    """Fill presentation-only fixture identity absent from an analysis row.
+
+    The persisted fixture registry is authoritative for known team IDs/crests.
+    Market, availability, sporting projections and decisions are untouched.
+    """
+    fixture = _fixture(selected_row)
+    if isinstance(registry_fixture, dict):
+        registered = _registry_fixture(registry_fixture)
+        for key in (
+            "home_team_id", "away_team_id", "home_team_logo", "away_team_logo",
+            "home_team", "away_team", "league", "country", "kickoff",
+        ):
+            if fixture.get(key) in (None, "") and registered.get(key) not in (None, ""):
+                fixture[key] = registered[key]
+    return fixture
+
+
 def build_match_contract(
     payload: dict[str, Any],
     fixture_value: Any,
@@ -2162,7 +2182,7 @@ def build_match_contract(
         "status": "MATCH_INTELLIGENCE_READY",
         "source": SOURCE,
         "generated_at_utc": payload.get("generated_at_utc"),
-        "fixture": _fixture(selected_raw),
+        "fixture": _match_fixture_with_registry_identity(selected_raw, registry_fixture),
         "selected_candidate": selected,
         "decision_summary": {
             "classification": decision.get("classification"),

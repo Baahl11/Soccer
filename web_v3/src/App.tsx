@@ -9,11 +9,23 @@ import type {
 } from "./model";
 
 function TeamBadge({ team }: { team: MatchCenterViewModel["home"] }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const showImage = !!team.logoUrl && failedUrl !== team.logoUrl;
   return (
-    <div className={"team-badge " + team.side}>
-      {team.logoUrl ? <img src={team.logoUrl} alt="" /> : <span>{team.shortName}</span>}
+    <div className={"team-badge " + team.side + (showImage ? " with-logo" : "")}>
+      {showImage
+        ? <img src={team.logoUrl!} alt={team.name + " crest"} onError={() => setFailedUrl(team.logoUrl ?? null)} />
+        : <span>{team.shortName}</span>}
     </div>
   );
+}
+
+function MiniTeamLogo({ url, name }: { url: string | null; name: string }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const showImage = !!url && failedUrl !== url;
+  return showImage
+    ? <img src={url!} alt={name + " crest"} onError={() => setFailedUrl(url)} />
+    : <i aria-label={name + " crest unavailable"}>{name.slice(0,2).toUpperCase()}</i>;
 }
 
 function MissingPanel({ title, section }: { title: string; section: SectionState }) {
@@ -337,12 +349,12 @@ function SlatePage({
             <div className="slate-time"><b>{item.kickoff}</b><span>{item.league}</span></div>
             <div className="slate-match">
               <div className="mini-team">
-                {item.homeLogoUrl ? <img src={item.homeLogoUrl} alt="" /> : <i>{item.home.slice(0,2).toUpperCase()}</i>}
+                <MiniTeamLogo url={item.homeLogoUrl} name={item.home} />
                 <b>{item.home}</b>
               </div>
               <span className="mini-vs">vs</span>
               <div className="mini-team away">
-                {item.awayLogoUrl ? <img src={item.awayLogoUrl} alt="" /> : <i>{item.away.slice(0,2).toUpperCase()}</i>}
+                <MiniTeamLogo url={item.awayLogoUrl} name={item.away} />
                 <b>{item.away}</b>
               </div>
             </div>

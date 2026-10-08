@@ -90,6 +90,15 @@ function fixtureFromSlateRow(row: Json): Json {
   return record(row.fixture);
 }
 
+function teamLogoUrl(fixture: Json, side: "home" | "away"): string | null {
+  const direct = fixture[`${side}_team_logo`];
+  if (typeof direct === "string" && /^https?:\/\//i.test(direct.trim())) return direct.trim();
+  const teamId = numberValue(fixture[`${side}_team_id`]);
+  return teamId !== null && Number.isInteger(teamId) && teamId > 0
+    ? `https://media.api-sports.io/football/teams/${teamId}.png`
+    : null;
+}
+
 function fixtureIdFromLocation(): number | null {
   const query = new URLSearchParams(window.location.search).get("fixture_id");
   const pathMatch = window.location.pathname.match(/\/app-v3-react\/match\/(\d+)/);
@@ -112,13 +121,13 @@ function lockedView(fixture: Json, state: VerificationState, note: string): Matc
       name: home,
       shortName: initials(home),
       side: "home",
-      logoUrl: typeof fixture.home_team_logo === "string" ? fixture.home_team_logo : null,
+      logoUrl: teamLogoUrl(fixture, "home"),
     },
     away: {
       name: away,
       shortName: initials(away),
       side: "away",
-      logoUrl: typeof fixture.away_team_logo === "string" ? fixture.away_team_logo : null,
+      logoUrl: teamLogoUrl(fixture, "away"),
     },
     dataQuality: "NOT VERIFIED",
     confidence: null,
@@ -303,13 +312,13 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
       name: homeName,
       shortName: initials(homeName),
       side: "home",
-      logoUrl: typeof fixture.home_team_logo === "string" ? fixture.home_team_logo : null,
+      logoUrl: teamLogoUrl(fixture, "home"),
     },
     away: {
       name: awayName,
       shortName: initials(awayName),
       side: "away",
-      logoUrl: typeof fixture.away_team_logo === "string" ? fixture.away_team_logo : null,
+      logoUrl: teamLogoUrl(fixture, "away"),
     },
     dataQuality: dataTier,
     confidence,
@@ -396,8 +405,8 @@ export async function loadSlate(): Promise<SlateItem[]> {
       marketEvidenceCount: numberValue(coverage.market_evidence_count) ?? 0,
       persistedEvidenceCount: numberValue(coverage.persisted_evidence_count) ?? 0,
       analysisRows: numberValue(coverage.analysis_rows) ?? 0,
-      homeLogoUrl: typeof fixture.home_team_logo === "string" ? fixture.home_team_logo : null,
-      awayLogoUrl: typeof fixture.away_team_logo === "string" ? fixture.away_team_logo : null,
+      homeLogoUrl: teamLogoUrl(fixture, "home"),
+      awayLogoUrl: teamLogoUrl(fixture, "away"),
     }];
   });
 }
@@ -450,5 +459,15 @@ export async function loadMatchCenter(): Promise<MatchCenterViewModel> {
       text(detail.data.error, "MATCH_DATA_UNAVAILABLE")
     );
   }
-  return adaptMatch(detail.data);
+  // Detail rows may omit team IDs/crests even when the persisted slate knows them.
+  // Only complete missing identity fields; never change the model or market payload.
+  const detailedFixture = record(detail.data.fixture);
+  const mergedFixture: Json = { ...fixture, ...detailedFixture };
+  for (const side of ["home", "away"] as const) {
+    for (const suffix of ["team_id", "team_logo", "team"]) {
+      const key = side + "_" + suffix;
+      if (mergedFixture[key] == null || mergedFixture[key] === "") mergedFixture[key] = fixture[key];
+    }
+  }
+  return adaptMatch({ ...detail.data, fixture: mergedFixture });
 }
