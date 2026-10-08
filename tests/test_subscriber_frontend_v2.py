@@ -148,3 +148,13 @@ def test_fe2_match_intelligence_is_sport_first_not_market_first():
     assert "Market layer" in html
     assert "context only · not an edge by itself" in html
     assert "Market data exists, but verified sporting evidence is not sufficient" in html
+
+
+def test_fe2_visible_sport_input_count_matches_rendered_inputs():
+    html = subscriber_frontend_v2.render()
+
+    assert "CUSTOMER_SPORT_FEATURES" in html
+    assert "Verified sporting inputs" in html
+    assert "shown below" in html
+    assert "visible inputs" in html
+    assert "No customer-facing sporting inputs are verified" in html
