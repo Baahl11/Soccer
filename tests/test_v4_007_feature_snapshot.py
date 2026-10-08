@@ -33,6 +33,40 @@ def _event():
             ],
         },
         "injuries": [],
+        "sporting": {
+            "home_stats": {
+                "form": "DWD",
+                "fixtures": {
+                    "played": {"home": 2, "away": 1, "total": 3},
+                    "wins": {"total": 1},
+                    "draws": {"total": 2},
+                    "loses": {"total": 0},
+                },
+                "goals": {
+                    "for": {"average": {"total": "1.7"}},
+                    "against": {"average": {"total": "1.0"}},
+                },
+                "clean_sheet": {"total": 1},
+                "failed_to_score": {"total": 1},
+            },
+            "away_stats": {
+                "form": "WD",
+                "fixtures": {
+                    "played": {"home": 1, "away": 1, "total": 2},
+                    "wins": {"total": 1},
+                    "draws": {"total": 1},
+                    "loses": {"total": 0},
+                },
+                "goals": {
+                    "for": {"average": {"total": "2.0"}},
+                    "against": {"average": {"total": "0.5"}},
+                },
+                "clean_sheet": {"total": 1},
+                "failed_to_score": {"total": 1},
+            },
+            "home_recent": [{"fixture_id": 1}, {"fixture_id": 2}, {"fixture_id": 3}],
+            "away_recent": [{"fixture_id": 4}, {"fixture_id": 5}],
+        },
         "raw_projection": {
             "status": "MODELED_LIMITED",
             "sample": {
@@ -106,3 +140,16 @@ def test_v4_007_snapshot_does_not_store_market_fields():
     assert "decimal_price" not in serialized
     assert "match winner" not in serialized
     assert snapshot["market_fields_included"] is False
+
+
+def test_v4_007_persists_team_form_and_scoring_inputs_used_by_sport_screen():
+    snapshot = feature_snapshot_v4.build(_tick(), _event())
+    features = snapshot["features"]
+
+    assert features["team_performance.home_form"]["value"] == "DWD"
+    assert features["team_performance.away_form"]["value"] == "WD"
+    assert features["team_performance.home_goals_for_avg"]["value"] == "1.7"
+    assert features["team_performance.away_goals_against_avg"]["value"] == "0.5"
+    assert features["team_performance.home_recent_matches"]["value"] == 3
+    assert features["team_performance.away_recent_matches"]["value"] == 2
+    assert features["team_performance.home_form"]["source"] == "API_FOOTBALL_TEAM_STATS"
