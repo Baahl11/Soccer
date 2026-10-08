@@ -752,8 +752,9 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
                        home_team_id, home_team, away_team_id, away_team
                 FROM soccer_fixtures
                 WHERE (kickoff AT TIME ZONE %s)::date = %s::date
+                  AND kickoff > CURRENT_TIMESTAMP
                   AND COALESCE(status, 'NS') NOT IN
-                      ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                      ('FT','AET','PEN','CANC','PST','SUSP','INT','ABD','AWD','WO')
                 ORDER BY kickoff, fixture_id
                 """,
                 (timezone_name, slate_day),
