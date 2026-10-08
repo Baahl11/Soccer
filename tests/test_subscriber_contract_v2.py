@@ -410,3 +410,75 @@ def test_v2_registry_slate_marks_relational_evidence_as_data_available():
     assert row["coverage"]["persisted_evidence_count"] == 8
     assert "market" in row["coverage"]["data_sources"]
     assert row["coverage"]["persisted_market_names"] == ["Match Winner", "Goals Over/Under"]
+
+
+def test_v2_match_contract_hydrates_sport_context_from_persisted_model_run():
+    payload = _payload([
+        _base_row(
+            fixture_id=444,
+            classification="WATCH",
+            market_family="1X2",
+            market="Match Winner",
+            p_raw=0.61,
+        )
+    ])
+    relational = {
+        "counts": {
+            "refresh_events": 1,
+            "market_snapshots": 0,
+            "model_runs": 1,
+            "feature_snapshots": 1,
+            "lineup_snapshots": 0,
+            "availability_snapshots": 0,
+            "market_names": [],
+        },
+        "model_runs": [
+            {
+                "run_timestamp": "2026-10-08T18:00:00Z",
+                "model_version": "SOCCER EDGE ENGINE v1.7",
+                "raw_projection": {
+                    "status": "MODELED_LIMITED",
+                    "model_version": "SOCCER EDGE ENGINE v1.7",
+                    "projection_model": "POISSON_GOAL_RATE_BASELINE",
+                    "raw_home_goal_rate": 1.72,
+                    "raw_away_goal_rate": 0.94,
+                    "raw_home_win_prob": 0.58,
+                    "raw_draw_prob": 0.24,
+                    "raw_away_win_prob": 0.18,
+                    "top_scorelines": [
+                        {"home": 1, "away": 0, "prob": 0.14},
+                        {"home": 2, "away": 0, "prob": 0.12},
+                    ],
+                    "screen_scores": {
+                        "side_edge_score": 74.0,
+                        "goal_environment_score": 63.0,
+                        "two_way_scoring_score": 58.0,
+                    },
+                },
+            }
+        ],
+        "refresh_events": [],
+        "feature_snapshots": [],
+        "market_snapshots": [],
+        "lineup": None,
+        "availability": None,
+    }
+
+    result = subscriber_contract_v2.build_match_contract(
+        payload,
+        444,
+        relational_evidence=relational,
+    )
+
+    assert result is not None
+    sport = result["sport_context"]
+    assert sport["source"] == "POSTGRES_SOCCER_MODEL_RUNS_RAW_PROJECTION"
+    assert sport["goal_rate_semantics"] == "POISSON_LAMBDA_NOT_XG"
+    assert sport["expected_goals"]["home"] == 1.72
+    assert sport["expected_goals"]["away"] == 0.94
+    assert sport["expected_goals"]["xg_verified"] is False
+    assert round(sport["outcome_probabilities"]["home"], 6) == 0.58
+    assert sport["score_matrix"][0]["score"] == "1-0"
+    assert sport["sport_profile"][0]["label"] == "Side edge"
+    assert "OUTCOME_PROBABILITIES" in result["analyst_review"]["available_sections"]
+    assert "EXPECTED_GOALS" in result["analyst_review"]["available_sections"]
