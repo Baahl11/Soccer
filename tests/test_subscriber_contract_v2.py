@@ -406,7 +406,7 @@ def test_v2_registry_slate_marks_relational_evidence_as_data_available():
     result = subscriber_contract_v2._attach_full_registry_slate(contract, payload, registry)
     row = result["slate"]["rows"][0]
 
-    assert row["state"]["status_code"] == "DATA_AVAILABLE"
+    assert row["state"]["status_code"] == "SPORT_DATA_AVAILABLE"
     assert row["coverage"]["persisted_evidence_count"] == 8
     assert "market" in row["coverage"]["data_sources"]
     assert row["coverage"]["persisted_market_names"] == ["Match Winner", "Goals Over/Under"]
