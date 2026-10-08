@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse, Response
 
 SCHEMA_VERSION = "1.0.0"
 MODEL_VERSION = "SOCCER_SUBSCRIBER_PWA_V2_1.0.0"
-CACHE_NAME = "soccer-edge-shell-v2"
+CACHE_NAME = "soccer-edge-shell-v3"
 
 
 def manifest_payload() -> dict[str, Any]:
@@ -67,7 +67,7 @@ self.addEventListener('fetch',event=>{{
     return;
   }}
 
-  if(request.mode==='navigate' && (url.pathname==='/app' || url.pathname==='/app/' || url.pathname==='/app-v2' || url.pathname==='/app-v2/')){{
+  if(request.mode==='navigate' && (url.pathname==='/app' || url.pathname==='/app/' || url.pathname.startsWith('/app/match/') || url.pathname==='/app-v2' || url.pathname==='/app-v2/')){{
     event.respondWith((async()=>{{
       try{{
         const response=await fetch(request,{{cache:'no-store'}});
