@@ -25,7 +25,7 @@ def render() -> str:
         "publishable_key": auth.get("publishable_key"),
         "analytics_enabled": bool(auth.get("configured")),
         "billing_launch_enabled": bool(billing.get("public_launch_enabled")),
-        "app_url": "/app-v2",
+        "app_url": "/app",
     })
     return f'''<!doctype html>
 <html lang="en">
@@ -42,12 +42,12 @@ a{{color:inherit;text-decoration:none}}button{{font:inherit}}.wrap{{max-width:11
 </style>
 </head>
 <body><div class="wrap">
-<nav class="nav"><div class="brand">Soccer <span>Edge</span></div><div class="nav-actions"><select id="lang" class="lang"><option value="en">EN</option><option value="es">ES</option></select><a class="btn" href="/app-v2" data-track="explorer_cta">Open Explorer</a></div></nav>
+<nav class="nav"><div class="brand">Soccer <span>Edge</span></div><div class="nav-actions"><select id="lang" class="lang"><option value="en">EN</option><option value="es">ES</option></select><a class="btn" href="/app" data-track="explorer_cta">Open Explorer</a></div></nav>
 <section class="hero"><div>
 <div class="eyebrow" data-en="Sport first. Market second." data-es="Deporte primero. Mercado después.">Sport first. Market second.</div>
 <h1 data-en="Know what the model likes. Know when the price is wrong." data-es="Sabe qué le gusta al modelo. Sabe cuándo el precio está mal.">Know what the model likes. Know when the price is wrong.</h1>
 <p class="lead" data-en="Soccer Edge separates the raw sporting projection from the betting market, then shows canonical BETS, LEANS and WATCH states with the evidence behind each decision." data-es="Soccer Edge separa la proyección deportiva cruda del mercado de apuestas y después muestra BETS, LEANS y WATCH con la evidencia detrás de cada decisión.">Soccer Edge separates the raw sporting projection from the betting market, then shows canonical BETS, LEANS and WATCH states with the evidence behind each decision.</p>
-<div class="hero-actions"><a class="btn primary" href="/app-v2" data-track="explorer_cta" data-en="Explore today's slate" data-es="Explorar la cartelera de hoy">Explore today's slate</a><a class="btn" href="#how" data-en="See the decision process" data-es="Ver el proceso de decisión">See the decision process</a></div>
+<div class="hero-actions"><a class="btn primary" href="/app" data-track="explorer_cta" data-en="Explore today's slate" data-es="Explorar la cartelera de hoy">Explore today's slate</a><a class="btn" href="#how" data-en="See the decision process" data-es="Ver el proceso de decisión">See the decision process</a></div>
 <div class="principles"><span class="chip">RAW SPORT ≠ MARKET SHRUNK</span><span class="chip">EXACT PRICE + TIMESTAMP</span><span class="chip">NOT VERIFIED stays NOT VERIFIED</span><span class="chip">ZERO BETS IS VALID</span></div>
 </div>
 <div class="terminal"><div class="term-head"><div><div class="eyebrow">DECISION STATES</div><b>No fabricated picks</b></div><span class="chip">CANONICAL ENGINE ONLY</span></div>
@@ -68,8 +68,8 @@ a{{color:inherit;text-decoration:none}}button{{font:inherit}}.wrap{{max-width:11
 <article class="card"><h3 data-en="Performance is not cherry-picked" data-es="El rendimiento no se selecciona a conveniencia">Performance is not cherry-picked</h3><p data-en="Settled BET results, sample warnings, CLV and research evidence are labeled by what they actually are." data-es="Resultados BET liquidados, advertencias de muestra, CLV y evidencia de investigación se etiquetan por lo que realmente son.">Settled BET results, sample warnings, CLV and research evidence are labeled by what they actually are.</p></article></div></section>
 
 <section class="section"><div class="section-head"><div class="eyebrow">ACCESS</div><h2>Explorer + Edge Pro</h2></div><div class="grid2">
-<article class="card plan"><div><div class="eyebrow">FREE</div><h3>Explorer</h3><div class="feature-list"><span data-en="Verified slate" data-es="Cartelera verificada">Verified slate</span><span>WATCH / market readiness</span><span data-en="Public intelligence" data-es="Inteligencia pública">Public intelligence</span></div></div><a class="btn" href="/app-v2" data-track="explorer_cta" data-en="Open Explorer" data-es="Abrir Explorer">Open Explorer</a></article>
-<article class="card plan pro"><div><div class="eyebrow">PRO</div><h3>Edge Pro</h3><div class="feature-list"><span>BETS + LEANS</span><span>Match Intelligence</span><span data-en="Verified performance" data-es="Rendimiento verificado">Verified performance</span><span>My Edge</span></div><div class="trust-note" data-en="Public paid launch is gated. No subscription price is presented here until the commercial launch flag and pricing strategy are explicitly approved." data-es="El lanzamiento público de pago está bloqueado por un gate. No mostramos precio de suscripción aquí hasta aprobar explícitamente el lanzamiento comercial y la estrategia de precios.">Public paid launch is gated. No subscription price is presented here until the commercial launch flag and pricing strategy are explicitly approved.</div></div><a class="btn primary" href="/app-v2" data-track="explorer_cta" data-en="View Edge Pro inside the app" data-es="Ver Edge Pro dentro de la app">View Edge Pro inside the app</a></article>
+<article class="card plan"><div><div class="eyebrow">FREE</div><h3>Explorer</h3><div class="feature-list"><span data-en="Verified slate" data-es="Cartelera verificada">Verified slate</span><span>WATCH / market readiness</span><span data-en="Public intelligence" data-es="Inteligencia pública">Public intelligence</span></div></div><a class="btn" href="/app" data-track="explorer_cta" data-en="Open Explorer" data-es="Abrir Explorer">Open Explorer</a></article>
+<article class="card plan pro"><div><div class="eyebrow">PRO</div><h3>Edge Pro</h3><div class="feature-list"><span>BETS + LEANS</span><span>Match Intelligence</span><span data-en="Verified performance" data-es="Rendimiento verificado">Verified performance</span><span>My Edge</span></div><div class="trust-note" data-en="Public paid launch is gated. No subscription price is presented here until the commercial launch flag and pricing strategy are explicitly approved." data-es="El lanzamiento público de pago está bloqueado por un gate. No mostramos precio de suscripción aquí hasta aprobar explícitamente el lanzamiento comercial y la estrategia de precios.">Public paid launch is gated. No subscription price is presented here until the commercial launch flag and pricing strategy are explicitly approved.</div></div><a class="btn primary" href="/app" data-track="explorer_cta" data-en="View Edge Pro inside the app" data-es="Ver Edge Pro dentro de la app">View Edge Pro inside the app</a></article>
 </div></section>
 <footer class="footer" data-en="Soccer Edge provides analytical information, not guaranteed outcomes. Betting involves risk. Use only where legal and only if you meet the legal age requirements in your jurisdiction." data-es="Soccer Edge ofrece información analítica, no resultados garantizados. Apostar implica riesgo. Úsalo solo donde sea legal y si cumples la edad legal requerida en tu jurisdicción.">Soccer Edge provides analytical information, not guaranteed outcomes. Betting involves risk. Use only where legal and only if you meet the legal age requirements in your jurisdiction.</footer>
 </div>
@@ -97,8 +97,9 @@ def contract() -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
-        "route": "/landing-v2",
-        "app_destination": "/app-v2",
+        "route": "/",
+        "preview_alias": "/landing-v2",
+        "app_destination": "/app",
         "mock_probabilities": False,
         "fixed_accuracy_claims": False,
         "public_subscription_price_claims": False,
