@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse, Response
 
 SCHEMA_VERSION = "1.0.0"
 MODEL_VERSION = "SOCCER_SUBSCRIBER_PWA_V2_1.0.0"
-CACHE_NAME = "soccer-edge-shell-v3"
+CACHE_NAME = "soccer-edge-shell-v4"
 
 
 def manifest_payload() -> dict[str, Any]:
