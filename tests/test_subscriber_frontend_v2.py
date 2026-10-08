@@ -86,3 +86,11 @@ def test_fe2_contract_preserves_engine_firewall():
     assert contract["canonical_bet_logic_changed"] is False
     assert contract["model_weights_changed"] is False
     assert contract["production_promotion_allowed"] is False
+
+def test_fe2_full_slate_exposes_coverage_and_insufficient_data_copy():
+    html = subscriber_frontend_v2.render()
+
+    assert "Every eligible fixture stays visible, even when analysis is incomplete" in html
+    assert "Insufficient data · fixture only" in html
+    assert "Data: " in html
+    assert 'data-intel="' in html
