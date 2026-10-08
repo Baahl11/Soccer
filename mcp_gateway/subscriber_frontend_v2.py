@@ -323,7 +323,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate()
   }}
   function matchPath(fid){{return '/app/match/'+encodeURIComponent(fid)}}
-  function routeMatchId(){{const m=location.pathname.match(/^\/app\/match\/(\d+)\/?$/);return m?m[1]:null}}
+  function routeMatchId(){{const parts=location.pathname.split('/').filter(Boolean);return parts.length===3&&parts[0]==='app'&&parts[1]==='match'&&/^\d+$/.test(parts[2])?parts[2]:null}}
   function setMatchRoute(fid,replace=false){{const url=matchPath(fid);if(location.pathname===url)return;(replace?history.replaceState:history.pushState).call(history,{{page:'match',fixture_id:String(fid)}},'',url)}}
   function showMatchBrowse(show){{const panel=$('matchesBrowsePanel');if(panel)panel.classList.toggle('hidden',!show)}}
   async function openMatch(fid,opts={{}}){{if(!fid)return;activate('matches');setMatchRoute(fid,!!opts.replace);showMatchBrowse(false);const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{box.innerHTML=lock('Match Intelligence',1);box.scrollIntoView({{block:'start'}});return}}box.innerHTML=empty('Loading match intelligence','Reading every persisted fact available for this fixture…');box.scrollIntoView({{block:'start'}});try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d);box.scrollIntoView({{block:'start'}})}}catch(e){{box.innerHTML=empty('Match detail unavailable',e.message)}}}}
