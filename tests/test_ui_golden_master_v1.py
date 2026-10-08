@@ -12,3 +12,12 @@ def test_match_center_golden_master_is_visual_prototype_only():
     assert "Score Matrix (FT)" in html
     assert "Goal Distribution" in html
     assert "MODEL VS MARKET" in html
+
+
+def test_golden_master_matches_approved_dashboard_structure():
+    html = ui_golden_master_v1._html()
+    assert "Edge Gap" in html
+    assert "Over / Under 2.5 Goals" in html
+    assert "Last update 2m ago" in html
+    assert "Back to matches" in html
+    assert "FOOTBALL ONLY" in html
