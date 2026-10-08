@@ -52,3 +52,14 @@ def test_v3_adaptive_board_uses_verified_sport_fallbacks_instead_of_fake_model_d
     assert "Scoring Context" in html
     assert "Market Gate" in html
     assert "No verified model-vs-market edge" in html
+
+
+def test_v3_human_design_pass_removes_symmetric_placeholder_dashboard():
+    html = subscriber_frontend_v3._html()
+    assert "Match overview" in html
+    assert "Verified football data only" in html
+    assert "SCORING PROFILE" in html
+    assert "DATA QUALITY" in html
+    assert "RECENT FORM" in html
+    assert "Still needed" in html
+    assert "#v3-premium-board{display:none!important}" in html
