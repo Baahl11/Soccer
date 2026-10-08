@@ -804,6 +804,40 @@ def _coverage_by_fixture(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return grouped
 
 
+def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
+    try:
+        fixture_id = int(fixture_value)
+    except (TypeError, ValueError):
+        return None
+    with persistence_base._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT fixture_id, kickoff, status, league, country,
+                       home_team_id, home_team, away_team_id, away_team
+                FROM soccer_fixtures
+                WHERE fixture_id = %s
+                LIMIT 1
+                """,
+                (fixture_id,),
+            )
+            row = cur.fetchone()
+    if not row:
+        return None
+    fixture_id, kickoff, status, league, country, home_id, home, away_id, away = row
+    return {
+        "fixture_id": fixture_id,
+        "kickoff": kickoff.isoformat() if hasattr(kickoff, "isoformat") else kickoff,
+        "status": status,
+        "league": league,
+        "country": country,
+        "home_team_id": home_id,
+        "home_team": home,
+        "away_team_id": away_id,
+        "away_team": away,
+    }
+
+
 def _registry_fixture(row: dict[str, Any]) -> dict[str, Any]:
     home_id = row.get("home_team_id")
     away_id = row.get("away_team_id")
@@ -1415,12 +1449,120 @@ def _match_market_group(candidate: dict[str, Any]) -> str:
 def build_match_contract(
     payload: dict[str, Any],
     fixture_value: Any,
+    registry_fixture: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
-    """Build one persisted-fixture intelligence packet without new provider calls."""
+    """Build one fixture intelligence packet from persisted evidence only.
+
+    Registry-only fixtures are returned as explicit INSUFFICIENT_DATA packets so a
+    human analyst can inspect every eligible match without fabricating missing inputs.
+    """
 
     raw_rows = subscriber_preview_data_v231._fixture_rows(payload, fixture_value)
     if not raw_rows:
-        return None
+        if not isinstance(registry_fixture, dict):
+            return None
+        fixture = _registry_fixture(registry_fixture)
+        missing = [
+            "PERSISTED_ANALYSIS_ROWS",
+            "OUTCOME_PROBABILITIES",
+            "EXPECTED_GOALS",
+            "SCORE_MATRIX",
+            "SPORT_PROFILE",
+            "AVAILABILITY_CONFIDENCE",
+            "EXACT_PRICE",
+        ]
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "model_version": MODEL_VERSION,
+            "status": "MATCH_INTELLIGENCE_INSUFFICIENT_DATA",
+            "source": "POSTGRES_SOCCER_FIXTURES",
+            "generated_at_utc": payload.get("generated_at_utc"),
+            "fixture": fixture,
+            "selected_candidate": None,
+            "decision_summary": {
+                "classification": None,
+                "display_bucket": "INSUFFICIENT DATA",
+                "tier": None,
+                "execution_status": None,
+                "stage": None,
+                "reason_display": (
+                    "Fixture is in the eligible slate, but no persisted deep-analysis "
+                    "rows exist for it yet."
+                ),
+            },
+            "projection_ladder": {
+                "raw_sport_probability": None,
+                "market_shrunk_probability": None,
+                "calibrated_model_probability": None,
+                "fair_market_probability": None,
+                "breakeven_probability": None,
+                "probability_edge_pp": None,
+                "estimated_ev": None,
+                "estimated_ev_pct": None,
+            },
+            "availability": _availability({}),
+            "evidence": {
+                "sporting_reasons": [],
+                "market_reasons": [],
+                "blockers": ["PERSISTED_ANALYSIS_NOT_AVAILABLE"],
+                "invalidation_conditions": [],
+            },
+            "market_context": {
+                "selected": {},
+                "candidate_count": 0,
+                "candidates": [],
+                "groups": {
+                    "GOALS": [],
+                    "CORNERS": [],
+                    "CARDS": [],
+                    "PLAYERS": [],
+                    "GENERAL": [],
+                },
+            },
+            "sport_context": {
+                "outcome_probabilities": None,
+                "expected_goals": None,
+                "score_matrix": [],
+                "sport_profile": [],
+            },
+            "model_context": {
+                "confidence": None,
+                "data_quality": None,
+                "lineup": None,
+                "model_disagreement": None,
+                "models_agreeing": None,
+                "models_total": None,
+                "model_version": None,
+                "stage": None,
+                "provider_update": None,
+                "bookmaker": None,
+                "selected_model": {},
+                "freshness": {},
+            },
+            "analyst_review": {
+                "status": "INSUFFICIENT_DATA",
+                "analysis_rows": 0,
+                "available_markets": [],
+                "verified_price_markets": [],
+                "available_sections": ["FIXTURE_IDENTITY"],
+                "missing_sections": missing,
+                "human_review_allowed": True,
+                "note": (
+                    "This screen exposes what is actually persisted for human review. "
+                    "No betting edge is implied by fixture presence alone."
+                ),
+            },
+            "data_disclosure": {
+                "persisted_fixture_row_count": 0,
+                "missing_sections": missing,
+                "unknown_policy": "NOT VERIFIED",
+                "provider_requests_added": 0,
+            },
+            "provider_requests_added": 0,
+            "canonical_bet_logic_changed": False,
+            "model_weights_changed": False,
+            "production_promotion_allowed": False,
+        }
 
     candidates = _sort_candidates([adapt_candidate(row) for row in raw_rows])
     selected_raw = max(raw_rows, key=lambda row: _candidate_score(adapt_candidate(row)))
@@ -1474,6 +1616,37 @@ def build_match_contract(
     if market.get("price", {}).get("value") is None:
         missing.append("EXACT_PRICE")
 
+    available_markets: list[str] = []
+    verified_price_markets: list[str] = []
+    for candidate in candidates:
+        label = _market_coverage_label(candidate)
+        if label and label not in available_markets:
+            available_markets.append(label)
+        candidate_market = _dict(candidate.get("market"))
+        candidate_price = _dict(candidate_market.get("price"))
+        if (
+            label
+            and candidate_price.get("value") is not None
+            and (candidate_price.get("bookmaker") or candidate_price.get("source"))
+            and candidate_price.get("captured_at")
+            and label not in verified_price_markets
+        ):
+            verified_price_markets.append(label)
+
+    available_sections = ["FIXTURE_IDENTITY", "MARKET_ROWS"]
+    if detail.get("outcome_probabilities"):
+        available_sections.append("OUTCOME_PROBABILITIES")
+    if detail.get("expected_goals"):
+        available_sections.append("EXPECTED_GOALS")
+    if detail.get("score_matrix"):
+        available_sections.append("SCORE_MATRIX")
+    if detail.get("sport_profile"):
+        available_sections.append("SPORT_PROFILE")
+    if availability.get("confidence") is not None:
+        available_sections.append("AVAILABILITY_CONFIDENCE")
+    if verified_price_markets:
+        available_sections.append("VERIFIED_PRICE")
+
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
@@ -1526,6 +1699,23 @@ def build_match_contract(
             "selected_model": model,
             "freshness": freshness,
         },
+        "analyst_review": {
+            "status": (
+                "ACTIONABLE_MODEL_STATE"
+                if str(decision.get("classification") or "").upper() in _CANONICAL_CLASSIFICATIONS
+                else "PARTIAL_DATA"
+            ),
+            "analysis_rows": len(raw_rows),
+            "available_markets": available_markets,
+            "verified_price_markets": verified_price_markets,
+            "available_sections": available_sections,
+            "missing_sections": missing,
+            "human_review_allowed": True,
+            "note": (
+                "Human review may inspect all persisted sporting and market evidence, "
+                "including partial markets. This view does not create or promote a BET."
+            ),
+        },
         "data_disclosure": {
             "persisted_fixture_row_count": len(raw_rows),
             "missing_sections": missing,
@@ -1563,9 +1753,14 @@ async def match_detail(request: Request) -> JSONResponse:
     if payload is None:
         return _no_store({"error": "NO_PERSISTED_PIPELINE_RUN"}, status_code=503)
 
-    result = build_match_contract(payload, fixture_value)
+    try:
+        registry_fixture = await asyncio.to_thread(_load_registry_fixture, fixture_value)
+    except Exception:
+        registry_fixture = None
+
+    result = build_match_contract(payload, fixture_value, registry_fixture)
     if result is None:
-        return _no_store({"error": "FIXTURE_NOT_IN_PERSISTED_SNAPSHOT"}, status_code=404)
+        return _no_store({"error": "FIXTURE_NOT_IN_REGISTRY_OR_PERSISTED_SNAPSHOT"}, status_code=404)
     return _no_store(result)
 
 
