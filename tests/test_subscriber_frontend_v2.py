@@ -92,7 +92,7 @@ def test_fe2_full_slate_exposes_coverage_and_insufficient_data_copy():
 
     assert "Every eligible fixture stays visible, even when analysis is incomplete" in html
     assert "Insufficient data · fixture only" in html
-    assert "Data: " in html
+    assert "Sport data: " in html
     assert 'data-intel="' in html
 
 def test_fe2_every_slate_fixture_is_openable_for_data_review():
@@ -119,10 +119,10 @@ def test_fe2_identity_enrichment_chunks_large_slates_and_shows_relational_eviden
     html = subscriber_frontend_v2.render()
 
     assert "for(let i=0;i<ids.length;i+=80)" in html
-    assert "Latest persisted market activity" in html
+    assert "Latest market activity" in html
     assert "Market snapshots" in html
     assert "Model runs" in html
-    assert "Evidence map" in html
+    assert "Evidence quality" in html
 
 
 def test_fe2_match_detail_is_summary_first_and_mobile_safe():
@@ -143,8 +143,8 @@ def test_fe2_match_intelligence_is_sport_first_not_market_first():
 
     assert "Sport-first read" in html
     assert "Sporting evidence" in html
-    assert "Team performance baseline" in html
-    assert "Recent form / trends" in html
+    assert "Team form & scoring" in html
+    assert "Home form" in html
     assert "Market layer" in html
     assert "context only · not an edge by itself" in html
     assert "Market data exists, but verified sporting evidence is not sufficient" in html
@@ -158,3 +158,10 @@ def test_fe2_visible_sport_input_count_matches_rendered_inputs():
     assert "shown below" in html
     assert "visible inputs" in html
     assert "No customer-facing sporting inputs are verified" in html
+
+
+def test_fe2_kickoff_display_is_pinned_to_mexico_central_time():
+    html = subscriber_frontend_v2.render()
+
+    assert "APP_TIMEZONE='America/Mexico_City'" in html
+    assert "timeZone:APP_TIMEZONE" in html
