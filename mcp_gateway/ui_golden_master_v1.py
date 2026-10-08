@@ -315,6 +315,47 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .spark-dot{fill:#4bd8a3;stroke:#06131b;stroke-width:1.1}
 .panel-trend{display:grid;grid-template-columns:1fr 78px;gap:7px;align-items:end}
 .microcopy{font-size:4.5px;color:#5f7988;line-height:1.35}
+
+.xg-card{background:
+  radial-gradient(circle at 78% 12%,rgba(75,216,163,.055),transparent 34%),
+  linear-gradient(180deg,rgba(8,27,37,.20),transparent)}
+.xg-summary{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;margin-top:2px}
+.xg-team{text-align:center;min-width:0}
+.xg-team span{display:block;color:#6b8593;font-size:4.5px}
+.xg-team b{display:block;margin-top:3px;font-size:22px;letter-spacing:-.055em;font-variant-numeric:tabular-nums}
+.xg-sep{color:#466573;font-size:12px;padding-bottom:4px}
+.xg-meta{display:grid;grid-template-columns:1fr 1fr;margin-top:5px;border-top:1px solid rgba(42,86,108,.34)}
+.xg-meta div{padding:5px 4px;text-align:center}
+.xg-meta div+div{border-left:1px solid rgba(42,86,108,.34)}
+.xg-meta span{display:block;color:#5e7887;font-size:3.8px;font-weight:900;letter-spacing:.08em}
+.xg-meta b{display:block;margin-top:2px;font-size:6.2px;color:#dcebf1}
+.xg-meta b.good{color:#60deb2}
+.xg-trend{height:32px;margin-top:3px}
+.xg-trend .gridline{stroke:#173747;stroke-width:.7}
+.xg-trend .area{fill:url(#xgArea)}
+.xg-trend .line{fill:none;stroke:#4bd8a3;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.xg-trend .dot{fill:#4bd8a3;stroke:#06131b;stroke-width:1}
+.xg-caption{margin-top:1px;color:#5e7785;font-size:3.8px;text-align:center}
+
+.ou-read{display:grid;grid-template-columns:108px minmax(0,1fr);gap:10px;align-items:stretch}
+.ou-hero{
+  display:grid;align-content:center;border-right:1px solid rgba(42,86,108,.40);padding-right:10px
+}
+.ou-hero span{font-size:4px;color:#627c8a;font-weight:900;letter-spacing:.08em}
+.ou-hero b{margin-top:3px;font-size:19px;line-height:1;color:#f3f8fb;letter-spacing:-.045em}
+.ou-hero strong{margin-top:4px;font-size:6.3px;color:#58ddb0}
+.ou-hero small{margin-top:2px;font-size:3.8px;color:#607a88}
+.ou-gauge{position:relative;height:34px;margin:3px 0 1px}
+.ou-gauge .base{position:absolute;left:8px;right:8px;top:17px;height:2px;border-radius:999px;background:#173849}
+.ou-gauge .edge{position:absolute;left:55.3%;width:9.1%;top:15px;height:6px;border-radius:999px;background:#d7af50;box-shadow:0 0 8px rgba(215,175,80,.18)}
+.ou-gauge .mark{position:absolute;top:10px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:2px solid #071923}
+.ou-gauge .market{left:55.3%;background:#45afe2}
+.ou-gauge .model{left:64.4%;background:#4bd8a3}
+.ou-gauge .lab{position:absolute;top:0;transform:translateX(-50%);font-size:3.7px;font-weight:900;white-space:nowrap;background:none}
+.ou-gauge .lab.market{left:55.3%;color:#72c8ee}
+.ou-gauge .lab.model{left:64.4%;color:#6fe2b8}
+.ou-scale{display:flex;justify-content:space-between;padding:0 8px;color:#506c7b;font-size:3.4px}
+.dist-focus{fill:#0e2b37;opacity:.42}
 @media(max-width:740px){
   .shell{display:block;border:0;max-width:none}.rail{display:none}.topbar{height:44px;padding:0 10px}
   .hero{grid-template-columns:minmax(0,1fr) 108px;padding:11px 10px 10px}.crest{width:54px;height:54px}.shield{width:33px;height:40px}.team b{font-size:11px;max-width:118px}
@@ -359,19 +400,20 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
   .matrix-card .panel-head{margin-bottom:8px}
   .matrix-layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(132px,.82fr);gap:8px;align-items:start}
   .matrix-main{min-width:0}
-  .matrix-main .matrix{grid-template-columns:14px repeat(5,minmax(0,1fr));gap:3px;max-width:none;margin:0}
-  .matrix-main .axis{font-size:4.2px}
-  .matrix-main .cell{aspect-ratio:1.08/1;font-size:5px;border-radius:4px}
-  .matrix-note{font-size:4.4px;margin-top:5px}
-  .scoring-profiles{display:grid;grid-template-columns:1fr;gap:6px;margin:0;padding-left:8px;border-left:1px solid rgba(43,88,109,.42)}
-  .team-profile{padding:5px;border-radius:6px}
-  .team-profile-head b{font-size:5px}.team-profile-head span{font-size:3.5px}
-  .mini-matrix{grid-template-columns:8px repeat(5,minmax(0,1fr));gap:1.5px}
-  .mini-axis{font-size:3px}
-  .mini-cell{font-size:3.2px;border-radius:2px}
-  .profile-caption{font-size:3.2px;margin-top:3px}
+  .matrix-main .matrix{grid-template-columns:13px repeat(5,minmax(0,1fr));gap:2.5px;max-width:none;margin:0}
+  .matrix-main .axis{font-size:3.9px}
+  .matrix-main .cell{aspect-ratio:1.34/1;font-size:4.7px;border-radius:3px}
+  .matrix-note{font-size:4.1px;margin-top:4px}
+  .scoring-profiles{display:grid;grid-template-columns:1fr;gap:5px;margin:0;padding-left:7px;border-left:1px solid rgba(43,88,109,.42)}
+  .team-profile{padding:4px;border-radius:6px}
+  .team-profile-head{margin-bottom:3px}.team-profile-head b{font-size:4.7px}.team-profile-head span{font-size:3.2px}
+  .mini-matrix{grid-template-columns:7px repeat(5,minmax(0,1fr));gap:1.3px}
+  .mini-axis{font-size:2.8px}
+  .mini-cell{aspect-ratio:1.22/1;font-size:3px;border-radius:2px}
+  .profile-caption{font-size:2.9px;margin-top:2px}
 
-  .goals-card{display:grid;grid-template-columns:118px minmax(0,1fr);column-gap:10px}.goals-card .panel-head{grid-column:1/-1}.goals-card .market-grid{align-self:start}.goals-card .dist-svg{height:84px;margin-top:0}.goals-card .legend{grid-column:1/-1;margin-top:2px}
+  .xg-summary{gap:4px}.xg-team b{font-size:18px}.xg-meta div{padding:4px 2px}.xg-trend{height:28px}
+  .goals-card{display:block}.goals-card .panel-head{margin-bottom:7px}.ou-read{grid-template-columns:106px minmax(0,1fr);gap:9px}.ou-hero{padding-right:9px}.ou-hero b{font-size:17px}.ou-gauge{height:32px}.goals-card .dist-svg{height:78px;margin-top:3px}.goals-card .legend{margin-top:2px}
   .read{grid-template-columns:28px minmax(0,1fr) auto}.read-mark{width:28px;height:28px}
 }
 </style>
@@ -448,16 +490,23 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 
           <article class="module xg-card">
             <div class="panel-head"><h3>Expected Goals (λ)</h3><span>SPORT</span></div>
-            <div class="panel-trend">
-              <div class="xg"><div><span>Arsenal</span><b>2.08</b></div><em>—</em><div><span>Brighton</span><b>0.91</b></div></div>
-              <svg class="spark" viewBox="0 0 78 34" aria-label="Recent xG trend">
-                <line x1="2" y1="28" x2="76" y2="28" class="spark-grid"/>
-                <line x1="2" y1="17" x2="76" y2="17" class="spark-grid"/>
-                <polyline points="4,25 18,20 31,22 45,13 60,15 74,7" class="spark-line"/>
-                <circle cx="74" cy="7" r="2.4" class="spark-dot"/>
-              </svg>
+            <div class="xg-summary">
+              <div class="xg-team"><span>Arsenal</span><b>2.08</b></div>
+              <div class="xg-sep">—</div>
+              <div class="xg-team"><span>Brighton</span><b>0.91</b></div>
             </div>
-            <div class="microcopy">Recent attacking trend · visual reference</div>
+            <div class="xg-meta">
+              <div><span>TOTAL XG</span><b>2.99</b></div>
+              <div><span>HOME DELTA</span><b class="good">+1.17</b></div>
+            </div>
+            <svg class="chart-svg xg-trend" viewBox="0 0 180 32" aria-label="Illustrative attacking trend">
+              <defs><linearGradient id="xgArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4bd8a3" stop-opacity=".20"/><stop offset="100%" stop-color="#4bd8a3" stop-opacity="0"/></linearGradient></defs>
+              <line x1="4" y1="26" x2="176" y2="26" class="gridline"/>
+              <path d="M4 25 L31 21 L58 22 L85 15 L112 17 L140 10 L176 7 L176 29 L4 29 Z" class="area"/>
+              <polyline points="4,25 31,21 58,22 85,15 112,17 140,10 176,7" class="line"/>
+              <circle cx="176" cy="7" r="2.2" class="dot"/>
+            </svg>
+            <div class="xg-caption">Illustrative attacking trend · design lab</div>
           </article>
 
           <article class="module edge-card">
@@ -563,25 +612,40 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 
           <article class="module goals-card">
             <div class="panel-head"><h3>Over / Under 2.5 Goals</h3><span>MODEL VS MARKET</span></div>
-            <div class="market-grid">
-              <div class="market-metric"><span>MODEL</span><b>64.4%</b></div>
-              <div class="market-metric"><span>MARKET</span><b>55.3%</b></div>
-              <div class="market-metric"><span>EDGE</span><b class="green">+8.9 pp</b></div>
+            <div class="ou-read">
+              <div class="ou-hero">
+                <span>MODEL OVER 2.5</span>
+                <b>64.4%</b>
+                <strong>+8.9 pp edge</strong>
+                <small>Market fair 55.3%</small>
+              </div>
+              <div>
+                <div class="ou-gauge">
+                  <div class="base"></div>
+                  <div class="edge"></div>
+                  <span class="lab market">MARKET 55.3</span>
+                  <span class="lab model">MODEL 64.4</span>
+                  <i class="mark market"></i>
+                  <i class="mark model"></i>
+                </div>
+                <div class="ou-scale"><span>40%</span><span>50%</span><span>60%</span><span>70%</span><span>80%</span></div>
+              </div>
             </div>
-            <svg class="chart-svg dist-svg" viewBox="0 0 300 92" aria-label="Goal distribution">
+            <svg class="chart-svg dist-svg" viewBox="0 0 300 92" aria-label="Illustrative goal distribution">
               <defs>
                 <linearGradient id="homeBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#58b8e8"/><stop offset="100%" stop-color="#2e96c7"/></linearGradient>
                 <linearGradient id="awayBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#59dda9"/><stop offset="100%" stop-color="#2dbb86"/></linearGradient>
               </defs>
-              <line x1="18" y1="20" x2="292" y2="20" class="dist-grid" opacity=".45"/>
-              <line x1="18" y1="46" x2="292" y2="46" class="dist-grid" opacity=".7"/>
+              <rect x="102" y="4" width="70" height="68" rx="6" class="dist-focus"/>
+              <line x1="18" y1="20" x2="292" y2="20" class="dist-grid" opacity=".35"/>
+              <line x1="18" y1="46" x2="292" y2="46" class="dist-grid" opacity=".55"/>
               <line x1="18" y1="72" x2="292" y2="72" class="dist-grid"/>
-              <g transform="translate(28,0)"><rect x="0" y="51" width="10" height="21" rx="2" class="dist-home"/><rect x="12" y="38" width="10" height="34" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">0</text></g>
-              <g transform="translate(70,0)"><rect x="0" y="28" width="10" height="44" rx="2" class="dist-home"/><rect x="12" y="15" width="10" height="57" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">1</text></g>
-              <g transform="translate(112,0)"><rect x="0" y="8" width="10" height="64" rx="2" class="dist-home"/><rect x="12" y="35" width="10" height="37" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">2</text></g>
-              <g transform="translate(154,0)"><rect x="0" y="24" width="10" height="48" rx="2" class="dist-home"/><rect x="12" y="54" width="10" height="18" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">3</text></g>
-              <g transform="translate(196,0)"><rect x="0" y="42" width="10" height="30" rx="2" class="dist-home"/><rect x="12" y="65" width="10" height="7" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">4</text></g>
-              <g transform="translate(238,0)"><rect x="0" y="56" width="10" height="16" rx="2" class="dist-home"/><rect x="12" y="69" width="10" height="3" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">5+</text></g>
+              <g transform="translate(28,0)"><rect x="0" y="51" width="10" height="21" rx="3" class="dist-home"/><rect x="12" y="38" width="10" height="34" rx="3" class="dist-away"/><text x="11" y="86" class="dist-label">0</text></g>
+              <g transform="translate(70,0)"><rect x="0" y="28" width="10" height="44" rx="3" class="dist-home"/><rect x="12" y="15" width="10" height="57" rx="3" class="dist-away"/><text x="11" y="86" class="dist-label">1</text></g>
+              <g transform="translate(112,0)"><rect x="0" y="8" width="10" height="64" rx="3" class="dist-home"/><rect x="12" y="35" width="10" height="37" rx="3" class="dist-away"/><text x="11" y="86" class="dist-label">2</text></g>
+              <g transform="translate(154,0)"><rect x="0" y="24" width="10" height="48" rx="3" class="dist-home"/><rect x="12" y="54" width="10" height="18" rx="3" class="dist-away"/><text x="11" y="86" class="dist-label">3</text></g>
+              <g transform="translate(196,0)"><rect x="0" y="42" width="10" height="30" rx="3" class="dist-home"/><rect x="12" y="65" width="10" height="7" rx="3" class="dist-away"/><text x="11" y="86" class="dist-label">4</text></g>
+              <g transform="translate(238,0)"><rect x="0" y="56" width="10" height="16" rx="3" class="dist-home"/><rect x="12" y="69" width="10" height="3" rx="3" class="dist-away"/><text x="11" y="86" class="dist-label">5+</text></g>
             </svg>
             <div class="legend"><span><i class="h"></i>Arsenal</span><span><i class="a"></i>Brighton</span></div>
           </article>
