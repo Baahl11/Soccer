@@ -666,6 +666,74 @@ def _slate_context(payload: dict[str, Any]) -> tuple[str | None, str]:
     return utc_day, timezone_name
 
 
+def _iso_value(value: Any) -> Any:
+    return value.isoformat() if hasattr(value, "isoformat") else value
+
+
+def _empty_evidence_inventory() -> dict[str, Any]:
+    return {
+        "refresh_events": 0,
+        "market_snapshots": 0,
+        "model_runs": 0,
+        "feature_snapshots": 0,
+        "lineup_snapshots": 0,
+        "availability_snapshots": 0,
+        "market_names": [],
+        "latest_refresh_at": None,
+        "latest_market_at": None,
+        "latest_model_at": None,
+        "latest_feature_at": None,
+        "latest_lineup_at": None,
+        "latest_availability_at": None,
+    }
+
+
+def _load_evidence_inventory(cur: Any, fixture_ids: list[int]) -> dict[str, dict[str, Any]]:
+    inventory = {str(fid): _empty_evidence_inventory() for fid in fixture_ids}
+    if not fixture_ids:
+        return inventory
+
+    specs = (
+        ("soccer_refresh_events", "generated_at", "refresh_events", "latest_refresh_at"),
+        ("soccer_model_runs", "run_timestamp", "model_runs", "latest_model_at"),
+        ("soccer_feature_snapshots", "captured_at", "feature_snapshots", "latest_feature_at"),
+        ("soccer_lineup_snapshots", "captured_at", "lineup_snapshots", "latest_lineup_at"),
+        ("soccer_availability_snapshots", "captured_at", "availability_snapshots", "latest_availability_at"),
+    )
+    for table, timestamp_col, count_key, latest_key in specs:
+        cur.execute(
+            f"""
+            SELECT fixture_id, COUNT(*), MAX({timestamp_col})
+            FROM {table}
+            WHERE fixture_id = ANY(%s)
+            GROUP BY fixture_id
+            """,
+            (fixture_ids,),
+        )
+        for fixture_id, count, latest_at in cur.fetchall():
+            node = inventory.setdefault(str(fixture_id), _empty_evidence_inventory())
+            node[count_key] = int(count or 0)
+            node[latest_key] = _iso_value(latest_at)
+
+    cur.execute(
+        """
+        SELECT fixture_id, COUNT(*), MAX(captured_at),
+               ARRAY_REMOVE(ARRAY_AGG(DISTINCT market), NULL)
+        FROM soccer_market_snapshots
+        WHERE fixture_id = ANY(%s)
+        GROUP BY fixture_id
+        """,
+        (fixture_ids,),
+    )
+    for fixture_id, count, latest_at, market_names in cur.fetchall():
+        node = inventory.setdefault(str(fixture_id), _empty_evidence_inventory())
+        node["market_snapshots"] = int(count or 0)
+        node["latest_market_at"] = _iso_value(latest_at)
+        node["market_names"] = sorted(str(x) for x in (market_names or []) if x)
+
+    return inventory
+
+
 def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
     slate_day, timezone_name = _slate_context(payload)
     if not slate_day:
@@ -691,6 +759,8 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
                 (timezone_name, slate_day),
             )
             db_rows = cur.fetchall()
+            fixture_ids = [int(row[0]) for row in db_rows if row and row[0] is not None]
+            evidence_by_fixture = _load_evidence_inventory(cur, fixture_ids)
 
     rows: list[dict[str, Any]] = []
     for db_row in db_rows:
@@ -706,6 +776,9 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
                 "home_team": home,
                 "away_team_id": away_id,
                 "away_team": away,
+                "evidence_inventory": evidence_by_fixture.get(
+                    str(fixture_id), _empty_evidence_inventory()
+                ),
             }
         )
     return {
@@ -836,6 +909,179 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
         "away_team_id": away_id,
         "away_team": away,
     }
+
+
+def _load_registry_fixture_evidence(fixture_value: Any) -> dict[str, Any]:
+    try:
+        fixture_id = int(fixture_value)
+    except (TypeError, ValueError):
+        return {"counts": _empty_evidence_inventory()}
+
+    result: dict[str, Any] = {
+        "counts": _empty_evidence_inventory(),
+        "refresh_events": [],
+        "market_snapshots": [],
+        "model_runs": [],
+        "feature_snapshots": [],
+        "lineup": None,
+        "availability": None,
+    }
+    with persistence_base._connect() as conn:
+        with conn.cursor() as cur:
+            result["counts"] = _load_evidence_inventory(cur, [fixture_id]).get(
+                str(fixture_id), _empty_evidence_inventory()
+            )
+
+            cur.execute(
+                """
+                SELECT stage, event_type, classification,
+                       availability_confidence::double precision,
+                       bet_eligible, data_tier, generated_at, payload
+                FROM soccer_refresh_events
+                WHERE fixture_id = %s
+                ORDER BY generated_at DESC, event_id DESC
+                LIMIT 12
+                """,
+                (fixture_id,),
+            )
+            for stage, event_type, classification, availability_confidence, bet_eligible, data_tier, generated_at, payload in cur.fetchall():
+                result["refresh_events"].append({
+                    "stage": stage,
+                    "event_type": event_type,
+                    "classification": classification,
+                    "availability_confidence": availability_confidence,
+                    "bet_eligible": bool(bet_eligible),
+                    "data_tier": data_tier,
+                    "generated_at": _iso_value(generated_at),
+                    "payload": payload if isinstance(payload, dict) else {},
+                })
+
+            cur.execute(
+                """
+                SELECT captured_at, stage, bookmaker, market, values, provider_update
+                FROM soccer_market_snapshots
+                WHERE fixture_id = %s
+                ORDER BY captured_at DESC, snapshot_id DESC
+                LIMIT 40
+                """,
+                (fixture_id,),
+            )
+            for captured_at, stage, bookmaker, market, values, provider_update in cur.fetchall():
+                result["market_snapshots"].append({
+                    "captured_at": _iso_value(captured_at),
+                    "stage": stage,
+                    "bookmaker": bookmaker,
+                    "market": market,
+                    "values": values if isinstance(values, list) else [],
+                    "provider_update": _iso_value(provider_update),
+                })
+
+            cur.execute(
+                """
+                SELECT run_timestamp, run_type, model_version,
+                       raw_projection, shrunk_projection,
+                       model_prob::double precision,
+                       market_fair_prob::double precision,
+                       prob_edge_pp::double precision,
+                       estimated_ev::double precision,
+                       shrink_weight::double precision,
+                       availability_confidence::double precision,
+                       classification, tier
+                FROM soccer_model_runs
+                WHERE fixture_id = %s
+                ORDER BY run_timestamp DESC, model_run_id DESC
+                LIMIT 12
+                """,
+                (fixture_id,),
+            )
+            for row in cur.fetchall():
+                (
+                    run_timestamp, run_type, model_version, raw_projection, shrunk_projection,
+                    model_prob, market_fair_prob, prob_edge_pp, estimated_ev, shrink_weight,
+                    availability_confidence, classification, tier,
+                ) = row
+                result["model_runs"].append({
+                    "run_timestamp": _iso_value(run_timestamp),
+                    "run_type": run_type,
+                    "model_version": model_version,
+                    "raw_projection": raw_projection,
+                    "shrunk_projection": shrunk_projection,
+                    "model_probability": model_prob,
+                    "market_fair_probability": market_fair_prob,
+                    "probability_edge_pp": prob_edge_pp,
+                    "estimated_ev": estimated_ev,
+                    "shrink_weight": shrink_weight,
+                    "availability_confidence": availability_confidence,
+                    "classification": classification,
+                    "tier": tier,
+                })
+
+            cur.execute(
+                """
+                SELECT captured_at, stage, schema_version, model_version,
+                       data_tier, feature_count, missing_feature_count
+                FROM soccer_feature_snapshots
+                WHERE fixture_id = %s
+                ORDER BY captured_at DESC, snapshot_id DESC
+                LIMIT 8
+                """,
+                (fixture_id,),
+            )
+            for captured_at, stage, schema_version, model_version, data_tier, feature_count, missing_feature_count in cur.fetchall():
+                result["feature_snapshots"].append({
+                    "captured_at": _iso_value(captured_at),
+                    "stage": stage,
+                    "schema_version": schema_version,
+                    "model_version": model_version,
+                    "data_tier": data_tier,
+                    "feature_count": int(feature_count or 0),
+                    "missing_feature_count": int(missing_feature_count or 0),
+                })
+
+            cur.execute(
+                """
+                SELECT captured_at, stage, lineup_state,
+                       both_xi_confirmed, both_goalkeepers_confirmed
+                FROM soccer_lineup_snapshots
+                WHERE fixture_id = %s
+                ORDER BY captured_at DESC, snapshot_id DESC
+                LIMIT 1
+                """,
+                (fixture_id,),
+            )
+            row = cur.fetchone()
+            if row:
+                captured_at, stage, lineup_state, both_xi_confirmed, both_goalkeepers_confirmed = row
+                result["lineup"] = {
+                    "captured_at": _iso_value(captured_at),
+                    "stage": stage,
+                    "lineup_state": lineup_state,
+                    "both_xi_confirmed": both_xi_confirmed,
+                    "both_goalkeepers_confirmed": both_goalkeepers_confirmed,
+                }
+
+            cur.execute(
+                """
+                SELECT captured_at, stage,
+                       availability_confidence::double precision, payload
+                FROM soccer_availability_snapshots
+                WHERE fixture_id = %s
+                ORDER BY captured_at DESC, snapshot_id DESC
+                LIMIT 1
+                """,
+                (fixture_id,),
+            )
+            row = cur.fetchone()
+            if row:
+                captured_at, stage, availability_confidence, payload = row
+                result["availability"] = {
+                    "captured_at": _iso_value(captured_at),
+                    "stage": stage,
+                    "availability_confidence": availability_confidence,
+                    "payload": payload if isinstance(payload, dict) else {},
+                }
+
+    return result
 
 
 def _registry_fixture(row: dict[str, Any]) -> dict[str, Any]:
