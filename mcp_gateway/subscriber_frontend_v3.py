@@ -260,6 +260,10 @@ linear-gradient(180deg,#071923,#05141d);padding:8px;box-shadow:inset 0 1px 0 rgb
 .v3-dist{height:64px;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;align-items:end;border-bottom:1px solid #173849}.v3-dcol{height:100%;display:grid;grid-template-rows:1fr auto;gap:2px;text-align:center}
 .v3-dpair{height:100%;display:flex;justify-content:center;align-items:flex-end;gap:1px}.v3-dpair i{display:block;width:38%;min-height:2px;border-radius:2px 2px 0 0}.v3-dpair .h{background:#42afe3}.v3-dpair .a{background:#4bdfa9}.v3-dcol b{font-size:4.5px;color:#687f8d}
 .v3-mini-missing{min-height:52px;display:grid;place-content:center;text-align:center;color:#607d8d;border:1px dashed #234657;border-radius:6px;font-size:5px;line-height:1.4;padding:5px}
+.v3-fallback{display:grid;gap:5px}.v3-fallback-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;align-items:center}.v3-fallback-row span{font-size:4.5px;color:#6f8998;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v3-fallback-row b{font-size:6px}.v3-fallback-track{height:5px;border-radius:99px;background:#102a39;overflow:hidden}.v3-fallback-track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#2a83af,#53bee7)}
+.v3-form-mini{display:grid;gap:5px}.v3-form-team{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;align-items:center}.v3-form-team>span{font-size:4.5px;color:#6f8998;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v3-form-dots{display:flex;gap:2px}.v3-form-dots i{font-style:normal;width:14px;height:14px;border-radius:4px;display:grid;place-items:center;font-size:4.5px;font-weight:950;border:1px solid #25485a}.v3-form-dots .w{background:#0b2e24;color:#61dfb0;border-color:#24634d}.v3-form-dots .d{background:#2b230f;color:#e1ba62;border-color:#685327}.v3-form-dots .l{background:#2a151a;color:#ef8792;border-color:#66353c}
+.v3-coverage-mini{display:grid;grid-template-columns:48px minmax(0,1fr);gap:6px;align-items:center}.v3-coverage-ring{--p:0%;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#4bdfa9 var(--p),#123243 0);position:relative}.v3-coverage-ring::after{content:'';position:absolute;inset:6px;border-radius:50%;background:#071923}.v3-coverage-ring b{position:relative;z-index:1;font-size:9px}.v3-coverage-copy b{display:block;font-size:6px}.v3-coverage-copy span{display:block;margin-top:2px;font-size:4.5px;color:#6f8998;line-height:1.35}
+.v3-gate{display:grid;gap:5px}.v3-gate b{font-size:7px}.v3-gate span{font-size:4.5px;color:#6f8998;line-height:1.35}.v3-gate-pill{display:inline-flex;width:max-content;max-width:100%;padding:4px 6px;border:1px solid #625326;border-radius:6px;background:#231d0c;color:#dfb754;font-size:4.5px;font-weight:900}
 @media(max-width:820px){
  .v3-board{padding:6px;margin-bottom:6px}.v3-board-head{margin-bottom:5px}
  .v3-top-grid,.v3-bottom-grid{gap:4px}.v3-bi{padding:6px}
@@ -328,19 +332,65 @@ linear-gradient(180deg,#071923,#05141d);padding:8px;box-shadow:inset 0 1px 0 rgb
     const mx=Math.max(1,...Object.values(h),...Object.values(a));
     return '<div class="v3-dist">'+b.map(k=>'<div class="v3-dcol"><div class="v3-dpair"><i class="h" style="height:'+(h[k]/mx*100).toFixed(1)+'%"></i><i class="a" style="height:'+(a[k]/mx*100).toFixed(1)+'%"></i></div><b>'+k+'</b></div>').join('')+'</div>';
   }
+  function featureMap(d){return d?.relational_evidence?.feature_snapshots?.[0]?.payload?.features||{};}
+  function fval(fs,key){const r=fs?.[key];return r&&r.value!==null&&r.value!==undefined?r.value:null;}
+  function formSeq(v){return String(v||'').toUpperCase().replace(/[^WDL]/g,'').split('').slice(-5);}
+  function formDots(seq){return '<div class="v3-form-dots">'+seq.map(x=>'<i class="'+x.toLowerCase()+'">'+x+'</i>').join('')+'</div>';}
+  function rateFallback(d,f){
+    const fs=featureMap(d),h=n(fval(fs,'team_performance.home_goal_rate_blend')),a=n(fval(fs,'team_performance.away_goal_rate_blend')),t=n(fval(fs,'team_performance.total_goal_rate_blend'));
+    if(h===null&&a===null)return miss('Goal-rate baseline');
+    const mx=Math.max(1,...[h,a,t].filter(x=>x!==null));
+    const row=(name,v)=>'<div class="v3-fallback-row"><span>'+esc(name)+'</span><b>'+(v===null?'N/V':v.toFixed(2))+'</b></div><div class="v3-fallback-track"><i style="width:'+(v===null?0:Math.max(3,v/mx*100).toFixed(1))+'%"></i></div>';
+    return '<div class="v3-fallback">'+row(f.home_team||'Home',h)+row(f.away_team||'Away',a)+(t!==null?row('Combined',t):'')+'</div>';
+  }
+  function formFallback(d,f){
+    const fs=featureMap(d),h=formSeq(fval(fs,'team_performance.home_form')),a=formSeq(fval(fs,'team_performance.away_form'));
+    if(!h.length&&!a.length)return miss('Recent form');
+    return '<div class="v3-form-mini"><div class="v3-form-team"><span>'+esc(f.home_team||'Home')+'</span>'+formDots(h)+'</div><div class="v3-form-team"><span>'+esc(f.away_team||'Away')+'</span>'+formDots(a)+'</div></div>';
+  }
+  function coverageFallback(d){
+    const fs=featureMap(d),keys=['team_performance.home_form','team_performance.away_form','team_performance.home_goal_rate_blend','team_performance.away_goal_rate_blend','team_performance.home_goals_for_avg','team_performance.away_goals_for_avg','availability.home_formation','availability.away_formation','availability.both_xi_confirmed','availability.both_goalkeepers_confirmed','context.venue','context.city'];
+    const good=keys.filter(k=>fval(fs,k)!==null).length,pct=Math.round(good/keys.length*100);
+    return '<div class="v3-coverage-mini"><div class="v3-coverage-ring" style="--p:'+pct+'%"><b>'+pct+'%</b></div><div class="v3-coverage-copy"><b>'+good+' / '+keys.length+'</b><span>verified sport/context inputs</span></div></div>';
+  }
+  function availabilityFallback(d){
+    const fs=featureMap(d),home=fval(fs,'availability.home_formation'),away=fval(fs,'availability.away_formation'),xi=fval(fs,'availability.both_xi_confirmed'),gk=fval(fs,'availability.both_goalkeepers_confirmed');
+    if(home===null&&away===null&&xi===null&&gk===null)return miss('Availability');
+    return '<div class="v3-fallback">'+
+      '<div class="v3-fallback-row"><span>Home formation</span><b>'+esc(home??'N/V')+'</b></div>'+
+      '<div class="v3-fallback-row"><span>Away formation</span><b>'+esc(away??'N/V')+'</b></div>'+
+      '<div class="v3-fallback-row"><span>Both XI</span><b>'+(xi===null?'N/V':xi?'YES':'NO')+'</b></div>'+
+      '<div class="v3-fallback-row"><span>Goalkeepers</span><b>'+(gk===null?'N/V':gk?'YES':'NO')+'</b></div></div>';
+  }
+  function scoringFallback(d,f){
+    const fs=featureMap(d),hgf=n(fval(fs,'team_performance.home_goals_for_avg')),hga=n(fval(fs,'team_performance.home_goals_against_avg')),agf=n(fval(fs,'team_performance.away_goals_for_avg')),aga=n(fval(fs,'team_performance.away_goals_against_avg'));
+    if([hgf,hga,agf,aga].every(x=>x===null))return rateFallback(d,f);
+    return '<div class="v3-fallback">'+
+      '<div class="v3-fallback-row"><span>'+esc(f.home_team||'Home')+' GF/GA</span><b>'+(hgf===null?'N/V':hgf.toFixed(2))+' / '+(hga===null?'N/V':hga.toFixed(2))+'</b></div>'+
+      '<div class="v3-fallback-row"><span>'+esc(f.away_team||'Away')+' GF/GA</span><b>'+(agf===null?'N/V':agf.toFixed(2))+' / '+(aga===null?'N/V':aga.toFixed(2))+'</b></div></div>';
+  }
+  function marketGateFallback(d){
+    const cls=String(d?.decision_summary?.classification||d?.analyst_review?.status||'RESEARCH').replaceAll('_',' ');
+    return '<div class="v3-gate"><div class="v3-gate-pill">'+esc(cls)+'</div><b>No verified model-vs-market edge</b><span>Market remains secondary until sporting projection and fair-price inputs are both verified.</span></div>';
+  }
   function board(d){
-    const f=d?.fixture||{};
+    const f=d?.fixture||{},ctx=d?.sport_context||{},scoreRows=ctx.score_matrix||[];
+    const q=ctx.outcome_probabilities||{},hasProb=[p(q.home),p(q.draw),p(q.away)].every(x=>x!==null);
+    const x=ctx.expected_goals||{},hasXg=n(x.home)!==null&&n(x.away)!==null;
+    const hasProfile=(ctx.sport_profile||[]).length>0;
+    const hasScore=scoreRows.some(r=>score(r)&&p(r.probability)!==null);
+    const ladder=d?.projection_ladder||{},hasEdge=p(ladder.raw_sport_probability)!==null&&p(ladder.fair_market_probability)!==null;
     return '<section id="v3-premium-board" class="v3-board">'+
       '<div class="v3-board-head"><div><span>MATCH INTELLIGENCE</span><h3>Sport model snapshot</h3></div><small>SPORT FIRST</small></div>'+
       '<div class="v3-top-grid">'+
-        '<article class="v3-bi"><header><b>Result Probability</b><span>1X2</span></header>'+probs(d,f)+'</article>'+
-        '<article class="v3-bi"><header><b>Expected Goals</b><span>xG</span></header>'+xg(d,f)+'</article>'+
-        '<article class="v3-bi v3-edge-card"><header><b>Edge Gap</b><span>AFTER SPORT</span></header>'+edge(d)+'</article>'+
+        '<article class="v3-bi"><header><b>'+(hasProb?'Result Probability':'Goal-rate Split')+'</b><span>'+(hasProb?'1X2':'VERIFIED')+'</span></header>'+(hasProb?probs(d,f):rateFallback(d,f))+'</article>'+
+        '<article class="v3-bi"><header><b>'+(hasXg?'Expected Goals':'Recent Form')+'</b><span>'+(hasXg?'xG':'W/D/L')+'</span></header>'+(hasXg?xg(d,f):formFallback(d,f))+'</article>'+
+        '<article class="v3-bi v3-edge-card"><header><b>'+(hasEdge?'Edge Gap':'Market Gate')+'</b><span>AFTER SPORT</span></header>'+(hasEdge?edge(d):marketGateFallback(d))+'</article>'+
       '</div>'+
       '<div class="v3-bottom-grid">'+
-        '<article class="v3-bi v3-profile-card"><header><b>Sport Profile</b><span>MODEL</span></header>'+profile(d)+'</article>'+
-        '<article class="v3-bi"><header><b>Score Matrix</b><span>FT</span></header>'+heat(d)+'</article>'+
-        '<article class="v3-bi"><header><b>Goal Distribution</b><span>MODEL</span></header>'+dist(d)+'</article>'+
+        '<article class="v3-bi v3-profile-card"><header><b>'+(hasProfile?'Sport Profile':'Data Coverage')+'</b><span>'+(hasProfile?'MODEL':'EVIDENCE')+'</span></header>'+(hasProfile?profile(d):coverageFallback(d))+'</article>'+
+        '<article class="v3-bi"><header><b>'+(hasScore?'Score Matrix':'Availability')+'</b><span>'+(hasScore?'FT':'SPORT')+'</span></header>'+(hasScore?heat(d):availabilityFallback(d))+'</article>'+
+        '<article class="v3-bi"><header><b>'+(hasScore?'Goal Distribution':'Scoring Context')+'</b><span>'+(hasScore?'MODEL':'SPORT')+'</span></header>'+(hasScore?dist(d):scoringFallback(d,f))+'</article>'+
       '</div></section>';
   }
   function overviewActive(){
