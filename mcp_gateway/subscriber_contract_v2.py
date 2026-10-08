@@ -1139,6 +1139,7 @@ def _attach_full_registry_slate(
         "WATCH": 0,
         "PASS": 0,
         "PARTIAL_DATA": 0,
+        "DATA_AVAILABLE": 0,
         "INSUFFICIENT_DATA": 0,
     }
 
@@ -1147,19 +1148,43 @@ def _attach_full_registry_slate(
             continue
         fixture = _registry_fixture(row)
         key = str(fixture.get("fixture_id") or "")
+        inventory = _dict(row.get("evidence_inventory"))
+        persisted_evidence_count = sum(
+            int(inventory.get(name) or 0)
+            for name in (
+                "refresh_events",
+                "market_snapshots",
+                "model_runs",
+                "feature_snapshots",
+                "lineup_snapshots",
+                "availability_snapshots",
+            )
+        )
+        data_sources = [
+            label
+            for key_name, label in (
+                ("refresh_events", "refresh"),
+                ("market_snapshots", "market"),
+                ("model_runs", "model"),
+                ("feature_snapshots", "features"),
+                ("lineup_snapshots", "lineup"),
+                ("availability_snapshots", "availability"),
+            )
+            if int(inventory.get(key_name) or 0) > 0
+        ]
         cov = dict(coverage.get(key) or {})
         if cov:
             status = str(cov.get("coverage_status") or "PARTIAL_DATA").upper()
             reason = cov.get("decision_reason")
             if not reason:
                 reason = (
-                    "Persisted analysis exists for "
+                    "Current snapshot analysis exists for "
                     + ", ".join(cov.get("markets") or [])
                     if cov.get("markets")
-                    else "Persisted analysis is partial; unsupported or missing fields remain NOT VERIFIED."
+                    else "Current snapshot analysis is partial; unsupported or missing fields remain NOT VERIFIED."
                 )
         else:
-            status = "INSUFFICIENT_DATA"
+            status = "DATA_AVAILABLE" if persisted_evidence_count > 0 else "INSUFFICIENT_DATA"
             cov = {
                 "analysis_rows": 0,
                 "markets": [],
@@ -1171,7 +1196,16 @@ def _attach_full_registry_slate(
                 "best_market": None,
                 "coverage_status": status,
             }
-            reason = "Fixture is in the eligible slate, but deep analysis is not persisted yet."
+            reason = (
+                "Persisted fixture evidence exists outside the latest pipeline tick; open the match to inspect it."
+                if persisted_evidence_count > 0
+                else "Fixture is in the eligible slate, but no persisted deep-analysis evidence is available yet."
+            )
+
+        cov["persisted_evidence_count"] = persisted_evidence_count
+        cov["data_sources"] = data_sources
+        cov["persisted_market_names"] = list(inventory.get("market_names") or [])
+        cov["evidence_inventory"] = inventory
 
         summary[status] = summary.get(status, 0) + 1
         full_rows.append(
@@ -1696,6 +1730,7 @@ def build_match_contract(
     payload: dict[str, Any],
     fixture_value: Any,
     registry_fixture: dict[str, Any] | None = None,
+    relational_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Build one fixture intelligence packet from persisted evidence only.
 
@@ -1704,6 +1739,19 @@ def build_match_contract(
     """
 
     raw_rows = subscriber_preview_data_v231._fixture_rows(payload, fixture_value)
+    relational_evidence = relational_evidence if isinstance(relational_evidence, dict) else {}
+    relational_counts = _dict(relational_evidence.get("counts"))
+    relational_count = sum(
+        int(relational_counts.get(name) or 0)
+        for name in (
+            "refresh_events",
+            "market_snapshots",
+            "model_runs",
+            "feature_snapshots",
+            "lineup_snapshots",
+            "availability_snapshots",
+        )
+    )
     if not raw_rows:
         if not isinstance(registry_fixture, dict):
             return None
@@ -1720,20 +1768,25 @@ def build_match_contract(
         return {
             "schema_version": SCHEMA_VERSION,
             "model_version": MODEL_VERSION,
-            "status": "MATCH_INTELLIGENCE_INSUFFICIENT_DATA",
+            "status": (
+                "MATCH_INTELLIGENCE_PERSISTED_EVIDENCE"
+                if relational_count > 0
+                else "MATCH_INTELLIGENCE_INSUFFICIENT_DATA"
+            ),
             "source": "POSTGRES_SOCCER_FIXTURES",
             "generated_at_utc": payload.get("generated_at_utc"),
             "fixture": fixture,
             "selected_candidate": None,
             "decision_summary": {
                 "classification": None,
-                "display_bucket": "INSUFFICIENT DATA",
+                "display_bucket": "DATA AVAILABLE" if relational_count > 0 else "INSUFFICIENT DATA",
                 "tier": None,
                 "execution_status": None,
                 "stage": None,
                 "reason_display": (
-                    "Fixture is in the eligible slate, but no persisted deep-analysis "
-                    "rows exist for it yet."
+                    "Persisted evidence exists for this fixture outside the latest pipeline tick."
+                    if relational_count > 0
+                    else "Fixture is in the eligible slate, but no persisted deep-analysis rows exist for it yet."
                 ),
             },
             "projection_ladder": {
@@ -1786,18 +1839,26 @@ def build_match_contract(
                 "freshness": {},
             },
             "analyst_review": {
-                "status": "INSUFFICIENT_DATA",
+                "status": "DATA_AVAILABLE" if relational_count > 0 else "INSUFFICIENT_DATA",
                 "analysis_rows": 0,
-                "available_markets": [],
+                "persisted_evidence_count": relational_count,
+                "available_markets": list(relational_counts.get("market_names") or []),
                 "verified_price_markets": [],
-                "available_sections": ["FIXTURE_IDENTITY"],
+                "available_sections": (
+                    ["FIXTURE_IDENTITY", "PERSISTED_EVIDENCE"]
+                    if relational_count > 0
+                    else ["FIXTURE_IDENTITY"]
+                ),
                 "missing_sections": missing,
                 "human_review_allowed": True,
                 "note": (
-                    "This screen exposes what is actually persisted for human review. "
-                    "No betting edge is implied by fixture presence alone."
+                    "Persisted refresh, market, model, feature, lineup and availability evidence is shown below. "
+                    "Evidence outside the latest pipeline tick is not automatically a current BET signal."
+                    if relational_count > 0
+                    else "This screen exposes what is actually persisted for human review. No betting edge is implied by fixture presence alone."
                 ),
             },
+            "relational_evidence": relational_evidence,
             "data_disclosure": {
                 "persisted_fixture_row_count": 0,
                 "missing_sections": missing,
@@ -1962,6 +2023,7 @@ def build_match_contract(
                 "including partial markets. This view does not create or promote a BET."
             ),
         },
+        "relational_evidence": relational_evidence,
         "data_disclosure": {
             "persisted_fixture_row_count": len(raw_rows),
             "missing_sections": missing,
@@ -2000,11 +2062,20 @@ async def match_detail(request: Request) -> JSONResponse:
         return _no_store({"error": "NO_PERSISTED_PIPELINE_RUN"}, status_code=503)
 
     try:
-        registry_fixture = await asyncio.to_thread(_load_registry_fixture, fixture_value)
+        registry_fixture, relational_evidence = await asyncio.gather(
+            asyncio.to_thread(_load_registry_fixture, fixture_value),
+            asyncio.to_thread(_load_registry_fixture_evidence, fixture_value),
+        )
     except Exception:
         registry_fixture = None
+        relational_evidence = {}
 
-    result = build_match_contract(payload, fixture_value, registry_fixture)
+    result = build_match_contract(
+        payload,
+        fixture_value,
+        registry_fixture,
+        relational_evidence,
+    )
     if result is None:
         return _no_store({"error": "FIXTURE_NOT_IN_REGISTRY_OR_PERSISTED_SNAPSHOT"}, status_code=404)
     return _no_store(result)
