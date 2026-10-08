@@ -98,6 +98,7 @@ def _install_subscriber_app_routes() -> None:
             subscriber_product_v235,
             subscriber_contract_v2,
             subscriber_frontend_v2,
+            subscriber_frontend_v3,
             subscriber_pwa_v2,
             subscriber_preview_data_v231,
             subscriber_preview_maturity_v232,
@@ -117,6 +118,10 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_primary"))
         if "/app-v2" not in existing_paths:
             additions.append(Route("/app-v2", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_preview"))
+        if "/app-v3" not in existing_paths:
+            additions.append(Route("/app-v3", subscriber_frontend_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_preview"))
+        if "/app-v3/match/{fixture_id:int}" not in existing_paths:
+            additions.append(Route("/app-v3/match/{fixture_id:int}", subscriber_frontend_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_match_page"))
         if "/app/match/{fixture_id:int}" not in existing_paths:
             additions.append(Route("/app/match/{fixture_id:int}", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_match_page"))
         if "/app.webmanifest" not in existing_paths:
