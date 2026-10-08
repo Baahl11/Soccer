@@ -113,3 +113,10 @@ def test_fe2_match_navigation_uses_dedicated_url_and_direct_boot_route():
     assert "← All matches" in html
     assert "matchesBrowsePanel" in html
 
+def test_fe2_identity_enrichment_chunks_large_slates_and_shows_relational_evidence():
+    html = subscriber_frontend_v2.render()
+
+    assert "for(let i=0;i<ids.length;i+=80)" in html
+    assert "Persisted relational market snapshots" in html
+    assert "Persisted relational model runs" in html
+    assert "Total persisted evidence" in html
