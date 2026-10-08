@@ -27,5 +27,6 @@ def test_v3_html_contains_real_visual_match_components():
 
 def test_v3_normalizes_nested_registry_fixture_rows():
     html = subscriber_frontend_v3._html()
-    assert "r={...r,...(r?.fixture||{})}" in html
+    assert "url.includes('/app/api/v2/today')" in html
+    assert "Object.assign({}, row, row.fixture)" in html
     assert "/app-v3/match/" in html
