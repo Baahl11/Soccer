@@ -410,7 +410,8 @@ def contract() -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
-        "route": "/app-v2",
+        "route": "/app",
+        "preview_alias": "/app-v2",
         "data_source": "/app/api/v2",
         "mock_data": False,
         "single_bootstrap_controller": True,
