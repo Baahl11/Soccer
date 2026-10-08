@@ -55,14 +55,14 @@ def test_fe8_landing_analytics_are_product_only_and_allowed_events():
     assert "canonical_bet_logic_changed" not in html.split("<script>")[-1]
 
 
-def test_fe8_landing_routes_to_v2_app_and_has_responsible_risk_copy():
+def test_fe8_landing_routes_to_primary_app_and_has_responsible_risk_copy():
     html = landing_page_v2.render()
     contract = landing_page_v2.contract()
 
-    assert 'href="/app-v2"' in html
+    assert 'href="/app"' in html
     assert "Betting involves risk" in html
     assert "Apostar implica riesgo" in html
-    assert contract["app_destination"] == "/app-v2"
+    assert contract["app_destination"] == "/app"
     assert contract["responsible_risk_copy_present"] is True
 
 
