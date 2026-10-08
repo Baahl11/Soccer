@@ -125,10 +125,9 @@ async def _daily_discovery_event(
         tier = coverage.get("data_tier") or "D"
         tier_counts[tier] += 1
         league_counts[f"{fx.get('country') or ''} | {fx.get('league') or ''}"] += 1
-        if tier in {"A", "B", "C"}:
-            item = dict(fx)
-            item["data_tier"] = tier
-            upcoming.append(item)
+        item = dict(fx)
+        item["data_tier"] = tier
+        upcoming.append(item)
 
     upcoming.sort(key=lambda x: x.get("kickoff") or "")
     # Compact state remains bounded. Counts describe the complete slate; the
@@ -157,7 +156,7 @@ async def _daily_discovery_event(
         "model_version": "SOCCER EDGE ENGINE v1.0",
         "notes": [
             "Complete current slate counted using API-Football fixtures and bulk competition coverage.",
-            "Only Data Tier A/B/C fixtures are attached for sporting analysis; detailed markets remain downstream of the sporting screen.",
+            "Every upcoming fixture is retained in the bounded sporting-analysis universe; coverage tier controls BET eligibility, not whether the fixture may be screened.",
             "Daily discovery is emitted once per Mexico City calendar date even if the service starts after 06:00.",
         ],
     }
