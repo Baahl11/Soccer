@@ -41,3 +41,14 @@ def test_v3_injects_mockup_match_intelligence_board():
     assert "Sport Profile" in html
     assert "Goal Distribution" in html
     assert "url.includes('/app/api/v2/match/')" in html
+
+
+def test_v3_adaptive_board_uses_verified_sport_fallbacks_instead_of_fake_model_data():
+    html = subscriber_frontend_v3._html()
+    assert "Goal-rate Split" in html
+    assert "Recent Form" in html
+    assert "Data Coverage" in html
+    assert "Availability" in html
+    assert "Scoring Context" in html
+    assert "Market Gate" in html
+    assert "No verified model-vs-market edge" in html
