@@ -161,15 +161,16 @@ background:radial-gradient(circle at 50% 0,rgba(52,150,190,.035),transparent 52%
 .edge-svg{height:72px;margin-top:0}
 .edge-base{stroke:#163747;stroke-width:1.4;stroke-linecap:round}
 .edge-tick{stroke:#214a5c;stroke-width:1}
-.edge-gap-glow{stroke:url(#edgeGapAccent);stroke-width:11;stroke-linecap:round;opacity:.20;filter:url(#edgeGlow)}
-.edge-gap-focus{stroke:url(#edgeGapAccent);stroke-width:5.5;stroke-linecap:round}
+.edge-gap-glow{stroke:#e5bd5b;stroke-width:12;stroke-linecap:round;opacity:.16}
+.edge-gap-focus{stroke:#f2c968;stroke-width:6;stroke-linecap:round}
+.edge-gap-core{stroke:#ffe08a;stroke-width:2;stroke-linecap:round;opacity:.95}
 .edge-market-dot{fill:#45afe2;stroke:#071923;stroke-width:2.2}
 .edge-model-dot{fill:#4bd8a3;stroke:#071923;stroke-width:2.2}
 .edge-scale{fill:#536f7e;font-size:5px;font-weight:800;text-anchor:middle}
 .edge-point-label{font-size:5px;font-weight:900;text-anchor:middle}
 .edge-point-label.market{fill:#73c6ef}.edge-point-label.model{fill:#70e4ba}
-.edge-gap-pill{fill:#0b2a23;stroke:#2c7e63;stroke-width:1}
-.edge-gap-pill-text{fill:#69e3b9;font-size:4.8px;font-weight:950;text-anchor:middle;letter-spacing:.05em}
+.edge-gap-pill{fill:#2b2412;stroke:#b89336;stroke-width:1}
+.edge-gap-pill-text{fill:#f2cf72;font-size:4.8px;font-weight:950;text-anchor:middle;letter-spacing:.05em}
 .edge-value{margin-top:1px;font-size:18px;font-weight:950;color:#59ddb0;letter-spacing:-.04em;text-shadow:0 0 14px rgba(89,221,176,.10)}
 .edge-caption{margin-top:1px;font-size:4.6px;color:#607a89;letter-spacing:.02em}
 .dist-svg{height:92px;margin-top:5px}
@@ -394,21 +395,12 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
           <article class="module edge-card">
             <div class="panel-head"><h3>Edge Gap</h3><span>EXAMPLE MARKET</span></div>
             <svg class="chart-svg edge-svg" viewBox="0 0 260 76" aria-label="Model versus market">
-              <defs>
-                <linearGradient id="edgeGapAccent" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#45afe2"/>
-                  <stop offset="55%" stop-color="#42c9c3"/>
-                  <stop offset="100%" stop-color="#4bd8a3"/>
-                </linearGradient>
-                <filter id="edgeGlow" x="-50%" y="-80%" width="200%" height="260%">
-                  <feGaussianBlur stdDeviation="3.2" result="blur"/>
-                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-              </defs>
               <rect x="111" y="3" width="52" height="14" rx="7" class="edge-gap-pill"/>
               <text x="137" y="12.5" class="edge-gap-pill-text">EDGE +11.7</text>
 
-              <line x1="22" y1="46" x2="238" y2="46" class="edge-base"/>
+              <!-- neutral scale stops outside the gap -->
+              <line x1="22" y1="46" x2="95" y2="46" class="edge-base"/>
+              <line x1="179" y1="46" x2="238" y2="46" class="edge-base"/>
               <line x1="22" y1="41" x2="22" y2="51" class="edge-tick"/>
               <line x1="94" y1="41" x2="94" y2="51" class="edge-tick"/>
               <line x1="166" y1="41" x2="166" y2="51" class="edge-tick"/>
@@ -418,8 +410,10 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
               <text x="166" y="66" class="edge-scale">70%</text>
               <text x="238" y="66" class="edge-scale">80%</text>
 
+              <!-- explicit high-contrast EDGE segment: no gradient/filter dependency -->
               <line x1="95" y1="46" x2="179" y2="46" class="edge-gap-glow"/>
               <line x1="95" y1="46" x2="179" y2="46" class="edge-gap-focus"/>
+              <line x1="98" y1="46" x2="176" y2="46" class="edge-gap-core"/>
               <circle cx="95" cy="46" r="6.2" class="edge-market-dot"/>
               <circle cx="179" cy="46" r="6.2" class="edge-model-dot"/>
               <text x="95" y="28" class="edge-point-label market">MARKET 60.1</text>
