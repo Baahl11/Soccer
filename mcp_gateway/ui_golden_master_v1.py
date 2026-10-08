@@ -71,7 +71,7 @@ button{font:inherit}
 .live{display:flex;align-items:center;gap:4px;color:#57dcae;font-weight:900}
 .live i{width:6px;height:6px;border-radius:50%;background:#50d6a6;box-shadow:0 0 9px #50d6a6}
 .hero{
-  display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:14px;padding:14px 15px 12px;border-bottom:1px solid rgba(45,93,117,.34);
+  display:grid;grid-template-columns:minmax(0,1fr) 146px;gap:12px;padding:12px 14px 10px;border-bottom:1px solid rgba(45,93,117,.28);
   background:
     radial-gradient(circle at 22% 0,rgba(57,156,198,.12),transparent 30%),
     radial-gradient(circle at 79% 18%,rgba(53,201,162,.055),transparent 20%),
@@ -83,15 +83,15 @@ button{font:inherit}
   background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.018) 36%,transparent 52%)
 }
 .hero-left{min-width:0}
-.hero-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;color:#7992a1;font-size:6px;letter-spacing:.01em}
+.hero-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;color:#849aa6;font-size:6.1px;letter-spacing:.015em}
 .hero-meta b{color:#a1b3bd}
-.hero-kicker{display:flex;align-items:center;gap:6px;margin:-2px 0 7px}
+.hero-kicker{display:flex;align-items:center;gap:6px;margin:-1px 0 6px}
 .hero-kicker span{padding:3px 5px;border:1px solid #265a72;border-radius:999px;background:#0a2635;color:#72c9ee;font-size:4.5px;font-weight:900;letter-spacing:.08em}
 .hero-kicker b{font-size:5.2px;color:#6d8796;font-weight:800}
 .faceoff{display:grid;grid-template-columns:1fr 42px 1fr;gap:10px;align-items:center}
 .team{display:grid;justify-items:center;gap:5px;text-align:center;min-width:0}
 .crest{
-  width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
+  width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
   background:
     radial-gradient(circle at 35% 25%,rgba(255,255,255,.09),transparent 24%),
     linear-gradient(180deg,#12384d,#091e2a);
@@ -107,7 +107,7 @@ button{font:inherit}
 }
 .ars{background:linear-gradient(180deg,#e13a4b,#9b1424)}
 .bha{background:linear-gradient(180deg,#2e78d3,#174791)}
-.team b{font-size:13px;line-height:1.02;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.025em;font-weight:900}
+.team b{font-size:12.5px;line-height:1.02;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.022em;font-weight:900}
 .team span{font-size:5.4px;color:#6a8391;text-transform:uppercase;letter-spacing:.08em}
 .vs{
   text-align:center;font-size:8px;color:#8aa1ad;font-weight:950;letter-spacing:.08em;position:relative
@@ -365,9 +365,47 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .ou-gauge .lab.model{left:64.4%;color:#84cbb9}
 .ou-scale{display:flex;justify-content:space-between;padding:0 8px;color:#506c7b;font-size:3.4px}
 .dist-focus{fill:#0e2b37;opacity:.42}
+
+/* Golden Master final polish */
+.panel-head h3{font-size:7.7px}
+.panel-head span{font-size:4.9px;color:#6b8390}
+.section-title p{color:#748b98}
+.axis{color:#78909d}
+.mini-axis{color:#718894}
+.profile-caption{color:#647d89}
+.dist-label{fill:#708794}
+.legend{color:#718794}
+.microcopy,.xg-caption{color:#687f8b}
+
+.matrix-layout{align-items:center}
+.matrix-main{align-self:center}
+.scoring-profiles{align-self:stretch}
+
+.ou-read{
+  padding:2px 0 5px;
+  border-bottom:1px solid rgba(42,86,108,.26)
+}
+.ou-hero b{font-size:20px}
+.ou-hero strong{color:#78c9b5}
+.ou-gauge{height:40px;margin:1px 0 0}
+.ou-gauge .base{top:24px}
+.ou-gauge .edge{top:22px}
+.ou-gauge .mark{top:17px}
+.ou-gauge .lab{
+  top:1px;padding:2px 4px;border-radius:999px;
+  background:#071c26;border:1px solid rgba(55,103,126,.38);
+  font-size:3.8px;letter-spacing:.03em
+}
+.ou-gauge .lab.market{left:51%;color:#82bdd2}
+.ou-gauge .lab.model{left:69%;color:#8bd2c0}
+.ou-scale{margin-top:-2px;color:#5b7481}
+.dist-focus{fill:#12303b;opacity:.30}
+.goals-card .dist-svg{margin-top:5px}
+.read{border-color:rgba(48,111,137,.34);border-left-color:#63c4ad}
+.audit-line,.footer-note{letter-spacing:.01em}
 @media(max-width:740px){
   .shell{display:block;border:0;max-width:none}.rail{display:none}.topbar{height:44px;padding:0 10px}
-  .hero{grid-template-columns:minmax(0,1fr) 108px;padding:11px 10px 10px}.crest{width:54px;height:54px}.shield{width:33px;height:40px}.team b{font-size:11px;max-width:118px}
+  .hero{grid-template-columns:minmax(0,1fr) 104px;padding:9px 10px 9px}.crest{width:50px;height:50px}.shield{width:31px;height:38px}.team b{font-size:10.8px;max-width:118px}
   .quality{border-radius:7px}.qrow{padding:6px}.qrow span{font-size:4.8px}.qrow b{font-size:5.2px}
   .tabs{padding:6px 7px}.tabs button{padding:6px 8px;font-size:6px}
   .content{padding:7px}.grid.top{grid-template-columns:1.15fr .72fr .86fr}.grid.mid{grid-template-columns:.92fr .93fr 1.15fr}
@@ -377,9 +415,9 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
   .distribution{height:63px}
 }
 @media(max-width:430px){
-  .topbar .back{font-size:6px}.live-wrap{font-size:5.3px}.hero{grid-template-columns:minmax(0,1fr) 96px;gap:7px;padding:9px 8px 8px}
-  .crest{width:48px;height:48px}.team b{font-size:9.5px;max-width:105px}.hero-meta{font-size:5px}.qrow{padding:5px}
-  .content{padding:6px}.section-title h1{font-size:10.5px}.section-title p{font-size:4.8px}
+  .topbar .back{font-size:6.2px}.live-wrap{font-size:5.5px}.hero{grid-template-columns:minmax(0,1fr) 94px;gap:7px;padding:8px 8px 8px}
+  .crest{width:47px;height:47px}.team b{font-size:9.8px;max-width:105px}.hero-meta{font-size:5.2px}.qrow{padding:5px}
+  .content{padding:6px}.section-title h1{font-size:10.8px}.section-title p{font-size:5px}
   .visual-strip{grid-template-columns:repeat(4,minmax(0,1fr))}.visual-stat{padding:5px 4px}.visual-stat span{font-size:3.8px}.visual-stat b{font-size:6.2px}
   .grid{gap:5px}.grid.top{grid-template-columns:1.18fr .82fr}.grid.top .edge-card{grid-column:1/-1}
   .grid.mid{grid-template-columns:1fr 1fr}.grid.mid .goals-card{grid-column:1/-1}
@@ -407,22 +445,22 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 
   .matrix-card{padding-bottom:10px}
   .matrix-card .panel-head{margin-bottom:8px}
-  .matrix-layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(132px,.82fr);gap:8px;align-items:start}
-  .matrix-main{min-width:0}
+  .matrix-layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(132px,.82fr);gap:8px;align-items:center}
+  .matrix-main{min-width:0;align-self:center}
   .matrix-main .matrix{grid-template-columns:13px repeat(5,minmax(0,1fr));gap:2.5px;max-width:none;margin:0}
-  .matrix-main .axis{font-size:3.9px}
+  .matrix-main .axis{font-size:4.2px}
   .matrix-main .cell{aspect-ratio:1.34/1;font-size:4.7px;border-radius:3px}
-  .matrix-note{font-size:4.1px;margin-top:4px}
+  .matrix-note{font-size:4.4px;margin-top:5px}
   .scoring-profiles{display:grid;grid-template-columns:1fr;gap:5px;margin:0;padding-left:7px;border-left:1px solid rgba(43,88,109,.42)}
   .team-profile{padding:4px;border-radius:6px}
-  .team-profile-head{margin-bottom:3px}.team-profile-head b{font-size:4.7px}.team-profile-head span{font-size:3.2px}
+  .team-profile-head{margin-bottom:3px}.team-profile-head b{font-size:4.9px}.team-profile-head span{font-size:3.4px}
   .mini-matrix{grid-template-columns:7px repeat(5,minmax(0,1fr));gap:1.3px}
-  .mini-axis{font-size:2.8px}
-  .mini-cell{aspect-ratio:1.22/1;font-size:3px;border-radius:2px}
-  .profile-caption{font-size:2.9px;margin-top:2px}
+  .mini-axis{font-size:3.1px}
+  .mini-cell{aspect-ratio:1.22/1;font-size:3.2px;border-radius:2px}
+  .profile-caption{font-size:3.1px;margin-top:2px}
 
   .xg-summary{gap:4px}.xg-team b{font-size:18px}.xg-meta div{padding:4px 2px}.xg-trend{height:28px}
-  .goals-card{display:block}.goals-card .panel-head{margin-bottom:7px}.ou-read{grid-template-columns:106px minmax(0,1fr);gap:9px}.ou-hero{padding-right:9px}.ou-hero b{font-size:17px}.ou-gauge{height:32px}.goals-card .dist-svg{height:78px;margin-top:3px}.goals-card .legend{margin-top:2px}
+  .goals-card{display:block}.goals-card .panel-head{margin-bottom:7px}.ou-read{grid-template-columns:104px minmax(0,1fr);gap:9px}.ou-hero{padding-right:9px}.ou-hero b{font-size:17.5px}.ou-gauge{height:38px}.ou-gauge .lab{font-size:3.6px}.ou-gauge .lab.market{left:49%}.ou-gauge .lab.model{left:70%}.goals-card .dist-svg{height:76px;margin-top:4px}.goals-card .legend{margin-top:3px;font-size:4.7px}
   .read{grid-template-columns:28px minmax(0,1fr) auto}.read-mark{width:28px;height:28px}
 }
 </style>
