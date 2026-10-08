@@ -46,3 +46,11 @@ def test_golden_master_compacts_matrices_and_refines_xg_and_goals():
     assert "MODEL OVER 2.5" in html
     assert "Market fair 55.3%" in html
     assert "aspect-ratio:1.34/1" in html
+
+
+def test_golden_master_probability_hierarchy_and_color_contrast_pass():
+    html = ui_golden_master_v1._html()
+    assert "grid-template-columns:1.18fr .91fr .91fr" in html
+    assert "prob.home b{font-size:15px" in html
+    assert "home-p5{background:#42a087" in html
+    assert "away-p5{background:#3d83a1" in html
