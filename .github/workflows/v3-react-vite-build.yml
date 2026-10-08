@@ -4,9 +4,16 @@ on:
   push:
     branches: [soccer-edge-mcp-v1]
     paths:
-      - "web_v3/**"
+      - "web_v3/src/**"
+      - "web_v3/index.html"
+      - "web_v3/package.json"
+      - "web_v3/tsconfig*.json"
+      - "web_v3/vite.config.ts"
       - ".github/workflows/v3-react-vite-build.yml"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -23,3 +30,15 @@ jobs:
           cache-dependency-path: web_v3/package.json
       - run: npm install
       - run: npm run build
+      - name: Commit built preview
+        working-directory: .
+        run: |
+          git config user.name "soccer-edge-ci"
+          git config user.email "soccer-edge-ci@users.noreply.github.com"
+          git add -f web_v3/dist web_v3/package-lock.json
+          if git diff --cached --quiet; then
+            echo "No frontend build changes"
+          else
+            git commit -m "build: refresh React Vite preview [skip ci]"
+            git push origin HEAD:soccer-edge-mcp-v1
+          fi
