@@ -94,3 +94,12 @@ def test_fe2_full_slate_exposes_coverage_and_insufficient_data_copy():
     assert "Insufficient data · fixture only" in html
     assert "Data: " in html
     assert 'data-intel="' in html
+
+def test_fe2_every_slate_fixture_is_openable_for_data_review():
+    html = subscriber_frontend_v2.render()
+
+    assert "Open data →" in html
+    assert "Human review · data inventory" in html
+    assert "Analyst review boundary" in html
+    assert "document.querySelectorAll('.slate-row[data-fixture]')" in html
+    assert '[data-intel="1"]' not in html
