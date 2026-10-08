@@ -85,6 +85,9 @@ button{font:inherit}
 .hero-left{min-width:0}
 .hero-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;color:#7992a1;font-size:6px;letter-spacing:.01em}
 .hero-meta b{color:#a1b3bd}
+.hero-kicker{display:flex;align-items:center;gap:6px;margin:-2px 0 7px}
+.hero-kicker span{padding:3px 5px;border:1px solid #265a72;border-radius:999px;background:#0a2635;color:#72c9ee;font-size:4.5px;font-weight:900;letter-spacing:.08em}
+.hero-kicker b{font-size:5.2px;color:#6d8796;font-weight:800}
 .faceoff{display:grid;grid-template-columns:1fr 30px 1fr;gap:8px;align-items:center}
 .team{display:grid;justify-items:center;gap:5px;text-align:center;min-width:0}
 .crest{
@@ -130,6 +133,38 @@ background:radial-gradient(circle at 50% 0,rgba(52,150,190,.035),transparent 52%
 .grid{display:grid;gap:7px}
 .grid.top{grid-template-columns:1.1fr .72fr .78fr}
 .grid.mid{grid-template-columns:.9fr .92fr 1.18fr;margin-top:7px}
+.intelligence-deck{
+  display:grid;border:1px solid rgba(55,112,140,.38);border-radius:12px;overflow:hidden;
+  background:
+    radial-gradient(circle at 13% 0,rgba(67,170,216,.055),transparent 28%),
+    linear-gradient(180deg,rgba(9,28,39,.84),rgba(5,19,27,.9));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.028),0 14px 34px rgba(0,0,0,.18)
+}
+.top-deck{grid-template-columns:1.14fr .72fr .82fr}
+.mid-deck{grid-template-columns:.92fr .94fr 1.14fr;margin-top:7px}
+.module{
+  min-width:0;padding:9px;position:relative;background:transparent
+}
+.module+.module{border-left:1px solid rgba(38,82,104,.5)}
+.module::before{
+  content:'';position:absolute;left:9px;right:9px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(125,204,234,.14),transparent)
+}
+.top-deck .probability-card{background:linear-gradient(180deg,rgba(13,39,52,.34),transparent)}
+.top-deck .edge-card{background:linear-gradient(180deg,rgba(9,42,35,.16),transparent)}
+.mid-deck .matrix-card{background:linear-gradient(180deg,rgba(11,37,50,.24),transparent)}
+.chart-svg{width:100%;display:block;overflow:visible}
+.edge-svg{height:58px;margin-top:2px}
+.edge-axis{stroke:#173748;stroke-width:1}
+.edge-model{stroke:#4bd8a3;stroke-width:5;stroke-linecap:round}
+.edge-market{stroke:#3d98c6;stroke-width:5;stroke-linecap:round}
+.edge-marker.model{fill:#4bd8a3}.edge-marker.market{fill:#3d98c6}
+.edge-label{fill:#6f8998;font-size:5px;font-weight:800}
+.edge-number{fill:#e9f4f8;font-size:5px;font-weight:900;text-anchor:end}
+.dist-svg{height:92px;margin-top:5px}
+.dist-grid{stroke:#173748;stroke-width:.8}
+.dist-home{fill:url(#homeBar)}.dist-away{fill:url(#awayBar)}
+.dist-label{fill:#687f8e;font-size:5px;text-anchor:middle}
 .panel{
   min-width:0;border:1px solid rgba(55,112,140,.34);border-radius:var(--radius);padding:8px;
   background:
@@ -241,6 +276,9 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
   .visual-strip{gap:4px}.visual-stat span{font-size:4px}.visual-stat b{font-size:6.5px}
   .grid{gap:5px}.grid.top{grid-template-columns:1.18fr .82fr}.grid.top .edge-card{grid-column:1/-1}
   .grid.mid{grid-template-columns:1fr 1fr}.grid.mid .goals-card{grid-column:1/-1}
+  .top-deck{grid-template-columns:1.12fr .88fr}.top-deck .edge-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
+  .mid-deck{grid-template-columns:1fr 1fr}.mid-deck .goals-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
+  .module{padding:7px}.module+.module{border-left:1px solid rgba(38,82,104,.5)}
   .edge-card{display:grid;grid-template-columns:1fr 80px;gap:7px}.edge-card .panel-head{grid-column:1/-1;margin-bottom:2px}.edge-bars{align-self:start}.edge-value{font-size:13px}
   .profile-row{grid-template-columns:53px minmax(0,1fr) 27px}
   .goals-card{display:grid;grid-template-columns:112px minmax(0,1fr);column-gap:8px}.goals-card .panel-head{grid-column:1/-1}.goals-card .distribution{margin-top:0}.legend{margin-top:2px}
@@ -273,6 +311,7 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
       <section class="hero">
         <div class="hero-left">
           <div class="hero-meta"><b>Premier League · Today</b><span>20:00</span></div>
+          <div class="hero-kicker"><span>PRE-MATCH</span><b>Match Intelligence</b></div>
           <div class="faceoff">
             <div class="team"><div class="crest"><div class="shield ars">ARS</div></div><b>Arsenal</b><span>Home</span></div>
             <div class="vs">VS</div>
@@ -303,8 +342,8 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
           <div class="visual-stat"><span>MARKET</span><b class="info">FRESH</b></div>
         </div>
 
-        <section class="grid top">
-          <article class="panel">
+        <section class="intelligence-deck top-deck">
+          <article class="module probability-card">
             <div class="panel-head"><h3>Match Result Probability</h3><span>MODEL</span></div>
             <div class="prob-cards">
               <div class="prob home"><span>HOME</span><b>67.1%</b></div>
@@ -314,7 +353,7 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
             <div class="probbar"><i class="home" style="width:67.1%"></i><i class="draw" style="width:20.3%"></i><i class="away" style="width:12.6%"></i></div>
           </article>
 
-          <article class="panel">
+          <article class="module xg-card">
             <div class="panel-head"><h3>Expected Goals (λ)</h3><span>SPORT</span></div>
             <div class="panel-trend">
               <div class="xg"><div><span>Arsenal</span><b>2.08</b></div><em>—</em><div><span>Brighton</span><b>0.91</b></div></div>
@@ -325,21 +364,29 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
                 <circle cx="74" cy="7" r="2.4" class="spark-dot"/>
               </svg>
             </div>
-            <div class="microcopy">Recent attacking trend shown for visual reference.</div>
+            <div class="microcopy">Recent attacking trend · visual reference</div>
           </article>
 
-          <article class="panel edge-card">
+          <article class="module edge-card">
             <div class="panel-head"><h3>Edge Gap</h3><span>EXAMPLE MARKET</span></div>
-            <div class="edge-bars">
-              <div class="edge-row"><span>Model</span><div class="edge-track"><i class="model" style="width:100%"></i></div><b>71.8%</b></div>
-              <div class="edge-row"><span>Market</span><div class="edge-track"><i class="market" style="width:84%"></i></div><b>60.1%</b></div>
-            </div>
-            <div><div class="edge-value">+11.7 pp</div><div class="edge-caption">model − market fair</div></div>
+            <svg class="chart-svg edge-svg" viewBox="0 0 230 58" aria-label="Model versus market">
+              <line x1="54" y1="18" x2="202" y2="18" class="edge-axis"/>
+              <line x1="54" y1="40" x2="202" y2="40" class="edge-axis"/>
+              <text x="2" y="20" class="edge-label">MODEL</text>
+              <text x="2" y="42" class="edge-label">MARKET</text>
+              <line x1="54" y1="18" x2="190" y2="18" class="edge-model"/>
+              <line x1="54" y1="40" x2="167" y2="40" class="edge-market"/>
+              <circle cx="190" cy="18" r="4" class="edge-marker model"/>
+              <circle cx="167" cy="40" r="4" class="edge-marker market"/>
+              <text x="226" y="20" class="edge-number">71.8%</text>
+              <text x="226" y="42" class="edge-number">60.1%</text>
+            </svg>
+            <div class="edge-value">+11.7 pp</div><div class="edge-caption">model − market fair</div>
           </article>
         </section>
 
-        <section class="grid mid">
-          <article class="panel">
+        <section class="intelligence-deck mid-deck">
+          <article class="module profile-card">
             <div class="panel-head"><h3>Sport Profile</h3><span>FOOTBALL ONLY</span></div>
             <div class="profile">
               <div class="profile-row"><span>Attack strength</span><div><i style="width:83%"></i></div><b class="good">GOOD</b></div>
@@ -351,7 +398,7 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
             </div>
           </article>
 
-          <article class="panel">
+          <article class="module matrix-card">
             <div class="panel-head"><h3>Score Matrix (FT)</h3><span>PROBABILITY</span></div>
             <div class="matrix">
               <span></span><span class="axis">0</span><span class="axis">1</span><span class="axis">2</span><span class="axis">3</span><span class="axis">4+</span>
@@ -364,21 +411,26 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
             <div class="matrix-note">Most likely: <b>2–1 · 11.4%</b></div>
           </article>
 
-          <article class="panel goals-card">
+          <article class="module goals-card">
             <div class="panel-head"><h3>Over / Under 2.5 Goals</h3><span>MODEL VS MARKET</span></div>
             <div class="market-grid">
               <div class="market-metric"><span>MODEL</span><b>64.4%</b></div>
               <div class="market-metric"><span>MARKET</span><b>55.3%</b></div>
               <div class="market-metric"><span>EDGE</span><b class="green">+8.9 pp</b></div>
             </div>
-            <div class="distribution">
-              <div class="dcol"><div class="bars"><i class="h" style="height:31%"></i><i class="a" style="height:52%"></i></div><b>0</b></div>
-              <div class="dcol"><div class="bars"><i class="h" style="height:72%"></i><i class="a" style="height:88%"></i></div><b>1</b></div>
-              <div class="dcol"><div class="bars"><i class="h" style="height:100%"></i><i class="a" style="height:58%"></i></div><b>2</b></div>
-              <div class="dcol"><div class="bars"><i class="h" style="height:76%"></i><i class="a" style="height:27%"></i></div><b>3</b></div>
-              <div class="dcol"><div class="bars"><i class="h" style="height:48%"></i><i class="a" style="height:11%"></i></div><b>4</b></div>
-              <div class="dcol"><div class="bars"><i class="h" style="height:26%"></i><i class="a" style="height:5%"></i></div><b>5+</b></div>
-            </div>
+            <svg class="chart-svg dist-svg" viewBox="0 0 300 92" aria-label="Goal distribution">
+              <defs>
+                <linearGradient id="homeBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#58b8e8"/><stop offset="100%" stop-color="#2e96c7"/></linearGradient>
+                <linearGradient id="awayBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#59dda9"/><stop offset="100%" stop-color="#2dbb86"/></linearGradient>
+              </defs>
+              <line x1="18" y1="72" x2="292" y2="72" class="dist-grid"/>
+              <g transform="translate(28,0)"><rect x="0" y="51" width="10" height="21" rx="2" class="dist-home"/><rect x="12" y="38" width="10" height="34" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">0</text></g>
+              <g transform="translate(70,0)"><rect x="0" y="28" width="10" height="44" rx="2" class="dist-home"/><rect x="12" y="15" width="10" height="57" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">1</text></g>
+              <g transform="translate(112,0)"><rect x="0" y="8" width="10" height="64" rx="2" class="dist-home"/><rect x="12" y="35" width="10" height="37" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">2</text></g>
+              <g transform="translate(154,0)"><rect x="0" y="24" width="10" height="48" rx="2" class="dist-home"/><rect x="12" y="54" width="10" height="18" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">3</text></g>
+              <g transform="translate(196,0)"><rect x="0" y="42" width="10" height="30" rx="2" class="dist-home"/><rect x="12" y="65" width="10" height="7" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">4</text></g>
+              <g transform="translate(238,0)"><rect x="0" y="56" width="10" height="16" rx="2" class="dist-home"/><rect x="12" y="69" width="10" height="3" rx="2" class="dist-away"/><text x="11" y="86" class="dist-label">5+</text></g>
+            </svg>
             <div class="legend"><span><i class="h"></i>Arsenal</span><span><i class="a"></i>Brighton</span></div>
           </article>
         </section>
