@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Any
 
 import httpx
@@ -216,6 +216,44 @@ async def run_tick() -> dict[str, Any]:
                         prior,
                         prior_rank,
                         proximity,
+                        kickoff,
+                    ),
+                }
+            )
+
+        # Rolling SPORT FIRST discovery: use spare scheduler capacity to screen
+        # upcoming fixtures before the narrow T-90/T-60/T-40 windows. This is
+        # intentionally market-free; urgent lifecycle stages still rank ahead of it.
+        due_fixture_ids = {int(item["fx"]["fixture_id"]) for item in due}
+        early_horizon = now_utc + timedelta(hours=12)
+        for fx in fixtures:
+            fixture_id = fx.get("fixture_id")
+            if fixture_id is None or int(fixture_id) in due_fixture_ids:
+                continue
+            kickoff = base._dt(fx["kickoff"])
+            if kickoff <= now_utc or kickoff > early_horizon:
+                continue
+            if fx.get("status") in base.FINISHED_STATUSES | base.CANCELLED_STATUSES | base.POSTPONED_STATUSES:
+                continue
+            coverage = await v3._coverage_fast(fx["league_id"], fx["season"], now_utc)
+            tier = coverage.get("data_tier") or "D"
+            prior = v5._shortlist_get(fx["fixture_id"], now_utc)
+            prior_rank = v5._num((prior or {}).get("rank")) or 0.0
+            due.append(
+                {
+                    "fx": fx,
+                    "stage": "EARLY_RESEARCH",
+                    "coverage": coverage,
+                    "tier": tier,
+                    "prior_shortlisted": bool(prior and prior.get("shortlisted")),
+                    "priority": _queue_priority(
+                        fx,
+                        "EARLY_RESEARCH",
+                        coverage,
+                        tier,
+                        prior,
+                        prior_rank,
+                        999.0,
                         kickoff,
                     ),
                 }
