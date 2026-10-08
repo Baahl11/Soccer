@@ -286,9 +286,10 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
   .top-deck{grid-template-columns:1.16fr .84fr}.top-deck .edge-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
   .mid-deck{grid-template-columns:.92fr 1.08fr}.mid-deck .goals-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
   .module{padding:8px}.module+.module{border-left:1px solid rgba(38,82,104,.5)}
-  .edge-card{display:grid;grid-template-columns:1fr 80px;gap:7px}.edge-card .panel-head{grid-column:1/-1;margin-bottom:2px}.edge-bars{align-self:start}.edge-value{font-size:13px}
+  .edge-card{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:5px 8px}.edge-card .panel-head{grid-column:1/-1;margin-bottom:1px}
+  .edge-card .edge-svg{grid-column:1;grid-row:2/4;height:54px;margin:0}.edge-card .edge-value{grid-column:2;grid-row:2;align-self:end;font-size:14px;margin:0}.edge-card .edge-caption{grid-column:2;grid-row:3;align-self:start;margin:0}
   .profile-row{grid-template-columns:53px minmax(0,1fr) 27px}
-  .goals-card{display:grid;grid-template-columns:118px minmax(0,1fr);column-gap:10px}.goals-card .panel-head{grid-column:1/-1}.goals-card .market-grid{align-self:start}.goals-card .dist-svg{height:84px;margin-top:0}.legend{margin-top:2px}
+  .goals-card{display:grid;grid-template-columns:118px minmax(0,1fr);column-gap:10px}.goals-card .panel-head{grid-column:1/-1}.goals-card .market-grid{align-self:start}.goals-card .dist-svg{height:84px;margin-top:0}.goals-card .legend{grid-column:1/-1;margin-top:2px}
   .read{grid-template-columns:28px minmax(0,1fr) auto}.read-mark{width:28px;height:28px}
 }
 </style>
