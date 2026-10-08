@@ -371,3 +371,42 @@ def test_v2_match_contract_exposes_available_markets_for_human_review():
     assert "Goals" in result["analyst_review"]["available_markets"]
     assert result["analyst_review"]["analysis_rows"] == 2
     assert result["analyst_review"]["human_review_allowed"] is True
+
+def test_v2_registry_slate_marks_relational_evidence_as_data_available():
+    payload = _payload([])
+    contract = subscriber_contract_v2.build_contract(payload, _pro_entitlement())
+    registry = {
+        "status": "FULL_SLATE_READY",
+        "slate_date": "2026-10-07",
+        "timezone": "America/Mexico_City",
+        "rows": [
+            {
+                "fixture_id": 808,
+                "kickoff": "2026-10-07T23:00:00+00:00",
+                "status": "NS",
+                "league": "Evidence League",
+                "country": "Test",
+                "home_team_id": 81,
+                "home_team": "Evidence Home",
+                "away_team_id": 82,
+                "away_team": "Evidence Away",
+                "evidence_inventory": {
+                    "refresh_events": 2,
+                    "market_snapshots": 3,
+                    "model_runs": 1,
+                    "feature_snapshots": 1,
+                    "lineup_snapshots": 0,
+                    "availability_snapshots": 1,
+                    "market_names": ["Match Winner", "Goals Over/Under"],
+                },
+            }
+        ],
+    }
+
+    result = subscriber_contract_v2._attach_full_registry_slate(contract, payload, registry)
+    row = result["slate"]["rows"][0]
+
+    assert row["state"]["status_code"] == "DATA_AVAILABLE"
+    assert row["coverage"]["persisted_evidence_count"] == 8
+    assert "market" in row["coverage"]["data_sources"]
+    assert row["coverage"]["persisted_market_names"] == ["Match Winner", "Goals Over/Under"]
