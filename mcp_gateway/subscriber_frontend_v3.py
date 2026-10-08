@@ -132,7 +132,101 @@ main{max-width:1180px}
 }
 </style>
 """
+    premium_pass = r"""
+<style>
+/* V3 premium pass 2 — closer to approved Match Center composition */
+.match-center{position:relative}
+.match-center::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.18;background:
+linear-gradient(rgba(41,110,140,.08) 1px,transparent 1px),
+linear-gradient(90deg,rgba(41,110,140,.06) 1px,transparent 1px);background-size:28px 28px}
+.match-center>*{position:relative;z-index:1}
+.mc-hero{min-height:0}
+.mc-top{padding-bottom:1px}
+.mc-meta b{font-weight:700;color:#829baa}
+.faceoff{max-width:560px}
+.team-face .crest{background:linear-gradient(180deg,#0d3142,#092331);border-color:#23546b}
+.status-strip{box-shadow:inset 0 1px 0 rgba(255,255,255,.015)}
+.tabs{backdrop-filter:blur(10px)}
+.feature-callout{display:grid;grid-template-columns:minmax(0,1fr) 34px;align-items:center}
+.feature-callout::after{content:'';position:absolute;inset:auto 14px 0 14px;height:1px;background:linear-gradient(90deg,transparent,#2b6b8655,transparent)}
+.dashboard-grid.primary>.panel.wide{background:
+radial-gradient(circle at 92% 0,rgba(65,174,226,.08),transparent 34%),
+linear-gradient(180deg,#081c28,#06151e)}
+.dashboard-grid.primary>.panel:not(.wide){background:linear-gradient(180deg,#071a25,#06151e)}
+.panel.v3-goal{border-color:#1b465a}
+.panel.v3-coverage{border-color:#1d4f53}
+.panel.v3-form{border-color:#194458}
+.panel.v3-takeaways{background:linear-gradient(180deg,#071923,#06141d)}
+.v3-goal .rate-row b{font-size:9px}
+.v3-goal .rate-track{box-shadow:inset 0 0 0 1px rgba(255,255,255,.015)}
+.v3-coverage .coverage-panel{min-height:82px}
+.v3-form .form-chart{border-left:1px solid #173847;border-bottom:1px solid #173847;background:
+repeating-linear-gradient(to top,transparent 0,transparent 18px,#102c3a 19px)}
+.v3-form .form-chart circle{filter:drop-shadow(0 0 4px currentColor)}
+.v3-takeaways .takeaways>div{background:linear-gradient(180deg,#071b25,#071720)}
+.sport-grid>.panel:nth-child(1){border-color:#245941}.sport-grid>.panel:nth-child(2){border-color:#4a4425}
+.sport-grid>.panel:nth-child(3){border-color:#1d4960}.sport-grid>.panel:nth-child(4){border-color:#1d4e47}
+.heat-grid{background:linear-gradient(180deg,#071a25,#06151d);padding:4px;border-radius:7px}
+.market-warning{box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+@media(max-width:820px){
+  .mc-hero{padding-bottom:8px}
+  .faceoff{max-width:500px}
+  .status-strip{position:relative}
+  .feature-callout{grid-template-columns:minmax(0,1fr) 31px}
+  .dashboard-grid.primary>.panel.wide{min-height:118px}
+  .dashboard-grid.primary>.panel:not(.wide){min-height:118px}
+  .v3-coverage .coverage-panel{min-height:74px}
+  .v3-form .form-chart{height:48px}
+  .v3-takeaways{margin-top:1px}
+  .v3-takeaways .takeaways>div{min-height:58px}
+  .sport-grid>.panel{min-height:118px}
+}
+</style>
+<script>
+(() => {
+  const NS='http://www.w3.org/2000/svg';
+  function decorate(){
+    document.querySelectorAll('.panel').forEach(panel=>{
+      const title=(panel.querySelector('h3')?.textContent||'').trim().toLowerCase();
+      panel.classList.toggle('v3-goal',title==='goal-rate baseline');
+      panel.classList.toggle('v3-coverage',title==='input coverage');
+      panel.classList.toggle('v3-form',title==='form momentum');
+      panel.classList.toggle('v3-takeaways',title==='key sporting takeaways');
+    });
+
+    document.querySelectorAll('.form-chart').forEach(svg=>{
+      if(svg.dataset.v3points==='1')return;
+      const panel=svg.closest('.panel');
+      const groups=[...panel.querySelectorAll('.form-dots')];
+      if(!groups.length)return;
+      const classes=['home','away'];
+      groups.slice(0,2).forEach((g,gi)=>{
+        const seq=[...g.querySelectorAll('i')].map(x=>x.textContent.trim().toUpperCase()).filter(Boolean);
+        seq.forEach((x,i)=>{
+          const cx=8+(i*(84/Math.max(1,seq.length-1)));
+          const cy=x==='W'?10:x==='D'?27:44;
+          const circle=document.createElementNS(NS,'circle');
+          circle.setAttribute('cx',String(cx));
+          circle.setAttribute('cy',String(cy));
+          circle.setAttribute('r','3.2');
+          circle.setAttribute('fill',gi===0?'#42aee2':'#48d19f');
+          circle.setAttribute('stroke','#06131b');
+          circle.setAttribute('stroke-width','1.2');
+          svg.appendChild(circle);
+        });
+      });
+      svg.dataset.v3points='1';
+    });
+  }
+  const obs=new MutationObserver(decorate);
+  obs.observe(document.documentElement,{childList:true,subtree:true});
+  setTimeout(decorate,0);
+})();
+</script>
+"""
     marker = "</head>"
     if marker in rendered:
-        return rendered.replace(marker, shim + visual_overrides + marker, 1)
-    return shim + visual_overrides + rendered
+        rendered = rendered.replace(marker, shim + visual_overrides + premium_pass + marker, 1)
+    else:
+        rendered = shim + visual_overrides + premium_pass + rendered
+    return rendered
