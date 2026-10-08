@@ -171,7 +171,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     <div id="todayLeans" class="card-grid"></div>
     <div class="section-title"><div><h2>Watch</h2><span>Waiting for price, XI, goalkeeper or other required evidence</span></div></div>
     <div class="panel"><div id="todayWatches" class="watch-list"></div></div>
-    <div class="section-title"><div><h2>Full Slate</h2><span>Every persisted fixture remains visible</span></div></div>
+    <div class="section-title"><div><h2>Full Slate</h2><span>Every eligible fixture stays visible, even when analysis is incomplete</span></div></div>
     <div class="panel"><div id="todaySlate" class="slate-list"></div></div>
   </section>
 
@@ -186,7 +186,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   </section>
 
   <section id="matches" class="page">
-    <div class="page-head"><div><h1>Matches</h1><div class="sub">Browse the verified slate. Premium match intelligence opens from persisted fixture evidence only.</div></div></div>
+    <div class="page-head"><div><h1>Matches</h1><div class="sub">Browse the complete eligible slate. Each match shows what is analyzed, which markets have data, and what is still missing.</div></div></div>
     <div class="panel"><div id="matchesList" class="slate-list"></div></div>
     <div id="matchDetail" class="panel hidden"></div>
   </section>
@@ -289,9 +289,10 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     document.querySelectorAll('.pick-card[data-fixture]').forEach(el=>el.onclick=()=>openMatch(el.dataset.fixture));wireSaveButtons();
   }}
   function watchRow(c){{const f=fixture(c),m=market(c),[time,date]=dt(f.kickoff),d=c?.decision||{{}};return '<div class="watch-row"><div class="time"><b>'+esc(time)+'</b>'+esc(date)+'</div><div class="row-teams"><b>'+esc((f.home_team||'Home')+' vs '+(f.away_team||'Away'))+'</b><small>'+esc(m.name||m.family||'Market')+(d.reason_display?' · '+esc(d.reason_display):'')+'</small></div><div class="row-state"><span class="status watch">'+esc(d.classification||d.display_bucket||'WATCH')+'</span></div></div>'}}
-  function slateRow(r){{const f=r?.fixture||{{}},s=r?.state||{{}},[time,date]=dt(f.kickoff);return '<div class="slate-row" data-fixture="'+esc(f.fixture_id||'')+'"><div class="time"><b>'+esc(time)+'</b>'+esc(date)+'</div><div class="row-teams"><b>'+esc((f.home_team||'Home')+' vs '+(f.away_team||'Away'))+'</b><small>'+esc(f.league||f.country||'Competition')+'</small></div><div class="row-state"><span class="status">'+esc(s.display_status||'NOT VERIFIED')+'</span>'+(premium()?'<button type="button" class="link-btn" data-save-match="'+esc(f.fixture_id||'')+'">☆ Save</button>':'')+'</div></div>'}}
+  function slateCoverage(r){{const c=r?.coverage||{{}},markets=(c.markets||[]).filter(Boolean),priced=(c.verified_price_markets||[]).filter(Boolean),parts=[];if(Number(c.analysis_rows||0)===0)parts.push('Insufficient data · fixture only');else{{parts.push(Number(c.analysis_rows||0)+' persisted analysis row'+(Number(c.analysis_rows||0)===1?'':'s'));if(markets.length)parts.push('Data: '+markets.join(', '));if(priced.length)parts.push('Verified price: '+priced.join(', '));if(c.raw_sport_projection_present===false)parts.push('Raw sport projection NOT VERIFIED');if(c.availability_confidence_present===false)parts.push('Availability NOT VERIFIED')}}return parts.join(' · ')}}
+  function slateRow(r){{const f=r?.fixture||{{}},s=r?.state||{{}},c=r?.coverage||{{}},[time,date]=dt(f.kickoff),hasIntel=Number(c.analysis_rows||0)>0,status=String(s.display_status||c.coverage_status||'NOT VERIFIED').toUpperCase(),tone=status==='BET'?'bet':status==='LEAN'?'lean':status==='WATCH'?'watch':'';return '<div class="slate-row" data-fixture="'+esc(f.fixture_id||'')+'" data-intel="'+(hasIntel?'1':'0')+'"><div class="time"><b>'+esc(time)+'</b>'+esc(date)+'</div><div class="row-teams"><b>'+esc((f.home_team||'Home')+' vs '+(f.away_team||'Away'))+'</b><small>'+esc(f.league||f.country||'Competition')+' · '+esc(slateCoverage(r))+'</small></div><div class="row-state"><span class="status '+tone+'">'+esc(status)+'</span>'+(premium()?'<button type="button" class="link-btn" data-save-match="'+esc(f.fixture_id||'')+'">☆ Save</button>':'')+'</div></div>'}}
   function renderWatchSlate(){{const w=DATA?.watches?.rows||[],s=DATA?.slate?.rows||[];$('todayWatches').innerHTML=w.map(watchRow).join('')||empty('No active WATCH states','No persisted wait state is active in this snapshot.');
-    const slate=s.map(slateRow).join('')||empty('No fixtures','No persisted fixtures in the latest slate.');$('todaySlate').innerHTML=slate;$('matchesList').innerHTML=slate;document.querySelectorAll('.slate-row[data-fixture]').forEach(el=>el.onclick=()=>openMatch(el.dataset.fixture));wireMatchSaveButtons();
+    const slate=s.map(slateRow).join('')||empty('No eligible fixtures','No eligible fixtures remain in the current slate.');$('todaySlate').innerHTML=slate;$('matchesList').innerHTML=slate;document.querySelectorAll('.slate-row[data-fixture][data-intel="1"]').forEach(el=>el.onclick=()=>openMatch(el.dataset.fixture));wireMatchSaveButtons();
   }}
   function renderPlan(){{ACCESS=DATA?.access||ACCESS||{{}};const plan=ACCESS?.display_role||ACCESS?.effective_plan||(token()?'FREE':'EXPLORER');$('planChip').textContent=String(plan).toUpperCase();$('accountBtn').textContent=token()?'Account':'Sign in';$('accountPageBtn').textContent=token()?'Manage account':'Sign in';$('accountPlan').textContent=premium()?'Edge Pro':'Explorer';$('accountCopy').textContent=premium()?'Premium decision evidence is unlocked for this account.':'Browse the verified slate and watch states. Premium probability, price and evidence fields remain redacted.';$('signOut').classList.toggle('hidden',!token())}}
   function renderMeta(){{const raw=DATA?.generated_at_utc||DATA?.generated_at_local||'persisted';$('snapshotText').textContent='Persisted snapshot · '+raw;$('todayStamp').textContent=raw;$('freshChip').textContent=DATA?.status==='SUBSCRIBER_CONTRACT_V2_READY'?'VERIFIED SNAPSHOT':'CHECK STATE'}}
