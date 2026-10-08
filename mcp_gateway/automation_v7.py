@@ -230,7 +230,7 @@ async def run_tick() -> dict[str, Any]:
             stage = item["stage"]
             already_processed = v5._stage_already_processed(fx["fixture_id"], stage, now_utc)
             item["stage_already_processed"] = already_processed
-            if already_processed or item["tier"] not in {"A", "B"}:
+            if already_processed:
                 pass_through_due.append(item)
                 continue
             state = fair_scheduler.get_state(fx["fixture_id"], now_utc)
@@ -262,11 +262,6 @@ async def run_tick() -> dict[str, Any]:
             tier = item["tier"]
 
             if item.get("stage_already_processed"):
-                continue
-
-            if tier not in {"A", "B"}:
-                low_data_counts[f"{tier}:{stage}"] += 1
-                v5._mark_stage_processed(fx["fixture_id"], stage, now_utc)
                 continue
 
             if deep_dive_processed >= v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK:
@@ -313,6 +308,8 @@ async def run_tick() -> dict[str, Any]:
             if is_urgent_existing:
                 urgent_late_shortlist_processed += 1
             v5._mark_stage_processed(fx["fixture_id"], stage, now_utc)
+            if tier not in {"A", "B"}:
+                low_data_counts[f"{tier}:{stage}"] += 1
             if event.get("market_skipped_by_sport_screen"):
                 market_requests_avoided_by_screen += 1
             if (event.get("sporting_shortlist") or {}).get("shortlisted"):
@@ -329,8 +326,8 @@ async def run_tick() -> dict[str, Any]:
                     "screened_out_count": sum(low_data_counts.values()),
                     "by_tier_stage": dict(low_data_counts),
                     "notes": [
-                        "Data Tier C/D fixtures remain counted in the slate but do not consume deep-dive API budget.",
-                        "Detailed market/lineup refresh is reserved for Data Tier A/B sporting candidates.",
+                        "Data Tier C/D fixtures now receive sport-first screening when scheduler capacity permits.",
+                        "Their market comparison and automated BET eligibility remain blocked; verified sporting evidence is still persisted for human review.",
                     ],
                 }
             )
@@ -392,7 +389,7 @@ async def run_tick() -> dict[str, Any]:
             "deferred_due_to_priority": deferred_due_to_priority,
             "deep_dive_processed_count": deep_dive_processed,
             "shortlist_event_count": shortlist_events,
-            "screened_out_low_data_count": sum(low_data_counts.values()),
+            "low_data_sport_screen_count": sum(low_data_counts.values()),
             "market_requests_avoided_by_sport_screen": market_requests_avoided_by_screen,
             "max_deep_dive_fixtures_per_tick": v5.MAX_DEEP_DIVE_FIXTURES_PER_TICK,
             "priority_queue": "WEIGHTED_FAIR_60_ACTIONABLE_25_UNSEEN_15_EXPLORATORY_WITH_LIFECYCLE_URGENCY",
