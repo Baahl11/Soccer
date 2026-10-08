@@ -1792,6 +1792,134 @@ def _match_market_group(candidate: dict[str, Any]) -> str:
     return "GENERAL"
 
 
+
+def _relational_raw_sport_context(relational_evidence: dict[str, Any]) -> dict[str, Any]:
+    """Recover verified sport-model outputs from persisted relational evidence.
+
+    The latest subscriber match row can be intentionally thin. When a persisted
+    model run exists for the same fixture, expose its raw SPORT-FIRST projection
+    instead of treating the visual layer as empty. No market field is used here.
+    """
+
+    evidence = relational_evidence if isinstance(relational_evidence, dict) else {}
+    model_runs = evidence.get("model_runs")
+    model_runs = model_runs if isinstance(model_runs, list) else []
+    refresh_events = evidence.get("refresh_events")
+    refresh_events = refresh_events if isinstance(refresh_events, list) else []
+
+    raw: dict[str, Any] = {}
+    model_version: Any = None
+    captured_at: Any = None
+
+    for run in model_runs:
+        if not isinstance(run, dict):
+            continue
+        candidate = run.get("raw_projection")
+        if isinstance(candidate, dict) and candidate:
+            raw = candidate
+            model_version = run.get("model_version") or candidate.get("model_version")
+            captured_at = run.get("run_timestamp")
+            break
+
+    if not raw:
+        for event in refresh_events:
+            if not isinstance(event, dict):
+                continue
+            payload = event.get("payload")
+            payload = payload if isinstance(payload, dict) else {}
+            candidate = payload.get("raw_projection")
+            if isinstance(candidate, dict) and candidate:
+                raw = candidate
+                model_version = event.get("model_version") or candidate.get("model_version")
+                captured_at = event.get("generated_at")
+                break
+
+    if not raw:
+        return {
+            "outcome_probabilities": None,
+            "expected_goals": None,
+            "score_matrix": [],
+            "sport_profile": [],
+            "source": None,
+            "captured_at": None,
+            "model_version": None,
+            "projection_model": None,
+            "goal_rate_semantics": None,
+        }
+
+    home = _probability(raw.get("raw_home_win_prob"))
+    draw = _probability(raw.get("raw_draw_prob"))
+    away = _probability(raw.get("raw_away_win_prob"))
+    outcome = None
+    if home is not None and draw is not None and away is not None:
+        total = home + draw + away
+        if total > 0:
+            outcome = {
+                "home": home / total,
+                "draw": draw / total,
+                "away": away / total,
+            }
+
+    home_rate = _number(raw.get("raw_home_goal_rate"))
+    away_rate = _number(raw.get("raw_away_goal_rate"))
+    goal_rates = None
+    if home_rate is not None or away_rate is not None:
+        goal_rates = {
+            "home": home_rate,
+            "away": away_rate,
+            "total": (
+                home_rate + away_rate
+                if home_rate is not None and away_rate is not None
+                else None
+            ),
+            "metric_kind": "POISSON_GOAL_RATE_LAMBDA",
+            "xg_verified": False,
+        }
+
+    score_matrix: list[dict[str, Any]] = []
+    top_scores = raw.get("top_scorelines")
+    if isinstance(top_scores, list):
+        for item in top_scores:
+            if not isinstance(item, dict):
+                continue
+            home_goals = _number(item.get("home"))
+            away_goals = _number(item.get("away"))
+            probability = _probability(
+                item.get("probability")
+                if item.get("probability") is not None
+                else item.get("prob")
+            )
+            if home_goals is None or away_goals is None or probability is None:
+                continue
+            score_matrix.append({
+                "score": f"{int(home_goals)}-{int(away_goals)}",
+                "probability": probability,
+            })
+
+    sport_profile: list[dict[str, Any]] = []
+    screen_scores = raw.get("screen_scores")
+    screen_scores = screen_scores if isinstance(screen_scores, dict) else {}
+    for label, key in (
+        ("Side edge", "side_edge_score"),
+        ("Goal environment", "goal_environment_score"),
+        ("Two-way scoring", "two_way_scoring_score"),
+    ):
+        value = _number(screen_scores.get(key))
+        if value is not None:
+            sport_profile.append({"label": label, "score": value, "source": key})
+
+    return {
+        "outcome_probabilities": outcome,
+        "expected_goals": goal_rates,
+        "score_matrix": score_matrix,
+        "sport_profile": sport_profile,
+        "source": "POSTGRES_SOCCER_MODEL_RUNS_RAW_PROJECTION",
+        "captured_at": captured_at,
+        "model_version": model_version or raw.get("model_version"),
+        "projection_model": raw.get("projection_model"),
+        "goal_rate_semantics": "POISSON_LAMBDA_NOT_XG",
+    }
+
 def build_match_contract(
     payload: dict[str, Any],
     fixture_value: Any,
@@ -1942,6 +2070,14 @@ def build_match_contract(
     selected = adapt_candidate(selected_raw)
     selected_v231 = subscriber_ui_contract_v231.adapt_market_row(selected_raw)
     detail = subscriber_preview_data_v231._match_detail(payload, selected_v231) or {}
+    relational_sport = _relational_raw_sport_context(relational_evidence)
+    outcome_probabilities = (
+        detail.get("outcome_probabilities")
+        or relational_sport.get("outcome_probabilities")
+    )
+    expected_goals = detail.get("expected_goals") or relational_sport.get("expected_goals")
+    score_matrix = detail.get("score_matrix") or relational_sport.get("score_matrix") or []
+    sport_profile = detail.get("sport_profile") or relational_sport.get("sport_profile") or []
 
     groups: dict[str, list[dict[str, Any]]] = {
         "GOALS": [],
@@ -1976,13 +2112,13 @@ def build_match_contract(
     freshness = _dict(selected.get("freshness"))
 
     missing: list[str] = []
-    if not detail.get("outcome_probabilities"):
+    if not outcome_probabilities:
         missing.append("OUTCOME_PROBABILITIES")
-    if not detail.get("expected_goals"):
+    if not expected_goals:
         missing.append("EXPECTED_GOALS")
-    if not detail.get("score_matrix"):
+    if not score_matrix:
         missing.append("SCORE_MATRIX")
-    if not detail.get("sport_profile"):
+    if not sport_profile:
         missing.append("SPORT_PROFILE")
     if availability.get("confidence") is None:
         missing.append("AVAILABILITY_CONFIDENCE")
@@ -2007,13 +2143,13 @@ def build_match_contract(
             verified_price_markets.append(label)
 
     available_sections = ["FIXTURE_IDENTITY", "MARKET_ROWS"]
-    if detail.get("outcome_probabilities"):
+    if outcome_probabilities:
         available_sections.append("OUTCOME_PROBABILITIES")
-    if detail.get("expected_goals"):
+    if expected_goals:
         available_sections.append("EXPECTED_GOALS")
-    if detail.get("score_matrix"):
+    if score_matrix:
         available_sections.append("SCORE_MATRIX")
-    if detail.get("sport_profile"):
+    if sport_profile:
         available_sections.append("SPORT_PROFILE")
     if availability.get("confidence") is not None:
         available_sections.append("AVAILABILITY_CONFIDENCE")
@@ -2062,10 +2198,21 @@ def build_match_contract(
             "groups": groups,
         },
         "sport_context": {
-            "outcome_probabilities": detail.get("outcome_probabilities"),
-            "expected_goals": detail.get("expected_goals"),
-            "score_matrix": detail.get("score_matrix") or [],
-            "sport_profile": detail.get("sport_profile") or [],
+            "outcome_probabilities": outcome_probabilities,
+            "expected_goals": expected_goals,
+            "score_matrix": score_matrix,
+            "sport_profile": sport_profile,
+            "source": (
+                detail.get("source")
+                if detail.get("outcome_probabilities")
+                or detail.get("expected_goals")
+                or detail.get("score_matrix")
+                or detail.get("sport_profile")
+                else relational_sport.get("source")
+            ),
+            "captured_at": relational_sport.get("captured_at"),
+            "projection_model": relational_sport.get("projection_model"),
+            "goal_rate_semantics": relational_sport.get("goal_rate_semantics"),
         },
         "model_context": {
             **model_context,
