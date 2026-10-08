@@ -1,3 +1,4 @@
+import { hasStoredSession, refreshSession, storedAccessToken } from "./auth";
 import type {
   MatchCenterViewModel,
   ScoreMatrix,
@@ -7,8 +8,6 @@ import type {
 } from "./model";
 
 type Json = Record<string, unknown>;
-
-const TOKEN_KEY = "soccer_edge_access_token";
 const API_BASE = "/app/api/v2";
 const SCORE_LABELS = ["0", "1", "2", "3", "4+"];
 
@@ -333,13 +332,16 @@ export async function loadMatchCenter(): Promise<MatchCenterViewModel> {
     return sampleMatch;
   }
 
-  const storedToken = localStorage.getItem(TOKEN_KEY) || "";
-  let todayResult = await jsonFetch(API_BASE + "/today", storedToken || undefined);
-  let token = storedToken;
+  let token = storedAccessToken();
+  let todayResult = await jsonFetch(API_BASE + "/today", token || undefined);
 
-  if (todayResult.response.status === 401 && storedToken) {
-    todayResult = await jsonFetch(API_BASE + "/today");
+  if (todayResult.response.status === 401 && hasStoredSession()) {
+    token = await refreshSession();
+    todayResult = await jsonFetch(API_BASE + "/today", token || undefined);
+  }
+  if (todayResult.response.status === 401) {
     token = "";
+    todayResult = await jsonFetch(API_BASE + "/today");
   }
   if (!todayResult.response.ok) {
     throw new Error(text(todayResult.data.error, "TODAY_DATA_UNAVAILABLE"));
@@ -365,12 +367,18 @@ export async function loadMatchCenter(): Promise<MatchCenterViewModel> {
     return lockedView(fixture, "INSUFFICIENT_DATA", "Eligible fixture identity is incomplete.");
   }
 
-  const detail = await jsonFetch(API_BASE + "/match/" + fixtureId, token || undefined);
+  let detail = await jsonFetch(API_BASE + "/match/" + fixtureId, token || undefined);
+  if (detail.response.status === 401 && hasStoredSession()) {
+    token = await refreshSession();
+    detail = await jsonFetch(API_BASE + "/match/" + fixtureId, token || undefined);
+  }
   if (detail.response.status === 403) {
-    return lockedView(fixture, "PREMIUM_REQUIRED", "Edge Pro is required to unlock persisted match intelligence.");
+    return lockedView(fixture, "PREMIUM_REQUIRED", token
+      ? "Your current plan does not unlock persisted Match Intelligence."
+      : "Sign in with an Edge Pro account to unlock persisted Match Intelligence.");
   }
   if (detail.response.status === 401) {
-    return lockedView(fixture, "UNAVAILABLE", "Saved session is no longer valid. Sign in again from the subscriber app.");
+    return lockedView(fixture, "UNAVAILABLE", "Your session expired and could not be refreshed. Sign in again.");
   }
   if (!detail.response.ok) {
     return lockedView(
