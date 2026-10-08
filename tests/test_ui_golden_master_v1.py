@@ -21,3 +21,11 @@ def test_golden_master_matches_approved_dashboard_structure():
     assert "Last update 2m ago" in html
     assert "Back to matches" in html
     assert "FOOTBALL ONLY" in html
+
+
+def test_golden_master_uses_restrained_glass_depth():
+    html = ui_golden_master_v1._html()
+    assert "backdrop-filter:blur(12px)" in html
+    assert "backdrop-filter:blur(16px)" in html
+    assert "rgba(55,112,140,.34)" in html
+    assert "linear-gradient(180deg,#58b8e8,#2e96c7)" in html
