@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { loadAuthState, signIn, signOut, signUp, type AuthState } from "./auth";
-import { loadMatchCenter } from "./live";
+import { loadMatchCenter, loadSlate, type SlateItem } from "./live";
 import type {
   MatchCenterViewModel,
   ScoreMatrix,
@@ -300,65 +300,174 @@ function AuthModal({
   );
 }
 
+function coverageTone(item: SlateItem): string {
+  if (item.sportEvidenceCount > 0 || item.analysisRows > 0) return "sport";
+  if (item.marketEvidenceCount > 0) return "market";
+  return "empty";
+}
+
+function SlatePage({
+  mode,
+  items,
+}: {
+  mode: "today" | "matches";
+  items: SlateItem[];
+}) {
+  const sportCount = items.filter((x)=>x.sportEvidenceCount > 0 || x.analysisRows > 0).length;
+  const marketOnly = items.filter((x)=>x.sportEvidenceCount === 0 && x.analysisRows === 0 && x.marketEvidenceCount > 0).length;
+  const insufficient = items.length - sportCount - marketOnly;
+  return (
+    <section className="react-page">
+      <div className="slate-page-head">
+        <div>
+          <span>SOCCER EDGE · LIVE SLATE</span>
+          <h1>{mode === "today" ? "Today" : "Matches"}</h1>
+          <p>{mode === "today" ? "Sport-first coverage before market evaluation." : "Every eligible fixture stays visible. Missing evidence stays NOT VERIFIED."}</p>
+        </div>
+        <b>{items.length} fixtures</b>
+      </div>
+      <div className="coverage-kpis">
+        <div><span>SPORT DATA</span><b>{sportCount}</b></div>
+        <div><span>MARKET ONLY</span><b>{marketOnly}</b></div>
+        <div><span>INSUFFICIENT</span><b>{insufficient}</b></div>
+      </div>
+      <div className="slate-card">
+        {items.length ? items.map((item)=>(
+          <a className="react-slate-row" href={"/app-v3-react/match/"+item.fixtureId} key={item.fixtureId}>
+            <div className="slate-time"><b>{item.kickoff}</b><span>{item.league}</span></div>
+            <div className="slate-match">
+              <div className="mini-team">
+                {item.homeLogoUrl ? <img src={item.homeLogoUrl} alt="" /> : <i>{item.home.slice(0,2).toUpperCase()}</i>}
+                <b>{item.home}</b>
+              </div>
+              <span className="mini-vs">vs</span>
+              <div className="mini-team away">
+                {item.awayLogoUrl ? <img src={item.awayLogoUrl} alt="" /> : <i>{item.away.slice(0,2).toUpperCase()}</i>}
+                <b>{item.away}</b>
+              </div>
+            </div>
+            <div className={"coverage-tag "+coverageTone(item)}>
+              <b>{item.status}</b>
+              <span>{item.sportEvidenceCount > 0 ? item.sportEvidenceCount+" sport evidence" : item.marketEvidenceCount > 0 ? item.marketEvidenceCount+" market snapshots" : "No deep analysis yet"}</span>
+            </div>
+          </a>
+        )) : <div className="slate-empty">No eligible fixtures are available in the current persisted slate.</div>}
+      </div>
+    </section>
+  );
+}
+
+function ProductNav({
+  active,
+  onNavigate,
+  onOpenAuth,
+}: {
+  active: "today" | "matches" | "match";
+  onNavigate: (view: "today" | "matches" | "match") => void;
+  onOpenAuth: () => void;
+}) {
+  return (
+    <>
+      <nav className="mobile-product-nav">
+        <button className={active==="today"?"active":""} onClick={()=>onNavigate("today")}><span>◉</span>Today</button>
+        <button className={active==="matches"?"active":""} onClick={()=>onNavigate("matches")}><span>◎</span>Matches</button>
+        <button className={active==="match"?"active":""} onClick={()=>onNavigate("match")}><span>▥</span>Match</button>
+        <button onClick={onOpenAuth}><span>○</span>Account</button>
+      </nav>
+    </>
+  );
+}
+
 function AppBody({
   match,
   auth,
+  slate,
+  view,
+  onNavigate,
   onOpenAuth,
 }: {
   match: MatchCenterViewModel;
   auth: AuthState | null;
+  slate: SlateItem[];
+  view: "today" | "matches" | "match";
+  onNavigate: (view: "today" | "matches" | "match") => void;
   onOpenAuth: () => void;
 }) {
   const modeLabel = match.sample ? "SAMPLE DESIGN MODE" : "LIVE CONTRACT";
   const classification = match.decision.classification || match.decision.displayBucket || "SPORT FIRST";
+
   return (
     <div className="app-shell">
-      <aside className="rail"><div className="brand"><span>SE</span><b>SOCCER<br/>EDGE</b></div><nav><a>Today</a><a>Edge Feed</a><a className="active">Matches</a><a>Markets</a><a>Performance</a><a>My Edge</a></nav></aside>
+      <aside className="rail">
+        <div className="brand"><span>SE</span><b>SOCCER<br/>EDGE</b></div>
+        <nav>
+          <button className={view==="today"?"active":""} onClick={()=>onNavigate("today")}>Today</button>
+          <button className={view==="matches"?"active":""} onClick={()=>onNavigate("matches")}>Matches</button>
+          <button className={view==="match"?"active":""} onClick={()=>onNavigate("match")}>Match Center</button>
+          <span className="rail-label">NEXT</span>
+          <button disabled>Edge Feed</button>
+          <button disabled>Performance</button>
+          <button disabled>My Edge</button>
+          <button onClick={onOpenAuth}>Account</button>
+        </nav>
+      </aside>
       <main>
         <div className="topbar">
-          <span>← Back to matches</span>
+          <button className="back-btn" onClick={()=>onNavigate("matches")}>← {view==="match" ? "Back to matches" : "Soccer Edge"}</button>
           <div className="topbar-actions">
             <span className={match.sample ? "preview-mode" : "live"}>● {modeLabel}</span>
             <span className={"plan-chip " + (auth?.premiumUnlocked ? "pro" : "")}>{(auth?.displayRole || "Explorer").toUpperCase()}</span>
             <button className="account-btn" onClick={onOpenAuth}>{auth?.authenticated ? "Account" : "Sign in"}</button>
           </div>
         </div>
-        <Hero match={match} />
-        <nav className="tabs">{["Overview","Goals","Corners","Cards","Players","Market","Model"].map((x,i)=><button className={i===0?"active":""} key={x}>{x}</button>)}</nav>
-        <section className="content">
-          <div className="title-row"><div><h1>Match Center</h1><p>What do we know, what is missing, and what deserves attention?</p></div><span>{match.league} · {match.sample ? "sample snapshot" : "persisted snapshot"}</span></div>
-          <div className="status-strip">
-            <div><span>DATA QUALITY</span><b>{match.dataQuality}</b></div>
-            <div><span>CONFIDENCE</span><b>{match.confidence === null ? "N/V" : match.confidence}</b></div>
-            <div><span>XI</span><b>{match.lineup}</b></div>
-            <div><span>MARKET</span><b>{match.market}</b></div>
-          </div>
-          <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/><EdgePanel match={match}/></div>
-          <div className="deck middle"><SportProfile match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div>
-          <section className="primary-read">
-            <span className="se">SE</span>
-            <div><b>Primary read <em>{classification}</em></b><p>{match.decision.reason || "Sporting projection is built first. Market value is assessed only after the football case is established."}</p></div>
-            <strong>{match.edge ? (match.edge.gap >= 0 ? "+" : "") + match.edge.gap.toFixed(1) + " pp" : "—"}</strong>
+
+        {view === "today" ? <SlatePage mode="today" items={slate} /> :
+         view === "matches" ? <SlatePage mode="matches" items={slate} /> :
+         <>
+          <Hero match={match} />
+          <nav className="tabs">{["Overview","Goals","Corners","Cards","Players","Market","Model"].map((x,i)=><button className={i===0?"active":""} key={x}>{x}</button>)}</nav>
+          <section className="content">
+            <div className="title-row"><div><h1>Match Center</h1><p>What do we know, what is missing, and what deserves attention?</p></div><span>{match.league} · {match.sample ? "sample snapshot" : "persisted snapshot"}</span></div>
+            <div className="status-strip">
+              <div><span>DATA QUALITY</span><b>{match.dataQuality}</b></div>
+              <div><span>CONFIDENCE</span><b>{match.confidence === null ? "N/V" : match.confidence}</b></div>
+              <div><span>XI</span><b>{match.lineup}</b></div>
+              <div><span>MARKET</span><b>{match.market}</b></div>
+            </div>
+            <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/><EdgePanel match={match}/></div>
+            <div className="deck middle"><SportProfile match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div>
+            <section className="primary-read">
+              <span className="se">SE</span>
+              <div><b>Primary read <em>{classification}</em></b><p>{match.decision.reason || "Sporting projection is built first. Market value is assessed only after the football case is established."}</p></div>
+              <strong>{match.edge ? (match.edge.gap >= 0 ? "+" : "") + match.edge.gap.toFixed(1) + " pp" : "—"}</strong>
+            </section>
+            <footer>{match.disclosure}</footer>
           </section>
-          <footer>{match.disclosure}</footer>
-        </section>
+         </>
+        }
       </main>
+      <ProductNav active={view} onNavigate={onNavigate} onOpenAuth={onOpenAuth} />
     </div>
   );
 }
 
 export default function App() {
   const [match, setMatch] = useState<MatchCenterViewModel | null>(null);
+  const [slate, setSlate] = useState<SlateItem[]>([]);
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [view, setView] = useState<"today" | "matches" | "match">(
+    window.location.pathname.includes("/match/") ? "match" : "match"
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    Promise.all([loadMatchCenter(), loadAuthState()])
-      .then(([matchData, authData]) => {
+    Promise.all([loadMatchCenter(), loadSlate(), loadAuthState()])
+      .then(([matchData, slateData, authData]) => {
         if (!active) return;
         setMatch(matchData);
+        setSlate(slateData);
         setAuth(authData);
       })
       .catch((err: unknown) => {
@@ -367,15 +476,20 @@ export default function App() {
     return () => { active = false; };
   }, []);
 
+  const navigate = (next: "today" | "matches" | "match") => {
+    setView(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   if (error) {
-    return <div className="load-screen"><b>Match Center unavailable</b><span>{error}</span><a href="/app-v3-react?sample=1">Open frozen sample design</a></div>;
+    return <div className="load-screen"><b>Soccer Edge unavailable</b><span>{error}</span><a href="/app-v3-react?sample=1">Open frozen sample design</a></div>;
   }
   if (!match) {
-    return <div className="load-screen"><b>Loading verified Match Center…</b><span>Sport first · market second</span></div>;
+    return <div className="load-screen"><b>Loading verified Soccer Edge…</b><span>Sport first · market second</span></div>;
   }
   return (
     <>
-      <AppBody match={match} auth={auth} onOpenAuth={()=>setAuthOpen(true)} />
+      <AppBody match={match} auth={auth} slate={slate} view={view} onNavigate={navigate} onOpenAuth={()=>setAuthOpen(true)} />
       <AuthModal open={authOpen} auth={auth} onClose={()=>setAuthOpen(false)} />
     </>
   );
