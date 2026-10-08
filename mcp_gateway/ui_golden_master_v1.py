@@ -28,7 +28,7 @@ def _html() -> str:
   --gold:#d9ae4f;
   --red:#e97884;
   --radius:10px;
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:"Arial Narrow","Roboto Condensed",Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   color:var(--text);background:var(--bg);color-scheme:dark
 }
 *{box-sizing:border-box}
@@ -83,22 +83,28 @@ button{font:inherit}
   background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.018) 36%,transparent 52%)
 }
 .hero-left{min-width:0}
-.hero-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px;color:#7992a1;font-size:6px}
+.hero-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;color:#7992a1;font-size:6px;letter-spacing:.01em}
 .hero-meta b{color:#a1b3bd}
 .faceoff{display:grid;grid-template-columns:1fr 30px 1fr;gap:8px;align-items:center}
 .team{display:grid;justify-items:center;gap:5px;text-align:center;min-width:0}
 .crest{
-  width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(180deg,#11364a,#0a202c);
-  border:1px solid #28566d;box-shadow:0 10px 24px #0006;position:relative
+  width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
+  background:
+    radial-gradient(circle at 35% 25%,rgba(255,255,255,.09),transparent 24%),
+    linear-gradient(180deg,#12384d,#091e2a);
+  border:1px solid rgba(62,127,158,.66);
+  box-shadow:0 12px 26px rgba(0,0,0,.46),0 0 0 5px rgba(38,104,134,.08);
+  position:relative
 }
 .crest::after{content:'';position:absolute;inset:4px;border:1px solid #ffffff0d;border-radius:50%}
 .shield{
-  width:36px;height:44px;clip-path:polygon(50% 0,92% 12%,85% 74%,50% 100%,15% 74%,8% 12%);
-  display:grid;place-items:center;font-size:9px;font-weight:950;border:1px solid #ffffff25;color:white
+  width:37px;height:45px;clip-path:polygon(50% 0,92% 12%,85% 74%,50% 100%,15% 74%,8% 12%);
+  display:grid;place-items:center;font-size:9px;font-weight:950;border:1px solid #ffffff2a;color:white;
+  text-shadow:0 1px 2px #0008
 }
 .ars{background:linear-gradient(180deg,#e13a4b,#9b1424)}
 .bha{background:linear-gradient(180deg,#2e78d3,#174791)}
-.team b{font-size:12px;line-height:1.05;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team b{font-size:13px;line-height:1.02;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.025em;font-weight:900}
 .team span{font-size:5.7px;color:#6a8391}
 .vs{text-align:center;font-size:9px;color:#557383;font-weight:950}
 .quality{
@@ -119,7 +125,7 @@ background:rgba(6,20,29,.8);backdrop-filter:blur(14px);-webkit-backdrop-filter:b
 .content::before{content:'';position:absolute;left:0;right:0;top:0;height:48%;pointer-events:none;
 background:radial-gradient(circle at 50% 0,rgba(52,150,190,.035),transparent 52%)}
 .section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:1px 1px 8px}
-.section-title h1{margin:0;font-size:12px;letter-spacing:-.02em}.section-title p{margin:2px 0 0;color:#6c8594;font-size:5.5px}
+.section-title h1{margin:0;font-size:13px;letter-spacing:-.035em;font-weight:900}.section-title p{margin:2px 0 0;color:#6c8594;font-size:5.5px}
 .section-title span{font-size:5.2px;color:#5f7988;white-space:nowrap}
 .grid{display:grid;gap:7px}
 .grid.top{grid-template-columns:1.1fr .72fr .78fr}
@@ -141,14 +147,14 @@ background:radial-gradient(circle at 50% 0,rgba(52,150,190,.035),transparent 52%
   background:linear-gradient(90deg,transparent,rgba(121,198,230,.18),transparent);pointer-events:none
 }
 .panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
-.panel-head h3{margin:0;font-size:7.2px}.panel-head span{font-size:4.7px;color:#617b8b;font-weight:900;letter-spacing:.08em}
+.panel-head h3{margin:0;font-size:7.5px;letter-spacing:-.015em;font-weight:900}.panel-head span{font-size:4.7px;color:#617b8b;font-weight:900;letter-spacing:.08em}
 .prob-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .prob{padding:7px 3px;text-align:center;border:1px solid rgba(45,94,118,.42);border-radius:6px;
 background:linear-gradient(180deg,rgba(10,31,42,.66),rgba(7,24,33,.78));
 box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .prob span{display:block;color:#6e8797;font-size:4.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prob b{display:block;margin-top:3px;font-size:12px}.prob.home b{color:#59deb0}.prob.draw b{color:#ddb455}.prob.away b{color:#58b8e3}
-.probbar{height:5px;display:flex;margin-top:6px;border-radius:999px;overflow:hidden;background:#102a39}
+.prob b{display:block;margin-top:3px;font-size:13px;letter-spacing:-.03em}.prob.home b{color:#59deb0}.prob.draw b{color:#ddb455}.prob.away b{color:#58b8e3}
+.probbar{height:6px;display:flex;margin-top:7px;border-radius:999px;overflow:hidden;background:#102a39;box-shadow:inset 0 1px 2px #0007}
 .probbar i{height:100%}.probbar .home{background:var(--green)}.probbar .draw{background:var(--gold)}.probbar .away{background:var(--blue)}
 .xg{display:grid;grid-template-columns:1fr auto 1fr;gap:5px;align-items:end;text-align:center;padding:9px 0 3px}
 .xg span{display:block;color:#6c8594;font-size:4.7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -158,18 +164,22 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .edge-row span{font-size:4.6px;color:#6c8594}.edge-row b{font-size:5.2px;text-align:right}
 .edge-track{height:5px;border-radius:999px;background:#102b39;overflow:hidden}.edge-track i{display:block;height:100%;border-radius:999px}
 .edge-track .model{background:var(--green)}.edge-track .market{background:#3c8fbd}
-.edge-value{margin-top:5px;font-size:15px;font-weight:950;color:#59ddb0}
+.edge-value{margin-top:4px;font-size:17px;font-weight:950;color:#59ddb0;letter-spacing:-.035em;text-shadow:0 0 14px rgba(89,221,176,.12)}
 .edge-caption{margin-top:2px;font-size:4.6px;color:#607a89}
 .profile{display:grid;gap:5px}
 .profile-row{display:grid;grid-template-columns:66px minmax(0,1fr) 32px;gap:5px;align-items:center}
 .profile-row span{font-size:4.7px;color:#6f8998;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .profile-row div{height:5px;background:#102a39;border-radius:999px;overflow:hidden}.profile-row i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#247b61,#53d5a7)}
 .profile-row b{font-size:4.9px;text-align:right}.profile-row b.good{color:#57dcae}.profile-row b.neutral{color:#d8ae52}
-.matrix{display:grid;grid-template-columns:14px repeat(5,1fr);gap:2px;align-items:center}
+.matrix{display:grid;grid-template-columns:14px repeat(5,1fr);gap:3px;align-items:center}
 .axis{font-size:3.9px;color:#617b8a;text-align:center}
 .cell{aspect-ratio:1;border:1px solid rgba(44,105,133,.55);border-radius:3px;display:grid;place-items:center;font-size:4px;font-weight:850;color:#edf8fc;
 box-shadow:inset 0 1px 0 rgba(255,255,255,.02),0 1px 3px rgba(0,0,0,.18)}
-.c1{background:#0b222f}.c2{background:#103547}.c3{background:#15536a}.c4{background:#1c718f}.c5{background:#2b91b6}
+.c1{background:linear-gradient(180deg,#0b2634,#091f2b)}
+.c2{background:linear-gradient(180deg,#123e52,#0f3446)}
+.c3{background:linear-gradient(180deg,#185f79,#145068)}
+.c4{background:linear-gradient(180deg,#2380a0,#1b708d)}
+.c5{background:linear-gradient(180deg,#39a7cf,#2a90b5);box-shadow:0 0 14px rgba(57,167,207,.16)}
 .matrix-note{margin-top:5px;color:#637d8c;font-size:4.4px;text-align:center}.matrix-note b{color:#cfe4ee}
 .market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .market-metric{padding:6px 3px;text-align:center;border:1px solid rgba(45,94,118,.4);border-radius:6px;
@@ -194,12 +204,32 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .read b{display:block;font-size:6.5px}.read p{margin:2px 0 0;color:#6f8796;font-size:4.9px;line-height:1.35}.read strong{font-size:7.5px;color:#59ddb0;white-space:nowrap}
 .audit-line{display:flex;justify-content:space-between;gap:8px;margin-top:7px;padding:0 2px;color:#526d7b;font-size:4.4px}
 .footer-note{padding:10px 12px 12px;text-align:center;color:#4f6a78;font-size:4.5px}
+
+.visual-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:0 0 7px
+}
+.visual-stat{
+  border:1px solid rgba(46,96,121,.34);border-radius:7px;padding:6px 7px;
+  background:linear-gradient(180deg,rgba(9,28,38,.72),rgba(6,21,29,.82));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.018)
+}
+.visual-stat span{display:block;color:#617b8a;font-size:4.4px;font-weight:850;letter-spacing:.08em}
+.visual-stat b{display:block;margin-top:3px;font-size:8px}
+.spark{
+  width:100%;height:34px;margin-top:5px;overflow:visible
+}
+.spark-grid{stroke:#183747;stroke-width:.7}
+.spark-line{fill:none;stroke:#4bd8a3;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(75,216,163,.18))}
+.spark-dot{fill:#4bd8a3;stroke:#06131b;stroke-width:1.1}
+.panel-trend{display:grid;grid-template-columns:1fr 78px;gap:7px;align-items:end}
+.microcopy{font-size:4.5px;color:#5f7988;line-height:1.35}
 @media(max-width:740px){
   .shell{display:block;border:0;max-width:none}.rail{display:none}.topbar{height:44px;padding:0 10px}
   .hero{grid-template-columns:minmax(0,1fr) 106px;padding:10px}.crest{width:52px;height:52px}.shield{width:32px;height:39px}.team b{font-size:10.5px;max-width:118px}
   .quality{border-radius:7px}.qrow{padding:6px}.qrow span{font-size:4.8px}.qrow b{font-size:5.2px}
   .tabs{padding:6px 7px}.tabs button{padding:6px 8px;font-size:6px}
   .content{padding:7px}.grid.top{grid-template-columns:1.15fr .72fr .86fr}.grid.mid{grid-template-columns:.92fr .93fr 1.15fr}
+  .visual-strip{grid-template-columns:repeat(4,1fr)}.visual-stat{padding:5px}.visual-stat b{font-size:7px}
   .panel{padding:7px}.panel-head h3{font-size:6.5px}.prob{padding:6px 2px}.prob b{font-size:10px}.xg b{font-size:17px}
   .profile-row{grid-template-columns:54px minmax(0,1fr) 29px}.profile-row span{font-size:4.25px}.profile-row b{font-size:4.3px}
   .distribution{height:63px}
@@ -207,7 +237,8 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 @media(max-width:430px){
   .topbar .back{font-size:6px}.live-wrap{font-size:5.3px}.hero{grid-template-columns:minmax(0,1fr) 96px;gap:7px;padding:9px 8px 8px}
   .crest{width:48px;height:48px}.team b{font-size:9.5px;max-width:105px}.hero-meta{font-size:5px}.qrow{padding:5px}
-  .content{padding:6px}.section-title h1{font-size:10px}.section-title p{font-size:4.8px}
+  .content{padding:6px}.section-title h1{font-size:10.5px}.section-title p{font-size:4.8px}
+  .visual-strip{gap:4px}.visual-stat span{font-size:4px}.visual-stat b{font-size:6.5px}
   .grid{gap:5px}.grid.top{grid-template-columns:1.18fr .82fr}.grid.top .edge-card{grid-column:1/-1}
   .grid.mid{grid-template-columns:1fr 1fr}.grid.mid .goals-card{grid-column:1/-1}
   .edge-card{display:grid;grid-template-columns:1fr 80px;gap:7px}.edge-card .panel-head{grid-column:1/-1;margin-bottom:2px}.edge-bars{align-self:start}.edge-value{font-size:13px}
@@ -265,6 +296,13 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
           <span>Premier League · model snapshot</span>
         </div>
 
+        <div class="visual-strip">
+          <div class="visual-stat"><span>DATA QUALITY</span><b class="good">A</b></div>
+          <div class="visual-stat"><span>CONFIDENCE</span><b>84</b></div>
+          <div class="visual-stat"><span>XI</span><b class="good">CONFIRMED</b></div>
+          <div class="visual-stat"><span>MARKET</span><b class="info">FRESH</b></div>
+        </div>
+
         <section class="grid top">
           <article class="panel">
             <div class="panel-head"><h3>Match Result Probability</h3><span>MODEL</span></div>
@@ -278,7 +316,16 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 
           <article class="panel">
             <div class="panel-head"><h3>Expected Goals (λ)</h3><span>SPORT</span></div>
-            <div class="xg"><div><span>Arsenal</span><b>2.08</b></div><em>—</em><div><span>Brighton</span><b>0.91</b></div></div>
+            <div class="panel-trend">
+              <div class="xg"><div><span>Arsenal</span><b>2.08</b></div><em>—</em><div><span>Brighton</span><b>0.91</b></div></div>
+              <svg class="spark" viewBox="0 0 78 34" aria-label="Recent xG trend">
+                <line x1="2" y1="28" x2="76" y2="28" class="spark-grid"/>
+                <line x1="2" y1="17" x2="76" y2="17" class="spark-grid"/>
+                <polyline points="4,25 18,20 31,22 45,13 60,15 74,7" class="spark-line"/>
+                <circle cx="74" cy="7" r="2.4" class="spark-dot"/>
+              </svg>
+            </div>
+            <div class="microcopy">Recent attacking trend shown for visual reference.</div>
           </article>
 
           <article class="panel edge-card">
