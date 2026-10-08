@@ -99,8 +99,9 @@ def test_fe2_every_slate_fixture_is_openable_for_data_review():
     html = subscriber_frontend_v2.render()
 
     assert "Open data →" in html
-    assert "Human review · data inventory" in html
-    assert "Analyst review boundary" in html
+    assert "Analyst lens" in html
+    assert "What we have" in html
+    assert "What is still missing" in html
     assert 'class="slate-row" href="' in html
     assert "matchPath(f.fixture_id||'')" in html
     assert '[data-intel="1"]' not in html
@@ -118,6 +119,20 @@ def test_fe2_identity_enrichment_chunks_large_slates_and_shows_relational_eviden
     html = subscriber_frontend_v2.render()
 
     assert "for(let i=0;i<ids.length;i+=80)" in html
-    assert "Persisted relational market snapshots" in html
-    assert "Persisted relational model runs" in html
-    assert "Total persisted evidence" in html
+    assert "Latest persisted market activity" in html
+    assert "Market snapshots" in html
+    assert "Model runs" in html
+    assert "Evidence map" in html
+
+
+def test_fe2_match_detail_is_summary_first_and_mobile_safe():
+    html = subscriber_frontend_v2.render()
+
+    assert "intel-metrics" in html
+    assert "intel-lens" in html
+    assert "intel-tabs" in html
+    assert "intel-accordion" in html
+    assert "overflow-x:auto" in html
+    assert "Raw current-snapshot market table" in html
+    assert "Coverage" in html
+    assert "Freshness" in html
