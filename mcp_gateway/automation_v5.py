@@ -544,6 +544,21 @@ async def _priority_event(
                 "Automated raw projection is LIMITED: xG/npxG/PPDA/field tilt remain NOT VERIFIED; goals are not substituted as xG."
             )
 
+    # Coverage tier controls BET eligibility, not whether sporting evidence may be collected.
+    # Tier C/D fixtures can retain a verified sport-first screen for human review, but
+    # they cannot consume production market calls or become automated BETs.
+    if coverage.get("data_tier") not in {"A", "B"}:
+        event["bet_eligible"] = False
+        event["tier"] = None
+        event["classification"] = "WATCH" if shortlisted else "PASS"
+        if stage in v2.MARKET_STAGES:
+            event["market"] = "NOT REQUESTED — COVERAGE GATE"
+            event["market_skipped_by_sport_screen"] = True
+        event["notes"].append(
+            "Sporting evidence retained despite Data Tier C/D; market comparison and automated BET remain blocked."
+        )
+        return event
+
     # Detailed market is requested only for sporting-shortlisted candidates.
     if stage in v2.MARKET_STAGES and coverage.get("odds"):
         event["market"] = await _odds_7m(
