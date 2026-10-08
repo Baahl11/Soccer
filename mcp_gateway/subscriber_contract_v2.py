@@ -1019,7 +1019,7 @@ def _load_registry_fixture_evidence(fixture_value: Any) -> dict[str, Any]:
             cur.execute(
                 """
                 SELECT captured_at, stage, schema_version, model_version,
-                       data_tier, feature_count, missing_feature_count
+                       data_tier, feature_count, missing_feature_count, payload
                 FROM soccer_feature_snapshots
                 WHERE fixture_id = %s
                 ORDER BY captured_at DESC, snapshot_id DESC
@@ -1027,7 +1027,7 @@ def _load_registry_fixture_evidence(fixture_value: Any) -> dict[str, Any]:
                 """,
                 (fixture_id,),
             )
-            for captured_at, stage, schema_version, model_version, data_tier, feature_count, missing_feature_count in cur.fetchall():
+            for captured_at, stage, schema_version, model_version, data_tier, feature_count, missing_feature_count, snapshot_payload in cur.fetchall():
                 result["feature_snapshots"].append({
                     "captured_at": _iso_value(captured_at),
                     "stage": stage,
@@ -1036,6 +1036,7 @@ def _load_registry_fixture_evidence(fixture_value: Any) -> dict[str, Any]:
                     "data_tier": data_tier,
                     "feature_count": int(feature_count or 0),
                     "missing_feature_count": int(missing_feature_count or 0),
+                    "payload": snapshot_payload if isinstance(snapshot_payload, dict) else {},
                 })
 
             cur.execute(
@@ -1139,7 +1140,8 @@ def _attach_full_registry_slate(
         "WATCH": 0,
         "PASS": 0,
         "PARTIAL_DATA": 0,
-        "DATA_AVAILABLE": 0,
+        "SPORT_DATA_AVAILABLE": 0,
+        "MARKET_DATA_ONLY": 0,
         "INSUFFICIENT_DATA": 0,
     }
 
@@ -1160,6 +1162,16 @@ def _attach_full_registry_slate(
                 "availability_snapshots",
             )
         )
+        sport_evidence_count = sum(
+            int(inventory.get(name) or 0)
+            for name in (
+                "model_runs",
+                "feature_snapshots",
+                "lineup_snapshots",
+                "availability_snapshots",
+            )
+        )
+        market_evidence_count = int(inventory.get("market_snapshots") or 0)
         data_sources = [
             label
             for key_name, label in (
@@ -1184,7 +1196,12 @@ def _attach_full_registry_slate(
                     else "Current snapshot analysis is partial; unsupported or missing fields remain NOT VERIFIED."
                 )
         else:
-            status = "DATA_AVAILABLE" if persisted_evidence_count > 0 else "INSUFFICIENT_DATA"
+            if sport_evidence_count > 0:
+                status = "SPORT_DATA_AVAILABLE"
+            elif market_evidence_count > 0:
+                status = "MARKET_DATA_ONLY"
+            else:
+                status = "INSUFFICIENT_DATA"
             cov = {
                 "analysis_rows": 0,
                 "markets": [],
@@ -1197,12 +1214,18 @@ def _attach_full_registry_slate(
                 "coverage_status": status,
             }
             reason = (
-                "Persisted fixture evidence exists outside the latest pipeline tick; open the match to inspect it."
-                if persisted_evidence_count > 0
-                else "Fixture is in the eligible slate, but no persisted deep-analysis evidence is available yet."
+                "Sport-first evidence is persisted for this fixture; open the match to inspect the verified sporting inputs."
+                if sport_evidence_count > 0
+                else (
+                    "Market snapshots exist, but no verified sporting evidence is persisted. Market availability alone is not an edge."
+                    if market_evidence_count > 0
+                    else "Fixture is in the eligible slate, but no persisted deep-analysis evidence is available yet."
+                )
             )
 
         cov["persisted_evidence_count"] = persisted_evidence_count
+        cov["sport_evidence_count"] = sport_evidence_count
+        cov["market_evidence_count"] = market_evidence_count
         cov["data_sources"] = data_sources
         cov["persisted_market_names"] = list(inventory.get("market_names") or [])
         cov["evidence_inventory"] = inventory
