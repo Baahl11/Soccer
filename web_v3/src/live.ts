@@ -11,6 +11,23 @@ type Json = Record<string, unknown>;
 const API_BASE = "/app/api/v2";
 const SCORE_LABELS = ["0", "1", "2", "3", "4+"];
 
+export interface SlateItem {
+  fixtureId: number;
+  kickoff: string;
+  kickoffRaw: string;
+  league: string;
+  home: string;
+  away: string;
+  status: string;
+  reason: string;
+  sportEvidenceCount: number;
+  marketEvidenceCount: number;
+  persistedEvidenceCount: number;
+  analysisRows: number;
+  homeLogoUrl: string | null;
+  awayLogoUrl: string | null;
+}
+
 function record(value: unknown): Json {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Json : {};
 }
@@ -325,6 +342,66 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
   };
 }
 
+async function loadTodayContract(): Promise<{ data: Json; token: string }> {
+  let token = storedAccessToken();
+  let result = await jsonFetch(API_BASE + "/today", token || undefined);
+
+  if (result.response.status === 401 && hasStoredSession()) {
+    token = await refreshSession();
+    result = await jsonFetch(API_BASE + "/today", token || undefined);
+  }
+  if (result.response.status === 401) {
+    token = "";
+    result = await jsonFetch(API_BASE + "/today");
+  }
+  if (!result.response.ok) {
+    throw new Error(text(result.data.error, "TODAY_DATA_UNAVAILABLE"));
+  }
+  return { data: result.data, token };
+}
+
+function slateRowsFromToday(today: Json): Json[] {
+  return rows(record(today.slate).rows);
+}
+
+function slateScore(row: Json): number {
+  const coverage = record(row.coverage);
+  const sport = numberValue(coverage.sport_evidence_count) ?? 0;
+  const analysis = numberValue(coverage.analysis_rows) ?? 0;
+  const persisted = numberValue(coverage.persisted_evidence_count) ?? 0;
+  const market = numberValue(coverage.market_evidence_count) ?? 0;
+  // SPORT FIRST: verified sporting evidence dominates market-only evidence.
+  return sport * 100000 + analysis * 1000 + persisted * 10 + market;
+}
+
+export async function loadSlate(): Promise<SlateItem[]> {
+  const { data } = await loadTodayContract();
+  return slateRowsFromToday(data).flatMap((row) => {
+    const fixture = fixtureFromSlateRow(row);
+    const coverage = record(row.coverage);
+    const state = record(row.state);
+    const fixtureId = numberValue(fixture.fixture_id);
+    if (!fixtureId) return [];
+    const kickoffRaw = String(fixture.kickoff ?? "");
+    return [{
+      fixtureId,
+      kickoff: kickoffLabel(kickoffRaw),
+      kickoffRaw,
+      league: text(fixture.league ?? fixture.country, "Competition"),
+      home: text(fixture.home_team, "Home"),
+      away: text(fixture.away_team, "Away"),
+      status: text(state.display_status ?? coverage.coverage_status, "INSUFFICIENT DATA"),
+      reason: text(state.reason_display ?? coverage.decision_reason, "No persisted deep-analysis evidence is available yet."),
+      sportEvidenceCount: numberValue(coverage.sport_evidence_count) ?? 0,
+      marketEvidenceCount: numberValue(coverage.market_evidence_count) ?? 0,
+      persistedEvidenceCount: numberValue(coverage.persisted_evidence_count) ?? 0,
+      analysisRows: numberValue(coverage.analysis_rows) ?? 0,
+      homeLogoUrl: typeof fixture.home_team_logo === "string" ? fixture.home_team_logo : null,
+      awayLogoUrl: typeof fixture.away_team_logo === "string" ? fixture.away_team_logo : null,
+    }];
+  });
+}
+
 export async function loadMatchCenter(): Promise<MatchCenterViewModel> {
   const params = new URLSearchParams(window.location.search);
   if (params.get("sample") === "1") {
@@ -332,27 +409,13 @@ export async function loadMatchCenter(): Promise<MatchCenterViewModel> {
     return sampleMatch;
   }
 
-  let token = storedAccessToken();
-  let todayResult = await jsonFetch(API_BASE + "/today", token || undefined);
-
-  if (todayResult.response.status === 401 && hasStoredSession()) {
-    token = await refreshSession();
-    todayResult = await jsonFetch(API_BASE + "/today", token || undefined);
-  }
-  if (todayResult.response.status === 401) {
-    token = "";
-    todayResult = await jsonFetch(API_BASE + "/today");
-  }
-  if (!todayResult.response.ok) {
-    throw new Error(text(todayResult.data.error, "TODAY_DATA_UNAVAILABLE"));
-  }
-
-  const slate = record(todayResult.data.slate);
-  const slateRows = rows(slate.rows);
+  const todayLoaded = await loadTodayContract();
+  let token = todayLoaded.token;
+  const slateRows = slateRowsFromToday(todayLoaded.data);
   const requestedId = fixtureIdFromLocation();
   let selectedRow = requestedId
     ? slateRows.find((row) => numberValue(fixtureFromSlateRow(row).fixture_id) === requestedId)
-    : slateRows[0];
+    : [...slateRows].sort((a, b) => slateScore(b) - slateScore(a))[0];
 
   if (!selectedRow && requestedId) {
     selectedRow = { fixture: { fixture_id: requestedId } };
