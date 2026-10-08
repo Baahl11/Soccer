@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse, Response
 
 SCHEMA_VERSION = "1.0.0"
 MODEL_VERSION = "SOCCER_SUBSCRIBER_PWA_V2_1.0.0"
-CACHE_NAME = "soccer-edge-shell-v1"
+CACHE_NAME = "soccer-edge-shell-v2"
 
 
 def manifest_payload() -> dict[str, Any]:
@@ -16,8 +16,8 @@ def manifest_payload() -> dict[str, Any]:
         "name": "Soccer Edge",
         "short_name": "Soccer Edge",
         "description": "Sport-first soccer intelligence with transparent BET, LEAN and WATCH states.",
-        "id": "/app-v2",
-        "start_url": "/app-v2",
+        "id": "/app",
+        "start_url": "/app",
         "scope": "/",
         "display": "standalone",
         "background_color": "#050b11",
@@ -37,7 +37,7 @@ def manifest_payload() -> dict[str, Any]:
 
 def service_worker_script() -> str:
     return f"""const CACHE_NAME={json.dumps(CACHE_NAME)};
-const SHELL_URL='/app-v2';
+const SHELL_URL='/app';
 const NETWORK_ONLY_PREFIXES=['/app/api/v2/','/app/fixture-identities','/functions/'];
 
 self.addEventListener('install',event=>{{
@@ -67,7 +67,7 @@ self.addEventListener('fetch',event=>{{
     return;
   }}
 
-  if(request.mode==='navigate' && (url.pathname==='/app-v2' || url.pathname==='/app-v2/')){{
+  if(request.mode==='navigate' && (url.pathname==='/app' || url.pathname==='/app/' || url.pathname==='/app-v2' || url.pathname==='/app-v2/')){{
     event.respondWith((async()=>{{
       try{{
         const response=await fetch(request,{{cache:'no-store'}});
@@ -93,7 +93,7 @@ self.addEventListener('push',event=>{{
   if(payload.enabled!==true)return;
   const title=String(payload.title||'Soccer Edge');
   const body=String(payload.body||'').slice(0,240);
-  const url=String(payload.url||'/app-v2');
+  const url=String(payload.url||'/app');
   event.waitUntil(self.registration.showNotification(title,{{
     body,
     icon:'/pwa/icon.svg',
@@ -106,7 +106,7 @@ self.addEventListener('push',event=>{{
 
 self.addEventListener('notificationclick',event=>{{
   event.notification.close();
-  const url=event.notification?.data?.url||'/app-v2';
+  const url=event.notification?.data?.url||'/app';
   event.waitUntil(clients.matchAll({{type:'window',includeUncontrolled:true}}).then(list=>{{
     for(const client of list){{if('focus' in client){{client.navigate(url);return client.focus()}}}}
     return clients.openWindow?clients.openWindow(url):undefined;
@@ -160,7 +160,7 @@ def contract() -> dict[str, Any]:
         "manifest_route": "/app.webmanifest",
         "service_worker_route": "/sw.js",
         "icon_route": "/pwa/icon.svg",
-        "start_url": "/app-v2",
+        "start_url": "/app",
         "api_cache_policy": "NETWORK_ONLY",
         "live_price_cache_allowed": False,
         "live_decision_cache_allowed": False,
