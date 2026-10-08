@@ -250,3 +250,67 @@ def test_v2_percentage_point_fields_are_not_heuristically_rescaled():
     assert projections["probability_edge_pp"] == 0.8
     assert projections["estimated_ev"] == 0.012
     assert projections["estimated_ev_pct"] == 1.2
+
+def test_v2_full_registry_slate_keeps_fixture_without_analysis_visible():
+    payload = _payload([
+        _base_row(
+            fixture_id=101,
+            classification="WATCH",
+            market_family="1X2",
+            market="Match Winner",
+            reason="WAIT_MARKET",
+        )
+    ])
+    contract = subscriber_contract_v2.build_contract(payload, _pro_entitlement())
+    registry = {
+        "status": "FULL_SLATE_READY",
+        "slate_date": "2026-10-07",
+        "timezone": "America/Mexico_City",
+        "rows": [
+            {
+                "fixture_id": 101,
+                "kickoff": "2026-10-07T20:00:00+00:00",
+                "status": "NS",
+                "league": "Test League",
+                "country": "Test",
+                "home_team_id": 10,
+                "home_team": "Alpha",
+                "away_team_id": 20,
+                "away_team": "Beta",
+            },
+            {
+                "fixture_id": 202,
+                "kickoff": "2026-10-07T22:00:00+00:00",
+                "status": "NS",
+                "league": "Other League",
+                "country": "Test",
+                "home_team_id": 30,
+                "home_team": "Gamma",
+                "away_team_id": 40,
+                "away_team": "Delta",
+            },
+        ],
+    }
+
+    result = subscriber_contract_v2._attach_full_registry_slate(contract, payload, registry)
+
+    assert result["counts"]["fixtures"] == 2
+    assert result["slate"]["full_slate"] is True
+    assert result["slate"]["source"] == "POSTGRES_SOCCER_FIXTURES+PERSISTED_ANALYSIS_COVERAGE"
+    assert result["slate"]["rows"][0]["coverage"]["analysis_rows"] == 1
+    assert result["slate"]["rows"][0]["coverage"]["markets"] == ["Match Winner"]
+    assert result["slate"]["rows"][1]["state"]["display_status"] == "INSUFFICIENT DATA"
+    assert result["slate"]["rows"][1]["coverage"]["analysis_rows"] == 0
+
+
+def test_v2_slate_context_prefers_persisted_local_day_and_timezone():
+    day, timezone_name = subscriber_contract_v2._slate_context(
+        {
+            "generated_at_utc": "2026-10-08T00:15:00Z",
+            "generated_at_local": "2026-10-07T18:15:00-06:00",
+            "timezone": "America/Mexico_City",
+        }
+    )
+
+    assert day == "2026-10-07"
+    assert timezone_name == "America/Mexico_City"
