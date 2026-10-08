@@ -77,7 +77,7 @@ def _install_subscriber_app_routes() -> None:
     """Add customer routes while preserving the FastMCP ASGI lifespan."""
     from mcp.server.fastmcp import FastMCP
     from starlette.responses import RedirectResponse
-    from starlette.routing import Route
+    from starlette.routing import Mount, Route
     if hasattr(FastMCP, "_v220_streamable_http_app"):
         return
     original = FastMCP.streamable_http_app
@@ -99,6 +99,7 @@ def _install_subscriber_app_routes() -> None:
             subscriber_contract_v2,
             subscriber_frontend_v2,
             subscriber_frontend_v3,
+            subscriber_react_v3,
             subscriber_pwa_v2,
             ui_golden_master_v1,
             subscriber_preview_data_v231,
@@ -123,6 +124,10 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app-v3", subscriber_frontend_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_preview"))
         if "/app-v3/match/{fixture_id:int}" not in existing_paths:
             additions.append(Route("/app-v3/match/{fixture_id:int}", subscriber_frontend_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_match_page"))
+        if "/app-v3-react" not in existing_paths:
+            additions.append(Route("/app-v3-react", subscriber_react_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_react_preview"))
+        if "/app-v3-react/assets" not in existing_paths:
+            additions.append(Mount("/app-v3-react/assets", app=subscriber_react_v3.assets, name="subscriber_frontend_v3_react_assets"))
         if "/design-lab/match-center" not in existing_paths:
             additions.append(Route("/design-lab/match-center", ui_golden_master_v1.design_match_center, methods=["GET"], name="soccer_edge_match_center_golden_master"))
         if "/app/match/{fixture_id:int}" not in existing_paths:
