@@ -117,6 +117,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_primary"))
         if "/app-v2" not in existing_paths:
             additions.append(Route("/app-v2", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_preview"))
+        if "/app/match/{fixture_id:int}" not in existing_paths:
+            additions.append(Route("/app/match/{fixture_id:int}", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_match_page"))
         if "/app.webmanifest" not in existing_paths:
             additions.append(Route("/app.webmanifest", subscriber_pwa_v2.manifest, methods=["GET"], name="subscriber_pwa_manifest"))
         if "/sw.js" not in existing_paths:
