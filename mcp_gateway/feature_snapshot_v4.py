@@ -66,6 +66,8 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
     away_stats = sporting.get("away_stats") if isinstance(sporting.get("away_stats"), dict) else {}
     home_recent = sporting.get("home_recent") if isinstance(sporting.get("home_recent"), list) else []
     away_recent = sporting.get("away_recent") if isinstance(sporting.get("away_recent"), list) else []
+    home_played_total = _sample_int(_nested(home_stats, "fixtures", "played", "total"))
+    away_played_total = _sample_int(_nested(away_stats, "fixtures", "played", "total"))
 
     home_id = fx.get("home_team_id")
     away_id = fx.get("away_team_id")
@@ -110,7 +112,7 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
             home_stats.get("form"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
-            sample_n=_sample_int(_nested(home_stats, "fixtures", "played", "total")),
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
             missing_reason=None if home_stats.get("form") else "TEAM_FORM_NOT_AVAILABLE",
         ),
@@ -118,7 +120,7 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
             away_stats.get("form"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
-            sample_n=_sample_int(_nested(away_stats, "fixtures", "played", "total")),
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
             missing_reason=None if away_stats.get("form") else "TEAM_FORM_NOT_AVAILABLE",
         ),
@@ -126,96 +128,112 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
             _nested(home_stats, "fixtures", "played", "home"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.away_played_split": _feature(
             _nested(away_stats, "fixtures", "played", "away"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.home_wins_total": _feature(
             _nested(home_stats, "fixtures", "wins", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.home_draws_total": _feature(
             _nested(home_stats, "fixtures", "draws", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.home_losses_total": _feature(
             _nested(home_stats, "fixtures", "loses", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.away_wins_total": _feature(
             _nested(away_stats, "fixtures", "wins", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.away_draws_total": _feature(
             _nested(away_stats, "fixtures", "draws", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.away_losses_total": _feature(
             _nested(away_stats, "fixtures", "loses", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.home_goals_for_avg": _feature(
             _nested(home_stats, "goals", "for", "average", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.home_goals_against_avg": _feature(
             _nested(home_stats, "goals", "against", "average", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.away_goals_for_avg": _feature(
             _nested(away_stats, "goals", "for", "average", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.away_goals_against_avg": _feature(
             _nested(away_stats, "goals", "against", "average", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.home_clean_sheets": _feature(
             _nested(home_stats, "clean_sheet", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.away_clean_sheets": _feature(
             _nested(away_stats, "clean_sheet", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.home_failed_to_score": _feature(
             _nested(home_stats, "failed_to_score", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=home_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.away_failed_to_score": _feature(
             _nested(away_stats, "failed_to_score", "total"),
             source="API_FOOTBALL_TEAM_STATS",
             captured_at=captured_at,
+            sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
         ),
         "team_performance.home_recent_matches": _feature(
