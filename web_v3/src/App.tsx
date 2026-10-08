@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { loadAuthState, signIn, signOut, signUp, type AuthState } from "./auth";
 import { loadMatchCenter } from "./live";
 import type {
   MatchCenterViewModel,
@@ -215,14 +216,113 @@ function GoalsPanel({ match }: { match: MatchCenterViewModel }) {
   );
 }
 
-function AppBody({ match }: { match: MatchCenterViewModel }) {
+function AuthModal({
+  open,
+  auth,
+  onClose,
+}: {
+  open: boolean;
+  auth: AuthState | null;
+  onClose: () => void;
+}) {
+  const [email, setEmail] = useState(auth?.email || "");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  if (!open) return null;
+
+  const submitSignIn = async () => {
+    try {
+      setBusy(true);
+      setStatus("Signing in…");
+      await signIn(email.trim(), password);
+      window.location.reload();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "SIGN_IN_FAILED");
+      setBusy(false);
+    }
+  };
+
+  const submitSignUp = async () => {
+    try {
+      setBusy(true);
+      setStatus("Creating account…");
+      const result = await signUp(email.trim(), password);
+      setStatus(result.message);
+      if (result.signedIn) window.location.reload();
+      else setBusy(false);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "SIGN_UP_FAILED");
+      setBusy(false);
+    }
+  };
+
+  const submitSignOut = () => {
+    signOut();
+    window.location.reload();
+  };
+
+  return (
+    <div className="auth-modal" role="dialog" aria-modal="true" aria-label="Soccer Edge account">
+      <div className="auth-card">
+        <div className="auth-head">
+          <div><span>SOCCER EDGE</span><h2>{auth?.authenticated ? "Account" : "Sign in"}</h2></div>
+          <button onClick={onClose} aria-label="Close">×</button>
+        </div>
+
+        {auth?.authenticated ? (
+          <>
+            <div className="account-summary">
+              <span>PLAN</span><b>{auth.displayRole.toUpperCase()}</b>
+              <small>{auth.email || "Authenticated account"}</small>
+              <em>{auth.premiumUnlocked ? "Match Intelligence unlocked" : "Explorer access · premium evidence remains locked"}</em>
+            </div>
+            <div className="auth-actions">
+              <button className="secondary" onClick={submitSignOut}>Sign out</button>
+              <button className="primary" onClick={onClose}>Continue</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p>Sign in with your Soccer Edge account to resolve your plan and unlock premium Match Intelligence when entitled.</p>
+            <label>Email<input type="email" autoComplete="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" /></label>
+            <label>Password<input type="password" autoComplete="current-password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" /></label>
+            <div className="auth-actions">
+              <button className="primary" disabled={busy || !email || !password} onClick={submitSignIn}>Sign in</button>
+              <button className="secondary" disabled={busy || !email || !password} onClick={submitSignUp}>Create account</button>
+            </div>
+            <div className="auth-status">{status}</div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AppBody({
+  match,
+  auth,
+  onOpenAuth,
+}: {
+  match: MatchCenterViewModel;
+  auth: AuthState | null;
+  onOpenAuth: () => void;
+}) {
   const modeLabel = match.sample ? "SAMPLE DESIGN MODE" : "LIVE CONTRACT";
   const classification = match.decision.classification || match.decision.displayBucket || "SPORT FIRST";
   return (
     <div className="app-shell">
       <aside className="rail"><div className="brand"><span>SE</span><b>SOCCER<br/>EDGE</b></div><nav><a>Today</a><a>Edge Feed</a><a className="active">Matches</a><a>Markets</a><a>Performance</a><a>My Edge</a></nav></aside>
       <main>
-        <div className="topbar"><span>← Back to matches</span><span className={match.sample ? "preview-mode" : "live"}>● {modeLabel}</span></div>
+        <div className="topbar">
+          <span>← Back to matches</span>
+          <div className="topbar-actions">
+            <span className={match.sample ? "preview-mode" : "live"}>● {modeLabel}</span>
+            <span className={"plan-chip " + (auth?.premiumUnlocked ? "pro" : "")}>{(auth?.displayRole || "Explorer").toUpperCase()}</span>
+            <button className="account-btn" onClick={onOpenAuth}>{auth?.authenticated ? "Account" : "Sign in"}</button>
+          </div>
+        </div>
         <Hero match={match} />
         <nav className="tabs">{["Overview","Goals","Corners","Cards","Players","Market","Model"].map((x,i)=><button className={i===0?"active":""} key={x}>{x}</button>)}</nav>
         <section className="content">
@@ -249,13 +349,21 @@ function AppBody({ match }: { match: MatchCenterViewModel }) {
 
 export default function App() {
   const [match, setMatch] = useState<MatchCenterViewModel | null>(null);
+  const [auth, setAuth] = useState<AuthState | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    loadMatchCenter()
-      .then((data) => { if (active) setMatch(data); })
-      .catch((err: unknown) => { if (active) setError(err instanceof Error ? err.message : "MATCH_CENTER_UNAVAILABLE"); });
+    Promise.all([loadMatchCenter(), loadAuthState()])
+      .then(([matchData, authData]) => {
+        if (!active) return;
+        setMatch(matchData);
+        setAuth(authData);
+      })
+      .catch((err: unknown) => {
+        if (active) setError(err instanceof Error ? err.message : "MATCH_CENTER_UNAVAILABLE");
+      });
     return () => { active = false; };
   }, []);
 
@@ -265,5 +373,10 @@ export default function App() {
   if (!match) {
     return <div className="load-screen"><b>Loading verified Match Center…</b><span>Sport first · market second</span></div>;
   }
-  return <AppBody match={match} />;
+  return (
+    <>
+      <AppBody match={match} auth={auth} onOpenAuth={()=>setAuthOpen(true)} />
+      <AuthModal open={authOpen} auth={auth} onClose={()=>setAuthOpen(false)} />
+    </>
+  );
 }
