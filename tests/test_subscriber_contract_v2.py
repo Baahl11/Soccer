@@ -314,3 +314,60 @@ def test_v2_slate_context_prefers_persisted_local_day_and_timezone():
 
     assert day == "2026-10-07"
     assert timezone_name == "America/Mexico_City"
+
+def test_v2_match_contract_opens_registry_only_fixture_without_fabricating_data():
+    payload = _payload([])
+    registry_fixture = {
+        "fixture_id": 909,
+        "kickoff": "2026-10-07T23:00:00+00:00",
+        "status": "NS",
+        "league": "Registry League",
+        "country": "Test",
+        "home_team_id": 91,
+        "home_team": "Registry Home",
+        "away_team_id": 92,
+        "away_team": "Registry Away",
+    }
+
+    result = subscriber_contract_v2.build_match_contract(
+        payload,
+        909,
+        registry_fixture=registry_fixture,
+    )
+
+    assert result is not None
+    assert result["status"] == "MATCH_INTELLIGENCE_INSUFFICIENT_DATA"
+    assert result["fixture"]["fixture_id"] == 909
+    assert result["selected_candidate"] is None
+    assert result["projection_ladder"]["raw_sport_probability"] is None
+    assert result["market_context"]["candidate_count"] == 0
+    assert result["analyst_review"]["human_review_allowed"] is True
+    assert result["analyst_review"]["available_sections"] == ["FIXTURE_IDENTITY"]
+    assert result["data_disclosure"]["unknown_policy"] == "NOT VERIFIED"
+
+
+def test_v2_match_contract_exposes_available_markets_for_human_review():
+    payload = _payload([
+        _base_row(
+            fixture_id=333,
+            classification="WATCH",
+            market_family="BTTS",
+            market="Both Teams To Score",
+            p_raw=0.61,
+        ),
+        _base_row(
+            fixture_id=333,
+            classification="WATCH",
+            market_family="FT_TOTALS",
+            market="Over/Under",
+            p_raw=0.58,
+        ),
+    ])
+
+    result = subscriber_contract_v2.build_match_contract(payload, 333)
+
+    assert result is not None
+    assert "BTTS" in result["analyst_review"]["available_markets"]
+    assert "Goals" in result["analyst_review"]["available_markets"]
+    assert result["analyst_review"]["analysis_rows"] == 2
+    assert result["analyst_review"]["human_review_allowed"] is True
