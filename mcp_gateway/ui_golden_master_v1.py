@@ -158,21 +158,36 @@ background:radial-gradient(circle at 50% 0,rgba(52,150,190,.035),transparent 52%
 .top-deck .edge-card{background:linear-gradient(180deg,rgba(9,42,35,.16),transparent)}
 .mid-deck .matrix-card{background:linear-gradient(180deg,rgba(11,37,50,.24),transparent)}
 .chart-svg{width:100%;display:block;overflow:visible}
-.edge-svg{height:72px;margin-top:0}
+.edge-body{display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:12px;align-items:stretch}
+.edge-visual{min-width:0;display:grid;align-items:center}
+.edge-svg{height:84px;margin-top:0}
 .edge-base{stroke:#163747;stroke-width:1.4;stroke-linecap:round}
 .edge-tick{stroke:#214a5c;stroke-width:1}
-.edge-gap-glow{stroke:#e5bd5b;stroke-width:12;stroke-linecap:round;opacity:.16}
-.edge-gap-focus{stroke:#f2c968;stroke-width:6;stroke-linecap:round}
-.edge-gap-core{stroke:#ffe08a;stroke-width:2;stroke-linecap:round;opacity:.95}
+.edge-gap-glow{stroke:#e5bd5b;stroke-width:13;stroke-linecap:round;opacity:.18}
+.edge-gap-focus{stroke:#f2c968;stroke-width:6.5;stroke-linecap:round}
+.edge-gap-core{stroke:#fff0b2;stroke-width:2.2;stroke-linecap:round;opacity:.98}
 .edge-market-dot{fill:#45afe2;stroke:#071923;stroke-width:2.2}
 .edge-model-dot{fill:#4bd8a3;stroke:#071923;stroke-width:2.2}
 .edge-scale{fill:#536f7e;font-size:5px;font-weight:800;text-anchor:middle}
 .edge-point-label{font-size:5px;font-weight:900;text-anchor:middle}
 .edge-point-label.market{fill:#73c6ef}.edge-point-label.model{fill:#70e4ba}
-.edge-gap-pill{fill:#2b2412;stroke:#b89336;stroke-width:1}
-.edge-gap-pill-text{fill:#f2cf72;font-size:4.8px;font-weight:950;text-anchor:middle;letter-spacing:.05em}
-.edge-value{margin-top:1px;font-size:18px;font-weight:950;color:#59ddb0;letter-spacing:-.04em;text-shadow:0 0 14px rgba(89,221,176,.10)}
-.edge-caption{margin-top:1px;font-size:4.6px;color:#607a89;letter-spacing:.02em}
+.edge-gap-pill{fill:#2b2412;stroke:#c59b3f;stroke-width:1.1}
+.edge-gap-pill-value{fill:#ffe08a;font-size:8.8px;font-weight:950;text-anchor:middle;letter-spacing:-.03em}
+.edge-gap-pill-label{fill:#b99a55;font-size:3.7px;font-weight:900;text-anchor:middle;letter-spacing:.12em}
+.edge-side-stats{
+  display:grid;grid-template-rows:1fr 1fr;border-left:1px solid rgba(42,88,109,.42);
+  background:linear-gradient(180deg,rgba(8,28,38,.32),rgba(5,20,28,.16))
+}
+.edge-side-stat{
+  min-height:0;padding:8px 9px;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:7px;align-content:center
+}
+.edge-side-stat+.edge-side-stat{border-top:1px solid rgba(42,88,109,.42)}
+.edge-side-stat .k{font-size:4.3px;color:#607986;font-weight:900;letter-spacing:.09em}
+.edge-side-stat .v{font-size:13px;color:#f1f7fa;font-weight:950;letter-spacing:-.035em;text-align:right;font-variant-numeric:tabular-nums}
+.edge-side-stat .sub{grid-column:1/-1;margin-top:2px;font-size:4.2px;color:#617b89}
+.edge-side-stat .sub b{color:#83a7b8;font-weight:900}
+.edge-side-stat.conf .v{color:#61ddb1}
+.edge-side-stat.conf .sub b{color:#61ddb1}
 .dist-svg{height:92px;margin-top:5px}
 .dist-grid{stroke:#173748;stroke-width:.8}
 .dist-home{fill:url(#homeBar)}.dist-away{fill:url(#awayBar)}
@@ -300,8 +315,9 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
   .top-deck{grid-template-columns:1.16fr .84fr}.top-deck .edge-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
   .mid-deck{grid-template-columns:.92fr 1.08fr}.mid-deck .goals-card{grid-column:1/-1;border-left:0;border-top:1px solid rgba(38,82,104,.5)}
   .module{padding:8px}.module+.module{border-left:1px solid rgba(38,82,104,.5)}
-  .edge-card{display:grid;grid-template-columns:minmax(0,1fr) 86px;gap:2px 10px}.edge-card .panel-head{grid-column:1/-1;margin-bottom:0}
-  .edge-card .edge-svg{grid-column:1;grid-row:2/4;height:72px;margin:0}.edge-card .edge-value{grid-column:2;grid-row:2;align-self:end;font-size:16px;margin:0}.edge-card .edge-caption{grid-column:2;grid-row:3;align-self:start;margin:0}
+  .edge-card .panel-head{margin-bottom:2px}
+  .edge-body{grid-template-columns:minmax(0,1fr) 108px;gap:0}.edge-card .edge-svg{height:82px;margin:0}
+  .edge-side-stat{padding:7px 7px}.edge-side-stat .k{font-size:4px}.edge-side-stat .v{font-size:11px}.edge-side-stat .sub{font-size:3.8px}
   .profile-row{grid-template-columns:53px minmax(0,1fr) 27px}
   .goals-card{display:grid;grid-template-columns:118px minmax(0,1fr);column-gap:10px}.goals-card .panel-head{grid-column:1/-1}.goals-card .market-grid{align-self:start}.goals-card .dist-svg{height:84px;margin-top:0}.goals-card .legend{grid-column:1/-1;margin-top:2px}
   .read{grid-template-columns:28px minmax(0,1fr) auto}.read-mark{width:28px;height:28px}
@@ -394,32 +410,44 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 
           <article class="module edge-card">
             <div class="panel-head"><h3>Edge Gap</h3><span>EXAMPLE MARKET</span></div>
-            <svg class="chart-svg edge-svg" viewBox="0 0 260 76" aria-label="Model versus market">
-              <rect x="111" y="3" width="52" height="14" rx="7" class="edge-gap-pill"/>
-              <text x="137" y="12.5" class="edge-gap-pill-text">EDGE +11.7</text>
+            <div class="edge-body">
+              <div class="edge-visual">
+                <svg class="chart-svg edge-svg" viewBox="0 0 260 84" aria-label="Model versus market">
+                  <rect x="101" y="2" width="72" height="25" rx="12.5" class="edge-gap-pill"/>
+                  <text x="137" y="14" class="edge-gap-pill-value">+11.7 pp</text>
+                  <text x="137" y="21.5" class="edge-gap-pill-label">EDGE GAP</text>
 
-              <!-- neutral scale stops outside the gap -->
-              <line x1="22" y1="46" x2="95" y2="46" class="edge-base"/>
-              <line x1="179" y1="46" x2="238" y2="46" class="edge-base"/>
-              <line x1="22" y1="41" x2="22" y2="51" class="edge-tick"/>
-              <line x1="94" y1="41" x2="94" y2="51" class="edge-tick"/>
-              <line x1="166" y1="41" x2="166" y2="51" class="edge-tick"/>
-              <line x1="238" y1="41" x2="238" y2="51" class="edge-tick"/>
-              <text x="22" y="66" class="edge-scale">50%</text>
-              <text x="94" y="66" class="edge-scale">60%</text>
-              <text x="166" y="66" class="edge-scale">70%</text>
-              <text x="238" y="66" class="edge-scale">80%</text>
+                  <line x1="22" y1="54" x2="95" y2="54" class="edge-base"/>
+                  <line x1="179" y1="54" x2="238" y2="54" class="edge-base"/>
+                  <line x1="22" y1="49" x2="22" y2="59" class="edge-tick"/>
+                  <line x1="94" y1="49" x2="94" y2="59" class="edge-tick"/>
+                  <line x1="166" y1="49" x2="166" y2="59" class="edge-tick"/>
+                  <line x1="238" y1="49" x2="238" y2="59" class="edge-tick"/>
+                  <text x="22" y="75" class="edge-scale">50%</text>
+                  <text x="94" y="75" class="edge-scale">60%</text>
+                  <text x="166" y="75" class="edge-scale">70%</text>
+                  <text x="238" y="75" class="edge-scale">80%</text>
 
-              <!-- explicit high-contrast EDGE segment: no gradient/filter dependency -->
-              <line x1="95" y1="46" x2="179" y2="46" class="edge-gap-glow"/>
-              <line x1="95" y1="46" x2="179" y2="46" class="edge-gap-focus"/>
-              <line x1="98" y1="46" x2="176" y2="46" class="edge-gap-core"/>
-              <circle cx="95" cy="46" r="6.2" class="edge-market-dot"/>
-              <circle cx="179" cy="46" r="6.2" class="edge-model-dot"/>
-              <text x="95" y="28" class="edge-point-label market">MARKET 60.1</text>
-              <text x="179" y="28" class="edge-point-label model">MODEL 71.8</text>
-            </svg>
-            <div class="edge-value">+11.7 pp</div><div class="edge-caption">model − market fair</div>
+                  <line x1="95" y1="54" x2="179" y2="54" class="edge-gap-glow"/>
+                  <line x1="95" y1="54" x2="179" y2="54" class="edge-gap-focus"/>
+                  <line x1="98" y1="54" x2="176" y2="54" class="edge-gap-core"/>
+                  <circle cx="95" cy="54" r="6.2" class="edge-market-dot"/>
+                  <circle cx="179" cy="54" r="6.2" class="edge-model-dot"/>
+                  <text x="95" y="37" class="edge-point-label market">MARKET 60.1</text>
+                  <text x="179" y="37" class="edge-point-label model">MODEL 71.8</text>
+                </svg>
+              </div>
+              <aside class="edge-side-stats" aria-label="Edge context">
+                <div class="edge-side-stat">
+                  <span class="k">FAIR PRICE</span><strong class="v">1.39</strong>
+                  <span class="sub"><b>Model</b> · Market 1.66</span>
+                </div>
+                <div class="edge-side-stat conf">
+                  <span class="k">CONFIDENCE</span><strong class="v">84</strong>
+                  <span class="sub"><b>High</b> · signal confidence</span>
+                </div>
+              </aside>
+            </div>
           </article>
         </section>
 
