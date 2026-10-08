@@ -100,6 +100,7 @@ def _install_subscriber_app_routes() -> None:
             subscriber_frontend_v2,
             subscriber_frontend_v3,
             subscriber_pwa_v2,
+            ui_golden_master_v1,
             subscriber_preview_data_v231,
             subscriber_preview_maturity_v232,
             subscriber_preview_performance_v231,
@@ -122,6 +123,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app-v3", subscriber_frontend_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_preview"))
         if "/app-v3/match/{fixture_id:int}" not in existing_paths:
             additions.append(Route("/app-v3/match/{fixture_id:int}", subscriber_frontend_v3.app_page, methods=["GET"], name="subscriber_frontend_v3_match_page"))
+        if "/design-lab/match-center" not in existing_paths:
+            additions.append(Route("/design-lab/match-center", ui_golden_master_v1.design_match_center, methods=["GET"], name="soccer_edge_match_center_golden_master"))
         if "/app/match/{fixture_id:int}" not in existing_paths:
             additions.append(Route("/app/match/{fixture_id:int}", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_match_page"))
         if "/app.webmanifest" not in existing_paths:
