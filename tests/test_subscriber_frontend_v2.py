@@ -136,3 +136,15 @@ def test_fe2_match_detail_is_summary_first_and_mobile_safe():
     assert "Raw current-snapshot market table" in html
     assert "Coverage" in html
     assert "Freshness" in html
+
+
+def test_fe2_match_intelligence_is_sport_first_not_market_first():
+    html = subscriber_frontend_v2.render()
+
+    assert "Sport-first read" in html
+    assert "Sporting evidence" in html
+    assert "Team performance baseline" in html
+    assert "Recent form / trends" in html
+    assert "Market layer" in html
+    assert "context only · not an edge by itself" in html
+    assert "Market data exists, but verified sporting evidence is not sufficient" in html
