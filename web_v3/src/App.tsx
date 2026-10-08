@@ -18,9 +18,9 @@ function TeamBadge({ team }: { team: MatchCenterViewModel["home"] }) {
 function MissingPanel({ title, section }: { title: string; section: SectionState }) {
   return (
     <article className="panel missing-panel">
-      <header><h3>{title}</h3><span>{section.state.replaceAll("_", " ")}</span></header>
+      <header><h3>{title}</h3><span>{section.state.split("_").join(" ")}</span></header>
       <div className="missing-state">
-        <b>{section.state.replaceAll("_", " ")}</b>
+        <b>{section.state.split("_").join(" ")}</b>
         <p>{section.note || "No verified persisted value is available for this visual."}</p>
       </div>
     </article>
@@ -188,7 +188,7 @@ function MatrixPanel({ match }: { match: MatchCenterViewModel }) {
         <div className="team-heats">
           {match.scoringProfiles.length
             ? match.scoringProfiles.map((p) => <TeamHeatmap key={p.team} profile={p} />)
-            : <div className="inline-missing"><b>{match.sections.scoringProfiles.state.replaceAll("_"," ")}</b><span>{match.sections.scoringProfiles.note}</span></div>}
+            : <div className="inline-missing"><b>{match.sections.scoringProfiles.state.split("_").join(" ")}</b><span>{match.sections.scoringProfiles.note}</span></div>}
         </div>
       </div>
     </article>
