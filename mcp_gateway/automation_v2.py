@@ -9,7 +9,7 @@ import httpx
 from mcp_gateway import automation as base
 from mcp_gateway.soccer_model import build_raw_projection, evaluate_market, public_raw_projection
 
-SPORTING_STAGES = {"T-90", "T-60", "T-40", "T-20", "T-10"}
+SPORTING_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-20", "T-10"}
 MARKET_STAGES = {"T-40", "T-20", "T-10", "CLOSE"}
 LINEUP_STAGES = {"T-60", "T-40", "T-30", "T-20", "T-10"}
 INJURY_STAGES = {"T-90", "T-60", "T-40", "T-20"}
