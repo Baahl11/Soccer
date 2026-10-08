@@ -4,10 +4,12 @@ const labels = ["0", "1", "2", "3", "4+"];
 
 export const sampleMatch: MatchCenterViewModel = {
   sample: true,
+  live: false,
+  fixtureId: null,
   league: "Premier League",
   kickoff: "20:00",
-  home: { name: "Arsenal", shortName: "ARS", side: "home" },
-  away: { name: "Brighton", shortName: "BHA", side: "away" },
+  home: { name: "Arsenal", shortName: "ARS", side: "home", logoUrl: null },
+  away: { name: "Brighton", shortName: "BHA", side: "away", logoUrl: null },
   dataQuality: "A",
   confidence: 84,
   lineup: "CONFIRMED",
@@ -20,6 +22,7 @@ export const sampleMatch: MatchCenterViewModel = {
     gap: 11.7,
     fairPrice: 1.39,
     marketPrice: 1.66,
+    modelKind: "CALIBRATED MODEL",
   },
   sportProfile: [
     { label: "Attack strength", score: 83, status: "GOOD" },
@@ -39,6 +42,7 @@ export const sampleMatch: MatchCenterViewModel = {
       [1, 2, 3, 2, 1],
     ],
     hot: [1, 2],
+    mostLikely: { score: "2-1", probability: 11.4 },
   },
   scoringProfiles: [
     {
@@ -58,5 +62,22 @@ export const sampleMatch: MatchCenterViewModel = {
       ],
     },
   ],
-  over25: { model: 64.4, market: 55.3, edge: 8.9 },
+  over25: { model: 64.4, market: 55.3, edge: 8.9, modelKind: "RAW SPORT" },
+  decision: {
+    classification: null,
+    displayBucket: "SAMPLE",
+    tier: null,
+    reason: "Illustrative Golden Master values only.",
+  },
+  sections: {
+    probability: { state: "VERIFIED" },
+    xg: { state: "VERIFIED" },
+    edge: { state: "VERIFIED" },
+    sportProfile: { state: "VERIFIED" },
+    scoreMatrix: { state: "VERIFIED" },
+    scoringProfiles: { state: "VERIFIED" },
+    over25: { state: "VERIFIED" },
+  },
+  missingSections: [],
+  disclosure: "SAMPLE DATA · NOT A LIVE PREDICTION",
 };
