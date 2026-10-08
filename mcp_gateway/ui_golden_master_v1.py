@@ -254,6 +254,24 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02),0 1px 3px rgba(0,0,0,.18)}
 .c5{background:linear-gradient(180deg,#39a7cf,#2a90b5);box-shadow:0 0 14px rgba(57,167,207,.16),inset 0 0 0 1px rgba(210,245,255,.10)}
 .cell.hot{outline:1px solid rgba(91,222,176,.72);outline-offset:1px;box-shadow:0 0 15px rgba(75,216,163,.17),inset 0 0 0 1px rgba(255,255,255,.08)}
 .matrix-note{margin-top:6px;color:#637d8c;font-size:4.6px;text-align:center}.matrix-note b{color:#cfe4ee}
+.matrix-layout{display:block}
+.scoring-profiles{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.team-profile{
+  min-width:0;border:1px solid rgba(55,112,140,.30);border-radius:7px;padding:6px;
+  background:linear-gradient(180deg,rgba(8,28,38,.48),rgba(5,19,27,.58))
+}
+.team-profile-head{display:flex;align-items:baseline;justify-content:space-between;gap:4px;margin-bottom:4px}
+.team-profile-head b{font-size:5.4px;color:#e8f3f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-profile-head span{font-size:3.8px;color:#607b89;font-weight:900;letter-spacing:.07em}
+.mini-matrix{display:grid;grid-template-columns:9px repeat(5,minmax(0,1fr));gap:2px;align-items:center}
+.mini-axis{font-size:3.3px;color:#68818e;text-align:center;font-weight:850}
+.mini-cell{
+  aspect-ratio:1;border:1px solid rgba(255,255,255,.055);border-radius:2px;display:grid;place-items:center;
+  font-size:3.5px;font-weight:900;color:#eef8fb
+}
+.home-p1{background:#0b2c2a}.home-p2{background:#13503f}.home-p3{background:#19735a}.home-p4{background:#21966f}.home-p5{background:#35c88e;box-shadow:0 0 10px rgba(53,200,142,.12)}
+.away-p1{background:#171d38}.away-p2{background:#252a55}.away-p3{background:#36366f}.away-p4{background:#4a438d}.away-p5{background:#6353ad;box-shadow:0 0 10px rgba(99,83,173,.12)}
+.profile-caption{margin-top:4px;text-align:center;font-size:3.5px;color:#587381;letter-spacing:.04em}
 .market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .market-metric{padding:6px 3px;text-align:center;border:1px solid rgba(45,94,118,.4);border-radius:6px;
 background:linear-gradient(180deg,rgba(9,29,40,.68),rgba(7,23,32,.8));
@@ -338,11 +356,20 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
   .profile-row i{box-shadow:0 0 8px rgba(75,216,163,.08)}
 
   .matrix-card{padding-bottom:10px}
-  .matrix-card .panel-head{margin-bottom:9px}
-  .matrix{grid-template-columns:16px repeat(5,minmax(0,1fr));gap:4px;max-width:292px;margin:0 auto}
-  .axis{font-size:4.7px}
-  .matrix .cell{aspect-ratio:1.22/1;font-size:5.4px;border-radius:4px}
-  .matrix-note{font-size:4.8px;margin-top:6px}
+  .matrix-card .panel-head{margin-bottom:8px}
+  .matrix-layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(132px,.82fr);gap:8px;align-items:start}
+  .matrix-main{min-width:0}
+  .matrix-main .matrix{grid-template-columns:14px repeat(5,minmax(0,1fr));gap:3px;max-width:none;margin:0}
+  .matrix-main .axis{font-size:4.2px}
+  .matrix-main .cell{aspect-ratio:1.08/1;font-size:5px;border-radius:4px}
+  .matrix-note{font-size:4.4px;margin-top:5px}
+  .scoring-profiles{display:grid;grid-template-columns:1fr;gap:6px;margin:0;padding-left:8px;border-left:1px solid rgba(43,88,109,.42)}
+  .team-profile{padding:5px;border-radius:6px}
+  .team-profile-head b{font-size:5px}.team-profile-head span{font-size:3.5px}
+  .mini-matrix{grid-template-columns:8px repeat(5,minmax(0,1fr));gap:1.5px}
+  .mini-axis{font-size:3px}
+  .mini-cell{font-size:3.2px;border-radius:2px}
+  .profile-caption{font-size:3.2px;margin-top:3px}
 
   .goals-card{display:grid;grid-template-columns:118px minmax(0,1fr);column-gap:10px}.goals-card .panel-head{grid-column:1/-1}.goals-card .market-grid{align-self:start}.goals-card .dist-svg{height:84px;margin-top:0}.goals-card .legend{grid-column:1/-1;margin-top:2px}
   .read{grid-template-columns:28px minmax(0,1fr) auto}.read-mark{width:28px;height:28px}
@@ -490,16 +517,48 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
           </article>
 
           <article class="module matrix-card">
-            <div class="panel-head"><h3>Score Matrix (FT)</h3><span>PROBABILITY</span></div>
-            <div class="matrix">
-              <span></span><span class="axis">0</span><span class="axis">1</span><span class="axis">2</span><span class="axis">3</span><span class="axis">4+</span>
-              <span class="axis">0</span><div class="cell c1">2</div><div class="cell c2">5</div><div class="cell c2">6</div><div class="cell c1">3</div><div class="cell c1">1</div>
-              <span class="axis">1</span><div class="cell c2">5</div><div class="cell c4">9</div><div class="cell c5 hot">11</div><div class="cell c3">7</div><div class="cell c1">2</div>
-              <span class="axis">2</span><div class="cell c2">4</div><div class="cell c5">10</div><div class="cell c4">9</div><div class="cell c3">6</div><div class="cell c1">2</div>
-              <span class="axis">3</span><div class="cell c1">2</div><div class="cell c3">5</div><div class="cell c3">6</div><div class="cell c2">4</div><div class="cell c1">1</div>
-              <span class="axis">4+</span><div class="cell c1">1</div><div class="cell c1">2</div><div class="cell c2">3</div><div class="cell c1">2</div><div class="cell c1">1</div>
+            <div class="panel-head"><h3>Score Matrix (FT)</h3><span>FT + SCORING PROFILE</span></div>
+            <div class="matrix-layout">
+              <div class="matrix-main">
+                <div class="matrix">
+                  <span></span><span class="axis">0</span><span class="axis">1</span><span class="axis">2</span><span class="axis">3</span><span class="axis">4+</span>
+                  <span class="axis">0</span><div class="cell c1">2</div><div class="cell c2">5</div><div class="cell c2">6</div><div class="cell c1">3</div><div class="cell c1">1</div>
+                  <span class="axis">1</span><div class="cell c2">5</div><div class="cell c4">9</div><div class="cell c5 hot">11</div><div class="cell c3">7</div><div class="cell c1">2</div>
+                  <span class="axis">2</span><div class="cell c2">4</div><div class="cell c5">10</div><div class="cell c4">9</div><div class="cell c3">6</div><div class="cell c1">2</div>
+                  <span class="axis">3</span><div class="cell c1">2</div><div class="cell c3">5</div><div class="cell c3">6</div><div class="cell c2">4</div><div class="cell c1">1</div>
+                  <span class="axis">4+</span><div class="cell c1">1</div><div class="cell c1">2</div><div class="cell c2">3</div><div class="cell c1">2</div><div class="cell c1">1</div>
+                </div>
+                <div class="matrix-note">Most likely: <b>2–1 · 11.4%</b></div>
+              </div>
+
+              <div class="scoring-profiles" aria-label="Illustrative goals for versus goals against profiles">
+                <div class="team-profile">
+                  <div class="team-profile-head"><b>Arsenal</b><span>GF × GA</span></div>
+                  <div class="mini-matrix">
+                    <span></span><span class="mini-axis">0</span><span class="mini-axis">1</span><span class="mini-axis">2</span><span class="mini-axis">3</span><span class="mini-axis">4+</span>
+                    <span class="mini-axis">0</span><div class="mini-cell home-p1">1</div><div class="mini-cell home-p2">3</div><div class="mini-cell home-p3">4</div><div class="mini-cell home-p2">2</div><div class="mini-cell home-p1">1</div>
+                    <span class="mini-axis">1</span><div class="mini-cell home-p2">2</div><div class="mini-cell home-p3">5</div><div class="mini-cell home-p5">7</div><div class="mini-cell home-p2">3</div><div class="mini-cell home-p1">1</div>
+                    <span class="mini-axis">2</span><div class="mini-cell home-p1">1</div><div class="mini-cell home-p3">4</div><div class="mini-cell home-p4">6</div><div class="mini-cell home-p2">2</div><div class="mini-cell home-p1">1</div>
+                    <span class="mini-axis">3</span><div class="mini-cell home-p1">1</div><div class="mini-cell home-p2">2</div><div class="mini-cell home-p2">3</div><div class="mini-cell home-p1">1</div><div class="mini-cell home-p1">0</div>
+                    <span class="mini-axis">4+</span><div class="mini-cell home-p1">0</div><div class="mini-cell home-p1">1</div><div class="mini-cell home-p1">1</div><div class="mini-cell home-p1">0</div><div class="mini-cell home-p1">0</div>
+                  </div>
+                  <div class="profile-caption">X = GF · Y = GA</div>
+                </div>
+
+                <div class="team-profile">
+                  <div class="team-profile-head"><b>Brighton</b><span>GF × GA</span></div>
+                  <div class="mini-matrix">
+                    <span></span><span class="mini-axis">0</span><span class="mini-axis">1</span><span class="mini-axis">2</span><span class="mini-axis">3</span><span class="mini-axis">4+</span>
+                    <span class="mini-axis">0</span><div class="mini-cell away-p1">1</div><div class="mini-cell away-p2">2</div><div class="mini-cell away-p2">3</div><div class="mini-cell away-p1">1</div><div class="mini-cell away-p1">0</div>
+                    <span class="mini-axis">1</span><div class="mini-cell away-p2">2</div><div class="mini-cell away-p3">4</div><div class="mini-cell away-p5">5</div><div class="mini-cell away-p2">2</div><div class="mini-cell away-p1">1</div>
+                    <span class="mini-axis">2</span><div class="mini-cell away-p1">1</div><div class="mini-cell away-p2">3</div><div class="mini-cell away-p4">4</div><div class="mini-cell away-p2">2</div><div class="mini-cell away-p1">1</div>
+                    <span class="mini-axis">3</span><div class="mini-cell away-p1">0</div><div class="mini-cell away-p2">2</div><div class="mini-cell away-p2">2</div><div class="mini-cell away-p1">1</div><div class="mini-cell away-p1">0</div>
+                    <span class="mini-axis">4+</span><div class="mini-cell away-p1">0</div><div class="mini-cell away-p1">1</div><div class="mini-cell away-p1">1</div><div class="mini-cell away-p1">0</div><div class="mini-cell away-p1">0</div>
+                  </div>
+                  <div class="profile-caption">X = GF · Y = GA</div>
+                </div>
+              </div>
             </div>
-            <div class="matrix-note">Most likely: <b>2–1 · 11.4%</b></div>
           </article>
 
           <article class="module goals-card">
