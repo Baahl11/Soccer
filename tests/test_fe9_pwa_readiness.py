@@ -4,10 +4,10 @@ from mcp_gateway import subscriber_frontend_v2
 from mcp_gateway import subscriber_pwa_v2
 
 
-def test_fe9_manifest_targets_v2_customer_app():
+def test_fe9_manifest_targets_primary_customer_app():
     manifest = subscriber_pwa_v2.manifest_payload()
 
-    assert manifest["start_url"] == "/app-v2"
+    assert manifest["start_url"] == "/app"
     assert manifest["scope"] == "/"
     assert manifest["display"] == "standalone"
     assert manifest["theme_color"] == "#06111a"
