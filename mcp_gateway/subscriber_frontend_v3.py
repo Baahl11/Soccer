@@ -411,9 +411,132 @@ linear-gradient(180deg,#071923,#05141d);padding:8px;box-shadow:inset 0 1px 0 rgb
 })();
 </script>
 """
+    human_pass = r"""
+<style>
+/* V3 human-design pass: less template symmetry, more sports-product hierarchy */
+#v3-premium-board{display:none!important}
+.mc-body.v3-humanized .feature-callout,
+.mc-body.v3-humanized .panel.v3-goal,
+.mc-body.v3-humanized .panel.v3-coverage,
+.mc-body.v3-humanized .panel.v3-form{display:none!important}
+.v3-human{margin:0 0 7px;border-top:1px solid #1a4356;border-bottom:1px solid #102f40;background:#06151e}
+.v3-human-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:10px 10px 8px}
+.v3-human-head h3{margin:0;font-size:11px;letter-spacing:-.01em}
+.v3-human-head p{margin:3px 0 0;color:#708a99;font-size:6px}
+.v3-human-head span{font-size:6px;color:#90a7b3;white-space:nowrap}
+.v3-human-main{display:grid;grid-template-columns:1.35fr .65fr;border-top:1px solid #123548}
+.v3-human-primary{padding:10px;border-right:1px solid #123548}
+.v3-human-side{display:grid}
+.v3-human-side>div{padding:10px;border-bottom:1px solid #123548}.v3-human-side>div:last-child{border-bottom:0}
+.v3-human-kicker{display:block;margin-bottom:7px;color:#6f8998;font-size:5.5px;font-weight:850;letter-spacing:.08em}
+.v3-human-bars{display:grid;gap:8px}
+.v3-human-bar{display:grid;grid-template-columns:88px minmax(0,1fr) 36px;gap:7px;align-items:center}
+.v3-human-bar span{font-size:6.5px;color:#7a95a4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v3-human-bar b{text-align:right;font-size:8px}
+.v3-human-track{height:6px;background:#102a39;border-radius:2px;overflow:hidden}
+.v3-human-track i{display:block;height:100%;border-radius:2px}.v3-human-track .home{background:#41aee0}.v3-human-track .away{background:#4bd5a4}.v3-human-track .total{background:#d9b24f}
+.v3-human-big{font-size:21px;line-height:1;font-weight:900;letter-spacing:-.04em}
+.v3-human-caption{display:block;margin-top:4px;color:#6b8594;font-size:5.5px}
+.v3-human-meter{height:4px;margin-top:7px;background:#102a39;border-radius:2px;overflow:hidden}.v3-human-meter i{display:block;height:100%;background:#4bd9a8}
+.v3-human-form{display:flex;gap:3px;flex-wrap:wrap;margin-top:6px}.v3-human-form i{font-style:normal;width:17px;height:17px;display:grid;place-items:center;border-radius:3px;font-size:5.5px;font-weight:900;border:1px solid #294858}
+.v3-human-form .w{background:#0a2c22;color:#63deb0;border-color:#225e49}.v3-human-form .d{background:#29210e;color:#dcb85d;border-color:#5e4e25}.v3-human-form .l{background:#281419;color:#e98691;border-color:#60343a}
+.v3-human-stats{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #123548}
+.v3-human-team{padding:9px 10px}.v3-human-team:first-child{border-right:1px solid #123548}
+.v3-human-team b{display:block;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v3-human-team small{display:block;margin-top:2px;color:#66808e;font-size:5px}
+.v3-human-numbers{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px}.v3-human-num span{display:block;color:#627b89;font-size:5px}.v3-human-num strong{display:block;margin-top:2px;font-size:12px}
+.v3-human-model{display:grid;grid-template-columns:1.1fr .9fr;border-top:1px solid #123548}
+.v3-human-model>div{padding:9px 10px}.v3-human-model>div:first-child{border-right:1px solid #123548}
+.v3-human-probs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.v3-human-prob{padding:6px 4px;background:#071c27;border:1px solid #163b4e;text-align:center;border-radius:4px}
+.v3-human-prob span{display:block;color:#698391;font-size:4.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v3-human-prob b{display:block;margin-top:3px;font-size:10px}
+.v3-human-xg{display:grid;grid-template-columns:1fr auto 1fr;gap:5px;align-items:end;text-align:center}.v3-human-xg span{display:block;color:#698391;font-size:5px}.v3-human-xg b{display:block;margin-top:3px;font-size:15px}.v3-human-xg em{font-style:normal;color:#536f7e;padding-bottom:4px}
+.v3-human-foot{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-top:1px solid #123548;color:#68818f;font-size:5px;line-height:1.4}
+.v3-human-foot b{color:#879daa;font-weight:800}
+.v3-human .missing-inline{color:#7d94a1}.v3-human .missing-inline strong{color:#a8bbc4}
+.v3-humanized .v3-takeaways{margin-top:7px;border-radius:6px}
+@media(max-width:820px){
+ .v3-human{margin-left:-1px;margin-right:-1px}
+ .v3-human-head{padding:8px 8px 7px}.v3-human-head h3{font-size:9px}.v3-human-head p{font-size:5.3px}.v3-human-head span{font-size:5.3px}
+ .v3-human-main{grid-template-columns:1.28fr .72fr}
+ .v3-human-primary,.v3-human-side>div{padding:8px}
+ .v3-human-bar{grid-template-columns:67px minmax(0,1fr) 29px;gap:5px}.v3-human-bar span{font-size:5.7px}.v3-human-bar b{font-size:6.8px}.v3-human-track{height:5px}
+ .v3-human-big{font-size:17px}.v3-human-caption{font-size:4.8px}
+ .v3-human-form i{width:15px;height:15px;font-size:5px}
+ .v3-human-team{padding:8px}.v3-human-numbers{margin-top:6px}.v3-human-num strong{font-size:10px}
+ .v3-human-model>div{padding:8px}.v3-human-prob{padding:5px 2px}.v3-human-prob b{font-size:9px}.v3-human-xg b{font-size:13px}
+ .v3-human-foot{padding:6px 8px;font-size:4.6px}
+}
+</style>
+<script>
+(() => {
+  let matchData = window.__V3_MATCH_DATA__ || null;
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const n=v=>{if(v===null||v===undefined||v==='')return null;const x=Number(v);return Number.isFinite(x)?x:null};
+  const p=v=>{const x=n(v);return x===null?null:(Math.abs(x)<=1?x*100:x)};
+  const fm=d=>d?.relational_evidence?.feature_snapshots?.[0]?.payload?.features||{};
+  const val=(fs,k)=>{const r=fs?.[k];return r&&r.value!==null&&r.value!==undefined?r.value:null};
+  const seq=v=>String(v||'').toUpperCase().replace(/[^WDL]/g,'').split('').slice(-5);
+  const dots=xs=>'<div class="v3-human-form">'+xs.map(x=>'<i class="'+x.toLowerCase()+'">'+x+'</i>').join('')+'</div>';
+  function coverage(fs){
+    const keys=['team_performance.home_form','team_performance.away_form','team_performance.home_goal_rate_blend','team_performance.away_goal_rate_blend','team_performance.home_goals_for_avg','team_performance.home_goals_against_avg','team_performance.away_goals_for_avg','team_performance.away_goals_against_avg','availability.home_formation','availability.away_formation','availability.both_xi_confirmed','availability.both_goalkeepers_confirmed'];
+    const good=keys.filter(k=>val(fs,k)!==null).length;return {good,total:keys.length,pct:Math.round(good/keys.length*100)};
+  }
+  function bars(fs,f){
+    const h=n(val(fs,'team_performance.home_goal_rate_blend')),a=n(val(fs,'team_performance.away_goal_rate_blend')),t=n(val(fs,'team_performance.total_goal_rate_blend'));
+    if(h===null&&a===null)return '<span class="missing-inline"><strong>Scoring baseline:</strong> not verified</span>';
+    const mx=Math.max(1,...[h,a,t].filter(x=>x!==null));
+    const row=(name,v,cls)=>'<div class="v3-human-bar"><span>'+esc(name)+'</span><div class="v3-human-track"><i class="'+cls+'" style="width:'+(v===null?0:Math.max(3,v/mx*100).toFixed(1))+'%"></i></div><b>'+(v===null?'N/V':v.toFixed(2))+'</b></div>';
+    return '<div class="v3-human-bars">'+row(f.home_team||'Home',h,'home')+row(f.away_team||'Away',a,'away')+(t!==null?row('Combined',t,'total'):'')+'</div>';
+  }
+  function teamStats(fs,f,side){
+    const name=side==='home'?(f.home_team||'Home'):(f.away_team||'Away'),gf=n(val(fs,'team_performance.'+side+'_goals_for_avg')),ga=n(val(fs,'team_performance.'+side+'_goals_against_avg')),form=seq(val(fs,'team_performance.'+side+'_form'));
+    return '<div class="v3-human-team"><b>'+esc(name)+'</b><small>'+(side==='home'?'HOME':'AWAY')+'</small><div class="v3-human-numbers"><div class="v3-human-num"><span>GF / match</span><strong>'+(gf===null?'—':gf.toFixed(2))+'</strong></div><div class="v3-human-num"><span>GA / match</span><strong>'+(ga===null?'—':ga.toFixed(2))+'</strong></div></div>'+dots(form)+'</div>';
+  }
+  function modelLayer(d,f){
+    const q=d?.sport_context?.outcome_probabilities||{},raw=[p(q.home),p(q.draw),p(q.away)],x=d?.sport_context?.expected_goals||{},xh=n(x.home),xa=n(x.away),hasProb=raw.every(v=>v!==null),hasXg=xh!==null&&xa!==null;
+    if(!hasProb&&!hasXg)return '';
+    let left='<span class="missing-inline">1X2 model not verified</span>',right='<span class="missing-inline">xG not verified</span>';
+    if(hasProb){const s=raw.reduce((a,b)=>a+b,0)||100,v=raw.map(x=>x/s*100),labs=[f.home_team||'Home','Draw',f.away_team||'Away'];left='<div class="v3-human-probs">'+v.map((x,i)=>'<div class="v3-human-prob"><span>'+esc(labs[i])+'</span><b>'+x.toFixed(1)+'%</b></div>').join('')+'</div>';}
+    if(hasXg)right='<div class="v3-human-xg"><div><span>'+esc(f.home_team||'Home')+'</span><b>'+xh.toFixed(2)+'</b></div><em>—</em><div><span>'+esc(f.away_team||'Away')+'</span><b>'+xa.toFixed(2)+'</b></div></div>';
+    return '<div class="v3-human-model"><div><span class="v3-human-kicker">RESULT MODEL</span>'+left+'</div><div><span class="v3-human-kicker">EXPECTED GOALS</span>'+right+'</div></div>';
+  }
+  function humanBoard(d){
+    const f=d?.fixture||{},fs=fm(d),c=coverage(fs),hf=seq(val(fs,'team_performance.home_form')),af=seq(val(fs,'team_performance.away_form')),av=d?.availability?.confidence,xi=val(fs,'availability.both_xi_confirmed'),gk=val(fs,'availability.both_goalkeepers_confirmed');
+    const missing=[];if(xi===null)missing.push('starting XI');if(gk===null)missing.push('goalkeepers');const ctx=d?.sport_context||{};if(!(n(ctx?.expected_goals?.home)!==null&&n(ctx?.expected_goals?.away)!==null))missing.push('xG');const oq=ctx?.outcome_probabilities||{};if(![p(oq.home),p(oq.draw),p(oq.away)].every(x=>x!==null))missing.push('1X2 model');
+    return '<section id="v3-human-board" class="v3-human">'+
+      '<div class="v3-human-head"><div><h3>Match overview</h3><p>Verified football data only</p></div><span>'+c.good+' / '+c.total+' core inputs</span></div>'+
+      '<div class="v3-human-main"><div class="v3-human-primary"><span class="v3-human-kicker">SCORING PROFILE</span>'+bars(fs,f)+'</div>'+
+        '<div class="v3-human-side"><div><span class="v3-human-kicker">DATA QUALITY</span><div class="v3-human-big">'+c.pct+'%</div><span class="v3-human-caption">'+c.good+' of '+c.total+' verified</span><div class="v3-human-meter"><i style="width:'+c.pct+'%"></i></div></div>'+
+        '<div><span class="v3-human-kicker">RECENT FORM</span>'+((hf.length||af.length)?('<span class="v3-human-caption">'+esc(f.home_team||'Home')+'</span>'+dots(hf)+'<span class="v3-human-caption" style="margin-top:5px">'+esc(f.away_team||'Away')+'</span>'+dots(af)):'<span class="missing-inline">Not verified</span>')+'</div></div></div>'+
+      '<div class="v3-human-stats">'+teamStats(fs,f,'home')+teamStats(fs,f,'away')+'</div>'+
+      modelLayer(d,f)+
+      '<div class="v3-human-foot"><span><b>Availability</b> '+(av!==null&&av!==undefined?((Number(av)<=1?Number(av)*100:Number(av)).toFixed(0)+'%'):'pending')+'</span><span><b>Still needed</b> '+esc(missing.length?missing.join(' · '):'none')+'</span></div>'+
+    '</section>';
+  }
+  function isOverview(){
+    const active=document.querySelector('.tabs button.active');
+    return !active||String(active.textContent||'').trim().toLowerCase()==='overview';
+  }
+  function sync(){
+    const body=document.querySelector('.mc-body');if(!body)return;
+    body.classList.toggle('v3-humanized',isOverview());
+    const old=document.getElementById('v3-human-board');
+    if(!isOverview()){if(old)old.remove();return;}
+    if(!matchData)return;
+    if(old)old.remove();
+    body.insertAdjacentHTML('afterbegin',humanBoard(matchData));
+  }
+  window.addEventListener('v3-match-data',e=>{matchData=e.detail;sync();});
+  document.addEventListener('click',e=>{if(e.target.closest('.tabs button'))setTimeout(sync,0);});
+  const obs=new MutationObserver(()=>{if(matchData&&!document.getElementById('v3-human-board')&&isOverview())sync();});
+  obs.observe(document.documentElement,{childList:true,subtree:true});
+  setTimeout(sync,0);
+})();
+</script>
+"""
+
     marker = "</head>"
     if marker in rendered:
-        rendered = rendered.replace(marker, shim + visual_overrides + premium_pass + premium_board + marker, 1)
+        rendered = rendered.replace(marker, shim + visual_overrides + premium_pass + premium_board + human_pass + marker, 1)
     else:
-        rendered = shim + visual_overrides + premium_pass + rendered
+        rendered = shim + visual_overrides + premium_pass + premium_board + human_pass + rendered
     return rendered
