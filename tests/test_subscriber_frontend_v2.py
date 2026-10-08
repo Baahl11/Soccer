@@ -99,9 +99,9 @@ def test_fe2_every_slate_fixture_is_openable_for_data_review():
     html = subscriber_frontend_v2.render()
 
     assert "Open data →" in html
-    assert "Analyst lens" in html
-    assert "What we have" in html
-    assert "What is still missing" in html
+    assert "Sport-first read" in html
+    assert "Scoring profile" in html
+    assert "Key takeaways" in html
     assert 'class="slate-row" href="' in html
     assert "matchPath(f.fixture_id||'')" in html
     assert '[data-intel="1"]' not in html
@@ -134,15 +134,17 @@ def test_fe2_match_detail_is_summary_first_and_mobile_safe():
     assert "intel-accordion" in html
     assert "overflow-x:auto" in html
     assert "Raw current-snapshot market table" in html
-    assert "Coverage" in html
+    assert "Input coverage" in html
     assert "Freshness" in html
+    assert "Match result probability" in html
+    assert "Expected goals" in html
 
 
 def test_fe2_match_intelligence_is_sport_first_not_market_first():
     html = subscriber_frontend_v2.render()
 
     assert "Sport-first read" in html
-    assert "Sporting evidence" in html
+    assert "Scoring profile" in html
     assert "Team form & scoring" in html
     assert "Home form" in html
     assert "Market layer" in html
@@ -155,8 +157,8 @@ def test_fe2_visible_sport_input_count_matches_rendered_inputs():
 
     assert "CUSTOMER_SPORT_FEATURES" in html
     assert "Verified sporting inputs" in html
-    assert "shown below" in html
     assert "visible inputs" in html
+    assert "core sport inputs" in html
     assert "No customer-facing sporting inputs are verified" in html
 
 
@@ -165,3 +167,23 @@ def test_fe2_kickoff_display_is_pinned_to_mexico_central_time():
 
     assert "APP_TIMEZONE='America/Mexico_City'" in html
     assert "timeZone:APP_TIMEZONE" in html
+
+
+def test_fe2_match_center_visual_components_follow_blueprint_phase_1_and_2():
+    html = subscriber_frontend_v2.render()
+
+    for component in (
+        "visual-grid",
+        "coverage-gauge",
+        "rate-bars",
+        "form-dots",
+        "prob-tiles",
+        "prob-stack",
+        "takeaway-list",
+        "sport-stat-grid",
+    ):
+        assert component in html
+
+    assert "Market rows do not increase it." in html
+    assert "values are not labeled xG unless a verified xG source exists." in html
+    assert "No synthetic probabilities." not in html
