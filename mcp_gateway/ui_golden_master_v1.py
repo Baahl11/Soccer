@@ -23,9 +23,9 @@ def _html() -> str:
   --text:#f3f8fb;
   --muted:#7a94a3;
   --muted2:#58717f;
-  --blue:#45afe2;
-  --green:#4bd8a3;
-  --gold:#d9ae4f;
+  --blue:#4a9fbe;
+  --green:#63c4ad;
+  --gold:#c8a45a;
   --red:#e97884;
   --radius:10px;
   font-family:"Arial Narrow","Roboto Condensed",Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -166,11 +166,11 @@ background:radial-gradient(circle at 50% 0,rgba(52,150,190,.035),transparent 52%
 .edge-gap-glow{stroke:#e5bd5b;stroke-width:13;stroke-linecap:round;opacity:.18}
 .edge-gap-focus{stroke:#f2c968;stroke-width:6.5;stroke-linecap:round}
 .edge-gap-core{stroke:#fff0b2;stroke-width:2.2;stroke-linecap:round;opacity:.98}
-.edge-market-dot{fill:#45afe2;stroke:#071923;stroke-width:2.2}
-.edge-model-dot{fill:#4bd8a3;stroke:#071923;stroke-width:2.2}
+.edge-market-dot{fill:#4a9fbe;stroke:#071923;stroke-width:2.2}
+.edge-model-dot{fill:#63c4ad;stroke:#071923;stroke-width:2.2}
 .edge-scale{fill:#536f7e;font-size:5px;font-weight:800;text-anchor:middle}
 .edge-point-label{font-size:5px;font-weight:900;text-anchor:middle}
-.edge-point-label.market{fill:#73c6ef}.edge-point-label.model{fill:#70e4ba}
+.edge-point-label.market{fill:#7db5c9}.edge-point-label.model{fill:#83c9b8}
 .edge-gap-pill{fill:#2b2412;stroke:#c59b3f;stroke-width:1.1}
 .edge-gap-pill-value{fill:#ffe08a;font-size:8.8px;font-weight:950;text-anchor:middle;letter-spacing:-.03em}
 .edge-gap-pill-label{fill:#b99a55;font-size:3.7px;font-weight:900;text-anchor:middle;letter-spacing:.12em}
@@ -241,18 +241,18 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.018)}
   linear-gradient(180deg,rgba(7,25,34,.08),transparent)}
 .profile-row{display:grid;grid-template-columns:66px minmax(0,1fr) 32px;gap:5px;align-items:center}
 .profile-row span{font-size:4.7px;color:#6f8998;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.profile-row div{height:5px;background:#102a39;border-radius:999px;overflow:hidden}.profile-row i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#247b61,#53d5a7)}
-.profile-row b{font-size:4.9px;text-align:right}.profile-row b.good{color:#57dcae}.profile-row b.neutral{color:#d8ae52}
+.profile-row div{height:5px;background:#102633;border-radius:999px;overflow:hidden}.profile-row i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2c6f72,#63b9aa)}
+.profile-row b{font-size:4.9px;text-align:right}.profile-row b.good{color:#6fc6b3}.profile-row b.neutral{color:#c3a765}
 .matrix{display:grid;grid-template-columns:14px repeat(5,1fr);gap:3px;align-items:center}
 .axis{font-size:4.5px;color:#6f8794;text-align:center;font-weight:850}
 .cell{aspect-ratio:1;border:1px solid rgba(44,105,133,.55);border-radius:3px;display:grid;place-items:center;font-size:4.6px;font-weight:900;color:#edf8fc;
 box-shadow:inset 0 1px 0 rgba(255,255,255,.02),0 1px 3px rgba(0,0,0,.18)}
-.c1{background:linear-gradient(180deg,#0b2634,#091f2b)}
-.c2{background:linear-gradient(180deg,#123e52,#0f3446)}
-.c3{background:linear-gradient(180deg,#185f79,#145068)}
-.c4{background:linear-gradient(180deg,#2380a0,#1b708d)}
-.c5{background:linear-gradient(180deg,#39a7cf,#2a90b5);box-shadow:0 0 14px rgba(57,167,207,.16),inset 0 0 0 1px rgba(210,245,255,.10)}
-.cell.hot{outline:1px solid rgba(91,222,176,.72);outline-offset:1px;box-shadow:0 0 15px rgba(75,216,163,.17),inset 0 0 0 1px rgba(255,255,255,.08)}
+.c1{background:linear-gradient(180deg,#0c2430,#091c26)}
+.c2{background:linear-gradient(180deg,#123746,#0e2d3a)}
+.c3{background:linear-gradient(180deg,#194d5f,#143f4f)}
+.c4{background:linear-gradient(180deg,#22677a,#1b5667)}
+.c5{background:linear-gradient(180deg,#2f879d,#267287);box-shadow:0 0 12px rgba(47,135,157,.14),inset 0 0 0 1px rgba(205,238,245,.08)}
+.cell.hot{outline:1px solid rgba(207,173,92,.82);outline-offset:1px;box-shadow:0 0 14px rgba(200,164,90,.14),inset 0 0 0 1px rgba(255,255,255,.07)}
 .matrix-note{margin-top:6px;color:#637d8c;font-size:4.6px;text-align:center}.matrix-note b{color:#cfe4ee}
 .matrix-layout{display:block}
 .scoring-profiles{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
@@ -269,8 +269,8 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02),0 1px 3px rgba(0,0,0,.18)}
   aspect-ratio:1;border:1px solid rgba(255,255,255,.055);border-radius:2px;display:grid;place-items:center;
   font-size:3.5px;font-weight:900;color:#eef8fb
 }
-.home-p1{background:#0b2c2a}.home-p2{background:#13503f}.home-p3{background:#19735a}.home-p4{background:#21966f}.home-p5{background:#35c88e;box-shadow:0 0 10px rgba(53,200,142,.12)}
-.away-p1{background:#171d38}.away-p2{background:#252a55}.away-p3{background:#36366f}.away-p4{background:#4a438d}.away-p5{background:#6353ad;box-shadow:0 0 10px rgba(99,83,173,.12)}
+.home-p1{background:#102a2b}.home-p2{background:#16413e}.home-p3{background:#1e5a52}.home-p4{background:#287365}.home-p5{background:#3b927c;box-shadow:0 0 9px rgba(59,146,124,.10)}
+.away-p1{background:#111f2f}.away-p2{background:#183148}.away-p3{background:#20445f}.away-p4{background:#2a5976}.away-p5{background:#35718f;box-shadow:0 0 9px rgba(53,113,143,.10)}
 .profile-caption{margin-top:4px;text-align:center;font-size:3.5px;color:#587381;letter-spacing:.04em}
 .market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .market-metric{padding:6px 3px;text-align:center;border:1px solid rgba(45,94,118,.4);border-radius:6px;
@@ -283,7 +283,7 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .bars .h{background:linear-gradient(180deg,#58b8e8,#2e96c7);box-shadow:0 0 8px rgba(66,175,227,.16)}
 .bars .a{background:linear-gradient(180deg,#59dda9,#2dbb86);box-shadow:0 0 8px rgba(75,215,163,.14)}
 .dcol b{font-size:4.4px;color:#687f8e}
-.legend{display:flex;gap:8px;margin-top:5px;font-size:4.4px;color:#687f8e}.legend span{display:flex;align-items:center;gap:3px}.legend i{width:5px;height:5px;border-radius:50%}.legend .h{background:#42afe3}.legend .a{background:#4bd7a3}
+.legend{display:flex;gap:8px;margin-top:5px;font-size:4.4px;color:#687f8e}.legend span{display:flex;align-items:center;gap:3px}.legend i{width:5px;height:5px;border-radius:50%}.legend .h{background:#579fb9}.legend .a{background:#75c1ad}
 .read{
   margin-top:7px;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 8px;
   border:1px solid rgba(48,111,137,.42);border-left:3px solid var(--green);border-radius:8px;
@@ -333,8 +333,8 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .xg-trend{height:32px;margin-top:3px}
 .xg-trend .gridline{stroke:#173747;stroke-width:.7}
 .xg-trend .area{fill:url(#xgArea)}
-.xg-trend .line{fill:none;stroke:#4bd8a3;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.xg-trend .dot{fill:#4bd8a3;stroke:#06131b;stroke-width:1}
+.xg-trend .line{fill:none;stroke:#63b9a7;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.xg-trend .dot{fill:#63b9a7;stroke:#06131b;stroke-width:1}
 .xg-caption{margin-top:1px;color:#5e7785;font-size:3.8px;text-align:center}
 
 .ou-read{display:grid;grid-template-columns:108px minmax(0,1fr);gap:10px;align-items:stretch}
@@ -347,13 +347,13 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .ou-hero small{margin-top:2px;font-size:3.8px;color:#607a88}
 .ou-gauge{position:relative;height:34px;margin:3px 0 1px}
 .ou-gauge .base{position:absolute;left:8px;right:8px;top:17px;height:2px;border-radius:999px;background:#173849}
-.ou-gauge .edge{position:absolute;left:55.3%;width:9.1%;top:15px;height:6px;border-radius:999px;background:#d7af50;box-shadow:0 0 8px rgba(215,175,80,.18)}
+.ou-gauge .edge{position:absolute;left:55.3%;width:9.1%;top:15px;height:6px;border-radius:999px;background:#c8a45a;box-shadow:0 0 8px rgba(200,164,90,.16)}
 .ou-gauge .mark{position:absolute;top:10px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:2px solid #071923}
-.ou-gauge .market{left:55.3%;background:#45afe2}
-.ou-gauge .model{left:64.4%;background:#4bd8a3}
+.ou-gauge .market{left:55.3%;background:#4a9fbe}
+.ou-gauge .model{left:64.4%;background:#63c4ad}
 .ou-gauge .lab{position:absolute;top:0;transform:translateX(-50%);font-size:3.7px;font-weight:900;white-space:nowrap;background:none}
-.ou-gauge .lab.market{left:55.3%;color:#72c8ee}
-.ou-gauge .lab.model{left:64.4%;color:#6fe2b8}
+.ou-gauge .lab.market{left:55.3%;color:#7ab5ca}
+.ou-gauge .lab.model{left:64.4%;color:#84cbb9}
 .ou-scale{display:flex;justify-content:space-between;padding:0 8px;color:#506c7b;font-size:3.4px}
 .dist-focus{fill:#0e2b37;opacity:.42}
 @media(max-width:740px){
@@ -500,7 +500,7 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
               <div><span>HOME DELTA</span><b class="good">+1.17</b></div>
             </div>
             <svg class="chart-svg xg-trend" viewBox="0 0 180 32" aria-label="Illustrative attacking trend">
-              <defs><linearGradient id="xgArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4bd8a3" stop-opacity=".20"/><stop offset="100%" stop-color="#4bd8a3" stop-opacity="0"/></linearGradient></defs>
+              <defs><linearGradient id="xgArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#63b9a7" stop-opacity=".18"/><stop offset="100%" stop-color="#63b9a7" stop-opacity="0"/></linearGradient></defs>
               <line x1="4" y1="26" x2="176" y2="26" class="gridline"/>
               <path d="M4 25 L31 21 L58 22 L85 15 L112 17 L140 10 L176 7 L176 29 L4 29 Z" class="area"/>
               <polyline points="4,25 31,21 58,22 85,15 112,17 140,10 176,7" class="line"/>
@@ -633,8 +633,8 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
             </div>
             <svg class="chart-svg dist-svg" viewBox="0 0 300 92" aria-label="Illustrative goal distribution">
               <defs>
-                <linearGradient id="homeBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#58b8e8"/><stop offset="100%" stop-color="#2e96c7"/></linearGradient>
-                <linearGradient id="awayBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#59dda9"/><stop offset="100%" stop-color="#2dbb86"/></linearGradient>
+                <linearGradient id="homeBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#579fb9"/><stop offset="100%" stop-color="#357b96"/></linearGradient>
+                <linearGradient id="awayBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#75c1ad"/><stop offset="100%" stop-color="#4b907e"/></linearGradient>
               </defs>
               <rect x="102" y="4" width="70" height="68" rx="6" class="dist-focus"/>
               <line x1="18" y1="20" x2="292" y2="20" class="dist-grid" opacity=".35"/>
