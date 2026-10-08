@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-08T19:32:00.469424+00:00",
-  "generated_at_local": "2026-10-08T13:32:00.469424-06:00",
+  "generated_at_utc": "2026-10-08T19:49:21.001729+00:00",
+  "generated_at_local": "2026-10-08T13:49:21.001729-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 2158,
-  "due_fixture_count": 37,
+  "due_fixture_count": 32,
   "event_count": 12,
-  "actionable_refresh_count": 0,
+  "actionable_refresh_count": 4,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 61,
-  "last_daily_remaining": 6470,
+  "api_calls_this_tick": 64,
+  "last_daily_remaining": 6419,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -28,13 +28,13 @@
     "primary_slate_count": 155,
     "reconciliation_slate_count": 0,
     "merged_slate_count": 2158,
-    "api_slate_reconciliation_calls": 2,
+    "api_slate_reconciliation_calls": 0,
     "provider_requests_added_max": 2,
     "future_prefetch_horizon_days": 2,
     "future_prefetch_ttl_hours": 4,
-    "future_prefetch_cache_hits": 0,
-    "future_prefetch_cache_misses": 2,
-    "future_prefetch_provider_requests_added": 2,
+    "future_prefetch_cache_hits": 2,
+    "future_prefetch_cache_misses": 0,
+    "future_prefetch_provider_requests_added": 0,
     "future_prefetch_fixture_count": 2003,
     "scan_dates": [
       "2026-10-08",
@@ -56,16 +56,16 @@
       "D": 807,
       "A": 81
     },
-    "market_capture_handoff_source": "IN_PROCESS_BULK_COVERAGE",
+    "market_capture_handoff_source": "PERSISTED_BULK_COVERAGE_CACHE",
     "market_capture_handoff_provider_requests_added": 0,
     "scope": "all fixtures returned by API-Football for selected dates; no league allowlist; no odds/model/tier/stake threshold change",
-    "provider_requests_added": 2,
+    "provider_requests_added": 0,
     "source": "V89_ACTIVE_RAW_SLATE_HOOK"
   },
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-08T19:32:00.469424+00:00",
+    "generated_at_utc": "2026-10-08T19:49:21.001729+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -86,15 +86,15 @@
         "canonical_blockers": [],
         "canonical_state_loaded": true,
         "canonical_remaining_to_gate": 0,
-        "canonical_equivalent_post_v223_signals": 101,
+        "canonical_equivalent_post_v223_signals": 104,
         "canonical_equivalent_post_v223_true_clv_comparable": 5,
         "canonical_equivalent_post_v223_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 26,
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 29,
           "NO_LATER_PROVIDER_UPDATE": 70
         },
         "current_phase17_skip_reasons": {
           "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 36,
-          "NO_LATER_PROVIDER_UPDATE": 47,
+          "NO_LATER_PROVIDER_UPDATE": 46,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         }
       },
@@ -121,7 +121,7 @@
         },
         "current_phase17_skip_reasons": {
           "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 36,
-          "NO_LATER_PROVIDER_UPDATE": 75,
+          "NO_LATER_PROVIDER_UPDATE": 76,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         }
       },
@@ -140,11 +140,11 @@
         ],
         "canonical_state_loaded": true,
         "canonical_remaining_to_gate": 30,
-        "canonical_equivalent_post_v223_signals": 158,
+        "canonical_equivalent_post_v223_signals": 160,
         "canonical_equivalent_post_v223_true_clv_comparable": 3,
         "canonical_equivalent_post_v223_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 48,
-          "NO_LATER_PROVIDER_UPDATE": 107
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 49,
+          "NO_LATER_PROVIDER_UPDATE": 108
         },
         "current_phase17_skip_reasons": {
           "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 63,
@@ -234,9 +234,9 @@
         "rows": 387,
         "unique_fixtures": 51,
         "minimum_rows": 50,
-        "candidate_fixtures_this_tick": 2,
+        "candidate_fixtures_this_tick": 7,
         "strict_later_quote_refreshes_this_tick": 0,
-        "unchanged_provider_updates_this_tick": 2,
+        "unchanged_provider_updates_this_tick": 7,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
         "canonical_state_loaded": true
@@ -2244,26 +2244,26 @@
         "audit_comparable_minus_canonical_unique_fixtures": 0,
         "canonical_true_clv_rows": 53,
         "canonical_true_clv_unique_fixtures": 53,
-        "current_phase17_mapped_rows": 88,
-        "current_phase17_priced_rows": 88,
+        "current_phase17_mapped_rows": 87,
+        "current_phase17_priced_rows": 87,
         "current_phase17_skip_reasons": {
           "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 36,
-          "NO_LATER_PROVIDER_UPDATE": 47,
+          "NO_LATER_PROVIDER_UPDATE": 46,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         },
         "maturation_state": "CLV_GATE_MET",
         "minimum_true_clv_rows": 50,
         "post_v223_canonical_equivalent_audit": {
           "same_book_preferred_rows": 5,
-          "signals": 101,
+          "signals": 104,
           "skip_reason_counts": {
-            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 26,
+            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 29,
             "NO_LATER_PROVIDER_UPDATE": 70
           },
-          "strict_close_conversion_rate": 0.049505,
+          "strict_close_conversion_rate": 0.048077,
           "strict_close_eligible": 5,
           "true_clv_comparable": 5,
-          "unique_fixtures": 101,
+          "unique_fixtures": 104,
           "with_2plus_capture_visits": 44,
           "with_any_later_snapshot": 75,
           "with_exact_instrument_later_quote": 75,
@@ -2286,18 +2286,18 @@
         "minimum_true_clv_rows": 50,
         "post_v223_canonical_equivalent_audit": {
           "same_book_preferred_rows": 3,
-          "signals": 158,
+          "signals": 160,
           "skip_reason_counts": {
-            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 48,
-            "NO_LATER_PROVIDER_UPDATE": 107
+            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 49,
+            "NO_LATER_PROVIDER_UPDATE": 108
           },
-          "strict_close_conversion_rate": 0.018987,
+          "strict_close_conversion_rate": 0.01875,
           "strict_close_eligible": 3,
           "true_clv_comparable": 3,
-          "unique_fixtures": 158,
+          "unique_fixtures": 160,
           "with_2plus_capture_visits": 62,
-          "with_any_later_snapshot": 110,
-          "with_exact_instrument_later_quote": 110,
+          "with_any_later_snapshot": 111,
+          "with_exact_instrument_later_quote": 111,
           "with_provider_update_advance": 3
         },
         "remaining_to_gate": 30
@@ -2306,11 +2306,11 @@
         "audit_comparable_minus_canonical_unique_fixtures": 0,
         "canonical_true_clv_rows": 8,
         "canonical_true_clv_unique_fixtures": 8,
-        "current_phase17_mapped_rows": 131,
-        "current_phase17_priced_rows": 113,
+        "current_phase17_mapped_rows": 132,
+        "current_phase17_priced_rows": 114,
         "current_phase17_skip_reasons": {
           "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 36,
-          "NO_LATER_PROVIDER_UPDATE": 75,
+          "NO_LATER_PROVIDER_UPDATE": 76,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         },
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
@@ -2335,7 +2335,7 @@
       }
     },
     "gates_changed": false,
-    "generated_at_utc": "2026-10-08T07:52:39.559971+00:00",
+    "generated_at_utc": "2026-10-08T19:44:47.927442+00:00",
     "model_version": "SOCCER_PRIMARY_CLV_MATURATION_FUNNEL_V4_1.0.0",
     "models_changed": false,
     "policy": "AUDIT_ONLY; CANONICAL COUNTS REMAIN OWNED_BY_PHASE17; VISIT_MATRIX_ROWS_CANNOT_ENTER TRUE_CLV UNTIL EXACT HISTORICAL BACKFILL_RECONCILIATION REPLAYS THE CANONICAL MATCHER",
