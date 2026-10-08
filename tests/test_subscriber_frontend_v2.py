@@ -112,7 +112,7 @@ def test_fe2_match_navigation_uses_dedicated_url_and_direct_boot_route():
     assert "'/app/match/'" in html
     assert "routeMatchId()" in html
     assert "history.pushState" in html
-    assert "← All matches" in html
+    assert "← Matches" in html
     assert "matchesBrowsePanel" in html
 
 def test_fe2_identity_enrichment_chunks_large_slates_and_shows_relational_evidence():
@@ -187,3 +187,21 @@ def test_fe2_match_center_visual_components_follow_blueprint_phase_1_and_2():
     assert "Market rows do not increase it." in html
     assert "values are not labeled xG unless a verified xG source exists." in html
     assert "No synthetic probabilities." not in html
+
+
+def test_fe2_match_center_rejects_zero_sample_team_stats_as_verified():
+    html = subscriber_frontend_v2.render()
+
+    assert "source==='API_FOOTBALL_TEAM_STATS'" in html
+    assert "n!==null&&n<=0" in html
+    assert "Market rows do not increase it." in html
+
+
+def test_fe2_match_center_mobile_uses_premium_dense_composition():
+    html = subscriber_frontend_v2.render()
+
+    assert "match-brand-row" in html
+    assert "mini-visual-grid" in html
+    assert "form-spark" in html
+    assert "goal-card" in html
+    assert "body:has(#matches.active .match-detail) .topbar" in html
