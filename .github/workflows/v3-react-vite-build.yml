@@ -1,0 +1,25 @@
+name: v3 React Vite build
+
+on:
+  push:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "web_v3/**"
+      - ".github/workflows/v3-react-vite-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web_v3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: web_v3/package.json
+      - run: npm install
+      - run: npm run build
