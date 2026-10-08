@@ -84,7 +84,8 @@ def _install_subscriber_app_routes() -> None:
     FastMCP._v220_streamable_http_app = original
 
     async def auth_landing(request):
-        return RedirectResponse(url="/app", status_code=307)
+        from mcp_gateway import landing_page_v2
+        return await landing_page_v2.landing_page(request)
 
     async def legacy_preview_landing(request):
         return RedirectResponse(url="/app", status_code=307)
@@ -113,7 +114,7 @@ def _install_subscriber_app_routes() -> None:
         if "/landing-v2" not in existing_paths:
             additions.append(Route("/landing-v2", landing_page_v2.landing_page, methods=["GET"], name="landing_v2_preview"))
         if "/app" not in existing_paths:
-            additions.append(Route("/app", subscriber_product_v235.app_page, methods=["GET"], name="v235_subscriber_product"))
+            additions.append(Route("/app", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_primary"))
         if "/app-v2" not in existing_paths:
             additions.append(Route("/app-v2", subscriber_frontend_v2.app_page, methods=["GET"], name="subscriber_frontend_v2_preview"))
         if "/app.webmanifest" not in existing_paths:
