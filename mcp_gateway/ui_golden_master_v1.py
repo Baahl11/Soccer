@@ -339,10 +339,10 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 
   .matrix-card{padding-bottom:10px}
   .matrix-card .panel-head{margin-bottom:9px}
-  .matrix{grid-template-columns:18px repeat(5,minmax(0,1fr));gap:4px;max-width:350px;margin:0 auto}
-  .axis{font-size:5px}
-  .cell{font-size:5.8px;border-radius:4px}
-  .matrix-note{font-size:4.9px;margin-top:7px}
+  .matrix{grid-template-columns:16px repeat(5,minmax(0,1fr));gap:4px;max-width:292px;margin:0 auto}
+  .axis{font-size:4.7px}
+  .matrix .cell{aspect-ratio:1.22/1;font-size:5.4px;border-radius:4px}
+  .matrix-note{font-size:4.8px;margin-top:6px}
 
   .goals-card{display:grid;grid-template-columns:118px minmax(0,1fr);column-gap:10px}.goals-card .panel-head{grid-column:1/-1}.goals-card .market-grid{align-self:start}.goals-card .dist-svg{height:84px;margin-top:0}.goals-card .legend{grid-column:1/-1;margin-top:2px}
   .read{grid-template-columns:28px minmax(0,1fr) auto}.read-mark{width:28px;height:28px}
