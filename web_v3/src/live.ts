@@ -251,6 +251,33 @@ function chooseOver25(payload: Json): MatchCenterViewModel["over25"] {
   return null;
 }
 
+function evidenceSections(payload: Json): MatchCenterViewModel["evidenceSections"] {
+  return rows(payload.evidence_sections).flatMap((part) => {
+    const group = text(part.category, "OTHER");
+    const items = rows(part.items).flatMap((item) => {
+      const value = item.value;
+      if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") return [];
+      if (typeof value === "number" && !Number.isFinite(value)) return [];
+      if (typeof value === "string" && !value.trim()) return [];
+      return [{
+        key: text(item.key, "unknown"),
+        label: text(item.label, "Feature"),
+        value,
+        source: typeof item.source === "string" ? item.source : null,
+        sampleN: numberValue(item.sample_n),
+        capturedAt: typeof item.captured_at === "string" ? item.captured_at : null,
+        modelVersion: typeof item.model_version === "string" ? item.model_version : null,
+        status: item.status === "PERSISTED" ? "PERSISTED" as const : "SOURCE_NOT_VERIFIED" as const,
+      }];
+    });
+    return items.length ? [{
+      category: group, items,
+      snapshotAt: typeof part.snapshot_at === "string" ? part.snapshot_at : null,
+      dataTier: typeof part.data_tier === "string" ? part.data_tier : null,
+    }] : [];
+  });
+}
+
 function marketEvidenceRows(payload: Json): MatchCenterViewModel["marketRows"] {
   const ctx = record(payload.market_context);
   return rows(ctx.candidates).slice(0, 80).map((candidate) => {
