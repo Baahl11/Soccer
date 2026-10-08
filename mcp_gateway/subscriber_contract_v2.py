@@ -32,6 +32,27 @@ _WATCH_EXECUTION_STATUSES = {
     "WAIT_GK",
     "WAIT_AVAILABILITY",
 }
+
+_TERMINAL_FIXTURE_STATUSES = {"FT", "AET", "PEN", "CANC", "PST", "ABD", "AWD", "WO"}
+_DECISION_PRIORITY = {"BET": 4, "LEAN": 3, "WATCH": 2, "PASS": 1}
+_MARKET_COVERAGE_LABELS = {
+    "1X2": "Match Winner",
+    "BTTS": "BTTS",
+    "FT_TOTALS": "Goals",
+    "HOME_TT": "Home Team Total",
+    "AWAY_TT": "Away Team Total",
+    "1H": "First Half",
+    "2H": "Second Half",
+    "FT_CORNERS": "Corners",
+    "TEAM_CORNERS": "Team Corners",
+    "CARDS": "Cards",
+    "SHOTS": "Player Shots",
+    "SOT": "Shots on Target",
+    "GOALSCORER": "Goalscorer",
+    "ASSISTS": "Assists",
+    "PLAYER_CARDS": "Player Cards",
+    "GK_SAVES": "Goalkeeper Saves",
+}
 _VIEW_NAMES = (
     "strong_sport_signals",
     "value_plays",
@@ -618,6 +639,296 @@ def _unique_public_slate(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+
+def _date_text(value: Any) -> str | None:
+    text = str(value or "").strip()
+    if len(text) >= 10 and text[4:5] == "-" and text[7:8] == "-":
+        candidate = text[:10]
+        parts = candidate.split("-")
+        if len(parts) == 3 and all(part.isdigit() for part in parts):
+            return candidate
+    return None
+
+
+def _slate_context(payload: dict[str, Any]) -> tuple[str | None, str]:
+    timezone_name = str(payload.get("timezone") or "America/Mexico_City").strip() or "America/Mexico_City"
+    local_day = _date_text(payload.get("generated_at_local"))
+    utc_day = _date_text(payload.get("generated_at_utc"))
+    recon = _dict(payload.get("core_slate_floor_reconciliation"))
+    scan_dates = [
+        value for value in (_date_text(item) for item in (recon.get("scan_dates") or []))
+        if value
+    ]
+    if local_day:
+        return local_day, timezone_name
+    if scan_dates:
+        return scan_dates[0], timezone_name
+    return utc_day, timezone_name
+
+
+def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
+    slate_day, timezone_name = _slate_context(payload)
+    if not slate_day:
+        return {
+            "status": "DATE_NOT_VERIFIED",
+            "rows": [],
+            "slate_date": None,
+            "timezone": timezone_name,
+        }
+
+    with persistence_base._connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT fixture_id, kickoff, status, league, country,
+                       home_team_id, home_team, away_team_id, away_team
+                FROM soccer_fixtures
+                WHERE (kickoff AT TIME ZONE %s)::date = %s::date
+                  AND COALESCE(status, 'NS') NOT IN
+                      ('FT','AET','PEN','CANC','PST','ABD','AWD','WO')
+                ORDER BY kickoff, fixture_id
+                """,
+                (timezone_name, slate_day),
+            )
+            db_rows = cur.fetchall()
+
+    rows: list[dict[str, Any]] = []
+    for db_row in db_rows:
+        fixture_id, kickoff, status, league, country, home_id, home, away_id, away = db_row
+        rows.append(
+            {
+                "fixture_id": fixture_id,
+                "kickoff": kickoff.isoformat() if hasattr(kickoff, "isoformat") else kickoff,
+                "status": status,
+                "league": league,
+                "country": country,
+                "home_team_id": home_id,
+                "home_team": home,
+                "away_team_id": away_id,
+                "away_team": away,
+            }
+        )
+    return {
+        "status": "FULL_SLATE_READY",
+        "rows": rows,
+        "slate_date": slate_day,
+        "timezone": timezone_name,
+    }
+
+
+def _market_coverage_label(candidate: dict[str, Any]) -> str | None:
+    market = _dict(candidate.get("market"))
+    family = str(market.get("family") or "").strip().upper()
+    if family in _MARKET_COVERAGE_LABELS:
+        return _MARKET_COVERAGE_LABELS[family]
+    name = str(market.get("name") or "").strip()
+    return name or family or None
+
+
+def _coverage_by_fixture(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+    source = payload.get("match_table_rows")
+    raw_rows = [row for row in source if isinstance(row, dict)] if isinstance(source, list) else []
+
+    for raw in raw_rows:
+        status = str(raw.get("status") or "").upper()
+        stage = str(raw.get("stage") or "").upper()
+        if status in _TERMINAL_FIXTURE_STATUSES or stage == "POSTGAME":
+            continue
+
+        candidate = adapt_candidate(raw)
+        fixture = _dict(candidate.get("fixture"))
+        fixture_id = fixture.get("fixture_id")
+        if fixture_id in (None, ""):
+            continue
+        key = str(fixture_id)
+        node = grouped.setdefault(
+            key,
+            {
+                "analysis_rows": 0,
+                "markets": [],
+                "verified_price_markets": [],
+                "raw_sport_projection_present": False,
+                "availability_confidence_present": False,
+                "decision_status": None,
+                "decision_reason": None,
+                "best_market": None,
+            },
+        )
+        node["analysis_rows"] += 1
+
+        label = _market_coverage_label(candidate)
+        if label and label not in node["markets"]:
+            node["markets"].append(label)
+
+        market = _dict(candidate.get("market"))
+        price = _dict(market.get("price"))
+        if (
+            label
+            and price.get("value") is not None
+            and (price.get("bookmaker") or price.get("source"))
+            and price.get("captured_at")
+            and label not in node["verified_price_markets"]
+        ):
+            node["verified_price_markets"].append(label)
+
+        projections = _dict(candidate.get("projections"))
+        if projections.get("raw_sport_probability") is not None:
+            node["raw_sport_projection_present"] = True
+
+        availability = _dict(candidate.get("availability"))
+        if availability.get("confidence") is not None:
+            node["availability_confidence_present"] = True
+
+        decision = _dict(candidate.get("decision"))
+        classification = str(
+            decision.get("classification") or decision.get("display_bucket") or ""
+        ).upper()
+        if not classification and str(decision.get("execution_status") or "").upper() in _WATCH_EXECUTION_STATUSES:
+            classification = "WATCH"
+        current = str(node.get("decision_status") or "").upper()
+        if _DECISION_PRIORITY.get(classification, 0) > _DECISION_PRIORITY.get(current, 0):
+            node["decision_status"] = classification
+            node["decision_reason"] = decision.get("reason_display")
+            node["best_market"] = label
+
+    for node in grouped.values():
+        decision_status = str(node.get("decision_status") or "").upper()
+        if decision_status in _CANONICAL_CLASSIFICATIONS:
+            coverage_status = decision_status
+        elif node["analysis_rows"] > 0:
+            coverage_status = "PARTIAL_DATA"
+        else:
+            coverage_status = "INSUFFICIENT_DATA"
+        node["coverage_status"] = coverage_status
+    return grouped
+
+
+def _registry_fixture(row: dict[str, Any]) -> dict[str, Any]:
+    home_id = row.get("home_team_id")
+    away_id = row.get("away_team_id")
+    try:
+        home_id_int = int(home_id) if home_id not in (None, "") else None
+    except (TypeError, ValueError):
+        home_id_int = None
+    try:
+        away_id_int = int(away_id) if away_id not in (None, "") else None
+    except (TypeError, ValueError):
+        away_id_int = None
+    return {
+        "fixture_id": row.get("fixture_id"),
+        "kickoff": row.get("kickoff"),
+        "league": row.get("league"),
+        "country": row.get("country"),
+        "home_team_id": home_id_int,
+        "home_team": row.get("home_team"),
+        "home_team_logo": (
+            f"https://media.api-sports.io/football/teams/{home_id_int}.png"
+            if home_id_int
+            else None
+        ),
+        "away_team_id": away_id_int,
+        "away_team": row.get("away_team"),
+        "away_team_logo": (
+            f"https://media.api-sports.io/football/teams/{away_id_int}.png"
+            if away_id_int
+            else None
+        ),
+        "fixture_status": row.get("status"),
+    }
+
+
+def _attach_full_registry_slate(
+    contract_payload: dict[str, Any],
+    payload: dict[str, Any],
+    registry: dict[str, Any] | None,
+) -> dict[str, Any]:
+    slate = _dict(contract_payload.get("slate"))
+    if not isinstance(registry, dict):
+        slate["full_slate"] = False
+        slate["registry_status"] = "REGISTRY_UNAVAILABLE"
+        slate["source"] = "PERSISTED_ANALYSIS_ROWS_FALLBACK"
+        contract_payload["slate"] = slate
+        return contract_payload
+
+    coverage = _coverage_by_fixture(payload)
+    full_rows: list[dict[str, Any]] = []
+    summary = {
+        "BET": 0,
+        "LEAN": 0,
+        "WATCH": 0,
+        "PASS": 0,
+        "PARTIAL_DATA": 0,
+        "INSUFFICIENT_DATA": 0,
+    }
+
+    for row in registry.get("rows") or []:
+        if not isinstance(row, dict):
+            continue
+        fixture = _registry_fixture(row)
+        key = str(fixture.get("fixture_id") or "")
+        cov = dict(coverage.get(key) or {})
+        if cov:
+            status = str(cov.get("coverage_status") or "PARTIAL_DATA").upper()
+            reason = cov.get("decision_reason")
+            if not reason:
+                reason = (
+                    "Persisted analysis exists for "
+                    + ", ".join(cov.get("markets") or [])
+                    if cov.get("markets")
+                    else "Persisted analysis is partial; unsupported or missing fields remain NOT VERIFIED."
+                )
+        else:
+            status = "INSUFFICIENT_DATA"
+            cov = {
+                "analysis_rows": 0,
+                "markets": [],
+                "verified_price_markets": [],
+                "raw_sport_projection_present": False,
+                "availability_confidence_present": False,
+                "decision_status": None,
+                "decision_reason": None,
+                "best_market": None,
+                "coverage_status": status,
+            }
+            reason = "Fixture is in the eligible slate, but deep analysis is not persisted yet."
+
+        summary[status] = summary.get(status, 0) + 1
+        full_rows.append(
+            {
+                "fixture": fixture,
+                "state": {
+                    "classification": cov.get("decision_status"),
+                    "display_status": status.replace("_", " "),
+                    "status_code": status,
+                    "stage": None,
+                    "reason_display": reason,
+                },
+                "coverage": cov,
+            }
+        )
+
+    slate.update(
+        {
+            "rows": full_rows,
+            "total": len(full_rows),
+            "full_slate": True,
+            "eligible_only": True,
+            "terminal_statuses_excluded": sorted(_TERMINAL_FIXTURE_STATUSES),
+            "registry_status": registry.get("status"),
+            "slate_date": registry.get("slate_date"),
+            "timezone": registry.get("timezone"),
+            "source": "POSTGRES_SOCCER_FIXTURES+PERSISTED_ANALYSIS_COVERAGE",
+            "coverage_summary": summary,
+        }
+    )
+    contract_payload["slate"] = slate
+    counts = _dict(contract_payload.get("counts"))
+    counts["fixtures"] = len(full_rows)
+    contract_payload["counts"] = counts
+    return contract_payload
+
+
 def _normalize_entitlement(entitlement: dict[str, Any]) -> dict[str, Any]:
     out = dict(entitlement)
     user = _dict(out.get("user"))
@@ -769,7 +1080,13 @@ async def _contract_for_request(
             {"error": "NO_PERSISTED_PIPELINE_RUN"},
             status_code=503,
         )
-    return build_contract(payload, entitlement), payload, None
+    contract_payload = build_contract(payload, entitlement)
+    try:
+        registry = await asyncio.to_thread(_load_registry_slate, payload)
+    except Exception:
+        registry = None
+    contract_payload = _attach_full_registry_slate(contract_payload, payload, registry)
+    return contract_payload, payload, None
 
 
 def _no_store(payload: dict[str, Any], status_code: int = 200) -> JSONResponse:
