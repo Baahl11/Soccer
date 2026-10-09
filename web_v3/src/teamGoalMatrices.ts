@@ -15,12 +15,21 @@ function poissonBins(rate: number): number[] {
   return bins;
 }
 
+function numericSeasonAverage(value: EvidenceItem["value"]): number | null {
+  // API-Football represents season-goal averages as numeric strings such as "1.6".
+  // Parse only simple nonnegative decimals; never infer missing or malformed data.
+  if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? value : null;
+  if (typeof value !== "string" || !/^(?:[0-9]+)(?:\\.[0-9]+)?$/.test(value.trim())) return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
 function seasonRate(evidence: EvidenceSection[], key: string): EvidenceItem | null {
   const row = evidence.flatMap(part => part.items).find(item => item.key === key);
   return row?.source === "API_FOOTBALL_TEAM_STATS"
     && row.status === "PERSISTED"
-    && typeof row.value === "number" && Number.isFinite(row.value)
-    && row.value >= 0 && row.sampleN !== null
+    && numericSeasonAverage(row.value) !== null
+    && row.sampleN !== null
     && Number.isInteger(row.sampleN) && row.sampleN > 0
     && !!row.capturedAt
     ? row : null;
@@ -37,8 +46,8 @@ function teamProfile(
       || scored.sampleN !== conceded.sampleN
       || scored.observationScope !== conceded.observationScope) return null;
 
-  const gfRate = scored.value as number;
-  const gaRate = conceded.value as number;
+  const gfRate = numericSeasonAverage(scored.value)!;
+  const gaRate = numericSeasonAverage(conceded.value)!;
   const gf = poissonBins(gfRate);
   const ga = poissonBins(gaRate);
   return {
