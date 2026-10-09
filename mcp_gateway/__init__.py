@@ -156,6 +156,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app/api/v2/leans", subscriber_contract_v2.leans, methods=["GET"], name="subscriber_v2_leans"))
         if "/app/api/v2/watches" not in existing_paths:
             additions.append(Route("/app/api/v2/watches", subscriber_contract_v2.watches, methods=["GET"], name="subscriber_v2_watches"))
+        if "/app/api/v2/maturity" not in existing_paths:
+            additions.append(Route("/app/api/v2/maturity", subscriber_contract_v2.maturity, methods=["GET"], name="subscriber_v2_maturity"))
         if "/app/api/v2/performance" not in existing_paths:
             additions.append(Route("/app/api/v2/performance", subscriber_contract_v2.performance, methods=["GET"], name="subscriber_v2_performance"))
         if "/app/api/v2/my-edge" not in existing_paths:
