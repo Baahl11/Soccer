@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { loadAuthState, signIn, signOut, signUp, type AuthState } from "./auth";
 import { loadMatchCenter, loadSlate, type SlateItem } from "./live";
 import { EvidenceExplorer } from "./EvidenceExplorer";
+import { MaturityPage } from "./MaturityPage";
 import { FixtureMetricsPanel, FixturePlayersPanel, FixtureEventsPanel } from "./FixtureEvidencePanels";
 import type {
   MatchCenterViewModel,
@@ -616,8 +617,8 @@ function ProductNav({
   onNavigate,
   onOpenAuth,
 }: {
-  active: "today" | "matches" | "match";
-  onNavigate: (view: "today" | "matches" | "match") => void;
+  active: "today" | "matches" | "match" | "maturity";
+  onNavigate: (view: "today" | "matches" | "match" | "maturity") => void;
   onOpenAuth: () => void;
 }) {
   return (
@@ -625,6 +626,7 @@ function ProductNav({
       <nav className="mobile-product-nav">
         <button className={active==="today"?"active":""} onClick={()=>onNavigate("today")}><span>◉</span>Today</button>
         <button className={active==="matches"?"active":""} onClick={()=>onNavigate("matches")}><span>◎</span>Matches</button>
+         <button className={active==="maturity"?"active":""} onClick={()=>onNavigate("maturity")}><span>◫</span>Maturity</button>
         <button className={active==="match"?"active":""} onClick={()=>onNavigate("match")}><span>▥</span>Match</button>
         <button onClick={onOpenAuth}><span>○</span>Account</button>
       </nav>
@@ -643,8 +645,8 @@ function AppBody({
   match: MatchCenterViewModel;
   auth: AuthState | null;
   slate: SlateItem[];
-  view: "today" | "matches" | "match";
-  onNavigate: (view: "today" | "matches" | "match") => void;
+  view: "today" | "matches" | "match" | "maturity";
+  onNavigate: (view: "today" | "matches" | "match" | "maturity") => void;
   onOpenAuth: () => void;
 }) {
   const modeLabel = match.sample ? "SAMPLE DESIGN MODE" : "LIVE CONTRACT";
@@ -660,6 +662,7 @@ function AppBody({
           <button className={view==="today"?"active":""} onClick={()=>onNavigate("today")}>Today</button>
           <button className={view==="matches"?"active":""} onClick={()=>onNavigate("matches")}>Matches</button>
           <button className={view==="match"?"active":""} onClick={()=>onNavigate("match")}>Match Center</button>
+           <button className={view==="maturity"?"active":""} onClick={()=>onNavigate("maturity")}>Market Maturity</button>
           <span className="rail-label">NEXT</span>
           <button disabled>Edge Feed</button>
           <button disabled>Performance</button>
@@ -679,6 +682,7 @@ function AppBody({
 
         {view === "today" ? <SlatePage mode="today" items={slate} /> :
          view === "matches" ? <SlatePage mode="matches" items={slate} /> :
+         view === "maturity" ? <MaturityPage /> :
          <>
           <Hero match={match} />
           <nav className="tabs" aria-label="Match evidence sections">{MATCH_TABS.map(x=><button type="button" className={activeTab===x?"active":""} aria-current={activeTab===x?"page":undefined} onClick={()=>setActiveTab(x)} key={x}>{x}</button>)}</nav>
@@ -726,7 +730,7 @@ export default function App() {
   const [slate, setSlate] = useState<SlateItem[]>([]);
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
-  const [view, setView] = useState<"today" | "matches" | "match">(
+  const [view, setView] = useState<"today" | "matches" | "match" | "maturity">(
     window.location.pathname.includes("/match/") || new URLSearchParams(window.location.search).has("fixture_id") ? "match" : "today"
   );
   const [error, setError] = useState<string | null>(null);
@@ -746,7 +750,7 @@ export default function App() {
     return () => { active = false; };
   }, []);
 
-  const navigate = (next: "today" | "matches" | "match") => {
+  const navigate = (next: "today" | "matches" | "match" | "maturity") => {
     setView(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
