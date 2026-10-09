@@ -6,7 +6,9 @@ const METRIC_NAMES: Record<string, string> = {
   wins_total: "Wins", draws_total: "Draws", losses_total: "Losses",
   goals_for_avg: "Goals scored / match", goals_against_avg: "Goals conceded / match",
   clean_sheets: "Clean sheets", failed_to_score: "Failed to score",
-  played_split: "Home / away matches", recent_matches: "Recent matches",
+  played_split: "Matches at venue", recent_matches: "Recent matches",
+  wins_split: "Wins at venue", draws_split: "Draws at venue", losses_split: "Losses at venue",
+  goals_for_split: "Goals scored at venue", goals_against_split: "Goals conceded at venue",
 };
 const METRIC_ORDER = Object.keys(METRIC_NAMES);
 
@@ -34,7 +36,7 @@ function meta(item: Row) {
 function MatchForm({ value, long = false }: { value: string; long?: boolean }) {
   const codes = [...value.toUpperCase()].filter(c => c === "W" || c === "D" || c === "L");
   const entries = long ? codes : codes.slice(-8);
-  return <div className="eex-form" aria-label={"Provider form sequence: " + entries.join(" ")}>
+  return <div className="eex-form" aria-label={"Provider-order form sequence: " + entries.join(" ")}>
     {entries.map((v,i)=><span key={i} className={"eex-form-chip " + v.toLowerCase()}>{v}</span>)}
   </div>;
 }
@@ -63,7 +65,10 @@ function EvidenceBody({group}: InputProps) {
 
   const homeFields = new Map(home.filter(item=>!form.includes(item) && !model.includes(item)).map(item=>[item.key.replace(/^team_performance\.home_/,""),item]));
   const awayFields = new Map(away.filter(item=>!form.includes(item) && !model.includes(item)).map(item=>[item.key.replace(/^team_performance\.away_/,""),item]));
-  const allKeys = Array.from(new Set([...homeFields.keys(),...awayFields.keys()]));
+  const venueMetricOrder = ["played_split","wins_split","draws_split","losses_split","goals_for_split","goals_against_split"];
+  const venueKeys = venueMetricOrder.filter(key => homeFields.has(key) || awayFields.has(key));
+  const allKeys = Array.from(new Set([...homeFields.keys(),...awayFields.keys()]))
+    .filter(key => !venueMetricOrder.includes(key));
   allKeys.sort((a,b)=>{
     const i=METRIC_ORDER.indexOf(a),j=METRIC_ORDER.indexOf(b);
     return (i<0?100:i)-(j<0?100:j) || a.localeCompare(b);
@@ -90,8 +95,20 @@ function EvidenceBody({group}: InputProps) {
         })}
       </div>
     </section>}
+    {venueKeys.length>0 && <section className="eex-section">
+      <div className="eex-section-title"><span className="eex-section-index">02</span><div><h4>Home vs away performance</h4><p>Venue-specific records from stored statistics</p></div></div>
+      <div className="eex-stats">
+        <div className="eex-stats-head"><span>HOME</span><span>VENUE METRIC</span><span>AWAY</span></div>
+        {venueKeys.map(k=><div className="eex-stat-line" key={k}>
+          <strong className={homeFields.has(k)?"":"eex-null"} title={homeFields.has(k)?meta(homeFields.get(k)!):"Not verified"}>{homeFields.has(k)?fmt(homeFields.get(k)!.value):"—"}</strong>
+          <span>{METRIC_NAMES[k] || prettyText(k)}</span>
+          <strong className={awayFields.has(k)?"":"eex-null"} title={awayFields.has(k)?meta(awayFields.get(k)!):"Not verified"}>{awayFields.has(k)?fmt(awayFields.get(k)!.value):"—"}</strong>
+        </div>)}
+      </div>
+      {(!homeFields.has("wins_split") || !awayFields.has("wins_split")) && <p className="eex-venue-caution">Some venue records are not persisted. Missing values are unverified; season totals are shown separately.</p>}
+    </section>}
     {allKeys.length>0 && <section className="eex-section">
-      <div className="eex-section-title"><span className="eex-section-index">02</span><div><h4>Season performance</h4><p>Side-by-side statistics without repeated raw records</p></div></div>
+      <div className="eex-section-title"><span className="eex-section-index">03</span><div><h4>Full-season performance</h4><p>Totals and averages across all venues</p></div></div>
       <div className="eex-stats">
         <div className="eex-stats-head"><span>HOME</span><span>METRIC</span><span>AWAY</span></div>
         {allKeys.map(k=><div className="eex-stat-line" key={k}>
@@ -102,22 +119,22 @@ function EvidenceBody({group}: InputProps) {
       </div>
     </section>}
     {form.length>0 && <section className="eex-section">
-      <div className="eex-section-title"><span className="eex-section-index">03</span><div><h4>Form history</h4><p>W win · D draw · L loss · provider order</p></div></div>
+      <div className="eex-section-title"><span className="eex-section-index">04</span><div><h4>Form history</h4><p>W win · D draw · L loss · sequence order supplied by provider</p></div></div>
       <div className="eex-form-grid">
         {form.map(item=>{
           const formValue=typeof item.value === "string" ? item.value : "";
           const total=[...formValue.toUpperCase()].filter(x=>["W","D","L"].includes(x)).length;
           const side=item.key.includes(".home_")?"HOME":item.key.includes(".away_")?"AWAY":"FORMA";
           return <div className="eex-form-card" key={item.key}>
-            <div className="eex-form-title"><b>{side}</b><span>{Math.min(total,8)} of {total} results</span></div>
+            <div className="eex-form-title"><b>{side}</b><span>{Math.min(total,8)} displayed · {total} saved</span></div>
             <MatchForm value={formValue}/>
-            {total>8 && <details className="eex-full-form"><summary>Show all {total} results</summary><MatchForm long value={formValue}/></details>}
+            {total>8 && <details className="eex-full-form"><summary>Show full history ({total} results)</summary><MatchForm long value={formValue}/></details>}
           </div>;
         })}
       </div>
     </section>}
     {other.length>0 && <section className="eex-section">
-      <div className="eex-section-title"><span className="eex-section-index">04</span><div><h4>Other available data</h4><p>Persisted fields only</p></div></div>
+      <div className="eex-section-title"><span className="eex-section-index">05</span><div><h4>Other available data</h4><p>Persisted fields only</p></div></div>
       <div className="eex-extra-grid">{other.map(item=><div className="eex-extra" key={item.key} title={meta(item)}>
         <span>{item.label}</span>
         {typeof item.value === "string" && /[WDL]{12,}/.test(item.value)
@@ -126,7 +143,7 @@ function EvidenceBody({group}: InputProps) {
       </div>)}</div>
     </section>}
     <section className="eex-section eex-provenance">
-      <div className="eex-section-title"><span className="eex-section-index"><span aria-hidden="true">i</span></span><div><h4>Data sources</h4><p>Source, sample and capture date for this section</p></div></div>
+      <div className="eex-section-title"><span className="eex-section-index">i</span><div><h4>Data sources</h4><p>Source, sample and capture date for this section</p></div></div>
       <div className="eex-source-grid">{Array.from(sources.entries()).map(([source,items])=><SourceCard source={source||null} items={items} key={source}/>)}</div>
       <p className="eex-disclaimer">{group.items.length} original fields preserved. Historical data does not verify current lineups or prices.</p>
     </section>

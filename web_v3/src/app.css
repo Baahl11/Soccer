@@ -282,3 +282,25 @@ main{min-width:0}.topbar{height:48px;display:flex;align-items:center;justify-con
 .eex-form-chip{width:17px;flex-basis:17px;height:20px;font-size:10px}
 .eex-source{padding:10px}.eex-source-head strong{font-size:11px}
 }
+
+/* Venue-priority matchup + condensed form and lifecycle details. */
+.venue-priority{border:1px solid rgba(106,189,179,.25);border-radius:8px;background:rgba(14,65,67,.3);padding:8px 10px;display:grid;gap:3px}
+.venue-priority strong{font-size:10px;letter-spacing:.11em;color:#96e0cc;font-weight:900}
+.venue-priority small{font-size:10px;line-height:1.45;color:#9ebcc1}
+.evidence-team-card.away .venue-priority{border-color:rgba(121,174,211,.29);background:rgba(23,57,78,.35)}
+.evidence-team-card.away .venue-priority strong{color:#b6d9ee}
+.venue-season-recap{font-size:10px;line-height:1.5;border-radius:7px;padding:8px 9px;background:rgba(4,23,31,.6);color:#a7bec6;letter-spacing:.01em}
+.evidence-team-metrics i{display:inline-block;font-size:9px;font-style:normal;letter-spacing:.03em;color:#91d4c0}
+.eex-venue-caution{font-size:10px;line-height:1.5;margin:9px 2px 1px;color:#a7bcc7}
+.eex-full-form .eex-form{max-height:165px;overflow:auto;align-content:start;padding:3px 0 5px}
+.eex-full-form>summary{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.eex-full-form>summary:after{content:'⌄';font-size:14px;color:#a7d2c5}
+.eex-full-form[open]>summary:after{transform:rotate(180deg)}
+.final-result{min-width:70px}.final-result strong{font-size:26px}
+@media(max-width:560px){
+  .venue-priority{padding:7px 6px}.venue-priority strong{font-size:9px}
+  .venue-priority small{font-size:9px}
+  .venue-season-recap{font-size:9px}
+  .evidence-team-metrics i{font-size:8px}
+  .final-result strong{font-size:18px}.final-result small{font-size:7px}
+}

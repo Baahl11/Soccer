@@ -216,3 +216,77 @@ def test_final_registry_score_is_separate_from_pregame_probabilities():
     assert packet["model_weights_changed"] is False
     assert packet["canonical_bet_logic_changed"] is False
 
+
+
+def test_registry_final_display_keeps_score_separate(monkeypatch):
+    """Only terminal, stored scores qualify for display; stale rows do not."""
+    from datetime import datetime, timezone
+
+    class DummyCursor:
+        def __init__(self):
+            self.sql = ""
+            self.params = None
+        def execute(self, sql, params):
+            self.sql, self.params = sql, params
+        def fetchone(self):
+            return (
+                1612077, datetime(2026, 10, 8, 22, tzinfo=timezone.utc),
+                "FT", "Reserve League", "Argentina", 18681, "Boca Juniors Res.",
+                18683, "Colón Res.", 1, 0,
+                datetime(2026, 10, 9, 4, 30, tzinfo=timezone.utc),
+            )
+        def __enter__(self):
+            return self
+        def __exit__(self, *_):
+            return False
+
+    class DummyConnection:
+        def __init__(self):
+            self.cursor_instance = DummyCursor()
+        def cursor(self):
+            return self.cursor_instance
+        def __enter__(self):
+            return self
+        def __exit__(self, *_):
+            return False
+
+    conn = DummyConnection()
+    monkeypatch.setattr(subscriber_contract_v2.persistence_base, "_connect", lambda: conn)
+    result = subscriber_contract_v2._load_registry_fixture(1612077)
+    assert result["status"] == "FT"
+    assert result["final_home_goals"] == 1
+    assert result["final_away_goals"] == 0
+    assert conn.cursor_instance.params == (1612077,)
+    assert "WHEN f.status IN ('FT','AET','PEN')" in conn.cursor_instance.sql
+    assert "CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.home_goals" in conn.cursor_instance.sql
+
+
+def test_venue_splits_are_preserved_as_separate_persisted_fields():
+    """No substitution of season-wide wins for venue-specific wins."""
+    snap = {
+        "captured_at": "2026-10-08T18:00:00Z", "data_tier": "D",
+        "payload": {"features": {
+            "team_performance.home_played_split": {
+                "value": 16, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 31,
+            },
+            "team_performance.home_wins_total": {
+                "value": 17, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 31,
+            },
+            "team_performance.home_wins_split": {
+                "value": 11, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 16,
+            },
+            "team_performance.away_wins_total": {
+                "value": 7, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 29,
+            },
+            "team_performance.away_wins_split": {
+                "value": 2, "source": "API_FOOTBALL_TEAM_STATS", "sample_n": 14,
+            },
+        }},
+    }
+    groups = subscriber_contract_v2._match_evidence_sections({"feature_snapshots":[snap]})
+    by_key = {item["key"]:item for item in groups[0]["items"]}
+    assert by_key["team_performance.home_wins_split"]["value"] == 11
+    assert by_key["team_performance.home_wins_total"]["value"] == 17
+    assert by_key["team_performance.away_wins_split"]["value"] == 2
+    assert by_key["team_performance.away_wins_total"]["value"] == 7
+    assert by_key["team_performance.home_wins_split"]["sample_n"] == 16

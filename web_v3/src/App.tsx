@@ -45,7 +45,7 @@ function Hero({ match }: { match: MatchCenterViewModel }) {
   return (
     <section className="hero">
       <div className="hero-topline">
-        <span>{match.league} · Today</span>
+        <span>{match.league} · {match.finalResult ? "FINAL" : ["FT","AET","PEN"].includes(match.fixtureStatus || "") ? "FINAL · SCORE NOT VERIFIED" : ["1H","HT","2H","ET","BT","P"].includes(match.fixtureStatus || "") ? "LIVE" : match.fixtureStatus && match.fixtureStatus !== "NS" && match.fixtureStatus !== "TBD" ? match.fixtureStatus : "SCHEDULED"}</span>
         <span>{match.kickoff}</span>
       </div>
       <div className="hero-main">
@@ -53,7 +53,11 @@ function Hero({ match }: { match: MatchCenterViewModel }) {
           <TeamBadge team={match.home} />
           <b>{match.home.name}</b><span>HOME</span>
         </div>
-        <div className="vs">VS</div>
+        <div className="vs">{match.finalResult
+          ? <div className="final-result"><strong>{match.finalResult.home} – {match.finalResult.away}</strong><small>{match.finalResult.status} · OFFICIAL</small></div>
+          : ["FT","AET","PEN"].includes(match.fixtureStatus || "")
+            ? <div className="final-result"><strong>FINAL</strong><small>SCORE NOT VERIFIED</small></div>
+            : "VS"}</div>
         <div className="team">
           <TeamBadge team={match.away} />
           <b>{match.away.name}</b><span>AWAY</span>
@@ -279,6 +283,8 @@ function EvidenceForm({ form }: { form?: SportEvidenceItem }) {
 function TeamEvidence({ group, match }: { group: SportEvidenceGroup; match: MatchCenterViewModel }) {
   const item = (side: "home" | "away", name: string) =>
     group.items.find(entry => entry.key === "team_performance." + side + "_" + name);
+  const validCount = (v: SportEvidenceItem | undefined): number | null =>
+    typeof v?.value === "number" && Number.isInteger(v.value) && v.value >= 0 ? v.value : null;
   const teamCard = (side: "home" | "away") => {
     const home = side === "home";
     const name = home ? match.home.name : match.away.name;
@@ -286,44 +292,69 @@ function TeamEvidence({ group, match }: { group: SportEvidenceGroup; match: Matc
     const won = item(side, "wins_total");
     const drawn = item(side, "draws_total");
     const lost = item(side, "losses_total");
-    const matches = won?.sampleN ?? drawn?.sampleN ?? lost?.sampleN ?? null;
-    const w = typeof won?.value === "number" ? won.value : null;
-    const d = typeof drawn?.value === "number" ? drawn.value : null;
-    const l = typeof lost?.value === "number" ? lost.value : null;
-    const total = w !== null && d !== null && l !== null ? w+d+l : 0;
+    const fullW = validCount(won), fullD = validCount(drawn), fullL = validCount(lost);
+    const fullMatches = fullW !== null && fullD !== null && fullL !== null ? fullW + fullD + fullL : null;
+
+    const homeAwayGames = validCount(item(side, "played_split"));
+    const venueW = validCount(item(side, "wins_split"));
+    const venueD = validCount(item(side, "draws_split"));
+    const venueL = validCount(item(side, "losses_split"));
+    const venueSum = venueW !== null && venueD !== null && venueL !== null ? venueW + venueD + venueL : null;
+    const venueVerified = venueSum !== null && venueSum > 0 && (homeAwayGames === null || venueSum === homeAwayGames);
+    const venueCount = venueVerified ? (homeAwayGames ?? venueSum) : homeAwayGames;
+    const showW = venueVerified ? venueW : fullW;
+    const showD = venueVerified ? venueD : fullD;
+    const showL = venueVerified ? venueL : fullL;
+    const displayCount = venueVerified ? venueCount : fullMatches;
+    const shownRecordSum = showW !== null && showD !== null && showL !== null ? showW + showD + showL : 0;
+
+    const venueGoalsFor = validCount(item(side, "goals_for_split"));
+    const venueGoalsAgainst = validCount(item(side, "goals_against_split"));
+    const venueGoalsRate = venueCount !== null && venueCount > 0 && venueGoalsFor !== null
+      ? venueGoalsFor / venueCount : null;
+    const venueAgainstRate = venueCount !== null && venueCount > 0 && venueGoalsAgainst !== null
+      ? venueGoalsAgainst / venueCount : null;
+
     return <article className={"evidence-team-card " + side} key={side}>
       <div className="evidence-team-heading">
         {team.logoUrl ? <img src={team.logoUrl} alt="" /> : <span className="evidence-team-placeholder">{team.shortName}</span>}
         <div><small>{home ? "HOME TEAM" : "AWAY TEAM"}</small><h4>{name}</h4></div>
       </div>
-      <div className="evidence-games"><strong>{matches ?? "—"}</strong><span>season matches</span></div>
-      <div className="evidence-wdl">
-        <div><strong>{sportValue(won)}</strong><small>WINS</small></div>
-        <div><strong>{sportValue(drawn)}</strong><small>DRAWS</small></div>
-        <div><strong>{sportValue(lost)}</strong><small>LOSSES</small></div>
+      <div className="venue-priority">
+        <strong>{venueVerified ? (home ? "AT HOME" : "AWAY FROM HOME") : "FULL SEASON"}</strong>
+        <small>{venueVerified ? "Verified venue record" : "Venue W/D/L not verified; displaying season record"}</small>
       </div>
-      {total > 0 && <div className="evidence-record-bar" aria-label={w + " wins, " + d + " draws, " + l + " losses"}>
-        <span className="wins" style={{width:(100*(w??0)/total)+"%"}} />
-        <span className="draws" style={{width:(100*(d??0)/total)+"%"}} />
-        <span className="losses" style={{width:(100*(l??0)/total)+"%"}} />
+      <div className="evidence-games"><strong>{displayCount ?? "—"}</strong><span>{venueVerified ? (home ? "home games" : "away games") : "season games"}</span></div>
+      <div className="evidence-wdl">
+        <div><strong>{showW ?? "—"}</strong><small>WINS</small></div>
+        <div><strong>{showD ?? "—"}</strong><small>DRAWS</small></div>
+        <div><strong>{showL ?? "—"}</strong><small>LOSSES</small></div>
+      </div>
+      {shownRecordSum > 0 && <div className="evidence-record-bar" aria-label={String(showW) + " wins, " + String(showD) + " draws, " + String(showL) + " losses"}>
+        <span className="wins" style={{width:(100*(showW??0)/shownRecordSum)+"%"}} />
+        <span className="draws" style={{width:(100*(showD??0)/shownRecordSum)+"%"}} />
+        <span className="losses" style={{width:(100*(showL??0)/shownRecordSum)+"%"}} />
       </div>}
+      {venueVerified && <div className="venue-season-recap">All season · {fullMatches ?? "—"} matches · {fullW ?? "—"}W {fullD ?? "—"}D {fullL ?? "—"}L</div>}
       <div className="evidence-team-metrics">
+        {venueGoalsRate !== null && <div><span>{home ? "Home" : "Away"} goals / match <i>venue</i></span><b>{venueGoalsRate.toFixed(2)}</b></div>}
+        {venueAgainstRate !== null && <div><span>{home ? "Home" : "Away"} conceded / match <i>venue</i></span><b>{venueAgainstRate.toFixed(2)}</b></div>}
         {[
-          ["Goals for / game", "goals_for_avg"],
-          ["Goals against / game", "goals_against_avg"],
-          ["Clean sheets", "clean_sheets"],
-          ["Failed to score", "failed_to_score"],
-          [home ? "Home matches" : "Away matches", "played_split"],
+          ["Goals for / game · season", "goals_for_avg"],
+          ["Goals against / game · season", "goals_against_avg"],
+          ["Clean sheets · season", "clean_sheets"],
+          ["Failed to score · season", "failed_to_score"],
+          [home ? "Home games" : "Away games", "played_split"],
         ].filter(([,metric])=>!!item(side,metric)).map(([label,metric])=>
           <div key={metric}><span>{label}</span><b>{sportValue(item(side,metric))}</b></div>
         )}
       </div>
-      <div className="evidence-form-heading">FORM <small>Last 8 entries</small></div>
+      <div className="evidence-form-heading">FORM <small>8 results · provider order</small></div>
       <EvidenceForm form={item(side,"form")} />
     </article>;
   };
-  const api = group.items.find(x=>x.source?.startsWith("API_FOOTBALL"));
-  const model = group.items.some(x=>x.source?.startsWith("SOCCER_EDGE"));
+  const api = group.items.find(e=>e.source?.startsWith("API_FOOTBALL"));
+  const model = group.items.some(e=>e.source?.startsWith("SOCCER_EDGE"));
   return <>
     <div className="evidence-team-comparison">{teamCard("home")}{teamCard("away")}</div>
     <div className="evidence-lineage">
@@ -585,7 +616,8 @@ function AppBody({
   onOpenAuth: () => void;
 }) {
   const modeLabel = match.sample ? "SAMPLE DESIGN MODE" : "LIVE CONTRACT";
-  const classification = match.decision.classification || match.decision.displayBucket || "SPORT FIRST";
+  const isFinal = Boolean(match.finalResult) || ["FT","AET","PEN"].includes(match.fixtureStatus || "");
+  const classification = isFinal ? "FINAL · HISTORICAL" : (match.decision.classification || match.decision.displayBucket || "SPORT FIRST");
   const [activeTab,setActiveTab] = useState<MatchTab>("Overview");
 
   return (
@@ -627,8 +659,9 @@ function AppBody({
               <div><span>MARKET</span><b>{match.market}</b></div>
             </div>
             {activeTab === "Overview" && <>
-              <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/>{match.edge && <EdgePanel match={match}/>}</div>
-              {!match.edge && <div className="market-no-edge"><b>Market Edge · NOT VERIFIED</b><span>No fresh verified quote. Sporting projections remain visible without suggesting a wager.</span></div>}
+              {isFinal && <div className="postgame-note">FINAL: Official result and original pre-match model are separate. The probabilities below have not been recalculated from the result.</div>}
+              <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/>{!isFinal && match.edge && <EdgePanel match={match}/>}</div>
+              {(!match.edge || isFinal) && <div className="market-no-edge"><b>{isFinal ? "Market · MATCH FINISHED" : "Market Edge · NOT VERIFIED"}</b><span>{isFinal ? "Historical market data is not a current betting opportunity." : "No fresh verified quote. Sporting projections remain visible without suggesting a wager."}</span></div>}
               <div className="deck middle"><SportProfile match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div>
               <EvidenceBoard match={match}/>
             </>}
@@ -641,7 +674,7 @@ function AppBody({
             <section className="primary-read">
               <span className="se">SE</span>
               <div><b>Primary read <em>{classification}</em></b><p>{match.decision.reason || "Sporting projection is built first. Market value is assessed only after the football case is established."}</p></div>
-              <strong>{match.edge ? (match.edge.gap >= 0 ? "+" : "") + match.edge.gap.toFixed(1) + " pp" : "—"}</strong>
+              <strong>{!isFinal && match.edge ? (match.edge.gap >= 0 ? "+" : "") + match.edge.gap.toFixed(1) + " pp" : "—"}</strong>
             </section>
             <footer>{match.disclosure}</footer>
           </section>

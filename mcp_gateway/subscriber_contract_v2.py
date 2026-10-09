@@ -930,9 +930,16 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
             cur.execute(
                 """
                 SELECT f.fixture_id, f.kickoff,
-                       COALESCE(r.final_status, f.status), f.league, f.country,
+                       CASE
+                         WHEN r.final_status IN ('FT','AET','PEN') THEN r.final_status
+                         WHEN f.status IN ('FT','AET','PEN') THEN f.status
+                         ELSE COALESCE(f.status, r.final_status)
+                       END AS display_status,
+                       f.league, f.country,
                        f.home_team_id, f.home_team, f.away_team_id, f.away_team,
-                       r.home_goals, r.away_goals, r.graded_at
+                       CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.home_goals ELSE NULL END,
+                       CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.away_goals ELSE NULL END,
+                       CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.graded_at ELSE NULL END
                 FROM soccer_fixtures f
                 LEFT JOIN soccer_results r ON r.fixture_id = f.fixture_id
                 WHERE f.fixture_id = %s
