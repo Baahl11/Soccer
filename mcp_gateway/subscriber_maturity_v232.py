@@ -419,6 +419,8 @@ def _build_market_inventory(
             blockers.append("MARKET_PRICE_HISTORY_NOT_VERIFIED")
         if clv_n is None:
             blockers.append("MARKET_TRUE_CLV_NOT_VERIFIED")
+        if report:
+            blockers.append("SOURCE_GENERATED_AT_NOT_VERIFIED")
         for blocker in parent.get("blockers") or []:
             if blocker not in blockers:
                 blockers.append(blocker)
