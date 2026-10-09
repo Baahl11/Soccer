@@ -516,7 +516,10 @@ def test_fixture_stats_and_players_are_persisted_as_observed_only():
                     "cards":{"yellow":1,"red":0},
                     "goals":{"total":0,"assists":1},
                 }]}]}],
-            "fixture_events":[{"team":{"id":10},"type":"Card",\n              "detail":"Yellow Card","player":{"id":123,"name":"Player A"},\n              "time":{"elapsed":45}}],\n            "fixture_lineups":[{"team":{"id":20},"formation":"4-3-3",
+            "fixture_events":[{"team":{"id":10},"type":"Card",
+              "detail":"Yellow Card","player":{"id":123,"name":"Player A"},
+              "time":{"elapsed":45}}],
+            "fixture_lineups":[{"team":{"id":20},"formation":"4-3-3",
                 "startXI":[{"player":{"id":234,"name":"Player B"}}]}],
         },
     }
