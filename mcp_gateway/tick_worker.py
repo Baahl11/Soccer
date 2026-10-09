@@ -274,9 +274,28 @@ async def _main() -> int:
         payload["fair_scheduler_seed_imported"] = fairness_imported
         payload["tick_stage_timings_ms"] = timings
 
-        # Opportunistic bounded backfill of recent fixtures that have no
-        # persisted team-performance evidence. Appended after ALL model/market
-        # decisions so the archive can never alter canonical picks or weights.
+        # After canonical sport/market decisions, capture bounded fixture observations
+        # BEFORE historical backfill: otherwise secondary backfill can consume all
+        # remaining provider quota and starve real match-stat/player coverage.
+        stage_started = time.monotonic()
+        try:
+            observed_events = await fixture_observations_v1.collect(payload)
+            if observed_events:
+                payload.setdefault("events", []).extend(observed_events)
+        except Exception as observation_exc:
+            payload["fixture_observation_error"] = type(observation_exc).__name__ + ": " + str(observation_exc)[:160]
+        timings["fixture_observations_ms"] = _elapsed_ms(stage_started)
+        _emit_timing(
+            "fixture_observations_done",
+            status=payload.get("fixture_observation_status", "ERROR"),
+            selected_fixture_ids=payload.get("fixture_observation_selected_fixture_ids", []),
+            attempts=payload.get("fixture_observation_attempts", []),
+            error=payload.get("fixture_observation_error"),
+        )
+
+
+        # Historical research backfill runs LAST. It is strictly non-actionable
+        # and cannot alter sporting projections, market decisions, or prior picks.
         stage_started = time.monotonic()
         try:
             research_events = await research_backfill_v1.collect(payload)
@@ -295,24 +314,6 @@ async def _main() -> int:
             emitted_fixture_ids=payload.get("research_backfill_emitted_fixture_ids", []),
             attempts=payload.get("research_backfill_attempts", []),
             error=payload.get("research_backfill_error"),
-        )
-
-        # Fixture-level match observations (corners, cards, offsides, players,
-        # lineups) are a bounded post-sport, post-market read-only capture.
-        stage_started = time.monotonic()
-        try:
-            observed_events = await fixture_observations_v1.collect(payload)
-            if observed_events:
-                payload.setdefault("events", []).extend(observed_events)
-        except Exception as observation_exc:
-            payload["fixture_observation_error"] = type(observation_exc).__name__ + ": " + str(observation_exc)[:160]
-        timings["fixture_observations_ms"] = _elapsed_ms(stage_started)
-        _emit_timing(
-            "fixture_observations_done",
-            status=payload.get("fixture_observation_status", "ERROR"),
-            selected_fixture_ids=payload.get("fixture_observation_selected_fixture_ids", []),
-            attempts=payload.get("fixture_observation_attempts", []),
-            error=payload.get("fixture_observation_error"),
         )
 
         stage_started = time.monotonic()
