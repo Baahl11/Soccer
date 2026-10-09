@@ -170,6 +170,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app-preview/data", subscriber_preview_data_v231.preview_data, methods=["GET"], name="v231_subscriber_preview_data"))
         if "/app-preview/performance" not in existing_paths:
             additions.append(Route("/app-preview/performance", subscriber_preview_performance_v231.preview_performance, methods=["GET"], name="v231_subscriber_preview_performance"))
+        if "/app/api/v2/maturity" not in existing_paths:
+            additions.append(Route("/app/api/v2/maturity", subscriber_preview_maturity_v232.preview_maturity, methods=["GET"], name="subscriber_v2_maturity"))
         if "/app-preview/maturity" not in existing_paths:
             additions.append(Route("/app-preview/maturity", subscriber_preview_maturity_v232.preview_maturity, methods=["GET"], name="v232_subscriber_preview_maturity"))
         app.router.routes[0:0] = additions
