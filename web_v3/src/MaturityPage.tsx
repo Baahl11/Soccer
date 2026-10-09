@@ -89,7 +89,7 @@ export function MaturityPage() {
           <td>Brier: {metric(row.model_quality?.brier)}<small>Log loss: {metric(row.model_quality?.log_loss)}</small><small>ECE: {metric(row.model_quality?.ece)}</small><small>{verified(row.model_quality?.scope)}</small></td>
           <td>{verified(row.mapped_rows)}</td><td>{verified(row.priced_rows)}</td>
           <td>{gate(row.true_clv_rows, row.true_clv_target)}</td><td>{verified(row.report_true_clv_rows)}<small>Research report; not a substitute for canonical CLV</small></td>
-          <td>{verified(row.parent_research_stage)}</td><td>{verified(row.next_gate)}{(row.blockers?.length ?? 0) > 1 && <small>Other blockers: {row.blockers?.slice(1).join(" · ")}</small>}</td><td><small>{verified(row.source)}</small><small>Report: {verified(row.report_status)}</small><small>Model: {verified(row.source_model_version)}</small><small>Timestamp: {verified(row.source_temporal_provenance)}</small></td><td>{row.production_promotion_allowed ? "OPERATOR VERIFICATION REQUIRED" : "BLOCKED"}</td>
+          <td>{verified(row.parent_research_stage)}</td><td>{verified(row.next_gate)}{(row.blockers?.length ?? 0) > 1 && <details className="maturity-blockers"><summary>{(row.blockers?.length ?? 0) - 1} more blockers</summary><small>{row.blockers?.slice(1).join(" · ")}</small></details>}</td><td><small>{verified(row.source)}</small><small>Report: {verified(row.report_status)}</small><small>Model: {verified(row.source_model_version)}</small><small>Timestamp: {verified(row.source_temporal_provenance)}</small></td><td>{row.production_promotion_allowed ? "OPERATOR VERIFICATION REQUIRED" : "BLOCKED"}</td>
         </tr>)}
       </tbody></table></div>}
     </div>
