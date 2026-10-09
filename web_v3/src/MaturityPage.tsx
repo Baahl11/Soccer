@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { hasStoredSession, refreshSession, storedAccessToken } from "./auth";
 
 type Evidence = { current?: number | null; target?: number | null; unit?: string | null };
+type Quality = { brier?: number | null; log_loss?: number | null; ece?: number | null; scope?: string | null };
 type MarketRow = {
-  key: string; label: string; parent_family: string | null;
+  key: string; label: string; parent_family: string | null; model_quality?: Quality;
+  report_true_clv_rows?: number | null; source_model_version?: string | null; source_temporal_provenance?: string | null;
   model_evidence: Evidence | null;
   mapped_rows: number | null; priced_rows: number | null;
   true_clv_rows: number | null; true_clv_target: number | null;
@@ -19,6 +21,9 @@ type MaturityPayload = {
 
 function verified(value: string | number | null | undefined): string {
   return value === null || value === undefined || value === "" ? "NOT VERIFIED" : String(value);
+}
+function metric(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? value.toFixed(4) : "NOT VERIFIED";
 }
 function gate(value: number | null | undefined, target: number | null | undefined): string {
   return verified(value) + (target == null ? "" : " / " + verified(target));
@@ -77,13 +82,14 @@ export function MaturityPage() {
       {message && <div className="slate-empty" role="status">{message}</div>}
       {!!errors.length && <div className="slate-empty">PARTIAL REPORTS — could not verify: {errors.join(", ")}</div>}
       {payload && rows.length === 0 && <div className="slate-empty">No verified market maturity reports available.</div>}
-      {!!rows.length && <div className="maturity-scroll"><table className="maturity-table"><thead><tr><th>Market</th><th>OOS model</th><th>Mapped</th><th>Priced</th><th>True CLV</th><th>Parent research stage</th><th>Market blockers</th><th>Source report</th><th>Production</th></tr></thead><tbody>
+      {!!rows.length && <div className="maturity-scroll"><table className="maturity-table"><thead><tr><th>Market</th><th>Model sample</th><th>Model quality</th><th>Mapped</th><th>Priced</th><th>Canonical True CLV</th><th>Validation report CLV</th><th>Parent research stage</th><th>Market blockers</th><th>Source report</th><th>Production</th></tr></thead><tbody>
         {rows.map(row => <tr key={row.key}>
           <td><strong>{verified(row.label)}</strong><small>{verified(row.parent_family)}</small></td>
-          <td>{gate(row.model_evidence?.current, row.model_evidence?.target)}<small>{verified(row.model_evidence?.unit)}</small><small>{row.market_specific_evidence_verified ? "DIRECT SAMPLE REPORTED" : "MARKET OOS NOT VERIFIED"}</small></td>
+          <td>{gate(row.model_evidence?.current, row.model_evidence?.target)}<small>{verified(row.model_evidence?.unit)}</small><small>{row.market_specific_evidence_verified ? "MARKET OOS EVIDENCE REPORTED" : "INDEPENDENT OOS NOT VERIFIED"}</small></td>
+          <td>Brier: {metric(row.model_quality?.brier)}<small>Log loss: {metric(row.model_quality?.log_loss)}</small><small>ECE: {metric(row.model_quality?.ece)}</small><small>{verified(row.model_quality?.scope)}</small></td>
           <td>{verified(row.mapped_rows)}</td><td>{verified(row.priced_rows)}</td>
-          <td>{gate(row.true_clv_rows, row.true_clv_target)}</td>
-          <td>{verified(row.parent_research_stage)}</td><td>{verified(row.next_gate)}{(row.blockers?.length ?? 0) > 1 && <small>Other blockers: {row.blockers?.slice(1).join(" · ")}</small>}</td><td><small>{verified(row.source)}</small><small>Report: {verified(row.report_status)}</small></td><td>{row.production_promotion_allowed ? "OPERATOR VERIFICATION REQUIRED" : "BLOCKED"}</td>
+          <td>{gate(row.true_clv_rows, row.true_clv_target)}</td><td>{verified(row.report_true_clv_rows)}<small>Research report; not a substitute for canonical CLV</small></td>
+          <td>{verified(row.parent_research_stage)}</td><td>{verified(row.next_gate)}{(row.blockers?.length ?? 0) > 1 && <small>Other blockers: {row.blockers?.slice(1).join(" · ")}</small>}</td><td><small>{verified(row.source)}</small><small>Report: {verified(row.report_status)}</small><small>Model: {verified(row.source_model_version)}</small><small>Timestamp: {verified(row.source_temporal_provenance)}</small></td><td>{row.production_promotion_allowed ? "OPERATOR VERIFICATION REQUIRED" : "BLOCKED"}</td>
         </tr>)}
       </tbody></table></div>}
     </div>
