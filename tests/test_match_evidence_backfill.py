@@ -142,3 +142,77 @@ def test_backfill_quota_guard_blocks_provider_calls(monkeypatch):
     monkeypatch.setattr(automation_v2, "_LAST_DAILY_REMAINING", 200)
     monkeypatch.setattr(research_backfill_v1, "pending_fixtures", lambda limit: (_ for _ in ()).throw(AssertionError("should not query DB")))
     assert asyncio.run(research_backfill_v1.collect({})) == []
+def _no_analysis_payload():
+    return {"generated_at_utc": "2026-10-08T21:00:00Z", "events": []}
+
+
+
+
+def test_final_score_sync_uses_official_batch_without_regrading_predictions():
+    from mcp_gateway import persistence
+
+    class Cursor:
+        def __init__(self):
+            self.calls = []
+
+        def execute(self, sql, params):
+            self.calls.append((sql, params))
+
+    cursor = Cursor()
+    tick = {
+        "generated_at_utc": "2026-10-09T04:30:00Z",
+        "observed_final_fixtures": [
+            {"fixture_id": 1612077, "status": "FT",
+             "status_long": "Match Finished", "goals": {"home": 1, "away": 0},
+             "score": {"fulltime": {"home": 1, "away": 0}}},
+            {"fixture_id": 1612078, "status": "NS",
+             "goals": {"home": None, "away": None}},
+        ],
+    }
+    persistence._persist_final_observations(cursor, tick)
+    assert len(cursor.calls) == 2
+    update_sql, (update_json,) = cursor.calls[0]
+    insert_sql, params = cursor.calls[1]
+    assert "UPDATE soccer_fixtures" in update_sql
+    assert "INSERT INTO soccer_results" in insert_sql
+    assert "ON CONFLICT (fixture_id) DO NOTHING" in insert_sql
+    assert "UPDATE soccer_model_runs" not in update_sql + insert_sql
+    assert "UPDATE soccer_market_snapshots" not in update_sql + insert_sql
+    import json
+    observed = json.loads(update_json)
+    assert len(observed) == 1
+    assert observed[0]["fixture_id"] == 1612077
+    assert params[1] == "2026-10-09T04:30:00Z"
+
+
+def test_final_registry_score_is_separate_from_pregame_probabilities():
+    registry = {
+        "fixture_id": 1612077, "league": "Reserve League",
+        "home_team_id": 18681, "home_team": "Boca Juniors Res.",
+        "away_team_id": 18683, "away_team": "Colón Res.",
+        "kickoff": "2026-10-08T22:00:00Z",
+        "status": "FT", "final_home_goals": 1, "final_away_goals": 0,
+        "final_observed_at": "2026-10-09T04:30:00Z",
+    }
+    packet = subscriber_contract_v2.build_match_contract(
+        _no_analysis_payload(), 1612077, registry_fixture=registry,
+        relational_evidence={"model_runs": [{
+            "run_timestamp": "2026-10-08T20:00:00Z",
+            "raw_projection": {
+                "raw_home_win_prob": 0.595,
+                "raw_draw_prob": 0.258,
+                "raw_away_win_prob": 0.147,
+                "raw_home_goal_rate": 1.51,
+                "raw_away_goal_rate": 0.60,
+            },
+        }], "counts": {"model_runs": 1}},
+    )
+    assert packet["fixture"]["fixture_status"] == "FT"
+    assert packet["fixture"]["final_home_goals"] == 1
+    assert packet["fixture"]["final_away_goals"] == 0
+    assert packet["sport_context"]["outcome_probabilities"]["home"] == 0.595
+    assert packet["projection_ladder"]["fair_market_probability"] is None
+    assert packet["decision_summary"]["classification"] is None
+    assert packet["model_weights_changed"] is False
+    assert packet["canonical_bet_logic_changed"] is False
+

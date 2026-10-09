@@ -929,10 +929,13 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT fixture_id, kickoff, status, league, country,
-                       home_team_id, home_team, away_team_id, away_team
-                FROM soccer_fixtures
-                WHERE fixture_id = %s
+                SELECT f.fixture_id, f.kickoff,
+                       COALESCE(r.final_status, f.status), f.league, f.country,
+                       f.home_team_id, f.home_team, f.away_team_id, f.away_team,
+                       r.home_goals, r.away_goals, r.graded_at
+                FROM soccer_fixtures f
+                LEFT JOIN soccer_results r ON r.fixture_id = f.fixture_id
+                WHERE f.fixture_id = %s
                 LIMIT 1
                 """,
                 (fixture_id,),
@@ -940,7 +943,7 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
             row = cur.fetchone()
     if not row:
         return None
-    fixture_id, kickoff, status, league, country, home_id, home, away_id, away = row
+    fixture_id, kickoff, status, league, country, home_id, home, away_id, away, home_goals, away_goals, graded_at = row
     return {
         "fixture_id": fixture_id,
         "kickoff": kickoff.isoformat() if hasattr(kickoff, "isoformat") else kickoff,
@@ -951,6 +954,9 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
         "home_team": home,
         "away_team_id": away_id,
         "away_team": away,
+        "final_home_goals": home_goals,
+        "final_away_goals": away_goals,
+        "final_observed_at": _iso_value(graded_at),
     }
 
 
@@ -1159,6 +1165,9 @@ def _registry_fixture(row: dict[str, Any]) -> dict[str, Any]:
             else None
         ),
         "fixture_status": row.get("status"),
+        "final_home_goals": row.get("final_home_goals"),
+        "final_away_goals": row.get("final_away_goals"),
+        "final_observed_at": row.get("final_observed_at"),
     }
 
 
@@ -2001,6 +2010,7 @@ def _match_fixture_with_registry_identity(
         for key in (
             "home_team_id", "away_team_id", "home_team_logo", "away_team_logo",
             "home_team", "away_team", "league", "country", "kickoff",
+            "fixture_status", "final_home_goals", "final_away_goals", "final_observed_at",
         ):
             if fixture.get(key) in (None, "") and registered.get(key) not in (None, ""):
                 fixture[key] = registered[key]

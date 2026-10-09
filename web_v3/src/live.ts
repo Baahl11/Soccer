@@ -324,6 +324,15 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
   const review = record(payload.analyst_review);
   const decision = record(payload.decision_summary);
 
+  const fixtureStatus = typeof fixture.fixture_status === "string" ? fixture.fixture_status.toUpperCase() : null;
+  const finalHome = numberValue(fixture.final_home_goals);
+  const finalAway = numberValue(fixture.final_away_goals);
+  const finalResult = fixtureStatus && ["FT","AET","PEN"].includes(fixtureStatus)
+    && finalHome !== null && finalAway !== null && Number.isInteger(finalHome) && Number.isInteger(finalAway)
+    && finalHome >= 0 && finalAway >= 0
+    ? { home: finalHome, away: finalAway, status: fixtureStatus,
+        observedAt: typeof fixture.final_observed_at === "string" ? fixture.final_observed_at : null }
+    : null;
   const homeName = text(fixture.home_team, "Home");
   const awayName = text(fixture.away_team, "Away");
   const ph = percentValue(outcome.home);
@@ -371,6 +380,8 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
     fixtureId: numberValue(fixture.fixture_id),
     league: text(fixture.league ?? fixture.country, "Competition"),
     kickoff: kickoffLabel(fixture.kickoff),
+    fixtureStatus,
+    finalResult,
     home: {
       name: homeName,
       shortName: initials(homeName),

@@ -260,6 +260,55 @@ def _persist_refresh_event(cur, tick: dict[str, Any], event: dict[str, Any]) -> 
         )
 
 
+
+def _persist_final_observations(cur, tick: dict[str, Any]) -> None:
+    """Synchronize officially finished scores without replacing existing grades."""
+    rows = tick.get("observed_final_fixtures")
+    if not isinstance(rows, list):
+        return
+    rows = [f for f in rows[:1200] if isinstance(f, dict)
+            and type(f.get("fixture_id")) is int
+            and f.get("status") in {"FT", "AET", "PEN"}
+            and isinstance(f.get("goals"), dict)
+            and all(type(f["goals"].get(k)) is int and f["goals"][k] >= 0
+                    for k in ("home", "away"))]
+    if not rows:
+        return
+    serialized = json.dumps(rows)
+    observed = """
+    WITH found AS (
+      SELECT (x->>'fixture_id')::bigint AS id,
+             x->>'status' AS status, x->>'status_long' AS status_long,
+             (x->'goals'->>'home')::integer AS h,
+             (x->'goals'->>'away')::integer AS a,
+             COALESCE(x->'score', '{}'::jsonb) AS score
+      FROM jsonb_array_elements(%s::jsonb) x
+    )
+    """
+    cur.execute(observed + """
+      UPDATE soccer_fixtures f SET
+          status = found.status,
+          status_long = COALESCE(found.status_long, f.status_long),
+          last_seen_at = NOW()
+      FROM found WHERE found.id = f.fixture_id
+    """, (serialized,))
+    cur.execute(observed + """
+      INSERT INTO soccer_results (
+        fixture_id, final_status, home_goals, away_goals,
+        final_score, match_stats, graded_at, payload
+      )
+      SELECT f.fixture_id, found.status, found.h, found.a,
+             found.score, '[]'::jsonb, %s::timestamptz,
+             jsonb_build_object(
+               'source', 'API_FOOTBALL_FIXTURES_BATCH',
+               'purpose', 'OFFICIAL_SCORE_ONLY_NOT_BET_GRADE',
+               'observed_at_utc', %s::text
+             )
+      FROM found JOIN soccer_fixtures f ON f.fixture_id = found.id
+      ON CONFLICT (fixture_id) DO NOTHING
+    """, (serialized, tick.get("generated_at_utc"), tick.get("generated_at_utc")))
+
+
 def load_latest_pipeline_payload() -> dict[str, Any] | None:
     """Return the most recent compact persisted pipeline payload."""
     if not persistence_configured():
@@ -316,9 +365,10 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                     # events) again in soccer_pipeline_runs temporarily creates a
                     # very large JSON string on the 512 MB worker. Persist a
                     # compact run envelope here instead.
-                    json.dumps({key: value for key, value in tick.items() if key not in {"events", "shortlist_state"}}),
+                    json.dumps({key: value for key, value in tick.items() if key not in {"events", "shortlist_state", "observed_final_fixtures"}}),
                 ),
             )
+            _persist_final_observations(cur, tick)
             primary_clv_signal_anchor_store_v4.persist_tick_anchor_rows(cur, tick)
             # Multiple research/maturation events for the same fixture and
             # stage can legitimately be produced within one scheduler tick. The

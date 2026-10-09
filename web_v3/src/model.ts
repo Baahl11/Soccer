@@ -68,6 +68,8 @@ export interface MatchCenterViewModel {
   fixtureId?: number | null;
   league: string;
   kickoff: string;
+  fixtureStatus?: string | null;
+  finalResult?: { home: number; away: number; status: string; observedAt: string | null } | null;
   home: TeamViewModel;
   away: TeamViewModel;
   dataQuality: string;

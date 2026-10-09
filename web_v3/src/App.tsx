@@ -277,8 +277,8 @@ function EvidenceBoard({ match, category }: { match: MatchCenterViewModel; categ
 function MarketBoard({ match }: { match: MatchCenterViewModel }) {
   const prices = match.marketRows || [];
   return <section className="evidence-board">
-    <header><b>Market evidence</b><span>{match.edge ? "COMPARISON AVAILABLE" : "NOT ACTIONABLE / NOT VERIFIED"}</span></header>
-    {match.edge ? <EdgePanel match={match}/> : <p>Market edge is not calculable without a fresh verified price, bookmaker/source, captured timestamp and a defensible fair-market probability. Missing prices are never displayed as zero.</p>}
+    <header><b>Market evidence</b><span>{match.finalResult ? "FINISHED / HISTORICAL" : match.edge ? "COMPARISON AVAILABLE" : "NOT ACTIONABLE / NOT VERIFIED"}</span></header>
+    {match.finalResult ? <p>The event is final. Stored prices may be viewed for historical analysis only; no live market edge or actionable quote is inferred.</p> : match.edge ? <EdgePanel match={match}/> : <p>Market edge is not calculable without a fresh verified price, bookmaker/source, captured timestamp and a defensible fair-market probability. Missing prices are never displayed as zero.</p>}
     {prices.length ? <div className="evidence-items">{prices.map((row,i) =>
       <div className="evidence-item" key={row.name+"-"+row.selection+"-"+i}>
         <span>{row.family ? row.family+" · " : ""}{row.name}{row.line !== null ? " · "+row.line : ""}</span>

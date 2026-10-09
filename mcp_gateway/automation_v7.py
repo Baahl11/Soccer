@@ -395,6 +395,18 @@ async def run_tick() -> dict[str, Any]:
         }
 
         return {
+            "observed_final_fixtures": sorted(
+                [
+                    fx for fx in fixtures
+                    if fx.get("status") in {"FT", "AET", "PEN"}
+                    and isinstance(fx.get("goals"), dict)
+                    and type(fx["goals"].get("home")) is int
+                    and type(fx["goals"].get("away")) is int
+                    and fx["goals"]["home"] >= 0 and fx["goals"]["away"] >= 0
+                    and 0 <= (now_utc - base._dt(fx["kickoff"])).total_seconds() <= 108000
+                ],
+                key=lambda fx: str(fx.get("kickoff") or ""), reverse=True,
+            )[:1200],
             "service": "soccer-edge-automation",
             "version": AUTOMATION_VERSION,
             "model_version": MODEL_VERSION,

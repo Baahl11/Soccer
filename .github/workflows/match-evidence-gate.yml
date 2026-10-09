@@ -13,6 +13,8 @@ on:
       - "mcp_gateway/tick_worker.py"
       - "mcp_gateway/automation_v2.py"
       - "mcp_gateway/automation_v3.py"
+      - "mcp_gateway/automation_v7.py"
+      - "mcp_gateway/persistence.py"
       - "mcp_gateway/persistence_v2.py"
       - ".github/workflows/match-evidence-gate.yml"
   workflow_dispatch:
@@ -34,6 +36,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r mcp_gateway/requirements.txt pytest
       - name: Validate contract compilation
-        run: python -m py_compile mcp_gateway/subscriber_contract_v2.py mcp_gateway/research_backfill_v1.py mcp_gateway/feature_snapshot_v4.py mcp_gateway/automation_v2.py mcp_gateway/automation_v3.py mcp_gateway/persistence_v2.py mcp_gateway/tick_worker.py
+        run: python -m py_compile mcp_gateway/subscriber_contract_v2.py mcp_gateway/research_backfill_v1.py mcp_gateway/feature_snapshot_v4.py mcp_gateway/automation_v2.py mcp_gateway/automation_v3.py mcp_gateway/automation_v7.py mcp_gateway/persistence.py mcp_gateway/persistence_v2.py mcp_gateway/tick_worker.py
       - name: Run subscriber and evidence regression tests
         run: PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_subscriber_contract_v2.py tests/test_match_evidence_backfill.py tests/test_v4_007_feature_snapshot.py

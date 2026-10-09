@@ -80,6 +80,7 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
         return []
     calls_left = v2.MAX_API_CALLS_PER_TICK - v2._API_CALLS_THIS_TICK
     if calls_left < 6:
+        tick["research_backfill_status"] = "DEFERRED_TICK_BUDGET"
         return []
     if v2._LAST_DAILY_REMAINING is not None and v2._LAST_DAILY_REMAINING <= 70:
         return []
