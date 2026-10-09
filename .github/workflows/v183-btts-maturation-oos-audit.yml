@@ -3,6 +3,8 @@ name: v183 BTTS Maturation and OOS Audit
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "38 7 * * *"
   push:
     branches: [main]
     paths:
