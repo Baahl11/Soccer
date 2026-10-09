@@ -45,3 +45,17 @@ Maturation is the **evidence governance system**, not a replacement for Sport Fi
 5. Browser-validate `/app` and `/app-v3-react` on desktop and mobile, including restricted/partial/missing reports.
 6. Ensure the frontend build for V3 is refreshed and deployed. The source change alone does **not** update the committed `web_v3/dist`.
 7. Reconcile observed market rows against canonical artifacts and then expand per-market calibration/freshness. Do not assert scientific maturity from UI completeness.
+
+
+## Sparse-evidence integrity hardening (Issue #70 follow-up)
+
+- **Canonical zero vs missing:** numeric zero is shown only if that specific market key explicitly stores zero in the canonical CLV report. A CLV report for another market does not prove zero for an absent key, including at parent family level.
+- **No phantom artifact source:** a configured report filename is not displayed as a verified source when the report could not be loaded; source, parent phase and report status are unavailable.
+- **No inherited child clearance:** Home/Away Team Totals, Team Corners, Yellow/Red Cards and six player props never borrow a parent's OOS sample or aggregate CLV target as proof of child-level maturity.
+- **Explicit independent blockers:** absent report, OOS, priced history and strict True CLV each generate a market-specific blocker, alongside source-report blockers.
+- **Customer truth:** customer V2 and React V3 show these blockers and the production block. Parent-stage columns are labeled as parent stages. Timestamp/fixture-level artifact freshness remains NOT VERIFIED without evidence.
+- **Transport status:** zero retrieved scientific artifacts is UNAVAILABLE, even if the static 21-row market inventory can render.
+
+This is a read-only source/presentation correction. It does not approve research models for production, change decision thresholds, re-price bets, alter historical rows, or deploy the UI.
+
+**Outstanding before release:** validate actual persisted state, test anonymous/FREE/PRO/OWNER against deployed auth, exercise mobile/desktop browsers, resolve four excluded pre-existing FE2 copy assertions independently, add real per-market calibration and timestamp/fixture provenance. React V3's BET Performance view remains disabled and is not represented as completed.
