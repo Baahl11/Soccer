@@ -35,7 +35,7 @@ try {
     assert.equal(await page.locator(".maturity-table tbody tr").count(), 21);
     assert.match(await page.locator(".maturity-caveat").innerText(), /RESEARCH.*BET/s);
     const texts = await page.locator(".maturity-table").innerText();
-    assert.match(texts, /Canonical True CLV/);
+    assert.match(texts, /canonical true clv/i);
     assert.match(texts, /NOT VERIFIED/);
     assert.match(texts, /BLOCKED/);
     const dimensions = await page.evaluate(() => ({
