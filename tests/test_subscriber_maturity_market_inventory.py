@@ -93,3 +93,65 @@ def test_child_market_does_not_inherit_parent_review_ready_or_clv_target():
     assert home["next_gate"] == "MARKET_OOS_NOT_VERIFIED"
     assert home["parent_research_stage"] == "REVIEW READY"
     assert home["production_promotion_allowed"] is False
+
+
+def test_authenticated_maturity_route_blocks_anonymous_and_free(monkeypatch):
+    import asyncio
+    from starlette.requests import Request
+    from mcp_gateway import subscriber_preview_maturity_v232 as route
+
+    def request():
+        return Request({"type": "http", "method": "GET", "headers": []})
+
+    def deny_data_access(*args, **kwargs):
+        raise AssertionError("Research must not be loaded for unauthorized users")
+
+    monkeypatch.setattr(route.subscriber_maturity_v232, "load_maturity_evidence", deny_data_access)
+    monkeypatch.setattr(route.supabase_auth_v4, "bearer_token", lambda header: None)
+    anonymous = asyncio.run(route.preview_maturity(request()))
+    assert anonymous.status_code == 401
+
+    monkeypatch.setattr(route.supabase_auth_v4, "bearer_token", lambda header: "test-token")
+    monkeypatch.setattr(route.subscription_entitlements_v4, "resolve_entitlement",
+                        lambda token: {"ok": True, "authenticated": True, "effective_plan": "FREE", "owner": False})
+    free = asyncio.run(route.preview_maturity(request()))
+    assert free.status_code == 403
+
+
+def test_authenticated_maturity_route_returns_read_only_pro_evidence(monkeypatch):
+    import asyncio
+    import json
+    from starlette.requests import Request
+    from mcp_gateway import subscriber_preview_maturity_v232 as route
+
+    monkeypatch.setattr(route.supabase_auth_v4, "bearer_token", lambda header: "test-token")
+    monkeypatch.setattr(route.subscription_entitlements_v4, "resolve_entitlement",
+                        lambda token: {"ok": True, "authenticated": True,
+                                       "effective_plan": route.subscription_entitlements_v4.PRO_PLAN, "owner": False})
+    monkeypatch.setattr(route.subscriber_maturity_v232, "load_maturity_evidence",
+                        lambda: {"status": "PARTIAL", "market_rows": [], "production_promotion_allowed": False})
+    response = asyncio.run(route.preview_maturity(Request({"type": "http", "method": "GET", "headers": []})))
+    payload = json.loads(response.body)
+    assert response.status_code == 200
+    assert payload["status"] == "PARTIAL"
+    assert payload["production_promotion_allowed"] is False
+
+
+def test_total_source_failure_is_unavailable_not_partial(monkeypatch):
+    class FailedSource:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def get(self, *args, **kwargs):
+            raise ConnectionError("not available")
+
+    monkeypatch.setattr(maturity, "_state_config", lambda: ("sample-state-repo", "sample-state-branch"))
+    monkeypatch.setattr(maturity.httpx, "Client", lambda **kwargs: FailedSource())
+    result = maturity.load_maturity_evidence(force=True)
+    assert result["status"] == "UNAVAILABLE"
+    assert result["errors"]
+    assert len(result["market_rows"]) == 21
+    assert all(row["source"] is None for row in result["market_rows"])
+    assert all(row["true_clv_rows"] is None for row in result["market_rows"])
+    assert all(row["production_promotion_allowed"] is False for row in result["market_rows"])
