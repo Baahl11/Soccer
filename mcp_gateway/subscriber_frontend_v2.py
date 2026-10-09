@@ -628,6 +628,27 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   }}
   async function loadAccount(force=false){{const box=$('billingBody');if(ACCOUNT_LOADED&&!force){{renderBillingState(ACCOUNT_DATA);return}}box.innerHTML=empty('Loading subscription state','Reading verified entitlement and billing lifecycle…');try{{const d=await api('/account');ACCOUNT_LOADED=true;renderBillingState(d)}}catch(e){{box.innerHTML=empty('Account unavailable',e.message)}}}}
 
+
+  let MATURITY_LOADED=false;
+  async function loadMaturity(){{
+    if(MATURITY_LOADED)return;
+    const box=$('maturityBody');
+    if(!premium()){{box.innerHTML=lock('Market Maturity',0);return;}}
+    box.innerHTML=empty('Loading','Reading persisted research evidence');
+    try {{
+      const d=await api('/maturity');
+      const v=x=>x===null||x===undefined||x===''?'NOT VERIFIED':esc(x);
+      const n=(x,t)=>v(x)+(t===null||t===undefined?'':' / '+v(t));
+      const rows=Array.isArray(d.market_rows)?d.market_rows:[];
+      const header='<h2>Market Maturity · '+v(d.status)+'</h2><p>Research evidence only. Model review does not authorize BET, and missing evidence is NOT VERIFIED.</p>';
+      const table='<div class="table-wrap"><table><thead><tr><th>Market</th><th>OOS model</th><th>Mapped</th><th>Priced</th><th>True CLV</th><th>Research stage</th><th>Blocker</th><th>Source</th></tr></thead><tbody>'+
+        rows.map(r=>'<tr><td>'+v(r.label)+'</td><td>'+n(r.model_evidence?.current,r.model_evidence?.target)+'</td><td>'+v(r.mapped_rows)+'</td><td>'+v(r.priced_rows)+'</td><td>'+n(r.true_clv_rows,r.true_clv_target)+'</td><td>'+v(r.parent_research_stage)+'</td><td>'+v(r.next_gate)+'</td><td>'+v(r.source)+'</td></tr>').join('')+'</tbody></table></div>';
+      const errors=d.errors&&Object.keys(d.errors).length?'<p>PARTIAL REPORTS: '+Object.keys(d.errors).map(v).join(', ')+'</p>':'';
+      box.innerHTML=header+(rows.length?table:'No verified market reports available.')+errors;
+      MATURITY_LOADED=true;
+    }}catch(e){{box.innerHTML=empty('Maturity unavailable',e.message);}}
+  }}
+
   function performanceFamilyRows(rows){{if(!rows?.length)return '<tr><td colspan="7">No verified BET-family settlement sample.</td></tr>';return rows.map(r=>'<tr><td>'+esc(r.market_family||'N/V')+'</td><td>'+esc(r.settled??'—')+'</td><td>'+esc((r.win??0)+'-'+(r.loss??0)+'-'+(r.push??0))+'</td><td>'+pct(r.hit_rate_ex_push)+'</td><td>'+units(r.roi_units)+'</td><td>'+esc(r.ungraded??'—')+'</td><td>'+esc(r.status||'N/V')+'</td></tr>').join('')}}
   function validationRows(rows){{if(!rows?.length)return '<tr><td colspan="7">No persisted OOS/validation rows available.</td></tr>';return rows.map(r=>'<tr><td>'+esc(r.label||'N/V')+'</td><td>'+esc(r.sample_n??'—')+'</td><td>'+esc(r.settled??'—')+'</td><td>'+esc(r.roi_units??'—')+'</td><td>'+esc(r.avg_clv_pp??'—')+'</td><td>'+esc(r.brier??'—')+'</td><td>'+esc(r.status||'N/V')+'</td></tr>').join('')}}
   async function loadPerformance(){{if(PERF_LOADED)return;PERF_LOADED=true;const box=$('performanceBody');if(!premium()){{box.innerHTML=lock('Verified Performance',0);return}}box.innerHTML=empty('Loading performance','Reading canonical settlement and validation evidence…');try{{const d=await api('/performance'),bet=d.bet_track_record||{{}},lean=d.research_lean||{{}},settlement=d.settlement||{{}},clv=d.true_clv||{{}},validation=d.validation_evidence||{{}},notes=d.notes||[];
@@ -642,7 +663,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     box.innerHTML=headline+trust+betFamilies+leanResearch+validationBlock+noteHtml
   }}catch(e){{box.innerHTML=empty('Performance unavailable',e.message)}}}}
 
-  function activate(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));window.scrollTo({{top:0,behavior:'smooth'}});if(id==='performance')loadPerformance();if(id==='myedge')loadMyEdge();if(id==='account')loadAccount()}}
+  function activate(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));window.scrollTo({{top:0,behavior:'smooth'}});if(id==='performance')loadPerformance();if(id==='maturity')loadMaturity();if(id==='myedge')loadMyEdge();if(id==='account')loadAccount()}}
   function openSection(id){{if(routeMatchId())history.pushState({{page:id}},'','/app');if(id==='matches')showMatchBrowse(true);$('matchDetail').classList.add('hidden');activate(id)}}
   document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>openSection(b.dataset.page));document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>openSection(b.dataset.go));
   window.addEventListener('popstate',()=>{{const fid=routeMatchId();if(fid)openMatch(fid,{{replace:true}});else{{showMatchBrowse(true);$('matchDetail').classList.add('hidden');activate('matches')}}}});
