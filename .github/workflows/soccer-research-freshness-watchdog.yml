@@ -1,0 +1,144 @@
+name: Soccer Research Freshness Watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "5 */6 * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/soccer-research-freshness-watchdog.yml"
+      - "scripts/soccer_research_watchdog.py"
+      - "tests/test_soccer_research_watchdog.py"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: soccer-research-freshness-watchdog
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout monitor code
+        uses: actions/checkout@v4
+
+      - name: Checkout canonical state without large history blobs
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/health.json
+            soccer_edge_state/analysis/signal_ledger_summary.json
+            soccer_edge_state/analysis/corners_baseline.json
+            soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+            soccer_edge_state/analysis/team_corners_validation.json
+            soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+          sparse-checkout-cone-mode: false
+
+      - name: Run regression tests
+        run: python -m unittest discover -s tests -p test_soccer_research_watchdog.py -v
+
+      - name: Get source lineage and commit timestamps
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESEARCH_COMMIT_UTC=$(gh api -X GET "repos/$GITHUB_REPOSITORY/commits" \
+            -f sha=soccer-edge-state \
+            -f path=soccer_edge_state/analysis/corners_baseline.json \
+            -F per_page=1 \
+            --jq '.[0].commit.committer.date // ""')
+          LATEST_HISTORY_DATE=$(git -C state ls-tree -r --name-only HEAD soccer_edge_state/history \
+            | grep -E 'soccer_edge_state/history/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.jsonl$' \
+            | sed -E 's|.*/([0-9]{4}-[0-9]{2}-[0-9]{2})\.jsonl$|\1|' \
+            | sort | tail -1)
+          echo "RESEARCH_COMMIT_UTC=$RESEARCH_COMMIT_UTC" >> "$GITHUB_ENV"
+          echo "LATEST_HISTORY_DATE=$LATEST_HISTORY_DATE" >> "$GITHUB_ENV"
+          echo "Research report commit: $RESEARCH_COMMIT_UTC"
+          echo "Latest history date: $LATEST_HISTORY_DATE"
+
+      - name: Evaluate independent source, research and market freshness
+        id: guard
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/soccer_research_watchdog.py \
+            --state-dir state \
+            --research-commit-utc "$RESEARCH_COMMIT_UTC" \
+            --history-latest-date "$LATEST_HISTORY_DATE" \
+            --output /tmp/soccer_research_health.json
+
+      - name: Publish readable diagnosis
+        if: always()
+        shell: bash
+        run: |
+          if [ -s /tmp/soccer_research_health.json ]; then
+            python - <<'PY'
+          import json, os
+          r=json.load(open("/tmp/soccer_research_health.json", encoding="utf-8"))
+          lines=[
+              "# Soccer research health: "+r["status"],
+              "Live and ledger freshness are distinct from OOS evidence readiness.",
+              "OOS count below threshold is not itself a failed pipeline.",
+              "", "## Critical",
+              *("- "+x for x in r["critical"]),
+              "", "## Warnings",
+              *("- "+x for x in r["warnings"]),
+              "", "## Measurements",
+              json.dumps(r["measurements"],indent=2,sort_keys=True),
+          ]
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as f:
+              f.write("\n".join(lines)+"\n")
+          PY
+          fi
+
+      - name: Upload deterministic diagnosis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-research-freshness-report
+          path: /tmp/soccer_research_health.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Open deduplicated incident on critical failure
+        if: steps.guard.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TITLE="Soccer research freshness critical"
+          EXISTING=$(gh issue list --state open \
+            --search '"Soccer research freshness critical" in:title' \
+            --json number --jq '.[0].number // ""')
+          if [ -n "$EXISTING" ]; then
+            echo "Open incident already exists: #$EXISTING"
+            exit 0
+          fi
+          {
+            echo "## Automatically detected Soccer research incident"
+            echo
+            echo "The canonical history/ledger may be current while corners/FM4 evidence is stale."
+            echo "Do not alter historical predictions, thresholds or True CLV semantics."
+            echo
+            echo "Workflow: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
+            cat /tmp/soccer_research_health.json || true
+          } > /tmp/soccer_incident.md
+          gh issue create --title "$TITLE" --body-file /tmp/soccer_incident.md
+
+      - name: Fail the job visibly when research is critical
+        if: steps.guard.outcome == 'failure'
+        run: |
+          echo "::error::Soccer research freshness critical: see summary, artifact and linked incident."
+          exit 1

@@ -7,7 +7,7 @@ name: Soccer Edge Formation Intelligence
 
 on:
   schedule:
-    - cron: "15 8 * * *"
+    - cron: "15 8,20 * * *"
   workflow_dispatch:
   push:
     branches:
@@ -34,17 +34,25 @@ on:
 permissions:
   contents: write
 
+# Research jobs are heavyweight and must not race one another.
+concurrency:
+  group: soccer-edge-formation-intelligence
+  cancel-in-progress: false
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - name: Checkout state
         uses: actions/checkout@v4
         with:
           ref: soccer-edge-state
           path: state
-          fetch-depth: 0
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/history
+            soccer_edge_state/analysis
 
       - name: Checkout engine
         uses: actions/checkout@v4
@@ -192,6 +200,26 @@ jobs:
                       'timing_integrity': audit.get('timing_integrity'),
                   }
               print(p, json.dumps(summary, indent=2))
+          PY
+
+      - name: Expose latest verified research source dates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          a="state/soccer_edge_state/analysis/"
+          corners=json.load(open(a+"corners_baseline.json",encoding="utf-8"))
+          fm4=json.load(open(a+"formation_matchup_fm4_style_ablation_v1.json",encoding="utf-8"))
+          timestamps=[row.get("kickoff_local") for row in corners.get("evaluations",[]) if row.get("kickoff_local")]
+          latest=max(timestamps) if timestamps else "NONE"
+          style=((fm4.get("style_profile") or {}).get("source_date_range") or {}).get("latest")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as f:
+              f.write("# Formation research input coverage\n")
+              f.write("Latest corners OOS kickoff: "+str(latest)+"\n")
+              f.write("Latest verified FM4 style source: "+str(style)+"\n")
+              f.write("Evaluations: "+str(corners.get("formation_adjusted_evaluations"))+"/100\n")
+              f.write("Low historical density is not equivalent to pipeline failure.\n")
           PY
 
       - name: Persist research analysis

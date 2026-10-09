@@ -2,6 +2,14 @@ name: Team Corners Validation Refresh
 
 on:
   workflow_dispatch:
+  # Recompute the derivative only after successful formation/corners research.
+  workflow_run:
+    workflows:
+      - "Soccer Edge Formation Intelligence"
+    types: [completed]
+  # Fallback if GitHub drops a scheduled upstream workflow_run notification.
+  schedule:
+    - cron: "15 10,22 * * *"
   push:
     branches: [main]
     paths:
@@ -10,8 +18,13 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: team-corners-validation-refresh
+  cancel-in-progress: false
+
 jobs:
   refresh:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
