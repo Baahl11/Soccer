@@ -660,3 +660,50 @@ def test_registry_only_fixture_with_no_model_does_not_invent_probabilities():
     assert "OUTCOME_PROBABILITIES" not in result["analyst_review"]["available_sections"]
     assert result["selected_candidate"] is None
 
+
+
+
+def test_maturity_contract_keeps_oos_priced_and_true_clv_separate():
+    evidence = {
+        "status": "OK",
+        "comparable_true_clv_rows": 53,
+        "families": [{
+            "label": "Team Totals",
+            "stage": "MODEL REVIEW + CLV COLLECTION",
+            "model_evidence": {"current": 500, "target": 400, "unit": "OOS fixtures", "ready": True},
+            "mapped_rows": 514,
+            "priced_rows": 514,
+            "true_clv_rows": 514,
+            "true_clv_target": 50,
+            "true_clv_fixtures": 73,
+            "market_segments": [
+                {"market_family": "HOME_TT", "true_clv_rows": 248, "mapped_rows": 300, "priced_rows": 300},
+                {"market_family": "AWAY_TT", "true_clv_rows": 266, "mapped_rows": 350, "priced_rows": 350},
+            ],
+            "blockers": ["NO_PRODUCTION_PROMOTION"],
+        }],
+    }
+    response = subscriber_contract_v2.build_maturity_contract(evidence)
+    row = response["families"][0]
+    assert row["model_evidence"]["current"] == 500
+    assert row["true_clv_fixtures"] == 73
+    assert row["market_segments"][0]["true_clv_rows"] == 248
+    assert row["market_segments"][1]["true_clv_rows"] == 266
+    assert response["policy"]["oos_is_not_true_clv"] is True
+    assert response["policy"]["market_segment_counts_are_not_independent_fixtures"] is True
+    assert response["production_promotion_allowed"] is False
+    assert row["production_promotion_allowed"] is False
+
+
+def test_maturity_missing_sources_remain_not_verified_not_zero():
+    response = subscriber_contract_v2.build_maturity_contract({
+        "status": "PARTIAL", "errors": {"Cards": "source not accessible"},
+        "families": [{"label": "Cards", "model_evidence": {}, "market_segments": [
+            {"market_family": "CARDS", "true_clv_rows": None, "priced_rows": None, "mapped_rows": None}
+        ]}],
+    })
+    card = response["families"][0]
+    assert card["model_evidence"]["current"] is None
+    assert card["market_segments"][0]["true_clv_rows"] is None
+    assert card["market_segments"][0]["priced_rows"] is None
+    assert response["source_errors"] == ["Cards"]
