@@ -257,6 +257,115 @@ def _build_family_rows(clv_report: dict[str, Any], reports: dict[str, dict[str, 
     return rows
 
 
+
+# Read-only, market-level presentation inventory. Parent family evidence is never
+# silently represented as an independent side/prop sample or a production BET.
+_MARKET_INVENTORY = (
+    ("1X2", "1X2", "1X2"),
+    ("BTTS", "BTTS", "BTTS"),
+    ("FT Totals", "FT Totals", "FT_TOTALS"),
+    ("Home Team Totals", "Team Totals", "HOME_TT"),
+    ("Away Team Totals", "Team Totals", "AWAY_TT"),
+    ("1H", "1H", "1H"),
+    ("2H", "2H", "2H"),
+    ("FT Corners", "Corners", "FT_CORNERS"),
+    ("Team Corners", "Corners", "TEAM_CORNERS"),
+    ("Yellow Cards", "Cards", "YELLOW_CARDS"),
+    ("Red Cards", "Cards", "RED_CARDS"),
+    ("Player Shots", "Player Props", "SHOTS"),
+    ("Shots on Target", "Player Props", "SOT"),
+    ("Anytime Goalscorer", "Player Props", "GOALSCORER"),
+    ("Player Assists", "Player Props", "ASSISTS"),
+    ("Player Cards", "Player Props", "PLAYER_CARDS"),
+    ("Goalkeeper Saves", "Player Props", "GK_SAVES"),
+    ("Double Chance", None, "DOUBLE_CHANCE"),
+    ("Draw No Bet", None, "DNB"),
+    ("Asian Handicap", None, "ASIAN_HANDICAP"),
+    ("Correct Score", None, "CORRECT_SCORE"),
+)
+
+
+def _build_market_inventory(
+    family_rows: list[dict[str, Any]],
+    clv_report: dict[str, Any],
+    reports: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    parents = {str(row.get("label")): row for row in family_rows}
+    clv = _dict(clv_report.get("family_counts"))
+    mapped = _dict(clv_report.get("mapped_family_counts"))
+    priced = _dict(clv_report.get("priced_entry_family_counts"))
+    has_market_report = bool(clv_report)
+    inventory = []
+
+    for label, parent_name, key in _MARKET_INVENTORY:
+        parent = parents.get(parent_name or "", {})
+        report = _dict(reports.get(parent_name or ""))
+        model_evidence = {
+            "current": None,
+            "target": None,
+            "unit": "market-specific OOS sample not independently verified",
+            "ready": False,
+        }
+        if key in {"1X2", "BTTS", "FT_TOTALS", "1H", "2H", "FT_CORNERS"}:
+            model_evidence = dict(_dict(parent.get("model_evidence")))
+        elif key in {"YELLOW_CARDS", "RED_CARDS"}:
+            node = _dict(report.get("yellow_cards" if key == "YELLOW_CARDS" else "red_cards"))
+            model_evidence = {
+                "current": _integer(node.get("oos_n")),
+                "target": _integer(node.get("minimum_oos")),
+                "unit": "card OOS observations",
+                "ready": False,
+            }
+            n, target = model_evidence["current"], model_evidence["target"]
+            model_evidence["ready"] = bool(n is not None and target and n >= target)
+        elif key == "TEAM_CORNERS":
+            node = _dict(report.get("team_corners"))
+            model_evidence = {
+                "current": _integer(node.get("formation_adjusted_evaluations")),
+                "target": _integer(node.get("minimum_formation_adjusted")),
+                "unit": "team-side formation-adjusted observations",
+                "ready": False,
+            }
+            n, target = model_evidence["current"], model_evidence["target"]
+            model_evidence["ready"] = bool(n is not None and target and n >= target)
+        elif parent_name == "Player Props":
+            families = _dict(report.get("prop_families"))
+            node = _dict(families.get(key))
+            oos = _dict(node.get("oos_evidence"))
+            model_evidence = {
+                "current": _integer(oos.get("player_game_rows")),
+                "target": _integer(oos.get("minimum_oos_rows")),
+                "unit": "player-game OOS rows",
+                "ready": False,
+            }
+            n, target = model_evidence["current"], model_evidence["target"]
+            model_evidence["ready"] = bool(n is not None and target and n >= target)
+
+        # Unknown fields remain null. A canonical 0 is valid only after an
+        # actual canonical CLV report has been loaded.
+        clv_n = _integer(clv.get(key))
+        if clv_n is None and has_market_report and key in _COLLECTION_KEYS.get(parent_name or "", ()):
+            clv_n = 0
+        inventory.append({
+            "key": key,
+            "label": label,
+            "parent_family": parent_name,
+            "source": parent.get("source"),
+            "report_status": parent.get("report_status"),
+            "parent_research_stage": parent.get("stage"),
+            "model_evidence": model_evidence,
+            "mapped_rows": _integer(mapped.get(key)),
+            "priced_rows": _integer(priced.get(key)),
+            "true_clv_rows": clv_n,
+            "true_clv_target": _integer(parent.get("true_clv_target")),
+            "next_gate": parent.get("next_gate"),
+            "blockers": list(parent.get("blockers") or []),
+            "market_specific_evidence_verified": bool(model_evidence.get("current") is not None),
+            "production_promotion_allowed": False,
+            "classification": "RESEARCH_ONLY",
+        })
+    return inventory
+
 def load_maturity_evidence(*, force: bool = False) -> dict[str, Any]:
     global _CACHE, _CACHE_AT
     now = time.monotonic()
@@ -310,6 +419,7 @@ def load_maturity_evidence(*, force: bool = False) -> dict[str, Any]:
         result = {
             "status": "OK" if rows and not errors else ("PARTIAL" if rows else "UNAVAILABLE"),
             "families": rows,
+            "market_rows": _build_market_inventory(rows, clv_report, reports),
             "source_model_version": clv_report.get("model_version"),
             "comparable_true_clv_rows": _integer(clv_report.get("comparable_true_clv_rows")),
             "minimum_true_close_rows": _integer(clv_report.get("minimum_true_close_rows")),
