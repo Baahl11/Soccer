@@ -1066,7 +1066,7 @@ def _load_registry_fixture_evidence(fixture_value: Any) -> dict[str, Any]:
                 FROM soccer_feature_snapshots
                 WHERE fixture_id = %s
                 ORDER BY captured_at DESC, snapshot_id DESC
-                LIMIT 8
+                LIMIT 64
                 """,
                 (fixture_id,),
             )
@@ -1921,63 +1921,69 @@ def _relational_raw_sport_context(relational_evidence: dict[str, Any]) -> dict[s
     }
 
 def _match_evidence_sections(relational_evidence: dict[str, Any]) -> list[dict[str, Any]]:
-    """Expose persisted, independently sourced sport features without inventing values.
+    """Union feature values across snapshots, newest valid observation per key.
 
-    Only snapshot rows from this fixture are used. No provider calls, implied
-    confirmations, market promotions or derived statistics are introduced.
+    Refresh ticks can contain fewer fields than an older one. A missing or
+    unsupported newer feature must never erase a real earlier observation.
+    Preserve each winning field's OWN timestamp, source, sample and model.
+    This is read-only historical context, not evidence of current BET readiness.
     """
     evidence = relational_evidence if isinstance(relational_evidence, dict) else {}
     snapshots = evidence.get("feature_snapshots")
     if not isinstance(snapshots, list) or not snapshots:
         return []
-    latest = next((s for s in snapshots if isinstance(s, dict)), {})
-    features = _dict(_dict(latest.get("payload")).get("features"))
+    valid = [s for s in snapshots if isinstance(s, dict)]
+    valid.sort(key=lambda s: str(s.get("captured_at") or ""), reverse=True)
+    chosen: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
+    for snapshot in valid:
+        features = _dict(_dict(snapshot.get("payload")).get("features"))
+        for key, raw in features.items():
+            if not isinstance(key, str) or key in chosen or not isinstance(raw, dict):
+                continue
+            value = raw.get("value")
+            if value is None or isinstance(value, (dict, list)):
+                continue
+            if isinstance(value, str) and not value.strip():
+                continue
+            if isinstance(value, float) and not math.isfinite(value):
+                continue
+            source = str(raw.get("source") or "").strip()
+            sample_n = _number(raw.get("sample_n"))
+            if source == "API_FOOTBALL_TEAM_STATS" and sample_n is not None and sample_n <= 0:
+                continue
+            chosen[key] = (raw, snapshot)
+
     groups: dict[str, list[dict[str, Any]]] = {}
-    for key, raw in features.items():
-        if not isinstance(key, str) or not isinstance(raw, dict):
-            continue
-        value = raw.get("value")
-        if value is None or isinstance(value, (dict, list)):
-            continue
-        if isinstance(value, str) and not value.strip():
-            continue
-        if isinstance(value, float) and not math.isfinite(value):
-            continue
+    for key, (raw, snapshot) in chosen.items():
+        value = raw["value"]
         source = str(raw.get("source") or "").strip()
         sample_n = _number(raw.get("sample_n"))
-        # A provider's zero-game sample is not verified sporting performance.
-        if source == "API_FOOTBALL_TEAM_STATS" and sample_n is not None and sample_n <= 0:
-            continue
         prefix = key.split(".", 1)[0]
         category = {
             "team_performance": "TEAMS",
-            "xg": "GOALS",
-            "goals": "GOALS",
-            "corners": "CORNERS",
-            "cards": "CARDS",
-            "players": "PLAYERS",
-            "player": "PLAYERS",
-            "availability": "AVAILABILITY",
-            "formation": "AVAILABILITY",
-            "context": "CONTEXT",
-            "territory": "CONTEXT",
+            "xg": "GOALS", "goals": "GOALS",
+            "corners": "CORNERS", "cards": "CARDS",
+            "players": "PLAYERS", "player": "PLAYERS",
+            "availability": "AVAILABILITY", "formation": "AVAILABILITY",
+            "context": "CONTEXT", "territory": "CONTEXT",
         }.get(prefix, "OTHER")
-        # Preserved source and field keys allow an exact audit of every shown value.
         groups.setdefault(category, []).append({
             "key": key,
             "label": key.split(".", 1)[-1].replace("_", " ").strip().title(),
             "value": value,
             "source": source or None,
             "sample_n": int(sample_n) if sample_n is not None and sample_n >= 0 else None,
-            "captured_at": raw.get("captured_at") or raw.get("freshness") or latest.get("captured_at"),
-            "model_version": raw.get("model_version") or latest.get("model_version"),
+            "captured_at": raw.get("captured_at") or snapshot.get("captured_at"),
+            "freshness": raw.get("freshness"),
+            "model_version": raw.get("model_version") or snapshot.get("model_version"),
             "status": "PERSISTED" if source else "SOURCE_NOT_VERIFIED",
         })
     order = ("TEAMS", "GOALS", "CORNERS", "CARDS", "PLAYERS", "AVAILABILITY", "CONTEXT", "OTHER")
     return [
-        {"category": group, "items": groups[group], "snapshot_at": latest.get("captured_at"),
-         "data_tier": latest.get("data_tier")}
-        for group in order if groups.get(group)
+        {"category": category, "items": groups[category],
+         "snapshot_at": valid[0].get("captured_at"),
+         "data_tier": valid[0].get("data_tier")}
+        for category in order if groups.get(category)
     ]
 
 

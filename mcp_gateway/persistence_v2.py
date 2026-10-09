@@ -19,7 +19,7 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                 decision = event.get("market_decision") or {}
                 best = decision.get("best_decision") or {}
 
-                if fixture_id and event.get("event_type") == "SOCCER_REFRESH" and event.get("stage") != "POSTGAME":
+                if fixture_id and event.get("event_type") in {"SOCCER_REFRESH", "SPORT_FEATURE_RESEARCH_BACKFILL"} and event.get("stage") != "POSTGAME":
                     snapshot = feature_snapshot_v4.build(tick, event)
                     validation_errors = feature_snapshot_v4.validate(snapshot)
                     if not validation_errors:

@@ -192,7 +192,7 @@ function MatrixPanel({ match }: { match: MatchCenterViewModel }) {
   const likely = match.scoreMatrix.mostLikely;
   return (
     <article className="panel matrix-panel">
-      <header><h3>Score Matrix (FT)</h3><span>VERIFIED CELLS ONLY</span></header>
+      <header><h3>Score Matrix (FT)</h3><span>PERSISTED MODEL CELLS ONLY</span></header>
       <div className="matrix-layout">
         <div className="matrix-main">
           <Heatmap matrix={match.scoreMatrix} />
@@ -210,7 +210,20 @@ function MatrixPanel({ match }: { match: MatchCenterViewModel }) {
 
 function GoalsPanel({ match }: { match: MatchCenterViewModel }) {
   const over = match.over25;
-  if (!over) return <MissingPanel title="Over / Under 2.5 Goals" section={match.sections.over25} />;
+  if (!over) {
+    const home = match.xg?.home, away = match.xg?.away;
+    if (home !== null && home !== undefined && away !== null && away !== undefined &&
+        home >= 0 && away >= 0 && match.modelProvenance?.goalRateSemantics === "POISSON_LAMBDA_NOT_XG") {
+      const rate = home + away;
+      const sportOver = 100 * (1 - Math.exp(-rate) * (1 + rate + rate * rate / 2));
+      return <article className="panel goals-panel">
+        <header><h3>Over / Under 2.5 Goals</h3><span>SPORT MODEL ONLY</span></header>
+        <div className="sport-only-total"><small>Poisson · Sport projection Over 2.5</small><b>{sportOver.toFixed(1)}%</b></div>
+        <p className="verified-copy">Derived from persisted λ {rate.toFixed(2)}. No verified market price, probability edge or EV.</p>
+      </article>;
+    }
+    return <MissingPanel title="Over / Under 2.5 Goals" section={match.sections.over25} />;
+  }
   return (
     <article className="panel goals-panel">
       <header><h3>Over / Under 2.5 Goals</h3><span>{over.modelKind} VS MARKET FAIR</span></header>
@@ -245,7 +258,7 @@ function EvidenceBoard({ match, category }: { match: MatchCenterViewModel; categ
     <section className="evidence-board">
       <header><b>{category ? category + " evidence" : "Available sport evidence"}</b><span>PER-FIXTURE COVERAGE · {groups.reduce((sum,g) => sum + g.items.length,0)} FIELDS</span></header>
       {groups.map(group => (
-        <details className="evidence-group" key={group.category} open={category !== undefined}>
+        <details className="evidence-group" key={group.category} open={category !== undefined || group.category === "TEAMS"}>
           <summary>{group.category} <small>{group.items.length} available · {group.dataTier ? "Tier " + group.dataTier : "Persisted snapshot"}</small></summary>
           <div className="evidence-items">{group.items.map(item => (
             <div className="evidence-item" key={item.key}>
@@ -514,7 +527,8 @@ function AppBody({
               <div><span>MARKET</span><b>{match.market}</b></div>
             </div>
             {activeTab === "Overview" && <>
-              <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/><EdgePanel match={match}/></div>
+              <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/>{match.edge && <EdgePanel match={match}/>}</div>
+              {!match.edge && <div className="market-no-edge"><b>Market Edge · NOT VERIFIED</b><span>No fresh verified quote. Sporting projections remain visible without suggesting a wager.</span></div>
               <div className="deck middle"><SportProfile match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div>
               <EvidenceBoard match={match}/>
             </>}

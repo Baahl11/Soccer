@@ -68,6 +68,8 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
     away_recent = sporting.get("away_recent") if isinstance(sporting.get("away_recent"), list) else []
     home_played_total = _sample_int(_nested(home_stats, "fixtures", "played", "total"))
     away_played_total = _sample_int(_nested(away_stats, "fixtures", "played", "total"))
+    home_played_home = _sample_int(_nested(home_stats, "fixtures", "played", "home"))
+    away_played_away = _sample_int(_nested(away_stats, "fixtures", "played", "away"))
 
     home_id = fx.get("home_team_id")
     away_id = fx.get("away_team_id")
@@ -235,6 +237,76 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
             captured_at=captured_at,
             sample_n=away_played_total,
             freshness="CURRENT_OR_12H_CACHE",
+        ),
+        "team_performance.home_wins_split": _feature(
+            _nested(home_stats, "fixtures", "wins", "home"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=home_played_home,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.home_draws_split": _feature(
+            _nested(home_stats, "fixtures", "draws", "home"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=home_played_home,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.home_losses_split": _feature(
+            _nested(home_stats, "fixtures", "loses", "home"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=home_played_home,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.away_wins_split": _feature(
+            _nested(away_stats, "fixtures", "wins", "away"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=away_played_away,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.away_draws_split": _feature(
+            _nested(away_stats, "fixtures", "draws", "away"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=away_played_away,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.away_losses_split": _feature(
+            _nested(away_stats, "fixtures", "loses", "away"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=away_played_away,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.home_goals_for_split": _feature(
+            _nested(home_stats, "goals", "for", "total", "home"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=home_played_home,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.home_goals_against_split": _feature(
+            _nested(home_stats, "goals", "against", "total", "home"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=home_played_home,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.away_goals_for_split": _feature(
+            _nested(away_stats, "goals", "for", "total", "away"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=away_played_away,
+            freshness="CURRENT_OR_6H_CACHE",
+        ),
+        "team_performance.away_goals_against_split": _feature(
+            _nested(away_stats, "goals", "against", "total", "away"),
+            source="API_FOOTBALL_TEAM_STATS",
+            captured_at=captured_at,
+            sample_n=away_played_away,
+            freshness="CURRENT_OR_6H_CACHE",
         ),
         "team_performance.home_recent_matches": _feature(
             len(home_recent) if home_recent else None,

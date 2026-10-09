@@ -16,6 +16,9 @@ INJURY_STAGES = {"T-90", "T-60", "T-40", "T-20"}
 MAX_API_CALLS_PER_TICK = int(os.getenv("SOCCER_EDGE_MAX_API_CALLS_PER_TICK", "35"))
 _API_CALLS_THIS_TICK = 0
 _LAST_DAILY_REMAINING: int | None = None
+# Display-only sporting research is capped independently from the BET pipeline.
+MAX_RESEARCH_FIXTURES_PER_TICK = max(0, min(3, int(os.getenv("SOCCER_EDGE_MAX_RESEARCH_FIXTURES_PER_TICK", "2"))))
+_RESEARCH_FIXTURES_THIS_TICK = 0
 _ORIGINAL_API_GET = base._api_get
 
 
@@ -65,11 +68,29 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
         "notes": [],
     }
 
-    # Automated BET requires Data Tier A/B. Do not spend scarce API quota doing
-    # team/lineup/odds deep dives for C/D fixtures that cannot pass that gate.
+    # Data Tier C/D never becomes BET eligible, but verified TEAM STATISTICS
+    # are useful to subscribers. Collect a bounded research-only snapshot
+    # without creating raw projections, market requests or stake decisions.
     if coverage.get("data_tier") not in {"A", "B"}:
+        global _RESEARCH_FIXTURES_THIS_TICK
         event["classification"] = "PASS" if coverage.get("data_tier") == "D" else "WATCH"
-        event["notes"].append("Automated deep dive skipped: Data Tier A/B required for automated BET eligibility.")
+        event["notes"].append("BET deep dive blocked by Data Tier; display-only sport evidence may still be gathered.")
+        if (
+            stage in {"EARLY_RESEARCH", "T-90"}
+            and _RESEARCH_FIXTURES_THIS_TICK < MAX_RESEARCH_FIXTURES_PER_TICK
+            and _API_CALLS_THIS_TICK <= MAX_API_CALLS_PER_TICK - 6
+            and (_LAST_DAILY_REMAINING is None or _LAST_DAILY_REMAINING > 60)
+        ):
+            _RESEARCH_FIXTURES_THIS_TICK += 1
+            home_stats = await base._team_stats(fx["home_team_id"], fx["league_id"], fx["season"], now)
+            away_stats = await base._team_stats(fx["away_team_id"], fx["league_id"], fx["season"], now)
+            if home_stats or away_stats:
+                event["sporting"] = {
+                    "sport_data": "RESEARCH_ONLY",
+                    "home_stats": home_stats,
+                    "away_stats": away_stats,
+                    "collection_scope": "DISPLAY_ONLY_NO_BET_NO_MARKET",
+                }
         return event
 
     # SPORT FIRST. Sporting inputs and raw projection are created before market retrieval.
@@ -177,9 +198,10 @@ async def _event_for_fixture(fx: dict[str, Any], stage: str, now: datetime) -> d
 
 
 async def run_tick() -> dict[str, Any]:
-    global _API_CALLS_THIS_TICK, _LAST_DAILY_REMAINING
+    global _API_CALLS_THIS_TICK, _LAST_DAILY_REMAINING, _RESEARCH_FIXTURES_THIS_TICK
     _API_CALLS_THIS_TICK = 0
     _LAST_DAILY_REMAINING = None
+    _RESEARCH_FIXTURES_THIS_TICK = 0
 
     now_utc = datetime.now(dt_timezone.utc)
     local_now = now_utc.astimezone(base.TIMEZONE)

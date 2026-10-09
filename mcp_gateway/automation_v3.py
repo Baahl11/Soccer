@@ -165,6 +165,7 @@ async def _daily_discovery_event(
 async def run_tick() -> dict[str, Any]:
     v2._API_CALLS_THIS_TICK = 0
     v2._LAST_DAILY_REMAINING = None
+    v2._RESEARCH_FIXTURES_THIS_TICK = 0
 
     now_utc = datetime.now(dt_timezone.utc)
     local_now = now_utc.astimezone(base.TIMEZONE)

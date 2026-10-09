@@ -7,6 +7,7 @@ import time
 import httpx
 
 from mcp_gateway import automation_v6, automation_v7, automation_v129, product_views_v4
+from mcp_gateway import research_backfill_v1
 from mcp_gateway.persistence_v2 import persist_tick
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -272,6 +273,22 @@ async def _main() -> int:
         payload["shortlist_seed_imported"] = imported
         payload["fair_scheduler_seed_imported"] = fairness_imported
         payload["tick_stage_timings_ms"] = timings
+
+        # Opportunistic bounded backfill of recent fixtures that have no
+        # persisted team-performance evidence. Appended after ALL model/market
+        # decisions so the archive can never alter canonical picks or weights.
+        stage_started = time.monotonic()
+        try:
+            research_events = await research_backfill_v1.collect(payload)
+            if research_events:
+                payload.setdefault("events", []).extend(research_events)
+            payload["research_backfill_count"] = len(research_events)
+        except Exception as research_exc:
+            payload["research_backfill_count"] = 0
+            payload["research_backfill_error"] = str(research_exc)[:250]
+        timings["research_backfill_ms"] = _elapsed_ms(stage_started)
+        _emit_timing("research_backfill_done", count=payload.get("research_backfill_count", 0),
+                     error=payload.get("research_backfill_error"))
 
         stage_started = time.monotonic()
         _normalize_refresh_event_model_lineage(payload)
