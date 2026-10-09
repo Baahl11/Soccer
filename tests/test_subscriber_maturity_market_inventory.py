@@ -155,3 +155,28 @@ def test_total_source_failure_is_unavailable_not_partial(monkeypatch):
     assert all(row["source"] is None for row in result["market_rows"])
     assert all(row["true_clv_rows"] is None for row in result["market_rows"])
     assert all(row["production_promotion_allowed"] is False for row in result["market_rows"])
+
+
+def test_only_relevant_parent_blockers_are_attached_to_each_submarket():
+    family = [{
+        "label": "Player Props",
+        "blockers": [
+            "SHOTS_OOS_VALIDATION_INCOMPLETE",
+            "SOT_OOS_VALIDATION_INCOMPLETE",
+            "ASSISTS_TRUE_CLV_0_LT_50",
+            "PLAYER_PROP_TRUE_CLV_0_LT_50",
+        ],
+    }]
+    report = {"Player Props": {"prop_families": {
+        "shots": {"oos_evidence": {"player_game_rows": 0, "oos_validation_complete": False}},
+        "sot": {"oos_evidence": {"player_game_rows": 0, "oos_validation_complete": False}},
+    }}}
+    rows = maturity._build_market_inventory(family, {}, report)
+    shots = next(row for row in rows if row["key"] == "SHOTS")
+    sot = next(row for row in rows if row["key"] == "SOT")
+    assert "SHOTS_OOS_VALIDATION_INCOMPLETE" in shots["blockers"]
+    assert "SOT_OOS_VALIDATION_INCOMPLETE" not in shots["blockers"]
+    assert "ASSISTS_TRUE_CLV_0_LT_50" not in shots["blockers"]
+    assert "PLAYER_PROP_TRUE_CLV_0_LT_50" in shots["blockers"]
+    assert "SOT_OOS_VALIDATION_INCOMPLETE" in sot["blockers"]
+    assert "SHOTS_OOS_VALIDATION_INCOMPLETE" not in sot["blockers"]
