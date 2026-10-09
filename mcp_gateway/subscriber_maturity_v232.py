@@ -168,7 +168,7 @@ def _model_evidence(label: str, report: dict[str, Any]) -> dict[str, Any]:
             if value is not None:
                 oos_rows.append(value)
         return {
-            "current": max(oos_rows) if oos_rows else 0,
+            "current": max(oos_rows) if oos_rows else None,
             "target": None,
             "unit": "prop OOS rows",
             "ready": any(value > 0 for value in oos_rows),
@@ -230,8 +230,6 @@ def _build_family_rows(clv_report: dict[str, Any], reports: dict[str, dict[str, 
         mapped = _sum_keys(mapped_counts, keys)
         priced = _sum_keys(priced_counts, keys)
         true_clv = _sum_keys(clv_counts, keys)
-        if true_clv is None:
-            true_clv = 0 if clv_report else None
         true_clv_node = _dict(report.get("true_clv"))
         target = _integer(true_clv_node.get("minimum_rows"))
         fixtures = _integer(true_clv_node.get("unique_fixtures"))
