@@ -245,33 +245,150 @@ function GoalsPanel({ match }: { match: MatchCenterViewModel }) {
 const MATCH_TABS = ["Overview","Goals","Corners","Cards","Players","Market","Model"] as const;
 type MatchTab = typeof MATCH_TABS[number];
 
+type SportEvidenceGroup = NonNullable<MatchCenterViewModel["evidenceSections"]>[number];
+type SportEvidenceItem = SportEvidenceGroup["items"][number];
+
+function sportValue(item: SportEvidenceItem | undefined): string {
+  if (!item) return "—";
+  if (typeof item.value === "boolean") return item.value ? "Yes" : "No";
+  if (typeof item.value === "number") return Number.isInteger(item.value) ? String(item.value) : String(Number(item.value.toFixed(2)));
+  return String(item.value);
+}
+
+function evidenceSourceName(raw: string | null): string {
+  if (!raw) return "Source unverified";
+  if (raw.startsWith("API_FOOTBALL")) return "API-Football";
+  if (raw.startsWith("SOCCER_EDGE")) return "Soccer Edge model";
+  return raw.replaceAll("_", " ").toLowerCase();
+}
+
+function EvidenceTechnicalDetails({ group }: { group: SportEvidenceGroup }) {
+  return (
+    <details className="evidence-technical">
+      <summary><span>All {group.items.length} fields and sources</span><span aria-hidden="true">+</span></summary>
+      <div className="evidence-technical-table">
+        {group.items.map(item => (
+          <div className="evidence-technical-row" key={item.key}>
+            <div className="evidence-technical-value">
+              <span>{item.label}</span><strong>{sportValue(item)}</strong>
+            </div>
+            <div className="evidence-technical-meta">
+              {evidenceSourceName(item.source)}
+              {item.sampleN !== null ? " · n=" + item.sampleN : ""}
+              {item.capturedAt ? " · " + item.capturedAt.slice(0,16).replace("T"," ") + " UTC" : ""}
+            </div>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function EvidenceForm({ form }: { form?: SportEvidenceItem }) {
+  if (!form || typeof form.value !== "string") return <span className="evidence-form-none">Form not available</span>;
+  const results = [...form.value.toUpperCase()].filter(letter => ["W","D","L"].includes(letter)).slice(-8);
+  if (!results.length) return <span className="evidence-form-none">Form not available</span>;
+  return <div className="evidence-form" aria-label={"Last eight form entries in provider order: " + results.join(" ")}>
+    {results.map((result,i) => <span className={"evidence-form-chip " + result.toLowerCase()} key={i}>{result}</span>)}
+  </div>;
+}
+
+function TeamEvidence({ group, match }: { group: SportEvidenceGroup; match: MatchCenterViewModel }) {
+  const item = (side: "home" | "away", name: string) =>
+    group.items.find(entry => entry.key === "team_performance." + side + "_" + name);
+  const teamCard = (side: "home" | "away") => {
+    const home = side === "home";
+    const name = home ? match.home.name : match.away.name;
+    const team = home ? match.home : match.away;
+    const won = item(side, "wins_total");
+    const drawn = item(side, "draws_total");
+    const lost = item(side, "losses_total");
+    const matches = won?.sampleN ?? drawn?.sampleN ?? lost?.sampleN ?? null;
+    const w = typeof won?.value === "number" ? won.value : null;
+    const d = typeof drawn?.value === "number" ? drawn.value : null;
+    const l = typeof lost?.value === "number" ? lost.value : null;
+    const total = w !== null && d !== null && l !== null ? w+d+l : 0;
+    return <article className={"evidence-team-card " + side} key={side}>
+      <div className="evidence-team-heading">
+        {team.logoUrl ? <img src={team.logoUrl} alt="" /> : <span className="evidence-team-placeholder">{team.shortName}</span>}
+        <div><small>{home ? "HOME TEAM" : "AWAY TEAM"}</small><h4>{name}</h4></div>
+      </div>
+      <div className="evidence-games"><strong>{matches ?? "—"}</strong><span>season matches</span></div>
+      <div className="evidence-wdl">
+        <div><strong>{sportValue(won)}</strong><small>WINS</small></div>
+        <div><strong>{sportValue(drawn)}</strong><small>DRAWS</small></div>
+        <div><strong>{sportValue(lost)}</strong><small>LOSSES</small></div>
+      </div>
+      {total > 0 && <div className="evidence-record-bar" aria-label={w + " wins, " + d + " draws, " + l + " losses"}>
+        <span className="wins" style={{width:(100*(w??0)/total)+"%"}} />
+        <span className="draws" style={{width:(100*(d??0)/total)+"%"}} />
+        <span className="losses" style={{width:(100*(l??0)/total)+"%"}} />
+      </div>}
+      <div className="evidence-team-metrics">
+        {[
+          ["Goals for / game", "goals_for_avg"],
+          ["Goals against / game", "goals_against_avg"],
+          ["Clean sheets", "clean_sheets"],
+          ["Failed to score", "failed_to_score"],
+          [home ? "Home matches" : "Away matches", "played_split"],
+        ].filter(([,metric])=>!!item(side,metric)).map(([label,metric])=>
+          <div key={metric}><span>{label}</span><b>{sportValue(item(side,metric))}</b></div>
+        )}
+      </div>
+      <div className="evidence-form-heading">FORM <small>Last 8 entries</small></div>
+      <EvidenceForm form={item(side,"form")} />
+    </article>;
+  };
+  const api = group.items.find(x=>x.source?.startsWith("API_FOOTBALL"));
+  const model = group.items.some(x=>x.source?.startsWith("SOCCER_EDGE"));
+  return <>
+    <div className="evidence-team-comparison">{teamCard("home")}{teamCard("away")}</div>
+    <div className="evidence-lineage">
+      <span><i className="evidence-source-dot" /> {api ? "API-Football season statistics" : "Persisted team statistics"}</span>
+      {api?.capturedAt && <span>Captured {api.capturedAt.slice(0,10)}</span>}
+      {model && <span>Includes separate Soccer Edge model inputs</span>}
+    </div>
+    <EvidenceTechnicalDetails group={group} />
+  </>;
+}
+
+function EvidenceGroupContent({ group, match }: { group: SportEvidenceGroup; match: MatchCenterViewModel }) {
+  if (group.category === "TEAMS") return <TeamEvidence group={group} match={match} />;
+  return <>
+    <div className="evidence-smart-grid">
+      {group.items.slice(0,6).map(item => (
+        <div className="evidence-smart-metric" key={item.key}>
+          <span>{item.label}</span>
+          <strong>{sportValue(item).length > 32 ? sportValue(item).slice(-8) : sportValue(item)}</strong>
+          <small>{evidenceSourceName(item.source)}{item.sampleN !== null ? " · n="+item.sampleN : ""}</small>
+        </div>
+      ))}
+    </div>
+    <EvidenceTechnicalDetails group={group}/>
+  </>;
+}
+
 function EvidenceBoard({ match, category }: { match: MatchCenterViewModel; category?: string }) {
   const all = match.evidenceSections || [];
-  const groups = category ? all.filter((g) => g.category === category) : all;
+  const groups = category ? all.filter(group=>group.category===category) : all;
   if (!groups.length) return (
     <article className="evidence-board">
-      <header><b>{category ? category + " evidence" : "Available sport evidence"}</b><span>NOT VERIFIED IN PERSISTED SNAPSHOT</span></header>
-      <p>No persisted feature values are available for this section of this fixture. This does not mean the sporting event has no statistics.</p>
+      <header className="evidence-board-heading"><div><span className="evidence-eyebrow">SPORT INTELLIGENCE</span><h3>{category || "Match evidence"}</h3></div><span className="evidence-count">NOT VERIFIED</span></header>
+      <p className="evidence-absence">No persisted features for this section of this fixture. Missing data is not treated as zero.</p>
     </article>
   );
-  return (
-    <section className="evidence-board">
-      <header><b>{category ? category + " evidence" : "Available sport evidence"}</b><span>PER-FIXTURE COVERAGE · {groups.reduce((sum,g) => sum + g.items.length,0)} FIELDS</span></header>
-      {groups.map(group => (
-        <details className="evidence-group" key={group.category} open={category !== undefined || group.category === "TEAMS"}>
-          <summary>{group.category} <small>{group.items.length} available · {group.dataTier ? "Tier " + group.dataTier : "Persisted snapshot"}</small></summary>
-          <div className="evidence-items">{group.items.map(item => (
-            <div className="evidence-item" key={item.key}>
-              <span>{item.label}</span>
-              <b>{typeof item.value === "boolean" ? (item.value ? "YES" : "NO") : String(item.value)}</b>
-              <small>{item.source || "SOURCE NOT VERIFIED"}{item.sampleN !== null ? " · n=" + item.sampleN : ""}{item.capturedAt ? " · " + item.capturedAt : ""}</small>
-            </div>
-          ))}</div>
-        </details>
-      ))}
-      <p>Historical or persisted feature values are for sporting context. Their presence does not prove current player availability or an actionable price.</p>
-    </section>
-  );
+  const count = groups.reduce((sum,g)=>sum+g.items.length,0);
+  return <section className="evidence-board">
+    <header className="evidence-board-heading">
+      <div><span className="evidence-eyebrow">SPORT INTELLIGENCE</span><h3>{category ? category[0]+category.slice(1).toLowerCase() : "Match evidence"}</h3><p>What the data actually supports</p></div>
+      <span className="evidence-count">{count} fields saved</span>
+    </header>
+    {groups.map(group => <details className="evidence-group" key={group.category} open={category !== undefined || group.category === "TEAMS"}>
+      <summary><span className="evidence-group-name">{group.category === "TEAMS" ? "Team comparison" : group.category[0]+group.category.slice(1).toLowerCase()}</span><small>{group.items.length} fields {group.dataTier ? "· "+group.dataTier.replaceAll("_"," ").toLowerCase() : ""}</small></summary>
+      <EvidenceGroupContent group={group} match={match}/>
+    </details>)}
+    <p className="evidence-footnote">Historical and persisted performance helps explain the sporting matchup; it does not verify lineups, injuries or an actionable betting price.</p>
+  </section>;
 }
 
 function MarketBoard({ match }: { match: MatchCenterViewModel }) {
