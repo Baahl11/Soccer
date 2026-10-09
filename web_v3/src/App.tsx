@@ -182,12 +182,19 @@ function Heatmap({ matrix, compact = false }: { matrix: ScoreMatrix; compact?: b
 }
 
 function TeamHeatmap({ profile }: { profile: TeamScoringProfile }) {
-  const matrix: ScoreMatrix = { labels: profile.labels, values: profile.values, hot: null };
+  let hot: [number,number] | null = null;
+  let best = -1;
+  profile.values.forEach((row, r) => row.forEach((value, c) => {
+    if (value !== null && value > best) { best = value; hot = [r,c]; }
+  }));
+  const matrix: ScoreMatrix = { labels: profile.labels, values: profile.values, hot };
   return (
-    <div className={"team-heat " + profile.tone}>
-      <div className="team-heat-head"><b>{profile.team}</b><span>GF × GA</span></div>
-      <Heatmap matrix={matrix} compact />
-      <small>X = GF · Y = GA</small>
+    <div className={"team-heat team-goal-card " + profile.tone}>
+      <div className="team-heat-head">
+        <b>{profile.team}</b><span>{profile.tone === "home" ? "HOME" : "AWAY"}</span>
+      </div>
+      <div className="team-heat-map"><Heatmap matrix={matrix} /></div>
+      <small>GF → columns · GA ↓ rows · 4+ includes tail</small>
     </div>
   );
 }
@@ -198,19 +205,30 @@ function MatrixPanel({ match }: { match: MatchCenterViewModel }) {
   return (
     <article className="panel matrix-panel">
       <header><h3>Score Matrix (FT)</h3><span>PERSISTED MODEL CELLS ONLY</span></header>
-      <div className="matrix-layout">
-        <div className="matrix-main">
-          <Heatmap matrix={match.scoreMatrix} />
-          <p>{likely ? <>Most likely persisted: <b>{likely.score} · {likely.probability.toFixed(1)}%</b></> : "No ranked scoreline persisted"}</p>
-        </div>
-        <div className="team-heats">
-          {match.scoringProfiles.length
-            ? match.scoringProfiles.map((p) => <TeamHeatmap key={p.team} profile={p} />)
-            : <div className="inline-missing"><b>{match.sections.scoringProfiles.state.split("_").join(" ")}</b><span>{match.sections.scoringProfiles.note}</span></div>}
-        </div>
+      <div className="matrix-main">
+        <Heatmap matrix={match.scoreMatrix} />
+        <p>{likely ? <>Most likely persisted: <b>{likely.score} · {likely.probability.toFixed(1)}%</b></> : "No ranked scoreline persisted"}</p>
       </div>
     </article>
   );
+}
+
+function TeamMatricesPanel({ match }: { match: MatchCenterViewModel }) {
+  if (!match.scoringProfiles.length) {
+    return <MissingPanel title="Team Goals Matrices · GF × GA" section={match.sections.scoringProfiles} />;
+  }
+  return <article className="panel team-goals-panel">
+    <header><h3>Team Goals Matrices · GF × GA</h3><span>DERIVED POISSON · SPORT MODEL</span></header>
+    <div className="team-goal-cards">
+      {match.scoringProfiles.map(profile => <TeamHeatmap key={profile.tone} profile={profile} />)}
+    </div>
+    <p className="team-goal-provenance">
+      Model-implied full-time GF × GA from stored pre-match λ values.
+      Independent Poisson approximation, not observed team goal frequencies, measured xG or a market probability.
+      Both grids represent the same fixture from each team's perspective; cells may differ from the ranked, persisted scoreline matrix.
+      {match.modelProvenance?.capturedAt ? " Model snapshot: " + match.modelProvenance.capturedAt + "." : ""}
+    </p>
+  </article>;
 }
 
 function GoalsPanel({ match }: { match: MatchCenterViewModel }) {
@@ -665,9 +683,10 @@ function AppBody({
               <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/>{!isFinal && match.edge && <EdgePanel match={match}/>}</div>
               {(!match.edge || isFinal) && <div className="market-no-edge"><b>{isFinal ? "Market · MATCH FINISHED" : "Market Edge · NOT VERIFIED"}</b><span>{isFinal ? "Historical market data is not a current betting opportunity." : "No fresh verified quote. Sporting projections remain visible without suggesting a wager."}</span></div>}
               <div className="deck middle"><SportProfile match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div>
+              <div className="deck team-matrices-deck"><TeamMatricesPanel match={match}/></div>
               <EvidenceBoard match={match}/>
             </>}
-            {activeTab === "Goals" && <><div className="deck middle"><XgPanel match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div><EvidenceBoard match={match} category="GOALS"/></>}
+            {activeTab === "Goals" && <><div className="deck middle"><XgPanel match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div><div className="deck team-matrices-deck"><TeamMatricesPanel match={match}/></div><EvidenceBoard match={match} category="GOALS"/></>}
             {activeTab === "Corners" && <EvidenceBoard match={match} category="CORNERS"/>}
             {activeTab === "Cards" && <EvidenceBoard match={match} category="CARDS"/>}
             {activeTab === "Players" && <EvidenceBoard match={match} category="PLAYERS"/>}

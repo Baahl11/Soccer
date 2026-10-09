@@ -1,4 +1,5 @@
 import { hasStoredSession, refreshSession, storedAccessToken } from "./auth";
+import { makeTeamGoalMatrices } from "./teamGoalMatrices";
 import type {
   MatchCenterViewModel,
   ScoreMatrix,
@@ -350,6 +351,8 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
   const confidenceRaw = numberValue(availability.confidence ?? modelContext.confidence);
   const confidence = confidenceRaw === null ? null : Number((Math.abs(confidenceRaw) <= 1 ? confidenceRaw * 100 : confidenceRaw).toFixed(0));
   const matrix = parseScoreMatrix(sport.score_matrix);
+  const teamGoalMatrices = makeTeamGoalMatrices(homeName, awayName, xgHome, xgAway,
+    typeof sport.goal_rate_semantics === "string" ? sport.goal_rate_semantics : null);
   const profile = parseSportProfile(sport.sport_profile);
   const edge = chooseEdge(payload);
   const over25 = chooseOver25(payload);
@@ -404,7 +407,7 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
     edge,
     sportProfile: profile,
     scoreMatrix: matrix,
-    scoringProfiles: [],
+    scoringProfiles: teamGoalMatrices,
     over25,
     decision: {
       classification: decision.classification ? String(decision.classification) : null,
@@ -418,7 +421,9 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
       edge: edgeState,
       sportProfile: stateFor(profile.length > 0, "SPORT_PROFILE"),
       scoreMatrix: stateFor(!!matrix, "SCORE_MATRIX"),
-      scoringProfiles: section("NOT_VERIFIED", "Team GF × GA heatmaps need a persisted verified source. No sample values are shown in live mode."),
+      scoringProfiles: teamGoalMatrices.length
+        ? section("VERIFIED", "Derived independently from persisted Poisson RAW SPORT scoring rates. Not empirical GF/GA histories or measured xG.")
+        : section("NOT_VERIFIED", "No paired persisted Poisson goal rates; team matrices are hidden rather than filled with sample data."),
       over25: over25 ? section("VERIFIED") : section("NOT_VERIFIED", "No verified Over 2.5 row with both RAW SPORT and fair-market probability is available."),
     },
     missingSections,
