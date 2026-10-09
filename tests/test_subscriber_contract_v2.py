@@ -707,3 +707,37 @@ def test_maturity_missing_sources_remain_not_verified_not_zero():
     assert card["market_segments"][0]["true_clv_rows"] is None
     assert card["market_segments"][0]["priced_rows"] is None
     assert response["source_errors"] == ["Cards"]
+
+
+def test_maturity_endpoint_does_not_leak_pro_evidence_to_free_users(monkeypatch):
+    import asyncio
+    import json
+
+    async def free_entitlement(_request):
+        return {"authenticated": True, "effective_plan": "FREE", "user": {"role": "USER"}}, None
+
+    monkeypatch.setattr(subscriber_contract_v2, "_resolve_entitlement", free_entitlement)
+    response = asyncio.run(subscriber_contract_v2.maturity(None))
+    assert response.status_code == 403
+    assert json.loads(response.body)["error"] == "PRO_REQUIRED"
+
+
+def test_maturity_endpoint_reads_persisted_evidence_only_for_pro(monkeypatch):
+    import asyncio
+    import json
+
+    async def pro_entitlement(_request):
+        return _pro_entitlement(), None
+
+    calls = []
+    monkeypatch.setattr(subscriber_contract_v2, "_resolve_entitlement", pro_entitlement)
+    monkeypatch.setattr(
+        subscriber_contract_v2.subscriber_maturity_v232,
+        "load_maturity_evidence",
+        lambda: calls.append("read") or {"status": "OK", "families": []},
+    )
+    response = asyncio.run(subscriber_contract_v2.maturity(None))
+    assert response.status_code == 200
+    assert json.loads(response.body)["production_promotion_allowed"] is False
+    assert calls == ["read"]
+    assert response.headers["cache-control"] == "no-store"
