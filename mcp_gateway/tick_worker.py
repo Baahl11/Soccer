@@ -293,6 +293,7 @@ async def _main() -> int:
             status=payload.get("research_backfill_status", "UNSPECIFIED"),
             selected_fixture_ids=payload.get("research_backfill_selected_fixture_ids", []),
             emitted_fixture_ids=payload.get("research_backfill_emitted_fixture_ids", []),
+            attempts=payload.get("research_backfill_attempts", []),
             error=payload.get("research_backfill_error"),
         )
 
