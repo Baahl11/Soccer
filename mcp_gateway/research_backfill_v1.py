@@ -21,46 +21,75 @@ MAX_BACKFILL_FIXTURES_PER_TICK = max(
 # Prioritize fixtures with saved model runs so their missing *input* evidence
 # can be recovered, but never use model output to manufacture team statistics.
 _PENDING_SQL = """
-    SELECT f.fixture_id, f.league_id, f.league, f.country, f.season,
-           f.round, f.kickoff, f.status, f.status_long,
-           f.home_team_id, f.home_team, f.away_team_id, f.away_team,
-           f.venue, f.city,
-           COALESCE((
-               SELECT sf.data_tier FROM soccer_feature_snapshots sf
-               WHERE sf.fixture_id = f.fixture_id
-               ORDER BY sf.captured_at DESC, sf.snapshot_id DESC LIMIT 1
-           ), 'RESEARCH_ONLY') AS data_tier
-    FROM soccer_fixtures f
-    WHERE f.kickoff BETWEEN NOW() - interval '30 hours' AND NOW() + interval '24 hours'
-      AND f.home_team_id > 0 AND f.away_team_id > 0
-      AND f.league_id > 0 AND f.season > 0
-      AND f.status IS DISTINCT FROM 'CANC'
-      AND f.status IS DISTINCT FROM 'PST'
-      -- A fixture is complete only when BOTH venue W/D/L triplets exist in
-      -- a coherent snapshot. Mere played_split values are insufficient.
-      AND NOT EXISTS (
-         SELECT 1 FROM soccer_feature_snapshots s
-         WHERE s.fixture_id = f.fixture_id
-           AND s.payload #>> '{features,team_performance.home_wins_split,value}' IS NOT NULL
-           AND s.payload #>> '{features,team_performance.home_draws_split,value}' IS NOT NULL
-           AND s.payload #>> '{features,team_performance.home_losses_split,value}' IS NOT NULL
-           AND s.payload #>> '{features,team_performance.away_wins_split,value}' IS NOT NULL
-           AND s.payload #>> '{features,team_performance.away_draws_split,value}' IS NOT NULL
-           AND s.payload #>> '{features,team_performance.away_losses_split,value}' IS NOT NULL
-      )
-      AND NOT EXISTS (
-         SELECT 1 FROM soccer_feature_snapshots s
-         WHERE s.fixture_id = f.fixture_id
-           AND s.stage IN ('RESEARCH_BACKFILL', 'RESEARCH_BACKFILL_POST_KICKOFF', 'RESEARCH_BACKFILL_POSTGAME')
-           AND s.captured_at > NOW() - interval '12 hours'
-      )
-    ORDER BY
-        CASE WHEN EXISTS (
-            SELECT 1 FROM soccer_model_runs m WHERE m.fixture_id = f.fixture_id
-        ) THEN 0 ELSE 1 END,
-        CASE WHEN f.kickoff > NOW() THEN 0 ELSE 1 END,
-        ABS(EXTRACT(EPOCH FROM (f.kickoff - NOW()))) ASC,
-        f.fixture_id
+    -- Three rotating queues. This prevents future fixtures from starving
+    -- recent finals, and recent finals from starving older incomplete records.
+    -- No odds, betting eligibility, model values or provider data are inferred.
+    WITH candidates AS (
+        SELECT f.fixture_id, f.league_id, f.league, f.country, f.season,
+               f.round, f.kickoff, f.status, f.status_long,
+               f.home_team_id, f.home_team, f.away_team_id, f.away_team,
+               f.venue, f.city,
+               COALESCE((
+                   SELECT sf.data_tier FROM soccer_feature_snapshots sf
+                   WHERE sf.fixture_id = f.fixture_id
+                   ORDER BY sf.captured_at DESC, sf.snapshot_id DESC LIMIT 1
+               ), 'RESEARCH_ONLY') AS data_tier,
+               CASE
+                   WHEN f.kickoff > NOW() THEN 0
+                   WHEN f.kickoff >= NOW() - interval '48 hours' THEN 1
+                   ELSE 2
+               END AS queue_lane,
+               EXISTS (
+                   SELECT 1 FROM soccer_model_runs m
+                   WHERE m.fixture_id = f.fixture_id
+               ) AS has_model
+        FROM soccer_fixtures f
+        WHERE f.kickoff BETWEEN NOW() - interval '14 days' AND NOW() + interval '24 hours'
+          AND f.home_team_id > 0 AND f.away_team_id > 0
+          AND f.league_id > 0 AND f.season > 0
+          AND f.status IS DISTINCT FROM 'CANC'
+          AND f.status IS DISTINCT FROM 'PST'
+          AND NOT EXISTS (
+              SELECT 1 FROM soccer_feature_snapshots s
+              WHERE s.fixture_id = f.fixture_id
+                AND s.payload #>> '{features,team_performance.home_wins_split,value}' IS NOT NULL
+                AND s.payload #>> '{features,team_performance.home_draws_split,value}' IS NOT NULL
+                AND s.payload #>> '{features,team_performance.home_losses_split,value}' IS NOT NULL
+                AND s.payload #>> '{features,team_performance.away_wins_split,value}' IS NOT NULL
+                AND s.payload #>> '{features,team_performance.away_draws_split,value}' IS NOT NULL
+                AND s.payload #>> '{features,team_performance.away_losses_split,value}' IS NOT NULL
+          )
+          AND NOT EXISTS (
+              SELECT 1 FROM soccer_feature_snapshots s
+              WHERE s.fixture_id = f.fixture_id
+                AND s.stage IN (
+                    'RESEARCH_BACKFILL',
+                    'RESEARCH_BACKFILL_POST_KICKOFF',
+                    'RESEARCH_BACKFILL_POSTGAME'
+                )
+                AND s.captured_at > NOW() - interval '12 hours'
+          )
+    ),
+    ranked AS (
+        SELECT candidates.*,
+               ROW_NUMBER() OVER (
+                   PARTITION BY queue_lane
+                   ORDER BY
+                       CASE WHEN has_model THEN 0 ELSE 1 END,
+                       CASE WHEN queue_lane = 0 THEN kickoff END ASC NULLS LAST,
+                       CASE WHEN queue_lane = 1 THEN kickoff END DESC NULLS LAST,
+                       CASE WHEN queue_lane = 2 THEN kickoff END ASC NULLS LAST,
+                       fixture_id
+               ) AS lane_rank
+        FROM candidates
+    )
+    SELECT fixture_id, league_id, league, country, season,
+           round, kickoff, status, status_long, home_team_id, home_team,
+           away_team_id, away_team, venue, city, data_tier
+    FROM ranked
+    ORDER BY lane_rank ASC,
+             MOD(queue_lane - MOD(FLOOR(EXTRACT(EPOCH FROM NOW()) / 600)::bigint, 3) + 3, 3),
+             fixture_id
     LIMIT %s
 """
 
@@ -85,17 +114,22 @@ def pending_fixtures(limit: int = MAX_BACKFILL_FIXTURES_PER_TICK) -> list[dict[s
 async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
     """Use at most four provider calls, only when the daily/tick budget allows."""
     if MAX_BACKFILL_FIXTURES_PER_TICK <= 0:
+        tick["research_backfill_status"] = "DISABLED"
         return []
     calls_left = v2.MAX_API_CALLS_PER_TICK - v2._API_CALLS_THIS_TICK
     if calls_left < 6:
         tick["research_backfill_status"] = "DEFERRED_TICK_BUDGET"
         return []
     if v2._LAST_DAILY_REMAINING is not None and v2._LAST_DAILY_REMAINING <= 70:
+        tick["research_backfill_status"] = "DEFERRED_DAILY_QUOTA"
         return []
     limit = min(MAX_BACKFILL_FIXTURES_PER_TICK, (calls_left - 2) // 2)
     if limit <= 0:
+        tick["research_backfill_status"] = "DEFERRED_TICK_BUDGET"
         return []
     fixtures = pending_fixtures(limit)
+    tick["research_backfill_selected_fixture_ids"] = [fx["fixture_id"] for fx in fixtures]
+    tick["research_backfill_status"] = "ATTEMPTED" if fixtures else "NO_ELIGIBLE_FIXTURES"
     now = datetime.now(timezone.utc)
     events: list[dict[str, Any]] = []
     for fx in fixtures:
@@ -160,4 +194,5 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
             "market_decision": None,
             "notes": ["Sport evidence only; collection timing is explicit and never promotes a BET.", *errors],
         })
+    tick["research_backfill_emitted_fixture_ids"] = [event["fixture"]["fixture_id"] for event in events]
     return events
