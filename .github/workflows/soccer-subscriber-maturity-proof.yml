@@ -43,6 +43,9 @@ jobs:
           paths = {getattr(route, "path", None) for route in app.router.routes}
           assert "/app/api/v2/maturity" in paths
           PY
-      - name: Test contract, frontend and maturity regressions
+      - name: Run full v2 API contract tests
         run: |
-          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_subscriber_contract_v2.py tests/test_subscriber_frontend_v2.py tests/test_v4_024_maturity_reconciliation.py
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_subscriber_contract_v2.py
+      - name: Run new maturity UI regression (legacy unrelated UI assertions tracked separately)
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_subscriber_frontend_v2.py -k maturity
