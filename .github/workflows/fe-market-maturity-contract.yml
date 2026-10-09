@@ -12,6 +12,8 @@ on:
       - "web_v3/package-lock.json"
       - "tests/test_subscriber_maturity_market_inventory.py"
       - "tests/test_subscriber_maturity_state_artifacts.py"
+      - "tests/export_subscriber_maturity_state_fixture.py"
+      - "web_v3/scripts/e2e-maturity-smoke.mjs"
       - ".github/workflows/fe-market-maturity-contract.yml"
   workflow_dispatch:
 
@@ -85,3 +87,27 @@ jobs:
       - name: Verify React build
         working-directory: web_v3
         run: npm ci && npm run build
+
+      - name: Export canonical-source browser fixture
+        run: PYTHONPATH=. python tests/export_subscriber_maturity_state_fixture.py
+      - name: Install Chromium browser QA dependencies
+        working-directory: web_v3
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Browser QA desktop/mobile and error states
+        working-directory: web_v3
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 4173 > /tmp/soccer-vite-maturity.log 2>&1 &
+          for attempt in $(seq 1 25); do
+            if curl --silent --fail http://127.0.0.1:4173/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/e2e-maturity-smoke.mjs
+      - name: Archive browser QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-maturity-desktop-mobile-qa
+          path: /tmp/soccer-maturity-browser-qa/
+          if-no-files-found: ignore
