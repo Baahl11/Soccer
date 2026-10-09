@@ -49,6 +49,7 @@ function Hero({ match }: { match: MatchCenterViewModel }) {
         <span>{match.kickoff}</span>
       </div>
       <div className="hero-main">
+        <div className="hero-matchup">
         <div className="team">
           <TeamBadge team={match.home} />
           <b>{match.home.name}</b><span>HOME</span>
@@ -61,6 +62,7 @@ function Hero({ match }: { match: MatchCenterViewModel }) {
         <div className="team">
           <TeamBadge team={match.away} />
           <b>{match.away.name}</b><span>AWAY</span>
+        </div>
         </div>
         <aside className="quality">
           <div><span>Data Quality</span><b>{match.dataQuality}</b></div>
