@@ -1,0 +1,62 @@
+name: FE Market Maturity Contract
+on:
+  pull_request:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - "mcp_gateway/__init__.py"
+      - "mcp_gateway/subscriber_maturity_v232.py"
+      - "mcp_gateway/subscriber_frontend_v2.py"
+      - "web_v3/src/**"
+      - "web_v3/package.json"
+      - "web_v3/package-lock.json"
+      - "tests/test_subscriber_maturity_market_inventory.py"
+      - ".github/workflows/fe-market-maturity-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  maturity-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "20"
+      - name: Install Python test dependencies
+        run: pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile routes and maturity services
+        run: python -W error::SyntaxWarning -m py_compile mcp_gateway/__init__.py mcp_gateway/subscriber_maturity_v232.py mcp_gateway/subscriber_frontend_v2.py
+      - name: Verify rendered subscriber JavaScript
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          from mcp_gateway import subscriber_frontend_v2
+          html = subscriber_frontend_v2.render()
+          match = re.search(r'<script id="soccer-edge-v2-app">(.*?)</script>', html, re.S)
+          assert match, "subscriber script missing"
+          assert 'data-page="maturity"' in html
+          assert "api('/maturity')" in html
+          Path('/tmp/soccer-maturity-frontend.js').write_text(match.group(1), encoding='utf-8')
+          PY
+          node --check /tmp/soccer-maturity-frontend.js
+      - name: Verify mature authenticated route and regression tests
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          import mcp_gateway
+          from mcp.server.fastmcp import FastMCP
+          app = FastMCP("maturity-route-check", stateless_http=True, json_response=True).streamable_http_app()
+          paths = {getattr(route, "path", None) for route in app.router.routes}
+          assert "/app/api/v2/maturity" in paths
+          PY
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_subscriber_maturity_market_inventory.py tests/test_subscriber_frontend_v2.py
+      - name: Verify React build
+        working-directory: web_v3
+        run: npm ci && npm run build
