@@ -299,7 +299,10 @@ def test_research_backfill_missing_venue_wdl_triggers_new_snapshot():
     assert "team_performance.away_wins_split,value" in query
     assert "team_performance.home_draws_split,value" in query
     assert "team_performance.away_losses_split,value" in query
-    assert "stage LIKE 'RESEARCH_BACKFILL%'" in query
+    # psycopg treats a bare '%' as a query placeholder even inside LIKE literals.
+    # Enumerate the terminal capture stages instead of a wildcard.
+    assert "s.stage IN ('RESEARCH_BACKFILL', 'RESEARCH_BACKFILL_POST_KICKOFF', 'RESEARCH_BACKFILL_POSTGAME')" in query
+    assert "RESEARCH_BACKFILL%" not in query
     assert "interval '24 hours'" in query
 
 
