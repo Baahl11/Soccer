@@ -394,7 +394,8 @@ def test_backfill_emits_selected_fixture_ids_and_protects_quota(monkeypatch):
     got = asyncio.run(research_backfill_v1.collect(tick))
     assert len(got) == 1
     assert calls == [18681, 18683]
-    assert tick["research_backfill_status"] == "ATTEMPTED"
+    assert tick["research_backfill_status"] == "PARTIAL"
+    assert tick["research_backfill_attempts"][0]["result"] == "PARTIAL_OR_NO_VENUE_STATS"
     assert tick["research_backfill_selected_fixture_ids"] == [1612077]
     assert tick["research_backfill_emitted_fixture_ids"] == [1612077]
     assert got[0]["sporting"]["collection_scope"] == "POSTGAME_OBSERVATION"
@@ -442,3 +443,50 @@ def test_candidate_query_keeps_original_16_columns_for_persistence(monkeypatch):
     assert "queue_lane" not in chosen[0]
     assert "lane_rank" not in chosen[0]
     assert "PARTITION BY queue_lane" in conn.cursor_obj.query
+
+
+def test_backfill_limits_candidate_count_to_actual_per_tick_budget(monkeypatch):
+    from mcp_gateway import automation as base
+    fixtures = [
+        {
+            "fixture_id": fixture_id, "league_id": 906, "season": 2026,
+            "home_team_id": 100 + fixture_id,
+            "away_team_id": 200 + fixture_id,
+            "kickoff": "2026-10-08T22:00:00Z", "status": "FT",
+            "data_tier": "RESEARCH_ONLY",
+        }
+        for fixture_id in (41,42)
+    ]
+    requested = []
+    async def fake_stats(team_id, *_args):
+        return {"fixtures": {"played": {"home": 2, "away": 2},
+                 "wins": {"home": 1, "away": 1},
+                 "draws": {"home": 1, "away": 1},
+                 "loses": {"home": 0, "away": 0}}}
+    def pending(limit):
+        requested.append(limit)
+        return [dict(f) for f in fixtures[:limit]]
+    monkeypatch.setattr(base, "_team_stats", fake_stats)
+    monkeypatch.setattr(research_backfill_v1, "pending_fixtures", pending)
+    monkeypatch.setattr(automation_v2, "_LAST_DAILY_REMAINING", 200)
+    monkeypatch.setattr(automation_v2, "_API_CALLS_THIS_TICK",
+                        automation_v2.MAX_API_CALLS_PER_TICK - 7)
+    tick = {}
+    events = asyncio.run(research_backfill_v1.collect(tick))
+    assert requested == [1], "Do not select two if this cycle can process only one"
+    assert [e["fixture"]["fixture_id"] for e in events] == [41]
+    assert tick["research_backfill_selected_fixture_ids"] == [41]
+    assert tick["research_backfill_status"] == "COMPLETED"
+    assert tick["research_backfill_attempts"] == [{
+        "fixture_id": 41, "result": "COMPLETE_VENUE_WDL",
+        "home_venue_wdl_complete": True, "away_venue_wdl_complete": True,
+        "errors": [],
+    }]
+    assert events[0]["bet_eligible"] is False
+
+
+def test_backfill_recent_finals_oldest_first_and_protects_data_scope():
+    sql = research_backfill_v1._PENDING_SQL
+    assert "CASE WHEN queue_lane = 1 THEN kickoff END ASC NULLS LAST" in sql
+    assert "CASE WHEN has_model THEN 0 ELSE 1 END" in sql
+    assert "MOD(queue_lane - MOD(" in sql
