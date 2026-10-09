@@ -64,10 +64,10 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
         tick["fixture_observation_status"] = "DEFERRED_DAILY_QUOTA"
         return []
 
-    # Three fixed provider endpoints per fixture, plus a safety buffer.
+    # Four fixed provider endpoints per fixture, plus a safety buffer.
     # Never select more fixtures than this tick can actually process.
     calls_available = v2.MAX_API_CALLS_PER_TICK - v2._API_CALLS_THIS_TICK
-    limit = min(MAX_FIXTURES, max(0, (calls_available - 2) // 3))
+    limit = min(MAX_FIXTURES, max(0, (calls_available - 2) // 4))
     if limit <= 0:
         tick["fixture_observation_status"] = "DEFERRED_TICK_BUDGET"
         return []
@@ -76,7 +76,7 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
     attempts: list[dict[str, Any]] = []
     for fx in fixtures:
-        if v2._API_CALLS_THIS_TICK > v2.MAX_API_CALLS_PER_TICK - 4:
+        if v2._API_CALLS_THIS_TICK > v2.MAX_API_CALLS_PER_TICK - 5:
             attempts.append({"fixture_id": fx["fixture_id"], "status": "DEFERRED_TICK_BUDGET"})
             continue
         errors: list[str] = []
@@ -85,10 +85,11 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
             ("fixtures/statistics","fixture_statistics"),
             ("fixtures/players","fixture_players"),
             ("fixtures/lineups","fixture_lineups"),
+            ("fixtures/events","fixture_events"),
         ):
             try:
                 result = await v2._budgeted_api_get(endpoint, {"fixture": int(fx["fixture_id"])})
-                payloads[kind] = (result.get("response") or [])[:60 if kind == "fixture_players" else 2]
+                payloads[kind] = (result.get("response") or [])[:80 if kind == "fixture_events" else 60 if kind == "fixture_players" else 2]
             except Exception as exc:
                 payloads[kind] = []
                 errors.append(f"{endpoint}: {type(exc).__name__}")
