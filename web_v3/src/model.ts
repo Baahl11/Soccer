@@ -28,9 +28,9 @@ export interface TeamScoringProfile {
   /** Context-only input provenance; distributions are derived estimates. */
   gfRate?: number;
   gaRate?: number;
-  source?: string;
-  sampleN?: number;
-  capturedAt?: string;
+  source?: string | null;
+  sampleN?: number | null;
+  capturedAt?: string | null;
   observationScope?: string | null;
 }
 
