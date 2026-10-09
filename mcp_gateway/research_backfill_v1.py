@@ -77,7 +77,7 @@ _PENDING_SQL = """
                    ORDER BY
                        CASE WHEN has_model THEN 0 ELSE 1 END,
                        CASE WHEN queue_lane = 0 THEN kickoff END ASC NULLS LAST,
-                       CASE WHEN queue_lane = 1 THEN kickoff END DESC NULLS LAST,
+                       CASE WHEN queue_lane = 1 THEN kickoff END ASC NULLS LAST,
                        CASE WHEN queue_lane = 2 THEN kickoff END ASC NULLS LAST,
                        fixture_id
                ) AS lane_rank
@@ -123,7 +123,10 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
     if v2._LAST_DAILY_REMAINING is not None and v2._LAST_DAILY_REMAINING <= 70:
         tick["research_backfill_status"] = "DEFERRED_DAILY_QUOTA"
         return []
-    limit = min(MAX_BACKFILL_FIXTURES_PER_TICK, (calls_left - 2) // 2)
+    # Reserve four request slots per fixture (two team endpoints plus buffer).
+    # In production the scheduler repeatedly selected two but processed only
+    # one. Never claim selection for work the request budget cannot complete.
+    limit = min(MAX_BACKFILL_FIXTURES_PER_TICK, max(0, (calls_left - 2) // 4))
     if limit <= 0:
         tick["research_backfill_status"] = "DEFERRED_TICK_BUDGET"
         return []
@@ -132,11 +135,14 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
     tick["research_backfill_status"] = "ATTEMPTED" if fixtures else "NO_ELIGIBLE_FIXTURES"
     now = datetime.now(timezone.utc)
     events: list[dict[str, Any]] = []
+    attempts: list[dict[str, Any]] = []
     for fx in fixtures:
         if v2.MAX_API_CALLS_PER_TICK - v2._API_CALLS_THIS_TICK < 4:
-            break
+            attempts.append({"fixture_id": fx["fixture_id"], "result": "DEFERRED_TICK_BUDGET"})
+            continue
         if v2._LAST_DAILY_REMAINING is not None and v2._LAST_DAILY_REMAINING <= 70:
-            break
+            attempts.append({"fixture_id": fx["fixture_id"], "result": "DEFERRED_DAILY_QUOTA"})
+            continue
         home_stats: dict[str, Any] = {}
         away_stats: dict[str, Any] = {}
         errors: list[str] = []
@@ -154,6 +160,29 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
             errors.append("AWAY_STATS_UNAVAILABLE:" + type(exc).__name__)
         # Even a response without statistics is an explicit, time-bounded attempt.
         # No placeholder goals, injuries, xG, lineups or odds are invented.
+        # Diagnostics never elevate availability or market confidence.
+        def _split_complete(team: Any, venue: str) -> bool:
+            fixtures = team.get("fixtures") if isinstance(team, dict) else None
+            if not isinstance(fixtures, dict):
+                return False
+            played = (fixtures.get("played") or {}).get(venue)
+            values = [(fixtures.get(key) or {}).get(venue) for key in ("wins", "draws", "loses")]
+            return (isinstance(played, int) and played > 0
+                    and all(isinstance(v, int) and v >= 0 for v in values)
+                    and sum(values) == played)
+
+        complete_home = _split_complete(home_stats, "home")
+        complete_away = _split_complete(away_stats, "away")
+        result = ("COMPLETE_VENUE_WDL" if complete_home and complete_away
+                  else "PROVIDER_ERROR" if errors and not (home_stats or away_stats)
+                  else "PARTIAL_OR_NO_VENUE_STATS")
+        attempts.append({
+            "fixture_id": fx["fixture_id"],
+            "result": result,
+            "home_venue_wdl_complete": complete_home,
+            "away_venue_wdl_complete": complete_away,
+            "errors": errors,
+        })
         tier = fx.pop("data_tier")
         kickoff = fx.get("kickoff")
         if isinstance(kickoff, datetime):
@@ -194,5 +223,10 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
             "market_decision": None,
             "notes": ["Sport evidence only; collection timing is explicit and never promotes a BET.", *errors],
         })
+    tick["research_backfill_attempts"] = attempts
     tick["research_backfill_emitted_fixture_ids"] = [event["fixture"]["fixture_id"] for event in events]
+    tick["research_backfill_status"] = (
+        "COMPLETED" if events and all(a["result"] == "COMPLETE_VENUE_WDL" for a in attempts)
+        else "PARTIAL" if events else tick["research_backfill_status"]
+    )
     return events
