@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from mcp_gateway import fixture_stats_features_v1
+
 SCHEMA_VERSION = "4.0.0"
 
 
@@ -416,6 +418,10 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
         "context.rest_days_home": _feature(None, source="NO_VERIFIED_RUNTIME_SOURCE", captured_at=captured_at, missing_reason="REST_DAYS_NOT_CAPTURED_YET"),
         "context.rest_days_away": _feature(None, source="NO_VERIFIED_RUNTIME_SOURCE", captured_at=captured_at, missing_reason="REST_DAYS_NOT_CAPTURED_YET"),
     }
+
+    # Separate observed fixture statistics. Never feed these postkickoff facts
+    # into the original sport model or derive an actionable market projection.
+    features.update(fixture_stats_features_v1.as_features(sporting, fx, captured_at, _feature))
 
     missing_count = sum(1 for row in features.values() if row.get("value") is None)
     return {

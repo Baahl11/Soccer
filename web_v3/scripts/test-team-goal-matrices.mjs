@@ -29,6 +29,11 @@ const evidence = [
     }))
   ]}
 ];
+// API-Football serializes goals.for.average.total as strings, not numbers.
+evidence[0].items.forEach(row=>{
+  if (row.key.endsWith("_goals_for_avg") || row.key.endsWith("_goals_against_avg"))
+    row.value=String(row.value);
+});
 const profiles = makeTeamGoalMatrices("Boca Juniors Res.","Colón Res.",evidence);
 assert.equal(profiles.length,2);
 assert.equal(profiles[0].gfRate,1.6);
@@ -60,4 +65,4 @@ const wrongSnapshot=evidence.map(group=>({...group,
 assert.equal(makeTeamGoalMatrices("Boca","Colón",wrongSnapshot).length,1,
   "Do not combine a team's GF and GA from different snapshot times");
 assert.equal(makeTeamGoalMatrices("Boca","Colón",[]).length,0);
-console.log("Season GF x GA matrices: 7 regression checks passed");
+console.log("Season GF x GA matrices: 8 regression checks passed");

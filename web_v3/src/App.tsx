@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { loadAuthState, signIn, signOut, signUp, type AuthState } from "./auth";
 import { loadMatchCenter, loadSlate, type SlateItem } from "./live";
 import { EvidenceExplorer } from "./EvidenceExplorer";
+import { FixtureMetricsPanel, FixturePlayersPanel } from "./FixtureEvidencePanels";
 import type {
   MatchCenterViewModel,
   ScoreMatrix,
@@ -276,7 +277,7 @@ function GoalsPanel({ match }: { match: MatchCenterViewModel }) {
 }
 
 
-const MATCH_TABS = ["Overview","Goals","Corners","Cards","Players","Market","Model"] as const;
+const MATCH_TABS = ["Overview","Goals","Stats","Corners","Cards","Players","Market","Model"] as const;
 type MatchTab = typeof MATCH_TABS[number];
 
 type SportEvidenceGroup = NonNullable<MatchCenterViewModel["evidenceSections"]>[number];
@@ -698,9 +699,10 @@ function AppBody({
               <EvidenceBoard match={match}/>
             </>}
             {activeTab === "Goals" && <><div className="deck middle"><XgPanel match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div><div className="deck team-matrices-deck"><TeamMatricesPanel match={match}/></div><EvidenceBoard match={match} category="GOALS"/></>}
-            {activeTab === "Corners" && <EvidenceBoard match={match} category="CORNERS"/>}
-            {activeTab === "Cards" && <EvidenceBoard match={match} category="CARDS"/>}
-            {activeTab === "Players" && <EvidenceBoard match={match} category="PLAYERS"/>}
+            {activeTab === "Stats" && <FixtureMetricsPanel match={match} category="STATS"/>}
+            {activeTab === "Corners" && <FixtureMetricsPanel match={match} category="CORNERS"/>}
+            {activeTab === "Cards" && <FixtureMetricsPanel match={match} category="CARDS"/>}
+            {activeTab === "Players" && <FixturePlayersPanel match={match}/>}
             {activeTab === "Market" && <MarketBoard match={match}/>}
             {activeTab === "Model" && <><ModelBoard match={match}/><EvidenceBoard match={match} category="CONTEXT"/><EvidenceBoard match={match} category="AVAILABILITY"/></>}
             <section className="primary-read">

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 
-from mcp_gateway import automation_v2, feature_snapshot_v4, research_backfill_v1, subscriber_contract_v2
+from mcp_gateway import automation_v2, feature_snapshot_v4, research_backfill_v1, subscriber_contract_v2, fixture_observations_v1
 
 
 def test_feature_snapshot_captures_verified_home_away_splits_without_imputation():
@@ -490,3 +490,82 @@ def test_backfill_recent_finals_oldest_first_and_protects_data_scope():
     assert "CASE WHEN queue_lane = 1 THEN kickoff END ASC NULLS LAST" in sql
     assert "CASE WHEN has_model THEN 0 ELSE 1 END" in sql
     assert "MOD(queue_lane - MOD(" in sql
+
+
+def test_fixture_stats_and_players_are_persisted_as_observed_only():
+    tick={"generated_at_utc":"2026-10-09T02:00:00Z","model_version":"test"}
+    event={
+        "fixture":{"fixture_id":999,"home_team_id":10,"away_team_id":20},
+        "stage":"FIXTURE_OBSERVATION",
+        "coverage":{"data_tier":"RESEARCH_ONLY"},
+        "sporting":{
+            "collection_scope":"POSTGAME_OBSERVATION",
+            "fixture_statistics":[
+                {"team":{"id":10},"statistics":[
+                    {"type":"Corner Kicks","value":7},{"type":"Offsides","value":2},
+                    {"type":"Yellow Cards","value":0},{"type":"Fouls","value":11},
+                    {"type":"Ball Possession","value":"53%"},
+                    {"type":"Red Cards","value":None}]},
+                {"team":{"id":20},"statistics":[
+                    {"type":"Corner Kicks","value":4},{"type":"Red Cards","value":1}]},
+            ],
+            "fixture_players":[{"team":{"id":10},"players":[
+                {"player":{"id":123,"name":"Player A"},"statistics":[{
+                    "games":{"minutes":90,"position":"M"},
+                    "shots":{"total":2,"on":1},
+                    "cards":{"yellow":1,"red":0},
+                    "goals":{"total":0,"assists":1},
+                }]}]}],
+            "fixture_lineups":[{"team":{"id":20},"formation":"4-3-3",
+                "startXI":[{"player":{"id":234,"name":"Player B"}}]}],
+        },
+    }
+    snap=feature_snapshot_v4.build(tick,event)
+    assert feature_snapshot_v4.validate(snap)==[]
+    f=snap["features"]
+    assert f["corners.home_corners"]["value"]==7
+    assert f["corners.away_corners"]["value"]==4
+    assert f["cards.home_yellow_cards"]["value"]==0
+    assert f["cards.away_red_cards"]["value"]==1
+    assert "cards.home_red_cards" not in f
+    assert f["stats.home_offsides"]["value"]==2
+    assert f["stats.home_possession_pct"]["value"]==53
+    assert f["players.home_123_name"]["value"]=="Player A"
+    assert f["players.home_123_assists"]["value"]==1
+    assert f["players.away_234_starter"]["value"] is True
+    assert f["stats.away_formation"]["value"]=="4-3-3"
+    assert all(f[k]["source"].startswith("API_FOOTBALL_FIXTURE_")
+               for k in ("corners.home_corners","players.home_123_name"))
+    groups=subscriber_contract_v2._match_evidence_sections(
+        {"feature_snapshots":[{"captured_at":snap["captured_at"],"payload":snap}]}
+    )
+    categories={group["category"] for group in groups}
+    assert {"CORNERS","CARDS","PLAYERS","STATS"}.issubset(categories)
+    observed=[item for g in groups for item in g["items"]
+              if item["key"]=="corners.home_corners"][0]
+    assert observed["observation_scope"]=="POSTGAME_OBSERVATION"
+
+
+def test_fixture_observation_provider_empty_is_missing_not_zero(monkeypatch):
+    fixture={"fixture_id":999,"home_team_id":10,"away_team_id":20,
+             "kickoff":datetime(2026,10,8,22,tzinfo=timezone.utc),
+             "status":"FT","league_id":1,"season":2026}
+    calls=[]
+    async def fake_get(endpoint, params):
+        calls.append((endpoint,params))
+        return {"response":[],"results":0}
+    monkeypatch.setattr(fixture_observations_v1,"pending_fixtures",lambda limit:[fixture])
+    monkeypatch.setattr(automation_v2,"_budgeted_api_get",fake_get)
+    monkeypatch.setattr(automation_v2,"_API_CALLS_THIS_TICK",0)
+    monkeypatch.setattr(automation_v2,"_LAST_DAILY_REMAINING",200)
+    tick={"generated_at_utc":"2026-10-09T02:00:00Z"}
+    result=asyncio.run(fixture_observations_v1.collect(tick))
+    assert len(calls)==3 and len(result)==1
+    assert result[0]["bet_eligible"] is False
+    assert result[0]["raw_projection"] is None
+    assert result[0]["sporting"]["collection_scope"]=="POSTGAME_OBSERVATION"
+    assert tick["fixture_observation_attempts"][0]["status"]=="PROVIDER_EMPTY"
+    snap=feature_snapshot_v4.build(tick,result[0])
+    assert not any(key.startswith(("corners.","cards.","stats.","players."))
+                   for key in snap["features"])
+    assert "LIMIT %s" in fixture_observations_v1._PENDING_SQL

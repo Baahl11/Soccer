@@ -1978,7 +1978,7 @@ def _match_evidence_sections(relational_evidence: dict[str, Any]) -> list[dict[s
         category = {
             "team_performance": "TEAMS",
             "xg": "GOALS", "goals": "GOALS",
-            "corners": "CORNERS", "cards": "CARDS",
+            "stats": "STATS", "corners": "CORNERS", "cards": "CARDS",
             "players": "PLAYERS", "player": "PLAYERS",
             "availability": "AVAILABILITY", "formation": "AVAILABILITY",
             "context": "CONTEXT", "territory": "CONTEXT",
@@ -1995,7 +1995,7 @@ def _match_evidence_sections(relational_evidence: dict[str, Any]) -> list[dict[s
             "status": "PERSISTED" if source else "SOURCE_NOT_VERIFIED",
             "observation_scope": _dict(snapshot.get("payload")).get("observation_scope"),
         })
-    order = ("TEAMS", "GOALS", "CORNERS", "CARDS", "PLAYERS", "AVAILABILITY", "CONTEXT", "OTHER")
+    order = ("TEAMS", "GOALS", "STATS", "CORNERS", "CARDS", "PLAYERS", "AVAILABILITY", "CONTEXT", "OTHER")
     return [
         {"category": category, "items": groups[category],
          "snapshot_at": valid[0].get("captured_at"),
