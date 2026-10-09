@@ -1,3 +1,4 @@
+// Provider observed evidence only. No betting model or pre-match availability inference.
 import type { EvidenceItem, MatchCenterViewModel } from "./model";
 
 type MatchProps = { match: MatchCenterViewModel; category: "CORNERS" | "CARDS" | "STATS" };
