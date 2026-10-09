@@ -39,6 +39,18 @@ jobs:
       - name: Compile updated modules
         run: |
           python -m py_compile mcp_gateway/subscriber_contract_v2.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/__init__.py
+      - name: Check rendered customer JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          from mcp_gateway import subscriber_frontend_v2
+          html = subscriber_frontend_v2.render()
+          scripts = re.findall(r"<script(?:\\s[^>]*)?>(.*?)</script>", html, re.DOTALL)
+          assert scripts, "No inline customer JavaScript in rendered shell"
+          Path("/tmp/soccer-v2-app.js").write_text("\\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/soccer-v2-app.js
       - name: Run maturity/contract regression tests
         run: |
           PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
