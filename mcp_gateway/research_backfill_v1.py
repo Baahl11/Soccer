@@ -51,7 +51,7 @@ _PENDING_SQL = """
       AND NOT EXISTS (
          SELECT 1 FROM soccer_feature_snapshots s
          WHERE s.fixture_id = f.fixture_id
-           AND s.stage LIKE 'RESEARCH_BACKFILL%'
+           AND s.stage IN ('RESEARCH_BACKFILL', 'RESEARCH_BACKFILL_POST_KICKOFF', 'RESEARCH_BACKFILL_POSTGAME')
            AND s.captured_at > NOW() - interval '12 hours'
       )
     ORDER BY
