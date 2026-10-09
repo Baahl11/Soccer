@@ -11,7 +11,7 @@ from typing import Any
 
 from mcp_gateway import automation_v2 as v2, persistence
 
-MAX_FIXTURES = max(0, min(1, int(os.getenv("SOCCER_MATCH_OBSERVATION_FIXTURES_PER_TICK", "1"))))
+MAX_FIXTURES = max(0, min(3, int(os.getenv("SOCCER_MATCH_OBSERVATION_FIXTURES_PER_TICK", "2"))))
 OBSERVED_STATES = {"1H", "HT", "2H", "ET", "BT", "P", "FT", "AET", "PEN"}
 
 _PENDING_SQL = """
@@ -64,7 +64,14 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
         tick["fixture_observation_status"] = "DEFERRED_DAILY_QUOTA"
         return []
 
-    fixtures = pending_fixtures(MAX_FIXTURES)
+    # Three fixed provider endpoints per fixture, plus a safety buffer.
+    # Never select more fixtures than this tick can actually process.
+    calls_available = v2.MAX_API_CALLS_PER_TICK - v2._API_CALLS_THIS_TICK
+    limit = min(MAX_FIXTURES, max(0, (calls_available - 2) // 3))
+    if limit <= 0:
+        tick["fixture_observation_status"] = "DEFERRED_TICK_BUDGET"
+        return []
+    fixtures = pending_fixtures(limit)
     tick["fixture_observation_selected_fixture_ids"] = [x["fixture_id"] for x in fixtures]
     events: list[dict[str, Any]] = []
     attempts: list[dict[str, Any]] = []
