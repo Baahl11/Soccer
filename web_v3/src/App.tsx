@@ -528,7 +528,7 @@ function AppBody({
             </div>
             {activeTab === "Overview" && <>
               <div className="deck top"><ProbabilityPanel match={match}/><XgPanel match={match}/>{match.edge && <EdgePanel match={match}/>}</div>
-              {!match.edge && <div className="market-no-edge"><b>Market Edge · NOT VERIFIED</b><span>No fresh verified quote. Sporting projections remain visible without suggesting a wager.</span></div>
+              {!match.edge && <div className="market-no-edge"><b>Market Edge · NOT VERIFIED</b><span>No fresh verified quote. Sporting projections remain visible without suggesting a wager.</span></div>}
               <div className="deck middle"><SportProfile match={match}/><MatrixPanel match={match}/><GoalsPanel match={match}/></div>
               <EvidenceBoard match={match}/>
             </>}
