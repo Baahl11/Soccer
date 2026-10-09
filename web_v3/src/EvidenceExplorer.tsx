@@ -49,7 +49,7 @@ function SourceCard({ source, items }: { source: string | null; items: Row[] }) 
     <div className="eex-source-meta">
       {counts.length>0 && <span>Samples: {counts.join(", ")}</span>}
       {dates.length>0 && <span>Captured: {dates.join(", ")}</span>}
-      {versions.length>0 && <span>Model: {versions.join(", ")}</span>}
+      {versions.length>0 && <span>{source?.startsWith("SOCCER_EDGE") ? "Model: " : "Processed by: "}{versions.join(", ")}</span>}
     </div>
   </article>;
 }
