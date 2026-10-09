@@ -301,6 +301,25 @@ _MARKET_INVENTORY = (
 )
 
 
+def _market_relevant_parent_blockers(key: str, blockers: list[str]) -> list[str]:
+    """Do not attach every prop/card/corner family failure to every child market."""
+    prefixes = {
+        "SHOTS": ("SHOTS_", "PLAYER_PROP_"),
+        "SOT": ("SOT_", "PLAYER_PROP_"),
+        "GOALSCORER": ("GOALSCORER_", "PLAYER_PROP_"),
+        "ASSISTS": ("ASSISTS_", "PLAYER_PROP_"),
+        "PLAYER_CARDS": ("CARDS_", "PLAYER_CARD_", "PLAYER_PROP_"),
+        "GK_SAVES": ("GK_SAVES_", "PLAYER_PROP_"),
+        "YELLOW_CARDS": ("YELLOW_", "CARD_TRUE_CLV_", "MATCH_CARD_"),
+        "RED_CARDS": ("RED_", "CARD_TRUE_CLV_", "MATCH_CARD_"),
+        "FT_CORNERS": ("FT_CORNERS_", "FORMATION_ADJUSTED_", "PARENT_FT_CORNERS_"),
+        "TEAM_CORNERS": ("TEAM_CORNERS_", "PARENT_FT_CORNERS_"),
+    }.get(key)
+    if prefixes is None:
+        return blockers
+    return [blocker for blocker in blockers if blocker.upper().startswith(prefixes)]
+
+
 def _build_market_inventory(
     family_rows: list[dict[str, Any]],
     clv_report: dict[str, Any],
@@ -421,7 +440,10 @@ def _build_market_inventory(
             blockers.append("MARKET_TRUE_CLV_NOT_VERIFIED")
         if report:
             blockers.append("SOURCE_GENERATED_AT_NOT_VERIFIED")
-        for blocker in parent.get("blockers") or []:
+        relevant_parent_blockers = _market_relevant_parent_blockers(
+            key, list(parent.get("blockers") or [])
+        )
+        for blocker in relevant_parent_blockers:
             if blocker not in blockers:
                 blockers.append(blocker)
         collection_keys = _COLLECTION_KEYS.get(parent_name or "", ())
