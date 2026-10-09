@@ -1,4 +1,5 @@
 """Data retention, low-coverage sporting research and immutable BET gates."""
+# Regression gate: venue W/D/L completeness and postkickoff provenance.
 from __future__ import annotations
 
 import asyncio
