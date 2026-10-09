@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { loadAuthState, signIn, signOut, signUp, type AuthState } from "./auth";
 import { loadMatchCenter, loadSlate, type SlateItem } from "./live";
 import { EvidenceExplorer } from "./EvidenceExplorer";
-import { FixtureMetricsPanel, FixturePlayersPanel } from "./FixtureEvidencePanels";
+import { FixtureMetricsPanel, FixturePlayersPanel, FixtureEventsPanel } from "./FixtureEvidencePanels";
 import type {
   MatchCenterViewModel,
   ScoreMatrix,
@@ -277,7 +277,7 @@ function GoalsPanel({ match }: { match: MatchCenterViewModel }) {
 }
 
 
-const MATCH_TABS = ["Overview","Goals","Stats","Corners","Cards","Players","Market","Model"] as const;
+const MATCH_TABS = ["Overview","Goals","Stats","Corners","Cards","Events","Players","Market","Model"] as const;
 type MatchTab = typeof MATCH_TABS[number];
 
 type SportEvidenceGroup = NonNullable<MatchCenterViewModel["evidenceSections"]>[number];
@@ -702,6 +702,7 @@ function AppBody({
             {activeTab === "Stats" && <FixtureMetricsPanel match={match} category="STATS"/>}
             {activeTab === "Corners" && <FixtureMetricsPanel match={match} category="CORNERS"/>}
             {activeTab === "Cards" && <FixtureMetricsPanel match={match} category="CARDS"/>}
+            {activeTab === "Events" && <FixtureEventsPanel match={match}/>}
             {activeTab === "Players" && <FixturePlayersPanel match={match}/>}
             {activeTab === "Market" && <MarketBoard match={match}/>}
             {activeTab === "Model" && <><ModelBoard match={match}/><EvidenceBoard match={match} category="CONTEXT"/><EvidenceBoard match={match} category="AVAILABILITY"/></>}
