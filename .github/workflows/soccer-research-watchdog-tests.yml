@@ -1,0 +1,29 @@
+name: Soccer Research Watchdog Regression Tests
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/soccer-research-freshness-watchdog.yml"
+      - ".github/workflows/soccer-research-watchdog-tests.yml"
+      - "scripts/soccer_research_watchdog.py"
+      - "tests/test_soccer_research_watchdog.py"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/soccer-research-watchdog-tests.yml"
+      - "scripts/soccer_research_watchdog.py"
+      - "tests/test_soccer_research_watchdog.py"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run regression tests with no external providers
+        run: python -m unittest discover -s tests -p test_soccer_research_watchdog.py -v
+      - name: Byte-compile watchdog
+        run: python -m py_compile scripts/soccer_research_watchdog.py
