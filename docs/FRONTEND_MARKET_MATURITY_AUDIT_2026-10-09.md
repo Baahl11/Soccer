@@ -59,3 +59,54 @@ Maturation is the **evidence governance system**, not a replacement for Sport Fi
 This is a read-only source/presentation correction. It does not approve research models for production, change decision thresholds, re-price bets, alter historical rows, or deploy the UI.
 
 **Outstanding before release:** validate actual persisted state, test anonymous/FREE/PRO/OWNER against deployed auth, exercise mobile/desktop browsers, resolve four excluded pre-existing FE2 copy assertions independently, add real per-market calibration and timestamp/fixture provenance. React V3's BET Performance view remains disabled and is not represented as completed.
+
+
+## Reconciliation with actual persisted scientific reports — 2026-10-09
+
+Read-only source: repository `Baahl11/Soccer`, branch `soccer-edge-state`, files under `soccer_edge_state/analysis/`. The PR CI now checks out those ten files and verifies live source-to-contract parity on every relevant PR change. That is real persisted research evidence, **not** an authenticated production API or verified production browser session.
+
+### Canonical strict True CLV snapshot
+| Canonical market key | Observations | Notes |
+| --- | ---: | --- |
+| 1X2 | 53 | Family-level minimum 50 met; report says CALIBRATION_REVIEW_ELIGIBLE, not approved for BET |
+| BTTS | 20 | RESEARCH_HOLD, minimum 50 |
+| FT_TOTALS | 8 | RESEARCH_HOLD, missing relevant line coverage |
+| HOME_TT | 248 | Team Totals per-side CLV observations; parent model review not auto-promotion |
+| AWAY_TT | 266 | Team Totals per-side CLV observations; 71 unique away-TT fixtures |
+| **TOTAL** | **595** | Same event can contribute multiple market rows; not 595 independent fixtures |
+
+No individual canonical CLV key is present for 1H, 2H, FT/Team Corners, Yellow/Red Cards, or six Player Props. A missing key is **NOT VERIFIED**, not an invented zero. Separate research-family files report some zero observations; those are shown in `report_true_clv_rows` **separately** from canonical CLV.
+
+### Model-source matching
+| Market | Canonical model evidence | Distinction |
+| --- | --- | --- |
+| 1X2 | 670 temperature-scaled multiclass OOS rows | Do not substitute 870 calibration-sample rows |
+| BTTS | 870 canonical OOS calibration rows | Separate Brier/log loss/ECE validation sample n=500; never silently merge |
+| FT Totals | 228 model-settled decisions | Mixed validation cohort is **not** independent verified OOS |
+| Home/Away Team Totals | 3,000 OOS probability rows each role | Shares 500 evaluated fixtures; rows are not 3,000 unique matches |
+| 1H | 220 challenger calibration rows | Challenger does not beat baseline on Brier/log loss |
+| 2H | 604 walk-forward evaluated | Challenger does not beat baseline |
+| FT Corners | 44 formation-adjusted evaluations | Minimum 100 and unstable league lift |
+| Team Corners | 1,464 evaluated team-corners rows | Shared 244 evaluated fixtures; league/venue stability pending |
+| Yellow Cards | 254 OOS events | Referee-adjusted sample is 0, minimum 100 |
+| Red Cards | 184 OOS events | Market-review minimum 500 |
+| Six Player Props | 0 player-game OOS rows each | Genuine explicit zero from lower-case `prop_families`; validation incomplete |
+
+### Source repository commit provenance (not report generation times)
+The last Git commit touching each JSON file on `soccer-edge-state`, checked 2026-10-09 UTC:
+- Strict True CLV: **2026-10-09 18:39 UTC**, commit `ffd8eb6`.
+- 1X2, BTTS, FT Totals: **2026-10-07 18:42 UTC**, commit `8d2844c`.
+- Team Totals, Player Props: **2026-10-09 18:40 UTC**, commit `d8d6461`.
+- 1H, 2H: **2026-10-02 18:39 UTC**, commit `2d85293`.
+- Corners: **2026-10-09 19:01 UTC**, commit `57c20b9`.
+- Cards: **2026-10-06 07:05 UTC**, commit `5f3de94`.
+
+These commit timestamps establish that files existed in the GitHub state branch; **they do not prove when model evaluation ran, which fixtures were assessed, whether the underlying source is current, or that the deployed server is consuming this exact state branch**. Until a source-specific generation timestamp / lineage contract exists, the customer API must show `SOURCE_GENERATED_AT_NOT_VERIFIED` and production stays blocked.
+
+### Product-safety and release status
+- Code and actual persisted state have been reconciled in CI. Brier/log loss/ECE fields are shown only in their correct source scope; missing calibration remains NOT VERIFIED.
+- React V3 browser QA uses a mocked authenticated success payload **derived from the real state branch**, plus anonymous/forbidden/unavailable responses. It is not real deployed account E2E.
+- Current environment could not reach `https://soccer-edge-api.onrender.com/`; Render account service inspection requires the user to select/confirm a workspace. Production branch, live effective plan, mobile deployment, and `web_v3/dist` status remain NOT VERIFIED.
+- Four pre-existing FE2 copy assertions remain excluded by the current contract workflow, so a green workflow is **not** an all-suite pass.
+- React V3 BET Performance remains disabled. **Issue #70 cannot be closed** until verified production data/authorization/browser testing, complete frontend market maturity requirements and remaining scientific provenance are addressed.
+- Do not merge/deploy, change model weights/gates, or grant BET eligibility from the display alone.
