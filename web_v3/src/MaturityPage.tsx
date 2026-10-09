@@ -8,7 +8,8 @@ type MarketRow = {
   mapped_rows: number | null; priced_rows: number | null;
   true_clv_rows: number | null; true_clv_target: number | null;
   parent_research_stage: string | null; next_gate: string | null;
-  source: string | null; production_promotion_allowed: boolean;
+  source: string | null; report_status?: string | null; blockers?: string[];
+  market_specific_evidence_verified?: boolean; production_promotion_allowed: boolean;
 };
 type MaturityPayload = {
   status?: string; families?: unknown[]; market_rows?: MarketRow[];
@@ -63,7 +64,7 @@ export function MaturityPage() {
   const errors = Object.keys(payload?.errors ?? {});
   return <section className="react-page">
     <div className="slate-page-head">
-      <div><span>SOCCER EDGE · RESEARCH TRUTH</span><h1>Market Maturity</h1><p>Sport first. Market second. Independently verified OOS, priced history and strict True CLV by market.</p></div>
+      <div><span>SOCCER EDGE · RESEARCH TRUTH</span><h1>Market Maturity</h1><p>Sport first. Market second. Reported OOS, observed price history and strict True CLV by market, with missing evidence flagged.</p></div>
       <b>{payload ? verified(payload.status) : "VERIFYING"}</b>
     </div>
     <div className="coverage-kpis">
@@ -72,17 +73,17 @@ export function MaturityPage() {
       <div><span>STRICT TRUE CLV</span><b>{verified(payload?.comparable_true_clv_rows)}</b></div>
     </div>
     <div className="slate-card maturity-surface">
-      <div className="maturity-caveat"><b>RESEARCH ≠ BET</b><p>A gate met means eligibility for review, never automatic production promotion. Parent and submarket counts are not independent samples. Missing data stays NOT VERIFIED.</p></div>
+      <div className="maturity-caveat"><b>RESEARCH ≠ BET · PRODUCTION NOT AUTHORIZED</b><p>A gate met means eligibility for review, never automatic production promotion. Parent and submarket counts are not independent samples. Missing data and source freshness stay NOT VERIFIED without direct proof.</p></div>
       {message && <div className="slate-empty" role="status">{message}</div>}
       {!!errors.length && <div className="slate-empty">PARTIAL REPORTS — could not verify: {errors.join(", ")}</div>}
       {payload && rows.length === 0 && <div className="slate-empty">No verified market maturity reports available.</div>}
-      {!!rows.length && <div className="maturity-scroll"><table className="maturity-table"><thead><tr><th>Market</th><th>OOS model</th><th>Mapped</th><th>Priced</th><th>True CLV</th><th>Research stage</th><th>Blocking gate</th><th>Source report</th></tr></thead><tbody>
+      {!!rows.length && <div className="maturity-scroll"><table className="maturity-table"><thead><tr><th>Market</th><th>OOS model</th><th>Mapped</th><th>Priced</th><th>True CLV</th><th>Parent research stage</th><th>Market blockers</th><th>Source report</th><th>Production</th></tr></thead><tbody>
         {rows.map(row => <tr key={row.key}>
           <td><strong>{verified(row.label)}</strong><small>{verified(row.parent_family)}</small></td>
-          <td>{gate(row.model_evidence?.current, row.model_evidence?.target)}<small>{verified(row.model_evidence?.unit)}</small></td>
+          <td>{gate(row.model_evidence?.current, row.model_evidence?.target)}<small>{verified(row.model_evidence?.unit)}</small><small>{row.market_specific_evidence_verified ? "DIRECT SAMPLE REPORTED" : "MARKET OOS NOT VERIFIED"}</small></td>
           <td>{verified(row.mapped_rows)}</td><td>{verified(row.priced_rows)}</td>
           <td>{gate(row.true_clv_rows, row.true_clv_target)}</td>
-          <td>{verified(row.parent_research_stage)}</td><td>{verified(row.next_gate)}</td><td><small>{verified(row.source)}</small></td>
+          <td>{verified(row.parent_research_stage)}</td><td>{verified(row.next_gate)}{(row.blockers?.length ?? 0) > 1 && <small>Other blockers: {row.blockers?.slice(1).join(" · ")}</small>}</td><td><small>{verified(row.source)}</small><small>Report: {verified(row.report_status)}</small></td><td>{row.production_promotion_allowed ? "OPERATOR VERIFICATION REQUIRED" : "BLOCKED"}</td>
         </tr>)}
       </tbody></table></div>}
     </div>
