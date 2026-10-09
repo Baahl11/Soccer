@@ -111,3 +111,39 @@ jobs:
           name: soccer-maturity-desktop-mobile-qa
           path: /tmp/soccer-maturity-browser-qa/
           if-no-files-found: ignore
+
+      - name: Read-only live anonymous route probe (no deployment)
+        run: |
+          set -euo pipefail
+          BASE=https://soccer-edge-api.onrender.com
+          HEALTH=$(curl -sSL --connect-timeout 10 --max-time 40 -o /tmp/soccer-live-health.json -w '%{http_code}' "$BASE/health" || true)
+          echo "Live health HTTP: ${HEALTH:-NOT_VERIFIED}"
+          if [ "$HEALTH" = 200 ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              payload = json.loads(Path("/tmp/soccer-live-health.json").read_text())
+              print("Live backend commit:", payload.get("render_git_commit") or "NOT VERIFIED")
+              print("Live backend health:", payload.get("status") or "NOT VERIFIED")
+          except Exception:
+              print("Live backend response shape: NOT VERIFIED")
+          PY
+          fi
+          for path in /app /app-v3-react; do
+            CODE=$(curl -sSL --connect-timeout 10 --max-time 40 -o /dev/null -w '%{http_code}' "$BASE$path" || true)
+            echo "Live public shell ${path}: ${CODE:-NOT_VERIFIED}"
+          done
+          CODE=$(curl -sSL --connect-timeout 10 --max-time 40 -o /tmp/soccer-live-anon-maturity.json -w '%{http_code}' "$BASE/app/api/v2/maturity" || true)
+          echo "Live ANONYMOUS maturity endpoint: ${CODE:-NOT_VERIFIED}"
+          if [ "$CODE" = "200" ]; then
+            echo "SECURITY FAILURE: anonymous request returned research payload"
+            exit 1
+          fi
+          if [ "$CODE" = "401" ]; then
+            echo "Anonymous authentication guard confirmed in currently deployed service"
+          elif [ "$CODE" = "404" ]; then
+            echo "Maturity PR is not yet deployed; live auth/role/real UI cannot be verified"
+          else
+            echo "Live route authorization NOT VERIFIED; no release inferred"
+          fi
