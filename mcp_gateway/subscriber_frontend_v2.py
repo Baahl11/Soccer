@@ -640,9 +640,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       const v=x=>x===null||x===undefined||x===''?'NOT VERIFIED':esc(x);
       const n=(x,t)=>v(x)+(t===null||t===undefined?'':' / '+v(t));
       const rows=Array.isArray(d.market_rows)?d.market_rows:[];
-      const header='<h2>Market Maturity · '+v(d.status)+'</h2><p>Research evidence only. Model review does not authorize BET, and missing evidence is NOT VERIFIED.</p>';
-      const table='<div class="table-wrap"><table><thead><tr><th>Market</th><th>OOS model</th><th>Mapped</th><th>Priced</th><th>True CLV</th><th>Research stage</th><th>Blocker</th><th>Source</th></tr></thead><tbody>'+
-        rows.map(r=>'<tr><td>'+v(r.label)+'</td><td>'+n(r.model_evidence?.current,r.model_evidence?.target)+'</td><td>'+v(r.mapped_rows)+'</td><td>'+v(r.priced_rows)+'</td><td>'+n(r.true_clv_rows,r.true_clv_target)+'</td><td>'+v(r.parent_research_stage)+'</td><td>'+v(r.next_gate)+'</td><td>'+v(r.source)+'</td></tr>').join('')+'</tbody></table></div>';
+      const header='<h2>Market Maturity · '+v(d.status)+'</h2><p>Research evidence only. Model review does not authorize BET. Missing evidence and unverified source freshness remain NOT VERIFIED.</p>';
+      const table='<div class="table-wrap"><table><thead><tr><th>Market</th><th>OOS model</th><th>Mapped</th><th>Priced</th><th>True CLV</th><th>Parent research stage</th><th>Market blockers</th><th>Source report</th><th>Production</th></tr></thead><tbody>'+
+        rows.map(r=>'<tr><td>'+v(r.label)+'</td><td>'+n(r.model_evidence?.current,r.model_evidence?.target)+'</td><td>'+v(r.mapped_rows)+'</td><td>'+v(r.priced_rows)+'</td><td>'+n(r.true_clv_rows,r.true_clv_target)+'</td><td>'+v(r.parent_research_stage)+'</td><td>'+v((r.blockers||[]).join(' | '))+'</td><td>'+v(r.source)+' ('+v(r.report_status)+')</td><td>'+(r.production_promotion_allowed?'OPERATOR VERIFICATION REQUIRED':'BLOCKED')+'</td></tr>').join('')+'</tbody></table></div>';
       const errors=d.errors&&Object.keys(d.errors).length?'<p>PARTIAL REPORTS: '+Object.keys(d.errors).map(v).join(', ')+'</p>':'';
       box.innerHTML=header+(rows.length?table:'No verified market reports available.')+errors;
       MATURITY_LOADED=true;
