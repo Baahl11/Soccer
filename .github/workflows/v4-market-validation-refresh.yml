@@ -8,6 +8,7 @@ on:
     workflows:
       - "Phase 17 Postgres CLV Validation - Canonical Refresh"
       - "Phase 13 OOS Calibration Validation"
+      - "Team Corners Validation Refresh"
     types: [completed]
   push:
     branches: [main]
@@ -15,6 +16,12 @@ on:
 
 permissions:
   contents: write
+
+# Downstream stage regenerates reports only after a successful upstream run.
+# Validation must never alter historical probabilities or promotion gates.
+concurrency:
+  group: v4-market-validation-refresh
+  cancel-in-progress: false
 
 jobs:
   refresh:
