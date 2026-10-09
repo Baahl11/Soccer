@@ -25,6 +25,13 @@ export interface TeamScoringProfile {
   tone: "home" | "away";
   labels: string[];
   values: Array<Array<number | null>>;
+  /** Context-only input provenance; distributions are derived estimates. */
+  gfRate?: number;
+  gaRate?: number;
+  source?: string;
+  sampleN?: number;
+  capturedAt?: string;
+  observationScope?: string | null;
 }
 
 export interface SectionState {

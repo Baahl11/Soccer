@@ -351,8 +351,8 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
   const confidenceRaw = numberValue(availability.confidence ?? modelContext.confidence);
   const confidence = confidenceRaw === null ? null : Number((Math.abs(confidenceRaw) <= 1 ? confidenceRaw * 100 : confidenceRaw).toFixed(0));
   const matrix = parseScoreMatrix(sport.score_matrix);
-  const teamGoalMatrices = makeTeamGoalMatrices(homeName, awayName, xgHome, xgAway,
-    typeof sport.goal_rate_semantics === "string" ? sport.goal_rate_semantics : null);
+  const teamEvidence = evidenceSections(payload);
+  const teamGoalMatrices = makeTeamGoalMatrices(homeName, awayName, teamEvidence);
   const profile = parseSportProfile(sport.sport_profile);
   const edge = chooseEdge(payload);
   const over25 = chooseOver25(payload);
@@ -422,12 +422,12 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
       sportProfile: stateFor(profile.length > 0, "SPORT_PROFILE"),
       scoreMatrix: stateFor(!!matrix, "SCORE_MATRIX"),
       scoringProfiles: teamGoalMatrices.length
-        ? section("VERIFIED", "Derived independently from persisted Poisson RAW SPORT scoring rates. Not empirical GF/GA histories or measured xG.")
-        : section("NOT_VERIFIED", "No paired persisted Poisson goal rates; team matrices are hidden rather than filled with sample data."),
+        ? section("VERIFIED", "Estimated from persisted team season goals-for and goals-against averages. Independence assumption; not empirical score frequencies.")
+        : section("NOT_VERIFIED", "No paired same-snapshot API-Football season GF/GA rates for this team. No duplicate match model matrix is displayed."),
       over25: over25 ? section("VERIFIED") : section("NOT_VERIFIED", "No verified Over 2.5 row with both RAW SPORT and fair-market probability is available."),
     },
     missingSections,
-    evidenceSections: evidenceSections(payload),
+    evidenceSections: teamEvidence,
     marketRows: marketEvidenceRows(payload),
     modelProvenance: {
       source: typeof sport.source === "string" ? sport.source : null,

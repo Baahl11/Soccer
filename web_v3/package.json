@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run test:matrices && tsc -b && vite build",
+    "test:matrices": "node scripts/test-team-goal-matrices.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -191,10 +191,19 @@ function TeamHeatmap({ profile }: { profile: TeamScoringProfile }) {
   return (
     <div className={"team-heat team-goal-card " + profile.tone}>
       <div className="team-heat-head">
-        <b>{profile.team}</b><span>{profile.tone === "home" ? "HOME" : "AWAY"}</span>
+        <b>{profile.team}</b><span>SEASON · ALL VENUES</span>
       </div>
+      {profile.gfRate !== undefined && profile.gaRate !== undefined && <div className="team-heat-rates">
+        <span>GF / game <b>{profile.gfRate.toFixed(2)}</b></span>
+        <span>GA / game <b>{profile.gaRate.toFixed(2)}</b></span>
+      </div>}
       <div className="team-heat-map"><Heatmap matrix={matrix} /></div>
       <small>GF → columns · GA ↓ rows · 4+ includes tail</small>
+      {profile.capturedAt && <p className="team-heat-source">
+        API-Football season averages · n={profile.sampleN ?? "—"} · {profile.capturedAt.slice(0,10)}
+        {profile.observationScope === "POSTGAME_OBSERVATION" || profile.observationScope === "POST_KICKOFF_OBSERVATION"
+          ? " · CAPTURED AFTER KICKOFF" : " · Historical snapshot"}
+      </p>}
     </div>
   );
 }
@@ -218,15 +227,15 @@ function TeamMatricesPanel({ match }: { match: MatchCenterViewModel }) {
     return <MissingPanel title="Team Goals Matrices · GF × GA" section={match.sections.scoringProfiles} />;
   }
   return <article className="panel team-goals-panel">
-    <header><h3>Team Goals Matrices · GF × GA</h3><span>DERIVED POISSON · SPORT MODEL</span></header>
+    <header><h3>Team Goals Matrices · GF × GA</h3><span>SEASON BASELINE · ESTIMATED</span></header>
     <div className="team-goal-cards">
       {match.scoringProfiles.map(profile => <TeamHeatmap key={profile.tone} profile={profile} />)}
     </div>
     <p className="team-goal-provenance">
-      Model-implied full-time GF × GA from stored pre-match λ values.
-      Independent Poisson approximation, not observed team goal frequencies, measured xG or a market probability.
-      Both grids represent the same fixture from each team's perspective; cells may differ from the ranked, persisted scoreline matrix.
-      {match.modelProvenance?.capturedAt ? " Model snapshot: " + match.modelProvenance.capturedAt + "." : ""}
+      These are separate team season baselines from persisted API-Football goals scored and conceded per game,
+      NOT the match prediction above. Independent Poisson estimates (GF × GA), not observed joint score frequencies,
+      verified xG or betting probabilities. All-venue season averages are used, not venue-specific form.
+      Snapshots captured after kickoff are historical context only and must never be used to reinterpret the original pre-match model.
     </p>
   </article>;
 }
