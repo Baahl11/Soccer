@@ -19,7 +19,7 @@ function numericSeasonAverage(value: EvidenceItem["value"]): number | null {
   // API-Football represents season-goal averages as numeric strings such as "1.6".
   // Parse only simple nonnegative decimals; never infer missing or malformed data.
   if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? value : null;
-  if (typeof value !== "string" || !/^(?:[0-9]+)(?:\\.[0-9]+)?$/.test(value.trim())) return null;
+  if (typeof value !== "string" || !/^[0-9]+(?:[.][0-9]+)?$/.test(value.trim())) return null;
   const n = Number(value);
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
