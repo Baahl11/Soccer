@@ -368,7 +368,6 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                     json.dumps({key: value for key, value in tick.items() if key not in {"events", "shortlist_state", "observed_final_fixtures"}}),
                 ),
             )
-            _persist_final_observations(cur, tick)
             primary_clv_signal_anchor_store_v4.persist_tick_anchor_rows(cur, tick)
             # Multiple research/maturation events for the same fixture and
             # stage can legitimately be produced within one scheduler tick. The
@@ -412,4 +411,7 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                         })
 
                 _persist_refresh_event(cur, persist_tick_view, event)
+            # Always apply terminal scores LAST: backfill events may carry an older
+            # registry status; final results must not regress to NS in this tick.
+            _persist_final_observations(cur, tick)
     return True
