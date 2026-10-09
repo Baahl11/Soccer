@@ -14,7 +14,7 @@
 ## Implemented on the proposed change
 
 1. `GET /app/api/v2/maturity`: authenticated PRO-only, no-store, read-only scientific resource. The source is persisted reports, not fabricated market data. It carries no production promotion permission.
-2. New `Maturity` tab on the current `/app` frontend, including mobile navigation; refreshed at most every five minutes automatically while the page remains open and manually via Refresh.
+2. New `Maturity` tab on the current `/app` frontend, including mobile navigation; refreshed when entering the tab if the prior fetch is older than five minutes, or manually via Refresh.
 3. Per parent market: model/OOS sample with unit and optional target, mapped selection rows, observed priced rows, strict True CLV rows and target, unique CLV fixtures, research stage, next gate, full source-reported blockers, exact source artifact, report timestamp if provided.
 4. Preserve child market segments independently: `1X2`, `BTTS`, `FT_TOTALS`, `HOME_TT`, `AWAY_TT`, `1H`, `FT_CORNERS`, `TEAM_CORNERS`, `2H`, `CARDS`, `SHOTS`, `SOT`, `GOALSCORER`, `ASSISTS`, `PLAYER_CARDS`, `GK_SAVES` (16 segments across nine aggregated families).
 5. Missing fields stay **NOT VERIFIED**, never synthetic zero; OOS counts and market-price observations must not be conflated with CLV. Each card explicitly says **Production BET approval: NO**.
