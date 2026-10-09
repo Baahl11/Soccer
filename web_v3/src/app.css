@@ -346,3 +346,25 @@ main{min-width:0}.topbar{height:48px;display:flex;align-items:center;justify-con
 .team-heat-rates span b{display:block;margin-top:3px;font-size:17px;color:#eaf8f4;font-variant-numeric:tabular-nums}
 .team-goal-card .team-heat-head span{max-width:105px;text-align:right;font-size:9px;line-height:1.5}
 .team-heat-source{margin:10px 0 1px;padding-top:8px;border-top:1px solid rgba(70,129,145,.3);font-size:10px;line-height:1.55;color:#9fb4c1;overflow-wrap:anywhere}
+
+/* Center score on the midpoint of the two crests, never on the quality card. */
+.hero-main{display:grid;grid-template-columns:minmax(0,1fr) 146px;gap:18px;align-items:center}
+.hero-matchup{display:grid;grid-template-columns:minmax(0,1fr) minmax(74px,96px) minmax(0,1fr);align-items:center;gap:8px;min-width:0}
+.hero-matchup>.team{min-width:0;align-content:center}
+.hero-matchup>.vs{width:100%;min-width:0;display:grid;place-items:center;justify-self:center;align-self:center;text-align:center;white-space:nowrap}
+.hero-matchup .final-result{width:100%;display:grid;place-items:center}
+.hero-matchup .final-result strong{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:clamp(20px,3.6vw,30px)}
+.hero-matchup .final-result small{white-space:nowrap;letter-spacing:.05em;font-size:10px}
+@media(max-width:740px){
+  .hero-main{grid-template-columns:minmax(0,1fr) 112px;gap:9px}
+  .hero-matchup{grid-template-columns:minmax(0,1fr) 75px minmax(0,1fr);gap:2px}
+  .hero-matchup .final-result strong{font-size:clamp(19px,4vw,28px)}
+  .hero-matchup .final-result small{font-size:8px}
+}
+@media(max-width:430px){
+  .hero-main{grid-template-columns:minmax(0,1fr) 92px;gap:5px}
+  .hero-matchup{grid-template-columns:minmax(0,1fr) 61px minmax(0,1fr);gap:1px}
+  .hero-matchup .final-result strong{font-size:21px}
+  .hero-matchup .final-result small{font-size:7px}
+  .hero-matchup .team b{font-size:10px;overflow-wrap:anywhere}
+}
