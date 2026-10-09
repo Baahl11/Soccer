@@ -132,4 +132,26 @@ def as_features(sporting: dict[str, Any], fx: dict[str, Any],
                 if f"{prefix}_name" not in fields and isinstance(name,str) and name.strip():
                     add(f"{prefix}_name",name[:100],"API_FOOTBALL_FIXTURE_LINEUPS")
                 add(f"{prefix}_starter",starters,"API_FOOTBALL_FIXTURE_LINEUPS")
+
+    # Provider fixture events can exist even in leagues with no aggregate match
+    # statistics, for example reserve competitions. Do NOT infer card totals.
+    for index, row in enumerate((sporting.get("fixture_events") or [])[:80]):
+        if not isinstance(row,dict): continue
+        side = _side((row.get("team") or {}).get("id"),home_id,away_id)
+        if not side:continue
+        prefix=f"events.{side}_{index:03d}"
+        typ=row.get("type")
+        detail=row.get("detail")
+        if isinstance(typ,str) and typ.strip():
+            add(f"{prefix}_type",typ[:60],"API_FOOTBALL_FIXTURE_EVENTS")
+        if isinstance(detail,str) and detail.strip():
+            add(f"{prefix}_detail",detail[:110],"API_FOOTBALL_FIXTURE_EVENTS")
+        tm=row.get("time") or {}
+        elapsed=_numeric(tm.get("elapsed")) if isinstance(tm,dict) else None
+        if elapsed is not None: add(f"{prefix}_minute",elapsed,"API_FOOTBALL_FIXTURE_EVENTS")
+        player=row.get("player") or {}
+        if isinstance(player,dict):
+            name=player.get("name")
+            if isinstance(name,str) and name.strip():
+                add(f"{prefix}_player",name[:100],"API_FOOTBALL_FIXTURE_EVENTS")
     return fields
