@@ -19,7 +19,7 @@ on:
     paths: [".github/workflows/player-props-clv-validation.yml"]
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -29,8 +29,19 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
+      - name: Checkout canonical state for durable Player Props reports
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+          sparse-checkout: |
+            soccer_edge_state/analysis/player_props_clv_v4_report.json
+            soccer_edge_state/analysis/player_props_clv_v4_tracking.jsonl
+          sparse-checkout-cone-mode: false
+
       - name: Inspect live Player Props close diagnostics
         shell: bash
         run: |
@@ -86,3 +97,49 @@ jobs:
 
           test "$HTTP_CODE" = "200"
           jq -e '.provider_requests_added == 0 and .production_promotion_allowed == false and (.rows | type == "array")' /tmp/player_props_clv.json >/dev/null
+
+      - name: Validate and materialize bounded strict Player Props evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT=state/soccer_edge_state/analysis/player_props_clv_v4_report.json
+          TRACK=state/soccer_edge_state/analysis/player_props_clv_v4_tracking.jsonl
+          GENERATED_AT_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          jq -e '
+            .production_promotion_allowed == false
+            and .provider_requests_added == 0
+            and (.true_clv_rows | type) == "number"
+            and (.rows | type) == "array"
+            and .true_clv_rows == (.rows | length)
+          ' /tmp/player_props_clv.json >/dev/null
+          jq --arg generated "$GENERATED_AT_UTC" \
+            '. + {research_report_generated_at_utc: $generated} | del(.rows)' \
+            /tmp/player_props_clv.json > "$REPORT"
+          jq -c '.rows[]' /tmp/player_props_clv.json > "$TRACK"
+          # Zero is an honest absence of comparable strict closes, never an invented quote.
+          jq -e '.true_clv_rows >= 0 and .production_promotion_allowed == false' "$REPORT" >/dev/null
+          echo "Strict Player Props comparable rows: $(jq -r .true_clv_rows "$REPORT")"
+          echo "Current tracked rows: $(wc -l < "$TRACK")"
+
+      - name: Persist read-only Player Props CLV audit
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/player_props_clv_v4_report.json \
+            soccer_edge_state/analysis/player_props_clv_v4_tracking.jsonl
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Persist daily strict Player Props CLV research report"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin soccer-edge-state
+            if git rebase --autostash origin/soccer-edge-state \
+              && git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 3))
+          done
+          echo "::error::Unable to persist canonical Player Props CLV research"
+          exit 1
