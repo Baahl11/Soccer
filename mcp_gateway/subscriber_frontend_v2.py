@@ -267,6 +267,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   <div class="nav-label">Trust</div>
   <nav class="nav">
     <button data-page="performance"><i>▦</i>Performance</button>
+    <button data-page="maturity"><i>◫</i>Market Maturity</button>
     <button data-page="myedge"><i>☆</i>My Edge</button>
     <button data-page="account"><i>○</i>Account</button>
   </nav>
@@ -319,6 +320,11 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     <div id="performanceBody" class="panel"><div class="empty"><b>Open this page to load verified evidence.</b>Research/OOS metrics are never presented as a customer BET ledger.</div></div>
   </section>
 
+  <section id="maturity" class="page">
+    <div class="page-head"><div><h1>Market Maturity</h1><div class="sub">Persisted OOS, price evidence and True CLV by market. Research is not a BET.</div></div></div>
+    <div id="maturityBody" class="panel">Open this section for verified research data.</div>
+  </section>
+
   <section id="myedge" class="page">
     <div class="page-head"><div><h1>My Edge</h1><div class="sub">Saved decisions and tracked matches, persisted to your authenticated account.</div></div><span class="decision">EDGE PRO</span></div>
     <div id="savedBody" class="panel"><div class="empty"><b>Open My Edge to load saved items.</b>Your saved product state is isolated from all model inputs.</div></div>
@@ -332,7 +338,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 </main>
 </div>
 <nav class="mobile-nav">
-  <button class="active" data-page="today">Today</button><button data-page="picks">Picks</button><button data-page="leans">Leans</button><button data-page="matches">Matches</button><button data-page="performance">Results</button><button data-page="myedge">My Edge</button><button data-page="account">Account</button>
+  <button class="active" data-page="today">Today</button><button data-page="picks">Picks</button><button data-page="leans">Leans</button><button data-page="matches">Matches</button><button data-page="performance">Results</button><button data-page="maturity">Maturity</button><button data-page="myedge">My Edge</button><button data-page="account">Account</button>
 </nav>
 
 <div id="authModal" class="modal" aria-hidden="true"><div class="modal-card">
