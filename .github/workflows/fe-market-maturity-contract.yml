@@ -11,6 +11,7 @@ on:
       - "web_v3/package.json"
       - "web_v3/package-lock.json"
       - "tests/test_subscriber_maturity_market_inventory.py"
+      - "tests/test_subscriber_maturity_state_artifacts.py"
       - ".github/workflows/fe-market-maturity-contract.yml"
   workflow_dispatch:
 
@@ -23,6 +24,23 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout canonical research state (read-only)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: soccer-edge-state
+          path: state
+          sparse-checkout: |
+            soccer_edge_state/analysis/clv_v4_postgres_report.json
+            soccer_edge_state/analysis/v4_017_1x2_calibration_validation.json
+            soccer_edge_state/analysis/v4_018_btts_calibration_validation.json
+            soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
+            soccer_edge_state/analysis/v4_019_team_totals_oos_validation.json
+            soccer_edge_state/analysis/v4_020_1h_oos_validation.json
+            soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+            soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+            soccer_edge_state/analysis/phase14_cards_referee_validation.json
+            soccer_edge_state/analysis/phase15_player_props_validation.json
+          sparse-checkout-cone-mode: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -61,6 +79,7 @@ jobs:
           # of the FE2 suite and every new maturity regression mandatory.
           PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_subscriber_maturity_market_inventory.py \
+            tests/test_subscriber_maturity_state_artifacts.py \
             tests/test_subscriber_frontend_v2.py \
             -k "not test_fe2_full_slate_exposes_coverage_and_insufficient_data_copy and not test_fe2_every_slate_fixture_is_openable_for_data_review and not test_fe2_match_intelligence_is_sport_first_not_market_first and not test_fe2_visible_sport_input_count_matches_rendered_inputs"
       - name: Verify React build
