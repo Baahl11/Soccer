@@ -323,11 +323,22 @@ def _build_market_inventory(
         }
         if key in {"1X2", "BTTS", "FT_TOTALS", "1H", "2H", "FT_CORNERS"}:
             model_evidence = dict(_dict(parent.get("model_evidence")))
+        elif key in {"HOME_TT", "AWAY_TT"}:
+            role = "HOME" if key == "HOME_TT" else "AWAY"
+            role_report = _dict(_dict(report.get("by_team_role")).get(role))
+            n = _integer(role_report.get("n"))
+            model_evidence = {
+                "current": n,
+                "target": None,
+                "unit": f"{role.lower()} probability OOS rows, shared fixture cohort",
+                "ready": bool(n is not None and n > 0),
+                "independent_oos": n is not None,
+            }
         elif key in {"YELLOW_CARDS", "RED_CARDS"}:
             node = _dict(report.get("yellow_cards" if key == "YELLOW_CARDS" else "red_cards"))
             model_evidence = {
                 "current": _integer(node.get("oos_n")),
-                "target": _integer(node.get("minimum_oos")),
+                "target": _integer(node.get("minimum_oos") if key == "YELLOW_CARDS" else node.get("minimum_market_review")),
                 "unit": "card OOS observations",
                 "ready": False,
             }
@@ -359,6 +370,38 @@ def _build_market_inventory(
                 "independent_oos": oos.get("oos_validation_complete") is True,
             }
 
+        quality: dict[str, Any] = {"brier": None, "log_loss": None, "ece": None, "scope": None}
+        if key == "1X2":
+            node = _dict(_dict(report.get("canonical_multiclass_oos")).get("temperature_scaled"))
+            quality.update(brier=node.get("multiclass_brier"), log_loss=node.get("multiclass_log_loss"), scope="multiclass OOS")
+        elif key == "BTTS":
+            node = _dict(report.get("calibration_sample"))
+            quality.update(brier=node.get("brier"), log_loss=node.get("log_loss"), ece=node.get("ece"), scope="calibration sample (not independently OOS)")
+        elif key in {"HOME_TT", "AWAY_TT"}:
+            role = "HOME" if key == "HOME_TT" else "AWAY"
+            node = _dict(_dict(report.get("by_team_role")).get(role))
+            quality.update(brier=node.get("mean_brier"), log_loss=node.get("mean_log_loss"), scope=f"{role.lower()} OOS role rows, shared fixtures")
+        elif key == "1H":
+            node = _dict(_dict(report.get("calibration")).get("challenger"))
+            quality.update(brier=node.get("brier"), log_loss=node.get("log_loss"), scope="1H OOS challenger")
+        elif key == "2H":
+            node = _dict(report.get("challenger"))
+            quality.update(brier=node.get("brier_o1_5"), log_loss=node.get("log_loss_o1_5"), scope="2H O1.5 OOS challenger")
+        elif key == "RED_CARDS":
+            node = _dict(_dict(report.get("red_cards")).get("overall"))
+            quality.update(brier=node.get("brier"), log_loss=node.get("log_loss"), scope="red card rare-event OOS")
+        # Numeric quality observations are evidence, not promotion authorization.
+
+        report_clv = _dict(report.get("true_clv"))
+        report_clv_rows = None
+        if key in {"1X2", "BTTS", "FT_TOTALS", "1H", "2H"}:
+            report_clv_rows = _integer(report_clv.get("rows"))
+        elif parent_name == "Player Props":
+            report_key = {"SHOTS":"shots","SOT":"sot","GOALSCORER":"goalscorer","ASSISTS":"assists","PLAYER_CARDS":"cards","GK_SAVES":"gk_saves"}.get(key)
+            report_clv_rows = _integer(_dict(_dict(report_clv.get("by_family")).get(report_key or "")).get("rows"))
+        # These are explicitly REPORT-derived counts; never substitute them
+        # for the independently canonical CLV dataset.
+
         # Sparse canonical reports cannot prove zero observations in a missing key.
         # Only an explicitly stored numeric 0 is a verified zero.
         clv_n = _integer(clv.get(key))
@@ -389,6 +432,8 @@ def _build_market_inventory(
             "report_status": parent.get("report_status") if report else "NOT VERIFIED",
             "parent_research_stage": parent.get("stage") if report else None,
             "model_evidence": model_evidence,
+            "model_quality": quality,
+            "report_true_clv_rows": report_clv_rows,
             "mapped_rows": mapped_n,
             "priced_rows": priced_n,
             "true_clv_rows": clv_n,
