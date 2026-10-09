@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { loadAuthState, signIn, signOut, signUp, type AuthState } from "./auth";
 import { loadMatchCenter, loadSlate, type SlateItem } from "./live";
+import { EvidenceExplorer } from "./EvidenceExplorer";
 import type {
   MatchCenterViewModel,
   ScoreMatrix,
@@ -263,25 +264,7 @@ function evidenceSourceName(raw: string | null): string {
 }
 
 function EvidenceTechnicalDetails({ group }: { group: SportEvidenceGroup }) {
-  return (
-    <details className="evidence-technical">
-      <summary><span>All {group.items.length} fields and sources</span><span aria-hidden="true">+</span></summary>
-      <div className="evidence-technical-table">
-        {group.items.map(item => (
-          <div className="evidence-technical-row" key={item.key}>
-            <div className="evidence-technical-value">
-              <span>{item.label}</span><strong>{sportValue(item)}</strong>
-            </div>
-            <div className="evidence-technical-meta">
-              {evidenceSourceName(item.source)}
-              {item.sampleN !== null ? " · n=" + item.sampleN : ""}
-              {item.capturedAt ? " · " + item.capturedAt.slice(0,16).replace("T"," ") + " UTC" : ""}
-            </div>
-          </div>
-        ))}
-      </div>
-    </details>
-  );
+  return <EvidenceExplorer group={group} />;
 }
 
 function EvidenceForm({ form }: { form?: SportEvidenceItem }) {
