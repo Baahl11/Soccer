@@ -344,3 +344,99 @@ def test_finished_fixture_backfill_has_postgame_scope(monkeypatch):
     }]})
     team={item["key"]:item for item in sections[0]["items"]}
     assert team["team_performance.home_wins_split"]["observation_scope"]=="POSTGAME_OBSERVATION"
+
+
+def test_backfill_rotates_three_queues_without_budget_overrun():
+    """Queue fairness must not change sport projections or exceed the API cap."""
+    sql = research_backfill_v1._PENDING_SQL
+    assert "NOW() - interval '14 days'" in sql
+    assert "NOW() - interval '48 hours'" in sql
+    assert "PARTITION BY queue_lane" in sql
+    assert "ROW_NUMBER() OVER" in sql
+    assert "MOD(queue_lane - MOD(" in sql
+    assert "ORDER BY lane_rank ASC" in sql
+    assert "LIMIT %s" in sql
+    assert "RESEARCH_BACKFILL%" not in sql  # psycopg placeholder trap
+    assert all(token in sql for token in (
+        "team_performance.home_wins_split,value",
+        "team_performance.home_draws_split,value",
+        "team_performance.home_losses_split,value",
+        "team_performance.away_wins_split,value",
+        "team_performance.away_draws_split,value",
+        "team_performance.away_losses_split,value",
+    ))
+    assert research_backfill_v1.MAX_BACKFILL_FIXTURES_PER_TICK <= 2
+
+
+def test_backfill_emits_selected_fixture_ids_and_protects_quota(monkeypatch):
+    fixture = {
+        "fixture_id": 1612077, "league_id": 906, "season": 2026,
+        "home_team_id": 18681, "away_team_id": 18683,
+        "home_team": "Boca Juniors Res.", "away_team": "Colón Res.",
+        "kickoff": "2026-10-08T22:00:00Z", "status": "FT",
+        "league": "Reserve League", "country": "Argentina",
+        "round": "Clausura - 12", "venue": None, "city": None,
+        "status_long": "Match Finished", "data_tier": "RESEARCH_ONLY",
+    }
+    calls = []
+    async def fake_stats(team_id, *_args):
+        calls.append(team_id)
+        return {"fixtures":{"played":{"total":12}}, "team_id":team_id}
+
+    from mcp_gateway import automation as base
+    monkeypatch.setattr(base, "_team_stats", fake_stats)
+    monkeypatch.setattr(research_backfill_v1,"pending_fixtures",lambda limit:[dict(fixture)])
+    monkeypatch.setattr(automation_v2,"_API_CALLS_THIS_TICK",0)
+    monkeypatch.setattr(automation_v2,"_LAST_DAILY_REMAINING",200)
+    tick = {"events":[]}
+    got = asyncio.run(research_backfill_v1.collect(tick))
+    assert len(got) == 1
+    assert calls == [18681, 18683]
+    assert tick["research_backfill_status"] == "ATTEMPTED"
+    assert tick["research_backfill_selected_fixture_ids"] == [1612077]
+    assert tick["research_backfill_emitted_fixture_ids"] == [1612077]
+    assert got[0]["sporting"]["collection_scope"] == "POSTGAME_OBSERVATION"
+    assert got[0]["bet_eligible"] is False
+    assert got[0]["raw_projection"] is None
+
+    monkeypatch.setattr(
+        automation_v2, "_API_CALLS_THIS_TICK",
+        automation_v2.MAX_API_CALLS_PER_TICK - 2,
+    )
+    guarded = {}
+    assert asyncio.run(research_backfill_v1.collect(guarded)) == []
+    assert guarded["research_backfill_status"] == "DEFERRED_TICK_BUDGET"
+    assert calls == [18681, 18683]
+
+
+def test_candidate_query_keeps_original_16_columns_for_persistence(monkeypatch):
+    """The new ranking columns must never leak into the persisted fixture dict."""
+    from mcp_gateway import persistence
+    row = (
+        1612077, 906, "Reserve League", "Argentina", 2026, "Clausura - 12",
+        datetime(2026,10,8,22,tzinfo=timezone.utc), "FT", "Finished",
+        18681, "Boca Juniors Res.", 18683, "Colón Res.", None, None,
+        "RESEARCH_ONLY",
+    )
+    class Cursor:
+        def __init__(self): self.query = ""
+        def execute(self,query,args):
+            self.query = query
+            assert args == (2,)
+        def fetchall(self): return [row]
+        def __enter__(self): return self
+        def __exit__(self,*_): return False
+    class Conn:
+        def __init__(self): self.cursor_obj = Cursor()
+        def cursor(self): return self.cursor_obj
+        def __enter__(self): return self
+        def __exit__(self,*_): return False
+    conn = Conn()
+    monkeypatch.setattr(persistence, "persistence_configured", lambda: True)
+    monkeypatch.setattr(persistence, "_connect", lambda: conn)
+    chosen = research_backfill_v1.pending_fixtures(2)
+    assert len(chosen) == 1
+    assert chosen[0]["fixture_id"] == 1612077
+    assert "queue_lane" not in chosen[0]
+    assert "lane_rank" not in chosen[0]
+    assert "PARTITION BY queue_lane" in conn.cursor_obj.query
