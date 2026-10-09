@@ -301,6 +301,8 @@ function TeamEvidence({ group, match }: { group: SportEvidenceGroup; match: Matc
     const venueL = validCount(item(side, "losses_split"));
     const venueSum = venueW !== null && venueD !== null && venueL !== null ? venueW + venueD + venueL : null;
     const venueVerified = venueSum !== null && venueSum > 0 && (homeAwayGames === null || venueSum === homeAwayGames);
+    const venueScope = item(side, "wins_split")?.observationScope;
+    const venueAfterKickoff = venueScope === "POSTGAME_OBSERVATION" || venueScope === "POST_KICKOFF_OBSERVATION";
     const venueCount = venueVerified ? (homeAwayGames ?? venueSum) : homeAwayGames;
     const showW = venueVerified ? venueW : fullW;
     const showD = venueVerified ? venueD : fullD;
@@ -322,7 +324,7 @@ function TeamEvidence({ group, match }: { group: SportEvidenceGroup; match: Matc
       </div>
       <div className="venue-priority">
         <strong>{venueVerified ? (home ? "AT HOME" : "AWAY FROM HOME") : "FULL SEASON"}</strong>
-        <small>{venueVerified ? "Verified venue record" : "Venue W/D/L not verified; displaying season record"}</small>
+        <small>{venueVerified ? (venueAfterKickoff ? "Captured after kickoff · not pre-match evidence" : "Persisted venue results") : "Venue W/D/L not verified; displaying season record"}</small>
       </div>
       <div className="evidence-games"><strong>{displayCount ?? "—"}</strong><span>{venueVerified ? (home ? "home games" : "away games") : "season games"}</span></div>
       <div className="evidence-wdl">
@@ -335,7 +337,7 @@ function TeamEvidence({ group, match }: { group: SportEvidenceGroup; match: Matc
         <span className="draws" style={{width:(100*(showD??0)/shownRecordSum)+"%"}} />
         <span className="losses" style={{width:(100*(showL??0)/shownRecordSum)+"%"}} />
       </div>}
-      {venueVerified && <div className="venue-season-recap">All season · {fullMatches ?? "—"} matches · {fullW ?? "—"}W {fullD ?? "—"}D {fullL ?? "—"}L</div>}
+      {venueVerified && <div className="venue-season-recap">Season totals · {fullMatches ?? "—"} matches · {fullW ?? "—"}W {fullD ?? "—"}D {fullL ?? "—"}L</div>}
       <div className="evidence-team-metrics">
         {venueGoalsRate !== null && <div><span>{home ? "Home" : "Away"} goals / match <i>venue</i></span><b>{venueGoalsRate.toFixed(2)}</b></div>}
         {venueAgainstRate !== null && <div><span>{home ? "Home" : "Away"} conceded / match <i>venue</i></span><b>{venueAgainstRate.toFixed(2)}</b></div>}

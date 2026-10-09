@@ -1993,6 +1993,7 @@ def _match_evidence_sections(relational_evidence: dict[str, Any]) -> list[dict[s
             "freshness": raw.get("freshness"),
             "model_version": raw.get("model_version") or snapshot.get("model_version"),
             "status": "PERSISTED" if source else "SOURCE_NOT_VERIFIED",
+            "observation_scope": _dict(snapshot.get("payload")).get("observation_scope"),
         })
     order = ("TEAMS", "GOALS", "CORNERS", "CARDS", "PLAYERS", "AVAILABILITY", "CONTEXT", "OTHER")
     return [

@@ -62,6 +62,7 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
     injuries = event.get("injuries") if isinstance(event.get("injuries"), list) else None
     sample = raw.get("sample") if isinstance(raw.get("sample"), dict) else {}
     sporting = event.get("sporting") if isinstance(event.get("sporting"), dict) else {}
+    observation_scope = sporting.get("collection_scope") or "OBSERVATION_SCOPE_NOT_RECORDED"
     home_stats = sporting.get("home_stats") if isinstance(sporting.get("home_stats"), dict) else {}
     away_stats = sporting.get("away_stats") if isinstance(sporting.get("away_stats"), dict) else {}
     home_recent = sporting.get("home_recent") if isinstance(sporting.get("home_recent"), list) else []
@@ -425,6 +426,7 @@ def build(tick: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
         "model_version": tick.get("model_version") or event.get("model_version"),
         "data_tier": coverage.get("data_tier"),
         "sport_first": True,
+        "observation_scope": observation_scope,
         "market_fields_included": False,
         "feature_count": len(features),
         "missing_feature_count": missing_count,

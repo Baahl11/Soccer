@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from mcp_gateway import automation_v2, feature_snapshot_v4, research_backfill_v1, subscriber_contract_v2
 
@@ -107,7 +107,7 @@ def test_backfill_emits_only_independent_nonbet_sport_evidence(monkeypatch):
         "fixture_id": 1612077, "league_id": 906, "season": 2026,
         "home_team_id": 18681, "away_team_id": 18683,
         "home_team": "Boca Juniors Res.", "away_team": "Colón Res.",
-        "kickoff": "2026-10-08T22:00:00Z", "status": "NS",
+        "kickoff": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat(), "status": "NS",
         "league": "Reserve League", "country": "Argentina",
         "round": "Clausura - 12", "venue": None, "city": None,
         "status_long": "Not Started", "data_tier": "D",
@@ -290,3 +290,53 @@ def test_venue_splits_are_preserved_as_separate_persisted_fields():
     assert by_key["team_performance.away_wins_split"]["value"] == 2
     assert by_key["team_performance.away_wins_total"]["value"] == 7
     assert by_key["team_performance.home_wins_split"]["sample_n"] == 16
+
+
+def test_research_backfill_missing_venue_wdl_triggers_new_snapshot():
+    query = research_backfill_v1._PENDING_SQL
+    assert "team_performance.home_wins_split,value" in query
+    assert "team_performance.away_wins_split,value" in query
+    assert "team_performance.home_draws_split,value" in query
+    assert "team_performance.away_losses_split,value" in query
+    assert "stage LIKE 'RESEARCH_BACKFILL%'" in query
+    assert "interval '24 hours'" in query
+
+
+def test_finished_fixture_backfill_has_postgame_scope(monkeypatch):
+    fixture = {
+        "fixture_id": 1612077, "league_id": 906, "season": 2026,
+        "home_team_id": 18681, "away_team_id": 18683,
+        "home_team": "Boca Juniors Res.", "away_team": "Colón Res.",
+        "kickoff": "2026-10-08T22:00:00Z", "status": "FT",
+        "league": "Reserve League", "country": "Argentina",
+        "round": "Clausura - 12", "venue": None, "city": None,
+        "status_long": "Match Finished", "data_tier": "RESEARCH_ONLY",
+    }
+    async def fake_stats(team_id, *_args):
+        return {"team_id":team_id, "fixtures": {
+            "played":{"home":17,"away":15,"total":32},
+            "wins":{"home":12,"away":2}, "draws":{"home":1,"away":3},
+            "loses":{"home":4,"away":10},
+        }}
+    from mcp_gateway import automation as base
+    monkeypatch.setattr(base,"_team_stats",fake_stats)
+    monkeypatch.setattr(research_backfill_v1,"pending_fixtures",lambda limit:[dict(fixture)])
+    monkeypatch.setattr(automation_v2,"_API_CALLS_THIS_TICK",0)
+    monkeypatch.setattr(automation_v2,"_LAST_DAILY_REMAINING",200)
+    events=asyncio.run(research_backfill_v1.collect({"events":[]}))
+    assert len(events)==1
+    event=events[0]
+    assert event["stage"]=="RESEARCH_BACKFILL_POSTGAME"
+    assert event["sporting"]["collection_scope"]=="POSTGAME_OBSERVATION"
+    assert event["classification"] is None and event["bet_eligible"] is False
+    assert event["raw_projection"] is None and event["market_decision"] is None
+    snapshot=feature_snapshot_v4.build({"generated_at_utc":"2026-10-09T05:00:00Z"},event)
+    assert snapshot["observation_scope"]=="POSTGAME_OBSERVATION"
+    assert snapshot["features"]["team_performance.home_wins_split"]["value"]==12
+    assert snapshot["features"]["team_performance.away_losses_split"]["value"]==10
+    assert feature_snapshot_v4.validate(snapshot)==[]
+    sections=subscriber_contract_v2._match_evidence_sections({"feature_snapshots":[{
+        "captured_at":snapshot["captured_at"],"payload":snapshot,
+    }]})
+    team={item["key"]:item for item in sections[0]["items"]}
+    assert team["team_performance.home_wins_split"]["observation_scope"]=="POSTGAME_OBSERVATION"

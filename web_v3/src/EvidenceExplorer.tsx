@@ -73,6 +73,7 @@ function EvidenceBody({group}: InputProps) {
     const i=METRIC_ORDER.indexOf(a),j=METRIC_ORDER.indexOf(b);
     return (i<0?100:i)-(j<0?100:j) || a.localeCompare(b);
   });
+  const postKickoffRows = group.items.filter(item=>item.observationScope === "POSTGAME_OBSERVATION" || item.observationScope === "POST_KICKOFF_OBSERVATION");
   const sources = new Map<string, Row[]>();
   for (const item of group.items) {
     const key=item.source || "";
@@ -80,6 +81,7 @@ function EvidenceBody({group}: InputProps) {
   }
 
   return <div className="eex-content">
+    {postKickoffRows.length>0 && <p className="eex-postgame-note">Some statistics were captured after kickoff. They describe the season at collection time, not the inputs available to the original pre-match prediction.</p>}
     {model.length>0 && <section className="eex-section">
       <div className="eex-section-title"><span className="eex-section-index">01</span><div><h4>Model inputs</h4><p>Projected scoring rates, not measured xG</p></div></div>
       <div className="eex-model-grid">

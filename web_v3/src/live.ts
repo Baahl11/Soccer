@@ -282,6 +282,7 @@ function evidenceSections(payload: Json): MatchCenterViewModel["evidenceSections
         capturedAt: typeof item.captured_at === "string" ? item.captured_at : null,
         modelVersion: typeof item.model_version === "string" ? item.model_version : null,
         status: item.status === "PERSISTED" ? "PERSISTED" as const : "SOURCE_NOT_VERIFIED" as const,
+        observationScope: typeof item.observation_scope === "string" ? item.observation_scope : null,
       }];
     });
     return items.length ? [{

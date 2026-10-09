@@ -53,6 +53,7 @@ export interface EvidenceItem {
   capturedAt: string | null;
   modelVersion: string | null;
   status: "PERSISTED" | "SOURCE_NOT_VERIFIED";
+  observationScope?: string | null;
 }
 
 export interface EvidenceSection {

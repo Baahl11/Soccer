@@ -31,28 +31,36 @@ _PENDING_SQL = """
                ORDER BY sf.captured_at DESC, sf.snapshot_id DESC LIMIT 1
            ), 'RESEARCH_ONLY') AS data_tier
     FROM soccer_fixtures f
-    WHERE f.kickoff BETWEEN NOW() - interval '30 hours' AND NOW() + interval '2 hours'
+    WHERE f.kickoff BETWEEN NOW() - interval '30 hours' AND NOW() + interval '24 hours'
       AND f.home_team_id > 0 AND f.away_team_id > 0
       AND f.league_id > 0 AND f.season > 0
       AND f.status IS DISTINCT FROM 'CANC'
       AND f.status IS DISTINCT FROM 'PST'
+      -- A fixture is complete only when BOTH venue W/D/L triplets exist in
+      -- a coherent snapshot. Mere played_split values are insufficient.
       AND NOT EXISTS (
          SELECT 1 FROM soccer_feature_snapshots s
          WHERE s.fixture_id = f.fixture_id
-           AND s.payload #>> '{features,team_performance.home_played_split,value}' IS NOT NULL
-           AND s.payload #>> '{features,team_performance.away_played_split,value}' IS NOT NULL
+           AND s.payload #>> '{features,team_performance.home_wins_split,value}' IS NOT NULL
+           AND s.payload #>> '{features,team_performance.home_draws_split,value}' IS NOT NULL
+           AND s.payload #>> '{features,team_performance.home_losses_split,value}' IS NOT NULL
+           AND s.payload #>> '{features,team_performance.away_wins_split,value}' IS NOT NULL
+           AND s.payload #>> '{features,team_performance.away_draws_split,value}' IS NOT NULL
+           AND s.payload #>> '{features,team_performance.away_losses_split,value}' IS NOT NULL
       )
       AND NOT EXISTS (
          SELECT 1 FROM soccer_feature_snapshots s
          WHERE s.fixture_id = f.fixture_id
-           AND s.stage = 'RESEARCH_BACKFILL'
+           AND s.stage LIKE 'RESEARCH_BACKFILL%'
            AND s.captured_at > NOW() - interval '12 hours'
       )
     ORDER BY
         CASE WHEN EXISTS (
             SELECT 1 FROM soccer_model_runs m WHERE m.fixture_id = f.fixture_id
         ) THEN 0 ELSE 1 END,
-        f.kickoff DESC, f.fixture_id
+        CASE WHEN f.kickoff > NOW() THEN 0 ELSE 1 END,
+        ABS(EXTRACT(EPOCH FROM (f.kickoff - NOW()))) ASC,
+        f.fixture_id
     LIMIT %s
 """
 
@@ -113,23 +121,43 @@ async def collect(tick: dict[str, Any]) -> list[dict[str, Any]]:
         # Even a response without statistics is an explicit, time-bounded attempt.
         # No placeholder goals, injuries, xG, lineups or odds are invented.
         tier = fx.pop("data_tier")
-        fx["kickoff"] = fx["kickoff"].isoformat() if hasattr(fx["kickoff"], "isoformat") else fx["kickoff"]
+        kickoff = fx.get("kickoff")
+        if isinstance(kickoff, datetime):
+            kickoff_dt = kickoff if kickoff.tzinfo is not None else kickoff.replace(tzinfo=timezone.utc)
+        elif isinstance(kickoff, str):
+            try:
+                kickoff_dt = datetime.fromisoformat(kickoff.replace("Z", "+00:00"))
+                if kickoff_dt.tzinfo is None:
+                    kickoff_dt = kickoff_dt.replace(tzinfo=timezone.utc)
+            except ValueError:
+                kickoff_dt = None
+        else:
+            kickoff_dt = None
+        terminal = str(fx.get("status") or "").upper() in {"FT", "AET", "PEN"}
+        after_kickoff = kickoff_dt is None or now >= kickoff_dt
+        if terminal:
+            stage, scope = "RESEARCH_BACKFILL_POSTGAME", "POSTGAME_OBSERVATION"
+        elif after_kickoff:
+            stage, scope = "RESEARCH_BACKFILL_POST_KICKOFF", "POST_KICKOFF_OBSERVATION"
+        else:
+            stage, scope = "RESEARCH_BACKFILL", "PREMATCH_OBSERVATION"
+        fx["kickoff"] = kickoff.isoformat() if hasattr(kickoff, "isoformat") else kickoff
         events.append({
             "event_type": "SPORT_FEATURE_RESEARCH_BACKFILL",
-            "stage": "RESEARCH_BACKFILL",
+            "stage": stage,
             "fixture": fx,
             "coverage": {"data_tier": tier},
             "sporting": {
                 "home_stats": home_stats if isinstance(home_stats, dict) else {},
                 "away_stats": away_stats if isinstance(away_stats, dict) else {},
                 "sport_data": "RESEARCH_ONLY",
-                "collection_scope": "HISTORICAL_TEAM_STATS_ONLY",
+                "collection_scope": scope,
             },
             "classification": None,
             "availability_confidence": None,
             "bet_eligible": False,
             "raw_projection": None,
             "market_decision": None,
-            "notes": ["Sport evidence only; historical inputs never promote a BET.", *errors],
+            "notes": ["Sport evidence only; collection timing is explicit and never promotes a BET.", *errors],
         })
     return events
