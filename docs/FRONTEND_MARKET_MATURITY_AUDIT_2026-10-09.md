@@ -106,7 +106,17 @@ These commit timestamps establish that files existed in the GitHub state branch;
 ### Product-safety and release status
 - Code and actual persisted state have been reconciled in CI. Brier/log loss/ECE fields are shown only in their correct source scope; missing calibration remains NOT VERIFIED.
 - React V3 browser QA uses a mocked authenticated success payload **derived from the real state branch**, plus anonymous/forbidden/unavailable responses. It is not real deployed account E2E.
-- Current environment could not reach `https://soccer-edge-api.onrender.com/`; Render account service inspection requires the user to select/confirm a workspace. Production branch, live effective plan, mobile deployment, and `web_v3/dist` status remain NOT VERIFIED.
+- The local analysis environment could not directly reach `https://soccer-edge-api.onrender.com/`, but a **read-only GitHub Actions probe succeeded** on 2026-10-09: `/health` HTTP 200 with deployed commit `258646340247f4dce120e630416c1935f9ed04fc` (`soccer-edge-mcp-v1` baseline); `/app` HTTP 200; `/app-v3-react` HTTP 200; anonymous `/app/api/v2/maturity` HTTP **404**, confirming PR #68 is **not deployed**. This does not verify paid entitlements or production maturity UI. Render service configuration inspection still requires confirmation of the workspace; production artifact freshness, role-specific authorization and deployed `web_v3/dist` maturity changes remain NOT VERIFIED.
 - Four pre-existing FE2 copy assertions remain excluded by the current contract workflow, so a green workflow is **not** an all-suite pass.
 - React V3 BET Performance remains disabled. **Issue #70 cannot be closed** until verified production data/authorization/browser testing, complete frontend market maturity requirements and remaining scientific provenance are addressed.
 - Do not merge/deploy, change model weights/gates, or grant BET eligibility from the display alone.
+
+
+### Verified CI browser and public-state results
+- GitHub Actions `FE Market Maturity Contract` run **37989456698**: completed **SUCCESS**.
+- CI checks out current `soccer-edge-state` reports and verifies the 21-row source contract; Python route permissions (401/403/PRO), rendered JavaScript and Vite build pass.
+- Chromium browser QA using a **mock response with real-state rows**, run at desktop 1440x900 and mobile 390x844: 21 visible market rows, independently scrollable mobile table, no full-document horizontal overflow; 401, 403 and 503 states hide research rows. Screenshot artifacts are archived under that Actions run.
+- Public deployed endpoint probe: health **200 / ok**, deployed SHA **258646340247f4dce120e630416c1935f9ed04fc**; `/app` and `/app-v3-react` **200**, maturity API **404** for anonymous request because the PR branch is not deployed.
+- This verifies the running public backend commit and shell route availability; it does **not** verify a production maturity page, a 401 entitlement guard on the undeployed route, real PRO/OWNER accounts, or source branch configuration inside Render.
+
+**Release decision remains NO-GO.** Do not close Issue #70 or merge/deploy PR #68 based on CI alone.
