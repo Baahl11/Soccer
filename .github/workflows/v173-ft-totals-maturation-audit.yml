@@ -3,6 +3,8 @@ name: v173 FT Totals Maturation Audit
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "31 7 * * *"
   push:
     branches: [main]
     paths:
