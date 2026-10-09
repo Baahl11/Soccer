@@ -107,6 +107,23 @@ def _generic_sample(report: dict[str, Any]) -> tuple[int | None, int | None, str
 
 
 def _model_evidence(label: str, report: dict[str, Any]) -> dict[str, Any]:
+    # The independent OOS report, where it exists, outranks a mixed validation
+    # sample. Otherwise label the sample honestly instead of calling it OOS.
+    if label == "1X2":
+        oos = _dict(report.get("canonical_multiclass_oos"))
+        calibrated = _dict(oos.get("temperature_scaled"))
+        n = _integer(calibrated.get("n"))
+        return {"current": n, "target": None, "unit": "independent multiclass OOS rows", "ready": bool(n and n > 0), "independent_oos": n is not None}
+    if label == "BTTS":
+        oos = _dict(report.get("canonical_oos_calibration"))
+        n = _integer(oos.get("rows")) if oos.get("available") is True else None
+        return {"current": n, "target": None, "unit": "reported OOS calibration rows", "ready": bool(n and n > 0), "independent_oos": n is not None}
+    if label == "FT Totals":
+        sample = _dict(report.get("sample"))
+        n = _integer(sample.get("model_settled"))
+        return {"current": n, "target": _integer(sample.get("minimum_model_review_settled")),
+                "unit": "settled validation decisions (not independently verified OOS)",
+                "ready": False, "independent_oos": False}
     if label == "Team Totals":
         sample = _dict(report.get("oos_sample"))
         current = _integer(sample.get("evaluated_fixtures"))
@@ -170,8 +187,9 @@ def _model_evidence(label: str, report: dict[str, Any]) -> dict[str, Any]:
         return {
             "current": max(oos_rows) if oos_rows else None,
             "target": None,
-            "unit": "prop OOS rows",
+            "unit": "prop OOS rows (maximum across submarkets; not additive)",
             "ready": any(value > 0 for value in oos_rows),
+            "independent_oos": any(value > 0 for value in oos_rows),
             "structural_profiles_max": max(profiles) if profiles else None,
         }
 
@@ -318,32 +336,37 @@ def _build_market_inventory(
         elif key == "TEAM_CORNERS":
             node = _dict(report.get("team_corners"))
             model_evidence = {
-                "current": _integer(node.get("formation_adjusted_evaluations")),
-                "target": _integer(node.get("minimum_formation_adjusted")),
-                "unit": "team-side formation-adjusted observations",
+                "current": _integer(node.get("evaluated_rows")),
+                "target": _integer(node.get("minimum_team_rows")),
+                "unit": "team-corners OOS rows (both team sides)",
                 "ready": False,
             }
             n, target = model_evidence["current"], model_evidence["target"]
             model_evidence["ready"] = bool(n is not None and target and n >= target)
         elif parent_name == "Player Props":
             families = _dict(report.get("prop_families"))
-            node = _dict(families.get(key))
+            report_key = {
+                "SHOTS": "shots", "SOT": "sot", "GOALSCORER": "goalscorer",
+                "ASSISTS": "assists", "PLAYER_CARDS": "cards", "GK_SAVES": "gk_saves",
+            }.get(key)
+            node = _dict(families.get(report_key or ""))
             oos = _dict(node.get("oos_evidence"))
             model_evidence = {
                 "current": _integer(oos.get("player_game_rows")),
-                "target": _integer(oos.get("minimum_oos_rows")),
+                "target": _integer(oos.get("minimum_player_games_for_review")) or None,
                 "unit": "player-game OOS rows",
-                "ready": False,
+                "ready": oos.get("oos_validation_complete") is True,
+                "independent_oos": oos.get("oos_validation_complete") is True,
             }
-            n, target = model_evidence["current"], model_evidence["target"]
-            model_evidence["ready"] = bool(n is not None and target and n >= target)
 
         # Sparse canonical reports cannot prove zero observations in a missing key.
         # Only an explicitly stored numeric 0 is a verified zero.
         clv_n = _integer(clv.get(key))
         mapped_n = _integer(mapped.get(key))
         priced_n = _integer(priced.get(key))
-        direct_oos = model_evidence.get("current") is not None
+        direct_oos = bool(model_evidence.get("independent_oos", model_evidence.get("current") is not None))
+        # The sample count can be real while an OOS calibration is not complete.
+        # Keep these separate so an observed 0 does not become a VERIFIED OOS study.
         blockers = []
         if not report:
             blockers.append("SOURCE_REPORT_NOT_VERIFIED")
@@ -373,6 +396,8 @@ def _build_market_inventory(
             "next_gate": blockers[0] if blockers else None,
             "blockers": blockers,
             "market_specific_evidence_verified": direct_oos,
+            "source_model_version": report.get("model_version") if report else None,
+            "source_temporal_provenance": "NOT VERIFIED",
             "production_promotion_allowed": False,
             "classification": "RESEARCH_ONLY",
         })
