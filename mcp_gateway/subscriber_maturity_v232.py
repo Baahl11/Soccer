@@ -294,7 +294,6 @@ def _build_market_inventory(
     clv = _dict(clv_report.get("family_counts"))
     mapped = _dict(clv_report.get("mapped_family_counts"))
     priced = _dict(clv_report.get("priced_entry_family_counts"))
-    has_market_report = bool(clv_report)
     inventory = []
 
     for label, parent_name, key in _MARKET_INVENTORY:
@@ -341,26 +340,41 @@ def _build_market_inventory(
             n, target = model_evidence["current"], model_evidence["target"]
             model_evidence["ready"] = bool(n is not None and target and n >= target)
 
-        # Unknown fields remain null. A canonical 0 is valid only after an
-        # actual canonical CLV report has been loaded.
+        # Sparse canonical reports cannot prove zero observations in a missing key.
+        # Only an explicitly stored numeric 0 is a verified zero.
         clv_n = _integer(clv.get(key))
-        if clv_n is None and has_market_report and key in _COLLECTION_KEYS.get(parent_name or "", ()):
-            clv_n = 0
+        mapped_n = _integer(mapped.get(key))
+        priced_n = _integer(priced.get(key))
+        direct_oos = model_evidence.get("current") is not None
+        blockers = []
+        if not report:
+            blockers.append("SOURCE_REPORT_NOT_VERIFIED")
+        if not direct_oos:
+            blockers.append("MARKET_OOS_NOT_VERIFIED")
+        if priced_n is None:
+            blockers.append("MARKET_PRICE_HISTORY_NOT_VERIFIED")
+        if clv_n is None:
+            blockers.append("MARKET_TRUE_CLV_NOT_VERIFIED")
+        for blocker in parent.get("blockers") or []:
+            if blocker not in blockers:
+                blockers.append(blocker)
+        collection_keys = _COLLECTION_KEYS.get(parent_name or "", ())
+        has_independent_parent_target = bool(report) and len(collection_keys) == 1 and key in collection_keys
         inventory.append({
             "key": key,
             "label": label,
             "parent_family": parent_name,
-            "source": parent.get("source"),
-            "report_status": parent.get("report_status"),
-            "parent_research_stage": parent.get("stage"),
+            "source": parent.get("source") if report else None,
+            "report_status": parent.get("report_status") if report else "NOT VERIFIED",
+            "parent_research_stage": parent.get("stage") if report else None,
             "model_evidence": model_evidence,
-            "mapped_rows": _integer(mapped.get(key)),
-            "priced_rows": _integer(priced.get(key)),
+            "mapped_rows": mapped_n,
+            "priced_rows": priced_n,
             "true_clv_rows": clv_n,
-            "true_clv_target": _integer(parent.get("true_clv_target")),
-            "next_gate": parent.get("next_gate"),
-            "blockers": list(parent.get("blockers") or []),
-            "market_specific_evidence_verified": bool(model_evidence.get("current") is not None),
+            "true_clv_target": _integer(parent.get("true_clv_target")) if has_independent_parent_target else None,
+            "next_gate": blockers[0] if blockers else None,
+            "blockers": blockers,
+            "market_specific_evidence_verified": direct_oos,
             "production_promotion_allowed": False,
             "classification": "RESEARCH_ONLY",
         })
@@ -417,7 +431,7 @@ def load_maturity_evidence(*, force: bool = False) -> dict[str, Any]:
 
         rows = _build_family_rows(clv_report, reports)
         result = {
-            "status": "OK" if rows and not errors else ("PARTIAL" if rows else "UNAVAILABLE"),
+            "status": "UNAVAILABLE" if not (clv_report or any(reports.values())) else ("PARTIAL" if errors else "OK"),
             "families": rows,
             "market_rows": _build_market_inventory(rows, clv_report, reports),
             "source_model_version": clv_report.get("model_version"),
