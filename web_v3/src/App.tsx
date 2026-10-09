@@ -259,7 +259,7 @@ function evidenceSourceName(raw: string | null): string {
   if (!raw) return "Source unverified";
   if (raw.startsWith("API_FOOTBALL")) return "API-Football";
   if (raw.startsWith("SOCCER_EDGE")) return "Soccer Edge model";
-  return raw.replaceAll("_", " ").toLowerCase();
+  return raw.replace(/_/g, " ").toLowerCase();
 }
 
 function EvidenceTechnicalDetails({ group }: { group: SportEvidenceGroup }) {
@@ -384,7 +384,7 @@ function EvidenceBoard({ match, category }: { match: MatchCenterViewModel; categ
       <span className="evidence-count">{count} fields saved</span>
     </header>
     {groups.map(group => <details className="evidence-group" key={group.category} open={category !== undefined || group.category === "TEAMS"}>
-      <summary><span className="evidence-group-name">{group.category === "TEAMS" ? "Team comparison" : group.category[0]+group.category.slice(1).toLowerCase()}</span><small>{group.items.length} fields {group.dataTier ? "· "+group.dataTier.replaceAll("_"," ").toLowerCase() : ""}</small></summary>
+      <summary><span className="evidence-group-name">{group.category === "TEAMS" ? "Team comparison" : group.category[0]+group.category.slice(1).toLowerCase()}</span><small>{group.items.length} fields {group.dataTier ? "· "+group.dataTier.replace(/_/g," ").toLowerCase() : ""}</small></summary>
       <EvidenceGroupContent group={group} match={match}/>
     </details>)}
     <p className="evidence-footnote">Historical and persisted performance helps explain the sporting matchup; it does not verify lineups, injuries or an actionable betting price.</p>
