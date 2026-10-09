@@ -352,7 +352,7 @@ function adaptMatch(payload: Json): MatchCenterViewModel {
   const confidence = confidenceRaw === null ? null : Number((Math.abs(confidenceRaw) <= 1 ? confidenceRaw * 100 : confidenceRaw).toFixed(0));
   const matrix = parseScoreMatrix(sport.score_matrix);
   const teamEvidence = evidenceSections(payload);
-  const teamGoalMatrices = makeTeamGoalMatrices(homeName, awayName, teamEvidence);
+  const teamGoalMatrices = makeTeamGoalMatrices(homeName, awayName, teamEvidence ?? []);
   const profile = parseSportProfile(sport.sport_profile);
   const edge = chooseEdge(payload);
   const over25 = chooseOver25(payload);
