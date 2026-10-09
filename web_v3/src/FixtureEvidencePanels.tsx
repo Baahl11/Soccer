@@ -111,3 +111,35 @@ export function FixturePlayersPanel({match}:{match:MatchCenterViewModel}) {
     <p className="fixture-footnote">Player box scores and reported lineups are historical/live observations only. No player status is inferred from absent provider rows.</p>
   </section>;
 }
+
+type TimelineItem={key:string; side:"home"|"away";index:number;fields:Record<string,EvidenceItem>};
+export function FixtureEventsPanel({match}:{match:MatchCenterViewModel}) {
+  const items=(match.evidenceSections||[]).filter(g=>g.category==="EVENTS").flatMap(g=>g.items)
+    .filter(x=>x.source==="API_FOOTBALL_FIXTURE_EVENTS");
+  const events=new Map<string,TimelineItem>();
+  for(const item of items){
+    const m=item.key.match(/^events\.(home|away)_(\d+)_(type|detail|minute|player)$/);
+    if(!m)continue;
+    const [,side,indexStr,field]=m, index=Number(indexStr),k=side+"_"+indexStr;
+    const cur=events.get(k)||{key:k,side:side as "home"|"away",index,fields:{}};
+    cur.fields[field]=item;events.set(k,cur);
+  }
+  if(!events.size)return unavailable(match,"Match events");
+  const ordered=[...events.values()].sort((a,b)=>
+    Number(a.fields.minute?.value??999)-Number(b.fields.minute?.value??999) ||
+    a.index-b.index);
+  return <section className="fixture-stats-card">
+    <header><h3>Match events</h3><span>PROVIDER OBSERVED · {ordered.length} EVENTS</span></header>
+    <div className="fixture-events-list">
+      {ordered.map(event=><article key={event.key} className={"fixture-event-row "+event.side}>
+        <b className="fixture-event-minute">{event.fields.minute ? renderNumber(event.fields.minute.value)+"′":"—"}</b>
+        <div className="fixture-event-text">
+          <strong>{event.fields.type?.value ? String(event.fields.type.value) : "Match event"}{event.fields.detail ? " · "+event.fields.detail.value : ""}</strong>
+          <span>{event.side==="home"?match.home.name:match.away.name}{event.fields.player ? " · "+event.fields.player.value : ""}</span>
+        </div>
+      </article>)}
+    </div>
+    {sourceContext(items)}
+    <p className="fixture-footnote">Provider-reported chronology, not a full event guarantee. An absent event is unknown; card counts are not inferred from partial event logs.</p>
+  </section>;
+}
