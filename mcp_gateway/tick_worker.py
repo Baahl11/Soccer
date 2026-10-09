@@ -287,8 +287,14 @@ async def _main() -> int:
             payload["research_backfill_count"] = 0
             payload["research_backfill_error"] = str(research_exc)[:250]
         timings["research_backfill_ms"] = _elapsed_ms(stage_started)
-        _emit_timing("research_backfill_done", count=payload.get("research_backfill_count", 0),
-                     error=payload.get("research_backfill_error"))
+        _emit_timing(
+            "research_backfill_done",
+            count=payload.get("research_backfill_count", 0),
+            status=payload.get("research_backfill_status", "UNSPECIFIED"),
+            selected_fixture_ids=payload.get("research_backfill_selected_fixture_ids", []),
+            emitted_fixture_ids=payload.get("research_backfill_emitted_fixture_ids", []),
+            error=payload.get("research_backfill_error"),
+        )
 
         stage_started = time.monotonic()
         _normalize_refresh_event_model_lineage(payload)
