@@ -1,0 +1,170 @@
+name: Soccer All-Markets Maturation Watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 */6 * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/soccer-all-markets-watchdog.yml"
+      - "scripts/soccer_market_watchdog.py"
+      - "tests/test_soccer_market_watchdog.py"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: soccer-all-markets-watchdog
+  cancel-in-progress: false
+
+jobs:
+  all-markets-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout report-only canonical state
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/clv_v4_postgres_report.json
+            soccer_edge_state/analysis/oos_calibration_v4_report.json
+            soccer_edge_state/analysis/market_performance_summary.json
+            soccer_edge_state/analysis/settlement_postgres_v4.json
+            soccer_edge_state/analysis/research_derivative_market_audit.json
+            soccer_edge_state/analysis/player_props_clv_v4_report.json
+            soccer_edge_state/analysis/player_props_oos_v4_report.json
+            soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
+            soccer_edge_state/analysis/v4_017_1x2_calibration_validation.json
+            soccer_edge_state/analysis/v4_018_btts_calibration_validation.json
+            soccer_edge_state/analysis/v4_019_team_totals_oos_validation.json
+            soccer_edge_state/analysis/v4_020_1h_oos_validation.json
+            soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+            soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+            soccer_edge_state/analysis/phase14_cards_referee_validation.json
+            soccer_edge_state/analysis/phase15_player_props_validation.json
+          sparse-checkout-cone-mode: false
+
+      - name: Unit-test market lineage and guardrails
+        run: python -m unittest discover -s tests -p test_soccer_market_watchdog.py -v
+
+      - name: Capture latest source report commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORTS=(
+            clv_v4_postgres_report.json
+            oos_calibration_v4_report.json
+            market_performance_summary.json
+            settlement_postgres_v4.json
+            research_derivative_market_audit.json
+            player_props_clv_v4_report.json
+            player_props_oos_v4_report.json
+            v4_016_ft_totals_production_validation.json
+            v4_017_1x2_calibration_validation.json
+            v4_018_btts_calibration_validation.json
+            v4_019_team_totals_oos_validation.json
+            v4_020_1h_oos_validation.json
+            v4_021_2h_oos_validation.json
+            v4_022_corners_oos_validation.json
+            phase14_cards_referee_validation.json
+            phase15_player_props_validation.json
+          )
+          : > /tmp/market_commit_dates.tsv
+          for file in "${REPORTS[@]}"; do
+            date=$(gh api -X GET "repos/$GITHUB_REPOSITORY/commits" \
+              -f sha=soccer-edge-state \
+              -f "path=soccer_edge_state/analysis/$file" \
+              -F per_page=1 \
+              --jq '.[0].commit.committer.date // ""')
+            printf '%s\t%s\n' "$file" "$date" >> /tmp/market_commit_dates.tsv
+          done
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          mapping={}
+          for row in Path("/tmp/market_commit_dates.tsv").read_text().splitlines():
+              name,date=row.split("\t",1)
+              mapping[name]=date
+          Path("/tmp/market_commits.json").write_text(json.dumps(mapping,sort_keys=True))
+          PY
+
+      - name: Compare every research family against canonical market evidence
+        id: audit
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python scripts/soccer_market_watchdog.py \
+            --state-dir state \
+            --commits /tmp/market_commits.json \
+            --output /tmp/soccer_all_markets_health.json
+
+      - name: Publish market-by-market evidence in Actions summary
+        if: always()
+        run: |
+          if [ -s /tmp/soccer_all_markets_health.json ]; then
+            python - <<'PY'
+          import json, os
+          r=json.load(open("/tmp/soccer_all_markets_health.json", encoding="utf-8"))
+          lines=["# Soccer All-Markets: "+r["status"],
+                 "Data freshness, OOS model evidence, CLV and actionable settlements are separate gates.",
+                 "Zero new BET/LEAN decisions is not an ingestion failure.", "",
+                 "## Families",
+                 "| Family | Status | Strict CLV | Report age h | Blockers |",
+                 "|---|---|---:|---:|---:|"]
+          for f,x in r["families"].items():
+              lines.append("| "+f+" | "+str(x["status"])+" | "+str(x["true_clv_rows"])+
+                           " | "+str(x["report_age_hours"])+" | "+str(x["blocker_count"])+" |")
+          lines.extend(["", "## Critical", *("- "+x for x in r["critical"]),
+                        "", "## Warnings", *("- "+x for x in r["warnings"])])
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+              out.write("\n".join(lines)+"\n")
+          PY
+          fi
+
+      - name: Retain machine-readable audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-all-markets-health
+          path: /tmp/soccer_all_markets_health.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Raise deduplicated research incident on critical error
+        if: steps.audit.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TITLE="Soccer all-markets maturity audit critical"
+          EXISTING=$(gh issue list --state open \
+            --search '"Soccer all-markets maturity audit critical" in:title' \
+            --json number --jq '.[0].number // ""')
+          if [ -n "$EXISTING" ]; then
+            echo "Incident already open: #$EXISTING"
+            exit 0
+          fi
+          {
+            echo "## Critical all-market evidence or report lineage failure"
+            echo "Do not reinterpret missing CLV as verified prices or promote a market."
+            echo
+            echo "Workflow: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
+            cat /tmp/soccer_all_markets_health.json || true
+          } > /tmp/market_incident.md
+          gh issue create --title "$TITLE" --body-file /tmp/market_incident.md
+
+      - name: Surface critical status as failed job
+        if: steps.audit.outcome == 'failure'
+        run: |
+          echo "::error::All-markets audit flagged stale or inconsistent market research"
+          exit 1
