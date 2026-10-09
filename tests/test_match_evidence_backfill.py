@@ -516,7 +516,7 @@ def test_fixture_stats_and_players_are_persisted_as_observed_only():
                     "cards":{"yellow":1,"red":0},
                     "goals":{"total":0,"assists":1},
                 }]}]}],
-            "fixture_lineups":[{"team":{"id":20},"formation":"4-3-3",
+            "fixture_events":[{"team":{"id":10},"type":"Card",\n              "detail":"Yellow Card","player":{"id":123,"name":"Player A"},\n              "time":{"elapsed":45}}],\n            "fixture_lineups":[{"team":{"id":20},"formation":"4-3-3",
                 "startXI":[{"player":{"id":234,"name":"Player B"}}]}],
         },
     }
@@ -534,13 +534,15 @@ def test_fixture_stats_and_players_are_persisted_as_observed_only():
     assert f["players.home_123_assists"]["value"]==1
     assert f["players.away_234_starter"]["value"] is True
     assert f["stats.away_formation"]["value"]=="4-3-3"
+    assert f["events.home_000_type"]["value"]=="Card"
+    assert f["events.home_000_minute"]["value"]==45
     assert all(f[k]["source"].startswith("API_FOOTBALL_FIXTURE_")
                for k in ("corners.home_corners","players.home_123_name"))
     groups=subscriber_contract_v2._match_evidence_sections(
         {"feature_snapshots":[{"captured_at":snap["captured_at"],"payload":snap}]}
     )
     categories={group["category"] for group in groups}
-    assert {"CORNERS","CARDS","PLAYERS","STATS"}.issubset(categories)
+    assert {"CORNERS","CARDS","PLAYERS","STATS","EVENTS"}.issubset(categories)
     observed=[item for g in groups for item in g["items"]
               if item["key"]=="corners.home_corners"][0]
     assert observed["observation_scope"]=="POSTGAME_OBSERVATION"
@@ -560,12 +562,12 @@ def test_fixture_observation_provider_empty_is_missing_not_zero(monkeypatch):
     monkeypatch.setattr(automation_v2,"_LAST_DAILY_REMAINING",200)
     tick={"generated_at_utc":"2026-10-09T02:00:00Z"}
     result=asyncio.run(fixture_observations_v1.collect(tick))
-    assert len(calls)==3 and len(result)==1
+    assert len(calls)==4 and len(result)==1
     assert result[0]["bet_eligible"] is False
     assert result[0]["raw_projection"] is None
     assert result[0]["sporting"]["collection_scope"]=="POSTGAME_OBSERVATION"
     assert tick["fixture_observation_attempts"][0]["status"]=="PROVIDER_EMPTY"
     snap=feature_snapshot_v4.build(tick,result[0])
-    assert not any(key.startswith(("corners.","cards.","stats.","players."))
+    assert not any(key.startswith(("corners.","cards.","stats.","players.","events."))
                    for key in snap["features"])
     assert "LIMIT %s" in fixture_observations_v1._PENDING_SQL
