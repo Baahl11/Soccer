@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-10T19:42:01.565277+00:00",
-  "generated_at_local": "2026-10-10T13:42:01.565277-06:00",
+  "generated_at_utc": "2026-10-10T20:33:14.790135+00:00",
+  "generated_at_local": "2026-10-10T14:33:14.790135-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 1515,
-  "due_fixture_count": 177,
-  "event_count": 6,
-  "actionable_refresh_count": 5,
+  "due_fixture_count": 140,
+  "event_count": 10,
+  "actionable_refresh_count": 3,
   "bet_candidate_count": 0,
-  "api_calls_this_tick": 29,
-  "last_daily_remaining": 3985,
+  "api_calls_this_tick": 34,
+  "last_daily_remaining": 3901,
   "daily_budget_mode": "REDUCED",
   "database_persisted": true,
   "database_error": null,
@@ -45,12 +45,12 @@
     "unique_leagues_scanned": 376,
     "unique_countries_scanned": 128,
     "league_allowlist_applied": false,
-    "market_capture_handoff_fixture_count": 100,
+    "market_capture_handoff_fixture_count": 83,
     "market_capture_handoff_tier_counts": {
-      "D": 27,
-      "B": 21,
-      "C": 65,
-      "A": 14
+      "A": 14,
+      "C": 54,
+      "D": 22,
+      "B": 15
     },
     "market_capture_handoff_source": "PERSISTED_BULK_COVERAGE_CACHE",
     "market_capture_handoff_provider_requests_added": 0,
@@ -61,7 +61,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-10T19:42:01.565277+00:00",
+    "generated_at_utc": "2026-10-10T20:33:14.790135+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -74,23 +74,23 @@
         "rows": 53,
         "unique_fixtures": 53,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 11,
-        "evaluated_signal_rows_this_tick": 6,
-        "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 6,
+        "candidate_signal_rows_this_tick": 15,
+        "evaluated_signal_rows_this_tick": 10,
+        "strict_later_quote_rows_this_tick": 9,
+        "not_matured_rows_this_tick": 1,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
         "canonical_state_loaded": true,
         "canonical_remaining_to_gate": 0,
-        "canonical_equivalent_post_v223_signals": 166,
+        "canonical_equivalent_post_v223_signals": 226,
         "canonical_equivalent_post_v223_true_clv_comparable": 5,
         "canonical_equivalent_post_v223_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 65,
-          "NO_LATER_PROVIDER_UPDATE": 96
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 107,
+          "NO_LATER_PROVIDER_UPDATE": 114
         },
         "current_phase17_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 57,
-          "NO_LATER_PROVIDER_UPDATE": 43,
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 79,
+          "NO_LATER_PROVIDER_UPDATE": 35,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         }
       },
@@ -100,24 +100,24 @@
         "unique_fixtures": 8,
         "minimum_rows": 50,
         "candidate_signal_rows_this_tick": 9,
-        "evaluated_signal_rows_this_tick": 5,
-        "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 5,
+        "evaluated_signal_rows_this_tick": 6,
+        "strict_later_quote_rows_this_tick": 6,
+        "not_matured_rows_this_tick": 0,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
           "FT_TOTALS_TRUE_CLV_8_LT_50"
         ],
         "canonical_state_loaded": true,
         "canonical_remaining_to_gate": 42,
-        "canonical_equivalent_post_v223_signals": 168,
-        "canonical_equivalent_post_v223_true_clv_comparable": 2,
+        "canonical_equivalent_post_v223_signals": 230,
+        "canonical_equivalent_post_v223_true_clv_comparable": 3,
         "canonical_equivalent_post_v223_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 40,
-          "NO_LATER_PROVIDER_UPDATE": 126
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 65,
+          "NO_LATER_PROVIDER_UPDATE": 162
         },
         "current_phase17_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 30,
-          "NO_LATER_PROVIDER_UPDATE": 56,
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 41,
+          "NO_LATER_PROVIDER_UPDATE": 62,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         }
       },
@@ -126,25 +126,25 @@
         "rows": 20,
         "unique_fixtures": 20,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 12,
-        "evaluated_signal_rows_this_tick": 6,
-        "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 6,
+        "candidate_signal_rows_this_tick": 15,
+        "evaluated_signal_rows_this_tick": 10,
+        "strict_later_quote_rows_this_tick": 9,
+        "not_matured_rows_this_tick": 1,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
           "BTTS_TRUE_CLV_20_LT_50"
         ],
         "canonical_state_loaded": true,
         "canonical_remaining_to_gate": 30,
-        "canonical_equivalent_post_v223_signals": 230,
+        "canonical_equivalent_post_v223_signals": 291,
         "canonical_equivalent_post_v223_true_clv_comparable": 3,
         "canonical_equivalent_post_v223_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 78,
-          "NO_LATER_PROVIDER_UPDATE": 149
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 118,
+          "NO_LATER_PROVIDER_UPDATE": 170
         },
         "current_phase17_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 62,
-          "NO_LATER_PROVIDER_UPDATE": 69,
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 69,
+          "NO_LATER_PROVIDER_UPDATE": 46,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         }
       },
@@ -153,11 +153,11 @@
         "rows": 0,
         "unique_fixtures": 0,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 48,
-        "evaluated_signal_rows_this_tick": 4,
+        "candidate_signal_rows_this_tick": 0,
+        "evaluated_signal_rows_this_tick": 0,
         "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 4,
-        "maturation_state": "WAITING_STRICT_LATER_QUOTE",
+        "not_matured_rows_this_tick": 0,
+        "maturation_state": "NO_CURRENT_CLV_PROGRESS",
         "canonical_blockers": [
           "CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
           "CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
@@ -171,11 +171,11 @@
         "rows": 0,
         "unique_fixtures": 0,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 44,
-        "evaluated_signal_rows_this_tick": 4,
+        "candidate_signal_rows_this_tick": 0,
+        "evaluated_signal_rows_this_tick": 0,
         "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 4,
-        "maturation_state": "WAITING_STRICT_LATER_QUOTE",
+        "not_matured_rows_this_tick": 0,
+        "maturation_state": "NO_CURRENT_CLV_PROGRESS",
         "canonical_blockers": [
           "HALFTIME_CONDITIONED_CHALLENGER_DOES_NOT_BEAT_BASELINE",
           "2H_TRUE_CLV_0_LT_50",
@@ -188,11 +188,11 @@
         "rows": 0,
         "unique_fixtures": 0,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 68,
-        "evaluated_signal_rows_this_tick": 4,
+        "candidate_signal_rows_this_tick": 0,
+        "evaluated_signal_rows_this_tick": 0,
         "strict_later_quote_rows_this_tick": 0,
-        "not_matured_rows_this_tick": 4,
-        "maturation_state": "WAITING_STRICT_LATER_QUOTE",
+        "not_matured_rows_this_tick": 0,
+        "maturation_state": "NO_CURRENT_CLV_PROGRESS",
         "canonical_blockers": [
           "FORMATION_ADJUSTED_44_LT_100",
           "FT_CORNERS_TRUE_CLV_0_LT_50",
@@ -230,9 +230,9 @@
         "rows": 629,
         "unique_fixtures": 94,
         "minimum_rows": 50,
-        "candidate_fixtures_this_tick": 10,
-        "strict_later_quote_refreshes_this_tick": 3,
-        "unchanged_provider_updates_this_tick": 5,
+        "candidate_fixtures_this_tick": 2,
+        "strict_later_quote_refreshes_this_tick": 2,
+        "unchanged_provider_updates_this_tick": 0,
         "maturation_state": "CLV_GATE_MET",
         "canonical_blockers": [],
         "canonical_state_loaded": true
@@ -629,19 +629,33 @@
     "canonical_state_merged_by_scheduler": true
   },
   "formation_matchup_health": {
-    "blockers": [],
-    "canonical_state_loaded": false,
+    "blockers": [
+      "RESEARCH_ONLY",
+      "SIDE_SPECIFIC_OOS_CHALLENGER_NOT_YET_PROMOTED",
+      "MARKET_VALIDATION_SEPARATE_AND_REQUIRED"
+    ],
+    "canonical_state_loaded": true,
     "decision_weight": 0.0,
-    "fixtures_with_verified_formation_pair_and_final": 0,
-    "leakage_policy": null,
-    "matchups_n_ge_8": 0,
-    "metric_rows": {},
+    "fixtures_with_verified_formation_pair_and_final": 299,
+    "leakage_policy": "PREKICKOFF_OR_AT_KICKOFF_ONLY",
+    "matchups_n_ge_8": 8,
+    "metric_rows": {
+      "away_corners": 217,
+      "away_shots": 217,
+      "away_sot": 219,
+      "home_corners": 217,
+      "home_shots": 217,
+      "home_sot": 219,
+      "total_corners": 217,
+      "total_shots": 217,
+      "total_sot": 219
+    },
     "minimum_stable_matchup_n": 8,
-    "model_version": null,
+    "model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
     "odds_consumed": false,
     "production_enabled": false,
-    "status": "NOT_MATERIALIZED",
-    "unique_matchups": 0,
+    "status": "RESEARCH_ONLY_FORMATION_MATCHUP_ENGINE",
+    "unique_matchups": 81,
     "fm3_research": {
       "model_version": "FORMATION_MATCHUP_FM3_OOS_V1.0.0",
       "status": "RESEARCH_ONLY_FM3_SHOTS_SOT_GOALS",
@@ -2196,8 +2210,8 @@
     "fallback_source": null,
     "candidate_count": 15,
     "candidate_family_counts": {
-      "1X2": 11,
-      "BTTS": 12,
+      "1X2": 15,
+      "BTTS": 15,
       "FT_TOTALS": 9
     },
     "legacy_mode": "EMERGENCY_FALLBACK_ONLY"
@@ -2240,29 +2254,29 @@
         "audit_comparable_minus_canonical_unique_fixtures": 0,
         "canonical_true_clv_rows": 53,
         "canonical_true_clv_unique_fixtures": 53,
-        "current_phase17_mapped_rows": 100,
-        "current_phase17_priced_rows": 100,
+        "current_phase17_mapped_rows": 115,
+        "current_phase17_priced_rows": 114,
         "current_phase17_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 57,
-          "NO_LATER_PROVIDER_UPDATE": 43,
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 79,
+          "NO_LATER_PROVIDER_UPDATE": 35,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         },
         "maturation_state": "CLV_GATE_MET",
         "minimum_true_clv_rows": 50,
         "post_v223_canonical_equivalent_audit": {
           "same_book_preferred_rows": 5,
-          "signals": 166,
+          "signals": 226,
           "skip_reason_counts": {
-            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 65,
-            "NO_LATER_PROVIDER_UPDATE": 96
+            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 107,
+            "NO_LATER_PROVIDER_UPDATE": 114
           },
-          "strict_close_conversion_rate": 0.03012,
+          "strict_close_conversion_rate": 0.022124,
           "strict_close_eligible": 5,
           "true_clv_comparable": 5,
-          "unique_fixtures": 166,
-          "with_2plus_capture_visits": 59,
-          "with_any_later_snapshot": 101,
-          "with_exact_instrument_later_quote": 101,
+          "unique_fixtures": 226,
+          "with_2plus_capture_visits": 60,
+          "with_any_later_snapshot": 119,
+          "with_exact_instrument_later_quote": 119,
           "with_provider_update_advance": 5
         },
         "remaining_to_gate": 0
@@ -2271,29 +2285,29 @@
         "audit_comparable_minus_canonical_unique_fixtures": 0,
         "canonical_true_clv_rows": 20,
         "canonical_true_clv_unique_fixtures": 20,
-        "current_phase17_mapped_rows": 143,
-        "current_phase17_priced_rows": 131,
+        "current_phase17_mapped_rows": 119,
+        "current_phase17_priced_rows": 115,
         "current_phase17_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 62,
-          "NO_LATER_PROVIDER_UPDATE": 69,
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 69,
+          "NO_LATER_PROVIDER_UPDATE": 46,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         },
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "minimum_true_clv_rows": 50,
         "post_v223_canonical_equivalent_audit": {
           "same_book_preferred_rows": 3,
-          "signals": 230,
+          "signals": 291,
           "skip_reason_counts": {
-            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 78,
-            "NO_LATER_PROVIDER_UPDATE": 149
+            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 118,
+            "NO_LATER_PROVIDER_UPDATE": 170
           },
-          "strict_close_conversion_rate": 0.013043,
+          "strict_close_conversion_rate": 0.010309,
           "strict_close_eligible": 3,
           "true_clv_comparable": 3,
-          "unique_fixtures": 230,
-          "with_2plus_capture_visits": 88,
-          "with_any_later_snapshot": 152,
-          "with_exact_instrument_later_quote": 152,
+          "unique_fixtures": 291,
+          "with_2plus_capture_visits": 90,
+          "with_any_later_snapshot": 173,
+          "with_exact_instrument_later_quote": 173,
           "with_provider_update_advance": 3
         },
         "remaining_to_gate": 30
@@ -2302,36 +2316,36 @@
         "audit_comparable_minus_canonical_unique_fixtures": 0,
         "canonical_true_clv_rows": 8,
         "canonical_true_clv_unique_fixtures": 8,
-        "current_phase17_mapped_rows": 114,
-        "current_phase17_priced_rows": 86,
+        "current_phase17_mapped_rows": 120,
+        "current_phase17_priced_rows": 103,
         "current_phase17_skip_reasons": {
-          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 30,
-          "NO_LATER_PROVIDER_UPDATE": 56,
+          "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 41,
+          "NO_LATER_PROVIDER_UPDATE": 62,
           "NO_SELECTION_MATCH_AT_CLOSE": 0
         },
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "minimum_true_clv_rows": 50,
         "post_v223_canonical_equivalent_audit": {
-          "same_book_preferred_rows": 2,
-          "signals": 168,
+          "same_book_preferred_rows": 3,
+          "signals": 230,
           "skip_reason_counts": {
-            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 40,
-            "NO_LATER_PROVIDER_UPDATE": 126
+            "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 65,
+            "NO_LATER_PROVIDER_UPDATE": 162
           },
-          "strict_close_conversion_rate": 0.011905,
-          "strict_close_eligible": 2,
-          "true_clv_comparable": 2,
-          "unique_fixtures": 168,
-          "with_2plus_capture_visits": 68,
-          "with_any_later_snapshot": 128,
-          "with_exact_instrument_later_quote": 128,
-          "with_provider_update_advance": 2
+          "strict_close_conversion_rate": 0.013043,
+          "strict_close_eligible": 3,
+          "true_clv_comparable": 3,
+          "unique_fixtures": 230,
+          "with_2plus_capture_visits": 77,
+          "with_any_later_snapshot": 165,
+          "with_exact_instrument_later_quote": 165,
+          "with_provider_update_advance": 3
         },
         "remaining_to_gate": 42
       }
     },
     "gates_changed": false,
-    "generated_at_utc": "2026-10-10T07:47:14.634888+00:00",
+    "generated_at_utc": "2026-10-10T19:42:23.509448+00:00",
     "model_version": "SOCCER_PRIMARY_CLV_MATURATION_FUNNEL_V4_1.0.0",
     "models_changed": false,
     "policy": "AUDIT_ONLY; CANONICAL COUNTS REMAIN OWNED_BY_PHASE17; VISIT_MATRIX_ROWS_CANNOT_ENTER TRUE_CLV UNTIL EXACT HISTORICAL BACKFILL_RECONCILIATION REPLAYS THE CANONICAL MATCHER",
