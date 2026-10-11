@@ -124,3 +124,25 @@ def test_monitor_kills_only_worker_when_cgroup_exceeds_safe_threshold(monkeypatc
 def test_unbounded_cgroup_does_not_raise_or_abort(monkeypatch):
     monkeypatch.setattr(server, "_cgroup_memory_snapshot", lambda: None)
     assert server._tick_memory_pressure() is None
+
+
+def test_cancelled_request_releases_tick_admission(monkeypatch):
+    monkeypatch.setattr(server._base_server, "_github_oidc_claims", lambda _: {"ref": "test"})
+
+    async def scenario():
+        started = asyncio.Event()
+
+        async def until_cancelled(*_):
+            started.set()
+            await asyncio.Event().wait()
+
+        monkeypatch.setattr(server, "_run_instrumented_tick", until_cancelled)
+        task = asyncio.create_task(_request(server._handle_instrumented_tick))
+        await asyncio.wait_for(started.wait(), timeout=3)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert server._base_server._acquire_db_heavy_gate("after_cancel") is None
+        server._base_server._release_db_heavy_gate()
+
+    asyncio.run(scenario())
