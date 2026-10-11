@@ -157,6 +157,8 @@ V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
 V215_SIGNAL_LEDGER_REF = "refs/heads/main"
 TICK_ROUTE = "/internal/tick"
+PROSPECTIVE_ROUTE = "/internal/prospective-evaluation-registry-v1/build"
+PROSPECTIVE_WORKFLOW = ".github/workflows/prospective-evaluation-registry.yml"
 TICK_TIMEOUT_SECONDS = 420
 
 
@@ -287,7 +289,7 @@ def _tick_memory_pressure() -> dict[str, int] | None:
     return None
 
 
-async def _monitor_tick_memory(proc: asyncio.subprocess.Process, state: dict) -> None:
+async def _monitor_tick_memory(proc: asyncio.subprocess.Process, state: dict, operation: str = "tick") -> None:
     """Abort one worker before the platform OOM-kills the web service.
 
     An aborted tick is reported as retryable but never as successfully persisted.
@@ -297,7 +299,7 @@ async def _monitor_tick_memory(proc: asyncio.subprocess.Process, state: dict) ->
         if pressure is not None:
             state.update(pressure)
             print(
-                "TICK_MEMORY_GUARD " + str(pressure),
+                f"{operation.upper()}_MEMORY_GUARD " + str(pressure),
                 file=sys.stderr,
                 flush=True,
             )
@@ -310,15 +312,23 @@ async def _monitor_tick_memory(proc: asyncio.subprocess.Process, state: dict) ->
         await asyncio.sleep(_TICK_MEMORY_POLL_SECONDS)
 
 
-async def _run_instrumented_tick(scope, receive, send) -> None:
-    """Run unchanged sporting calculations within a guarded worker."""
+async def _run_instrumented_tick(
+    scope, receive, send, *,
+    worker_module: str = "mcp_gateway.tick_worker",
+    error_prefix: str = "tick",
+) -> None:
+    """Run the unchanged workload in an isolated, cgroup-guarded subprocess.
+
+    Shared with the prospective evidence builder: process-local locking alone
+    cannot protect the parent when the builder materializes large Postgres JSON.
+    """
     env = os.environ.copy()
     env.setdefault("MALLOC_ARENA_MAX", "2")
     try:
         proc = await asyncio.create_subprocess_exec(
             sys.executable,
             "-m",
-            "mcp_gateway.tick_worker",
+            worker_module,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env=env,
@@ -343,7 +353,7 @@ async def _run_instrumented_tick(scope, receive, send) -> None:
         stdout_task = asyncio.create_task(proc.stdout.read())
         memory_guard_state: dict[str, int] = {}
         memory_guard_task = asyncio.create_task(
-            _monitor_tick_memory(proc, memory_guard_state)
+            _monitor_tick_memory(proc, memory_guard_state, error_prefix)
         )
         try:
             await asyncio.wait_for(proc.wait(), timeout=TICK_TIMEOUT_SECONDS)
@@ -369,7 +379,7 @@ async def _run_instrumented_tick(scope, receive, send) -> None:
             ][-20:]
             response = JSONResponse(
                 {
-                    "error": "tick_timeout",
+                    "error": f"{error_prefix}_timeout",
                     "timeout_seconds": TICK_TIMEOUT_SECONDS,
                     "worker_timing_tail": timing_tail,
                 },
@@ -386,7 +396,7 @@ async def _run_instrumented_tick(scope, receive, send) -> None:
         if memory_guard_state:
             response = JSONResponse(
                 {
-                    "error": "tick_memory_pressure",
+                    "error": f"{error_prefix}_memory_pressure",
                     "retryable": True,
                     "worker_aborted_to_protect_web_service": True,
                     "persistence_status": "NOT_VERIFIED",
@@ -399,12 +409,12 @@ async def _run_instrumented_tick(scope, receive, send) -> None:
         stderr_text = "\n".join(stderr_lines)
         if proc.returncode != 0:
             detail = stderr_text[-1000:]
-            response = JSONResponse({"error": "tick_failed", "detail": detail}, status_code=500)
+            response = JSONResponse({"error": f"{error_prefix}_failed", "detail": detail}, status_code=500)
             await response(scope, receive, send)
             return
         if not stdout:
             response = JSONResponse(
-                {"error": "tick_failed", "detail": "worker returned empty output"},
+                {"error": f"{error_prefix}_failed", "detail": "worker returned empty output"},
                 status_code=500,
             )
             await response(scope, receive, send)
@@ -414,7 +424,7 @@ async def _run_instrumented_tick(scope, receive, send) -> None:
         await response(scope, receive, send)
     except Exception as exc:
         response = JSONResponse(
-            {"error": "tick_failed", "detail": str(exc)[:500]},
+            {"error": f"{error_prefix}_failed", "detail": str(exc)[:500]},
             status_code=500,
         )
         await response(scope, receive, send)
@@ -440,6 +450,38 @@ async def _handle_instrumented_tick(scope, receive, send) -> None:
         return
     try:
         await _run_instrumented_tick(scope, receive, send)
+    finally:
+        _base_server._release_db_heavy_gate()
+
+
+async def _handle_instrumented_prospective_registry(scope, receive, send) -> None:
+    """Guard the prospective DB materializer from taking down web production.
+
+    No model, market, eligibility or betting policy changes; this endpoint has
+    the same GitHub OIDC workflow identity and same serialization gate as the
+    previous in-process route. Errors never claim a persisted selection.
+    """
+    request = Request(scope, receive=receive)
+    try:
+        _base_server._github_oidc_claims(request, {PROSPECTIVE_WORKFLOW})
+    except Exception as exc:
+        response = JSONResponse(
+            {"error": "unauthorized", "detail": str(exc)[:200]},
+            status_code=401,
+        )
+        await response(scope, receive, send)
+        return
+
+    busy = _base_server._acquire_db_heavy_gate("prospective_evaluation_registry_v1")
+    if busy is not None:
+        await busy(scope, receive, send)
+        return
+    try:
+        await _run_instrumented_tick(
+            scope, receive, send,
+            worker_module="mcp_gateway.prospective_registry_worker",
+            error_prefix="prospective_registry",
+        )
     finally:
         _base_server._release_db_heavy_gate()
 
@@ -474,6 +516,9 @@ class V215SignalLedgerRouter:
                 return
             if path == TICK_ROUTE and method == "POST":
                 await _handle_instrumented_tick(scope, receive, send)
+                return
+            if path == PROSPECTIVE_ROUTE and method == "POST":
+                await _handle_instrumented_prospective_registry(scope, receive, send)
                 return
         await self.downstream(scope, receive, send)
 
