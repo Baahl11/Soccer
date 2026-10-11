@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 13
     env:
       PREVIEW_BASE: https://soccer-maturity-pr68-preview.onrender.com
-      EXPECTED_DEPLOY: 2b007d53de504a883f03d9070be6b2ef4675ea75
+      EXPECTED_DEPLOY: f54ae012eaa72fec5673934b247e5ccb7d3e969e
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -103,10 +103,22 @@ jobs:
             console.log("REAL MATCH CENTER",JSON.stringify(teams));
             assert(teams.length===2 && teams.every(x=>x.trim()),"must render two actual team names");
             assert(!(await page.locator(".topbar").innerText()).includes("SAMPLE DESIGN MODE"));
+            const hero = await page.evaluate(() => {
+              const matchup = document.querySelector(".hero-matchup")?.getBoundingClientRect();
+              const quality = document.querySelector(".quality")?.getBoundingClientRect();
+              const container = document.querySelector(".hero-main")?.getBoundingClientRect();
+              return {matchWidth:matchup?.width,qualityWidth:quality?.width,matchRight:matchup?.right,qualityLeft:quality?.left,qualityRight:quality?.right,containerRight:container?.right};
+            });
+            console.log("HERO GEOMETRY",JSON.stringify(hero));
+            assert(hero.matchWidth>600,"matchup is wrongly squeezed on laptop");
+            assert(hero.qualityWidth>=190,"verification panel collapsed on laptop");
+            assert(hero.qualityLeft>hero.matchRight,"quality panel must be to the right of the matchup");
+            assert(hero.containerRight-hero.qualityRight<5,"hero leaves an unjustified empty rightmost column");
             await page.screenshot({path:output+"/laptop-match.png"});
 
             await page.getByRole("button",{name:"Market Maturity",exact:true}).click();
             await page.getByRole("heading",{name:"Market Maturity"}).waitFor({timeout:20000});
+            await page.getByText(/SIGN IN REQUIRED/).waitFor({timeout:30000});
             await page.screenshot({path:output+"/laptop-maturity.png"});
             await desktop.close();
 
