@@ -502,8 +502,8 @@ export async function loadSlate(): Promise<SlateItem[]> {
 export async function loadMatchCenter(): Promise<MatchCenterViewModel> {
   const params = new URLSearchParams(window.location.search);
   if (params.get("sample") === "1") {
-    const { sampleMatch } = await import("./sample");
-    return sampleMatch;
+    // The isolated public review must never show a fictitious fixture.
+    throw new Error("SAMPLE_MODE_DISABLED_IN_REAL_DATA_PREVIEW");
   }
 
   const todayLoaded = await loadTodayContract();
