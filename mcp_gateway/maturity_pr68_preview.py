@@ -8,7 +8,9 @@ reports are loaded exclusively from public, versioned research state.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -104,7 +106,7 @@ async def preview_index(_: Request) -> FileResponse:
 
 
 async def preview_home(_: Request) -> RedirectResponse:
-    return RedirectResponse("/app-v3-react/?sample=1&maturity-preview=1", status_code=307, headers=NO_STORE)
+    return RedirectResponse("/app-v3-react/", status_code=307, headers=NO_STORE)
 
 
 async def auth_config(_: Request) -> JSONResponse:
@@ -133,14 +135,74 @@ async def account(request: Request) -> JSONResponse:
     })
 
 
-async def empty_slate(_: Request) -> JSONResponse:
-    """The preview is not a sporting feed. Never substitute demo prices."""
-    return _json({
-        "status": "PREVIEW_ONLY_NO_LIVE_SLATE",
-        "slate": {"rows": []},
-        "preview_only": True,
-        "provider_requests_added": 0,
-    })
+# No arbitrary upstream URLs: canonical subscriber read-only GET routes only.
+MAX_PRODUCT_JSON_BYTES = 8_000_000
+
+
+async def _product_read(path: str, token: str = "") -> tuple[int, dict[str, Any]]:
+    if path != "/app/api/v2/today" and not re.fullmatch(
+        r"/app/api/v2/match/[1-9][0-9]{0,9}", path
+    ):
+        return 404, {"error": "NOT_FOUND"}
+    headers = {"Accept": "application/json"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as http:
+            async with http.stream("GET", PRODUCTION_ORIGIN + path, headers=headers) as res:
+                if res.status_code in (401, 403, 404):
+                    errors = {401: "AUTH_REQUIRED", 403: "PRO_REQUIRED", 404: "FIXTURE_NOT_FOUND"}
+                    return res.status_code, {"error": errors[res.status_code]}
+                if res.status_code != 200:
+                    return 503, {"error": "LIVE_PRODUCT_UNAVAILABLE"}
+                raw = bytearray()
+                async for chunk in res.aiter_bytes():
+                    if len(raw) + len(chunk) > MAX_PRODUCT_JSON_BYTES:
+                        return 503, {"error": "LIVE_PRODUCT_PAYLOAD_TOO_LARGE"}
+                    raw.extend(chunk)
+        data = json.loads(raw)
+        if not isinstance(data, dict):
+            return 503, {"error": "LIVE_PRODUCT_INVALID"}
+        return 200, data
+    except (httpx.HTTPError, ValueError):
+        return 503, {"error": "LIVE_PRODUCT_UNAVAILABLE"}
+
+
+async def live_slate(request: Request) -> JSONResponse:
+    status, product = await _product_read("/app/api/v2/today", _bearer(request))
+    if status != 200:
+        return _json(product, status)
+    slate = product.get("slate")
+    if not isinstance(slate, dict) or not isinstance(slate.get("rows"), list):
+        return _json({"error": "LIVE_SLATE_NOT_VERIFIED"}, 503)
+    # Preserve live fixture identities, crests and entitlement redactions.
+    result = dict(product)
+    result["preview_only"] = True
+    result["read_only_origin"] = "CANONICAL_PRODUCT_API"
+    result["database_writes_enabled"] = False
+    return _json(result)
+
+
+async def live_match(request: Request) -> JSONResponse:
+    fixture_id = request.path_params.get("fixture_id")
+    if not isinstance(fixture_id, int) or fixture_id <= 0:
+        return _json({"error": "INVALID_FIXTURE_ID"}, 400)
+    status, payload = await _authorized_account(request)
+    if status != 200:
+        return _json(payload, status)
+    access = _safe_access(payload["access"])
+    if not (access["owner"] or access["effective_plan"].upper() == "PRO"):
+        return _json({"error": "PREVIEW_REQUIRES_PRO"}, 403)
+    upstream, detail = await _product_read(
+        "/app/api/v2/match/" + str(fixture_id), _bearer(request)
+    )
+    if upstream != 200:
+        return _json(detail, upstream)
+    result = dict(detail)
+    result["preview_only"] = True
+    result["read_only_origin"] = "CANONICAL_PRODUCT_API"
+    result["database_writes_enabled"] = False
+    return _json(result)
 
 
 async def maturity(request: Request) -> JSONResponse:
@@ -175,10 +237,12 @@ app = Starlette(
         Route("/health", health, methods=["GET"]),
         Route("/app-v3-react", preview_home, methods=["GET"]),
         Route("/app-v3-react/", preview_index, methods=["GET"]),
+        Route("/app-v3-react/match/{fixture_id:int}", preview_index, methods=["GET"]),
         Route("/app-v3-react/auth-config", auth_config, methods=["GET"]),
         Mount("/app-v3-react/assets", app=StaticFiles(directory=str(ASSETS_DIR), check_dir=False)),
         Route("/app/api/v2/account", account, methods=["GET"]),
-        Route("/app/api/v2/today", empty_slate, methods=["GET"]),
+        Route("/app/api/v2/today", live_slate, methods=["GET"]),
+        Route("/app/api/v2/match/{fixture_id:int}", live_match, methods=["GET"]),
         Route("/app/api/v2/maturity", maturity, methods=["GET"]),
     ],
 )
