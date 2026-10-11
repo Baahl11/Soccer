@@ -347,11 +347,23 @@ async def _run_instrumented_tick(scope, receive, send) -> None:
         )
         try:
             await asyncio.wait_for(proc.wait(), timeout=TICK_TIMEOUT_SECONDS)
-        except TimeoutError:
-            proc.kill()
+        except asyncio.CancelledError:
+            # Client cancellation must not leave a detached heavy child running
+            # after the DB-heavy admission lock is released.
+            if proc.returncode is None:
+                proc.kill()
             await proc.wait()
             await stderr_task
             stdout_task.cancel()
+            await asyncio.gather(stdout_task, return_exceptions=True)
+            raise
+        except TimeoutError:
+            if proc.returncode is None:
+                proc.kill()
+            await proc.wait()
+            await stderr_task
+            stdout_task.cancel()
+            await asyncio.gather(stdout_task, return_exceptions=True)
             timing_tail = [
                 line for line in stderr_lines if line.startswith("TICK_TIMING ")
             ][-20:]
