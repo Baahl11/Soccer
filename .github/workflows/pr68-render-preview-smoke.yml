@@ -1,0 +1,104 @@
+name: PR68 Render Isolated Preview Smoke
+on:
+  push:
+    branches:
+      - preview/pr68-maturity-isolated-20261010
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify public preview routes without credentials
+        env:
+          BASE_URL: https://soccer-maturity-pr68-preview.onrender.com
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import time
+          from urllib.error import HTTPError, URLError
+          from urllib.request import Request, urlopen
+
+          base = os.environ["BASE_URL"]
+
+          def get(path, method="GET"):
+              req = Request(base + path, method=method, headers={"Accept": "application/json"})
+              try:
+                  with urlopen(req, timeout=65) as response:
+                      return response.status, response.read(1048576), dict(response.headers)
+              except HTTPError as exc:
+                  return exc.code, exc.read(1048576), dict(exc.headers)
+
+          for i in range(8):
+              try:
+                  status, body, headers = get("/health")
+                  if status == 200:
+                      break
+                  print(f"Preview warming: /health HTTP {status}")
+              except URLError as exc:
+                  print(f"Preview warming: upstream not yet reachable ({type(exc).__name__})")
+              if i < 7:
+                  time.sleep(8)
+          else:
+              raise AssertionError("Preview health did not become available")
+
+          health = json.loads(body)
+          assert health["status"] == "ok"
+          assert health["preview_only"] is True
+          assert health["scheduler_enabled"] is False
+          assert health["database_writes_enabled"] is False
+          assert health["provider_requests_added"] == 0
+          print("Isolated preview /health OK, commit", health["render_git_commit"])
+
+          status, body, headers = get("/app-v3-react/?sample=1&maturity-preview=1")
+          assert status == 200, ("SPA page", status)
+          html = body.decode("utf-8")
+          asset_match = re.search(r'src="(/app-v3-react/assets/index-[^"]+\.js)"', html)
+          assert asset_match, "SPA did not serve a newly built hashed React bundle"
+          status, asset, _ = get(asset_match.group(1))
+          assert status == 200 and len(asset) > 10000, ("React asset", status)
+          assert b"maturity-preview" in asset, "Preview entry point missing from compiled React"
+          assert b"Recheck evidence" in asset, "PR #68 maturity controls absent from bundle"
+          print("Built React preview SPA + maturity entry and recheck button verified")
+
+          for path, expected in (
+              ("/app/api/v2/maturity", 401),
+              ("/app/api/v2/account", 401),
+              ("/internal/tick", 404),
+              ("/app/api/v2/performance", 404),
+          ):
+              status, body, _ = get(path)
+              assert status == expected, (path, status, expected)
+              if path == "/app/api/v2/maturity":
+                  assert b"market_rows" not in body
+              print(path, status)
+
+          status, body, _ = get("/internal/tick", method="POST")
+          assert status == 404, ("POST tick", status)
+          status, body, _ = get("/app/api/v2/maturity", method="POST")
+          assert status == 405, ("POST maturity", status)
+          status, body, _ = get("/app/api/v2/today")
+          assert status == 200
+          empty = json.loads(body)
+          assert empty["slate"]["rows"] == []
+          assert empty["status"] == "PREVIEW_ONLY_NO_LIVE_SLATE"
+          print("All write/scheduler routes absent; no live slate or fabricated prices")
+
+          status, body, _ = get("/app-v3-react/auth-config")
+          if status == 200:
+              data = json.loads(body)
+              assert "api_base" in data
+              print("Real account auth bridge available:", bool(data.get("auth_configured")))
+          elif status == 503:
+              print("Real account auth bridge unavailable: FREE/PRO/OWNER live QA NOT VERIFIED")
+          else:
+              raise AssertionError(("auth-config", status))
+
+          print("PR68_PREVIEW_SMOKE_SUCCESS")
+          PY
