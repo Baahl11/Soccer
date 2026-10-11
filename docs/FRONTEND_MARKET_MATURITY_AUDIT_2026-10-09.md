@@ -120,3 +120,17 @@ These commit timestamps establish that files existed in the GitHub state branch;
 - This verifies the running public backend commit and shell route availability; it does **not** verify a production maturity page, a 401 entitlement guard on the undeployed route, real PRO/OWNER accounts, or source branch configuration inside Render.
 
 **Release decision remains NO-GO.** Do not close Issue #70 or merge/deploy PR #68 based on CI alone.
+
+
+## 2026-10-11 — Resumed React maturity UX / safe access revalidation
+
+Production infrastructure now runs the **separate OOM hotfix** `23aa0d55fe73594388e4b9109599de09aab1a0e6`, not this PR. A controlled scheduler rerun [38108822611](https://github.com/Baahl11/Soccer/actions/runs/38108822611) completed `SUCCESS` with `database_persisted=true` and no OOM seen during that run. This is one successful cycle, **not** evidence of sustained uptime; incident #71 stays open. None of the frontend changes below has been deployed.
+
+- Market Maturity in React V3 now supports a search and three mutually explicit views: independently unverified OOS, canonically unverified True CLV, and recorded canonical True CLV. The counts come only from the 21 existing market rows. **Zero** canonical CLV is counted as recorded evidence only when the source explicitly stores zero; `null` remains NOT VERIFIED.
+- A manual **Recheck evidence** action clears any prior protected research payload *before* requesting / re-authorizing it. This prevents stale PRO/OWNER rows from remaining visible after a later 401 or 403, and gives a user who has just signed in a way to retry.
+- Browser contract adds desktop/mobile filters, search, an empty-filter state, simulated 403 -> 200 -> 403 entitlement transitions, and a specific check that revoked access removes all research rows. The Python authorization tests now include mocked OWNER access separately from PRO.
+- React build remains detached from the production-served, **tracked** `web_v3/dist` bundle. CI now archives the freshly compiled `web_v3/dist` as a **release-candidate artifact**, not an automatic deployment. The compiled assets must be reconciled with the tracked distribution and shipped through a controlled approved release; otherwise source-only merges can serve a stale React UI.
+
+**Still blocked:** actual Render preview/production browser session for FREE, PRO, OWNER; exact runtime state variables; fixture-level source generation / temporal lineage; React BET-only Performance surface, which remains a separate disabled nav item; four legacy FE2 tests excluded from the dedicated maturity workflow; sustained server reliability after #72.
+
+**Decision: NO-GO for merging PR #68 to the Render auto-deployed `soccer-edge-mcp-v1` branch** until the release acceptance gates are satisfied. No provider, model, market, BET or historical data changes.
