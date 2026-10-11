@@ -1,0 +1,139 @@
+name: PR68 Live Read-only Laptop and Mobile QA
+on:
+  push:
+    branches:
+      - qa/pr68-laptop-live-20261011
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    env:
+      PREVIEW_BASE: https://soccer-maturity-pr68-preview.onrender.com
+      EXPECTED_DEPLOY: 2b007d53de504a883f03d9070be6b2ef4675ea75
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "20"
+      - name: Install Chromium for real public UI QA
+        working-directory: web_v3
+        run: |
+          npm ci
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Live screenshot desktop and mobile using actual production fixture evidence
+        working-directory: web_v3
+        run: |
+          node --input-type=module <<'JS'
+          import assert from "node:assert/strict";
+          import { mkdirSync } from "node:fs";
+          import { chromium } from "playwright";
+
+          const base = process.env.PREVIEW_BASE;
+          const output = "/tmp/pr68-live-laptop-qa";
+          mkdirSync(output, {recursive:true});
+          const browser = await chromium.launch({headless:true});
+          try {
+            const desktop = await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:1});
+            const page = await desktop.newPage();
+            const healthResponse = await page.request.get(base + "/health", {timeout:60000});
+            assert.equal(healthResponse.status(), 200);
+            const health = await healthResponse.json();
+            assert.equal(health.render_git_commit, process.env.EXPECTED_DEPLOY);
+            assert.equal(health.scheduler_enabled, false);
+            assert.equal(health.database_writes_enabled, false);
+
+            const liveResponse = await page.request.get(base + "/app/api/v2/today", {timeout:80000});
+            assert.equal(liveResponse.status(), 200, "real sports slate should not return a fake zero");
+            const slateData = await liveResponse.json();
+            assert.equal(slateData.read_only_origin, "CANONICAL_PRODUCT_API");
+            const fixtures = slateData.slate?.rows ?? [];
+            assert(fixtures.length > 0, "current verified fixture slate must not be replaced by demo data");
+            assert(fixtures.some(x => x.fixture?.home_team_id && x.fixture?.home_team_logo));
+            console.log("REAL FIXTURES:", fixtures.length, "canonical generated_at:", slateData.generated_at_utc);
+
+            await page.goto(base + "/", {waitUntil:"domcontentloaded",timeout:90000});
+            await page.locator(".react-slate-row").first().waitFor({timeout:90000});
+            assert.equal((await page.locator(".slate-page-head h1").innerText()).trim(), "Today");
+            const domMatches=await page.locator(".react-slate-row").count();
+            assert.equal(domMatches,fixtures.length,"SPA must show real full slate, not an empty or partial mock");
+            assert((await page.locator(".react-slate-row img").count()) >= 5, "verified club logo images must be rendered");
+            const firstLogo=page.locator(".react-slate-row img").first();
+            assert.match((await firstLogo.getAttribute("src"))||"",/^https:\/\//);
+            await page.waitForTimeout(4500);
+            const loadedLogos=await page.locator(".react-slate-row img").evaluateAll(items=>
+              items.slice(0,35).filter(img=>img.complete && img.naturalWidth>0).length
+            );
+            console.log("LOADED LOGOS among first 35",loadedLogos);
+            assert(loadedLogos>0,"No provider club crests actually loaded in Chromium");
+
+            const metrics = await page.evaluate(()=>{
+              const app = document.querySelector(".app-shell");
+              const nav = document.querySelector(".rail nav button");
+              const team = document.querySelector(".mini-team b");
+              return {
+                appWidth:app?.getBoundingClientRect().width,
+                scrollWidth:document.documentElement.scrollWidth,
+                clientWidth:document.documentElement.clientWidth,
+                navFont:Number.parseFloat(getComputedStyle(nav).fontSize),
+                teamFont:Number.parseFloat(getComputedStyle(team).fontSize),
+              };
+            });
+            console.log("DESKTOP LAYOUT",JSON.stringify(metrics));
+            assert(metrics.appWidth>1350,"desktop must use full laptop canvas");
+            assert(metrics.navFont>=12,"desktop navigation too small");
+            assert(metrics.teamFont>=13,"desktop teams too small");
+            assert(metrics.scrollWidth<=metrics.clientWidth+2,"desktop horizontal overflow");
+            await page.screenshot({path:output+"/laptop-1440.png"});
+
+            await page.getByRole("button",{name:"Matches",exact:true}).click();
+            assert.equal((await page.locator(".slate-page-head h1").innerText()).trim(),"Matches");
+            assert.equal(await page.locator(".react-slate-row").count(),fixtures.length);
+            await page.locator("#slate-search-matches").fill("impossible_fixture_zzz");
+            assert.equal(await page.locator(".react-slate-row").count(),0);
+            await page.locator("#slate-search-matches").fill("");
+            assert.equal(await page.locator(".react-slate-row").count(),fixtures.length);
+
+            await page.getByRole("button",{name:"Match Center",exact:true}).click();
+            await page.locator(".hero-main").waitFor({timeout:90000});
+            const teams=await page.locator(".hero-main .team b").allTextContents();
+            console.log("REAL MATCH CENTER",JSON.stringify(teams));
+            assert(teams.length===2 && teams.every(x=>x.trim()),"must render two actual team names");
+            assert(!(await page.locator(".topbar").innerText()).includes("SAMPLE DESIGN MODE"));
+            await page.screenshot({path:output+"/laptop-match.png"});
+
+            await page.getByRole("button",{name:"Market Maturity",exact:true}).click();
+            await page.getByRole("heading",{name:"Market Maturity"}).waitFor({timeout:20000});
+            await page.screenshot({path:output+"/laptop-maturity.png"});
+            await desktop.close();
+
+            const mobile=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1});
+            // Mobile geometry test needs DOM and genuine fixtures, but not hundreds
+            // of external image requests from an unrelated CDN.
+            await mobile.route("https://media.api-sports.io/**",route=>route.abort());
+            const mp=await mobile.newPage();
+            await mp.goto(base + "/",{waitUntil:"domcontentloaded",timeout:90000});
+            await mp.locator(".react-slate-row").first().waitFor({timeout:90000});
+            const narrow=await mp.evaluate(()=>({
+              scrollWidth:document.documentElement.scrollWidth,
+              clientWidth:document.documentElement.clientWidth
+            }));
+            console.log("MOBILE GEOMETRY",JSON.stringify(narrow));
+            assert(narrow.scrollWidth<=narrow.clientWidth+2,"mobile horizontal body overflow");
+            await mp.screenshot({path:output+"/mobile-390.png"});
+            await mobile.close();
+            console.log("PR68_REAL_LAPTOP_BROWSER_QA_SUCCESS");
+          } finally {
+            await browser.close();
+          }
+          JS
+      - name: Archive actual desktop/mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr68-live-readonly-desktop-and-mobile
+          path: /tmp/pr68-live-laptop-qa/
+          if-no-files-found: ignore
