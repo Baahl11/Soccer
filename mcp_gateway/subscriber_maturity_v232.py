@@ -107,6 +107,23 @@ def _generic_sample(report: dict[str, Any]) -> tuple[int | None, int | None, str
 
 
 def _model_evidence(label: str, report: dict[str, Any]) -> dict[str, Any]:
+    # The independent OOS report, where it exists, outranks a mixed validation
+    # sample. Otherwise label the sample honestly instead of calling it OOS.
+    if label == "1X2":
+        oos = _dict(report.get("canonical_multiclass_oos"))
+        calibrated = _dict(oos.get("temperature_scaled"))
+        n = _integer(calibrated.get("n"))
+        return {"current": n, "target": None, "unit": "independent multiclass OOS rows", "ready": bool(n and n > 0), "independent_oos": n is not None}
+    if label == "BTTS":
+        oos = _dict(report.get("canonical_oos_calibration"))
+        n = _integer(oos.get("rows")) if oos.get("available") is True else None
+        return {"current": n, "target": None, "unit": "reported OOS calibration rows", "ready": bool(n and n > 0), "independent_oos": n is not None}
+    if label == "FT Totals":
+        sample = _dict(report.get("sample"))
+        n = _integer(sample.get("model_settled"))
+        return {"current": n, "target": _integer(sample.get("minimum_model_review_settled")),
+                "unit": "settled validation decisions (not independently verified OOS)",
+                "ready": False, "independent_oos": False}
     if label == "Team Totals":
         sample = _dict(report.get("oos_sample"))
         current = _integer(sample.get("evaluated_fixtures"))
@@ -168,10 +185,11 @@ def _model_evidence(label: str, report: dict[str, Any]) -> dict[str, Any]:
             if value is not None:
                 oos_rows.append(value)
         return {
-            "current": max(oos_rows) if oos_rows else 0,
+            "current": max(oos_rows) if oos_rows else None,
             "target": None,
-            "unit": "prop OOS rows",
+            "unit": "prop OOS rows (maximum across submarkets; not additive)",
             "ready": any(value > 0 for value in oos_rows),
+            "independent_oos": any(value > 0 for value in oos_rows),
             "structural_profiles_max": max(profiles) if profiles else None,
         }
 
@@ -230,8 +248,6 @@ def _build_family_rows(clv_report: dict[str, Any], reports: dict[str, dict[str, 
         mapped = _sum_keys(mapped_counts, keys)
         priced = _sum_keys(priced_counts, keys)
         true_clv = _sum_keys(clv_counts, keys)
-        if true_clv is None:
-            true_clv = 0 if clv_report else None
         true_clv_node = _dict(report.get("true_clv"))
         target = _integer(true_clv_node.get("minimum_rows"))
         fixtures = _integer(true_clv_node.get("unique_fixtures"))
@@ -256,6 +272,205 @@ def _build_family_rows(clv_report: dict[str, Any], reports: dict[str, dict[str, 
         })
     return rows
 
+
+
+# Read-only, market-level presentation inventory. Parent family evidence is never
+# silently represented as an independent side/prop sample or a production BET.
+_MARKET_INVENTORY = (
+    ("1X2", "1X2", "1X2"),
+    ("BTTS", "BTTS", "BTTS"),
+    ("FT Totals", "FT Totals", "FT_TOTALS"),
+    ("Home Team Totals", "Team Totals", "HOME_TT"),
+    ("Away Team Totals", "Team Totals", "AWAY_TT"),
+    ("1H", "1H", "1H"),
+    ("2H", "2H", "2H"),
+    ("FT Corners", "Corners", "FT_CORNERS"),
+    ("Team Corners", "Corners", "TEAM_CORNERS"),
+    ("Yellow Cards", "Cards", "YELLOW_CARDS"),
+    ("Red Cards", "Cards", "RED_CARDS"),
+    ("Player Shots", "Player Props", "SHOTS"),
+    ("Shots on Target", "Player Props", "SOT"),
+    ("Anytime Goalscorer", "Player Props", "GOALSCORER"),
+    ("Player Assists", "Player Props", "ASSISTS"),
+    ("Player Cards", "Player Props", "PLAYER_CARDS"),
+    ("Goalkeeper Saves", "Player Props", "GK_SAVES"),
+    ("Double Chance", None, "DOUBLE_CHANCE"),
+    ("Draw No Bet", None, "DNB"),
+    ("Asian Handicap", None, "ASIAN_HANDICAP"),
+    ("Correct Score", None, "CORRECT_SCORE"),
+)
+
+
+def _market_relevant_parent_blockers(key: str, blockers: list[str]) -> list[str]:
+    """Do not attach every prop/card/corner family failure to every child market."""
+    prefixes = {
+        "SHOTS": ("SHOTS_", "PLAYER_PROP_"),
+        "SOT": ("SOT_", "PLAYER_PROP_"),
+        "GOALSCORER": ("GOALSCORER_", "PLAYER_PROP_"),
+        "ASSISTS": ("ASSISTS_", "PLAYER_PROP_"),
+        "PLAYER_CARDS": ("CARDS_", "PLAYER_CARD_", "PLAYER_PROP_"),
+        "GK_SAVES": ("GK_SAVES_", "PLAYER_PROP_"),
+        "YELLOW_CARDS": ("YELLOW_", "CARD_TRUE_CLV_", "MATCH_CARD_"),
+        "RED_CARDS": ("RED_", "CARD_TRUE_CLV_", "MATCH_CARD_"),
+        "FT_CORNERS": ("FT_CORNERS_", "FORMATION_ADJUSTED_", "PARENT_FT_CORNERS_"),
+        "TEAM_CORNERS": ("TEAM_CORNERS_", "PARENT_FT_CORNERS_"),
+    }.get(key)
+    if prefixes is None:
+        return blockers
+    return [blocker for blocker in blockers if blocker.upper().startswith(prefixes)]
+
+
+def _build_market_inventory(
+    family_rows: list[dict[str, Any]],
+    clv_report: dict[str, Any],
+    reports: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    parents = {str(row.get("label")): row for row in family_rows}
+    clv = _dict(clv_report.get("family_counts"))
+    mapped = _dict(clv_report.get("mapped_family_counts"))
+    priced = _dict(clv_report.get("priced_entry_family_counts"))
+    inventory = []
+
+    for label, parent_name, key in _MARKET_INVENTORY:
+        parent = parents.get(parent_name or "", {})
+        report = _dict(reports.get(parent_name or ""))
+        model_evidence = {
+            "current": None,
+            "target": None,
+            "unit": "market-specific OOS sample not independently verified",
+            "ready": False,
+        }
+        if key in {"1X2", "BTTS", "FT_TOTALS", "1H", "2H", "FT_CORNERS"}:
+            model_evidence = dict(_dict(parent.get("model_evidence")))
+        elif key in {"HOME_TT", "AWAY_TT"}:
+            role = "HOME" if key == "HOME_TT" else "AWAY"
+            role_report = _dict(_dict(report.get("by_team_role")).get(role))
+            n = _integer(role_report.get("n"))
+            model_evidence = {
+                "current": n,
+                "target": None,
+                "unit": f"{role.lower()} probability OOS rows, shared fixture cohort",
+                "ready": bool(n is not None and n > 0),
+                "independent_oos": n is not None,
+            }
+        elif key in {"YELLOW_CARDS", "RED_CARDS"}:
+            node = _dict(report.get("yellow_cards" if key == "YELLOW_CARDS" else "red_cards"))
+            model_evidence = {
+                "current": _integer(node.get("oos_n")),
+                "target": _integer(node.get("minimum_oos") if key == "YELLOW_CARDS" else node.get("minimum_market_review")),
+                "unit": "card OOS observations",
+                "ready": False,
+            }
+            n, target = model_evidence["current"], model_evidence["target"]
+            model_evidence["ready"] = bool(n is not None and target and n >= target)
+        elif key == "TEAM_CORNERS":
+            node = _dict(report.get("team_corners"))
+            model_evidence = {
+                "current": _integer(node.get("evaluated_rows")),
+                "target": _integer(node.get("minimum_team_rows")),
+                "unit": "team-corners OOS rows (both team sides)",
+                "ready": False,
+            }
+            n, target = model_evidence["current"], model_evidence["target"]
+            model_evidence["ready"] = bool(n is not None and target and n >= target)
+        elif parent_name == "Player Props":
+            families = _dict(report.get("prop_families"))
+            report_key = {
+                "SHOTS": "shots", "SOT": "sot", "GOALSCORER": "goalscorer",
+                "ASSISTS": "assists", "PLAYER_CARDS": "cards", "GK_SAVES": "gk_saves",
+            }.get(key)
+            node = _dict(families.get(report_key or ""))
+            oos = _dict(node.get("oos_evidence"))
+            model_evidence = {
+                "current": _integer(oos.get("player_game_rows")),
+                "target": _integer(oos.get("minimum_player_games_for_review")) or None,
+                "unit": "player-game OOS rows",
+                "ready": oos.get("oos_validation_complete") is True,
+                "independent_oos": oos.get("oos_validation_complete") is True,
+            }
+
+        quality: dict[str, Any] = {"brier": None, "log_loss": None, "ece": None, "scope": None}
+        if key == "1X2":
+            node = _dict(_dict(report.get("canonical_multiclass_oos")).get("temperature_scaled"))
+            quality.update(brier=node.get("multiclass_brier"), log_loss=node.get("multiclass_log_loss"), scope="multiclass OOS")
+        elif key == "BTTS":
+            node = _dict(report.get("calibration_sample"))
+            quality.update(brier=node.get("brier"), log_loss=node.get("log_loss"), ece=node.get("ece"), scope="calibration sample (not independently OOS)")
+        elif key in {"HOME_TT", "AWAY_TT"}:
+            role = "HOME" if key == "HOME_TT" else "AWAY"
+            node = _dict(_dict(report.get("by_team_role")).get(role))
+            quality.update(brier=node.get("mean_brier"), log_loss=node.get("mean_log_loss"), scope=f"{role.lower()} OOS role rows, shared fixtures")
+        elif key == "1H":
+            node = _dict(_dict(report.get("calibration")).get("challenger"))
+            quality.update(brier=node.get("brier"), log_loss=node.get("log_loss"), scope="1H OOS challenger")
+        elif key == "2H":
+            node = _dict(report.get("challenger"))
+            quality.update(brier=node.get("brier_o1_5"), log_loss=node.get("log_loss_o1_5"), scope="2H O1.5 OOS challenger")
+        elif key == "RED_CARDS":
+            node = _dict(_dict(report.get("red_cards")).get("overall"))
+            quality.update(brier=node.get("brier"), log_loss=node.get("log_loss"), scope="red card rare-event OOS")
+        # Numeric quality observations are evidence, not promotion authorization.
+
+        report_clv = _dict(report.get("true_clv"))
+        report_clv_rows = None
+        if key in {"1X2", "BTTS", "FT_TOTALS", "1H", "2H"}:
+            report_clv_rows = _integer(report_clv.get("rows"))
+        elif parent_name == "Player Props":
+            report_key = {"SHOTS":"shots","SOT":"sot","GOALSCORER":"goalscorer","ASSISTS":"assists","PLAYER_CARDS":"cards","GK_SAVES":"gk_saves"}.get(key)
+            report_clv_rows = _integer(_dict(_dict(report_clv.get("by_family")).get(report_key or "")).get("rows"))
+        # These are explicitly REPORT-derived counts; never substitute them
+        # for the independently canonical CLV dataset.
+
+        # Sparse canonical reports cannot prove zero observations in a missing key.
+        # Only an explicitly stored numeric 0 is a verified zero.
+        clv_n = _integer(clv.get(key))
+        mapped_n = _integer(mapped.get(key))
+        priced_n = _integer(priced.get(key))
+        direct_oos = bool(model_evidence.get("independent_oos", model_evidence.get("current") is not None))
+        # The sample count can be real while an OOS calibration is not complete.
+        # Keep these separate so an observed 0 does not become a VERIFIED OOS study.
+        blockers = []
+        if not report:
+            blockers.append("SOURCE_REPORT_NOT_VERIFIED")
+        if not direct_oos:
+            blockers.append("MARKET_OOS_NOT_VERIFIED")
+        if priced_n is None:
+            blockers.append("MARKET_PRICE_HISTORY_NOT_VERIFIED")
+        if clv_n is None:
+            blockers.append("MARKET_TRUE_CLV_NOT_VERIFIED")
+        if report:
+            blockers.append("SOURCE_GENERATED_AT_NOT_VERIFIED")
+        relevant_parent_blockers = _market_relevant_parent_blockers(
+            key, list(parent.get("blockers") or [])
+        )
+        for blocker in relevant_parent_blockers:
+            if blocker not in blockers:
+                blockers.append(blocker)
+        collection_keys = _COLLECTION_KEYS.get(parent_name or "", ())
+        has_independent_parent_target = bool(report) and len(collection_keys) == 1 and key in collection_keys
+        inventory.append({
+            "key": key,
+            "label": label,
+            "parent_family": parent_name,
+            "source": parent.get("source") if report else None,
+            "report_status": parent.get("report_status") if report else "NOT VERIFIED",
+            "parent_research_stage": parent.get("stage") if report else None,
+            "model_evidence": model_evidence,
+            "model_quality": quality,
+            "report_true_clv_rows": report_clv_rows,
+            "mapped_rows": mapped_n,
+            "priced_rows": priced_n,
+            "true_clv_rows": clv_n,
+            "true_clv_target": _integer(parent.get("true_clv_target")) if has_independent_parent_target else None,
+            "next_gate": blockers[0] if blockers else None,
+            "blockers": blockers,
+            "market_specific_evidence_verified": direct_oos,
+            "source_model_version": report.get("model_version") if report else None,
+            "source_temporal_provenance": "NOT VERIFIED",
+            "production_promotion_allowed": False,
+            "classification": "RESEARCH_ONLY",
+        })
+    return inventory
 
 def load_maturity_evidence(*, force: bool = False) -> dict[str, Any]:
     global _CACHE, _CACHE_AT
@@ -308,8 +523,9 @@ def load_maturity_evidence(*, force: bool = False) -> dict[str, Any]:
 
         rows = _build_family_rows(clv_report, reports)
         result = {
-            "status": "OK" if rows and not errors else ("PARTIAL" if rows else "UNAVAILABLE"),
+            "status": "UNAVAILABLE" if not (clv_report or any(reports.values())) else ("PARTIAL" if errors else "OK"),
             "families": rows,
+            "market_rows": _build_market_inventory(rows, clv_report, reports),
             "source_model_version": clv_report.get("model_version"),
             "comparable_true_clv_rows": _integer(clv_report.get("comparable_true_clv_rows")),
             "minimum_true_close_rows": _integer(clv_report.get("minimum_true_close_rows")),
