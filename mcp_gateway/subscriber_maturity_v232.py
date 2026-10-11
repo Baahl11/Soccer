@@ -22,6 +22,11 @@ _REPORTS = {
     "Cards": "phase14_cards_referee_validation.json",
     "Player Props": "phase15_player_props_validation.json",
 }
+# Independent per-player OOS audit. Keep this separate from phase15 model-
+# development and from canonical strict True CLV; never inherit parent zeroes.
+_MARKET_ADDITIONAL_REPORTS = {
+    "Player Props OOS": "player_props_oos_v4_report.json",
+}
 _COLLECTION_KEYS = {
     "1X2": ("1X2",),
     "BTTS": ("BTTS",),
@@ -374,19 +379,28 @@ def _build_market_inventory(
             n, target = model_evidence["current"], model_evidence["target"]
             model_evidence["ready"] = bool(n is not None and target and n >= target)
         elif parent_name == "Player Props":
-            families = _dict(report.get("prop_families"))
-            report_key = {
-                "SHOTS": "shots", "SOT": "sot", "GOALSCORER": "goalscorer",
-                "ASSISTS": "assists", "PLAYER_CARDS": "cards", "GK_SAVES": "gk_saves",
-            }.get(key)
-            node = _dict(families.get(report_key or ""))
-            oos = _dict(node.get("oos_evidence"))
+            # Phase15's cached OOS fields can be 0 even when a later dedicated
+            # player-game OOS run has observed real matches. Do not substitute
+            # those stale counters or clone a family aggregate into each prop.
+            dedicated = _dict(reports.get("Player Props OOS"))
+            names = {
+                "SHOTS": "SHOTS", "SOT": "SOT",
+                "GOALSCORER": "GOALSCORER_ANYTIME",
+                "ASSISTS": "ASSISTS", "PLAYER_CARDS": "PLAYER_CARDS",
+                "GK_SAVES": "GK_SAVES",
+            }
+            node = _dict(_dict(dedicated.get("families")).get(names.get(key, "")))
+            n = _integer(node.get("player_game_rows")) if dedicated else None
+            target = _integer(node.get("minimum_player_games_for_review"))
+            complete = node.get("oos_validation_complete") is True
             model_evidence = {
-                "current": _integer(oos.get("player_game_rows")),
-                "target": _integer(oos.get("minimum_player_games_for_review")) or None,
-                "unit": "player-game OOS rows",
-                "ready": oos.get("oos_validation_complete") is True,
-                "independent_oos": oos.get("oos_validation_complete") is True,
+                "current": n,
+                "target": target,
+                "unit": "dedicated observed player-game OOS; calibration incomplete",
+                "ready": complete and bool(n is not None and target and n >= target),
+                "independent_oos": complete,
+                "unique_fixtures": _integer(node.get("unique_fixtures")),
+                "audit_status": node.get("status") if node else "NOT VERIFIED",
             }
 
         quality: dict[str, Any] = {"brier": None, "log_loss": None, "ece": None, "scope": None}
@@ -409,6 +423,20 @@ def _build_market_inventory(
         elif key == "RED_CARDS":
             node = _dict(_dict(report.get("red_cards")).get("overall"))
             quality.update(brier=node.get("brier"), log_loss=node.get("log_loss"), scope="red card rare-event OOS")
+        elif parent_name == "Player Props":
+            dedicated = _dict(reports.get("Player Props OOS"))
+            names = {
+                "SHOTS": "SHOTS", "SOT": "SOT", "GOALSCORER": "GOALSCORER_ANYTIME",
+                "ASSISTS": "ASSISTS", "PLAYER_CARDS": "PLAYER_CARDS", "GK_SAVES": "GK_SAVES",
+            }
+            node = _dict(_dict(dedicated.get("families")).get(names.get(key, "")))
+            if node:
+                quality.update(
+                    brier=node.get("brier_score"),
+                    log_loss=node.get("log_loss"),
+                    ece=node.get("calibration_ece"),
+                    scope="preliminary dedicated player-game OOS; sample gate not met",
+                )
         # Numeric quality observations are evidence, not promotion authorization.
 
         report_clv = _dict(report.get("true_clv"))
@@ -434,6 +462,13 @@ def _build_market_inventory(
             blockers.append("SOURCE_REPORT_NOT_VERIFIED")
         if not direct_oos:
             blockers.append("MARKET_OOS_NOT_VERIFIED")
+        if parent_name == "Player Props":
+            observed = _integer(_dict(model_evidence).get("current"))
+            target = _integer(_dict(model_evidence).get("target"))
+            if observed is not None and target is not None and observed < target:
+                blockers.append("MARKET_OOS_SAMPLE_BELOW_REVIEW_MINIMUM")
+            if _dict(model_evidence).get("ready") is not True:
+                blockers.append("MARKET_OOS_CALIBRATION_INCOMPLETE")
         if priced_n is None:
             blockers.append("MARKET_PRICE_HISTORY_NOT_VERIFIED")
         if clv_n is None:
@@ -448,12 +483,22 @@ def _build_market_inventory(
                 blockers.append(blocker)
         collection_keys = _COLLECTION_KEYS.get(parent_name or "", ())
         has_independent_parent_target = bool(report) and len(collection_keys) == 1 and key in collection_keys
+        dedicated_prop_source = (
+            parent_name == "Player Props"
+            and bool(_dict(_dict(reports.get("Player Props OOS")).get("families")).get({
+                "SHOTS": "SHOTS", "SOT": "SOT", "GOALSCORER": "GOALSCORER_ANYTIME",
+                "ASSISTS": "ASSISTS", "PLAYER_CARDS": "PLAYER_CARDS",
+                "GK_SAVES": "GK_SAVES",
+            }.get(key, "")))
+        )
+        direct_report = _dict(reports.get("Player Props OOS")) if dedicated_prop_source else {}
         inventory.append({
             "key": key,
             "label": label,
             "parent_family": parent_name,
-            "source": parent.get("source") if report else None,
-            "report_status": parent.get("report_status") if report else "NOT VERIFIED",
+            "source": _MARKET_ADDITIONAL_REPORTS["Player Props OOS"] if dedicated_prop_source else (parent.get("source") if report else None),
+            "clv_report_source": _REPORTS["Player Props"] if dedicated_prop_source else None,
+            "report_status": direct_report.get("status") if dedicated_prop_source else (parent.get("report_status") if report else "NOT VERIFIED"),
             "parent_research_stage": parent.get("stage") if report else None,
             "model_evidence": model_evidence,
             "model_quality": quality,
@@ -465,7 +510,7 @@ def _build_market_inventory(
             "next_gate": blockers[0] if blockers else None,
             "blockers": blockers,
             "market_specific_evidence_verified": direct_oos,
-            "source_model_version": report.get("model_version") if report else None,
+            "source_model_version": direct_report.get("model_version") if dedicated_prop_source else (report.get("model_version") if report else None),
             "source_temporal_provenance": "NOT VERIFIED",
             "production_promotion_allowed": False,
             "classification": "RESEARCH_ONLY",
@@ -509,7 +554,7 @@ def load_maturity_evidence(*, force: bool = False) -> dict[str, Any]:
             except Exception as exc:
                 errors["CLV"] = f"{type(exc).__name__}: {str(exc)[:120]}"
 
-            for label, filename in _REPORTS.items():
+            for label, filename in {**_REPORTS, **_MARKET_ADDITIONAL_REPORTS}.items():
                 try:
                     response = client.get(f"{base}/{filename}", headers={"Accept": "application/json"})
                     response.raise_for_status()
