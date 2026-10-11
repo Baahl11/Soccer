@@ -1,0 +1,38 @@
+name: Render Tick OOM Admission Contract
+
+on:
+  pull_request:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - "mcp_gateway/server.py"
+      - "mcp_gateway/server_base.py"
+      - "tests/test_render_tick_memory_admission.py"
+      - "tests/test_server_v215_route_mount.py"
+      - "tests/test_server_v226_team_totals_reconciliation_route.py"
+      - ".github/workflows/render-tick-oom-admission-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-tick-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - name: Install existing API dependencies
+        run: pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile server code
+        run: python -W error::SyntaxWarning -m py_compile mcp_gateway/server.py mcp_gateway/server_base.py
+      - name: Verify auth, concurrency, memory guard and route integrity
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_render_tick_memory_admission.py \
+            tests/test_server_v215_route_mount.py \
+            tests/test_server_v226_team_totals_reconciliation_route.py \
+            tests/test_server_import_smoke.py
