@@ -137,6 +137,37 @@ def test_authenticated_maturity_route_returns_read_only_pro_evidence(monkeypatch
     assert payload["production_promotion_allowed"] is False
 
 
+
+def test_authenticated_maturity_route_accepts_owner_without_pro_entitlement(monkeypatch):
+    """OWNER authorization is independent of the subscriber PRO product tier."""
+    import asyncio
+    import json
+    from starlette.requests import Request
+    from mcp_gateway import subscriber_preview_maturity_v232 as route
+
+    monkeypatch.setattr(route.supabase_auth_v4, "bearer_token", lambda header: "owner-token")
+    monkeypatch.setattr(
+        route.subscription_entitlements_v4, "resolve_entitlement",
+        lambda token: {
+            "ok": True, "authenticated": True,
+            "effective_plan": "FREE", "owner": True, "user": {"role": "OWNER"},
+        },
+    )
+    monkeypatch.setattr(
+        route.subscriber_maturity_v232, "load_maturity_evidence",
+        lambda: {"status": "OK", "market_rows": [], "production_promotion_allowed": False},
+    )
+    response = asyncio.run(
+        route.preview_maturity(Request({"type": "http", "method": "GET", "headers": []}))
+    )
+    result = json.loads(response.body)
+    assert response.status_code == 200
+    assert result["owner"] is True
+    assert result["effective_plan"] == "FREE"
+    assert result["production_promotion_allowed"] is False
+
+
+
 def test_total_source_failure_is_unavailable_not_partial(monkeypatch):
     class FailedSource:
         def __enter__(self):
