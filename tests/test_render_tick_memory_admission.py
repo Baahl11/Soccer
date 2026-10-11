@@ -146,3 +146,76 @@ def test_cancelled_request_releases_tick_admission(monkeypatch):
         server._base_server._release_db_heavy_gate()
 
     asyncio.run(scenario())
+
+
+async def _prospective_request():
+    messages = []
+    scope = _scope()
+    scope["path"] = server.PROSPECTIVE_ROUTE
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(message):
+        messages.append(message)
+
+    await server._handle_instrumented_prospective_registry(scope, receive, send)
+    return messages
+
+
+def test_prospective_registry_requires_its_specific_oidc_workflow(monkeypatch):
+    def reject(request, allowed):
+        assert allowed == {".github/workflows/prospective-evaluation-registry.yml"}
+        raise PermissionError("bad workflow")
+    monkeypatch.setattr(server._base_server, "_github_oidc_claims", reject)
+    assert _status(asyncio.run(_prospective_request())) == 401
+
+
+def test_prospective_is_blocked_during_heavy_tick_and_never_starts_worker(monkeypatch):
+    monkeypatch.setattr(
+        server._base_server, "_github_oidc_claims",
+        lambda request, allowed: {"repository": "Baahl11/Soccer"},
+    )
+    assert server._base_server._acquire_db_heavy_gate("simulated_tick") is None
+    try:
+        assert _status(asyncio.run(_prospective_request())) == 409
+    finally:
+        server._base_server._release_db_heavy_gate()
+
+
+def test_prospective_uses_guarded_subprocess_and_releases_gate(monkeypatch):
+    monkeypatch.setattr(
+        server._base_server, "_github_oidc_claims",
+        lambda request, allowed: {"repository": "Baahl11/Soccer"},
+    )
+    called = []
+
+    async def guarded(scope, receive, send, **kwargs):
+        called.append(kwargs)
+        await JSONResponse({
+            "status": "PROSPECTIVE_EVALUATION_REGISTRY_ACTIVE",
+            "production_promotion_allowed": False,
+        })(scope, receive, send)
+
+    monkeypatch.setattr(server, "_run_instrumented_tick", guarded)
+    assert _status(asyncio.run(_prospective_request())) == 200
+    assert called == [{
+        "worker_module": "mcp_gateway.prospective_registry_worker",
+        "error_prefix": "prospective_registry",
+    }]
+    assert server._base_server._acquire_db_heavy_gate("after_registry") is None
+    server._base_server._release_db_heavy_gate()
+
+
+def test_prospective_worker_json_isolated_without_live_database(monkeypatch, capsys):
+    from mcp_gateway import prospective_registry_worker as worker
+    monkeypatch.setattr(worker, "build_registry", lambda: {
+        "status": "PROSPECTIVE_EVALUATION_REGISTRY_ACTIVE",
+        "selection_rows": [], "settlement_rows": [],
+        "production_promotion_allowed": False,
+    })
+    worker.main()
+    import json
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "PROSPECTIVE_EVALUATION_REGISTRY_ACTIVE"
+    assert payload["production_promotion_allowed"] is False
