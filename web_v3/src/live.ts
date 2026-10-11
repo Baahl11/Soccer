@@ -538,7 +538,9 @@ export async function loadMatchCenter(): Promise<MatchCenterViewModel> {
       : "Sign in with an Edge Pro account to unlock persisted Match Intelligence.");
   }
   if (detail.response.status === 401) {
-    return lockedView(fixture, "UNAVAILABLE", "Your session expired and could not be refreshed. Sign in again.");
+    return lockedView(fixture, token ? "UNAVAILABLE" : "PREMIUM_REQUIRED", token
+      ? "Your session expired and could not be refreshed. Sign in again."
+      : "Sign in with an Edge Pro or OWNER account to unlock verified persisted Match Intelligence.");
   }
   if (!detail.response.ok) {
     return lockedView(
