@@ -7,7 +7,11 @@ on:
     paths:
       - "mcp_gateway/server.py"
       - "mcp_gateway/server_base.py"
+      - "mcp_gateway/prospective_evaluation_registry_v1.py"
+      - "mcp_gateway/prospective_registry_worker.py"
       - "tests/test_render_tick_memory_admission.py"
+      - "tests/test_prospective_registry_streaming.py"
+      - "tests/test_prospective_evaluation_registry_v1.py"
       - "tests/test_server_v215_route_mount.py"
       - "tests/test_server_v226_team_totals_reconciliation_route.py"
       - ".github/workflows/render-tick-oom-admission-contract.yml"
@@ -28,11 +32,13 @@ jobs:
       - name: Install existing API dependencies
         run: pip install -r mcp_gateway/requirements.txt pytest
       - name: Compile server code
-        run: python -W error::SyntaxWarning -m py_compile mcp_gateway/server.py mcp_gateway/server_base.py
+        run: python -W error::SyntaxWarning -m py_compile mcp_gateway/server.py mcp_gateway/server_base.py mcp_gateway/prospective_evaluation_registry_v1.py mcp_gateway/prospective_registry_worker.py
       - name: Verify auth, concurrency, memory guard and route integrity
         run: |
           PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_render_tick_memory_admission.py \
+            tests/test_prospective_registry_streaming.py \
+            tests/test_prospective_evaluation_registry_v1.py \
             tests/test_server_v215_route_mount.py \
             tests/test_server_v226_team_totals_reconciliation_route.py \
             tests/test_server_import_smoke.py
