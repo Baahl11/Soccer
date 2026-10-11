@@ -19,7 +19,7 @@ def test_real_canonical_research_sources_match_customer_contract():
     assert clv_path.is_file(), "Canonical strict True CLV artifact absent"
     clv = json.loads(clv_path.read_text(encoding="utf-8"))
     reports = {}
-    for family, filename in m._REPORTS.items():
+    for family, filename in {**m._REPORTS, **m._MARKET_ADDITIONAL_REPORTS}.items():
         path = ROOT / filename
         assert path.is_file(), f"Missing source for {family}: {filename}"
         reports[family] = json.loads(path.read_text(encoding="utf-8"))
@@ -38,10 +38,13 @@ def test_real_canonical_research_sources_match_customer_contract():
         assert row["true_clv_rows"] == source_family_counts.get(key)
         assert row["production_promotion_allowed"] is False
         assert row["source_temporal_provenance"] == "NOT VERIFIED"
-        assert row["source_model_version"] == (
-            reports[row["parent_family"]].get("model_version")
+        expected_source_model = (
+            reports["Player Props OOS"].get("model_version")
+            if row["parent_family"] == "Player Props"
+            else reports[row["parent_family"]].get("model_version")
             if row["parent_family"] in reports else None
         )
+        assert row["source_model_version"] == expected_source_model
     assert by_key["1X2"]["model_evidence"]["current"] == (
         reports["1X2"]["canonical_multiclass_oos"]["temperature_scaled"]["n"]
     )
@@ -56,15 +59,29 @@ def test_real_canonical_research_sources_match_customer_contract():
     assert by_key["RED_CARDS"]["model_evidence"]["target"] == reports["Cards"]["red_cards"]["minimum_market_review"]
 
     prop_key_map = {
-        "SHOTS": "shots", "SOT": "sot", "GOALSCORER": "goalscorer",
-        "ASSISTS": "assists", "PLAYER_CARDS": "cards", "GK_SAVES": "gk_saves",
+        "SHOTS": ("shots", "SHOTS"), "SOT": ("sot", "SOT"),
+        "GOALSCORER": ("goalscorer", "GOALSCORER_ANYTIME"),
+        "ASSISTS": ("assists", "ASSISTS"),
+        "PLAYER_CARDS": ("cards", "PLAYER_CARDS"),
+        "GK_SAVES": ("gk_saves", "GK_SAVES"),
     }
-    for key, subkey in prop_key_map.items():
-        source = reports["Player Props"]["prop_families"][subkey]["oos_evidence"]
-        assert by_key[key]["model_evidence"]["current"] == source["player_game_rows"]
-        assert by_key[key]["model_evidence"]["ready"] is source["oos_validation_complete"]
-        assert by_key[key]["report_true_clv_rows"] == reports["Player Props"]["true_clv"]["by_family"][subkey]["rows"]
-        assert by_key[key]["true_clv_rows"] is None
+    prop_oos = reports["Player Props OOS"]
+    assert prop_oos["review_ready_family_count"] == 0
+    assert sum(prop_oos["families"][audit]["player_game_rows"] for _, audit in prop_key_map.values()) == prop_oos["player_game_rows"]
+    for key, (old_key, new_key) in prop_key_map.items():
+        source = prop_oos["families"][new_key]
+        row = by_key[key]
+        assert row["model_evidence"]["current"] == source["player_game_rows"]
+        assert row["model_evidence"]["target"] == source["minimum_player_games_for_review"]
+        assert row["model_evidence"]["unique_fixtures"] == source["unique_fixtures"]
+        assert row["model_evidence"]["ready"] is False
+        assert row["market_specific_evidence_verified"] is False
+        assert "MARKET_OOS_CALIBRATION_INCOMPLETE" in row["blockers"]
+        assert "MARKET_OOS_SAMPLE_BELOW_REVIEW_MINIMUM" in row["blockers"]
+        assert row["source"] == "player_props_oos_v4_report.json"
+        assert row["clv_report_source"] == "phase15_player_props_validation.json"
+        assert row["report_true_clv_rows"] == reports["Player Props"]["true_clv"]["by_family"][old_key]["rows"]
+        assert row["true_clv_rows"] is None
 
     for key in ("1H", "2H", "FT_CORNERS", "TEAM_CORNERS", "YELLOW_CARDS", "RED_CARDS"):
         assert by_key[key]["true_clv_rows"] is None
