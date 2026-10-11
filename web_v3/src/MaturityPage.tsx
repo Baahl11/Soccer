@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { hasStoredSession, refreshSession, storedAccessToken } from "./auth";
 
-type Evidence = { current?: number | null; target?: number | null; unit?: string | null };
+type Evidence = { current?: number | null; target?: number | null; unit?: string | null; unique_fixtures?: number | null; audit_status?: string | null; ready?: boolean };
 type Quality = { brier?: number | null; log_loss?: number | null; ece?: number | null; scope?: string | null };
 type MarketRow = {
   key: string; label: string; parent_family: string | null; model_quality?: Quality;
-  report_true_clv_rows?: number | null; source_model_version?: string | null; source_temporal_provenance?: string | null;
+  report_true_clv_rows?: number | null; clv_report_source?: string | null; source_model_version?: string | null; source_temporal_provenance?: string | null;
   model_evidence: Evidence | null;
   mapped_rows: number | null; priced_rows: number | null;
   true_clv_rows: number | null; true_clv_target: number | null;
@@ -118,10 +118,10 @@ export function MaturityPage() {
       {!!visibleRows.length && <div className="maturity-scroll"><table className="maturity-table"><thead><tr><th>Market</th><th>Model sample</th><th>Model quality</th><th>Mapped</th><th>Priced</th><th>Canonical True CLV</th><th>Validation report CLV</th><th>Parent research stage</th><th>Market blockers</th><th>Source report</th><th>Production</th></tr></thead><tbody>
         {visibleRows.map(row => <tr key={row.key}>
           <td><strong>{verified(row.label)}</strong><small>{verified(row.parent_family)}</small></td>
-          <td>{gate(row.model_evidence?.current, row.model_evidence?.target)}<small>{verified(row.model_evidence?.unit)}</small><small>{row.market_specific_evidence_verified ? "MARKET OOS EVIDENCE REPORTED" : "INDEPENDENT OOS NOT VERIFIED"}</small></td>
+          <td>{gate(row.model_evidence?.current, row.model_evidence?.target)}<small>{verified(row.model_evidence?.unit)}</small><small>{row.model_evidence?.unique_fixtures != null ? "Fixtures: " + row.model_evidence.unique_fixtures : ""}</small><small>{row.model_evidence?.audit_status ? "Audit: " + row.model_evidence.audit_status : ""}</small><small>{row.model_evidence?.ready ? "OOS REVIEW GATE MET; NOT A BET" : row.model_evidence?.current != null ? "OOS SAMPLE COLLECTING · NOT REVIEW READY" : "INDEPENDENT OOS NOT VERIFIED"}</small></td>
           <td>Brier: {metric(row.model_quality?.brier)}<small>Log loss: {metric(row.model_quality?.log_loss)}</small><small>ECE: {metric(row.model_quality?.ece)}</small><small>{verified(row.model_quality?.scope)}</small></td>
           <td>{verified(row.mapped_rows)}</td><td>{verified(row.priced_rows)}</td>
-          <td>{gate(row.true_clv_rows, row.true_clv_target)}</td><td>{verified(row.report_true_clv_rows)}<small>Research report; not a substitute for canonical CLV</small></td>
+          <td>{gate(row.true_clv_rows, row.true_clv_target)}</td><td>{verified(row.report_true_clv_rows)}<small>Research report; not a substitute for canonical CLV</small>{row.clv_report_source && <small>CLV source: {row.clv_report_source}</small>}</td>
           <td>{verified(row.parent_research_stage)}</td><td>{verified(row.next_gate)}{(row.blockers?.length ?? 0) > 1 && <details className="maturity-blockers"><summary>{(row.blockers?.length ?? 0) - 1} more blockers</summary><small>{row.blockers?.slice(1).join(" · ")}</small></details>}</td><td><small>{verified(row.source)}</small><small>Report: {verified(row.report_status)}</small><small>Model: {verified(row.source_model_version)}</small><small>Timestamp: {verified(row.source_temporal_provenance)}</small></td><td>{row.production_promotion_allowed ? "OPERATOR VERIFICATION REQUIRED" : "BLOCKED"}</td>
         </tr>)}
       </tbody></table></div>}
