@@ -731,6 +731,7 @@ export default function App() {
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [view, setView] = useState<"today" | "matches" | "match" | "maturity">(
+    new URLSearchParams(window.location.search).has("maturity-preview") ? "maturity" :
     window.location.pathname.includes("/match/") || new URLSearchParams(window.location.search).has("fixture_id") ? "match" : "today"
   );
   const [error, setError] = useState<string | null>(null);
