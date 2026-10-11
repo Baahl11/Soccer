@@ -211,3 +211,56 @@ def test_only_relevant_parent_blockers_are_attached_to_each_submarket():
     assert "PLAYER_PROP_TRUE_CLV_0_LT_50" in shots["blockers"]
     assert "SOT_OOS_VALIDATION_INCOMPLETE" in sot["blockers"]
     assert "SHOTS_OOS_VALIDATION_INCOMPLETE" not in sot["blockers"]
+
+
+def test_dedicated_player_prop_oos_is_displayed_without_promotion_or_parent_zero_cloning():
+    family = [{
+        "label": "Player Props", "stage": "RESEARCH_HOLD",
+        "source": "phase15_player_props_validation.json",
+        "report_status": "RESEARCH_HOLD",
+        "blockers": ["PLAYER_PROP_TRUE_CLV_0_LT_50"],
+    }]
+    reports = {
+        "Player Props": {
+            "model_version": "SOCCER_PLAYER_PROPS_PHASE15_V4",
+            "prop_families": {"shots": {"oos_evidence": {"player_game_rows": 0}}},
+            "true_clv": {"by_family": {"shots": {"rows": 0}}},
+        },
+        "Player Props OOS": {
+            "model_version": "SOCCER_PLAYER_PROPS_OOS_V4_1.1.1",
+            "status": "COLLECTING_PLAYER_PROP_OOS",
+            "families": {
+                "SHOTS": {
+                    "player_game_rows": 63, "unique_fixtures": 11,
+                    "minimum_player_games_for_review": 500,
+                    "oos_validation_complete": False,
+                    "status": "COLLECTING_OOS", "brier_score": 0.10,
+                },
+            },
+        },
+    }
+    rows = maturity._build_market_inventory(family, {}, reports)
+    by_key = {row["key"]: row for row in rows}
+    shots = by_key["SHOTS"]
+    assert shots["model_evidence"]["current"] == 63  # not parent 0
+    assert shots["model_evidence"]["target"] == 500
+    assert shots["model_evidence"]["unique_fixtures"] == 11
+    assert shots["model_evidence"]["ready"] is False
+    assert not shots["market_specific_evidence_verified"]
+    assert shots["model_quality"]["brier"] == 0.10
+    assert shots["source"] == "player_props_oos_v4_report.json"
+    assert shots["clv_report_source"] == "phase15_player_props_validation.json"
+    assert shots["source_temporal_provenance"] == "NOT VERIFIED"
+    assert shots["true_clv_rows"] is None
+    assert shots["report_true_clv_rows"] == 0  # explicitly reported old phase15 CLV zero
+    assert "MARKET_OOS_SAMPLE_BELOW_REVIEW_MINIMUM" in shots["blockers"]
+    assert "MARKET_TRUE_CLV_NOT_VERIFIED" in shots["blockers"]
+    assert shots["production_promotion_allowed"] is False
+
+    # Absent direct family is NOT VERIFIED; never turn a cached parent zero
+    # into a claimed independent 0 for Shots on Target.
+    sot = by_key["SOT"]
+    assert sot["model_evidence"]["current"] is None
+    assert sot["source_model_version"] == "SOCCER_PLAYER_PROPS_PHASE15_V4"
+    assert not sot["market_specific_evidence_verified"]
+    assert sot["true_clv_rows"] is None
