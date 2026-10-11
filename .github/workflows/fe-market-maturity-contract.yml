@@ -87,6 +87,12 @@ jobs:
       - name: Verify React build
         working-directory: web_v3
         run: npm ci && npm run build
+      - name: Archive compiled React V3 release candidate (not deployed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-market-maturity-react-dist
+          path: web_v3/dist/
+          if-no-files-found: error
 
       - name: Export canonical-source browser fixture
         run: PYTHONPATH=. python tests/export_subscriber_maturity_state_fixture.py
