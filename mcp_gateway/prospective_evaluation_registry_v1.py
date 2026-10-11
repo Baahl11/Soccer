@@ -373,37 +373,54 @@ def build_registry() -> dict[str, Any]:
     persistence.ensure_schema()
 
     with persistence._connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT event_id, fixture_id, generated_at, classification,
-                       availability_confidence, data_tier, payload
-                FROM soccer_refresh_events
-                WHERE generated_at >= %s
-                  AND stage = %s
-                ORDER BY generated_at ASC, event_id ASC
-                """,
-                (start, STAGE),
-            )
-            columns = [desc.name for desc in cur.description]
-            event_rows = [dict(zip(columns, raw)) for raw in cur.fetchall()]
-
         chosen: dict[tuple[int, str], dict[str, Any]] = {}
-        for row in event_rows:
-            event = row.get("payload")
-            if not isinstance(event, dict):
-                continue
-            try:
-                fixture_id = int(row.get("fixture_id"))
-            except (TypeError, ValueError):
-                continue
-            for track, builder in (("1X2", _best_1x2), ("TEAM_TOTALS", _best_team_total)):
-                key = (fixture_id, track)
-                if key in chosen:
-                    continue
-                candidate = builder(row, event)
-                if candidate is not None:
-                    chosen[key] = candidate
+        # Streaming is essential on the 512 MiB production instance: the
+        # event payload contains full point-in-time match intelligence, and a
+        # client-side fetchall() materialized every large JSON object at once.
+        # A named psycopg3 cursor + explicit transaction keeps the exact
+        # chronological first-eligible selection semantics, in small batches.
+        # Do not add a LIMIT, discard unprocessed fixtures, or reinterpret
+        # model, market, availability, and prospective gates.
+        with conn.transaction():
+            with conn.cursor(name="prospective_registry_v1_events") as cur:
+                cur.execute(
+                    """
+                    SELECT event_id, fixture_id, generated_at, classification,
+                           availability_confidence, data_tier, payload
+                    FROM soccer_refresh_events
+                    WHERE generated_at >= %s
+                      AND stage = %s
+                    ORDER BY generated_at ASC, event_id ASC
+                    """,
+                    (start, STAGE),
+                )
+                columns = [desc.name for desc in cur.description]
+                while True:
+                    batch = cur.fetchmany(16)
+                    if not batch:
+                        break
+                    for raw in batch:
+                        row = dict(zip(columns, raw))
+                        event = row.get("payload")
+                        if not isinstance(event, dict):
+                            continue
+                        try:
+                            fixture_id = int(row.get("fixture_id"))
+                        except (TypeError, ValueError):
+                            continue
+                        for track, builder in (
+                            ("1X2", _best_1x2),
+                            ("TEAM_TOTALS", _best_team_total),
+                        ):
+                            key = (fixture_id, track)
+                            if key in chosen:
+                                continue
+                            candidate = builder(row, event)
+                            if candidate is not None:
+                                chosen[key] = candidate
+                    # Drop the batch of potentially large nested payloads
+                    # before requesting the next one.
+                    del batch
 
         selections = sorted(
             chosen.values(),
