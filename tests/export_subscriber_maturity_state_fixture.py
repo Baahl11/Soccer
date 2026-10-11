@@ -11,7 +11,7 @@ root = Path("state/soccer_edge_state/analysis")
 clv = json.loads((root / "clv_v4_postgres_report.json").read_text(encoding="utf-8"))
 reports = {
     family: json.loads((root / filename).read_text(encoding="utf-8"))
-    for family, filename in m._REPORTS.items()
+    for family, filename in {**m._REPORTS, **m._MARKET_ADDITIONAL_REPORTS}.items()
 }
 families = m._build_family_rows(clv, reports)
 payload = {
