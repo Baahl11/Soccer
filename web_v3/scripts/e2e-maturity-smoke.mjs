@@ -34,6 +34,24 @@ try {
     await page.locator(".maturity-table tbody tr").first().waitFor({ timeout: 10000 });
     assert.equal(await page.locator(".maturity-table tbody tr").count(), 21);
     assert.match(await page.locator(".maturity-caveat").innerText(), /RESEARCH.*BET/s);
+    // A canonical zero is a recorded observation, whereas null is NOT VERIFIED.
+    const countBy = predicate => payload.market_rows.filter(predicate).length;
+    const canonicalCount = countBy(row => row.true_clv_rows !== null && row.true_clv_rows !== undefined);
+    await page.locator("#maturity-filter").selectOption("canonical-clv");
+    assert.equal(await page.locator(".maturity-table tbody tr").count(), canonicalCount);
+    await page.locator("#maturity-filter").selectOption("missing-clv");
+    assert.equal(await page.locator(".maturity-table tbody tr").count(), 21 - canonicalCount);
+    await page.locator("#maturity-filter").selectOption("missing-oos");
+    assert.equal(await page.locator(".maturity-table tbody tr").count(),
+      countBy(row => row.market_specific_evidence_verified !== true));
+    await page.locator("#maturity-filter").selectOption("all");
+    await page.locator("#maturity-search").fill("BTTS");
+    assert.equal(await page.locator(".maturity-table tbody tr").count(), 1);
+    await page.locator("#maturity-search").fill("no-such-market");
+    await page.getByText(/No markets match this filter/).waitFor({ timeout: 10000 });
+    assert.equal(await page.locator(".maturity-table tbody tr").count(), 0);
+    await page.locator("#maturity-search").fill("");
+    assert.equal(await page.locator(".maturity-table tbody tr").count(), 21);
     const texts = await page.locator(".maturity-table").innerText();
     assert.match(texts, /canonical true clv/i);
     assert.match(texts, /NOT VERIFIED/);
@@ -63,7 +81,27 @@ try {
       "locked/error content cannot show research rows");
     await context.close();
   }
-  console.log("React maturity browser QA completed: authorized fixture + 401/403/503 states.");
+  // A role transition must never leave previously authorized research visible.
+  const context = await browser.newContext({ viewport: {width: 1300,height:800} });
+  const page = await context.newPage();
+  await prepare(page, 403);
+  await page.getByRole("button", { name: "Market Maturity", exact: true }).click();
+  await page.getByText(/EDGE PRO REQUIRED/).waitFor({ timeout: 10000 });
+  await page.unroute("**/app/api/v2/maturity");
+  await page.route("**/app/api/v2/maturity", route =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(payload) }));
+  await page.getByRole("button", { name: "Recheck evidence" }).click();
+  await page.locator(".maturity-table tbody tr").first().waitFor({ timeout: 10000 });
+  assert.equal(await page.locator(".maturity-table tbody tr").count(), 21);
+  await page.unroute("**/app/api/v2/maturity");
+  await page.route("**/app/api/v2/maturity", route =>
+    route.fulfill({ status: 403, contentType: "application/json", body: '{"error":"PREVIEW_REQUIRES_PRO"}' }));
+  await page.getByRole("button", { name: "Recheck evidence" }).click();
+  await page.getByText(/EDGE PRO REQUIRED/).waitFor({ timeout: 10000 });
+  assert.equal(await page.locator(".maturity-table tbody tr").count(), 0,
+    "revoked access must clear premium rows, never leak stale research");
+  await context.close();
+  console.log("React maturity browser QA completed: 21 canonical rows, filters, 401/403/503, role transition and safe recheck.");
 } finally {
   await browser.close();
 }
