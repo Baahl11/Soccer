@@ -39,8 +39,15 @@ async function requestMaturity(token: string): Promise<Response> {
 export function MaturityPage() {
   const [payload, setPayload] = useState<MaturityPayload | null>(null);
   const [message, setMessage] = useState("Loading persisted market evidence…");
+  const [refreshIndex, setRefreshIndex] = useState(0);
+  const [search, setSearch] = useState("");
+  const [evidenceFilter, setEvidenceFilter] = useState("all");
   useEffect(() => {
     let active = true;
+    // Never retain premium rows while a fresh authentication/entitlement check
+    // runs. A 401/403/error must not leave a stale 200 response on screen.
+    setPayload(null);
+    setMessage("Loading persisted market evidence…");
     (async () => {
       try {
         let token = storedAccessToken();
@@ -63,9 +70,18 @@ export function MaturityPage() {
       }
     })();
     return () => { active = false; };
-  }, []);
+  }, [refreshIndex]);
 
   const rows = Array.isArray(payload?.market_rows) ? payload.market_rows : [];
+  const visibleRows = rows.filter((row) => {
+    const query = search.trim().toLocaleLowerCase();
+    if (query && ![row.label, row.key, row.parent_family, row.next_gate, row.source]
+      .some((value) => (value ?? "").toLocaleLowerCase().includes(query))) return false;
+    if (evidenceFilter === "missing-oos") return row.market_specific_evidence_verified !== true;
+    if (evidenceFilter === "missing-clv") return row.true_clv_rows == null;
+    if (evidenceFilter === "canonical-clv") return row.true_clv_rows != null;
+    return true;
+  });
   const errors = Object.keys(payload?.errors ?? {});
   return <section className="react-page">
     <div className="slate-page-head">
@@ -78,12 +94,29 @@ export function MaturityPage() {
       <div><span>STRICT TRUE CLV</span><b>{verified(payload?.comparable_true_clv_rows)}</b></div>
     </div>
     <div className="slate-card maturity-surface">
+      <div className="maturity-controls">
+        <label htmlFor="maturity-search">Find market
+          <input id="maturity-search" type="search" placeholder="Name, family or blocker"
+            value={search} onChange={(e) => setSearch(e.target.value)} />
+        </label>
+        <label htmlFor="maturity-filter">Evidence view
+          <select id="maturity-filter" value={evidenceFilter} onChange={(e) => setEvidenceFilter(e.target.value)}>
+            <option value="all">All 21 markets</option>
+            <option value="missing-oos">Independent OOS not verified</option>
+            <option value="missing-clv">Canonical True CLV not verified</option>
+            <option value="canonical-clv">Canonical True CLV recorded</option>
+          </select>
+        </label>
+        <span className="maturity-visible-count" aria-live="polite">{payload ? visibleRows.length + " of " + rows.length + " markets" : "Evidence checking"}</span>
+        <button type="button" className="maturity-refresh" onClick={() => setRefreshIndex((n) => n + 1)}>Recheck evidence</button>
+      </div>
       <div className="maturity-caveat"><b>RESEARCH ≠ BET · PRODUCTION NOT AUTHORIZED</b><p>A gate met means eligibility for review, never automatic production promotion. Parent and submarket counts are not independent samples. Missing data and source freshness stay NOT VERIFIED without direct proof.</p></div>
       {message && <div className="slate-empty" role="status">{message}</div>}
       {!!errors.length && <div className="slate-empty">PARTIAL REPORTS — could not verify: {errors.join(", ")}</div>}
       {payload && rows.length === 0 && <div className="slate-empty">No verified market maturity reports available.</div>}
-      {!!rows.length && <div className="maturity-scroll"><table className="maturity-table"><thead><tr><th>Market</th><th>Model sample</th><th>Model quality</th><th>Mapped</th><th>Priced</th><th>Canonical True CLV</th><th>Validation report CLV</th><th>Parent research stage</th><th>Market blockers</th><th>Source report</th><th>Production</th></tr></thead><tbody>
-        {rows.map(row => <tr key={row.key}>
+      {payload && rows.length > 0 && visibleRows.length === 0 && <div className="slate-empty">No markets match this filter. The underlying evidence is unchanged.</div>}
+      {!!visibleRows.length && <div className="maturity-scroll"><table className="maturity-table"><thead><tr><th>Market</th><th>Model sample</th><th>Model quality</th><th>Mapped</th><th>Priced</th><th>Canonical True CLV</th><th>Validation report CLV</th><th>Parent research stage</th><th>Market blockers</th><th>Source report</th><th>Production</th></tr></thead><tbody>
+        {visibleRows.map(row => <tr key={row.key}>
           <td><strong>{verified(row.label)}</strong><small>{verified(row.parent_family)}</small></td>
           <td>{gate(row.model_evidence?.current, row.model_evidence?.target)}<small>{verified(row.model_evidence?.unit)}</small><small>{row.market_specific_evidence_verified ? "MARKET OOS EVIDENCE REPORTED" : "INDEPENDENT OOS NOT VERIFIED"}</small></td>
           <td>Brier: {metric(row.model_quality?.brier)}<small>Log loss: {metric(row.model_quality?.log_loss)}</small><small>ECE: {metric(row.model_quality?.ece)}</small><small>{verified(row.model_quality?.scope)}</small></td>
