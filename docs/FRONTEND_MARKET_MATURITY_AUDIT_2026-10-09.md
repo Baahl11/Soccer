@@ -134,3 +134,27 @@ Production infrastructure now runs the **separate OOM hotfix** `23aa0d55fe735943
 **Still blocked:** actual Render preview/production browser session for FREE, PRO, OWNER; exact runtime state variables; fixture-level source generation / temporal lineage; React BET-only Performance surface, which remains a separate disabled nav item; four legacy FE2 tests excluded from the dedicated maturity workflow; sustained server reliability after #72.
 
 **Decision: NO-GO for merging PR #68 to the Render auto-deployed `soccer-edge-mcp-v1` branch** until the release acceptance gates are satisfied. No provider, model, market, BET or historical data changes.
+
+
+## 2026-10-11 — Dedicated player-game OOS reconciliation (no eligibility change)
+
+**Observed data drift:** the preexisting Phase15 `phase15_player_props_validation.json` displays an OOS `player_game_rows=0` field per prop, while the separately materialized `player_props_oos_v4_report.json` reports a 324-row player-game dataset across 21 unique fixtures. The UI must never treat the old parent zero as proof that no independent player-game research has been collected.
+
+**Dedicated OOS observations (same fixtures/players may contribute to multiple prop families):**
+
+| Market | Observed player-game OOS | Unique fixtures | Independent review minimum | State |
+| --- | ---: | ---: | ---: | --- |
+| Player Shots | 63 | 11 | 500 | COLLECTING_OOS |
+| Shots on Target | 61 | 10 | 500 | COLLECTING_OOS |
+| Anytime Goalscorer | 61 | 10 | 1000 | COLLECTING_OOS |
+| Assists | 61 | 10 | 1000 | COLLECTING_OOS |
+| Player Cards | 43 | 8 | 1000 | COLLECTING_OOS |
+| Goalkeeper Saves | 35 | 19 | 300 | COLLECTING_OOS |
+
+- Total 324 = **sum of family player-game records, not 324 unique fixtures**.
+- `player_props_oos_v4_report.json` has status `COLLECTING_PLAYER_PROP_OOS`, model `SOCCER_PLAYER_PROPS_OOS_V4_1.1.1`, **zero of six families ready**. Preliminary Brier/log-loss/ECE are exposed strictly as sample diagnostics, not calibration clearance.
+- Strict canonical CLV remains owned by `clv_v4_postgres_report.json`, not this OOS report. The Phase15-specific per-prop CLV field still records zero in `phase15_player_props_validation.json`; the UI labels it as a separate `report_true_clv_rows` observation, never as canonical proof.
+- All 11 audited market scientific artifacts (canonical CLV, nine parents and dedicated player OOS) lacked an explicit top-level `generated_at_utc` field at this check. No per-fixture point-in-time lineage was verified; `source_temporal_provenance` remains **NOT VERIFIED**. GitHub publication dates cannot substitute for report generation times or feature/market timestamps.
+- The 21-market CI `tests/test_subscriber_maturity_state_artifacts.py` now loads the exact dedicated OOS JSON from `soccer-edge-state`, asserts all six rows' sample counts/fixture diversity/targets, preserves 9 research-family parents, protects sparse canonical CLV `null` semantics, and verifies zero production promotion. `tests/export_subscriber_maturity_state_fixture.py` uses the same sources for browser QA.
+
+**Release:** PR68 isolated branch only, [CI SUCCESS #38119366929](https://github.com/Baahl11/Soccer/actions/runs/38119366929), not merged to production. The separate P0 prospective memory fix [PR #73](https://github.com/Baahl11/Soccer/pull/73) is deployed as `108c193c`; [authenticated registry rerun 38116409397 attempt 2](https://github.com/Baahl11/Soccer/actions/runs/38116409397) completed and persisted **zero** eligible selections without OOM. Zero is a valid strict-gate output; no model, market, quota, stake or threshold changes are authorized.
