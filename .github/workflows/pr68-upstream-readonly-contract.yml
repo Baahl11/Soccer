@@ -1,0 +1,42 @@
+name: PR68 Upstream Read-only Data Contract
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/pr68-maturity-isolated-20261010]
+    paths: [.github/workflows/pr68-upstream-readonly-contract.yml]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Inspect actual subscriber public slate, no secrets or writes
+        run: |
+          python - <<'PY'
+          import json
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+          base = "https://soccer-edge-api.onrender.com"
+          for path in ["/health", "/app/api/v2/today", "/app/api/v2/match/1507077"]:
+              request = Request(base+path, headers={"Accept": "application/json"})
+              try:
+                  with urlopen(request, timeout=60) as r:
+                      status, data = r.status, r.read(24000000)
+              except HTTPError as e:
+                  status, data = e.code, e.read(2048)
+              print("ROUTE",path,"HTTP",status,"BYTES",len(data))
+              if status != 200:
+                  print("ERROR",data[:250].decode("utf-8","replace"))
+                  continue
+              try: p=json.loads(data)
+              except ValueError: continue
+              if path.endswith("/today"):
+                  slate=p.get("slate") if isinstance(p.get("slate"),dict) else {}
+                  rows=slate.get("rows") if isinstance(slate.get("rows"),list) else []
+                  print("TODAY_SHAPE","status",p.get("status"),"slate_status",slate.get("registry_status"),"rows",len(rows),"source",p.get("source"),"generated",p.get("generated_at_utc"))
+                  for row in rows[:3]:
+                      f=row.get("fixture") if isinstance(row.get("fixture"),dict) else {}
+                      cv=row.get("coverage") if isinstance(row.get("coverage"),dict) else {}
+                      print("EXAMPLE_FIXTURE","fixture_id",f.get("fixture_id"),"league",f.get("league"),"home_team_id",f.get("home_team_id"),"away_team_id",f.get("away_team_id"),"logo_keys",bool(f.get("home_team_logo")),bool(f.get("away_team_logo")),"coverage_keys",sorted(cv)[:10])
+          PY
