@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
+from pathlib import Path
 from typing import Any
 
 from starlette.requests import Request
@@ -237,21 +238,80 @@ async def _handle_v215_signal_ledger(scope, receive, send) -> None:
     await response(scope, receive, send)
 
 
-async def _handle_instrumented_tick(scope, receive, send) -> None:
-    """Run the canonical tick while surfacing worker timing checkpoints.
+# The instrumented scheduler route in server.py intercepts /internal/tick
+# before server_base.internal_tick and must share its DB-heavy admission lock.
+# The Render process has a 512 MiB cgroup: a separate tick worker can exhaust
+# the shared memory budget even while the parent web server remains healthy.
+_TICK_MEMORY_RESERVE_BYTES = 64 * 1024 * 1024
+_TICK_MEMORY_LIMIT_FRACTION = 0.88
+_TICK_MEMORY_POLL_SECONDS = 0.15
 
-    This is observability-only. It preserves the existing OIDC validation,
-    subprocess isolation, 420-second timeout, JSON response bytes, model logic,
-    gates, thresholds, provider budget and persistence behavior.
+
+def _cgroup_memory_snapshot() -> tuple[int, int] | None:
+    """Read the container's real memory usage/limit; return None if unbounded.
+
+    This is a diagnostic safety limit, not a sport, market or provider budget.
     """
-    request = Request(scope, receive=receive)
-    try:
-        _base_server._github_oidc_claims(request)
-    except Exception as exc:
-        response = JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
-        await response(scope, receive, send)
-        return
+    for current_path, maximum_path in (
+        ("/sys/fs/cgroup/memory.current", "/sys/fs/cgroup/memory.max"),
+        ("/sys/fs/cgroup/memory/memory.usage_in_bytes",
+         "/sys/fs/cgroup/memory/memory.limit_in_bytes"),
+    ):
+        try:
+            raw_limit = Path(maximum_path).read_text(encoding="utf-8").strip()
+            if not raw_limit.isdigit():
+                continue
+            limit = int(raw_limit)
+            if limit <= _TICK_MEMORY_RESERVE_BYTES or limit > 1 << 50:
+                continue
+            used = int(Path(current_path).read_text(encoding="utf-8").strip())
+            if used < 0:
+                continue
+            return used, limit
+        except (OSError, ValueError):
+            continue
+    return None
 
+
+def _tick_memory_pressure() -> dict[str, int] | None:
+    snapshot = _cgroup_memory_snapshot()
+    if snapshot is None:
+        return None
+    used, limit = snapshot
+    threshold = min(
+        int(limit * _TICK_MEMORY_LIMIT_FRACTION),
+        limit - _TICK_MEMORY_RESERVE_BYTES,
+    )
+    if used >= threshold:
+        return {"used_bytes": used, "limit_bytes": limit, "threshold_bytes": threshold}
+    return None
+
+
+async def _monitor_tick_memory(proc: asyncio.subprocess.Process, state: dict) -> None:
+    """Abort one worker before the platform OOM-kills the web service.
+
+    An aborted tick is reported as retryable but never as successfully persisted.
+    """
+    while proc.returncode is None:
+        pressure = _tick_memory_pressure()
+        if pressure is not None:
+            state.update(pressure)
+            print(
+                "TICK_MEMORY_GUARD " + str(pressure),
+                file=sys.stderr,
+                flush=True,
+            )
+            if proc.returncode is None:
+                try:
+                    proc.kill()
+                except ProcessLookupError:
+                    pass
+            return
+        await asyncio.sleep(_TICK_MEMORY_POLL_SECONDS)
+
+
+async def _run_instrumented_tick(scope, receive, send) -> None:
+    """Run unchanged sporting calculations within a guarded worker."""
     env = os.environ.copy()
     env.setdefault("MALLOC_ARENA_MAX", "2")
     try:
@@ -281,6 +341,10 @@ async def _handle_instrumented_tick(scope, receive, send) -> None:
         assert proc.stdout is not None
         stderr_task = asyncio.create_task(_pump_worker_stderr())
         stdout_task = asyncio.create_task(proc.stdout.read())
+        memory_guard_state: dict[str, int] = {}
+        memory_guard_task = asyncio.create_task(
+            _monitor_tick_memory(proc, memory_guard_state)
+        )
         try:
             await asyncio.wait_for(proc.wait(), timeout=TICK_TIMEOUT_SECONDS)
         except TimeoutError:
@@ -301,9 +365,25 @@ async def _handle_instrumented_tick(scope, receive, send) -> None:
             )
             await response(scope, receive, send)
             return
+        finally:
+            memory_guard_task.cancel()
+            await asyncio.gather(memory_guard_task, return_exceptions=True)
 
         await stderr_task
         stdout = await stdout_task
+        if memory_guard_state:
+            response = JSONResponse(
+                {
+                    "error": "tick_memory_pressure",
+                    "retryable": True,
+                    "worker_aborted_to_protect_web_service": True,
+                    "persistence_status": "NOT_VERIFIED",
+                    **memory_guard_state,
+                },
+                status_code=503,
+            )
+            await response(scope, receive, send)
+            return
         stderr_text = "\n".join(stderr_lines)
         if proc.returncode != 0:
             detail = stderr_text[-1000:]
@@ -326,6 +406,30 @@ async def _handle_instrumented_tick(scope, receive, send) -> None:
             status_code=500,
         )
         await response(scope, receive, send)
+
+
+async def _handle_instrumented_tick(scope, receive, send) -> None:
+    """Authenticate before admission; serialize with all DB-heavy endpoints.
+
+    The original server_base.internal_tick already used this gate. Reuse it
+    here because server.py's intercepted route otherwise bypasses that guard.
+    """
+    request = Request(scope, receive=receive)
+    try:
+        _base_server._github_oidc_claims(request)
+    except Exception as exc:
+        response = JSONResponse({"error": "unauthorized", "detail": str(exc)[:200]}, status_code=401)
+        await response(scope, receive, send)
+        return
+
+    busy = _base_server._acquire_db_heavy_gate("scheduler_tick")
+    if busy is not None:
+        await busy(scope, receive, send)
+        return
+    try:
+        await _run_instrumented_tick(scope, receive, send)
+    finally:
+        _base_server._release_db_heavy_gate()
 
 
 class V215SignalLedgerRouter:
