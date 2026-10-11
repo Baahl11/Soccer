@@ -40,11 +40,12 @@ def test_preview_health_is_isolated_and_never_runs_scheduler():
     assert client.get("/app/api/v2/bets").status_code == 404
 
 
-def test_preview_boots_maturity_and_marks_match_center_as_sample():
+def test_preview_boots_into_real_product_shell_without_sample():
     client = TestClient(p.app)
     location = client.get("/", follow_redirects=False).headers["location"]
-    assert location == "/app-v3-react/?sample=1&maturity-preview=1"
-    assert client.get("/app/api/v2/today").json()["slate"]["rows"] == []
+    assert location == "/app-v3-react/"
+    assert "sample=1" not in location
+    assert any(route.path == "/app-v3-react/match/{fixture_id:int}" for route in p.app.routes)
 
 
 def test_maturity_rejects_unauthenticated_before_loading_research(monkeypatch):
@@ -137,3 +138,73 @@ def test_auth_config_only_republishes_public_fields(monkeypatch):
     assert r.json()["auth_configured"] is True
     assert r.json()["api_base"] == "/app/api/v2"
     assert "service_role_key" not in r.json()
+
+
+def test_real_slate_must_be_forwarded_exactly_from_canonical_read_only_api(monkeypatch):
+    sample = {
+        "status": "SUBSCRIBER_CONTRACT_V2_READY",
+        "source": "POSTGRES_LATEST_PIPELINE_RUN",
+        "slate": {"rows": [{
+            "fixture": {
+                "fixture_id": 1528731, "league": "League One",
+                "home_team_id": 17271, "away_team_id": 2626,
+                "home_team_logo": "https://example.test/first.png",
+                "away_team_logo": "https://example.test/second.png",
+            },
+            "coverage": {"sport_evidence_count": 0, "market_evidence_count": 0},
+        }]},
+    }
+    async def upstream(path, token=""):
+        assert path == "/app/api/v2/today"
+        assert token == ""
+        return 200, sample
+    monkeypatch.setattr(p, "_product_read", upstream)
+    r = TestClient(p.app).get("/app/api/v2/today")
+    assert r.status_code == 200
+    assert r.json()["slate"]["rows"] == sample["slate"]["rows"]
+    assert r.json()["read_only_origin"] == "CANONICAL_PRODUCT_API"
+    assert r.json()["database_writes_enabled"] is False
+    assert "sample" not in r.json()
+    assert "preview_only" not in sample
+
+
+def test_unavailable_real_slate_must_not_show_fake_zero_or_mock(monkeypatch):
+    async def upstream(*args, **kwargs):
+        return 503, {"error": "LIVE_PRODUCT_UNAVAILABLE"}
+    monkeypatch.setattr(p, "_product_read", upstream)
+    r = TestClient(p.app).get("/app/api/v2/today")
+    assert r.status_code == 503
+    assert "slate" not in r.json()
+
+
+def test_real_match_checks_role_before_calling_upstream(monkeypatch):
+    role = {"plan": "FREE"}
+    async def identity(*args, **kwargs):
+        return 200, _account(role["plan"])
+    observed = []
+    async def upstream(path, token=""):
+        observed.append((path, token))
+        return 200, {"fixture": {"fixture_id": 1528731}, "analysis": {"status": "PERSISTED"}}
+    monkeypatch.setattr(p, "_read_upstream", identity)
+    monkeypatch.setattr(p, "_product_read", upstream)
+    client = TestClient(p.app)
+    headers = {"authorization": "Bearer sample-jwt"}
+    assert client.get("/app/api/v2/match/1528731", headers=headers).status_code == 403
+    assert observed == []
+    role["plan"] = "PRO"
+    response = client.get("/app/api/v2/match/1528731", headers=headers)
+    assert response.status_code == 200
+    assert observed == [("/app/api/v2/match/1528731", "sample-jwt")]
+    assert response.json()["fixture"]["fixture_id"] == 1528731
+    assert response.json()["database_writes_enabled"] is False
+    assert client.post("/app/api/v2/match/1528731").status_code == 405
+
+
+def test_upstream_allowlist_rejects_any_unapproved_route_without_network():
+    import asyncio
+    for path in (
+        "/internal/tick", "/app/api/v2/bets", "/app/api/v2/match/abc",
+        "/app/api/v2/match/1/../account", "/app/api/v2/performance",
+    ):
+        status, _ = asyncio.run(p._product_read(path))
+        assert status == 404
