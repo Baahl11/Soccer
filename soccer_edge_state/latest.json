@@ -4,123 +4,31 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-12T16:36:54.185606+00:00",
-  "generated_at_local": "2026-10-12T10:36:54.185606-06:00",
+  "generated_at_utc": "2026-10-12T16:51:18.844175+00:00",
+  "generated_at_local": "2026-10-12T10:51:18.844175-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 216,
-  "due_fixture_count": 105,
-  "event_count": 3,
-  "actionable_refresh_count": 2,
+  "due_fixture_count": 103,
+  "event_count": 1,
+  "actionable_refresh_count": 1,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 25,
   "effective_max_api_calls_per_tick": 25,
-  "last_daily_remaining": 3,
+  "last_daily_remaining": 2,
   "daily_budget_mode": "RESERVE",
   "database_persisted": true,
   "database_error": null,
-  "deep_dive_processed_count": 2,
+  "deep_dive_processed_count": 0,
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
-  "research_visible_count": 3,
+  "research_visible_count": 1,
   "match_table_rows": [
     {
       "row_type": "research_visibility",
       "row_index": 0,
-      "event_type": "SOCCER_REFRESH",
-      "stage": "CLOSE",
-      "classification": "WATCH",
-      "event_classification": "PASS",
-      "fixture_id": 1550137,
-      "kickoff": "2026-10-12T10:30:00-06:00",
-      "league": "Serie A",
-      "country": "Italy",
-      "home": "Atalanta",
-      "away": "Venezia",
-      "status": "1H",
-      "data_tier": "A",
-      "market_family": "SPORTING_SCREEN",
-      "market": "Research screen",
-      "selection": "No shortlist angle",
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "side_score": null,
-      "goals_score": null,
-      "two_way_score": null,
-      "shortlist_rank": null,
-      "tracks": [],
-      "prob_edge_pp": null,
-      "estimated_ev": null,
-      "p_market_fair": null,
-      "p_shrunk": null,
-      "reason": "Closing market skipped: fixture never entered a sporting shortlist.",
-      "notes_count": 1,
-      "market_use": null,
-      "model_signal": "INSUFFICIENT_DATA",
-      "model_signal_score": null,
-      "execution_status": "WAIT_MARKET",
-      "blockers": [
-        "WAIT_MARKET",
-        "Closing market skipped: fixture never entered a sporting shortlist."
-      ],
-      "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
-    },
-    {
-      "row_type": "research_visibility",
-      "row_index": 1,
-      "event_type": "SOCCER_REFRESH",
-      "stage": "CLOSE",
-      "classification": "WATCH",
-      "event_classification": "PASS",
-      "fixture_id": 1569967,
-      "kickoff": "2026-10-12T10:30:00-06:00",
-      "league": "Segunda División",
-      "country": "Spain",
-      "home": "Oviedo",
-      "away": "Eibar",
-      "status": "1H",
-      "data_tier": "B",
-      "market_family": "SPORTING_SCREEN",
-      "market": "Research screen",
-      "selection": "No shortlist angle",
-      "line": null,
-      "price": null,
-      "bookmaker": null,
-      "tier": null,
-      "stake_units": 0.0,
-      "bet_eligible": false,
-      "side_score": null,
-      "goals_score": null,
-      "two_way_score": null,
-      "shortlist_rank": null,
-      "tracks": [],
-      "prob_edge_pp": null,
-      "estimated_ev": null,
-      "p_market_fair": null,
-      "p_shrunk": null,
-      "reason": "Closing market skipped: fixture never entered a sporting shortlist.",
-      "notes_count": 1,
-      "market_use": null,
-      "model_signal": "INSUFFICIENT_DATA",
-      "model_signal_score": null,
-      "execution_status": "WAIT_MARKET",
-      "blockers": [
-        "WAIT_MARKET",
-        "Closing market skipped: fixture never entered a sporting shortlist."
-      ],
-      "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
-    },
-    {
-      "row_type": "research_visibility",
-      "row_index": 2,
       "event_type": "QUOTA_GUARD",
-      "stage": "T-60",
+      "stage": "T-40",
       "classification": "WATCH",
       "event_classification": "WATCH",
       "fixture_id": 1555515,
@@ -166,37 +74,35 @@
   "research_visibility": {
     "schema_version": "1.0.0",
     "policy": "ALWAYS_SURFACE_RESEARCH_ROWS_FOR_BET_LEAN_WATCH_PASS_EVENTS",
-    "row_count": 3,
+    "row_count": 1,
     "row_limit": 40,
     "visible_classification_counts": {
-      "WATCH": 3
+      "WATCH": 1
     },
     "raw_event_classification_counts": {
-      "PASS": 2,
       "WATCH": 1
     },
     "market_family_counts": {
-      "SPORTING_SCREEN": 3
+      "SPORTING_SCREEN": 1
     },
     "stage_counts": {
-      "CLOSE": 2,
-      "T-60": 1
+      "T-40": 1
     },
     "track_counts": {},
     "silent_tick_prevention": true,
-    "actionable_refresh_count": 2,
+    "actionable_refresh_count": 1,
     "bet_candidate_count": 0,
     "note": "Rows are a visibility layer only. WATCH rows can include raw PASS/CLOSE events so the live digest shows what was analyzed and why no BET/LEAN was emitted."
   },
   "decision_separation": {
     "schema_version": "1.1.0",
     "policy": "MODEL_SIGNAL_INDEPENDENT_OF_PRICE_EXECUTION_STATUS_INDEPENDENT_OF_SPORT_STRENGTH",
-    "row_count": 3,
+    "row_count": 1,
     "model_signal_counts": {
-      "INSUFFICIENT_DATA": 3
+      "INSUFFICIENT_DATA": 1
     },
     "execution_status_counts": {
-      "WAIT_MARKET": 3
+      "WAIT_MARKET": 1
     },
     "valid_model_signals": [
       "INSUFFICIENT_DATA",
@@ -421,7 +327,7 @@
         "phase": "PRE_V121_UPSTREAM",
         "quota_global_cap": 25,
         "quota_upstream_cap": 8,
-        "quota_remaining_basis": 3
+        "quota_remaining_basis": 2
       },
       "reserved_price_phase_release": {
         "released": false,
@@ -529,10 +435,10 @@
     "dedicated_ht_research": {
       "schema_version": "1.0.0",
       "status": "DEDICATED_HT_RESEARCH_STAGE_ACTIVE",
-      "slate_halftime_fixture_count": 3,
-      "synthetic_ht_events_added": 3,
-      "halftime_events": 3,
-      "modeled_halftime_events": 3,
+      "slate_halftime_fixture_count": 18,
+      "synthetic_ht_events_added": 18,
+      "halftime_events": 18,
+      "modeled_halftime_events": 18,
       "halftime_state_registry_loaded": true,
       "period_rate_registry_loaded": true,
       "provider_requests_added": 0,
@@ -614,7 +520,7 @@
       "standard_leftover_budget": 24,
       "diversity_catchup_overflow_budget": 0,
       "total_price_resolver_budget": 24,
-      "daily_remaining_before_price_resolver": 3,
+      "daily_remaining_before_price_resolver": 2,
       "daily_budget_mode": "RESERVE",
       "catchup_enabled": false,
       "overflow_above_global_tick_cap_allowed": false,
@@ -631,7 +537,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-12T16:36:54.185606+00:00",
+    "generated_at_utc": "2026-10-12T16:51:18.844175+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -2692,7 +2598,6 @@
     "status": "LIVE_RESEARCH",
     "events_modeled": 0,
     "gate_counts": {
-      "STAGE_CLOSE": 2,
       "NOT_SOCCER_REFRESH": 1
     },
     "family_leg_counts": {},
@@ -2707,7 +2612,7 @@
   "elastic_deep_dive_cap_reason": "RESERVE_MODE",
   "elastic_request_cap": 25,
   "elastic_request_cap_reason": "RESERVE_MODE",
-  "elastic_quota_remaining_basis": 3,
+  "elastic_quota_remaining_basis": 2,
   "fair_scheduler": {
     "schema_version": "1.2.0",
     "policy": "WEIGHTED_FAIR_WITH_GUARDED_COVERAGE_CATCHUP_AND_LEAGUE_ROUND_ROBIN_AND_POSTPLAN_MATURITY_FLOOR",
@@ -2725,7 +2630,7 @@
     "urgent_actionable_count": 0,
     "eligible_queue_counts": {
       "actionable": 0,
-      "unseen": 105,
+      "unseen": 103,
       "exploratory": 0
     },
     "planned_slot_counts": {
@@ -2734,15 +2639,11 @@
       "exploratory": 0
     },
     "planned_slot_count": 48,
-    "deferred_after_slot_plan": 57,
+    "deferred_after_slot_plan": 55,
     "eligible_unique_leagues": 58,
     "planned_unique_leagues": 48,
     "planned_league_counts": {
-      "id:135": 1,
-      "id:141": 1,
       "id:383": 1,
-      "id:286": 1,
-      "id:283": 1,
       "id:113": 1,
       "id:103": 1,
       "id:119": 1,
@@ -2751,37 +2652,41 @@
       "id:233": 1,
       "id:172": 1,
       "id:95": 1,
+      "id:17": 1,
+      "id:135": 1,
       "id:71": 1,
       "id:39": 1,
       "id:140": 1,
       "id:128": 1,
       "id:94": 1,
-      "id:17": 1,
+      "id:286": 1,
+      "id:283": 1,
       "id:106": 1,
       "id:62": 1,
       "id:357": 1,
       "id:72": 1,
+      "id:141": 1,
       "id:344": 1,
       "id:265": 1,
       "id:252": 1,
       "id:200": 1,
       "id:384": 1,
       "id:762": 1,
+      "id:779": 1,
+      "id:564": 1,
+      "id:597": 1,
+      "id:109": 1,
+      "id:666": 1,
+      "id:308": 1,
+      "id:84": 1,
+      "id:272": 1,
+      "id:282": 1,
+      "id:496": 1,
       "id:131": 1,
       "id:132": 1,
       "id:266": 1,
       "id:871": 1,
       "id:1086": 1,
-      "id:666": 1,
-      "id:1155": 1,
-      "id:779": 1,
-      "id:564": 1,
-      "id:597": 1,
-      "id:109": 1,
-      "id:308": 1,
-      "id:84": 1,
-      "id:272": 1,
-      "id:282": 1,
       "id:435": 1,
       "id:942": 1,
       "id:943": 1,
@@ -2795,16 +2700,16 @@
     "provider_requests_added": 0,
     "production_promotion_allowed": false,
     "league_diversity_policy": "ACTIONABLE_PRIORITY_PRESERVED;UNSEEN_AND_EXPLORATORY_INTERLEAVED_BY_LEAGUE;POSTPLAN_DUPLICATE_LEAGUE_SLOTS_MAY_SWAP_TO_MISSING_DUE_LEAGUES_WITHOUT_DISPLACING_URGENT_ACTIONABLE",
-    "eligible_tier_ab_due_count": 90,
-    "due_with_any_deep_dive_count": 2,
-    "due_analyzed_pct": 2.22,
+    "eligible_tier_ab_due_count": 88,
+    "due_with_any_deep_dive_count": 0,
+    "due_analyzed_pct": 0.0,
     "first_deep_dive_at_t90_count": 0,
     "analyzed_by_t90_pct": 0.0,
     "first_deep_dive_by_t40_count": 0,
     "analyzed_by_t40_pct": 0.0,
     "starvation_count": 88,
-    "avg_deep_dives_per_due_fixture": 0.022,
-    "provider_calls_per_processed_fixture": 0.5,
+    "avg_deep_dives_per_due_fixture": 0.0,
+    "provider_calls_per_processed_fixture": null,
     "actionable_due_count": 0,
     "actionable_processed_count": 0,
     "actionable_refresh_pct": null,
@@ -2814,10 +2719,10 @@
     "shortlist_actionable_refresh_target_met": null,
     "processed_category_counts": {
       "actionable": 0,
-      "unseen": 2,
+      "unseen": 0,
       "exploratory": 0
     },
-    "state_count": 785,
+    "state_count": 784,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false
   },
@@ -2831,7 +2736,7 @@
     },
     "eligible_queue_counts": {
       "actionable": 0,
-      "unseen": 105,
+      "unseen": 103,
       "exploratory": 0
     },
     "planned_slot_counts": {
@@ -2841,17 +2746,17 @@
     },
     "processed_category_counts": {
       "actionable": 0,
-      "unseen": 2,
+      "unseen": 0,
       "exploratory": 0
     },
-    "eligible_tier_ab_due_count": 90,
-    "due_with_any_deep_dive_count": 2,
-    "due_analyzed_pct": 2.22,
+    "eligible_tier_ab_due_count": 88,
+    "due_with_any_deep_dive_count": 0,
+    "due_analyzed_pct": 0.0,
     "analyzed_by_t90_pct": 0.0,
     "analyzed_by_t40_pct": 0.0,
     "starvation_count": 88,
-    "avg_deep_dives_per_due_fixture": 0.022,
-    "provider_calls_per_processed_fixture": 0.5,
+    "avg_deep_dives_per_due_fixture": 0.0,
+    "provider_calls_per_processed_fixture": null,
     "actionable_due_count": 0,
     "actionable_processed_count": 0,
     "actionable_refresh_pct": null,
@@ -2859,13 +2764,13 @@
     "shortlist_actionable_refresh_target_pct": 80.0,
     "tier_ab_due_coverage_target_met": false,
     "shortlist_actionable_refresh_target_met": null,
-    "state_count": 785,
+    "state_count": 784,
     "provider_requests_added": 0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
     "status": "LIVE_VALIDATION"
   },
-  "fair_scheduler_seed_imported": 783,
+  "fair_scheduler_seed_imported": 784,
   "core_slate_floor_reconciliation": {
     "schema_version": "1.2.0",
     "policy": "RAW_API_FOOTBALL_ROLLING_DATE_SLATE_WITH_CACHED_FUTURE_PREFETCH",
@@ -2911,14 +2816,12 @@
   "v4_007_feature_snapshot_schema": {
     "schema_version": "4.0.0",
     "status": "LIVE_VALIDATION",
-    "valid_snapshot_count": 2,
+    "valid_snapshot_count": 0,
     "invalid_snapshot_count": 0,
-    "feature_cells_count": 110,
-    "missing_feature_cells_count": 100,
-    "missing_feature_pct": 90.91,
-    "stage_counts": {
-      "CLOSE": 2
-    },
+    "feature_cells_count": 0,
+    "missing_feature_cells_count": 0,
+    "missing_feature_pct": null,
+    "stage_counts": {},
     "sport_first": true,
     "market_fields_included": false,
     "feature_envelope_fields": [
@@ -2955,7 +2858,7 @@
     "provider_requests_added": 0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
-    "current_tick_valid_feature_snapshots": 2,
+    "current_tick_valid_feature_snapshots": 0,
     "current_tick_invalid_feature_snapshots": 0
   },
   "v4_009_dixon_coles_baseline": {
@@ -3043,7 +2946,7 @@
     "runtime_prediction_weight": 0.0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
-    "current_tick_feature_snapshot_count": 2,
+    "current_tick_feature_snapshot_count": 0,
     "note": "No ensemble probability is emitted until component predictions share an adequate same-fixture OOS cohort. Research framework only."
   },
   "v4_013_calibration_engine_v1": {
@@ -3071,7 +2974,7 @@
     "minimum_positives": 25,
     "minimum_negatives": 25,
     "same_fixture_oos_prediction_ledger_required": true,
-    "current_tick_feature_snapshot_count": 2,
+    "current_tick_feature_snapshot_count": 0,
     "market_fields_used": false,
     "provider_requests_added": 0,
     "production_promotion_allowed": false,
@@ -3639,100 +3542,8 @@
         {
           "row_type": "research_visibility",
           "row_index": 0,
-          "event_type": "SOCCER_REFRESH",
-          "stage": "CLOSE",
-          "classification": "WATCH",
-          "event_classification": "PASS",
-          "fixture_id": 1550137,
-          "kickoff": "2026-10-12T10:30:00-06:00",
-          "league": "Serie A",
-          "country": "Italy",
-          "home": "Atalanta",
-          "away": "Venezia",
-          "status": "1H",
-          "data_tier": "A",
-          "market_family": "SPORTING_SCREEN",
-          "market": "Research screen",
-          "selection": "No shortlist angle",
-          "line": null,
-          "price": null,
-          "bookmaker": null,
-          "tier": null,
-          "stake_units": 0.0,
-          "bet_eligible": false,
-          "side_score": null,
-          "goals_score": null,
-          "two_way_score": null,
-          "shortlist_rank": null,
-          "tracks": [],
-          "prob_edge_pp": null,
-          "estimated_ev": null,
-          "p_market_fair": null,
-          "p_shrunk": null,
-          "reason": "Closing market skipped: fixture never entered a sporting shortlist.",
-          "notes_count": 1,
-          "market_use": null,
-          "model_signal": "INSUFFICIENT_DATA",
-          "model_signal_score": null,
-          "execution_status": "WAIT_MARKET",
-          "blockers": [
-            "WAIT_MARKET",
-            "Closing market skipped: fixture never entered a sporting shortlist."
-          ],
-          "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
-        },
-        {
-          "row_type": "research_visibility",
-          "row_index": 1,
-          "event_type": "SOCCER_REFRESH",
-          "stage": "CLOSE",
-          "classification": "WATCH",
-          "event_classification": "PASS",
-          "fixture_id": 1569967,
-          "kickoff": "2026-10-12T10:30:00-06:00",
-          "league": "Segunda División",
-          "country": "Spain",
-          "home": "Oviedo",
-          "away": "Eibar",
-          "status": "1H",
-          "data_tier": "B",
-          "market_family": "SPORTING_SCREEN",
-          "market": "Research screen",
-          "selection": "No shortlist angle",
-          "line": null,
-          "price": null,
-          "bookmaker": null,
-          "tier": null,
-          "stake_units": 0.0,
-          "bet_eligible": false,
-          "side_score": null,
-          "goals_score": null,
-          "two_way_score": null,
-          "shortlist_rank": null,
-          "tracks": [],
-          "prob_edge_pp": null,
-          "estimated_ev": null,
-          "p_market_fair": null,
-          "p_shrunk": null,
-          "reason": "Closing market skipped: fixture never entered a sporting shortlist.",
-          "notes_count": 1,
-          "market_use": null,
-          "model_signal": "INSUFFICIENT_DATA",
-          "model_signal_score": null,
-          "execution_status": "WAIT_MARKET",
-          "blockers": [
-            "WAIT_MARKET",
-            "Closing market skipped: fixture never entered a sporting shortlist."
-          ],
-          "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
-          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
-        },
-        {
-          "row_type": "research_visibility",
-          "row_index": 2,
           "event_type": "QUOTA_GUARD",
-          "stage": "T-60",
+          "stage": "T-40",
           "classification": "WATCH",
           "event_classification": "WATCH",
           "fixture_id": 1555515,
@@ -3775,7 +3586,7 @@
           "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
         }
       ],
-      "total": 3
+      "total": 1
     },
     "strong_sport_signals": {
       "rows": [],
@@ -3835,18 +3646,18 @@
       "api_calls_this_tick": 1,
       "max_api_calls_per_tick": 25,
       "effective_max_api_calls_per_tick": 25,
-      "last_daily_remaining": 3,
+      "last_daily_remaining": 2,
       "daily_budget_mode": "RESERVE",
       "fixture_scan_count": 216,
-      "due_fixture_count": 105,
+      "due_fixture_count": 103,
       "deferred_due_to_budget": 1,
       "deferred_due_to_priority": 0
     },
     "control_tower": {
       "schema_version": "2.1.0",
       "status": "LIVE",
-      "generated_at_utc": "2026-10-12T16:36:54.185606+00:00",
-      "generated_at_local": "2026-10-12T10:36:54.185606-06:00",
+      "generated_at_utc": "2026-10-12T16:51:18.844175+00:00",
+      "generated_at_local": "2026-10-12T10:51:18.844175-06:00",
       "pipeline_version": "4.38.8-normalized-primary-clv-anchor-fallback",
       "model_version": "SOCCER EDGE ENGINE v1.7",
       "system_health": {
@@ -3854,18 +3665,18 @@
         "postgres": "HEALTHY",
         "scheduler": "TICK_OBSERVED",
         "api_football": "HEALTHY",
-        "api_football_remaining": 3,
+        "api_football_remaining": 2,
         "daily_budget_mode": "RESERVE",
         "galaxy": "NOT_VERIFIED",
-        "last_tick": "2026-10-12T10:36:54.185606-06:00"
+        "last_tick": "2026-10-12T10:51:18.844175-06:00"
       },
       "pipeline": {
         "fixtures_scanned": 216,
-        "due": 105,
-        "events": 3,
-        "actionable_refreshes": 2,
-        "deep_dives": 2,
-        "research_visible": 3,
+        "due": 103,
+        "events": 1,
+        "actionable_refreshes": 1,
+        "deep_dives": 0,
+        "research_visible": 1,
         "bet_candidates": 0,
         "api_calls": 1,
         "api_call_cap": 25,
@@ -3902,11 +3713,11 @@
         "scheduler_league_floor_target": 48,
         "scheduler_league_floor_covered": 48,
         "scheduler_urgent_actionable_count": 0,
-        "scheduler_unseen_processed": 2,
+        "scheduler_unseen_processed": 0,
         "scheduler_actionable_processed": 0,
         "scheduler_exploratory_processed": 0,
         "scheduler_starvation_count": 88,
-        "scheduler_due_analyzed_pct": 2.22,
+        "scheduler_due_analyzed_pct": 0.0,
         "primary_clv_maturation_candidates": 0,
         "primary_clv_maturation_refreshed": 0,
         "primary_clv_maturation_unchanged_provider_updates": 0,
@@ -3981,7 +3792,7 @@
         "schema_version": "1.4.0",
         "model_version": "SOCCER_MATURITY_SNAPSHOT_V4_1.4.0",
         "status": "OK",
-        "generated_at_utc": "2026-10-12T16:36:57.671898+00:00",
+        "generated_at_utc": "2026-10-12T16:51:22.392551+00:00",
         "reports_loaded": 13,
         "reports_expected": 13,
         "errors": {},
@@ -4044,16 +3855,16 @@
           "schema_version": "1.1.0",
           "model_version": "SOCCER_MATURATION_WATCHDOGS_V4_1.1.0",
           "status": "WATCH",
-          "generated_at_utc": "2026-10-12T16:36:57.843036+00:00",
+          "generated_at_utc": "2026-10-12T16:51:22.560522+00:00",
           "watchdogs": {
             "signal_close_freshness": {
               "status": "OK",
               "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-12T16:32:33+00:00",
-                "age_hours": 0.07,
-                "close_stage_rows": 2247
+                "report_updated_at": "2026-10-12T16:48:11+00:00",
+                "age_hours": 0.05,
+                "close_stage_rows": 2249
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
@@ -4063,9 +3874,9 @@
               "reason": "SIGNAL_EVIDENCE_RECENT",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "last_evidence_at": "2026-10-12T16:19:17.655010+00:00",
-                "age_hours": 0.29,
-                "close_stage_rows": 2247
+                "last_evidence_at": "2026-10-12T16:36:54.185606+00:00",
+                "age_hours": 0.24,
+                "close_stage_rows": 2249
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
@@ -4151,8 +3962,10 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 6.06,
-                "increased_counters": [],
+                "stagnation_hours": 0.0,
+                "increased_counters": [
+                  "signals.close_stage_rows"
+                ],
                 "counter_count": 41
               },
               "decision_weight": 0.0,
@@ -4165,8 +3978,8 @@
               "evidence": {
                 "provider_calls": 30322,
                 "provider_call_delta": 0,
-                "evidence_growth_delta": 0,
-                "stagnation_hours": 6.06
+                "evidence_growth_delta": 2,
+                "stagnation_hours": 0.0
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
@@ -4194,7 +4007,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-12T16:19:21.224451+00:00"
+            "updated_at_utc": "2026-10-12T16:36:57.924295+00:00"
           },
           "save": {
             "schema_version": "1.0.0",
@@ -4203,7 +4016,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-12T16:36:57.924295+00:00"
+            "updated_at_utc": "2026-10-12T16:51:22.631585+00:00"
           },
           "provider_requests_added": 0,
           "production_promotion_allowed": false
@@ -4397,9 +4210,9 @@
               "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-12T16:32:33+00:00",
-                "age_hours": 0.07,
-                "close_stage_rows": 2247
+                "report_updated_at": "2026-10-12T16:48:11+00:00",
+                "age_hours": 0.05,
+                "close_stage_rows": 2249
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
@@ -4409,9 +4222,9 @@
               "reason": "SIGNAL_EVIDENCE_RECENT",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "last_evidence_at": "2026-10-12T16:19:17.655010+00:00",
-                "age_hours": 0.29,
-                "close_stage_rows": 2247
+                "last_evidence_at": "2026-10-12T16:36:54.185606+00:00",
+                "age_hours": 0.24,
+                "close_stage_rows": 2249
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
@@ -4421,8 +4234,10 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 6.06,
-                "increased_counters": [],
+                "stagnation_hours": 0.0,
+                "increased_counters": [
+                  "signals.close_stage_rows"
+                ],
                 "counter_count": 41
               },
               "decision_weight": 0.0,
@@ -4438,7 +4253,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-12T16:19:21.224451+00:00"
+                "updated_at_utc": "2026-10-12T16:36:57.924295+00:00"
               },
               "save": {
                 "schema_version": "1.0.0",
@@ -4447,7 +4262,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-12T16:36:57.924295+00:00"
+                "updated_at_utc": "2026-10-12T16:51:22.631585+00:00"
               },
               "provider_requests_added": 0,
               "production_promotion_allowed": false
@@ -4649,9 +4464,9 @@
             "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "report_updated_at": "2026-10-12T16:32:33+00:00",
-              "age_hours": 0.07,
-              "close_stage_rows": 2247
+              "report_updated_at": "2026-10-12T16:48:11+00:00",
+              "age_hours": 0.05,
+              "close_stage_rows": 2249
             },
             "decision_weight": 0.0,
             "production_promotion_allowed": false
@@ -4661,9 +4476,9 @@
             "reason": "SIGNAL_EVIDENCE_RECENT",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "last_evidence_at": "2026-10-12T16:19:17.655010+00:00",
-              "age_hours": 0.29,
-              "close_stage_rows": 2247
+              "last_evidence_at": "2026-10-12T16:36:54.185606+00:00",
+              "age_hours": 0.24,
+              "close_stage_rows": 2249
             },
             "decision_weight": 0.0,
             "production_promotion_allowed": false
@@ -4673,8 +4488,10 @@
             "reason": "MATURATION_EVIDENCE_MONITORING",
             "source": "POSTGRES:maturation_watchdog_state",
             "evidence": {
-              "stagnation_hours": 6.06,
-              "increased_counters": [],
+              "stagnation_hours": 0.0,
+              "increased_counters": [
+                "signals.close_stage_rows"
+              ],
               "counter_count": 41
             },
             "decision_weight": 0.0,
@@ -4690,7 +4507,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-12T16:19:21.224451+00:00"
+              "updated_at_utc": "2026-10-12T16:36:57.924295+00:00"
             },
             "save": {
               "schema_version": "1.0.0",
@@ -4699,7 +4516,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-12T16:36:57.924295+00:00"
+              "updated_at_utc": "2026-10-12T16:51:22.631585+00:00"
             },
             "provider_requests_added": 0,
             "production_promotion_allowed": false
