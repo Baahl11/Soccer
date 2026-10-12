@@ -4,18 +4,18 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-12T07:45:59.429122+00:00",
-  "generated_at_local": "2026-10-12T01:45:59.429122-06:00",
+  "generated_at_utc": "2026-10-12T10:33:23.230005+00:00",
+  "generated_at_local": "2026-10-12T04:33:23.230005-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 216,
-  "due_fixture_count": 188,
+  "due_fixture_count": 191,
   "event_count": 1,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 25,
   "effective_max_api_calls_per_tick": 25,
-  "last_daily_remaining": 49,
+  "last_daily_remaining": 36,
   "daily_budget_mode": "RESERVE",
   "database_persisted": true,
   "database_error": null,
@@ -28,15 +28,15 @@
       "row_type": "research_visibility",
       "row_index": 0,
       "event_type": "QUOTA_GUARD",
-      "stage": "EARLY_RESEARCH",
+      "stage": "T-90",
       "classification": "WATCH",
       "event_classification": "WATCH",
-      "fixture_id": 1550137,
-      "kickoff": "2026-10-12T10:30:00-06:00",
-      "league": "Serie A",
-      "country": "Italy",
-      "home": "Atalanta",
-      "away": "Venezia",
+      "fixture_id": 1569969,
+      "kickoff": "2026-10-12T06:00:00-06:00",
+      "league": "Segunda División",
+      "country": "Spain",
+      "home": "Valladolid",
+      "away": "Albacete",
       "status": "NS",
       "data_tier": "N/V",
       "market_family": "SPORTING_SCREEN",
@@ -86,7 +86,7 @@
       "SPORTING_SCREEN": 1
     },
     "stage_counts": {
-      "EARLY_RESEARCH": 1
+      "T-90": 1
     },
     "track_counts": {},
     "silent_tick_prevention": true,
@@ -327,7 +327,7 @@
         "phase": "PRE_V121_UPSTREAM",
         "quota_global_cap": 25,
         "quota_upstream_cap": 8,
-        "quota_remaining_basis": 49
+        "quota_remaining_basis": 36
       },
       "reserved_price_phase_release": {
         "released": false,
@@ -520,7 +520,7 @@
       "standard_leftover_budget": 24,
       "diversity_catchup_overflow_budget": 0,
       "total_price_resolver_budget": 24,
-      "daily_remaining_before_price_resolver": 49,
+      "daily_remaining_before_price_resolver": 36,
       "daily_budget_mode": "RESERVE",
       "catchup_enabled": false,
       "overflow_above_global_tick_cap_allowed": false,
@@ -537,7 +537,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-12T07:45:59.429122+00:00",
+    "generated_at_utc": "2026-10-12T10:33:23.230005+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -765,33 +765,17 @@
           "CARDS_TRUE_CLV_FIXTURES_0_LT_20",
           "GK_SAVES_TRUE_CLV_0_LT_50",
           "GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
-          "SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "SHOTS_EXACT_LINE_HISTORY_MISSING",
-          "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
           "SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "SOT_EXACT_LINE_HISTORY_MISSING",
           "SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
-          "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
-          "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-          "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
+          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
         ],
         "canonical_state_loaded": true
       },
@@ -826,33 +810,17 @@
           "CARDS_TRUE_CLV_FIXTURES_0_LT_20",
           "GK_SAVES_TRUE_CLV_0_LT_50",
           "GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
-          "SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "SHOTS_EXACT_LINE_HISTORY_MISSING",
-          "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
           "SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "SOT_EXACT_LINE_HISTORY_MISSING",
           "SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
-          "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
-          "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-          "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
+          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
         ],
         "canonical_state_loaded": true
       },
@@ -887,33 +855,17 @@
           "CARDS_TRUE_CLV_FIXTURES_0_LT_20",
           "GK_SAVES_TRUE_CLV_0_LT_50",
           "GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
-          "SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "SHOTS_EXACT_LINE_HISTORY_MISSING",
-          "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
           "SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "SOT_EXACT_LINE_HISTORY_MISSING",
           "SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
-          "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
-          "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-          "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
+          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
         ],
         "canonical_state_loaded": true
       },
@@ -948,33 +900,17 @@
           "CARDS_TRUE_CLV_FIXTURES_0_LT_20",
           "GK_SAVES_TRUE_CLV_0_LT_50",
           "GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
-          "SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "SHOTS_EXACT_LINE_HISTORY_MISSING",
-          "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
           "SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "SOT_EXACT_LINE_HISTORY_MISSING",
           "SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
-          "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
-          "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-          "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
+          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
         ],
         "canonical_state_loaded": true
       },
@@ -1009,33 +945,17 @@
           "CARDS_TRUE_CLV_FIXTURES_0_LT_20",
           "GK_SAVES_TRUE_CLV_0_LT_50",
           "GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
-          "SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "SHOTS_EXACT_LINE_HISTORY_MISSING",
-          "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
           "SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "SOT_EXACT_LINE_HISTORY_MISSING",
           "SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
-          "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
-          "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-          "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
+          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
         ],
         "canonical_state_loaded": true
       },
@@ -1070,33 +990,17 @@
           "CARDS_TRUE_CLV_FIXTURES_0_LT_20",
           "GK_SAVES_TRUE_CLV_0_LT_50",
           "GK_SAVES_TRUE_CLV_FIXTURES_0_LT_20",
-          "SHOTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "SHOTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "SHOTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "SHOTS_EXACT_LINE_HISTORY_MISSING",
-          "SHOTS_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
           "SOT_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "SOT_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "SOT_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "SOT_EXACT_LINE_HISTORY_MISSING",
           "SOT_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "GOALSCORER_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GOALSCORER_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GOALSCORER_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "ASSISTS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "ASSISTS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
           "ASSISTS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
           "CARDS_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
           "CARDS_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_OBSERVED_MARKET_PRICE_HISTORY_MISSING",
-          "GK_SAVES_CONFIRMED_XI_MARKET_OVERLAP_MISSING",
-          "GK_SAVES_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING",
-          "GK_SAVES_EXACT_LINE_HISTORY_MISSING",
-          "GK_SAVES_XI_ALIGNED_EXACT_LINE_HISTORY_MISSING",
-          "PLAYER_PROP_OOS_LEDGER_NOT_MATERIALIZED",
-          "EXPECTED_MINUTES_OOS_VALIDATION_NOT_MATERIALIZED",
-          "PROP_SPECIFIC_CALIBRATION_NOT_MATERIALIZED"
+          "CARDS_CONFIRMED_XI_PLAYER_PRICE_OVERLAP_MISSING"
         ],
         "canonical_state_loaded": true
       }
@@ -1105,19 +1009,33 @@
     "canonical_state_merged_by_scheduler": true
   },
   "formation_matchup_health": {
-    "blockers": [],
-    "canonical_state_loaded": false,
+    "blockers": [
+      "RESEARCH_ONLY",
+      "SIDE_SPECIFIC_OOS_CHALLENGER_NOT_YET_PROMOTED",
+      "MARKET_VALIDATION_SEPARATE_AND_REQUIRED"
+    ],
+    "canonical_state_loaded": true,
     "decision_weight": 0.0,
-    "fixtures_with_verified_formation_pair_and_final": 0,
-    "leakage_policy": null,
-    "matchups_n_ge_8": 0,
-    "metric_rows": {},
+    "fixtures_with_verified_formation_pair_and_final": 299,
+    "leakage_policy": "PREKICKOFF_OR_AT_KICKOFF_ONLY",
+    "matchups_n_ge_8": 8,
+    "metric_rows": {
+      "away_corners": 217,
+      "away_shots": 217,
+      "away_sot": 219,
+      "home_corners": 217,
+      "home_shots": 217,
+      "home_sot": 219,
+      "total_corners": 217,
+      "total_shots": 217,
+      "total_sot": 219
+    },
     "minimum_stable_matchup_n": 8,
-    "model_version": null,
+    "model_version": "FORMATION_MATCHUP_ENGINE_V1.0.0",
     "odds_consumed": false,
     "production_enabled": false,
-    "status": "NOT_MATERIALIZED",
-    "unique_matchups": 0,
+    "status": "RESEARCH_ONLY_FORMATION_MATCHUP_ENGINE",
+    "unique_matchups": 81,
     "fm3_research": {
       "model_version": "FORMATION_MATCHUP_FM3_OOS_V1.0.0",
       "status": "RESEARCH_ONLY_FM3_SHOTS_SOT_GOALS",
@@ -2694,7 +2612,7 @@
   "elastic_deep_dive_cap_reason": "RESERVE_MODE",
   "elastic_request_cap": 25,
   "elastic_request_cap_reason": "RESERVE_MODE",
-  "elastic_quota_remaining_basis": 49,
+  "elastic_quota_remaining_basis": 36,
   "fair_scheduler": {
     "schema_version": "1.2.0",
     "policy": "WEIGHTED_FAIR_WITH_GUARDED_COVERAGE_CATCHUP_AND_LEAGUE_ROUND_ROBIN_AND_POSTPLAN_MATURITY_FLOOR",
@@ -2712,7 +2630,7 @@
     "urgent_actionable_count": 0,
     "eligible_queue_counts": {
       "actionable": 0,
-      "unseen": 188,
+      "unseen": 191,
       "exploratory": 0
     },
     "planned_slot_counts": {
@@ -2721,10 +2639,11 @@
       "exploratory": 0
     },
     "planned_slot_count": 48,
-    "deferred_after_slot_plan": 140,
-    "eligible_unique_leagues": 90,
+    "deferred_after_slot_plan": 143,
+    "eligible_unique_leagues": 96,
     "planned_unique_leagues": 48,
     "planned_league_counts": {
+      "id:141": 1,
       "id:135": 1,
       "id:71": 1,
       "id:39": 1,
@@ -2735,8 +2654,6 @@
       "id:203": 1,
       "id:128": 1,
       "id:94": 1,
-      "id:333": 1,
-      "id:141": 1,
       "id:17": 1,
       "id:233": 1,
       "id:283": 1,
@@ -2750,46 +2667,47 @@
       "id:357": 1,
       "id:72": 1,
       "id:344": 1,
+      "id:265": 1,
+      "id:252": 1,
       "id:172": 1,
       "id:95": 1,
-      "id:929": 1,
+      "id:200": 1,
       "id:666": 1,
-      "id:336": 1,
+      "id:693": 1,
+      "id:368": 1,
+      "id:929": 1,
+      "id:291": 1,
+      "id:342": 1,
+      "id:494": 1,
+      "id:1047": 1,
+      "id:554": 1,
+      "id:1240": 1,
+      "id:384": 1,
       "id:1075": 1,
       "id:334": 1,
-      "id:368": 1,
-      "id:494": 1,
-      "id:342": 1,
+      "id:343": 1,
+      "id:571": 1,
+      "id:1241": 1,
       "id:371": 1,
       "id:569": 1,
-      "id:435": 1,
-      "id:186": 1,
-      "id:365": 1,
-      "id:346": 1,
-      "id:506": 1,
-      "id:567": 1,
-      "id:266": 1,
-      "id:245": 1,
-      "id:775": 1,
-      "id:776": 1,
-      "id:777": 1
+      "id:435": 1
     },
     "league_floor_target": 48,
     "league_floor_covered": 48,
     "league_floor_met": true,
-    "league_coverage_pct": 53.33,
+    "league_coverage_pct": 50.0,
     "maturity_coverage_swaps": 0,
     "provider_requests_added": 0,
     "production_promotion_allowed": false,
     "league_diversity_policy": "ACTIONABLE_PRIORITY_PRESERVED;UNSEEN_AND_EXPLORATORY_INTERLEAVED_BY_LEAGUE;POSTPLAN_DUPLICATE_LEAGUE_SLOTS_MAY_SWAP_TO_MISSING_DUE_LEAGUES_WITHOUT_DISPLACING_URGENT_ACTIONABLE",
-    "eligible_tier_ab_due_count": 141,
+    "eligible_tier_ab_due_count": 144,
     "due_with_any_deep_dive_count": 0,
     "due_analyzed_pct": 0.0,
     "first_deep_dive_at_t90_count": 0,
     "analyzed_by_t90_pct": 0.0,
     "first_deep_dive_by_t40_count": 0,
     "analyzed_by_t40_pct": 0.0,
-    "starvation_count": 141,
+    "starvation_count": 144,
     "avg_deep_dives_per_due_fixture": 0.0,
     "provider_calls_per_processed_fixture": null,
     "actionable_due_count": 0,
@@ -2804,7 +2722,7 @@
       "unseen": 0,
       "exploratory": 0
     },
-    "state_count": 898,
+    "state_count": 876,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false
   },
@@ -2818,7 +2736,7 @@
     },
     "eligible_queue_counts": {
       "actionable": 0,
-      "unseen": 188,
+      "unseen": 191,
       "exploratory": 0
     },
     "planned_slot_counts": {
@@ -2831,12 +2749,12 @@
       "unseen": 0,
       "exploratory": 0
     },
-    "eligible_tier_ab_due_count": 141,
+    "eligible_tier_ab_due_count": 144,
     "due_with_any_deep_dive_count": 0,
     "due_analyzed_pct": 0.0,
     "analyzed_by_t90_pct": 0.0,
     "analyzed_by_t40_pct": 0.0,
-    "starvation_count": 141,
+    "starvation_count": 144,
     "avg_deep_dives_per_due_fixture": 0.0,
     "provider_calls_per_processed_fixture": null,
     "actionable_due_count": 0,
@@ -2846,13 +2764,13 @@
     "shortlist_actionable_refresh_target_pct": 80.0,
     "tier_ab_due_coverage_target_met": false,
     "shortlist_actionable_refresh_target_met": null,
-    "state_count": 898,
+    "state_count": 876,
     "provider_requests_added": 0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
     "status": "LIVE_VALIDATION"
   },
-  "fair_scheduler_seed_imported": 898,
+  "fair_scheduler_seed_imported": 875,
   "core_slate_floor_reconciliation": {
     "schema_version": "1.2.0",
     "policy": "RAW_API_FOOTBALL_ROLLING_DATE_SLATE_WITH_CACHED_FUTURE_PREFETCH",
@@ -2882,11 +2800,11 @@
     "unique_leagues_scanned": 101,
     "unique_countries_scanned": 58,
     "league_allowlist_applied": false,
-    "market_capture_handoff_fixture_count": 161,
+    "market_capture_handoff_fixture_count": 148,
     "market_capture_handoff_tier_counts": {
-      "C": 106,
-      "B": 43,
-      "D": 52,
+      "D": 49,
+      "C": 94,
+      "B": 42,
       "A": 12
     },
     "market_capture_handoff_source": "PERSISTED_BULK_COVERAGE_CACHE",
@@ -3625,15 +3543,15 @@
           "row_type": "research_visibility",
           "row_index": 0,
           "event_type": "QUOTA_GUARD",
-          "stage": "EARLY_RESEARCH",
+          "stage": "T-90",
           "classification": "WATCH",
           "event_classification": "WATCH",
-          "fixture_id": 1550137,
-          "kickoff": "2026-10-12T10:30:00-06:00",
-          "league": "Serie A",
-          "country": "Italy",
-          "home": "Atalanta",
-          "away": "Venezia",
+          "fixture_id": 1569969,
+          "kickoff": "2026-10-12T06:00:00-06:00",
+          "league": "Segunda División",
+          "country": "Spain",
+          "home": "Valladolid",
+          "away": "Albacete",
           "status": "NS",
           "data_tier": "N/V",
           "market_family": "SPORTING_SCREEN",
@@ -3728,18 +3646,18 @@
       "api_calls_this_tick": 1,
       "max_api_calls_per_tick": 25,
       "effective_max_api_calls_per_tick": 25,
-      "last_daily_remaining": 49,
+      "last_daily_remaining": 36,
       "daily_budget_mode": "RESERVE",
       "fixture_scan_count": 216,
-      "due_fixture_count": 188,
+      "due_fixture_count": 191,
       "deferred_due_to_budget": 1,
       "deferred_due_to_priority": 0
     },
     "control_tower": {
       "schema_version": "2.1.0",
       "status": "LIVE",
-      "generated_at_utc": "2026-10-12T07:45:59.429122+00:00",
-      "generated_at_local": "2026-10-12T01:45:59.429122-06:00",
+      "generated_at_utc": "2026-10-12T10:33:23.230005+00:00",
+      "generated_at_local": "2026-10-12T04:33:23.230005-06:00",
       "pipeline_version": "4.38.8-normalized-primary-clv-anchor-fallback",
       "model_version": "SOCCER EDGE ENGINE v1.7",
       "system_health": {
@@ -3747,14 +3665,14 @@
         "postgres": "HEALTHY",
         "scheduler": "TICK_OBSERVED",
         "api_football": "HEALTHY",
-        "api_football_remaining": 49,
+        "api_football_remaining": 36,
         "daily_budget_mode": "RESERVE",
         "galaxy": "NOT_VERIFIED",
-        "last_tick": "2026-10-12T01:45:59.429122-06:00"
+        "last_tick": "2026-10-12T04:33:23.230005-06:00"
       },
       "pipeline": {
         "fixtures_scanned": 216,
-        "due": 188,
+        "due": 191,
         "events": 1,
         "actionable_refreshes": 0,
         "deep_dives": 0,
@@ -3775,11 +3693,11 @@
         "future_prefetch_fixture_count": 0,
         "future_prefetch_cache_hits": 0,
         "future_prefetch_cache_misses": 0,
-        "market_capture_handoff_fixture_count": 161,
+        "market_capture_handoff_fixture_count": 148,
         "market_capture_handoff_tier_counts": {
-          "C": 106,
-          "B": 43,
-          "D": 52,
+          "D": 49,
+          "C": 94,
+          "B": 42,
           "A": 12
         },
         "league_allowlist_applied": false,
@@ -3791,14 +3709,14 @@
           "exploratory": 10
         },
         "scheduler_planned_unique_leagues": 48,
-        "scheduler_eligible_unique_leagues": 90,
+        "scheduler_eligible_unique_leagues": 96,
         "scheduler_league_floor_target": 48,
         "scheduler_league_floor_covered": 48,
         "scheduler_urgent_actionable_count": 0,
         "scheduler_unseen_processed": 0,
         "scheduler_actionable_processed": 0,
         "scheduler_exploratory_processed": 0,
-        "scheduler_starvation_count": 141,
+        "scheduler_starvation_count": 144,
         "scheduler_due_analyzed_pct": 0.0,
         "primary_clv_maturation_candidates": 0,
         "primary_clv_maturation_refreshed": 0,
@@ -3874,7 +3792,7 @@
         "schema_version": "1.4.0",
         "model_version": "SOCCER_MATURITY_SNAPSHOT_V4_1.4.0",
         "status": "OK",
-        "generated_at_utc": "2026-10-12T07:46:02.463036+00:00",
+        "generated_at_utc": "2026-10-12T10:33:26.855532+00:00",
         "reports_loaded": 13,
         "reports_expected": 13,
         "errors": {},
@@ -3937,15 +3855,15 @@
           "schema_version": "1.1.0",
           "model_version": "SOCCER_MATURATION_WATCHDOGS_V4_1.1.0",
           "status": "WATCH",
-          "generated_at_utc": "2026-10-12T07:46:02.631020+00:00",
+          "generated_at_utc": "2026-10-12T10:33:27.421782+00:00",
           "watchdogs": {
             "signal_close_freshness": {
               "status": "OK",
               "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-12T07:20:14+00:00",
-                "age_hours": 0.43,
+                "report_updated_at": "2026-10-12T08:54:29+00:00",
+                "age_hours": 1.65,
                 "close_stage_rows": 2247
               },
               "decision_weight": 0.0,
@@ -3956,8 +3874,8 @@
               "reason": "SIGNAL_EVIDENCE_RECENT",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "last_evidence_at": "2026-10-12T06:52:32.208027+00:00",
-                "age_hours": 0.89,
+                "last_evidence_at": "2026-10-12T07:45:59.429122+00:00",
+                "age_hours": 2.79,
                 "close_stage_rows": 2247
               },
               "decision_weight": 0.0,
@@ -4015,19 +3933,19 @@
                     "player_xi_aligned_fixtures": 0
                   },
                   "gk_saves": {
-                    "priced_value_rows": 0,
-                    "confirmed_xi_fixtures": 0,
-                    "player_xi_aligned_fixtures": 0
+                    "priced_value_rows": 1052,
+                    "confirmed_xi_fixtures": 11,
+                    "player_xi_aligned_fixtures": 4
                   },
                   "goalscorer": {
-                    "priced_value_rows": 0,
-                    "confirmed_xi_fixtures": 0,
-                    "player_xi_aligned_fixtures": 0
+                    "priced_value_rows": 24179,
+                    "confirmed_xi_fixtures": 34,
+                    "player_xi_aligned_fixtures": 29
                   },
                   "shots": {
-                    "priced_value_rows": 0,
-                    "confirmed_xi_fixtures": 0,
-                    "player_xi_aligned_fixtures": 0
+                    "priced_value_rows": 28472,
+                    "confirmed_xi_fixtures": 21,
+                    "player_xi_aligned_fixtures": 18
                   },
                   "sot": {
                     "priced_value_rows": 0,
@@ -4044,8 +3962,21 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 9.5,
-                "increased_counters": [],
+                "stagnation_hours": 0.0,
+                "increased_counters": [
+                  "player_props.gk_saves.confirmed_xi_player_aligned_unique_fixtures",
+                  "player_props.gk_saves.confirmed_xi_pre_kickoff_unique_fixtures",
+                  "player_props.gk_saves.market_snapshot_rows",
+                  "player_props.gk_saves.priced_value_rows",
+                  "player_props.goalscorer.confirmed_xi_player_aligned_unique_fixtures",
+                  "player_props.goalscorer.confirmed_xi_pre_kickoff_unique_fixtures",
+                  "player_props.goalscorer.market_snapshot_rows",
+                  "player_props.goalscorer.priced_value_rows",
+                  "player_props.shots.confirmed_xi_player_aligned_unique_fixtures",
+                  "player_props.shots.confirmed_xi_pre_kickoff_unique_fixtures",
+                  "player_props.shots.market_snapshot_rows",
+                  "player_props.shots.priced_value_rows"
+                ],
                 "counter_count": 41
               },
               "decision_weight": 0.0,
@@ -4058,8 +3989,8 @@
               "evidence": {
                 "provider_calls": 30322,
                 "provider_call_delta": 0,
-                "evidence_growth_delta": 0,
-                "stagnation_hours": 9.5
+                "evidence_growth_delta": 54963,
+                "stagnation_hours": 0.0
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
@@ -4087,7 +4018,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-12T06:52:37.913180+00:00"
+            "updated_at_utc": "2026-10-12T07:46:02.707141+00:00"
           },
           "save": {
             "schema_version": "1.0.0",
@@ -4096,7 +4027,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-12T07:46:02.707141+00:00"
+            "updated_at_utc": "2026-10-12T10:33:27.504393+00:00"
           },
           "provider_requests_added": 0,
           "production_promotion_allowed": false
@@ -4230,7 +4161,7 @@
             }
           ],
           "visit_matrix": {
-            "generated_at_utc": "2026-10-11T19:42:34.659640+00:00",
+            "generated_at_utc": "2026-10-12T08:08:36.516520+00:00",
             "cohort_start_utc": "2026-10-04T07:13:43+00:00",
             "family_summary": {
               "1X2": {
@@ -4290,8 +4221,8 @@
               "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-12T07:20:14+00:00",
-                "age_hours": 0.43,
+                "report_updated_at": "2026-10-12T08:54:29+00:00",
+                "age_hours": 1.65,
                 "close_stage_rows": 2247
               },
               "decision_weight": 0.0,
@@ -4302,8 +4233,8 @@
               "reason": "SIGNAL_EVIDENCE_RECENT",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "last_evidence_at": "2026-10-12T06:52:32.208027+00:00",
-                "age_hours": 0.89,
+                "last_evidence_at": "2026-10-12T07:45:59.429122+00:00",
+                "age_hours": 2.79,
                 "close_stage_rows": 2247
               },
               "decision_weight": 0.0,
@@ -4314,8 +4245,21 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 9.5,
-                "increased_counters": [],
+                "stagnation_hours": 0.0,
+                "increased_counters": [
+                  "player_props.gk_saves.confirmed_xi_player_aligned_unique_fixtures",
+                  "player_props.gk_saves.confirmed_xi_pre_kickoff_unique_fixtures",
+                  "player_props.gk_saves.market_snapshot_rows",
+                  "player_props.gk_saves.priced_value_rows",
+                  "player_props.goalscorer.confirmed_xi_player_aligned_unique_fixtures",
+                  "player_props.goalscorer.confirmed_xi_pre_kickoff_unique_fixtures",
+                  "player_props.goalscorer.market_snapshot_rows",
+                  "player_props.goalscorer.priced_value_rows",
+                  "player_props.shots.confirmed_xi_player_aligned_unique_fixtures",
+                  "player_props.shots.confirmed_xi_pre_kickoff_unique_fixtures",
+                  "player_props.shots.market_snapshot_rows",
+                  "player_props.shots.priced_value_rows"
+                ],
                 "counter_count": 41
               },
               "decision_weight": 0.0,
@@ -4331,7 +4275,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-12T06:52:37.913180+00:00"
+                "updated_at_utc": "2026-10-12T07:46:02.707141+00:00"
               },
               "save": {
                 "schema_version": "1.0.0",
@@ -4340,7 +4284,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-12T07:46:02.707141+00:00"
+                "updated_at_utc": "2026-10-12T10:33:27.504393+00:00"
               },
               "provider_requests_added": 0,
               "production_promotion_allowed": false
@@ -4482,7 +4426,7 @@
           }
         ],
         "visit_matrix": {
-          "generated_at_utc": "2026-10-11T19:42:34.659640+00:00",
+          "generated_at_utc": "2026-10-12T08:08:36.516520+00:00",
           "cohort_start_utc": "2026-10-04T07:13:43+00:00",
           "family_summary": {
             "1X2": {
@@ -4542,8 +4486,8 @@
             "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "report_updated_at": "2026-10-12T07:20:14+00:00",
-              "age_hours": 0.43,
+              "report_updated_at": "2026-10-12T08:54:29+00:00",
+              "age_hours": 1.65,
               "close_stage_rows": 2247
             },
             "decision_weight": 0.0,
@@ -4554,8 +4498,8 @@
             "reason": "SIGNAL_EVIDENCE_RECENT",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "last_evidence_at": "2026-10-12T06:52:32.208027+00:00",
-              "age_hours": 0.89,
+              "last_evidence_at": "2026-10-12T07:45:59.429122+00:00",
+              "age_hours": 2.79,
               "close_stage_rows": 2247
             },
             "decision_weight": 0.0,
@@ -4566,8 +4510,21 @@
             "reason": "MATURATION_EVIDENCE_MONITORING",
             "source": "POSTGRES:maturation_watchdog_state",
             "evidence": {
-              "stagnation_hours": 9.5,
-              "increased_counters": [],
+              "stagnation_hours": 0.0,
+              "increased_counters": [
+                "player_props.gk_saves.confirmed_xi_player_aligned_unique_fixtures",
+                "player_props.gk_saves.confirmed_xi_pre_kickoff_unique_fixtures",
+                "player_props.gk_saves.market_snapshot_rows",
+                "player_props.gk_saves.priced_value_rows",
+                "player_props.goalscorer.confirmed_xi_player_aligned_unique_fixtures",
+                "player_props.goalscorer.confirmed_xi_pre_kickoff_unique_fixtures",
+                "player_props.goalscorer.market_snapshot_rows",
+                "player_props.goalscorer.priced_value_rows",
+                "player_props.shots.confirmed_xi_player_aligned_unique_fixtures",
+                "player_props.shots.confirmed_xi_pre_kickoff_unique_fixtures",
+                "player_props.shots.market_snapshot_rows",
+                "player_props.shots.priced_value_rows"
+              ],
               "counter_count": 41
             },
             "decision_weight": 0.0,
@@ -4583,7 +4540,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-12T06:52:37.913180+00:00"
+              "updated_at_utc": "2026-10-12T07:46:02.707141+00:00"
             },
             "save": {
               "schema_version": "1.0.0",
@@ -4592,7 +4549,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-12T07:46:02.707141+00:00"
+              "updated_at_utc": "2026-10-12T10:33:27.504393+00:00"
             },
             "provider_requests_added": 0,
             "production_promotion_allowed": false
@@ -4831,7 +4788,7 @@
       }
     },
     "gates_changed": false,
-    "generated_at_utc": "2026-10-11T19:42:34.890502+00:00",
+    "generated_at_utc": "2026-10-12T08:08:36.785216+00:00",
     "model_version": "SOCCER_PRIMARY_CLV_MATURATION_FUNNEL_V4_1.0.0",
     "models_changed": false,
     "policy": "AUDIT_ONLY; CANONICAL COUNTS REMAIN OWNED_BY_PHASE17; VISIT_MATRIX_ROWS_CANNOT_ENTER TRUE_CLV UNTIL EXACT HISTORICAL BACKFILL_RECONCILIATION REPLAYS THE CANONICAL MATCHER",
