@@ -1,8 +1,13 @@
 {
-  "captured_at": "2026-10-11T20:34:33Z",
-  "http_code": "500",
+  "captured_at": "2026-10-12T01:06:19Z",
+  "http_code": "503",
   "response": {
-    "error": "tick_failed",
-    "detail": "ge\":\"v120_run_tick_done\",\"call\":1,\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"v121_run_tick_done\",\"call\":1,\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"v123_run_tick_done\",\"call\":1,\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"v124_run_tick_done\",\"call\":1,\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"v125_run_tick_done\",\"call\":1,\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"v126_run_tick_done\",\"call\":1,\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"v127_run_tick_done\",\"call\":1,\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"v128_run_tick_done\",\"call\":1,\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"automation_v129_done\",\"elapsed_ms\":502}\nTICK_TIMING {\"stage\":\"tick_worker_exception\",\"elapsed_ms\":870,\"error\":\"API-Football error on fixtures: {'requests': 'You have reached the request limit for the day, Go to https://dashboard.api-football.com to upgrade your plan.'}\"}\ntick_failed: API-Football error on fixtures: {'requests': 'You have reached the request limit for the day, Go to https://dashboard.api-football.com to upgrade your plan.'}"
+    "error": "tick_memory_pressure",
+    "retryable": true,
+    "worker_aborted_to_protect_web_service": true,
+    "persistence_status": "NOT_VERIFIED",
+    "used_bytes": 529252352,
+    "limit_bytes": 536870912,
+    "threshold_bytes": 469762048
   }
 }
