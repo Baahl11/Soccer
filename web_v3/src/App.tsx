@@ -12,7 +12,7 @@ import type {
   TeamScoringProfile,
 } from "./model";
 
-type ProductView = ProductView | CommercialSection;
+type ProductView = "today" | "matches" | "match" | "maturity" | CommercialSection;
 
 function TeamBadge({ team }: { team: MatchCenterViewModel["home"] }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
