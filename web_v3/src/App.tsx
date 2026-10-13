@@ -3,6 +3,7 @@ import { loadAuthState, signIn, signOut, signUp, type AuthState } from "./auth";
 import { loadMatchCenter, loadSlate, type SlateItem } from "./live";
 import { EvidenceExplorer } from "./EvidenceExplorer";
 import { MaturityPage } from "./MaturityPage";
+import { CommercialPage, type CommercialSection } from "./CommercialPages";
 import { FixtureMetricsPanel, FixturePlayersPanel, FixtureEventsPanel } from "./FixtureEvidencePanels";
 import type {
   MatchCenterViewModel,
@@ -10,6 +11,8 @@ import type {
   SectionState,
   TeamScoringProfile,
 } from "./model";
+
+type ProductView = ProductView | CommercialSection;
 
 function TeamBadge({ team }: { team: MatchCenterViewModel["home"] }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
@@ -628,8 +631,8 @@ function ProductNav({
   onNavigate,
   onOpenAuth,
 }: {
-  active: "today" | "matches" | "match" | "maturity";
-  onNavigate: (view: "today" | "matches" | "match" | "maturity") => void;
+  active: ProductView;
+  onNavigate: (view: ProductView) => void;
   onOpenAuth: () => void;
 }) {
   return (
@@ -637,6 +640,8 @@ function ProductNav({
       <nav className="mobile-product-nav">
         <button className={active==="today"?"active":""} onClick={()=>onNavigate("today")}><span>◉</span>Today</button>
         <button className={active==="matches"?"active":""} onClick={()=>onNavigate("matches")}><span>◎</span>Matches</button>
+        <button className={active==="picks"?"active":""} onClick={()=>onNavigate("picks")}><span>◇</span>Picks</button>
+        <button className={active==="results"?"active":""} onClick={()=>onNavigate("results")}><span>▤</span>Results</button>
          <button className={active==="maturity"?"active":""} onClick={()=>onNavigate("maturity")}><span>◫</span>Maturity</button>
         <button className={active==="match"?"active":""} onClick={()=>onNavigate("match")}><span>▥</span>Match</button>
         <button onClick={onOpenAuth}><span>○</span>Account</button>
@@ -662,8 +667,8 @@ function AppBody({
   slateError: string | null;
   matchError: string | null;
   matchLoading: boolean;
-  view: "today" | "matches" | "match" | "maturity";
-  onNavigate: (view: "today" | "matches" | "match" | "maturity") => void;
+  view: ProductView;
+  onNavigate: (view: ProductView) => void;
   onOpenAuth: () => void;
 }) {
   const isSampleMode = match?.sample === true || new URLSearchParams(window.location.search).get("sample") === "1";
@@ -681,10 +686,14 @@ function AppBody({
           <button className={view==="matches"?"active":""} onClick={()=>onNavigate("matches")}>Matches</button>
           <button className={view==="match"?"active":""} onClick={()=>onNavigate("match")}>Match Center</button>
            <button className={view==="maturity"?"active":""} onClick={()=>onNavigate("maturity")}>Market Maturity</button>
+          <span className="rail-label">TRACK RECORD</span>
+          <button className={view==="picks"?"active":""} onClick={()=>onNavigate("picks")}>Picks · Stored</button>
+          <button className={view==="leans"?"active":""} onClick={()=>onNavigate("leans")}>Leans · Research</button>
+          <button className={view==="results"?"active":""} onClick={()=>onNavigate("results")}>Historical Results</button>
+          <button className={view==="performance"?"active":""} onClick={()=>onNavigate("performance")}>Performance</button>
           <span className="rail-label">NEXT</span>
-          <button disabled>Edge Feed</button>
-          <button disabled>Performance</button>
-          <button disabled>My Edge</button>
+          <button disabled title="Requires a separate read-only Edge Feed product contract">Edge Feed</button>
+          <button disabled title="Requires authorized favorites access and contract QA">My Edge</button>
           <button onClick={onOpenAuth}>Account</button>
         </nav>
       </aside>
@@ -701,6 +710,8 @@ function AppBody({
         {view === "today" ? <SlatePage mode="today" items={slate} error={slateError} /> :
          view === "matches" ? <SlatePage mode="matches" items={slate} error={slateError} /> :
          view === "maturity" ? <MaturityPage /> :
+         (view === "picks" || view === "leans" || view === "results" || view === "performance") ?
+           <CommercialPage section={view} onOpenAuth={onOpenAuth}/> :
          match ? <>
           <Hero match={match} />
           <nav className="tabs" aria-label="Match evidence sections">{MATCH_TABS.map(x=><button type="button" className={activeTab===x?"active":""} aria-current={activeTab===x?"page":undefined} onClick={()=>setActiveTab(x)} key={x}>{x}</button>)}</nav>
@@ -753,10 +764,14 @@ export default function App() {
   const [slate, setSlate] = useState<SlateItem[]>([]);
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
-  const [view, setView] = useState<"today" | "matches" | "match" | "maturity">(
-    new URLSearchParams(window.location.search).get("view") === "maturity" ? "maturity" :
-    window.location.pathname.includes("/match/") || new URLSearchParams(window.location.search).has("fixture_id") ? "match" : "today"
-  );
+  const [view, setView] = useState<ProductView>(() => {
+    const requested = new URLSearchParams(window.location.search).get("view");
+    if (requested && ["maturity","picks","leans","results","performance","matches"].includes(requested)) {
+      return requested as ProductView;
+    }
+    return window.location.pathname.includes("/match/") ||
+      new URLSearchParams(window.location.search).has("fixture_id") ? "match" : "today";
+  });
   const [bootstrapped, setBootstrapped] = useState(false);
   const [slateError, setSlateError] = useState<string | null>(null);
   const [matchError, setMatchError] = useState<string | null>(null);
@@ -792,7 +807,7 @@ export default function App() {
     return () => { active = false; };
   }, [view]);
 
-  const navigate = (next: "today" | "matches" | "match" | "maturity") => {
+  const navigate = (next: ProductView) => {
     setView(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
