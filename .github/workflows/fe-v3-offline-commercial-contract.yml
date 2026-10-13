@@ -1,0 +1,45 @@
+name: FE V3 Offline Product Contract
+on:
+  push:
+    branches: [feat/react-v3-offline-commercial-readonly-20261013]
+    paths: [.github/workflows/fe-v3-offline-commercial-contract.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fe-v3-offline-commercial-contract
+  cancel-in-progress: true
+
+jobs:
+  offline-react:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web_v3/package-lock.json
+      - name: Install locked dependencies
+        working-directory: web_v3
+        run: npm ci
+      - name: TypeScript plus Vite production compilation
+        working-directory: web_v3
+        run: npm run build
+      - name: Install isolated test Chromium
+        working-directory: web_v3
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Browser contract uses MOCKED data only — ZERO provider calls
+        working-directory: web_v3
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 >/tmp/v3-commercial-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/e2e-commercial-smoke.mjs
