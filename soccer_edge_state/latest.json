@@ -4,8 +4,8 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-13T14:21:48.070972+00:00",
-  "generated_at_local": "2026-10-13T08:21:48.070972-06:00",
+  "generated_at_utc": "2026-10-13T14:48:19.792689+00:00",
+  "generated_at_local": "2026-10-13T08:48:19.792689-06:00",
   "timezone": "America/Mexico_City",
   "fixture_scan_count": 291,
   "due_fixture_count": 203,
@@ -15,7 +15,7 @@
   "api_calls_this_tick": 1,
   "max_api_calls_per_tick": 25,
   "effective_max_api_calls_per_tick": 25,
-  "last_daily_remaining": 19,
+  "last_daily_remaining": 17,
   "daily_budget_mode": "RESERVE",
   "database_persisted": true,
   "database_error": null,
@@ -31,12 +31,12 @@
       "stage": "T-40",
       "classification": "WATCH",
       "event_classification": "WATCH",
-      "fixture_id": 1557268,
-      "kickoff": "2026-10-13T09:00:00-06:00",
-      "league": "World Cup - Women - Qualification Europe",
-      "country": "World",
-      "home": "Serbia W",
-      "away": "Finland W",
+      "fixture_id": 1563664,
+      "kickoff": "2026-10-13T09:30:00-06:00",
+      "league": "Cup",
+      "country": "Russia",
+      "home": "Lokomotiv",
+      "away": "Akron",
       "status": "NS",
       "data_tier": "N/V",
       "market_family": "SPORTING_SCREEN",
@@ -327,7 +327,7 @@
         "phase": "PRE_V121_UPSTREAM",
         "quota_global_cap": 25,
         "quota_upstream_cap": 8,
-        "quota_remaining_basis": 19
+        "quota_remaining_basis": 17
       },
       "reserved_price_phase_release": {
         "released": false,
@@ -435,10 +435,10 @@
     "dedicated_ht_research": {
       "schema_version": "1.0.0",
       "status": "DEDICATED_HT_RESEARCH_STAGE_ACTIVE",
-      "slate_halftime_fixture_count": 2,
-      "synthetic_ht_events_added": 2,
-      "halftime_events": 2,
-      "modeled_halftime_events": 2,
+      "slate_halftime_fixture_count": 6,
+      "synthetic_ht_events_added": 6,
+      "halftime_events": 6,
+      "modeled_halftime_events": 6,
       "halftime_state_registry_loaded": true,
       "period_rate_registry_loaded": true,
       "provider_requests_added": 0,
@@ -520,7 +520,7 @@
       "standard_leftover_budget": 24,
       "diversity_catchup_overflow_budget": 0,
       "total_price_resolver_budget": 24,
-      "daily_remaining_before_price_resolver": 19,
+      "daily_remaining_before_price_resolver": 17,
       "daily_budget_mode": "RESERVE",
       "catchup_enabled": false,
       "overflow_above_global_tick_cap_allowed": false,
@@ -537,7 +537,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-13T14:21:48.070972+00:00",
+    "generated_at_utc": "2026-10-13T14:48:19.792689+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -2612,7 +2612,7 @@
   "elastic_deep_dive_cap_reason": "RESERVE_MODE",
   "elastic_request_cap": 25,
   "elastic_request_cap_reason": "RESERVE_MODE",
-  "elastic_quota_remaining_basis": 19,
+  "elastic_quota_remaining_basis": 17,
   "fair_scheduler": {
     "schema_version": "1.2.0",
     "policy": "WEIGHTED_FAIR_WITH_GUARDED_COVERAGE_CATCHUP_AND_LEAGUE_ROUND_ROBIN_AND_POSTPLAN_MATURITY_FLOOR",
@@ -2643,6 +2643,7 @@
     "eligible_unique_leagues": 55,
     "planned_unique_leagues": 48,
     "planned_league_counts": {
+      "id:237": 1,
       "id:880": 1,
       "id:2": 1,
       "id:40": 1,
@@ -2654,18 +2655,18 @@
       "id:72": 1,
       "id:239": 1,
       "id:11": 1,
-      "id:237": 1,
       "id:80": 1,
       "id:200": 1,
+      "id:349": 1,
+      "id:384": 1,
       "id:329": 1,
       "id:173": 1,
       "id:666": 1,
       "id:1047": 1,
-      "id:308": 1,
       "id:1162": 1,
+      "id:308": 1,
       "id:18": 1,
       "id:288": 1,
-      "id:349": 1,
       "id:272": 1,
       "id:567": 1,
       "id:186": 1,
@@ -2689,8 +2690,7 @@
       "id:906": 1,
       "id:390": 1,
       "id:51": 1,
-      "id:58": 1,
-      "id:59": 1
+      "id:58": 1
     },
     "league_floor_target": 48,
     "league_floor_covered": 48,
@@ -2722,7 +2722,7 @@
       "unseen": 0,
       "exploratory": 0
     },
-    "state_count": 492,
+    "state_count": 479,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false
   },
@@ -2764,13 +2764,13 @@
     "shortlist_actionable_refresh_target_pct": 80.0,
     "tier_ab_due_coverage_target_met": false,
     "shortlist_actionable_refresh_target_met": null,
-    "state_count": 492,
+    "state_count": 479,
     "provider_requests_added": 0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
     "status": "LIVE_VALIDATION"
   },
-  "fair_scheduler_seed_imported": 492,
+  "fair_scheduler_seed_imported": 479,
   "core_slate_floor_reconciliation": {
     "schema_version": "1.2.0",
     "policy": "RAW_API_FOOTBALL_ROLLING_DATE_SLATE_WITH_CACHED_FUTURE_PREFETCH",
@@ -2802,9 +2802,9 @@
     "league_allowlist_applied": false,
     "market_capture_handoff_fixture_count": 125,
     "market_capture_handoff_tier_counts": {
-      "D": 76,
       "C": 67,
       "B": 41,
+      "D": 75,
       "A": 17
     },
     "market_capture_handoff_source": "PERSISTED_BULK_COVERAGE_CACHE",
@@ -3546,12 +3546,12 @@
           "stage": "T-40",
           "classification": "WATCH",
           "event_classification": "WATCH",
-          "fixture_id": 1557268,
-          "kickoff": "2026-10-13T09:00:00-06:00",
-          "league": "World Cup - Women - Qualification Europe",
-          "country": "World",
-          "home": "Serbia W",
-          "away": "Finland W",
+          "fixture_id": 1563664,
+          "kickoff": "2026-10-13T09:30:00-06:00",
+          "league": "Cup",
+          "country": "Russia",
+          "home": "Lokomotiv",
+          "away": "Akron",
           "status": "NS",
           "data_tier": "N/V",
           "market_family": "SPORTING_SCREEN",
@@ -3646,7 +3646,7 @@
       "api_calls_this_tick": 1,
       "max_api_calls_per_tick": 25,
       "effective_max_api_calls_per_tick": 25,
-      "last_daily_remaining": 19,
+      "last_daily_remaining": 17,
       "daily_budget_mode": "RESERVE",
       "fixture_scan_count": 291,
       "due_fixture_count": 203,
@@ -3656,8 +3656,8 @@
     "control_tower": {
       "schema_version": "2.1.0",
       "status": "LIVE",
-      "generated_at_utc": "2026-10-13T14:21:48.070972+00:00",
-      "generated_at_local": "2026-10-13T08:21:48.070972-06:00",
+      "generated_at_utc": "2026-10-13T14:48:19.792689+00:00",
+      "generated_at_local": "2026-10-13T08:48:19.792689-06:00",
       "pipeline_version": "4.38.8-normalized-primary-clv-anchor-fallback",
       "model_version": "SOCCER EDGE ENGINE v1.7",
       "system_health": {
@@ -3665,10 +3665,10 @@
         "postgres": "HEALTHY",
         "scheduler": "TICK_OBSERVED",
         "api_football": "HEALTHY",
-        "api_football_remaining": 19,
+        "api_football_remaining": 17,
         "daily_budget_mode": "RESERVE",
         "galaxy": "NOT_VERIFIED",
-        "last_tick": "2026-10-13T08:21:48.070972-06:00"
+        "last_tick": "2026-10-13T08:48:19.792689-06:00"
       },
       "pipeline": {
         "fixtures_scanned": 291,
@@ -3695,9 +3695,9 @@
         "future_prefetch_cache_misses": 0,
         "market_capture_handoff_fixture_count": 125,
         "market_capture_handoff_tier_counts": {
-          "D": 76,
           "C": 67,
           "B": 41,
+          "D": 75,
           "A": 17
         },
         "league_allowlist_applied": false,
@@ -3792,7 +3792,7 @@
         "schema_version": "1.4.0",
         "model_version": "SOCCER_MATURITY_SNAPSHOT_V4_1.4.0",
         "status": "OK",
-        "generated_at_utc": "2026-10-13T14:21:51.647904+00:00",
+        "generated_at_utc": "2026-10-13T14:48:22.864490+00:00",
         "reports_loaded": 13,
         "reports_expected": 13,
         "errors": {},
@@ -3855,15 +3855,15 @@
           "schema_version": "1.1.0",
           "model_version": "SOCCER_MATURATION_WATCHDOGS_V4_1.1.0",
           "status": "WATCH",
-          "generated_at_utc": "2026-10-13T14:21:51.791688+00:00",
+          "generated_at_utc": "2026-10-13T14:48:23.019807+00:00",
           "watchdogs": {
             "signal_close_freshness": {
               "status": "OK",
               "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-13T13:54:13+00:00",
-                "age_hours": 0.46,
+                "report_updated_at": "2026-10-13T14:35:30+00:00",
+                "age_hours": 0.21,
                 "close_stage_rows": 2253
               },
               "decision_weight": 0.0,
@@ -3874,8 +3874,8 @@
               "reason": "SIGNAL_EVIDENCE_RECENT",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "last_evidence_at": "2026-10-13T13:53:14.472902+00:00",
-                "age_hours": 0.48,
+                "last_evidence_at": "2026-10-13T14:21:48.070972+00:00",
+                "age_hours": 0.44,
                 "close_stage_rows": 2253
               },
               "decision_weight": 0.0,
@@ -3962,7 +3962,7 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 0.86,
+                "stagnation_hours": 1.31,
                 "increased_counters": [],
                 "counter_count": 41
               },
@@ -3977,7 +3977,7 @@
                 "provider_calls": 30322,
                 "provider_call_delta": 0,
                 "evidence_growth_delta": 0,
-                "stagnation_hours": 0.86
+                "stagnation_hours": 1.31
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
@@ -4005,7 +4005,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-13T13:53:17.931031+00:00"
+            "updated_at_utc": "2026-10-13T14:21:51.822422+00:00"
           },
           "save": {
             "schema_version": "1.0.0",
@@ -4014,7 +4014,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-13T14:21:51.822422+00:00"
+            "updated_at_utc": "2026-10-13T14:48:23.122034+00:00"
           },
           "provider_requests_added": 0,
           "production_promotion_allowed": false
@@ -4208,8 +4208,8 @@
               "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-13T13:54:13+00:00",
-                "age_hours": 0.46,
+                "report_updated_at": "2026-10-13T14:35:30+00:00",
+                "age_hours": 0.21,
                 "close_stage_rows": 2253
               },
               "decision_weight": 0.0,
@@ -4220,8 +4220,8 @@
               "reason": "SIGNAL_EVIDENCE_RECENT",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "last_evidence_at": "2026-10-13T13:53:14.472902+00:00",
-                "age_hours": 0.48,
+                "last_evidence_at": "2026-10-13T14:21:48.070972+00:00",
+                "age_hours": 0.44,
                 "close_stage_rows": 2253
               },
               "decision_weight": 0.0,
@@ -4232,7 +4232,7 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 0.86,
+                "stagnation_hours": 1.31,
                 "increased_counters": [],
                 "counter_count": 41
               },
@@ -4249,7 +4249,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-13T13:53:17.931031+00:00"
+                "updated_at_utc": "2026-10-13T14:21:51.822422+00:00"
               },
               "save": {
                 "schema_version": "1.0.0",
@@ -4258,7 +4258,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-13T14:21:51.822422+00:00"
+                "updated_at_utc": "2026-10-13T14:48:23.122034+00:00"
               },
               "provider_requests_added": 0,
               "production_promotion_allowed": false
@@ -4460,8 +4460,8 @@
             "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "report_updated_at": "2026-10-13T13:54:13+00:00",
-              "age_hours": 0.46,
+              "report_updated_at": "2026-10-13T14:35:30+00:00",
+              "age_hours": 0.21,
               "close_stage_rows": 2253
             },
             "decision_weight": 0.0,
@@ -4472,8 +4472,8 @@
             "reason": "SIGNAL_EVIDENCE_RECENT",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "last_evidence_at": "2026-10-13T13:53:14.472902+00:00",
-              "age_hours": 0.48,
+              "last_evidence_at": "2026-10-13T14:21:48.070972+00:00",
+              "age_hours": 0.44,
               "close_stage_rows": 2253
             },
             "decision_weight": 0.0,
@@ -4484,7 +4484,7 @@
             "reason": "MATURATION_EVIDENCE_MONITORING",
             "source": "POSTGRES:maturation_watchdog_state",
             "evidence": {
-              "stagnation_hours": 0.86,
+              "stagnation_hours": 1.31,
               "increased_counters": [],
               "counter_count": 41
             },
@@ -4501,7 +4501,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-13T13:53:17.931031+00:00"
+              "updated_at_utc": "2026-10-13T14:21:51.822422+00:00"
             },
             "save": {
               "schema_version": "1.0.0",
@@ -4510,7 +4510,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-13T14:21:51.822422+00:00"
+              "updated_at_utc": "2026-10-13T14:48:23.122034+00:00"
             },
             "provider_requests_added": 0,
             "production_promotion_allowed": false
