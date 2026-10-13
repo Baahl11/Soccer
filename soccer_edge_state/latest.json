@@ -4,29 +4,29 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-10-13T05:47:27.624665+00:00",
-  "generated_at_local": "2026-10-12T23:47:27.624665-06:00",
+  "generated_at_utc": "2026-10-13T06:00:21.657166+00:00",
+  "generated_at_local": "2026-10-13T00:00:21.657166-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 795,
-  "due_fixture_count": 316,
-  "event_count": 3,
+  "fixture_scan_count": 290,
+  "due_fixture_count": 190,
+  "event_count": 5,
   "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 4,
   "max_api_calls_per_tick": 25,
   "effective_max_api_calls_per_tick": 25,
-  "last_daily_remaining": 65,
+  "last_daily_remaining": 63,
   "daily_budget_mode": "RESERVE",
   "database_persisted": true,
   "database_error": null,
   "deep_dive_processed_count": 0,
   "deferred_due_to_budget": 1,
   "deferred_due_to_priority": 0,
-  "research_visible_count": 3,
+  "research_visible_count": 4,
   "match_table_rows": [
     {
       "row_type": "research_visibility",
-      "row_index": 1,
+      "row_index": 2,
       "event_type": "PIPELINE_ERROR",
       "stage": "EARLY_RESEARCH",
       "classification": "WATCH",
@@ -72,8 +72,8 @@
     },
     {
       "row_type": "research_visibility",
-      "row_index": 2,
-      "event_type": "QUOTA_GUARD",
+      "row_index": 3,
+      "event_type": "PIPELINE_ERROR",
       "stage": "EARLY_RESEARCH",
       "classification": "WATCH",
       "event_classification": "WATCH",
@@ -83,6 +83,52 @@
       "country": "Turkey",
       "home": "Bandırmaspor",
       "away": "Sivasspor",
+      "status": "NS",
+      "data_tier": "N/V",
+      "market_family": "SPORTING_SCREEN",
+      "market": "Research screen",
+      "selection": "No shortlist angle",
+      "line": null,
+      "price": null,
+      "bookmaker": null,
+      "tier": null,
+      "stake_units": null,
+      "bet_eligible": false,
+      "side_score": null,
+      "goals_score": null,
+      "two_way_score": null,
+      "shortlist_rank": null,
+      "tracks": [],
+      "prob_edge_pp": null,
+      "estimated_ev": null,
+      "p_market_fair": null,
+      "p_shrunk": null,
+      "reason": "API-Football error on teams/statistics: {'plan': 'Free plans do not have access to this season, try from 2022 to 2024.'}",
+      "notes_count": 0,
+      "market_use": null,
+      "model_signal": "INSUFFICIENT_DATA",
+      "model_signal_score": null,
+      "execution_status": "WAIT_MARKET",
+      "blockers": [
+        "WAIT_MARKET",
+        "API-Football error on teams/statistics: {'plan': 'Free plans do not have access to this season, try from 2022 to 2024.'}"
+      ],
+      "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
+      "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+    },
+    {
+      "row_type": "research_visibility",
+      "row_index": 4,
+      "event_type": "QUOTA_GUARD",
+      "stage": "EARLY_RESEARCH",
+      "classification": "WATCH",
+      "event_classification": "WATCH",
+      "fixture_id": 1627729,
+      "kickoff": "2026-10-13T07:30:00-06:00",
+      "league": "1st Division",
+      "country": "South-Africa",
+      "home": "Cape Town City",
+      "away": "The Bees",
       "status": "NS",
       "data_tier": "N/V",
       "market_family": "SPORTING_SCREEN",
@@ -118,7 +164,7 @@
     },
     {
       "row_type": "research_visibility",
-      "row_index": 0,
+      "row_index": 1,
       "event_type": "PIPELINE_ERROR",
       "stage": "EARLY_RESEARCH",
       "classification": "WATCH",
@@ -166,19 +212,19 @@
   "research_visibility": {
     "schema_version": "1.0.0",
     "policy": "ALWAYS_SURFACE_RESEARCH_ROWS_FOR_BET_LEAN_WATCH_PASS_EVENTS",
-    "row_count": 3,
+    "row_count": 4,
     "row_limit": 40,
     "visible_classification_counts": {
-      "WATCH": 3
+      "WATCH": 4
     },
     "raw_event_classification_counts": {
-      "WATCH": 3
+      "WATCH": 4
     },
     "market_family_counts": {
-      "SPORTING_SCREEN": 3
+      "SPORTING_SCREEN": 4
     },
     "stage_counts": {
-      "EARLY_RESEARCH": 3
+      "EARLY_RESEARCH": 4
     },
     "track_counts": {},
     "silent_tick_prevention": true,
@@ -189,12 +235,12 @@
   "decision_separation": {
     "schema_version": "1.1.0",
     "policy": "MODEL_SIGNAL_INDEPENDENT_OF_PRICE_EXECUTION_STATUS_INDEPENDENT_OF_SPORT_STRENGTH",
-    "row_count": 3,
+    "row_count": 4,
     "model_signal_counts": {
-      "INSUFFICIENT_DATA": 3
+      "INSUFFICIENT_DATA": 4
     },
     "execution_status_counts": {
-      "WAIT_MARKET": 3
+      "WAIT_MARKET": 4
     },
     "valid_model_signals": [
       "INSUFFICIENT_DATA",
@@ -241,7 +287,7 @@
       "db_query_policy": "ONE_BATCH_QUERY_PRIMARY_PLUS_ONE_BATCH_QUERY_SPILLOVER_MAX",
       "primary_requested_fixtures": 0,
       "primary_hit_fixtures": 0,
-      "spillover_requested_fixtures": 41,
+      "spillover_requested_fixtures": 80,
       "spillover_hit_fixtures": 0,
       "single_fixture_n_plus_one_removed": true,
       "semantic_change": false
@@ -343,11 +389,11 @@
     "cache_hydrated_research_market_rows": 0,
     "cache_hydration_provider_requests_added": 0,
     "cache_hydration_policy": "PREGAME_TEAM_LAMBDA_FIXTURES_FRESH_POSTGRES_SNAPSHOTS_FIRST",
-    "research_spillover_candidate_fixtures": 41,
+    "research_spillover_candidate_fixtures": 80,
     "research_spillover_current_event_candidates": 0,
     "research_spillover_persisted_backlog_candidates": 0,
-    "research_spillover_scanned_upcoming_candidates": 41,
-    "research_spillover_market_capture_only_candidates": 41,
+    "research_spillover_scanned_upcoming_candidates": 80,
+    "research_spillover_market_capture_only_candidates": 80,
     "research_spillover_diversity_source": "POSTGRES_STRICT_TEAM_TOTAL_DIVERSITY_CAPTURE_BACKLOG",
     "research_spillover_unique_fixture_target": 20,
     "research_spillover_existing_unique_fixtures": 2407,
@@ -419,7 +465,7 @@
         "phase": "PRE_V121_UPSTREAM",
         "quota_global_cap": 25,
         "quota_upstream_cap": 8,
-        "quota_remaining_basis": 65
+        "quota_remaining_basis": 63
       },
       "reserved_price_phase_release": {
         "released": false,
@@ -574,7 +620,7 @@
     "primary_clv_maturation_primary_payload_reuse_fixtures": 0,
     "primary_clv_maturation_synthetic_events_added": 0,
     "primary_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;THEN_PRICED_1X2_FT_TOTALS_BTTS_FROM_PHASE16_OR_MATCH_TABLE+1H_2H_FROM_DERIVATIVE_INTELLIGENCE;1H_2H_REQUIRE_EXACT_SELECTION_AND_LINE;RESEARCH_ONLY_ROWS_MAY_MATURE_CLOSE_WITH_ZERO_DECISION_WEIGHT;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;SAME_GLOBAL_PRICE_BUDGET_ONLY",
-    "research_spillover_candidate_fixtures": 41,
+    "research_spillover_candidate_fixtures": 80,
     "research_spillover_cache_hits": 0,
     "research_spillover_api_calls_added": 0,
     "research_spillover_fixtures_fetched": 0,
@@ -588,8 +634,8 @@
     "research_spillover_projected_unique_fixtures": 2407,
     "research_spillover_diversity_gap_remaining": 0,
     "research_spillover_persisted_backlog_candidates": 0,
-    "research_spillover_scanned_upcoming_candidates": 41,
-    "research_spillover_market_capture_only_candidates": 41,
+    "research_spillover_scanned_upcoming_candidates": 80,
+    "research_spillover_market_capture_only_candidates": 80,
     "research_spillover_exact_team_total_fixtures_attached": 0,
     "research_spillover_ft_team_total_market_rows_attached": 0,
     "research_spillover_primary_payload_reuse_fixtures": 0,
@@ -612,7 +658,7 @@
       "standard_leftover_budget": 21,
       "diversity_catchup_overflow_budget": 0,
       "total_price_resolver_budget": 21,
-      "daily_remaining_before_price_resolver": 65,
+      "daily_remaining_before_price_resolver": 63,
       "daily_budget_mode": "RESERVE",
       "catchup_enabled": false,
       "overflow_above_global_tick_cap_allowed": false,
@@ -629,7 +675,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-10-13T05:47:27.624665+00:00",
+    "generated_at_utc": "2026-10-13T06:00:21.657166+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -2786,7 +2832,7 @@
     "status": "LIVE_RESEARCH",
     "events_modeled": 0,
     "gate_counts": {
-      "NOT_SOCCER_REFRESH": 3
+      "NOT_SOCCER_REFRESH": 5
     },
     "family_leg_counts": {},
     "research_candidate_count": 0,
@@ -2800,7 +2846,7 @@
   "elastic_deep_dive_cap_reason": "RESERVE_MODE",
   "elastic_request_cap": 25,
   "elastic_request_cap_reason": "RESERVE_MODE",
-  "elastic_quota_remaining_basis": 65,
+  "elastic_quota_remaining_basis": 63,
   "fair_scheduler": {
     "schema_version": "1.2.0",
     "policy": "WEIGHTED_FAIR_WITH_GUARDED_COVERAGE_CATCHUP_AND_LEAGUE_ROUND_ROBIN_AND_POSTPLAN_MATURITY_FLOOR",
@@ -2818,8 +2864,8 @@
     "urgent_actionable_count": 0,
     "eligible_queue_counts": {
       "actionable": 0,
-      "unseen": 314,
-      "exploratory": 2
+      "unseen": 189,
+      "exploratory": 1
     },
     "planned_slot_counts": {
       "actionable": 0,
@@ -2827,8 +2873,8 @@
       "exploratory": 1
     },
     "planned_slot_count": 48,
-    "deferred_after_slot_plan": 268,
-    "eligible_unique_leagues": 48,
+    "deferred_after_slot_plan": 142,
+    "eligible_unique_leagues": 58,
     "planned_unique_leagues": 48,
     "planned_league_counts": {
       "id:2": 1,
@@ -2838,10 +2884,11 @@
       "id:233": 1,
       "id:880": 1,
       "id:114": 1,
+      "id:46": 1,
       "id:237": 1,
       "id:80": 1,
+      "id:200": 1,
       "id:18": 1,
-      "id:384": 1,
       "id:288": 1,
       "id:666": 1,
       "id:1075": 1,
@@ -2856,6 +2903,9 @@
       "id:349": 1,
       "id:272": 1,
       "id:567": 1,
+      "id:492": 1,
+      "id:1156": 1,
+      "id:871": 1,
       "id:14": 1,
       "id:680": 1,
       "id:1047": 1,
@@ -2872,30 +2922,26 @@
       "id:397": 1,
       "id:83": 1,
       "id:774": 1,
-      "id:811": 1,
-      "id:675": 1,
-      "id:723": 1,
-      "id:566": 1,
-      "id:696": 1,
-      "id:1241": 1,
-      "id:1162": 1
+      "id:745": 1,
+      "id:906": 1,
+      "id:811": 1
     },
     "league_floor_target": 48,
     "league_floor_covered": 48,
     "league_floor_met": true,
-    "league_coverage_pct": 100.0,
-    "maturity_coverage_swaps": 1,
+    "league_coverage_pct": 82.76,
+    "maturity_coverage_swaps": 0,
     "provider_requests_added": 0,
     "production_promotion_allowed": false,
     "league_diversity_policy": "ACTIONABLE_PRIORITY_PRESERVED;UNSEEN_AND_EXPLORATORY_INTERLEAVED_BY_LEAGUE;POSTPLAN_DUPLICATE_LEAGUE_SLOTS_MAY_SWAP_TO_MISSING_DUE_LEAGUES_WITHOUT_DISPLACING_URGENT_ACTIONABLE",
-    "eligible_tier_ab_due_count": 97,
+    "eligible_tier_ab_due_count": 116,
     "due_with_any_deep_dive_count": 0,
     "due_analyzed_pct": 0.0,
     "first_deep_dive_at_t90_count": 0,
     "analyzed_by_t90_pct": 0.0,
     "first_deep_dive_by_t40_count": 0,
     "analyzed_by_t40_pct": 0.0,
-    "starvation_count": 97,
+    "starvation_count": 116,
     "avg_deep_dives_per_due_fixture": 0.0,
     "provider_calls_per_processed_fixture": null,
     "actionable_due_count": 0,
@@ -2910,7 +2956,7 @@
       "unseen": 0,
       "exploratory": 0
     },
-    "state_count": 636,
+    "state_count": 634,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false
   },
@@ -2924,8 +2970,8 @@
     },
     "eligible_queue_counts": {
       "actionable": 0,
-      "unseen": 314,
-      "exploratory": 2
+      "unseen": 189,
+      "exploratory": 1
     },
     "planned_slot_counts": {
       "actionable": 0,
@@ -2937,12 +2983,12 @@
       "unseen": 0,
       "exploratory": 0
     },
-    "eligible_tier_ab_due_count": 97,
+    "eligible_tier_ab_due_count": 116,
     "due_with_any_deep_dive_count": 0,
     "due_analyzed_pct": 0.0,
     "analyzed_by_t90_pct": 0.0,
     "analyzed_by_t40_pct": 0.0,
-    "starvation_count": 97,
+    "starvation_count": 116,
     "avg_deep_dives_per_due_fixture": 0.0,
     "provider_calls_per_processed_fixture": null,
     "actionable_due_count": 0,
@@ -2952,20 +2998,20 @@
     "shortlist_actionable_refresh_target_pct": 80.0,
     "tier_ab_due_coverage_target_met": false,
     "shortlist_actionable_refresh_target_met": null,
-    "state_count": 636,
+    "state_count": 634,
     "provider_requests_added": 0,
     "model_weights_changed": false,
     "canonical_bet_logic_changed": false,
     "status": "LIVE_VALIDATION"
   },
-  "fair_scheduler_seed_imported": 636,
+  "fair_scheduler_seed_imported": 634,
   "core_slate_floor_reconciliation": {
     "schema_version": "1.2.0",
     "policy": "RAW_API_FOOTBALL_ROLLING_DATE_SLATE_WITH_CACHED_FUTURE_PREFETCH",
     "min_fixture_count": 12,
     "min_daily_remaining": 4000,
-    "triggered": true,
-    "reason": "NOT_TODAY_PRIMARY_SLATE",
+    "triggered": false,
+    "reason": "PRIMARY_SLATE_MEETS_FLOOR",
     "primary_date": "2026-10-13",
     "reconciliation_date": null,
     "primary_slate_count": 290,
@@ -2975,10 +3021,10 @@
     "provider_requests_added_max": 2,
     "future_prefetch_horizon_days": 2,
     "future_prefetch_ttl_hours": 4,
-    "future_prefetch_cache_hits": 1,
+    "future_prefetch_cache_hits": 0,
     "future_prefetch_cache_misses": 0,
     "future_prefetch_provider_requests_added": 0,
-    "future_prefetch_fixture_count": 290,
+    "future_prefetch_fixture_count": 0,
     "scan_dates": [
       "2026-10-13"
     ],
@@ -3729,7 +3775,7 @@
       "rows": [
         {
           "row_type": "research_visibility",
-          "row_index": 1,
+          "row_index": 2,
           "event_type": "PIPELINE_ERROR",
           "stage": "EARLY_RESEARCH",
           "classification": "WATCH",
@@ -3775,8 +3821,8 @@
         },
         {
           "row_type": "research_visibility",
-          "row_index": 2,
-          "event_type": "QUOTA_GUARD",
+          "row_index": 3,
+          "event_type": "PIPELINE_ERROR",
           "stage": "EARLY_RESEARCH",
           "classification": "WATCH",
           "event_classification": "WATCH",
@@ -3786,6 +3832,52 @@
           "country": "Turkey",
           "home": "Bandırmaspor",
           "away": "Sivasspor",
+          "status": "NS",
+          "data_tier": "N/V",
+          "market_family": "SPORTING_SCREEN",
+          "market": "Research screen",
+          "selection": "No shortlist angle",
+          "line": null,
+          "price": null,
+          "bookmaker": null,
+          "tier": null,
+          "stake_units": null,
+          "bet_eligible": false,
+          "side_score": null,
+          "goals_score": null,
+          "two_way_score": null,
+          "shortlist_rank": null,
+          "tracks": [],
+          "prob_edge_pp": null,
+          "estimated_ev": null,
+          "p_market_fair": null,
+          "p_shrunk": null,
+          "reason": "API-Football error on teams/statistics: {'plan': 'Free plans do not have access to this season, try from 2022 to 2024.'}",
+          "notes_count": 0,
+          "market_use": null,
+          "model_signal": "INSUFFICIENT_DATA",
+          "model_signal_score": null,
+          "execution_status": "WAIT_MARKET",
+          "blockers": [
+            "WAIT_MARKET",
+            "API-Football error on teams/statistics: {'plan': 'Free plans do not have access to this season, try from 2022 to 2024.'}"
+          ],
+          "model_signal_basis": "SPORTING_SCREEN_ONLY_NO_PRICE",
+          "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
+        },
+        {
+          "row_type": "research_visibility",
+          "row_index": 4,
+          "event_type": "QUOTA_GUARD",
+          "stage": "EARLY_RESEARCH",
+          "classification": "WATCH",
+          "event_classification": "WATCH",
+          "fixture_id": 1627729,
+          "kickoff": "2026-10-13T07:30:00-06:00",
+          "league": "1st Division",
+          "country": "South-Africa",
+          "home": "Cape Town City",
+          "away": "The Bees",
           "status": "NS",
           "data_tier": "N/V",
           "market_family": "SPORTING_SCREEN",
@@ -3821,7 +3913,7 @@
         },
         {
           "row_type": "research_visibility",
-          "row_index": 0,
+          "row_index": 1,
           "event_type": "PIPELINE_ERROR",
           "stage": "EARLY_RESEARCH",
           "classification": "WATCH",
@@ -3866,7 +3958,7 @@
           "execution_status_basis": "READINESS_BLOCKERS_AND_MARKET_AVAILABILITY"
         }
       ],
-      "total": 3
+      "total": 4
     },
     "strong_sport_signals": {
       "rows": [],
@@ -3926,18 +4018,18 @@
       "api_calls_this_tick": 4,
       "max_api_calls_per_tick": 25,
       "effective_max_api_calls_per_tick": 25,
-      "last_daily_remaining": 65,
+      "last_daily_remaining": 63,
       "daily_budget_mode": "RESERVE",
-      "fixture_scan_count": 795,
-      "due_fixture_count": 316,
+      "fixture_scan_count": 290,
+      "due_fixture_count": 190,
       "deferred_due_to_budget": 1,
       "deferred_due_to_priority": 0
     },
     "control_tower": {
       "schema_version": "2.1.0",
       "status": "DEGRADED",
-      "generated_at_utc": "2026-10-13T05:47:27.624665+00:00",
-      "generated_at_local": "2026-10-12T23:47:27.624665-06:00",
+      "generated_at_utc": "2026-10-13T06:00:21.657166+00:00",
+      "generated_at_local": "2026-10-13T00:00:21.657166-06:00",
       "pipeline_version": "4.38.8-normalized-primary-clv-anchor-fallback",
       "model_version": "SOCCER EDGE ENGINE v1.7",
       "system_health": {
@@ -3945,18 +4037,18 @@
         "postgres": "HEALTHY",
         "scheduler": "TICK_OBSERVED",
         "api_football": "HEALTHY",
-        "api_football_remaining": 65,
+        "api_football_remaining": 63,
         "daily_budget_mode": "RESERVE",
         "galaxy": "NOT_VERIFIED",
-        "last_tick": "2026-10-12T23:47:27.624665-06:00"
+        "last_tick": "2026-10-13T00:00:21.657166-06:00"
       },
       "pipeline": {
-        "fixtures_scanned": 795,
-        "due": 316,
-        "events": 3,
+        "fixtures_scanned": 290,
+        "due": 190,
+        "events": 5,
         "actionable_refreshes": 0,
         "deep_dives": 0,
-        "research_visible": 3,
+        "research_visible": 4,
         "bet_candidates": 0,
         "api_calls": 4,
         "api_call_cap": 25,
@@ -3970,8 +4062,8 @@
         "scan_date_counts": {
           "2026-10-13": 290
         },
-        "future_prefetch_fixture_count": 290,
-        "future_prefetch_cache_hits": 1,
+        "future_prefetch_fixture_count": 0,
+        "future_prefetch_cache_hits": 0,
         "future_prefetch_cache_misses": 0,
         "market_capture_handoff_fixture_count": 169,
         "market_capture_handoff_tier_counts": {
@@ -3989,14 +4081,14 @@
           "exploratory": 10
         },
         "scheduler_planned_unique_leagues": 48,
-        "scheduler_eligible_unique_leagues": 48,
+        "scheduler_eligible_unique_leagues": 58,
         "scheduler_league_floor_target": 48,
         "scheduler_league_floor_covered": 48,
         "scheduler_urgent_actionable_count": 0,
         "scheduler_unseen_processed": 0,
         "scheduler_actionable_processed": 0,
         "scheduler_exploratory_processed": 0,
-        "scheduler_starvation_count": 97,
+        "scheduler_starvation_count": 116,
         "scheduler_due_analyzed_pct": 0.0,
         "primary_clv_maturation_candidates": 0,
         "primary_clv_maturation_refreshed": 0,
@@ -4007,13 +4099,21 @@
         "team_totals_unchanged_provider_updates": 0
       },
       "errors": {
-        "count": 2,
+        "count": 3,
         "rows": [
           {
             "fixture_id": 1629933,
             "home": "Newcastle Jets",
             "away": "Gamba Osaka",
             "league": "AFC Champions League Elite",
+            "stage": "EARLY_RESEARCH",
+            "reason": "API-Football error on teams/statistics: {'plan': 'Free plans do not have access to this season, try from 2022 to 2024.'}"
+          },
+          {
+            "fixture_id": 1585780,
+            "home": "Bandırmaspor",
+            "away": "Sivasspor",
+            "league": "1. Lig",
             "stage": "EARLY_RESEARCH",
             "reason": "API-Football error on teams/statistics: {'plan': 'Free plans do not have access to this season, try from 2022 to 2024.'}"
           },
@@ -4089,7 +4189,7 @@
         "schema_version": "1.4.0",
         "model_version": "SOCCER_MATURITY_SNAPSHOT_V4_1.4.0",
         "status": "OK",
-        "generated_at_utc": "2026-10-13T05:47:32.739040+00:00",
+        "generated_at_utc": "2026-10-13T06:00:28.276257+00:00",
         "reports_loaded": 13,
         "reports_expected": 13,
         "errors": {},
@@ -4152,15 +4252,15 @@
           "schema_version": "1.1.0",
           "model_version": "SOCCER_MATURATION_WATCHDOGS_V4_1.1.0",
           "status": "WATCH",
-          "generated_at_utc": "2026-10-13T05:47:32.829343+00:00",
+          "generated_at_utc": "2026-10-13T06:00:28.456014+00:00",
           "watchdogs": {
             "signal_close_freshness": {
               "status": "OK",
               "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-13T05:34:35+00:00",
-                "age_hours": 0.22,
+                "report_updated_at": "2026-10-13T05:51:20+00:00",
+                "age_hours": 0.15,
                 "close_stage_rows": 2252
               },
               "decision_weight": 0.0,
@@ -4171,8 +4271,8 @@
               "reason": "SIGNAL_EVIDENCE_RECENT",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "last_evidence_at": "2026-10-13T05:21:45.115592+00:00",
-                "age_hours": 0.43,
+                "last_evidence_at": "2026-10-13T05:47:27.624665+00:00",
+                "age_hours": 0.22,
                 "close_stage_rows": 2252
               },
               "decision_weight": 0.0,
@@ -4259,7 +4359,7 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 3.97,
+                "stagnation_hours": 4.19,
                 "increased_counters": [],
                 "counter_count": 41
               },
@@ -4274,7 +4374,7 @@
                 "provider_calls": 30322,
                 "provider_call_delta": 0,
                 "evidence_growth_delta": 0,
-                "stagnation_hours": 3.97
+                "stagnation_hours": 4.19
               },
               "decision_weight": 0.0,
               "production_promotion_allowed": false
@@ -4302,7 +4402,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-13T05:21:50.404755+00:00"
+            "updated_at_utc": "2026-10-13T05:47:32.898928+00:00"
           },
           "save": {
             "schema_version": "1.0.0",
@@ -4311,7 +4411,7 @@
             "source": "POSTGRES:maturation_watchdog_state",
             "provider_requests_added": 0,
             "production_promotion_allowed": false,
-            "updated_at_utc": "2026-10-13T05:47:32.898928+00:00"
+            "updated_at_utc": "2026-10-13T06:00:28.514428+00:00"
           },
           "provider_requests_added": 0,
           "production_promotion_allowed": false
@@ -4505,8 +4605,8 @@
               "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "report_updated_at": "2026-10-13T05:34:35+00:00",
-                "age_hours": 0.22,
+                "report_updated_at": "2026-10-13T05:51:20+00:00",
+                "age_hours": 0.15,
                 "close_stage_rows": 2252
               },
               "decision_weight": 0.0,
@@ -4517,8 +4617,8 @@
               "reason": "SIGNAL_EVIDENCE_RECENT",
               "source": "signal_ledger_summary.json",
               "evidence": {
-                "last_evidence_at": "2026-10-13T05:21:45.115592+00:00",
-                "age_hours": 0.43,
+                "last_evidence_at": "2026-10-13T05:47:27.624665+00:00",
+                "age_hours": 0.22,
                 "close_stage_rows": 2252
               },
               "decision_weight": 0.0,
@@ -4529,7 +4629,7 @@
               "reason": "MATURATION_EVIDENCE_MONITORING",
               "source": "POSTGRES:maturation_watchdog_state",
               "evidence": {
-                "stagnation_hours": 3.97,
+                "stagnation_hours": 4.19,
                 "increased_counters": [],
                 "counter_count": 41
               },
@@ -4546,7 +4646,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-13T05:21:50.404755+00:00"
+                "updated_at_utc": "2026-10-13T05:47:32.898928+00:00"
               },
               "save": {
                 "schema_version": "1.0.0",
@@ -4555,7 +4655,7 @@
                 "source": "POSTGRES:maturation_watchdog_state",
                 "provider_requests_added": 0,
                 "production_promotion_allowed": false,
-                "updated_at_utc": "2026-10-13T05:47:32.898928+00:00"
+                "updated_at_utc": "2026-10-13T06:00:28.514428+00:00"
               },
               "provider_requests_added": 0,
               "production_promotion_allowed": false
@@ -4757,8 +4857,8 @@
             "reason": "SIGNAL_REPORT_ARTIFACT_FRESH",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "report_updated_at": "2026-10-13T05:34:35+00:00",
-              "age_hours": 0.22,
+              "report_updated_at": "2026-10-13T05:51:20+00:00",
+              "age_hours": 0.15,
               "close_stage_rows": 2252
             },
             "decision_weight": 0.0,
@@ -4769,8 +4869,8 @@
             "reason": "SIGNAL_EVIDENCE_RECENT",
             "source": "signal_ledger_summary.json",
             "evidence": {
-              "last_evidence_at": "2026-10-13T05:21:45.115592+00:00",
-              "age_hours": 0.43,
+              "last_evidence_at": "2026-10-13T05:47:27.624665+00:00",
+              "age_hours": 0.22,
               "close_stage_rows": 2252
             },
             "decision_weight": 0.0,
@@ -4781,7 +4881,7 @@
             "reason": "MATURATION_EVIDENCE_MONITORING",
             "source": "POSTGRES:maturation_watchdog_state",
             "evidence": {
-              "stagnation_hours": 3.97,
+              "stagnation_hours": 4.19,
               "increased_counters": [],
               "counter_count": 41
             },
@@ -4798,7 +4898,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-13T05:21:50.404755+00:00"
+              "updated_at_utc": "2026-10-13T05:47:32.898928+00:00"
             },
             "save": {
               "schema_version": "1.0.0",
@@ -4807,7 +4907,7 @@
               "source": "POSTGRES:maturation_watchdog_state",
               "provider_requests_added": 0,
               "production_promotion_allowed": false,
-              "updated_at_utc": "2026-10-13T05:47:32.898928+00:00"
+              "updated_at_utc": "2026-10-13T06:00:28.514428+00:00"
             },
             "provider_requests_added": 0,
             "production_promotion_allowed": false
