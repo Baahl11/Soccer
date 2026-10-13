@@ -1,8 +1,6 @@
 # refresh after v4.32.7 dedicated HT research
 name: Soccer Edge History Analysis
 on:
-  schedule:
-    - cron: "0 8 * * *"
   push:
     branches: [main, soccer-edge-mcp-v1]
     paths: [".github/workflows/soccer-edge-history-analysis.yml", "mcp_gateway/*.py"]
