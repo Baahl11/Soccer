@@ -267,6 +267,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   <div class="nav-label">Trust</div>
   <nav class="nav">
     <button data-page="performance"><i>▦</i>Performance</button>
+    <button data-page="maturity"><i>◫</i>Maturity</button>
     <button data-page="myedge"><i>☆</i>My Edge</button>
     <button data-page="account"><i>○</i>Account</button>
   </nav>
@@ -319,6 +320,11 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     <div id="performanceBody" class="panel"><div class="empty"><b>Open this page to load verified evidence.</b>Research/OOS metrics are never presented as a customer BET ledger.</div></div>
   </section>
 
+  <section id="maturity" class="page">
+    <div class="page-head"><div><h1>Market Maturity</h1><div class="sub">Scientific evidence by market — OOS, priced observations and strict True CLV. Passing a research gate never authorizes a BET.</div></div><button id="refreshMaturity" class="secondary">Refresh evidence</button></div>
+    <div id="maturityBody" class="panel"><div class="empty"><b>Open Maturity to inspect the evidence.</b>Missing values remain NOT VERIFIED; no production promotion is implied.</div></div>
+  </section>
+
   <section id="myedge" class="page">
     <div class="page-head"><div><h1>My Edge</h1><div class="sub">Saved decisions and tracked matches, persisted to your authenticated account.</div></div><span class="decision">EDGE PRO</span></div>
     <div id="savedBody" class="panel"><div class="empty"><b>Open My Edge to load saved items.</b>Your saved product state is isolated from all model inputs.</div></div>
@@ -332,7 +338,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 </main>
 </div>
 <nav class="mobile-nav">
-  <button class="active" data-page="today">Today</button><button data-page="picks">Picks</button><button data-page="leans">Leans</button><button data-page="matches">Matches</button><button data-page="performance">Results</button><button data-page="myedge">My Edge</button><button data-page="account">Account</button>
+  <button class="active" data-page="today">Today</button><button data-page="picks">Picks</button><button data-page="leans">Leans</button><button data-page="matches">Matches</button><button data-page="performance">Results</button><button data-page="maturity">Maturity</button><button data-page="myedge">My Edge</button><button data-page="account">Account</button>
 </nav>
 
 <div id="authModal" class="modal" aria-hidden="true"><div class="modal-card">
@@ -636,7 +642,38 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     box.innerHTML=headline+trust+betFamilies+leanResearch+validationBlock+noteHtml
   }}catch(e){{box.innerHTML=empty('Performance unavailable',e.message)}}}}
 
-  function activate(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));window.scrollTo({{top:0,behavior:'smooth'}});if(id==='performance')loadPerformance();if(id==='myedge')loadMyEdge();if(id==='account')loadAccount()}}
+  let MATURITY_LOADED_AT=0;
+  const maturityValue=x=>x===null||x===undefined?'NOT VERIFIED':esc(x);
+  function maturitySegments(rows){{
+    if(!Array.isArray(rows)||!rows.length)return '<div class="reason">Market-level segment counts NOT VERIFIED.</div>';
+    return '<div class="table-wrap"><table><thead><tr><th>Market</th><th>Mapped</th><th>Priced</th><th>Strict True CLV</th></tr></thead><tbody>'+rows.map(s=>'<tr><td>'+esc(s.market_family||'NOT VERIFIED')+'</td><td>'+maturityValue(s.mapped_rows)+'</td><td>'+maturityValue(s.priced_rows)+'</td><td>'+maturityValue(s.true_clv_rows)+'</td></tr>').join('')+'</tbody></table></div>';
+  }}
+  function maturityFamilyRows(rows){{
+    if(!Array.isArray(rows)||!rows.length)return empty('Maturity unavailable','No source-verified market maturity families are available.');
+    return '<div class="detail-grid two">'+rows.map(r=>{{
+      const e=r.model_evidence||{{}},oos=(e.current===null||e.current===undefined)?'NOT VERIFIED':esc(e.current)+(e.target===null||e.target===undefined?'':' / '+esc(e.target))+' '+esc(e.unit||'OOS'),clv=maturityValue(r.true_clv_rows)+(r.true_clv_target===null||r.true_clv_target===undefined?'':' / '+esc(r.true_clv_target));
+      const blocker=(r.blockers||[]).length?(r.blockers||[]).map(x=>esc(x)).join(' · '):'No blocker listed in source; NOT production approval';
+      return '<div class="detail-card"><h3>'+esc(r.label||'NOT VERIFIED')+'</h3><p class="reason"><b>Research stage: </b>'+esc(r.stage||'NOT VERIFIED')+'</p>'+
+        '<div class="detail-list">'+detailKV('OOS / model sample',oos)+detailKV('Mapped rows',maturityValue(r.mapped_rows))+detailKV('Observed-price rows',maturityValue(r.priced_rows))+detailKV('Strict True CLV',clv)+detailKV('Unique CLV fixtures',maturityValue(r.true_clv_fixtures))+detailKV('Next gate',r.next_gate||'NOT VERIFIED')+detailKV('Blockers',blocker)+detailKV('Report generated',r.report_generated_at_utc||'NOT VERIFIED')+detailKV('Source artifact',r.source||'NOT VERIFIED')+'</div>'+
+        '<details><summary>Market breakdown · not independent fixtures</summary>'+maturitySegments(r.market_segments)+'</details>'+
+        '<div class="reason"><b>Production BET approval: NO</b> · Research-only evidence; market promotion requires independent review.</div></div>';
+    }}).join('')+'</div>';
+  }}
+  async function loadMaturity(force=false){{
+    if(!premium()){{ $('maturityBody').innerHTML=lock('Scientific maturity evidence',0);return}}
+    if(!force&&MATURITY_LOADED_AT&&Date.now()-MATURITY_LOADED_AT<300000)return;
+    const box=$('maturityBody');box.innerHTML=empty('Loading maturity','Reading persisted multi-gate market evidence…');
+    try{{
+      const d=await api('/maturity');
+      MATURITY_LOADED_AT=Date.now();
+      const sourceErrors=(d.source_errors||[]).length?'<div class="reason"><b>Unavailable source reports: </b>'+d.source_errors.map(x=>esc(x)).join(', ')+'</div>':'';
+      const policy='<div class="reason"><b>Research status: '+esc(d.status||'NOT VERIFIED')+'</b> · True CLV comparable rows: '+maturityValue(d.comparable_true_clv_rows)+' · OOS is not True CLV. Priced rows are not closing-line comparisons. A satisfied gate does not promote a market.</div>';
+      box.innerHTML=policy+sourceErrors+maturityFamilyRows(d.families||[])+
+        '<div class="detail-card"><h3>Scope and provenance</h3><div class="reason">'+esc(d.truth_note||'Missing evidence stays NOT VERIFIED')+'<br>Source model: '+esc(d.source_model_version||'NOT VERIFIED')+'<br>Scientific research metrics never enter the commercial BET performance headline or change production weights.</div></div>';
+    }}catch(e){{box.innerHTML=empty('Maturity unavailable',e.message)}}
+  }}
+  $('refreshMaturity').onclick=()=>loadMaturity(true);
+  function activate(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));window.scrollTo({{top:0,behavior:'smooth'}});if(id==='performance')loadPerformance();if(id==='maturity')loadMaturity();if(id==='myedge')loadMyEdge();if(id==='account')loadAccount()}}
   function openSection(id){{if(routeMatchId())history.pushState({{page:id}},'','/app');if(id==='matches')showMatchBrowse(true);$('matchDetail').classList.add('hidden');activate(id)}}
   document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>openSection(b.dataset.page));document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>openSection(b.dataset.go));
   window.addEventListener('popstate',()=>{{const fid=routeMatchId();if(fid)openMatch(fid,{{replace:true}});else{{showMatchBrowse(true);$('matchDetail').classList.add('hidden');activate('matches')}}}});
@@ -672,6 +709,7 @@ def contract() -> dict[str, Any]:
             "Leans",
             "Matches",
             "Performance",
+            "Maturity",
             "My Edge",
             "Account",
         ],
@@ -679,6 +717,7 @@ def contract() -> dict[str, Any]:
         "billing_mutations_enabled": False,
         "performance_headline_scope": "CANONICAL_BET_SETTLEMENT_ONLY",
         "research_oos_separate_from_realized_bets": True,
+        "maturity_read_only_source": "/app/api/v2/maturity",
         "my_edge_persistence": "SUPABASE_RLS_SUBSCRIBER_SAVED_ITEMS",
         "my_edge_model_input_allowed": False,
         "billing_surface": "GUARDED_STRIPE_HOSTED_CHECKOUT_CUSTOMER_PORTAL",

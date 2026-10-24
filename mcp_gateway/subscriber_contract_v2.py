@@ -16,6 +16,7 @@ from mcp_gateway import subscriber_preview_data_v231
 from mcp_gateway import subscriber_saved_items_v4
 from mcp_gateway import subscriber_ui_contract_v231
 from mcp_gateway import subscriber_validation_metrics_v231
+from mcp_gateway import subscriber_maturity_v232
 from mcp_gateway import subscription_entitlements_v4
 from mcp_gateway import supabase_auth_v4
 
@@ -1685,6 +1686,81 @@ def build_performance_contract(
     }
 
 
+def build_maturity_contract(evidence: dict[str, Any]) -> dict[str, Any]:
+    """Publish read-only science, not a betting decision or automatic promotion."""
+    families = []
+    for row in evidence.get("families") or []:
+        if not isinstance(row, dict):
+            continue
+        segments = []
+        for segment in row.get("market_segments") or []:
+            if isinstance(segment, dict):
+                segments.append({
+                    "market_family": segment.get("market_family"),
+                    "mapped_rows": segment.get("mapped_rows"),
+                    "priced_rows": segment.get("priced_rows"),
+                    "true_clv_rows": segment.get("true_clv_rows"),
+                    "production_promotion_allowed": False,
+                })
+        model = _dict(row.get("model_evidence"))
+        families.append({
+            "label": row.get("label"),
+            "stage": row.get("stage"),
+            "report_status": row.get("report_status"),
+            "report_generated_at_utc": row.get("report_generated_at_utc"),
+            "model_evidence": {
+                "current": model.get("current"),
+                "target": model.get("target"),
+                "unit": model.get("unit"),
+                "ready": model.get("ready"),
+            },
+            "mapped_rows": row.get("mapped_rows"),
+            "priced_rows": row.get("priced_rows"),
+            "modeled_signal_fixtures": row.get("modeled_signal_fixtures"),
+            "true_clv_rows": row.get("true_clv_rows"),
+            "true_clv_target": row.get("true_clv_target"),
+            "true_clv_fixtures": row.get("true_clv_fixtures"),
+            "market_segments": segments,
+            "next_gate": row.get("next_gate"),
+            "blockers": list(row.get("blockers") or []),
+            "source": row.get("source"),
+            "production_promotion_allowed": False,
+        })
+    return {
+        "schema_version": "2.1.0",
+        "model_version": MODEL_VERSION,
+        "status": evidence.get("status") or "NOT_VERIFIED",
+        "families": families,
+        "source_model_version": evidence.get("source_model_version"),
+        "comparable_true_clv_rows": evidence.get("comparable_true_clv_rows"),
+        "minimum_true_close_rows": evidence.get("minimum_true_close_rows"),
+        "source_errors": sorted(_dict(evidence.get("errors"))),
+        "truth_note": evidence.get("truth_note"),
+        "policy": {
+            "scientific_evidence_not_commercial_performance": True,
+            "oos_is_not_true_clv": True,
+            "price_evidence_is_not_true_clv": True,
+            "gate_met_is_not_production_approval": True,
+            "market_segment_counts_are_not_independent_fixtures": True,
+        },
+        "provider_requests_added": 0,
+        "canonical_bet_logic_changed": False,
+        "model_weights_changed": False,
+        "production_promotion_allowed": False,
+    }
+
+
+async def maturity(request: Request) -> JSONResponse:
+    entitlement, error = await _resolve_entitlement(request)
+    if error is not None:
+        return error
+    assert entitlement is not None
+    if not _access(entitlement)["premium_unlocked"]:
+        return _no_store({"error": "PRO_REQUIRED", "resource": "maturity"}, status_code=403)
+    evidence = await asyncio.to_thread(subscriber_maturity_v232.load_maturity_evidence)
+    return _no_store(build_maturity_contract(evidence))
+
+
 async def performance(request: Request) -> JSONResponse:
     entitlement, error = await _resolve_entitlement(request)
     if error is not None:
@@ -2423,7 +2499,7 @@ def contract() -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
-        "resources": ["today", "picks", "leans", "watches", "match", "performance", "my_edge", "account"],
+        "resources": ["today", "picks", "leans", "watches", "match", "performance", "maturity", "my_edge", "account"],
         "raw_sport_probability_is_distinct": True,
         "market_shrunk_probability_is_distinct": True,
         "calibrated_probability_is_distinct": True,

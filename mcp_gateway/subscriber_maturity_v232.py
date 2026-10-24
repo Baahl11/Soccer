@@ -249,6 +249,17 @@ def _build_family_rows(clv_report: dict[str, Any], reports: dict[str, dict[str, 
             "true_clv_rows": true_clv,
             "true_clv_target": target,
             "true_clv_fixtures": fixtures,
+            "market_segments": [
+                {
+                    "market_family": family,
+                    "mapped_rows": _integer(mapped_counts.get(family)),
+                    "priced_rows": _integer(priced_counts.get(family)),
+                    "true_clv_rows": _integer(clv_counts.get(family)) if clv_report else None,
+                    "promotion_allowed": False,
+                }
+                for family in keys
+            ],
+            "report_generated_at_utc": report.get("generated_at_utc"),
             "report_status": report.get("status"),
             "next_gate": _choose_next_gate(label, blockers),
             "blockers": blockers,

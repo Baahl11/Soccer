@@ -217,3 +217,18 @@ def test_fe2_sport_tab_matches_premium_visual_hierarchy():
     assert "Team sport profile" in html
     assert "from score matrix" in html
     assert "goal-dist-bars" in html
+
+
+
+def test_fe2_exposes_read_only_maturity_as_distinct_science_tab():
+    html = subscriber_frontend_v2.render()
+    contract = subscriber_frontend_v2.contract()
+    assert 'id="maturity" class="page"' in html
+    assert "api('/maturity')" in html
+    assert "Strict True CLV" in html
+    assert "OOS is not True CLV" in html
+    assert "Production BET approval: NO" in html
+    assert "Market breakdown · not independent fixtures" in html
+    assert contract["maturity_read_only_source"] == "/app/api/v2/maturity"
+    assert contract["frontend_creates_bet_or_lean"] is False
+    assert contract["production_promotion_allowed"] is False
