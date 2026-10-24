@@ -10,6 +10,7 @@ from starlette.responses import JSONResponse
 from mcp_gateway import persistence as persistence_base
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
+from mcp_gateway import subscriber_maturity_v232
 from mcp_gateway import subscriber_app_v4
 from mcp_gateway import subscriber_billing_v2
 from mcp_gateway import subscriber_preview_data_v231
@@ -1683,6 +1684,42 @@ def build_performance_contract(
         "model_weights_changed": False,
         "production_promotion_allowed": False,
     }
+
+
+
+def build_maturity_contract(source: dict[str, Any]) -> dict[str, Any]:
+    """Read-only research maturity; never asserts market production eligibility."""
+    rows = source.get("families")
+    families = [dict(row) for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "model_version": MODEL_VERSION,
+        "status": source.get("status") or "NOT_VERIFIED",
+        "evidence_scope": "RESEARCH_ONLY_NOT_PRODUCTION_ELIGIBILITY",
+        "families": families,
+        "comparable_true_clv_rows": source.get("comparable_true_clv_rows"),
+        "minimum_true_close_rows": source.get("minimum_true_close_rows"),
+        "source_model_version": source.get("source_model_version"),
+        "state_repo": source.get("state_repo"),
+        "state_branch": source.get("state_branch"),
+        "errors": source.get("errors") or {},
+        "truth_note": source.get("truth_note") or "Research maturation is multi-gate; a counter threshold is never BET approval.",
+        "provider_requests_added": 0,
+        "canonical_bet_logic_changed": False,
+        "model_weights_changed": False,
+        "production_promotion_allowed": False,
+    }
+
+
+async def maturity(request: Request) -> JSONResponse:
+    entitlement, error = await _resolve_entitlement(request)
+    if error is not None:
+        return error
+    assert entitlement is not None
+    if not _access(entitlement)["premium_unlocked"]:
+        return _no_store({"error": "PRO_REQUIRED", "resource": "maturity"}, status_code=403)
+    source = await asyncio.to_thread(subscriber_maturity_v232.load_maturity_evidence)
+    return _no_store(build_maturity_contract(source))
 
 
 async def performance(request: Request) -> JSONResponse:

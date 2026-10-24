@@ -1,0 +1,58 @@
+name: FE V2 Maturation Regression
+
+on:
+  push:
+    branches:
+      - feat/frontend-maturation-visibility-20261009
+    paths:
+      - mcp_gateway/subscriber_contract_v2.py
+      - mcp_gateway/subscriber_frontend_v2.py
+      - mcp_gateway/__init__.py
+      - tests/test_subscriber_maturity_v2.py
+      - .github/workflows/fe-v2-maturation-regression.yml
+  pull_request:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - mcp_gateway/subscriber_contract_v2.py
+      - mcp_gateway/subscriber_frontend_v2.py
+      - mcp_gateway/__init__.py
+      - tests/test_subscriber_maturity_v2.py
+      - .github/workflows/fe-v2-maturation-regression.yml
+
+permissions:
+  contents: read
+
+jobs:
+  maturation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile updated modules
+        run: |
+          python -m py_compile mcp_gateway/subscriber_contract_v2.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/__init__.py
+      - name: Check rendered customer JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          from mcp_gateway import subscriber_frontend_v2
+          html = subscriber_frontend_v2.render()
+          script = re.search(r'<script id="soccer-edge-v2-app">(.*?)</script>', html, re.DOTALL)
+          assert script, "Missing customer application JavaScript"
+          Path("/tmp/soccer-v2-app.js").write_text(script.group(1), encoding="utf-8")
+          PY
+          node --check /tmp/soccer-v2-app.js
+      - name: Run maturity/contract regression tests
+        run: |
+          PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_subscriber_maturity_v2.py \
+            tests/test_subscriber_frontend_v2.py
