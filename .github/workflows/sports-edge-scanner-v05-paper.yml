@@ -1,0 +1,108 @@
+name: SPORTS EDGE SCANNER v0.5 - Soccer paper research
+
+on:
+  pull_request:
+    paths:
+      - 'tools/sports_edge_scanner_v05/**'
+      - '.github/workflows/sports-edge-scanner-v05-paper.yml'
+  workflow_dispatch:
+    inputs:
+      match_date:
+        description: 'Fecha YYYY-MM-DD (CDMX); dejar vacío para hoy'
+        required: false
+        type: string
+      league_ids:
+        description: 'IDs de ligas elegibles aprobadas, separados por comas (ejemplo 18,17)'
+        required: true
+        type: string
+      reference_odds_limit:
+        description: 'Cuántos candidatos observar: 0-25 (solo WATCH)'
+        required: false
+        default: '0'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sports-edge-scanner-paper-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    name: Unit tests - offline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: tools/sports_edge_scanner_v05
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify 56 offline guardrail tests
+        run: python -m unittest discover -s tests -q
+
+  paper-research:
+    name: Research only - manual, no bets
+    if: github.event_name == 'workflow_dispatch'
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: tools/sports_edge_scanner_v05
+    env:
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      API_FOOTBALL_RESEARCH_DAILY_CAP: '300'
+      API_FOOTBALL_RESEARCH_MONTHLY_CAP: '9300'
+      API_FOOTBALL_QUOTA_FILE: data/quota_api_football_paper.json
+      API_FOOTBALL_CACHE_DIR: data/api_football_paper_cache
+      MATCH_DATE: ${{ inputs.match_date }}
+      LEAGUE_IDS: ${{ inputs.league_ids }}
+      ODDS_LIMIT: ${{ inputs.reference_odds_limit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate secrets and user inputs without printing credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${API_FOOTBALL_KEY:-}" ]; then
+            echo '::error::Falta configurar Actions secret API_FOOTBALL_KEY. No se consultó al proveedor.'
+            exit 2
+          fi
+          if ! [[ "$LEAGUE_IDS" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+            echo '::error::Ligas inválidas. Usa IDs numéricos separados por comas.'
+            exit 2
+          fi
+          if [ -n "$MATCH_DATE" ] && ! [[ "$MATCH_DATE" =~ ^20[0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo '::error::La fecha debe tener el formato YYYY-MM-DD.'
+            exit 2
+          fi
+          if ! [[ "$ODDS_LIMIT" =~ ^([0-9]|1[0-9]|2[0-5])$ ]]; then
+            echo '::error::El límite de momios debe estar entre 0 y 25.'
+            exit 2
+          fi
+      - name: Audit full slate and research all configured eligible games
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$MATCH_DATE" ]; then
+            MATCH_DATE=$(python -c 'from datetime import datetime;from zoneinfo import ZoneInfo;print(datetime.now(ZoneInfo("America/Mexico_City")).date().isoformat())')
+          fi
+          python -m sports_edge pro-soccer-daily \
+            --date "$MATCH_DATE" --leagues "$LEAGUE_IDS" \
+            --odds-limit "$ODDS_LIMIT" --output-dir "run_data/$MATCH_DATE"
+          echo "Reporte en el artefacto soccer-paper-research-${MATCH_DATE}" >> "$GITHUB_STEP_SUMMARY"
+      - name: Save research reports for 7 days
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-paper-research
+          path: tools/sports_edge_scanner_v05/run_data/
+          if-no-files-found: warn
+          retention-days: 7
