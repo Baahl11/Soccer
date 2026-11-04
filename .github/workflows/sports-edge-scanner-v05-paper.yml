@@ -5,6 +5,10 @@ on:
     paths:
       - 'tools/sports_edge_scanner_v05/**'
       - '.github/workflows/sports-edge-scanner-v05-paper.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/sports_edge_scanner_v05/run_requests/once.json'
   workflow_dispatch:
     inputs:
       match_date:
@@ -45,8 +49,8 @@ jobs:
         run: python -m unittest discover -s tests -q
 
   paper-research:
-    name: Research only - manual, no bets
-    if: github.event_name == 'workflow_dispatch'
+    name: Research only - manual or one-shot, no bets
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     needs: tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -67,6 +71,29 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Load one-shot request on push
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          record = json.loads(Path("run_requests/once.json").read_text(encoding="utf-8"))
+          date = str(record.get("match_date", ""))
+          leagues = str(record.get("league_ids", ""))
+          odds = str(record.get("reference_odds_limit", 0))
+          if not re.fullmatch(r"20\\d{2}-\\d{2}-\\d{2}", date):
+              raise SystemExit("Invalid one-shot date")
+          if not re.fullmatch(r"\\d+(,\\d+)*", leagues) or len(leagues.split(",")) > 14:
+              raise SystemExit("Invalid league IDs or excessive league count")
+          if not odds.isdigit() or not 0 <= int(odds) <= 8:
+              raise SystemExit("Unsafe one-shot odds limit")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+              for name, value in (("MATCH_DATE", date), ("LEAGUE_IDS", leagues), ("ODDS_LIMIT", odds)):
+                  output.write(f"{name}={value}\\n")
+          print("Validated one-shot research request; key not displayed")
+          PY
       - name: Validate secrets and user inputs without printing credentials
         shell: bash
         run: |
