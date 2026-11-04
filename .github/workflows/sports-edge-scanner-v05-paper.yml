@@ -128,7 +128,37 @@ jobs:
           python -m sports_edge pro-soccer-daily \
             --date "$MATCH_DATE" --leagues "$LEAGUE_IDS" \
             --odds-limit "$ODDS_LIMIT" --output-dir "run_data/$MATCH_DATE"
-          echo "Reporte en el artefacto soccer-paper-research-${MATCH_DATE}" >> "$GITHUB_STEP_SUMMARY"
+          export MATCH_DATE
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          date = os.environ["MATCH_DATE"]
+          folder = Path("run_data") / date
+          summary = json.loads((folder / f"daily_summary_{date}.json").read_text(encoding="utf-8"))
+          screen_file = folder / f"sport_first_{date}.json"
+          screen = json.loads(screen_file.read_text(encoding="utf-8")) if screen_file.exists() else {}
+          names = {row["fixture_id"]: row.get("match", str(row["fixture_id"]))
+                   for row in screen.get("screened_fixtures", [])}
+          lines = [
+              f"# SPORTS EDGE SCANNER — {date}",
+              f"**Estado:** {summary.get('status', 'NOT_VERIFIED')}",
+              f"**Calendario completo:** {summary.get('source_slate_complete_verified', False)}",
+              f"**Partidos elegibles:** {summary.get('eligible_games', 0)}",
+              f"**Partidos examinados:** {summary.get('sports_screened', 0)}",
+              f"**Momios de referencia capturados:** {summary.get('odds_snapshots_captured', 0)}",
+              "**Apuestas realizadas:** 0",
+              "**Clasificación:** WATCH — no hay probabilidades deportivas calibradas ni precios Caliente/Playdoit verificados.",
+              "",
+              "## Prioridad preliminar (no picks)",
+          ]
+          for category, field in (("Dominio", "preliminary_side_shortlist"),
+                                  ("Goles", "preliminary_goals_shortlist")):
+              ids = summary.get(field, [])[:5]
+              lines.append(f"**{category}:** " + (", ".join(names.get(i, str(i)) for i in ids) if ids else "sin candidatos verificados"))
+          lines.extend(["", "**Datos completos:** descarga el artefacto soccer-paper-research de esta ejecución."])
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
+              output.write("\n\n".join(lines) + "\n")
+          PY
       - name: Save research reports for 7 days
         if: always()
         uses: actions/upload-artifact@v4
