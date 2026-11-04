@@ -83,15 +83,15 @@ jobs:
           date = str(record.get("match_date", ""))
           leagues = str(record.get("league_ids", ""))
           odds = str(record.get("reference_odds_limit", 0))
-          if not re.fullmatch(r"20\\d{2}-\\d{2}-\\d{2}", date):
+          if not re.fullmatch(r"20\d{2}-\d{2}-\d{2}", date):
               raise SystemExit("Invalid one-shot date")
-          if not re.fullmatch(r"\\d+(,\\d+)*", leagues) or len(leagues.split(",")) > 14:
+          if not re.fullmatch(r"\d+(,\d+)*", leagues) or len(leagues.split(",")) > 14:
               raise SystemExit("Invalid league IDs or excessive league count")
           if not odds.isdigit() or not 0 <= int(odds) <= 8:
               raise SystemExit("Unsafe one-shot odds limit")
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
               for name, value in (("MATCH_DATE", date), ("LEAGUE_IDS", leagues), ("ODDS_LIMIT", odds)):
-                  output.write(f"{name}={value}\\n")
+                  output.write(f"{name}={value}\n")
           print("Validated one-shot research request; key not displayed")
           PY
       - name: Validate secrets and user inputs without printing credentials
