@@ -135,3 +135,7 @@ Configuración del flujo de GitHub Actions:
 - `SOCCER_MARKET_EVIDENCE_DIR=<ruta de reportes originales de la rama soccer-edge-state>`
 
 Las cuotas Caliente y Playdoit por selección y línea siguen siendo datos externos que deben verificarse con fuente, precio y momento de publicación. **Aún no hay EV ni recomendaciones BET.**
+
+### v0.7.1 — mitades históricas sin extrapolación
+
+Si API-Football entrega un marcador válido al descanso en un partido terminado anterior al encuentro objetivo, `history.py` conserva los goles de primera mitad y obtiene los de la segunda por diferencia con el marcador final. El expediente avanzado incluye los promedios observados por equipo y el tamaño de muestra. Datos ausentes, contradictorios o posteriores al inicio objetivo permanecen N/V. Estos promedios **NO** se convierten automáticamente en líneas o probabilidades 1H/2H.

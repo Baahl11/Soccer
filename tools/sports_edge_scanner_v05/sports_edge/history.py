@@ -46,6 +46,12 @@ def normalize_finished_history(payload: dict[str, Any], *, team_id: int,
         gh, ga = goals.get('home'), goals.get('away')
         if not all(isinstance(v, int) and 0 <= v <= 30 for v in (gh, ga)):
             continue
+        scores = item.get('score') or {}
+        half = scores.get('halftime') or {}
+        half_h, half_a = half.get('home'), half.get('away')
+        first_half = {'home': half_h, 'away': half_a} if (isinstance(half_h,int) and isinstance(half_a,int)
+                    and 0 <= half_h <= gh and 0 <= half_a <= ga) else None
+        second_half = {'home': gh-half_h, 'away': ga-half_a} if first_half is not None else None
         ids.add(fid)
         found.append({
             'fixture_id': fid, 'kickoff': start.isoformat(), 'status': 'FT',
@@ -53,6 +59,7 @@ def normalize_finished_history(payload: dict[str, Any], *, team_id: int,
             'league_id': (item.get('league') or {}).get('id'),
             'league_name': (item.get('league') or {}).get('name'),
             'goals': {'home': gh, 'away': ga},
+            'first_half_goals': first_half, 'second_half_goals': second_half,
         })
     found.sort(key=lambda row: row['kickoff'], reverse=True)
     return found[:limit]

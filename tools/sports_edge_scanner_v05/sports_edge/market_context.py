@@ -113,7 +113,26 @@ def collect_historical_market_context(batch: dict[str, Any],
                              'league_id':game.get('league_id'),
                              'opponent_team_id':game.get('away_team_id') if game.get('home_team_id')==team_id else game.get('home_team_id'),
                              'stats':observations,'verified_historical_formation':formation})
+            half_games = past
+            period_descriptive = {}
+            for period in ('first_half_goals', 'second_half_goals'):
+                gf, ga = [], []
+                for game in half_games:
+                    period_score = game.get(period)
+                    if not isinstance(period_score,dict):
+                        continue
+                    local = game.get('home_team_id') == team_id
+                    scored = period_score.get('home' if local else 'away')
+                    conceded = period_score.get('away' if local else 'home')
+                    if isinstance(scored,int) and isinstance(conceded,int) and scored>=0 and conceded>=0:
+                        gf.append(scored);ga.append(conceded)
+                period_descriptive[period] = {
+                    'sample_count':len(gf),
+                    'scored_average':round(statistics.mean(gf),3) if gf else None,
+                    'conceded_average':round(statistics.mean(ga),3) if ga else None,
+                }
             sides[label] = {
+                'period_descriptive':period_descriptive,
                 'team_id':team_id, 'matches_examined':len(rows),
                 'past_formation_samples':sum(bool(x['verified_historical_formation']) for x in rows),
                 'observed_averages':{k:_mean(rows,k) for k in STAT_KEYS.values()},

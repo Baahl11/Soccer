@@ -110,3 +110,19 @@ class BoardMarkets(unittest.TestCase):
         self.assertIn('NOT VERIFIED',html)
 
 if __name__=='__main__':unittest.main()
+
+class PeriodScoreHistory(unittest.TestCase):
+    def test_halftime_split_is_historical_and_not_fabricated(self):
+        from sports_edge.history import normalize_finished_history
+        game=fx(15,'2026-11-03T14:00:00+00:00',hg=2,ag=1)
+        game['score']={'halftime':{'home':1,'away':0}}
+        r=normalize_finished_history({'response':[game]},team_id=11,target_fixture=TARGET)
+        self.assertEqual(r[0]['first_half_goals'],{'home':1,'away':0})
+        self.assertEqual(r[0]['second_half_goals'],{'home':1,'away':1})
+    def test_unavailable_or_contradictory_half_scores_remain_missing(self):
+        from sports_edge.history import normalize_finished_history
+        game=fx(15,'2026-11-03T14:00:00+00:00',hg=2,ag=1)
+        game['score']={'halftime':{'home':3,'away':0}}
+        r=normalize_finished_history({'response':[game]},team_id=11,target_fixture=TARGET)
+        self.assertIsNone(r[0]['first_half_goals'])
+        self.assertIsNone(r[0]['second_half_goals'])

@@ -63,6 +63,16 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
                 def field(y):
                     return 'N/V' if y.get('average') is None else f"{_text(y['average'])} (n={_text(y.get('sample_count'))})"
                 advanced_rows += f'<tr><td>{label}</td><td>{field(h)}</td><td>{field(a)}</td></tr>'
+        period_html = ''
+        if context:
+            for key, label in (('first_half_goals','Primera mitad: goles anotados'),
+                               ('second_half_goals','Segunda mitad: goles anotados')):
+                h=(context.get('home') or {}).get('period_descriptive',{}).get(key,{})
+                a=(context.get('away') or {}).get('period_descriptive',{}).get(key,{})
+                def shown(z):
+                    return 'N/V' if z.get('scored_average') is None else f"{_text(z['scored_average'])} (n={_text(z.get('sample_count'))})"
+                period_html += f'<tr><td>{label}</td><td>{shown(h)}</td><td>{shown(a)}</td></tr>'
+        advanced_rows += period_html
         advanced_html = ('<h4>Historial de mercados — descriptivo, NO predicción</h4>'
                          '<table><thead><tr><th>Métrica</th><th>Local</th><th>Visitante</th></tr></thead>'
                          '<tbody>'+advanced_rows+'</tbody></table>'
