@@ -125,18 +125,25 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
         +' · menor diferencia RAW por pierna '
         +_text(p.get('minimum_raw_margin_pp_NOT_EV'))+' pp'
         +' · muestra mínima '+_text(p.get('minimum_venue_sample'))
+        +' · '+_text(p.get('research_sample_status'))
         +' · <b>WATCH · NO ES EV / NI RIESGO VALIDADO</b></li>'
         for p in market_matrix.get('sporting_screened_plus100_pairs',[])[:12]
     )
     matrix_html=('<h2>Bet365 · todos los mercados que el modelo deportivo puede comparar</h2>'
-      +'<p>Cotizaciones Bet365 normalizadas: '
+      +'<p>Partidos con cuota Bet365 descargada: '
+      +_text(market_matrix.get('bookmaker_snapshots_fetched',0))
+      +' · con cuotas recientes compatibles: '
+      +_text(market_matrix.get('fresh_quoted_fixtures',0))
+      +'. Cotizaciones Bet365 normalizadas: '
       +_text(market_matrix.get('total_normalized_quotes',0))
       +' · mercados respaldados por probabilidad RAW: '
       +_text(market_matrix.get('exact_or_poisson_derived_raw_quotes',0))
       +' · cotizaciones con referencia sin vigorish: '
       +_text(market_matrix.get('two_way_or_three_way_novig_quotes',0))
-      +' · combinadas +100 con dos piernas RAW superiores a su breakeven: '
+      +' · duplas +100 distintas con dos piernas RAW superiores a breakeven: '
       +_text(market_matrix.get('sporting_screened_plus100_pairs_found',0))
+      +' · con al menos 5 partidos en cada muestra local/visitante: '
+      +_text(market_matrix.get('sporting_screened_plus100_pairs_min_sample_5',0))
       +'. <b>Estas comparaciones no prueban ventaja ni seguridad.</b></p>'
       +'<h3>Mercados con proyección deportiva RAW</h3>'
       +('<div style="overflow-x:auto"><table class="market-table"><thead><tr>'
