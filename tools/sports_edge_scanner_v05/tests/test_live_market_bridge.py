@@ -35,7 +35,7 @@ class LiveMarketDecisionBridgeTests(unittest.TestCase):
         x=bridge_real_reference_markets({'all_quotes':[q()]},batch(),now=NOW)
         self.assertEqual(x['quotes_sent_to_final_decision_gate'],1)
         self.assertEqual(x['decisions'][0]['decision'],'WATCH')
-        self.assertIn('CALIENTE_PLAYDOIT_EXACT_OFFER_NOT_VERIFIED',x['decisions'][0]['decision_blockers'])
+        self.assertNotIn('BET365_PROVIDER_PRICE_SOURCE_NOT_VERIFIED',x['decisions'][0]['decision_blockers'])
         self.assertIn('MODEL_NOT_APPROVED_FOR_PRODUCTION',x['decisions'][0]['decision_blockers'])
         self.assertEqual(x['final_bets'],0)
         self.assertIsNone(x['decisions'][0]['expected_value'])

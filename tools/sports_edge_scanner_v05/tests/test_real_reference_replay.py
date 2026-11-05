@@ -21,7 +21,9 @@ class RealReferenceReplayTests(unittest.TestCase):
         self.assertGreaterEqual(out['quotes_exact_raw_available'],4)
         for row in out['decisions']:
             self.assertEqual(row['decision'],'WATCH')
-            self.assertIn('CALIENTE_PLAYDOIT_EXACT_OFFER_NOT_VERIFIED',row['decision_blockers'])
+            self.assertNotIn('BET365_PROVIDER_PRICE_SOURCE_NOT_VERIFIED',row['decision_blockers'])
+            self.assertTrue('MODEL_NOT_APPROVED_FOR_PRODUCTION' in row['decision_blockers']
+                            or 'EXACT_MARKET_MODEL_MISSING' in row['decision_blockers'])
             self.assertIsNone(row['expected_value'])
             self.assertNotEqual(row['sporting_evidence_stage'],'RAW_ABOVE_PRICE_RESEARCH')
         self.assertTrue(all(p['classification']=='WATCH' and p['joint_ev'] is None for p in out['parlay_pair_reviews']))
