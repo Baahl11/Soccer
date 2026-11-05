@@ -109,3 +109,24 @@ class MarketMatrixTest(TestCase):
                 p.write_text(json.dumps(data))
             result=examine_bet365_market_matrix(snaps,fx,{'families':[]},now=NOW)
         self.assertEqual(result['two_way_or_three_way_novig_quotes'],0)
+
+    def test_equivalent_goal_line_aliases_are_not_separate_parlays(self):
+        with TemporaryDirectory() as d:
+            snaps,fx=self.sample_inputs(Path(d))
+            # Same exact 90m settlement (home fixture 1, Under 4.5).
+            p=Path(snaps[0]['file'])
+            data=json.loads(p.read_text())
+            data['quotes']=[
+                q(1,'A vs B','Goals Over/Under','Under','4.5',1.42),
+                q(1,'A vs B','Goal Line','Under','4.5',1.44),
+            ]
+            p.write_text(json.dumps(data))
+            p2=Path(snaps[1]['file'])
+            data2=json.loads(p2.read_text())
+            data2['quotes']=[q(2,'C vs D','Both Teams to Score','Yes','',1.40)]
+            p2.write_text(json.dumps(data2))
+            result=examine_bet365_market_matrix(snaps,fx,{'families':[]},now=NOW)
+        self.assertEqual(result['fresh_quoted_fixtures'],2)
+        self.assertEqual(result['same_outcome_alias_quotes_collapsed'],1)
+        self.assertEqual(result['sporting_screened_plus100_pairs_found'],1)
+        self.assertEqual(result['sporting_screened_plus100_pairs'][0]['minimum_venue_sample'],5)
