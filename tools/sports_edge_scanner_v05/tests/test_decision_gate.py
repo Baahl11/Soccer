@@ -122,7 +122,7 @@ class DecisionGateTests(unittest.TestCase):
         b=evaluate_verified_leg(self.b,self.mb,now=NOW)
         r=evaluate_verified_parlay(a,b,ticket(self.a,self.b),independent(self.a,self.b,p=.9),now=NOW)
         self.assertEqual(r['status'],'WATCH')
-        self.assertIn('JOINT_DEPENDENCE_AND_LOWER_BOUND_NOT_VERIFIED',r['blockers'])
+        self.assertIn('JOINT_OOS_EVIDENCE_INVALID',r['blockers'])
 
     def test_model_not_opponent_independent(self):
         m={**self.ma,'raw_sport_built_without_market_input':False}
