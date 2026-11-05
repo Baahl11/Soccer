@@ -165,7 +165,7 @@ jobs:
                                   ("Goles", "preliminary_goals_shortlist")):
               ids = summary.get(field, [])[:5]
               lines.append(f"**{category}:** " + (", ".join(names.get(i, str(i)) for i in ids) if ids else "sin candidatos verificados"))
-          lines.extend(["", "**Datos completos:** descarga el artefacto soccer-paper-research de esta ejecución y abre `board_{date}.html`."])
+          lines.extend(["", f"**Datos completos:** descarga el artefacto soccer-paper-research de esta ejecución y abre `board_{date}.html`."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
               output.write("\n\n".join(lines) + "\n")
           PY
