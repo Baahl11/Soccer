@@ -62,14 +62,24 @@ def api_football_fixtures(day:str, timezone_name:str='America/Mexico_City'):
     # Include original rows; the CLI saves both direct source and independent audit.
     return {'provider_payload':data, 'coverage_audit':coverage}
 
-def api_football_odds(fixture_id:int):
+def api_football_odds(fixture_id:int, bookmaker_id:int|None=None):
+    """Fetch prematch odds, optionally restricted to one API-Football bookmaker ID.
+
+    Bookmaker IDs come from the verified /odds/bookmakers directory. This is a
+    REFERENCE source, not proof that the quote can be placed in Mexico.
+    """
+    if bookmaker_id is not None and (not isinstance(bookmaker_id,int) or isinstance(bookmaker_id,bool) or bookmaker_id<=0):
+        raise ValueError('Invalid bookmaker ID')
     key=os.environ.get('API_FOOTBALL_KEY','')
     if not key:raise ProviderFailure('API_FOOTBALL_KEY not configured; cannot call direct odds API')
     allrows=[];page=1
     while True:
         _reserve_api_football_research()  # each response page costs a request
+        params={'fixture':fixture_id,'page':page}
+        if bookmaker_id is not None:
+            params['bookmaker']=bookmaker_id
         data=get_json('https://v3.football.api-sports.io/odds',
-                      {'fixture':fixture_id,'page':page},key,header='x-apisports-key',retries=0)
+                      params,key,header='x-apisports-key',retries=0)
         if data.get('errors'):raise ProviderFailure(f'Provider errors: {data["errors"]}')
         allrows.extend(data.get('response',[]))
         if page>=int(data.get('paging',{}).get('total',1)):break
