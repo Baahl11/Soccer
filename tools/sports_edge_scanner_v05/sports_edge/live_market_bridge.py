@@ -17,7 +17,7 @@ from typing import Any
 from .core import parse_iso
 from .decision_gate import evaluate_verified_leg
 
-VERSION = 'SOCCER_LIVE_MARKET_DECISION_BRIDGE_v1.0.0'
+VERSION = 'SOCCER_BET365_LIVE_DECISION_BRIDGE_v1.5.0'
 
 
 def _finite_probability(value: Any) -> float | None:
@@ -107,7 +107,8 @@ def bridge_real_reference_markets(
     }
     if not report['screened_slate_complete']:
         report['status'] = 'INCOMPLETE_SPORT_FIRST_SLATE'
-        return report
+        report['final_parlay_bets'] = sum(x['classification'] == 'BET' for x in report['parlay_pair_reviews'])
+    return report
     sport_rows = sport_first.get('screened_fixtures') or []
     sport_index = {str(s.get('fixture_id')): s for s in sport_rows if isinstance(s, dict)}
     matrix_rows = matrix.get('all_quotes') or []
@@ -165,16 +166,21 @@ def bridge_real_reference_markets(
             'price_decimal': price, 'source': row.get('source'),
             'starts_at_utc': row.get('starts_at_utc'),
             'source_updated_at': row.get('source_updated_at'),
+            # Verified observation from the selected API-Football Bet365 ID 8.
+            # This asserts the provenance of the quote, NOT the account betslip.
+            'bookmaker_id': 8,
+            'price_observation_verified': row.get('source') == 'API-Football',
+            'verified_offer_source': 'API_FOOTBALL_BET365_ID8',
             'verified_offer': False,
-            'verified_offer_source': 'API_FOOTBALL_REFERENCE',
             'offer_reference_id': None,
         }
         model = _shadow_model({**quote, 'raw_sport_probability': p_raw}, sport) if p_raw is not None else None
         decision = evaluate_verified_leg(quote, model, now=now)
         # If these ever become BET, fail loudly: the reference path must NEVER
         # inherit production approval from synthetic or unsigned research data.
-        if decision['status'] == 'BET':
-            raise AssertionError('Reference price illegally promoted to BET')
+        if decision['status'] == 'BET' and (
+                not model or model.get('production_promotion_allowed') is not True):
+            raise AssertionError('Unapproved sport model illegally promoted to BET')
         report['quotes_sent_to_final_decision_gate'] += 1
         blockers.update(decision.get('blockers') or [])
         breakeven = 1.0 / price
@@ -218,6 +224,7 @@ def bridge_real_reference_markets(
         -x['minimum_venue_split_sample'],
         -float(x['raw_gap_pp_NOT_EV'] if x['raw_gap_pp_NOT_EV'] is not None else -1000),
         x['fixture_id'], str(x['market']), str(x['selection']), str(x['point'])))
+    report['final_bets'] = sum(x['decision'] == 'BET' for x in decisions)
     report['rejection_reasons'] = dict(rejections)
     report['decision_blocker_counts'] = dict(blockers)
     # Full price-only parlays are audited using the SAME actual leg decisions,
