@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v1.0 - Real decision engine / parlay +100
+name: SPORTS EDGE SCANNER v1.1 - Canonical sources & bookmaker coverage
 
 on:
   pull_request:
@@ -66,6 +66,8 @@ jobs:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
       SOCCER_TRUSTED_DECISION_INPUT: ${{ vars.SOCCER_TRUSTED_DECISION_INPUT }}
       SOCCER_DECISION_FEED_HMAC_KEY: ${{ secrets.SOCCER_DECISION_FEED_HMAC_KEY }}
+      SOCCER_CANONICAL_STATE_PATH: ${{ github.workspace }}/market_evidence/soccer_edge_state/latest.json
+      SOCCER_BOOKMAKER_DIRECTORY_ENABLED: '1'
       SOCCER_ENGINE_SOURCE_DIR: ${{ github.workspace }}/engine
       SOCCER_ENGINE_COMMIT_SHA: '108c193c50e59f12f19f8693fc05c5cc9c607db4'
       SOCCER_ENABLE_RECENT_HISTORY: '1'
@@ -95,6 +97,7 @@ jobs:
           path: market_evidence
           persist-credentials: false
           sparse-checkout: |
+            soccer_edge_state/latest.json
             soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
             soccer_edge_state/analysis/v4_017_1x2_calibration_validation.json
             soccer_edge_state/analysis/v4_018_btts_calibration_validation.json
@@ -185,6 +188,9 @@ jobs:
               f"**Análisis profundos históricos (córners, faltas, XI anteriores):** {summary.get('historical_market_deep_dives', 0)}",
               f"**Familias de mercados auditadas:** {summary.get('market_families_audited', 0)}",
               f"**Estado del pipeline canónico:** {summary.get('canonical_market_status', 'NOT_VERIFIED')}",
+              f"**Modelo canónico real (mismo fixture/mercado):** {summary.get('canonical_state_matches', 0)}",
+              f"**Calibración experimental correctamente atribuida:** {summary.get('canonical_selection_research_models', 0)}",
+              f"**Directorío casas API-Football:** {summary.get('bookmaker_catalogue_status', 'NOT_VERIFIED')}",
               f"**Momios de referencia capturados:** {summary.get('odds_snapshots_captured', 0)}",
               f"**Duplas WATCH cerca de +100:** {summary.get('parlay_price_pairs_watch', 0)}",
               f"**BET individuales calculados:** {summary.get('actionable_bets', 0)}",
