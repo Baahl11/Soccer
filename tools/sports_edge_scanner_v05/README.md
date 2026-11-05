@@ -1,6 +1,6 @@
 # SPORTS EDGE SCANNER v0.5 — Pro full-slate research + pregame refresh
 
-**Estado:** Código construido y probado localmente el **4-nov-2026**; **NO desplegado, NO ejecutándose permanentemente, NO realizando apuestas**. Los datos Pro estaban disponibles mediante la conexión Soccer Edge API en esta conversación; el acceso HTTP directo requiere `API_FOOTBALL_KEY` configurada como secreto del ejecutor (no la compartas por chat). La renovación Pro mostró 7,500 consultas/día y datos de temporada 2026 en la prueba anterior, pero los saldos pueden variar.
+**Estado actual (5-nov-2026):** Integrado y funcionando en GitHub Actions (07:15 y 14:15 CDMX), con barridos reales de API-Football Pro. El motor canónico de Soccer volvió a actualizar PostgreSQL el 5-nov-2026. **NO ejecuta apuestas ni genera BET sin controles completos.** Los datos Pro estaban disponibles mediante la conexión Soccer Edge API en esta conversación; el acceso HTTP directo requiere `API_FOOTBALL_KEY` configurada como secreto del ejecutor (no la compartas por chat). La renovación Pro mostró 7,500 consultas/día y datos de temporada 2026 en la prueba anterior, pero los saldos pueden variar.
 
 ## Qué incorpora v0.5
 
@@ -10,7 +10,7 @@
 4. `pro-soccer-reference-odds`: consulta cuotas **únicamente después** de completar el screening deportivo de la jornada y guarda JSON de cada consulta con hora real de publicación; no inventa precio accionable de Caliente/Playdoit, ni modelos calibrados, ni EV.
 5. `pro-soccer-refresh`: T-90 / T-40 / T-20 para un candidato deportivo válido: revisa que siga sin comenzar, consulta XI de ambos equipos, verifica si el proveedor identifica porteros y observa registros de lesiones. Si no hay lesiones reportadas, eso **NO** confirma una plantilla sana. La validación independiente oficial sigue siendo necesaria.
 6. Plantilla de GitHub Actions **manual** en `.github/workflows/pro-soccer-research.yml`: corre solo si el código está en un repositorio GitHub y existe un secreto `API_FOOTBALL_KEY`. **No hay programación automática habilitada**. Incluye pruebas, auditoría y artefactos de investigación con vencimiento a 7 días.
-7. **56 pruebas locales offline**, sin consumir crédito API ni simular picks reales.
+7. **81 pruebas offline aprobadas en GitHub Actions**; los tests no consumen consultas API ni simulan apuestas reales.
 
 ## Un comando para una jornada
 
