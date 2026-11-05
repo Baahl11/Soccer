@@ -29,7 +29,8 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
                  parlay_radar: dict[str, Any] | None = None,
                  decision_report: dict[str, Any] | None = None,
                  canonical_research: dict[str, Any] | None = None,
-                 bookmaker_catalogue: dict[str, Any] | None = None) -> str:
+                 bookmaker_catalogue: dict[str, Any] | None = None,
+                 market_matrix: dict[str, Any] | None = None) -> str:
     """Render verified decision output; never manufacture prices or probabilities."""
     matches = batch.get('screened_fixtures') or []
     if not isinstance(matches, list):
@@ -100,6 +101,55 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
         <p class="note">{history_text}<br>Formaciones y estilo: {formation_text}. El estado del módulo es investigativo, no un ajuste automático de goles.</p>
         <table><thead><tr><th>Mercado</th><th>Probabilidad RAW (NO calibrada)</th></tr></thead><tbody>{line}</tbody></table>{advanced_html}
         <p class="note">No implica EV positivo. Alineaciones, disponibilidad, calibración OOS y precios de casa accionables: NOT VERIFIED. No BET.</p></div></details>''')
+    market_matrix = market_matrix or {}
+    matrix_market_rows = ''.join(
+        '<tr><td>'+_text(q.get('event_name'))+'</td>'
+        +'<td>'+_text(q.get('market'))+' '+_text(q.get('selection'))
+        +' '+_text(q.get('point'))+'</td>'
+        +'<td>'+_text(q.get('price_decimal'))+'</td>'
+        +'<td>'+_pct(q.get('raw_sport_probability'))+'</td>'
+        +'<td>'+_pct(q.get('breakeven_probability'))+'</td>'
+        +'<td>'+_text(q.get('raw_minus_breakeven_pp_NOT_EV'))+' pp</td>'
+        +'<td>'+_text(q.get('venue_sample_min'))+'</td>'
+        +'<td>'+_text(q.get('raw_probability_source'))+'</td></tr>'
+        for q in market_matrix.get('top_model_matched_markets',[])[:25]
+    )
+    matrix_pairs = ''.join(
+        '<li><b>'+_text(p.get('theoretical_combined_decimal'))+'</b> · '
+        +_text(p['legs'][0].get('event_name'))+' · '
+        +_text(p['legs'][0].get('market'))+' '+_text(p['legs'][0].get('selection'))+' '
+        +_text(p['legs'][0].get('point'))+' @ '+_text(p['legs'][0].get('price_decimal'))
+        +' + '+_text(p['legs'][1].get('event_name'))+' · '
+        +_text(p['legs'][1].get('market'))+' '+_text(p['legs'][1].get('selection'))+' '
+        +_text(p['legs'][1].get('point'))+' @ '+_text(p['legs'][1].get('price_decimal'))
+        +' · menor diferencia RAW por pierna '
+        +_text(p.get('minimum_raw_margin_pp_NOT_EV'))+' pp'
+        +' · muestra mínima '+_text(p.get('minimum_venue_sample'))
+        +' · <b>WATCH · NO ES EV / NI RIESGO VALIDADO</b></li>'
+        for p in market_matrix.get('sporting_screened_plus100_pairs',[])[:12]
+    )
+    matrix_html=('<h2>Bet365 · todos los mercados que el modelo deportivo puede comparar</h2>'
+      +'<p>Cotizaciones Bet365 normalizadas: '
+      +_text(market_matrix.get('total_normalized_quotes',0))
+      +' · mercados respaldados por probabilidad RAW: '
+      +_text(market_matrix.get('exact_or_poisson_derived_raw_quotes',0))
+      +' · cotizaciones con referencia sin vigorish: '
+      +_text(market_matrix.get('two_way_or_three_way_novig_quotes',0))
+      +' · combinadas +100 con dos piernas RAW superiores a su breakeven: '
+      +_text(market_matrix.get('sporting_screened_plus100_pairs_found',0))
+      +'. <b>Estas comparaciones no prueban ventaja ni seguridad.</b></p>'
+      +'<h3>Mercados con proyección deportiva RAW</h3>'
+      +('<div style="overflow-x:auto"><table class="market-table"><thead><tr>'
+      +'<th>Partido</th><th>Mercado</th><th>Bet365</th><th>RAW</th>'
+      +'<th>Breakeven</th><th>RAW–precio</th><th>Muestra</th><th>Origen</th>'
+      +'</tr></thead><tbody>'+matrix_market_rows+'</tbody></table></div>'
+      if matrix_market_rows else '<p>No hay cotizaciones Bet365 recientes con proyección exacta.</p>')
+      +'<h3>Parlays SPORT-FIRST para investigar (2 piernas)</h3>'
+      +('<ol>'+matrix_pairs+'</ol>' if matrix_pairs else
+        '<p>Ninguna dupla supera simultáneamente el filtro RAW preliminar y la cuota objetivo.</p>')
+      +'<p class="note">No se crea un modelo para mitades, córners, faltas ni tarjetas '
+      +'a partir del Poisson de goles completos. Sin OOS, disponibilidad, dependencia '
+      +'y ticket confirmado en México, todos siguen WATCH.</p>')
     canonical_research = canonical_research or {}
     bookmaker_catalogue = bookmaker_catalogue or {}
     canonical_rows_html = ''.join(
@@ -232,6 +282,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
 <div class="warning"><strong>ATENCIÓN:</strong> proyecciones Poisson limitadas y NO calibradas. <b>NO</b> extrapolar como recomendaciones. Para BET faltan ajuste histórico/OOS, XI y disponibilidad confirmados, y precios vigentes de la casa elegida.</div>
 {source_html}
 {decision_html}
+{matrix_html}
 {radar_html}
 {market_section}
 <h2>Partidos — perfiles y modelos RAW</h2>
@@ -246,9 +297,10 @@ def write_board(batch: dict[str, Any], summary: dict[str, Any], filename: str | 
                 parlay_radar: dict[str, Any] | None = None,
                 decision_report: dict[str, Any] | None = None,
                 canonical_research: dict[str, Any] | None = None,
-                bookmaker_catalogue: dict[str, Any] | None = None) -> None:
+                bookmaker_catalogue: dict[str, Any] | None = None,
+                market_matrix: dict[str, Any] | None = None) -> None:
     path=Path(filename)
     path.parent.mkdir(parents=True,exist_ok=True)
     tmp=path.with_suffix('.tmp')
-    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar,decision_report=decision_report,canonical_research=canonical_research,bookmaker_catalogue=bookmaker_catalogue),encoding='utf-8')
+    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar,decision_report=decision_report,canonical_research=canonical_research,bookmaker_catalogue=bookmaker_catalogue,market_matrix=market_matrix),encoding='utf-8')
     tmp.replace(path)
