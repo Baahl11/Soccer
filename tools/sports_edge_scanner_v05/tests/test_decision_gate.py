@@ -8,15 +8,16 @@ from sports_edge.decision_gate import (
 NOW = datetime(2026, 11, 5, 17, 0, tzinfo=timezone.utc)
 
 
-def offer(event='301', price=1.42, market='Goals Over/Under', selection='Over', point='2.5', book='Caliente'):
+def offer(event='301', price=1.42, market='Goals Over/Under', selection='Over', point='2.5', book='Bet365'):
     return {'sport':'soccer','event_id':event,'event_name':f'Fixture {event}',
             'starts_at_utc':(NOW+timedelta(hours=3)).isoformat(),
             'market':market,'selection':selection,'point':point,
             'bookmaker':book,'price_decimal':price,
             'source_updated_at':(NOW-timedelta(minutes=8)).isoformat(),
-            'source':'DIRECT_SPORTSBOOK_FEED',
-            'verified_offer_source':f'{book.upper()}_AUTHORIZED_FEED',
-            'verified_offer':True,'offer_reference_id':f'OFFER-{event}'}
+            'source':'API-Football','bookmaker_id':8,
+            'verified_offer_source':'API_FOOTBALL_BET365_ID8',
+            'price_observation_verified':True,'verified_offer':False,
+            'offer_reference_id':None}
 
 
 def model(q, p_raw=.89, p=.83, lower=.77):
@@ -37,9 +38,10 @@ def model(q, p_raw=.89, p=.83, lower=.77):
 
 def ticket(a, b, price=2.059):
     return {'leg_keys':[list(_identity(a)),list(_identity(b))],
-            'price_decimal':price,'bookmaker':'Caliente',
-            'verified_offer_source':'CALIENTE_AUTHORIZED_FEED',
-            'verified_offer':True,'ticket_reference_id':'TEST_TICKET_123',
+            'price_decimal':price,'bookmaker':'Bet365','bookmaker_id':8,
+            'verified_offer_source':'API_FOOTBALL_BET365_ID8',
+            'theoretical_from_two_quotes':True,'individual_quotes_verified':True,
+            'ticket_reference_id':None,
             'source_updated_at':(NOW-timedelta(minutes=3)).isoformat(),
             'portfolio_exposure_approved':True}
 
@@ -83,13 +85,16 @@ class DecisionGateTests(unittest.TestCase):
         self.assertIn('MODEL_NOT_APPROVED_FOR_PRODUCTION',r['blockers'])
         self.assertIsNone(r['conservative_ev'])
 
-    def test_api_football_book_reference_not_actionable(self):
-        q={**self.a,'bookmaker':'Bet365','verified_offer_source':'API_FOOTBALL',
-           'source':'API-Football', 'verified_offer':False}
-        m={**self.ma}
-        r=evaluate_verified_leg(q,m,now=NOW)
+    def test_bet365_id8_observation_is_eligible_source_when_model_verified(self):
+        r=evaluate_verified_leg(self.a,self.ma,now=NOW)
+        self.assertEqual(r['status'],'BET')
+        self.assertFalse(r['stake_units'])
+
+    def test_untrusted_bet365_source_cannot_pass(self):
+        q={**self.a,'bookmaker_id':999,'verified_offer_source':'UNTRUSTED'}
+        r=evaluate_verified_leg(q,self.ma,now=NOW)
         self.assertEqual(r['status'],'WATCH')
-        self.assertIn('CALIENTE_PLAYDOIT_EXACT_OFFER_NOT_VERIFIED',r['blockers'])
+        self.assertIn('BET365_PROVIDER_PRICE_SOURCE_NOT_VERIFIED',r['blockers'])
 
     def test_price_staleness_blocks_bet(self):
         q={**self.a,'source_updated_at':(NOW-timedelta(minutes=160)).isoformat()}
@@ -146,20 +151,30 @@ class DecisionGateTests(unittest.TestCase):
         b=evaluate_verified_leg(self.b,self.mb,now=NOW)
         r=evaluate_verified_parlay(a,b,None,independent(self.a,self.b),now=NOW)
         self.assertEqual(r['status'],'WATCH')
-        self.assertIn('EXACT_OFFERED_PARLAY_TICKET_NOT_VERIFIED',r['blockers'])
+        self.assertIn('BET365_TWO_QUOTE_PRICE_NOT_VERIFIED',r['blockers'])
 
-    def test_without_joint_oos_dependence_remains_watch(self):
+    def test_frechet_bound_rejects_insufficient_joint_margin(self):
         a=evaluate_verified_leg(self.a,self.ma,now=NOW)
         b=evaluate_verified_leg(self.b,self.mb,now=NOW)
         r=evaluate_verified_parlay(a,b,ticket(self.a,self.b),None,now=NOW)
-        self.assertEqual(r['status'],'WATCH')
-        self.assertIn('JOINT_DEPENDENCE_AND_LOWER_BOUND_NOT_VERIFIED',r['blockers'])
+        self.assertEqual(r['status'],'PASS')
+        self.assertEqual(r['joint_probability_method'],'FRECHET_ANY_DEPENDENCE')
 
     def test_joint_lower_insufficient_becomes_pass(self):
         a=evaluate_verified_leg(self.a,self.ma,now=NOW)
         b=evaluate_verified_leg(self.b,self.mb,now=NOW)
         r=evaluate_verified_parlay(a,b,ticket(self.a,self.b),independent(self.a,self.b,p=.48),now=NOW)
         self.assertEqual(r['status'],'PASS')
+
+    def test_frechet_bound_approves_two_validated_strong_marginals(self):
+        a=evaluate_verified_leg(self.a,model(self.a,lower=.82),now=NOW)
+        b=evaluate_verified_leg(self.b,model(self.b,lower=.82),now=NOW)
+        r=evaluate_verified_parlay(a,b,ticket(self.a,self.b),None,now=NOW)
+        self.assertEqual(r['status'],'BET')
+        self.assertEqual(r['joint_probability_method'],'FRECHET_ANY_DEPENDENCE')
+        self.assertGreater(r['conservative_joint_ev'],0)
+        self.assertTrue(r['theoretical_price_only'])
+        self.assertTrue(r['bet365_betslip_recheck_required'])
 
     def test_no_same_game_parlay(self):
         a=evaluate_verified_leg(self.a,self.ma,now=NOW)
