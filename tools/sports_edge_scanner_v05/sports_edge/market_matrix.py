@@ -158,9 +158,21 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
     top_markets=preliminary[:top_n]
     # Look for cross-match tickets near +100 where both legs at least pass RAW
     # breakeven sanity, rather than price proximity alone.
-    priced_legs=[x for x in diagnostics if x['raw_sport_probability'] is not None
-                 and (x['raw_minus_breakeven_pp_NOT_EV'] or 0)>0
-                 and 1.28<=x['price_decimal']<=1.55]
+    # Bet365 can label the identical FT total as "Goal Line" and
+    # "Goals Over/Under". Same event, family, outcome and half-integer
+    # threshold is ONE sporting proposition, never two independent legs.
+    candidates=[x for x in diagnostics if x['raw_sport_probability'] is not None
+                and (x['raw_minus_breakeven_pp_NOT_EV'] or 0)>0
+                and 1.28<=x['price_decimal']<=1.55]
+    unique_legs={}
+    for x in candidates:
+        k=(x['event_id'],x['family'],x['selection'].casefold(),x['point'])
+        prior=unique_legs.get(k)
+        # Only choose the more favorable same-book identical-SETTLEMENT
+        # reference line, without inventing an executable offered ticket.
+        if prior is None or x['price_decimal']>prior['price_decimal']:
+            unique_legs[k]=x
+    priced_legs=list(unique_legs.values())
     pairs=[]
     for a,b in combinations(priced_legs,2):
         if a['event_id']==b['event_id']:continue
@@ -178,6 +190,9 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
             'combined_breakeven':round(1/combined,6),
             'minimum_raw_margin_pp_NOT_EV':round(worst_gap,2),
             'minimum_venue_sample':min_sample,
+            'research_sample_status':('VERY_LOW_LEAGUE_VENUE_SAMPLE'
+                                      if min_sample<5 else
+                                      'SAMPLE_STILL_NOT_OOS_CERTIFIED'),
             'joint_probability':None,'joint_lower_probability':None,
             'joint_ev':None,'independence_verified':False,
             'mexico_offer_verified':False,
@@ -199,6 +214,8 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
             'scope':'PRICE_RESEARCH_ONLY_NOT_BETTING',
             'bookmaker':'Bet365','total_normalized_quotes':len(raw_quotes),
             'fresh_supported_market_quotes':len(accepted),
+            'fresh_quoted_fixtures':len({x['event_id'] for x in accepted}),
+            'bookmaker_snapshots_fetched':len(snapshots),
             'reject_reason_counts':dict(reject),
             'snapshot_read_failures':failed,
             'exact_or_poisson_derived_raw_quotes':modeled,
@@ -208,6 +225,9 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
             'top_model_matched_markets':top_markets,
             'sporting_screened_plus100_pairs_found':len(pairs),
             'sporting_screened_plus100_pairs':diverse,
+            'sporting_screened_plus100_pairs_min_sample_5':sum(
+                p['minimum_venue_sample']>=5 for p in pairs),
+            'same_outcome_alias_quotes_collapsed':len(candidates)-len(priced_legs),
             'actionable_bets':0,'actionable_parlays':0,
             'caveats':['No model weights changed or fitted to bookmaker lines.',
                 'Raw probability vs breakeven is NOT EV; quote may be stale outside the window.',
