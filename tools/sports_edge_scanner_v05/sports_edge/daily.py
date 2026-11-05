@@ -235,6 +235,16 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
                         {r['fixture_id'] for r in batch['screened_fixtures']}))
     _write_json(target / f'market_registry_{date}.json', market_registry)
     _write_json(target / f'canonical_market_views_{date}.json', canonical)
+    # Existing canonical GitHub state is read-only research, not a BET certificate.
+    from .canonical_state_bridge import load_canonical_research_file
+    research_state = load_canonical_research_file(
+        os.getenv('SOCCER_CANONICAL_STATE_PATH', target / 'missing_canonical.json'), slate)
+    _write_json(target / f'canonical_research_compared_{date}.json', research_state)
+    from .bookmaker_catalogue import fetch_bookmaker_directory
+    bookmaker_directory = ({'status':'NOT_ENABLED','actionable_offers':0}
+        if os.getenv('SOCCER_BOOKMAKER_DIRECTORY_ENABLED','0') != '1'
+        else fetch_bookmaker_directory(api_pro_get))
+    _write_json(target / f'bookmaker_coverage_{date}.json', bookmaker_directory)
     # Dynamic BET/LEAN/WATCH/PASS path. No research calibration promotion.
     from .decision_bridge import adjudicate_daily
     decision = adjudicate_daily(canonical, slate_complete=batch['complete_sport_screen'])
@@ -254,6 +264,12 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'market_evidence_available_families': sum(x['report_loaded'] for x in market_registry['families']),
               'canonical_market_status': canonical.get('status'),
               'canonical_same_fixture_rows': len(canonical.get('matching_fixture_rows', [])),
+              'canonical_state_bridge_status': research_state['status'],
+              'canonical_state_matches': research_state['total_matching_rows'],
+              'canonical_selection_research_models': research_state['selection_calibration_research_rows'],
+              'canonical_indicative_quotes': research_state['reference_price_rows'],
+              'bookmaker_catalogue_status': bookmaker_directory.get('status'),
+              'authorized_sportsbook_offers': bookmaker_directory.get('actionable_offers',0),
               'history_multi_competition_verified': sum(
                   1 for x in batch['screened_fixtures']
                   if x.get('multi_competition_history', {}).get('status') == 'VERIFIED_PAST_MATCHES'),
@@ -298,5 +314,6 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     from .board import write_board
     write_board(batch, result, target / f'board_{date}.html',
                 market_registry=market_registry, canonical=canonical, advanced_context=historical_market,
-                parlay_radar=parlay_radar, decision_report=decision)
+                parlay_radar=parlay_radar, decision_report=decision,
+                canonical_research=research_state, bookmaker_catalogue=bookmaker_directory)
     return result
