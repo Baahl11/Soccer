@@ -301,6 +301,12 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
                  else match_canonical_fixtures(fetch_canonical_market_views(),
                         {r['fixture_id'] for r in batch['screened_fixtures']}))
     _write_json(target / f'market_registry_{date}.json', market_registry)
+    from .market_unblock_tracker import build_market_unblock_report, render_markdown
+    market_unblock = build_market_unblock_report(
+        os.getenv('SOCCER_MARKET_EVIDENCE_DIR', target / 'market_evidence'))
+    _write_json(target / f'market_unblock_{date}.json', market_unblock)
+    (target / f'market_unblock_{date}.md').write_text(
+        render_markdown(market_unblock), encoding='utf-8')
     _write_json(target / f'canonical_market_views_{date}.json', canonical)
     # Existing canonical GitHub state is read-only research, not a BET certificate.
     from .canonical_state_bridge import load_canonical_research_file
@@ -329,6 +335,11 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'historical_market_deep_dives': historical_market.get('selected_fixture_count',0),
               'market_families_audited': len(market_registry['families']),
               'market_evidence_available_families': sum(x['report_loaded'] for x in market_registry['families']),
+              'market_unblock_audited_families': market_unblock['families_audited'],
+              'market_unblock_manual_review_candidates': market_unblock['manual_review_candidates'],
+              'market_unblock_model_rebuild_candidates': market_unblock['model_rebuild_candidates'],
+              'market_unblock_bet_eligible_families': 0,
+              'bet365_only_historical_clv_verified': False,
               'canonical_market_status': canonical.get('status'),
               'canonical_same_fixture_rows': len(canonical.get('matching_fixture_rows', [])),
               'canonical_state_bridge_status': research_state['status'],
