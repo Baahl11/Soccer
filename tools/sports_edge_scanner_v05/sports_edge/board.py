@@ -27,7 +27,9 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
                  canonical: dict[str, Any] | None = None,
                  advanced_context: dict[str, Any] | None = None,
                  parlay_radar: dict[str, Any] | None = None,
-                 decision_report: dict[str, Any] | None = None) -> str:
+                 decision_report: dict[str, Any] | None = None,
+                 canonical_research: dict[str, Any] | None = None,
+                 bookmaker_catalogue: dict[str, Any] | None = None) -> str:
     """Render verified decision output; never manufacture prices or probabilities."""
     matches = batch.get('screened_fixtures') or []
     if not isinstance(matches, list):
@@ -98,6 +100,38 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
         <p class="note">{history_text}<br>Formaciones y estilo: {formation_text}. El estado del módulo es investigativo, no un ajuste automático de goles.</p>
         <table><thead><tr><th>Mercado</th><th>Probabilidad RAW (NO calibrada)</th></tr></thead><tbody>{line}</tbody></table>{advanced_html}
         <p class="note">No implica EV positivo. Alineaciones, disponibilidad, calibración OOS y precios de casa accionables: NOT VERIFIED. No BET.</p></div></details>''')
+    canonical_research = canonical_research or {}
+    bookmaker_catalogue = bookmaker_catalogue or {}
+    canonical_rows_html = ''.join(
+        '<tr><td>'+_text(x.get('match'))+'</td>'
+        +'<td>'+_text(x.get('market'))+' '+_text(x.get('selection'))
+        +' '+_text(x.get('line'))+'</td>'
+        +'<td>'+_pct(x.get('research_probability_for_selection'))+'</td>'
+        +'<td>'+_text(x.get('indicative_price'))+' ('+_text(x.get('reference_bookmaker'))+')</td>'
+        +'<td>'+_text(x.get('research_gap_pp_NOT_EV'))+' pp</td>'
+        +'<td>'+_text(', '.join(x.get('blockers') or []))+'</td></tr>'
+        for x in canonical_research.get('rows',[])[:30]
+    )
+    source_html = ('<h2>Motor original + precios de referencia: evidencia por mercado</h2>'
+       +'<p><b>Fuente:</b> '+_text(canonical_research.get('status','NOT_VERIFIED'))
+       +' · Mercados emparejados: '+_text(canonical_research.get('total_matching_rows',0))
+       +' · Calibraciones experimentales por selección: '
+       +_text(canonical_research.get('selection_calibration_research_rows',0))
+       +' · Precios de referencia vigentes según su publicación: '
+       +_text(canonical_research.get('reference_price_rows',0))
+       +' · Directorio de casas: '+_text(bookmaker_catalogue.get('status','NOT_VERIFIED'))
+       +' · Ofertas verificadas Caliente/Playdoit: '
+       +_text(bookmaker_catalogue.get('actionable_offers',0))+'</p>'
+       +'<p class="note">La calibración experimental NO es producción. El porcentaje '
+       +'de OVER 2.5 no equivale al de UNDER 2.5; solo se utiliza su complemento '
+       +'para el mismo umbral binario. La brecha de investigación NO es EV '
+       +'ni probabilidad conjunta de una combinada. Una casa en API-Football '
+       +'NO significa que el precio pueda aceptarse en ella.</p>'
+       +('<div style="overflow-x:auto"><table class="market-table">'
+       +'<thead><tr><th>Encuentro</th><th>Mercado</th><th>P investigación</th>'
+       +'<th>Precio de referencia</th><th>Brecha (NO EV)</th><th>Bloqueos</th>'
+       +'</tr></thead><tbody>'+canonical_rows_html+'</tbody></table></div>'
+       if canonical_rows_html else '<p>No hay mercados comparables del estado canónico actual.</p>'))
     decision_report = decision_report or {}
     diag = decision_report.get('canonical_research') or {}
     diag_blockers = diag.get('blocker_counts') or {}
@@ -196,6 +230,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
 <div class="metrics"><div class="metric"><strong>{screened}</strong><small>Examinados</small></div><div class="metric"><strong>{modeled}</strong><small>RAW calculados</small></div><div class="metric"><strong>{low_sample}</strong><small>Muestra local/visitante insuficiente</small></div><div class="metric"><strong>{_text(decision_report.get('actionable_bets',0))}</strong><small>BET aprobadas</small></div></div>
 <p>Historial multicompetición verificado para <b>{history_ok}/{screened}</b> partidos. Snapshot del motor canónico: <b>{canonical_status}</b>. Nunca usar datos de otro día como señal actual.</p><p class="note">{pregame_text}</p>
 <div class="warning"><strong>ATENCIÓN:</strong> proyecciones Poisson limitadas y NO calibradas. <b>NO</b> extrapolar como recomendaciones. Para BET faltan ajuste histórico/OOS, XI y disponibilidad confirmados, y precios vigentes de la casa elegida.</div>
+{source_html}
 {decision_html}
 {radar_html}
 {market_section}
@@ -209,9 +244,11 @@ def write_board(batch: dict[str, Any], summary: dict[str, Any], filename: str | 
                 canonical: dict[str, Any] | None = None,
                 advanced_context: dict[str, Any] | None = None,
                 parlay_radar: dict[str, Any] | None = None,
-                decision_report: dict[str, Any] | None = None) -> None:
+                decision_report: dict[str, Any] | None = None,
+                canonical_research: dict[str, Any] | None = None,
+                bookmaker_catalogue: dict[str, Any] | None = None) -> None:
     path=Path(filename)
     path.parent.mkdir(parents=True,exist_ok=True)
     tmp=path.with_suffix('.tmp')
-    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar,decision_report=decision_report),encoding='utf-8')
+    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar,decision_report=decision_report,canonical_research=canonical_research,bookmaker_catalogue=bookmaker_catalogue),encoding='utf-8')
     tmp.replace(path)
