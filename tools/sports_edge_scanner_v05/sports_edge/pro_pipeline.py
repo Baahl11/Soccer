@@ -234,9 +234,9 @@ def sporting_research(fixture:dict[str,Any]) -> dict[str,Any]:
         'generated_at_utc':now_iso(), 'stage':'SPORT_FIRST_RESEARCH',
         'fixture_id':fixture['fixture_id'], 'match':f"{fixture.get('home_team','')} vs {fixture.get('away_team','')}",
         # Preserve independently audited identity for past-only market proof.
-        'kickoff':fixture['kickoff'],
-        'home_team_id':fixture['home_team_id'],
-        'away_team_id':fixture['away_team_id'],
+        'kickoff':fixture.get('kickoff'),
+        'home_team_id':fixture.get('home_team_id'),
+        'away_team_id':fixture.get('away_team_id'),
         'league_id':lid,'season':season,'coverage_flags':coverage_flags,
         'home_team':stats[0],'away_team':stats[1],
         'min_sample_met':enough,
