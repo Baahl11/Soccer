@@ -107,8 +107,7 @@ def bridge_real_reference_markets(
     }
     if not report['screened_slate_complete']:
         report['status'] = 'INCOMPLETE_SPORT_FIRST_SLATE'
-        report['final_parlay_bets'] = sum(x['classification'] == 'BET' for x in report['parlay_pair_reviews'])
-    return report
+        return report
     sport_rows = sport_first.get('screened_fixtures') or []
     sport_index = {str(s.get('fixture_id')): s for s in sport_rows if isinstance(s, dict)}
     matrix_rows = matrix.get('all_quotes') or []
@@ -251,4 +250,5 @@ def bridge_real_reference_markets(
             'joint_p_lower': None, 'joint_ev': None,
             'reason': 'EXACT_OFFER_AND_INDEPENDENT_JOINT_RISK_MODEL_NOT_VERIFIED',
         })
+    report['final_parlay_bets'] = sum(x['classification'] == 'BET' for x in report['parlay_pair_reviews'])
     return report
