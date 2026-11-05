@@ -1,0 +1,104 @@
+name: API-Football Pro | Bookmakers directory audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/sports_edge_scanner_v05/run_requests/bookmaker_directory_request.json'
+permissions:
+  contents: read
+concurrency:
+  group: soccer-bookmakers-directory-audit
+  cancel-in-progress: false
+jobs:
+  directory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch COMPLETE bookmaker catalogue from YOUR Pro API
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, os, sys, urllib.request, urllib.parse
+          from pathlib import Path
+          from datetime import datetime, timezone
+          key=os.environ.get("API_FOOTBALL_KEY","")
+          if not key: raise SystemExit("ERROR: API_FOOTBALL_KEY secret not present")
+          base="https://v3.football.api-sports.io/odds/bookmakers"
+          def request(params=None):
+              url=base+("?" + urllib.parse.urlencode(params) if params else "")
+              req=urllib.request.Request(url,headers={"x-apisports-key":key,"Accept":"application/json","User-Agent":"SportsEdgeBookmakerAudit/1.0"})
+              with urllib.request.urlopen(req,timeout=35) as resp:
+                  if resp.status!=200: raise RuntimeError("API HTTP status "+str(resp.status))
+                  b=resp.read(1000000)
+              if len(b)>=1000000:raise RuntimeError("Directory response too large")
+              obj=json.loads(b)
+              if not isinstance(obj,dict):raise RuntimeError("Invalid root payload")
+              if obj.get("errors") not in ([],{},None):raise RuntimeError("API reported provider errors")
+              if not isinstance(obj.get("response"),list):raise RuntimeError("Missing response list")
+              return obj
+          first=request()
+          pages=[first]
+          paging=first.get("paging") or {}
+          total=int(paging.get("total") or 1)
+          if total>25:raise RuntimeError("Unusually high directory pagination; audit stopped")
+          for page in range(2,total+1):
+              pages.append(request({"page":page}))
+          raw_items=[x for p in pages for x in p.get("response",[])]
+          rows=[];invalid=[]
+          for i,item in enumerate(raw_items):
+              if not isinstance(item,dict):
+                  invalid.append({"index":i,"type":type(item).__name__})
+                  continue
+              name=item.get("name")
+              ident=item.get("id")
+              if isinstance(name,str) and name.strip():
+                  rows.append({"id":ident,"name":name.strip()})
+              else:
+                  invalid.append({"index":i,"keys":list(item.keys())[:12],"id":ident})
+          dedup={}
+          for row in rows:dedup[(str(row["id"]),row["name"].casefold())]=row
+          rows=sorted(dedup.values(),key=lambda x:x["name"].casefold())
+          result={
+              "schema_version":"SPORTS_EDGE_PRO_BOOKMAKER_CATALOGUE_v1",
+              "fetched_at_utc":datetime.now(timezone.utc).isoformat(),
+              "api_endpoint":"/odds/bookmakers","scope":"API-Football pre-match bookmaker directory",
+              "pages":len(pages),"provider_results_first_page":first.get("results"),
+              "raw_count":len(raw_items),"named_count":len(rows),
+              "invalid_count":len(invalid),"unparsed_samples":invalid[:5],
+              "bookmakers":rows,
+              "caliente":[x for x in rows if "caliente" in x["name"].lower()],
+              "playdoit":[x for x in rows if "playdoit" in x["name"].lower() or "play doit" in x["name"].lower()],
+              "note":"A listed bookmaker is API-Football REFERENCE coverage, not proof of up-to-date prices or an executable bet in Mexico."
+          }
+          Path("bookmaker_audit").mkdir(exist_ok=True)
+          Path("bookmaker_audit/directory.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          with Path("bookmaker_audit/directory.csv").open("w",newline="",encoding="utf-8") as f:
+              writer=csv.DictWriter(f,fieldnames=["id","name"]);writer.writeheader();writer.writerows(rows)
+          print("BOOKMAKERS_DIRECTORY_AUDIT "+json.dumps({k:result[k] for k in ("fetched_at_utc","pages","raw_count","named_count","invalid_count","caliente","playdoit")},ensure_ascii=False))
+          print("BOOKMAKERS_LIST_BEGIN")
+          for row in rows:print(str(row["id"])+" | "+row["name"])
+          print("BOOKMAKERS_LIST_END")
+          if invalid:print("UNPARSED_SAMPLES "+json.dumps(invalid[:5],ensure_ascii=False))
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as f:
+              f.write("# Catálogo real API-Football Pro — casas de apuestas\n\n")
+              f.write("Consulta: /odds/bookmakers — "+result["fetched_at_utc"]+"\n\n")
+              f.write("Registros: "+str(len(rows))+" · Páginas: "+str(len(pages))+" · No interpretados: "+str(len(invalid))+"\n\n")
+              f.write("| ID API | Casa |\n|---:|---|\n")
+              for row in rows:f.write("| "+str(row["id"])+" | "+row["name"].replace("|","/")+" |\n")
+              f.write("\nLos nombres NO constituyen precios apostables en México.\n")
+          PY
+      - name: Upload directory JSON and CSV
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-api-football-pro-bookmakers
+          path: bookmaker_audit/
+          if-no-files-found: error
+          retention-days: 30
