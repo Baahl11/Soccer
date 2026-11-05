@@ -114,6 +114,13 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
         +'<td>'+_text(q.get('raw_probability_source'))+'</td></tr>'
         for q in market_matrix.get('top_model_matched_markets',[])[:25]
     )
+    def _history_leg_display(leg):
+        ev=leg.get('all_competition_past_goal_evidence') or {}
+        if ev.get('status')!='DESCRIPTIVE_HISTORY_AVAILABLE':
+            return ' · historial exacto: NO VERIFICADO'
+        text_parts=[str(row.get('matching_totals',0))+'/'+str(row.get('historical_games',0))
+                    for row in ev.get('teams',[])]
+        return ' · frecuencia de goles en partidos anteriores (local/visita): '+_text(' / '.join(text_parts))
     matrix_pairs = ''.join(
         '<li><b>'+_text(p.get('theoretical_combined_decimal'))+'</b> · '
         +_text(p['legs'][0].get('event_name'))+' · '
@@ -124,7 +131,10 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
         +_text(p['legs'][1].get('point'))+' @ '+_text(p['legs'][1].get('price_decimal'))
         +' · menor diferencia RAW por pierna '
         +_text(p.get('minimum_raw_margin_pp_NOT_EV'))+' pp'
-        +' · muestra mínima '+_text(p.get('minimum_venue_sample'))
+        +' · muestra mínima en competición '+_text(p.get('minimum_venue_sample'))
+        +' · partidos anteriores multicompetición por pierna: '+_text(p.get('minimum_all_competitions_prior_sample'))
+        +' · respaldo descriptivo de ambas piernas: '+_text(p.get('all_competitions_descriptive_directional_agreement'))
+        +'<small>'+_history_leg_display(p['legs'][0])+_history_leg_display(p['legs'][1])+'</small>'
         +' · '+_text(p.get('research_sample_status'))
         +' · <b>WATCH · NO ES EV / NI RIESGO VALIDADO</b></li>'
         for p in market_matrix.get('sporting_screened_plus100_pairs',[])[:12]
@@ -144,6 +154,10 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
       +_text(market_matrix.get('sporting_screened_plus100_pairs_found',0))
       +' · con al menos 5 partidos en cada muestra local/visitante: '
       +_text(market_matrix.get('sporting_screened_plus100_pairs_min_sample_5',0))
+      +' · con 6+ partidos anteriores por equipo: '
+      +_text(market_matrix.get('sporting_screened_plus100_pairs_with_6plus_history',0))
+      +' · respaldo histórico descriptivo (NO predicción): '
+      +_text(market_matrix.get('sporting_screened_plus100_pairs_history_agreement',0))
       +'. <b>Estas comparaciones no prueban ventaja ni seguridad.</b></p>'
       +'<h3>Mercados con proyección deportiva RAW</h3>'
       +('<div style="overflow-x:auto"><table class="market-table"><thead><tr>'
