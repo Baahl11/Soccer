@@ -36,6 +36,7 @@ class DailyDecisionWiringTests(unittest.TestCase):
             html=(Path(d)/f'board_{DATE}.html').read_text()
             self.assertIn('Motor final: BET / LEAN / WATCH / PASS',html)
             self.assertIn('TEST_SIGNED_PRODUCER',html)
+            self.assertIn('2</strong><small>BET aprobadas</small>',html)
 
     def test_real_default_without_certified_source_reports_reason_not_fake_bet(self):
         with tempfile.TemporaryDirectory() as d:
