@@ -231,7 +231,8 @@ def fetch_research_reference_odds(batch: dict[str, Any], directory: str | Path,
                        'proxy_bookmaker_id': proxy_id,
                        'mexico_offer_verified': False,
                        'checked_at_utc': datetime.now(timezone.utc).isoformat(),
-                       'actionable_at_caliente_or_playdoit': False,
+                       'bet365_provider_observation': True,
+                        'bet365_betslip_price_confirmed': False,
                        'classification': 'WATCH', 'quote_count': len(normalized),
                        'quotes': normalized,
                        'warning': 'Third-party bookmaker prices; stale publication and coverage require verification.'}
@@ -246,12 +247,12 @@ def fetch_research_reference_odds(batch: dict[str, Any], directory: str | Path,
             'reference_bookmaker_id': proxy_id,
             'proxy_quote_count': proxy_quote_count,
             'proxy_quote_fixtures': proxy_quote_fixtures,
-            'proxy_prices_actionable_in_mexico': False,
+            'bet365_direct_betslip_confirmed': False,
             'selected_count': len(selected), 'captured_count': len(snapshots),
             'snapshots': snapshots, 'failures': failures,
             'actionable_bets': 0, 'classification': 'WATCH',
             'reasons': ['NO_CALIBRATED_MODEL_PROBABILITIES',
-                        'ACTIONABLE_CALIENTE_PLAYDOIT_PRICE_NOT_VERIFIED',
+                        'BET365_BETSLIP_PRICE_RECHECK_REQUIRED',
                         'AVAILABILITY_NOT_VERIFIED']}
 
 
@@ -350,7 +351,7 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'proxy_reference_bookmaker_id': odds.get('reference_bookmaker_id'),
               'proxy_quote_count': odds.get('proxy_quote_count',0),
               'proxy_quote_fixtures': odds.get('proxy_quote_fixtures',0),
-              'proxy_price_available_in_mexico_verified': False,
+              'bet365_direct_betslip_confirmed': False,
               'price_research_failures': odds['failures'],
               'actionable_bets': decision['actionable_bets'], 'wagers_placed': 0,
               'decision_feed_status': decision.get('feed_status'),
@@ -359,7 +360,7 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'canonical_unpromoted_rows': decision['canonical_research']['rows_examined'],
               'blockers': ['RAW_SPORT_MODEL_NEEDS_VALIDATED_CALIBRATION_AND_AVAILABILITY',
                            'PREMATCH_AVAILABILITY_NOT_VERIFIED',
-                           'ACTIONABLE_BOOK_PRICES_NOT_VERIFIED'],
+                           'BET365_BETSLIP_PRICE_RECHECK_REQUIRED'],
               'next_step': 'OUT_OF_SAMPLE_CALIBRATION_AND_T-40_REFRESH'}
     # PRICE TARGET SECOND, after sport-first analysis and saved provider quotes.
     # This does not derive probabilities from odds or declare bets.
@@ -405,6 +406,34 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     result['actual_reference_quotes_raw_above_breakeven_NOT_EV'] = live_market_decisions['raw_above_breakeven']
     result['reference_quote_decision_blockers'] = live_market_decisions['decision_blocker_counts']
     result['reference_parlay_ticket_reviews'] = len(live_market_decisions['parlay_pair_reviews'])
+    # Only the observed Bet365 ID8 quotes drive the default decision feed.
+    # A signed, independently approved Bet365 model/price producer takes precedence.
+    if not decision.get('singles'):
+        decision['singles'] = [
+            {**x, 'status': x.get('decision','WATCH'),
+             'reason': x.get('decision_reason'),
+             'blockers': x.get('decision_blockers',[])}
+            for x in live_market_decisions['decisions']]
+        decision['parlays'] = [
+            {**x, 'status': x.get('classification','WATCH'),
+             'blockers': [x.get('reason','JOINT_MODEL_NOT_VERIFIED')]}
+            for x in live_market_decisions['parlay_pair_reviews']]
+        decision['actionable_bets'] = live_market_decisions['final_bets']
+        decision['actionable_parlays'] = live_market_decisions['final_parlay_bets']
+        decision['feed_status'] = ('BET365_API_FOOTBALL_ID8_OBSERVED_PRICES'
+             if decision['singles'] else 'BET365_NO_CURRENT_QUOTES')
+        decision['blocker_counts'] = live_market_decisions['decision_blocker_counts']
+    result['decision_feed_status'] = decision['feed_status']
+    result['actionable_bets'] = decision['actionable_bets']
+    result['parlay_actionable_bets'] = decision['actionable_parlays']
+    result['decision_singles_evaluated'] = len(decision['singles'])
+    result['decision_parlays_evaluated'] = len(decision['parlays'])
+    result['parlay_risk_ranking_available'] = bool(decision['actionable_parlays'])
+    if result['actionable_bets'] or result['parlay_actionable_bets']:
+        result['blockers'] = []
+        result['next_step'] = 'RECHECK_BET365_PRICE_AND_REVIEW_PORTFOLIO'
+        result['status'] = 'PREFINAL_BET365_MODEL_APPROVED_PRICE_RECHECK_REQUIRED'
+    _write_json(target / f'decision_gate_{date}.json', decision)
     _write_json(target / f'parlay_radar_{date}.json', parlay_radar)
     _write_json(target / f'parlay_leg_evidence_{date}.json', parlay_radar)
     _write_json(target / f'odds_research_{date}.json', odds)
