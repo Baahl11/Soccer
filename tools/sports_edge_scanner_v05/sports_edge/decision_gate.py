@@ -16,9 +16,10 @@ from typing import Any
 
 from .core import evaluate, ev_per_unit, parse_iso, dec_to_american, market_family
 
-VERSION = 'SOCCER_DECISION_GATE_v1.0.0'
-BOOK_SOURCES = {'Caliente': 'CALIENTE_AUTHORIZED_FEED',
-                'Playdoit': 'PLAYDOIT_AUTHORIZED_FEED'}
+VERSION = 'SOCCER_DECISION_GATE_v1.5.0'
+# Single bookmaker reference: API-Football Bet365, bookmaker ID 8.
+# A current provider quote is not the same thing as a confirmed account betslip.
+BOOK_SOURCES = {'Bet365': 'API_FOOTBALL_BET365_ID8'}
 MIN_OOS_ROWS = {'side': 200, 'goals': 200, 'derivative': 100}
 
 
@@ -100,11 +101,11 @@ def _model_checks(model: dict[str, Any] | None, quote: dict[str, Any],
 def _offer_checks(quote: dict[str, Any], now: datetime) -> list[str]:
     blockers = []
     book = str(quote.get('bookmaker') or '')
-    if (book not in BOOK_SOURCES
-            or quote.get('verified_offer_source') != BOOK_SOURCES.get(book)
-            or quote.get('verified_offer') is not True
-            or not quote.get('offer_reference_id')):
-        blockers.append('CALIENTE_PLAYDOIT_EXACT_OFFER_NOT_VERIFIED')
+    if (book != 'Bet365' or quote.get('bookmaker_id') != 8
+            or quote.get('source') != 'API-Football'
+            or quote.get('verified_offer_source') != BOOK_SOURCES['Bet365']
+            or quote.get('price_observation_verified') is not True):
+        blockers.append('BET365_PROVIDER_PRICE_SOURCE_NOT_VERIFIED')
     if (quote.get('fair_market_probability') is not None
             and quote.get('fair_market_probability_verified') is not True):
         blockers.append('MARKET_FAIR_PROBABILITY_ORIGIN_UNVERIFIED')
@@ -123,8 +124,8 @@ def evaluate_verified_leg(quote: dict[str, Any], model: dict[str, Any] | None,
                           *, now: datetime | None = None) -> dict[str, Any]:
     """Return BET/LEAN/PASS/WATCH based on inputs; never hard-code BET to zero.
 
-    No current API-Football research feed meets the exact-book gate. A separate
-    authenticated book adapter is required for live actionable decisions.
+    Bet365 bookmaker-8 observations are a timestamped price source, not a
+    directly confirmed Bet365 betslip. Reconfirm price before placing a stake.
     """
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     blockers = list(dict.fromkeys(_offer_checks(quote, now) + _model_checks(model, quote, now)))
@@ -152,7 +153,7 @@ def evaluate_verified_leg(quote: dict[str, Any], model: dict[str, Any] | None,
     result['blockers'] = []
     result['stake_units'] = 0  # No staking unless portfolio risk/ticket are approved.
     if result['status'] == 'BET':
-        result['reason'] = 'SINGLE_BET_ELIGIBLE_PENDING_PORTFOLIO_REVIEW'
+        result['reason'] = 'SINGLE_BET365_REFERENCE_ELIGIBLE_RECHECK_BEFORE_STAKE'
     return result
 
 
@@ -180,7 +181,7 @@ def evaluate_verified_parlay(leg_a: dict[str, Any], leg_b: dict[str, Any],
         blockers.append('MUST_BE_DIFFERENT_FIXTURES')
     book = leg_a.get('bookmaker')
     if book != leg_b.get('bookmaker') or book not in BOOK_SOURCES:
-        blockers.append('SAME_ACTIONABLE_BOOK_REQUIRED')
+        blockers.append('SAME_BET365_MARKET_SOURCE_REQUIRED')
     q = offered_ticket or {}
     offered = _num(q.get('price_decimal'))
     ticket_ids = {tuple(x) for x in (q.get('leg_keys') or []) if isinstance(x, (list,tuple)) and len(x) == 5}
@@ -290,8 +291,10 @@ def inspect_canonical_research(canonical: dict[str, Any], *, max_rows: int=30) -
             blockers.append('MODEL_RESEARCH_ONLY_NOT_PROMOTED')
         if row.get('p_shrunk') is None or row.get('p_lower') is None:
             blockers.append('SHRUNK_LOWER_BOUND_NOT_EXPORTED')
-        if row.get('price') is None or row.get('source') != 'CALIENTE_AUTHORIZED_FEED' and row.get('source') != 'PLAYDOIT_AUTHORIZED_FEED':
-            blockers.append('EXACT_CALIENTE_PLAYDOIT_OFFER_MISSING')
+        if (row.get('price') is None
+                or str(row.get('bookmaker') or '').casefold() != 'bet365'
+                or not (row.get('provider_update') or row.get('price_resolution_provider_update'))):
+            blockers.append('BET365_REFERENCE_PRICE_NOT_VERIFIED')
         if row.get('status') not in ('NS',):
             blockers.append('FIXTURE_STATUS_NOT_PREGAME')
         out.append({'fixture_id':row.get('fixture_id'),'home':row.get('home'),
