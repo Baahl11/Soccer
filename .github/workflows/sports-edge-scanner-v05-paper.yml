@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v1.4 - Bet365 + multi-competition history
+name: SPORTS EDGE SCANNER v1.4.1 - Live decision evidence bridge
 
 on:
   pull_request:
@@ -199,6 +199,9 @@ jobs:
               f"**Partidos con precio RECIENTE verificable:** {summary.get('bet365_fresh_quoted_fixtures', 0)}",
               f"**Cotizaciones proxy:** {summary.get('proxy_quote_count', 0)}",
               f"**Bet365, mercados comparables con modelo RAW:** {summary.get('bet365_quotes_with_exact_or_derived_raw', 0)}",
+              f"**Cotizaciones reales enviadas al evaluador final:** {summary.get('actual_reference_quotes_sent_to_decision_gate', 0)}",
+              f"**Cotizaciones con probabilidad RAW exacta:** {summary.get('actual_reference_quotes_with_raw', 0)}",
+              f"**Duplas REALES pasadas por auditoría de piernas:** {summary.get('reference_parlay_ticket_reviews', 0)}",
               f"**Precios con mercado sin vigorish verificable:** {summary.get('bet365_no_vig_market_quotes', 0)}",
               f"**Duplas +100 tras evaluación deportiva RAW preliminar:** {summary.get('bet365_sport_first_review_pairs_plus100', 0)}",
               f"**Duplas con muestras >=5 por pierna:** {summary.get('bet365_research_pairs_min_5_sample', 0)}",

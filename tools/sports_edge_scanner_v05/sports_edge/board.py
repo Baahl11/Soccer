@@ -30,7 +30,8 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
                  decision_report: dict[str, Any] | None = None,
                  canonical_research: dict[str, Any] | None = None,
                  bookmaker_catalogue: dict[str, Any] | None = None,
-                 market_matrix: dict[str, Any] | None = None) -> str:
+                 market_matrix: dict[str, Any] | None = None,
+                 live_market_report: dict[str, Any] | None = None) -> str:
     """Render verified decision output; never manufacture prices or probabilities."""
     matches = batch.get('screened_fixtures') or []
     if not isinstance(matches, list):
@@ -101,6 +102,35 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
         <p class="note">{history_text}<br>Formaciones y estilo: {formation_text}. El estado del módulo es investigativo, no un ajuste automático de goles.</p>
         <table><thead><tr><th>Mercado</th><th>Probabilidad RAW (NO calibrada)</th></tr></thead><tbody>{line}</tbody></table>{advanced_html}
         <p class="note">No implica EV positivo. Alineaciones, disponibilidad, calibración OOS y precios de casa accionables: NOT VERIFIED. No BET.</p></div></details>''')
+    live_market_report = live_market_report or {}
+    matched_count = int(live_market_report.get('quotes_sent_to_final_decision_gate') or 0)
+    raw_count = int(live_market_report.get('quotes_exact_raw_available') or 0)
+    blocked_quotes = (live_market_report.get('decision_blocker_counts') or {})
+    block_html = ''.join(
+       '<li>'+_text(k)+': '+_text(v)+'</li>'
+       for k,v in sorted(blocked_quotes.items(),key=lambda kv:-kv[1])[:5])
+    live_rows_html = ''.join(
+       '<tr><td>'+_text(x.get('event_name'))+'</td>'
+       +'<td>'+_text(x.get('market'))+' '+_text(x.get('selection'))+' '+_text(x.get('point'))+'</td>'
+       +'<td>'+_text(x.get('price_decimal'))+'</td>'
+       +'<td>'+_pct(x.get('raw_sport_probability_UNCALIBRATED'))+'</td>'
+       +'<td>'+_pct(x.get('breakeven_probability'))+'</td>'
+       +'<td>'+_text(x.get('minimum_venue_split_sample'))+'</td>'
+       +'<td>'+_text(x.get('sporting_evidence_stage'))+'</td></tr>'
+       for x in (live_market_report.get('decisions') or [])[:12])
+    bridge_html = ('<h2>Decisor conectado a datos reales: Bet365 × modelo deportivo</h2>'
+       +'<p>Se sometieron <b>'+_text(matched_count)+'</b> cotizaciones reales '
+       +'al evaluador final, de las cuales '+_text(raw_count)
+       +' tenían probabilidad RAW del mercado exacto. Esto es una comprobación '
+       +'de sporting edge, NO una estimación calibrada de EV ni un boleto ofrecido.</p>'
+       +'<p>Bloqueos reales del evaluador:</p><ul>'+block_html+'</ul>'
+       +('<table class="market-table"><thead><tr><th>Partido</th><th>Mercado</th><th>Precio</th>'
+         +'<th>RAW no calibrada</th><th>Breakeven</th><th>Muestra</th><th>Estado</th>'
+         +'</tr></thead><tbody>'+live_rows_html+'</tbody></table>'
+         if live_rows_html else '<p>No hay cotizaciones verificadas en ventana para comparar.</p>')
+       +'<p class="note">La fuente Bet365 procede de API-Football y no verifica una '
+       +'oferta ejecutable en Caliente/Playdoit. Ningún modelo experimental se '
+       +'promueve y no se infiere probabilidad conjunta del parlay.</p>')
     market_matrix = market_matrix or {}
     matrix_market_rows = ''.join(
         '<tr><td>'+_text(q.get('event_name'))+'</td>'
@@ -303,6 +333,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
 <div class="warning"><strong>ATENCIÓN:</strong> proyecciones Poisson limitadas y NO calibradas. <b>NO</b> extrapolar como recomendaciones. Para BET faltan ajuste histórico/OOS, XI y disponibilidad confirmados, y precios vigentes de la casa elegida.</div>
 {source_html}
 {decision_html}
+{bridge_html}
 {matrix_html}
 {radar_html}
 {market_section}
@@ -319,9 +350,10 @@ def write_board(batch: dict[str, Any], summary: dict[str, Any], filename: str | 
                 decision_report: dict[str, Any] | None = None,
                 canonical_research: dict[str, Any] | None = None,
                 bookmaker_catalogue: dict[str, Any] | None = None,
-                market_matrix: dict[str, Any] | None = None) -> None:
+                market_matrix: dict[str, Any] | None = None,
+                live_market_report: dict[str, Any] | None = None) -> None:
     path=Path(filename)
     path.parent.mkdir(parents=True,exist_ok=True)
     tmp=path.with_suffix('.tmp')
-    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar,decision_report=decision_report,canonical_research=canonical_research,bookmaker_catalogue=bookmaker_catalogue,market_matrix=market_matrix),encoding='utf-8')
+    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar,decision_report=decision_report,canonical_research=canonical_research,bookmaker_catalogue=bookmaker_catalogue,market_matrix=market_matrix,live_market_report=live_market_report),encoding='utf-8')
     tmp.replace(path)

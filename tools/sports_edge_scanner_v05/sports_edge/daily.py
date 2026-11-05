@@ -394,6 +394,17 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     result['bet365_quotes_with_exact_or_derived_raw'] = market_matrix['exact_or_poisson_derived_raw_quotes']
     result['bet365_no_vig_market_quotes'] = market_matrix['two_way_or_three_way_novig_quotes']
     result['bet365_sport_first_review_pairs_plus100'] = market_matrix['sporting_screened_plus100_pairs_found']
+    # Crucial v1.4.1: real book-reference quotes + real sport-model RAW inputs
+    # now enter the ACTUAL verified-offer decision gate. Unapproved/Bet365
+    # sources remain WATCH and preserve their exact blockers; no fake BET.
+    from .live_market_bridge import bridge_real_reference_markets
+    live_market_decisions = bridge_real_reference_markets(market_matrix, batch)
+    _write_json(target / f'live_market_decisions_{date}.json', live_market_decisions)
+    result['actual_reference_quotes_sent_to_decision_gate'] = live_market_decisions['quotes_sent_to_final_decision_gate']
+    result['actual_reference_quotes_with_raw'] = live_market_decisions['quotes_exact_raw_available']
+    result['actual_reference_quotes_raw_above_breakeven_NOT_EV'] = live_market_decisions['raw_above_breakeven']
+    result['reference_quote_decision_blockers'] = live_market_decisions['decision_blocker_counts']
+    result['reference_parlay_ticket_reviews'] = len(live_market_decisions['parlay_pair_reviews'])
     _write_json(target / f'parlay_radar_{date}.json', parlay_radar)
     _write_json(target / f'parlay_leg_evidence_{date}.json', parlay_radar)
     _write_json(target / f'odds_research_{date}.json', odds)
@@ -403,5 +414,5 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
                 market_registry=market_registry, canonical=canonical, advanced_context=historical_market,
                 parlay_radar=parlay_radar, decision_report=decision,
                 canonical_research=research_state, bookmaker_catalogue=bookmaker_directory,
-                market_matrix=market_matrix)
+                market_matrix=market_matrix, live_market_report=live_market_decisions)
     return result
