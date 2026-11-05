@@ -168,3 +168,6 @@ existing market research. The HTML board displays the short price-target list.
 
 The original `core.generate_parlays()` remains the stricter BET-eligible tier A/S
 path and is **not** silently relaxed by this research screen.
+## v0.9.1 — revisión prepartido automática
+
+El radar de riesgo por pierna v0.9 se mantiene. Antes de consultar los momios de referencia, el barrido diario llama al módulo preexistente `pregame_refresh` para como máximo cinco encuentros de la shortlist deportiva cuyo inicio esté entre 10 y 95 minutos. Los reportes se guardan en `pregame_availability_YYYY-MM-DD.json`. Un once del proveedor no equivale por sí solo a verificación oficial; sin calibración y precio de la casa siguen WATCH. Sin apuestas ni reactivación de workflows antiguos.

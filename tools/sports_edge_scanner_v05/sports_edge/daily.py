@@ -220,6 +220,10 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
                          else collect_historical_market_context(batch, api_pro_get,
                                 max_fixtures=int(os.getenv('SOCCER_ADVANCED_DEEP_DIVES','3'))))
     _write_json(target / f'historical_market_context_{date}.json', historical_market)
+    # Pre-kickoff safety check is limited to the already screened shortlist.
+    from .refresh_batch import refresh_due_shortlist
+    pregame = refresh_due_shortlist(slate, batch, target, max_fixtures=5)
+    _write_json(target / f'pregame_availability_{date}.json', pregame)
     odds = fetch_research_reference_odds(batch, target, odds_limit, odds_fn=odds_fn)
     from .market_registry import load_market_registry
     from .canonical_snapshot import fetch_canonical_market_views, match_canonical_fixtures
@@ -249,6 +253,11 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'history_multi_competition_verified': sum(
                   1 for x in batch['screened_fixtures']
                   if x.get('multi_competition_history', {}).get('status') == 'VERIFIED_PAST_MATCHES'),
+              'pregame_candidates_in_window': pregame['eligible_candidates_in_window'],
+              'pregame_refresh_attempted': pregame['attempted'],
+              'pregame_refresh_completed': pregame['completed'],
+              'pregame_official_lineups_verified': 0,
+              'pregame_status': pregame['status'],
               'odds_research_selected': odds['selected_count'],
               'odds_snapshots_captured': odds['captured_count'],
               'price_research_failures': odds['failures'],

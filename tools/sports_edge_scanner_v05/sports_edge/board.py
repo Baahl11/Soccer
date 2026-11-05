@@ -147,6 +147,11 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
     generated = _text(summary.get('generated_at_utc'))
     screened = int(summary.get('sports_screened') or 0)
     modeled = int(summary.get('raw_existing_engine_projections') or 0)
+    pregame_text = ('Comprobaciones T-90/T-40/T-20: '
+                    + _text(summary.get('pregame_refresh_completed', 0))
+                    + ' / ' + _text(summary.get('pregame_candidates_in_window', 0))
+                    + ' candidatos en ventana. XI oficial verificado: NO. '
+                    + 'Reporte pregame_availability_'+_text(summary.get('match_date'))+'.json.')
     low_sample = sum(1 for row in matches if (row.get('raw_sport_projection') or {}).get('sample_warning'))
     market_section = ('<h2>Mercados del motor completo — evidencia, NO recomendaciones</h2>'
                      '<p>Los reportes de validación pertenecen al motor existente; pueden ser históricos. '
@@ -157,7 +162,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
 <style>:root{{color-scheme:dark;font-family:system-ui,Arial,sans-serif}}*{{box-sizing:border-box}}body{{background:#0d1324;color:#eaf0fb;margin:0}}main{{margin:auto;max-width:1020px;padding:25px 18px}}h1{{margin:8px 0}}p,small{{color:#aebbd1}}.metrics{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}}.metric,.game{{border:1px solid #34415c;background:#17223b;border-radius:12px;padding:14px}}.metric strong{{font-size:1.75rem;display:block}}.warning{{border-left:4px solid #e2b06a;padding:13px;background:#292638;border-radius:8px;margin:20px 0}}.game{{margin:10px 0;padding:0}}summary{{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:15px;cursor:pointer}}summary small{{display:block;margin-top:3px}}summary b{{color:#efcf95}}.detail{{padding:0 15px 15px}}table{{border-collapse:collapse;width:100%;max-width:650px}}th,td{{padding:10px;border-bottom:1px solid #3a455c;text-align:left}}th{{color:#b4c0d5}}.note{{font-size:.87rem}}.market-table{{max-width:none;font-size:.88rem}}.market-table td{{vertical-align:top}}input{{padding:10px;background:#233451;border:1px solid #4b6084;color:white;border-radius:8px;width:min(100%,400px)}}.hide{{display:none}}@media(max-width:700px){{.metrics{{grid-template-columns:repeat(2,1fr)}}}}</style></head><body><main>
 <small>SPORTS EDGE ENGINE · MOTOR ORIGINAL CONECTADO · PAPER RESEARCH</small><h1>Jornada {day}</h1><p>Generado {generated}. Estadísticas deportivas antes de mercados · probabilidades RAW del módulo original. Sin operaciones de apuesta.</p>
 <div class="metrics"><div class="metric"><strong>{screened}</strong><small>Examinados</small></div><div class="metric"><strong>{modeled}</strong><small>RAW calculados</small></div><div class="metric"><strong>{low_sample}</strong><small>Muestra local/visitante insuficiente</small></div><div class="metric"><strong>0</strong><small>BET aprobadas</small></div></div>
-<p>Historial multicompetición verificado para <b>{history_ok}/{screened}</b> partidos. Snapshot del motor canónico: <b>{canonical_status}</b>. Nunca usar datos de otro día como señal actual.</p>
+<p>Historial multicompetición verificado para <b>{history_ok}/{screened}</b> partidos. Snapshot del motor canónico: <b>{canonical_status}</b>. Nunca usar datos de otro día como señal actual.</p><p class="note">{pregame_text}</p>
 <div class="warning"><strong>ATENCIÓN:</strong> proyecciones Poisson limitadas y NO calibradas. <b>NO</b> extrapolar como recomendaciones. Para BET faltan ajuste histórico/OOS, XI y disponibilidad confirmados, y precios vigentes de la casa elegida.</div>
 {radar_html}
 {market_section}
