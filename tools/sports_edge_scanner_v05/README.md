@@ -78,3 +78,30 @@ En `reports/demo_v05_offline.json` hay una **demostración sintética etiquetada
 ## Alcance y seguridad
 
 Solo **SOCCER** está en el nuevo pipeline Pro. NFL/NCAAF y MLB tienen modelos separados, sin compartir pesos. No hay scraping ni automatización de Caliente/Playdoit, inicio de sesión a casas, apuestas ni pagos. No instalar dependencias externas adicionales. El módulo de combinaciones de la v0.4 se conserva, pero no puede emitir un boleto operativo sin los controles del Proyecto.
+
+## v0.6 — read-only bridge to the existing Soccer engine (2026-11-05)
+
+This is an **integration**, not a replacement/retraining of SOCCER EDGE ENGINE.
+The GitHub paper-research job checks out the exact pinned `soccer-edge-mcp-v1`
+commit (`108c193c50e59f12f19f8693fc05c5cc9c607db4`) under `engine/`
+and exports `SOCCER_ENGINE_SOURCE_DIR` / `SOCCER_ENGINE_COMMIT_SHA`.
+`sports_edge.engine_bridge.from_existing_engine` imports that checkout's
+`mcp_gateway/soccer_model.py` and invokes `build_raw_projection` using only
+verified same-fixture, same-league, same-season **sporting** provider inputs.
+This occurs inside `sporting_research` **before** reference odds are consulted.
+It adds a `raw_sport_projection` field to every screening row and
+`raw_existing_engine_projections` to the JSON summary.
+
+- Original upstream engine: `SOCCER EDGE ENGINE v1.0` /
+  `GOAL_RATE_POISSON_LIMITED_v0.1` (these are the model's own version strings;
+  no new weights are implied by this integration).
+- Projection `MODELED_LIMITED`: pure Poisson-goals baseline, no verified
+  xG/npxG/PPDA, no quantified XI impact, no out-of-sample calibration.
+- A sample below five home/away league-split matches is marked explicitly.
+- If the model source is absent, or API-Football IDs/seasons disagree, the
+  bridge fails closed with `NOT_CONNECTED` / `NOT_MODELED`, not invented values.
+- **Every projection remains WATCH** regardless of raw probabilities.
+  No EV, stake or BET is promoted and no bookmaker is accessed by the model.
+- The scheduled league allowlist now includes Conference League ID **848**.
+- Historical state snapshots and data from earlier competitions are not used
+  to form a new 2026 prediction. No bookmaker screenshot becomes training data.

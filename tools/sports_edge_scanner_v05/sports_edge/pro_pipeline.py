@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 from typing import Any
 
 from .coverage import audit_fixture_response
+from .engine_bridge import from_existing_engine
 from .providers import ProviderFailure, get_json, now_iso, _reserve_api_football_research
 import os
 
@@ -187,8 +188,10 @@ def sporting_research(fixture:dict[str,Any]) -> dict[str,Any]:
     lid=int(fixture['league_id']);season=int(fixture['season'])
     coverage=get_cached_league_coverage(lid,season)
     stats=[]
+    team_payloads=[]
     for team_id in (int(fixture['home_team_id']),int(fixture['away_team_id'])):
         result=get_cached_team_stats(team_id,lid,season)
+        team_payloads.append(result)
         obj=result.get('response')
         if not isinstance(obj,dict) or not obj:
             stats.append({'team_id':team_id,'verified':False,'played':None,'gf_avg':None,'ga_avg':None})
@@ -208,7 +211,9 @@ def sporting_research(fixture:dict[str,Any]) -> dict[str,Any]:
     coverage_flags=((coverage_rows[0].get('seasons') or [{}])[0].get('coverage') or {}) if coverage_rows else {}
     enough=all(r['verified'] and isinstance(r['played'],int) and r['played']>=5
                and r['gf_avg'] is not None and r['ga_avg'] is not None for r in stats)
+    raw_projection=from_existing_engine(fixture, team_payloads[0], team_payloads[1])
     return {
+        'raw_sport_projection':raw_projection,
         'generated_at_utc':now_iso(), 'stage':'SPORT_FIRST_RESEARCH',
         'fixture_id':fixture['fixture_id'], 'match':f"{fixture.get('home_team','')} vs {fixture.get('away_team','')}",
         'league_id':lid,'season':season,'coverage_flags':coverage_flags,

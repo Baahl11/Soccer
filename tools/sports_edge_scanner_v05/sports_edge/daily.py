@@ -114,6 +114,9 @@ def screen_complete_slate(slate: dict[str, Any],
             'screened_fixtures': out,
             'shortlists': shortlists,
             'calibrated_probabilities_produced': 0,
+            'raw_existing_engine_projections': sum(
+                1 for row in out
+                if (row.get('raw_sport_projection') or {}).get('status') == 'MODELED_LIMITED'),
             'classification': 'WATCH', 'wagers_placed': 0,
             'notes': ['Preliminary side/goals research indicators are not calibrated probability forecasts.',
                       'Corners NOT VERIFIED until independent historical/team corner inputs are modeled.',
@@ -219,14 +222,15 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'preliminary_side_shortlist': batch['shortlists']['side_fixture_ids'],
               'preliminary_goals_shortlist': batch['shortlists']['goals_fixture_ids'],
               'corners_track': batch['shortlists']['corners_status'],
+              'raw_existing_engine_projections': batch.get('raw_existing_engine_projections', 0),
               'odds_research_selected': odds['selected_count'],
               'odds_snapshots_captured': odds['captured_count'],
               'price_research_failures': odds['failures'],
               'actionable_bets': 0, 'wagers_placed': 0,
-              'blockers': ['CALIBRATED_SPORT_MODEL_NOT_CONNECTED',
+              'blockers': ['RAW_SPORT_MODEL_NEEDS_VALIDATED_CALIBRATION_AND_AVAILABILITY',
                            'PREMATCH_AVAILABILITY_NOT_VERIFIED',
                            'ACTIONABLE_BOOK_PRICES_NOT_VERIFIED'],
-              'next_step': 'DEEP_DIVE_RAW_SPORT_MODEL_AND_T-40_REFRESH'}
+              'next_step': 'OUT_OF_SAMPLE_CALIBRATION_AND_T-40_REFRESH'}
     _write_json(target / f'odds_research_{date}.json', odds)
     _write_json(target / f'daily_summary_{date}.json', result)
     return result

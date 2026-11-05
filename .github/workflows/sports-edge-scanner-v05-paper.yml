@@ -63,15 +63,23 @@ jobs:
         working-directory: tools/sports_edge_scanner_v05
     env:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      SOCCER_ENGINE_SOURCE_DIR: ${{ github.workspace }}/engine
+      SOCCER_ENGINE_COMMIT_SHA: '108c193c50e59f12f19f8693fc05c5cc9c607db4'
       API_FOOTBALL_RESEARCH_DAILY_CAP: '250'
       API_FOOTBALL_RESEARCH_MONTHLY_CAP: '9300'
       API_FOOTBALL_QUOTA_FILE: data/quota_api_football_paper.json
       API_FOOTBALL_CACHE_DIR: data/api_football_paper_cache
       MATCH_DATE: ${{ inputs.match_date }}
-      LEAGUE_IDS: ${{ inputs.league_ids || '2,3,18,17,39,140,135,78,61,262' }}
+      LEAGUE_IDS: ${{ inputs.league_ids || '2,3,18,17,39,140,135,78,61,262,848' }}
       ODDS_LIMIT: ${{ inputs.reference_odds_limit || '6' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Read-only checkout of the ORIGINAL Soccer raw model (pinned)
+        uses: actions/checkout@v4
+        with:
+          ref: '108c193c50e59f12f19f8693fc05c5cc9c607db4'
+          path: engine
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -102,6 +110,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          test -s "$SOCCER_ENGINE_SOURCE_DIR/mcp_gateway/soccer_model.py" || { echo '::error::El motor original no está disponible'; exit 2; }
           if [ -z "${API_FOOTBALL_KEY:-}" ]; then
             echo '::error::Falta configurar Actions secret API_FOOTBALL_KEY. No se consultó al proveedor.'
             exit 2
@@ -145,9 +154,10 @@ jobs:
               f"**Calendario completo:** {summary.get('source_slate_complete_verified', False)}",
               f"**Partidos elegibles:** {summary.get('eligible_games', 0)}",
               f"**Partidos examinados:** {summary.get('sports_screened', 0)}",
+              f"**Proyecciones RAW del motor original:** {summary.get('raw_existing_engine_projections', 0)}",
               f"**Momios de referencia capturados:** {summary.get('odds_snapshots_captured', 0)}",
               "**Apuestas realizadas:** 0",
-              "**Clasificación:** WATCH — no hay probabilidades deportivas calibradas ni precios Caliente/Playdoit verificados.",
+              "**Clasificación:** WATCH — proyección Poisson RAW sin calibración OOS, sin XI confirmado ni precios Caliente/Playdoit verificados.",
               "",
               "## Prioridad preliminar (no picks)",
           ]
