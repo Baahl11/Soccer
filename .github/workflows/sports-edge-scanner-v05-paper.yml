@@ -223,6 +223,30 @@ jobs:
                                   ("Goles", "preliminary_goals_shortlist")):
               ids = summary.get(field, [])[:5]
               lines.append(f"**{category}:** " + (", ".join(names.get(i, str(i)) for i in ids) if ids else "sin candidatos verificados"))
+          matrix_file = folder / f"bet365_market_matrix_{date}.json"
+          if matrix_file.is_file():
+              matrix = json.loads(matrix_file.read_text(encoding="utf-8"))
+              lines.extend(["", "## Cuatro primeras combinaciones Bet365 +100 (investigación, NO BET)", "",
+                            "La muestra de historial es descriptiva; NO es probabilidad calibrada ni EV."])
+              for i,pair in enumerate((matrix.get("sporting_screened_plus100_pairs") or [])[:4],1):
+                  lines.extend(["", f"**{i}. Combinada teórica {pair.get('theoretical_combined_decimal')} · WATCH**"])
+                  for leg in (pair.get("legs") or []):
+                      evidence = leg.get("all_competition_past_goal_evidence") or {}
+                      team_form = ", ".join(
+                          str(t.get("matching_totals",0)) + "/" + str(t.get("historical_games",0))
+                          for t in evidence.get("teams", [])
+                      ) or "NOT VERIFIED"
+                      lines.append(
+                          f"- {leg.get('event_name')}: {leg.get('market')} {leg.get('selection')} "
+                          f"{leg.get('point')} @ {leg.get('price_decimal')} Bet365 "
+                          f"· P RAW no calibrada {leg.get('raw_sport_probability')} "
+                          f"· historial de partidos por equipo {team_form} "
+                          f"· cuota publicada {leg.get('source_updated_at')}")
+                  lines.append(f"- Muestra mínima de competición/venue: {pair.get('minimum_venue_sample')}; "
+                               f"historial multicompetición mínimo: {pair.get('minimum_all_competitions_prior_sample')}.")
+              if not matrix.get("sporting_screened_plus100_pairs"):
+                  lines.append("Ninguna dupla con cotización reciente cumplió precio y filtro RAW.")
+
           lines.extend(["", f"**Datos completos:** descarga el artefacto soccer-paper-research; abre `board_{date}.html` y `parlay_radar_{date}.json` y `parlay_leg_evidence_{date}.json` y `bet365_market_matrix_{date}.json`."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
               output.write("\n\n".join(lines) + "\n")
