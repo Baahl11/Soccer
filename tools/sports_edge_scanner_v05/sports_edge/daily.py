@@ -235,6 +235,10 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
                         {r['fixture_id'] for r in batch['screened_fixtures']}))
     _write_json(target / f'market_registry_{date}.json', market_registry)
     _write_json(target / f'canonical_market_views_{date}.json', canonical)
+    # Dynamic BET/LEAN/WATCH/PASS path. No research calibration promotion.
+    from .decision_bridge import adjudicate_daily
+    decision = adjudicate_daily(canonical, slate_complete=batch['complete_sport_screen'])
+    _write_json(target / f'decision_gate_{date}.json', decision)
     result = {'generated_at_utc': datetime.now(timezone.utc).isoformat(),
               'match_date': date, 'status': 'PREFINAL_WATCH_RESEARCH',
               'source_slate_complete_verified': True, 'eligible_games': slate['eligible_count'],
@@ -261,7 +265,11 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'odds_research_selected': odds['selected_count'],
               'odds_snapshots_captured': odds['captured_count'],
               'price_research_failures': odds['failures'],
-              'actionable_bets': 0, 'wagers_placed': 0,
+              'actionable_bets': decision['actionable_bets'], 'wagers_placed': 0,
+              'decision_feed_status': decision.get('feed_status'),
+              'decision_singles_evaluated': len(decision['singles']),
+              'decision_parlays_evaluated': len(decision['parlays']),
+              'canonical_unpromoted_rows': decision['canonical_research']['rows_examined'],
               'blockers': ['RAW_SPORT_MODEL_NEEDS_VALIDATED_CALIBRATION_AND_AVAILABILITY',
                            'PREMATCH_AVAILABILITY_NOT_VERIFIED',
                            'ACTIONABLE_BOOK_PRICES_NOT_VERIFIED'],
@@ -274,10 +282,15 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     parlay_radar = annotate_parlay_radar(parlay_radar, batch, market_registry)
     result['parlay_price_pairs_watch'] = len(parlay_radar['pairs'])
     result['parlay_price_pairs_found'] = parlay_radar['pairs_found_before_display_cap']
-    result['parlay_actionable_bets'] = 0
+    result['parlay_actionable_bets'] = decision['actionable_parlays']
     result['parlay_raw_negative_pairs'] = parlay_radar.get('pairs_with_negative_raw_leg', 0)
     result['parlay_legs_without_exact_raw_model'] = parlay_radar.get('legs_without_exact_raw_model', 0)
-    result['parlay_risk_ranking_available'] = False
+    result['parlay_risk_ranking_available'] = bool(decision['actionable_parlays'])
+    if result['actionable_bets'] or result['parlay_actionable_bets']:
+        result['blockers'] = []
+        result['next_step'] = 'RECONFIRM_PRICE_AND_PORTFOLIO_BEFORE_STAKE'
+    else:
+        result['blockers'].append('CERTIFIED_MODEL_AND_BOOKMAKER_DECISION_FEED_NOT_READY')
     _write_json(target / f'parlay_radar_{date}.json', parlay_radar)
     _write_json(target / f'parlay_leg_evidence_{date}.json', parlay_radar)
     _write_json(target / f'odds_research_{date}.json', odds)
@@ -285,5 +298,5 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     from .board import write_board
     write_board(batch, result, target / f'board_{date}.html',
                 market_registry=market_registry, canonical=canonical, advanced_context=historical_market,
-                parlay_radar=parlay_radar)
+                parlay_radar=parlay_radar, decision_report=decision)
     return result
