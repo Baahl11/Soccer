@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v0.7 - Soccer full market research
+name: SPORTS EDGE SCANNER v0.8 - Soccer parlay radar / full market research
 
 on:
   pull_request:
@@ -8,7 +8,8 @@ on:
   # 07:15 and 14:15 America/Mexico_City (UTC-6).
   schedule:
     - cron: '15 13 * * *'
-    - cron: '15 20 * * *'
+    - cron: '05 17 * * *'  # 11:05 CDMX pregame discovery
+    - cron: '20 19 * * *'  # 13:20 CDMX pregame refresh
   push:
     branches: [main]
     paths:
@@ -49,7 +50,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify 81 research-only history and market tests
+      - name: Verify 96 market-and-parlay safety tests
         run: python -m unittest discover -s tests -q
 
   paper-research:
@@ -183,6 +184,8 @@ jobs:
               f"**Familias de mercados auditadas:** {summary.get('market_families_audited', 0)}",
               f"**Estado del pipeline canónico:** {summary.get('canonical_market_status', 'NOT_VERIFIED')}",
               f"**Momios de referencia capturados:** {summary.get('odds_snapshots_captured', 0)}",
+              f"**Duplas WATCH cerca de +100:** {summary.get('parlay_price_pairs_watch', 0)}",
+              "**Parlay EV y probabilidad conjunta:** NOT VERIFIED",
               "**Apuestas realizadas:** 0",
               "**Clasificación:** WATCH — proyección Poisson RAW sin calibración OOS, sin XI confirmado ni precios Caliente/Playdoit verificados.",
               "",
@@ -192,7 +195,7 @@ jobs:
                                   ("Goles", "preliminary_goals_shortlist")):
               ids = summary.get(field, [])[:5]
               lines.append(f"**{category}:** " + (", ".join(names.get(i, str(i)) for i in ids) if ids else "sin candidatos verificados"))
-          lines.extend(["", f"**Datos completos:** descarga el artefacto soccer-paper-research de esta ejecución y abre `board_{date}.html`."])
+          lines.extend(["", f"**Datos completos:** descarga el artefacto soccer-paper-research; abre `board_{date}.html` y `parlay_radar_{date}.json`."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
               output.write("\n\n".join(lines) + "\n")
           PY

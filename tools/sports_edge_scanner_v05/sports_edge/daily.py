@@ -257,9 +257,18 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
                            'PREMATCH_AVAILABILITY_NOT_VERIFIED',
                            'ACTIONABLE_BOOK_PRICES_NOT_VERIFIED'],
               'next_step': 'OUT_OF_SAMPLE_CALIBRATION_AND_T-40_REFRESH'}
+    # PRICE TARGET SECOND, after sport-first analysis and saved provider quotes.
+    # This does not derive probabilities from odds or declare bets.
+    from .parlay_radar import discover_saved_snapshot_pairs
+    parlay_radar = discover_saved_snapshot_pairs(odds.get('snapshots', []))
+    result['parlay_price_pairs_watch'] = len(parlay_radar['pairs'])
+    result['parlay_price_pairs_found'] = parlay_radar['pairs_found_before_display_cap']
+    result['parlay_actionable_bets'] = 0
+    _write_json(target / f'parlay_radar_{date}.json', parlay_radar)
     _write_json(target / f'odds_research_{date}.json', odds)
     _write_json(target / f'daily_summary_{date}.json', result)
     from .board import write_board
     write_board(batch, result, target / f'board_{date}.html',
-                market_registry=market_registry, canonical=canonical, advanced_context=historical_market)
+                market_registry=market_registry, canonical=canonical, advanced_context=historical_market,
+                parlay_radar=parlay_radar)
     return result

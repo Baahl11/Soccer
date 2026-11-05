@@ -25,7 +25,8 @@ def _text(x: Any) -> str:
 def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
                  market_registry: dict[str, Any] | None = None,
                  canonical: dict[str, Any] | None = None,
-                 advanced_context: dict[str, Any] | None = None) -> str:
+                 advanced_context: dict[str, Any] | None = None,
+                 parlay_radar: dict[str, Any] | None = None) -> str:
     """Rendering never creates betting recommendations or uses market prices."""
     matches = batch.get('screened_fixtures') or []
     if not isinstance(matches, list):
@@ -96,6 +97,34 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
         <p class="note">{history_text}<br>Formaciones y estilo: {formation_text}. El estado del módulo es investigativo, no un ajuste automático de goles.</p>
         <table><thead><tr><th>Mercado</th><th>Probabilidad RAW (NO calibrada)</th></tr></thead><tbody>{line}</tbody></table>{advanced_html}
         <p class="note">No implica EV positivo. Alineaciones, disponibilidad, calibración OOS y precios de casa accionables: NOT VERIFIED. No BET.</p></div></details>''')
+    parlay_radar = parlay_radar or {}
+    radar_pairs = parlay_radar.get('pairs') or []
+    radar_cards = []
+    for pair in radar_pairs[:15]:
+        legs=pair.get('legs') or []
+        if len(legs)!=2:continue
+        def label(leg):
+            point=(' '+_text(leg.get('point'))) if leg.get('point') else ''
+            return ('<b>'+_text(leg.get('event_name') or 'Fixture '+str(leg.get('event_id')))
+                    +'</b> · '+_text(leg.get('market'))+' · '+_text(leg.get('selection'))+point
+                    +' · '+_text(leg.get('price_american')))
+        radar_cards.append('<li>'+label(legs[0])+' <b>+</b> '+label(legs[1])
+                           +'<br>Casa de referencia: '+_text(pair.get('bookmaker'))
+                           +' · cuota matemática '+_text(pair.get('theoretical_combined_decimal'))
+                           +' ('+_text(pair.get('theoretical_combined_american'))+')'
+                           +' · breakeven '+_text(round(100*float(pair.get('joint_breakeven') or 0),1))+'%'
+                           +' · <b>WATCH, EV NO VERIFICADO</b></li>')
+    radar_html=('<h2>Radar parlay cercano a +100 — WATCH</h2>'
+                '<p>Primero investigamos los partidos; luego exploramos posibles combinaciones de precios '
+                'en dos encuentros distintos y la misma casa de referencia. Esto no mide riesgo real '
+                'ni ofrece probabilidades conjuntas calibradas.</p>'
+                + ('<ol>'+''.join(radar_cards)+'</ol>' if radar_cards else
+                   '<p>No se encontraron combinaciones con precios de origen verificados y suficientemente recientes '
+                   'en los mercados consultados. Sin inventar oportunidades.</p>')
+                + '<p class="note">API-Football no verifica que el parlay sea ofrecido por Caliente/Playdoit. '
+                  'Independencia, disponibilidad, modelos por mercado, precio ofrecido y EV: NOT VERIFIED. '
+                  'Nunca BET por el mero hecho de sumar +100.</p>')
+
     day = _text(summary.get('match_date') or batch.get('match_date'))
     generated = _text(summary.get('generated_at_utc'))
     screened = int(summary.get('sports_screened') or 0)
@@ -112,6 +141,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
 <div class="metrics"><div class="metric"><strong>{screened}</strong><small>Examinados</small></div><div class="metric"><strong>{modeled}</strong><small>RAW calculados</small></div><div class="metric"><strong>{low_sample}</strong><small>Muestra local/visitante insuficiente</small></div><div class="metric"><strong>0</strong><small>BET aprobadas</small></div></div>
 <p>Historial multicompetición verificado para <b>{history_ok}/{screened}</b> partidos. Snapshot del motor canónico: <b>{canonical_status}</b>. Nunca usar datos de otro día como señal actual.</p>
 <div class="warning"><strong>ATENCIÓN:</strong> proyecciones Poisson limitadas y NO calibradas. <b>NO</b> extrapolar como recomendaciones. Para BET faltan ajuste histórico/OOS, XI y disponibilidad confirmados, y precios vigentes de la casa elegida.</div>
+{radar_html}
 {market_section}
 <h2>Partidos — perfiles y modelos RAW</h2>
 <input id="search" aria-label="Filtrar partido" placeholder="Buscar equipo o fixture..." oninput="document.querySelectorAll('.game').forEach(x=>x.classList.toggle('hide',!x.textContent.toLowerCase().includes(this.value.toLowerCase())))"><div>{''.join(cards)}</div>
@@ -121,9 +151,10 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
 def write_board(batch: dict[str, Any], summary: dict[str, Any], filename: str | Path, *,
                 market_registry: dict[str, Any] | None = None,
                 canonical: dict[str, Any] | None = None,
-                advanced_context: dict[str, Any] | None = None) -> None:
+                advanced_context: dict[str, Any] | None = None,
+                parlay_radar: dict[str, Any] | None = None) -> None:
     path=Path(filename)
     path.parent.mkdir(parents=True,exist_ok=True)
     tmp=path.with_suffix('.tmp')
-    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context),encoding='utf-8')
+    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar),encoding='utf-8')
     tmp.replace(path)

@@ -1,6 +1,6 @@
 # SPORTS EDGE SCANNER v0.5 — Pro full-slate research + pregame refresh
 
-**Estado actual (5-nov-2026):** Integrado y funcionando en GitHub Actions (07:15 y 14:15 CDMX), con barridos reales de API-Football Pro. El motor canónico de Soccer volvió a actualizar PostgreSQL el 5-nov-2026. **NO ejecuta apuestas ni genera BET sin controles completos.** Los datos Pro estaban disponibles mediante la conexión Soccer Edge API en esta conversación; el acceso HTTP directo requiere `API_FOOTBALL_KEY` configurada como secreto del ejecutor (no la compartas por chat). La renovación Pro mostró 7,500 consultas/día y datos de temporada 2026 en la prueba anterior, pero los saldos pueden variar.
+**Estado actual (5-nov-2026):** Integrado en `Baahl11/Soccer` y ejecutándose dos veces al día en GitHub Actions; probado con API-Football Pro y 41 partidos. El programador canónico de Soccer volvió a producir un tick persistido el 5-nov-2026. **NO ejecuta apuestas**. Los datos Pro estaban disponibles mediante la conexión Soccer Edge API en esta conversación; el acceso HTTP directo requiere `API_FOOTBALL_KEY` configurada como secreto del ejecutor (no la compartas por chat). La renovación Pro mostró 7,500 consultas/día y datos de temporada 2026 en la prueba anterior, pero los saldos pueden variar.
 
 ## Qué incorpora v0.5
 
@@ -10,7 +10,7 @@
 4. `pro-soccer-reference-odds`: consulta cuotas **únicamente después** de completar el screening deportivo de la jornada y guarda JSON de cada consulta con hora real de publicación; no inventa precio accionable de Caliente/Playdoit, ni modelos calibrados, ni EV.
 5. `pro-soccer-refresh`: T-90 / T-40 / T-20 para un candidato deportivo válido: revisa que siga sin comenzar, consulta XI de ambos equipos, verifica si el proveedor identifica porteros y observa registros de lesiones. Si no hay lesiones reportadas, eso **NO** confirma una plantilla sana. La validación independiente oficial sigue siendo necesaria.
 6. Plantilla de GitHub Actions **manual** en `.github/workflows/pro-soccer-research.yml`: corre solo si el código está en un repositorio GitHub y existe un secreto `API_FOOTBALL_KEY`. **No hay programación automática habilitada**. Incluye pruebas, auditoría y artefactos de investigación con vencimiento a 7 días.
-7. **81 pruebas offline aprobadas en GitHub Actions**; los tests no consumen consultas API ni simulan apuestas reales.
+7. **81 pruebas locales y de GitHub Actions**, sin consumir crédito API durante los tests. El barrido real es un paso separado y solo WATCH.
 
 ## Un comando para una jornada
 
@@ -72,7 +72,7 @@ En `reports/demo_v05_offline.json` hay una **demostración sintética etiquetada
 - Un repositorio o servicio seleccionado por el usuario, con código v0.5 publicado en él.
 - La clave API-Football Pro almacenada en el gestor de secretos del ejecutor; el archivo `.env.example` es una plantilla que **NO** contiene la clave.
 - Elegir las competiciones elegibles del motor Soccer, por ID. `18,17` son solo ejemplos, no sustituyen la lista de competiciones aprobadas.
-- Configurar un disparador (GitHub Actions, cron o servicio) y almacenamiento persistente de reportes/cuota/caché. La plantilla manual incluida **NO** lo activa por sí sola.
+- El disparador ya existe en `.github/workflows/sports-edge-scanner-v05-paper.yml` (07:15/14:15 CDMX). Conserva reportes como artefactos durante 30 días. La cuota/caché local de Actions es efímera entre runners y NO representa una reserva global conjunta.
 - Antes de cualquier BET real: modelo deportivo RAW independiente del precio, calibración, shrinkage, confirmación de XI y porteros, precio realmente accionable, cotejo de vig y límites de stake. **No están implementados ni conectados en v0.5**.
 
 ## Alcance y seguridad
@@ -139,3 +139,32 @@ Las cuotas Caliente y Playdoit por selección y línea siguen siendo datos exter
 ### v0.7.1 — mitades históricas sin extrapolación
 
 Si API-Football entrega un marcador válido al descanso en un partido terminado anterior al encuentro objetivo, `history.py` conserva los goles de primera mitad y obtiene los de la segunda por diferencia con el marcador final. El expediente avanzado incluye los promedios observados por equipo y el tamaño de muestra. Datos ausentes, contradictorios o posteriores al inicio objetivo permanecen N/V. Estos promedios **NO** se convierten automáticamente en líneas o probabilidades 1H/2H.
+
+## Two-leg parlay price radar (PAPER/WATCH ONLY)
+
+Every `pro-soccer-daily` run now writes `parlay_radar_YYYY-MM-DD.json` from
+**already-saved reference odds snapshots**. It adds **zero** API calls beyond
+existing market research. The HTML board displays the short price-target list.
+
+- Price window: two legs on different fixtures, same **named** bookmaker,
+  individual decimal odds 1.24–1.55, combined theoretical decimal odds 1.90–2.10.
+  No automatic single-leg probability or value is inferred from the quote.
+- Both source timestamps must exist and be at most 120 minutes old; both
+  matches must still be in the future. Unspecified totals/derivative thresholds
+  and unsupported markets are excluded.
+- Includes 1X2, BTTS, double chance, explicitly priced goals/periods,
+  corners, fouls, and cards *where actual data exists*. Model-family `RESEARCH_HOLD`
+  states remain binding; market detection alone is not a market projection.
+- The product is **WATCH**, never BET. It explicitly reports `estimated_ev=null`,
+  `joint_model_probability=null` and `dependence_evidence=NOT_VERIFIED`.
+- Provider books such as Bet365 or William Hill are **not** assumed to match
+  Caliente/Playdoit, nor is a bookmaker's offered combined ticket price inferred
+  from two individually quoted prices.
+- A pair near +100 requires about a 50% win probability just to break even;
+  it does not make doubling one's whole bankroll a low-risk strategy.
+- Promote only after each leg has an independent, sport-specific calibrated
+  probability and uncertainty lower bound, material lineup/availability review,
+  actual offered same-book price, dependence validation and portfolio controls.
+
+The original `core.generate_parlays()` remains the stricter BET-eligible tier A/S
+path and is **not** silently relaxed by this research screen.
