@@ -55,7 +55,8 @@ def fetch_bookmaker_directory(request_fn):
     matches1=[x for r in records for x in r['caliente_matches']]
     matches2=[x for r in records for x in r['playdoit_matches']]
     out={'source':'API_FOOTBALL_TARGETED_BOOKMAKER_SEARCH',
-         'status':('TARGETED_SEARCH_UNVERIFIED' if errors else
+         'status':('BOOKMAKER_DIRECTORY_REQUEST_FAILED' if len(errors)==2 and not records else
+                   'TARGETED_SEARCH_UNVERIFIED' if errors else
                    'REFERENCE_NAME_MATCHES_FOUND' if matches1 or matches2 else
                    'NO_REFERENCE_NAMES_RETURNED_IN_TARGETED_SEARCH'),
          'checked_at_utc':datetime.now(timezone.utc).isoformat(),
