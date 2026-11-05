@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v1.1 - Canonical sources & bookmaker coverage
+name: SPORTS EDGE SCANNER v1.2 - Bet365 reference proxy / +100 radar
 
 on:
   pull_request:
@@ -68,6 +68,8 @@ jobs:
       SOCCER_DECISION_FEED_HMAC_KEY: ${{ secrets.SOCCER_DECISION_FEED_HMAC_KEY }}
       SOCCER_CANONICAL_STATE_PATH: ${{ github.workspace }}/market_evidence/soccer_edge_state/latest.json
       SOCCER_BOOKMAKER_DIRECTORY_ENABLED: '1'
+      SOCCER_PROXY_BOOKMAKER_ID: '8'
+      SOCCER_PROXY_BOOKMAKER_NAME: 'Bet365'
       SOCCER_ENGINE_SOURCE_DIR: ${{ github.workspace }}/engine
       SOCCER_ENGINE_COMMIT_SHA: '108c193c50e59f12f19f8693fc05c5cc9c607db4'
       SOCCER_ENABLE_RECENT_HISTORY: '1'
@@ -81,7 +83,7 @@ jobs:
       API_FOOTBALL_CACHE_DIR: data/api_football_paper_cache
       MATCH_DATE: ${{ inputs.match_date }}
       LEAGUE_IDS: ${{ inputs.league_ids || '2,3,18,17,39,140,135,78,61,262,848' }}
-      ODDS_LIMIT: ${{ inputs.reference_odds_limit || '6' }}
+      ODDS_LIMIT: ${{ inputs.reference_odds_limit || '12' }}
     steps:
       - uses: actions/checkout@v4
       - name: Read-only checkout of the ORIGINAL Soccer raw model (pinned)
@@ -192,6 +194,10 @@ jobs:
               f"**Calibración experimental correctamente atribuida:** {summary.get('canonical_selection_research_models', 0)}",
               f"**Directorío casas API-Football:** {summary.get('bookmaker_catalogue_status', 'NOT_VERIFIED')}",
               f"**Momios de referencia capturados:** {summary.get('odds_snapshots_captured', 0)}",
+              f"**Casa proxy única:** {summary.get('proxy_reference_bookmaker', 'NOT_VERIFIED')} (ID {summary.get('proxy_reference_bookmaker_id', 'N/V')})",
+              f"**Partidos con precio proxy:** {summary.get('proxy_quote_fixtures', 0)}",
+              f"**Cotizaciones proxy:** {summary.get('proxy_quote_count', 0)}",
+              "**Disponibilidad Caliente/Playdoit:** NO VERIFICADA (Bet365 solo referencia)",
               f"**Duplas WATCH cerca de +100:** {summary.get('parlay_price_pairs_watch', 0)}",
               f"**BET individuales calculados:** {summary.get('actionable_bets', 0)}",
               f"**BET combinadas calculadas:** {summary.get('parlay_actionable_bets', 0)}",
