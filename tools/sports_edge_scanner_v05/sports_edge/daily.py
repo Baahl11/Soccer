@@ -14,6 +14,7 @@ import json
 import math
 
 from .providers import ProviderFailure, api_football_odds, normalize_api_football_odds
+import os
 from .pro_pipeline import sporting_research
 
 
@@ -157,18 +158,45 @@ def fetch_research_reference_odds(batch: dict[str, Any], directory: str | Path,
             break
     if max_fixtures == 0:
         selected = []
+    # One book is the price proxy; do not silently replace missing Bet365
+    # observations with another provider's quote.
+    proxy_name = os.getenv('SOCCER_PROXY_BOOKMAKER_NAME', '').strip()
+    proxy_id_text = os.getenv('SOCCER_PROXY_BOOKMAKER_ID', '').strip()
+    if bool(proxy_name) != bool(proxy_id_text):
+        raise ProviderFailure('Proxy bookmaker name and ID must be configured together')
+    proxy_id = None
+    if proxy_id_text:
+        if not proxy_id_text.isdecimal() or int(proxy_id_text) <= 0:
+            raise ProviderFailure('Invalid proxy bookmaker ID')
+        proxy_id = int(proxy_id_text)
     root = Path(directory)
     snapshots, failures = [], []
+    proxy_quote_count, proxy_quote_fixtures = 0, 0
     for fid in selected:
         try:
-            fetched = odds_fn(int(fid))
-            normalized = normalize_api_football_odds(fetched, {'fixture_id': fid, 'event_name': screened[fid].get('match', '')})
+            fetched = (api_football_odds(int(fid), bookmaker_id=proxy_id)
+                       if proxy_id is not None and odds_fn is api_football_odds
+                       else odds_fn(int(fid)))
+            normalized_all = normalize_api_football_odds(
+                fetched, {'fixture_id': fid, 'event_name': screened[fid].get('match', '')})
+            normalized = ([q for q in normalized_all
+                           if q.get('bookmaker', '').strip().casefold() == proxy_name.casefold()]
+                          if proxy_name else normalized_all)
+            if proxy_name and not normalized:
+                failures.append({'fixture_id': fid,
+                                 'reason': 'NO_' + proxy_name.upper() + '_REFERENCE_QUOTES_FOR_FIXTURE'})
+                continue
+            proxy_quote_count += len(normalized)
+            proxy_quote_fixtures += int(bool(normalized))
             # Exclude any data whose fixture IDs disagree with our selected event.
             if any(str(q['event_id']) != str(fid) for q in normalized):
                 raise ProviderFailure('Odds payload contains mismatched event IDs')
             stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
             destination = root / 'reference_odds' / f'{stamp}_{fid}.json'
             payload = {'source': 'API-Football', 'fixture_id': fid,
+                       'proxy_bookmaker': proxy_name or 'ALL_REFERENCE_BOOKS',
+                       'proxy_bookmaker_id': proxy_id,
+                       'mexico_offer_verified': False,
                        'checked_at_utc': datetime.now(timezone.utc).isoformat(),
                        'actionable_at_caliente_or_playdoit': False,
                        'classification': 'WATCH', 'quote_count': len(normalized),
@@ -181,6 +209,11 @@ def fetch_research_reference_odds(batch: dict[str, Any], directory: str | Path,
             failures.append({'fixture_id': fid, 'reason': str(exc)[:350]})
     return {'generated_at_utc': datetime.now(timezone.utc).isoformat(),
             'source': 'API-Football', 'purpose': 'PRICE_DISCOVERY_ONLY',
+            'reference_bookmaker': proxy_name or 'ALL_REFERENCE_BOOKS',
+            'reference_bookmaker_id': proxy_id,
+            'proxy_quote_count': proxy_quote_count,
+            'proxy_quote_fixtures': proxy_quote_fixtures,
+            'proxy_prices_actionable_in_mexico': False,
             'selected_count': len(selected), 'captured_count': len(snapshots),
             'snapshots': snapshots, 'failures': failures,
             'actionable_bets': 0, 'classification': 'WATCH',
@@ -280,6 +313,11 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'pregame_status': pregame['status'],
               'odds_research_selected': odds['selected_count'],
               'odds_snapshots_captured': odds['captured_count'],
+              'proxy_reference_bookmaker': odds.get('reference_bookmaker'),
+              'proxy_reference_bookmaker_id': odds.get('reference_bookmaker_id'),
+              'proxy_quote_count': odds.get('proxy_quote_count',0),
+              'proxy_quote_fixtures': odds.get('proxy_quote_fixtures',0),
+              'proxy_price_available_in_mexico_verified': False,
               'price_research_failures': odds['failures'],
               'actionable_bets': decision['actionable_bets'], 'wagers_placed': 0,
               'decision_feed_status': decision.get('feed_status'),
