@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v1.3.1 - Bet365 verified-price research
+name: SPORTS EDGE SCANNER v1.4 - Bet365 + multi-competition history
 
 on:
   pull_request:
@@ -202,6 +202,8 @@ jobs:
               f"**Precios con mercado sin vigorish verificable:** {summary.get('bet365_no_vig_market_quotes', 0)}",
               f"**Duplas +100 tras evaluación deportiva RAW preliminar:** {summary.get('bet365_sport_first_review_pairs_plus100', 0)}",
               f"**Duplas con muestras >=5 por pierna:** {summary.get('bet365_research_pairs_min_5_sample', 0)}",
+              f"**Duplas con al menos 6 partidos previos por equipo:** {summary.get('bet365_pairs_6plus_prior_multicomp_games', 0)}",
+              f"**Duplas con respaldo histórico descriptivo en ambas piernas:** {summary.get('bet365_pairs_history_directionally_agrees', 0)}",
               "**Disponibilidad Caliente/Playdoit:** NO VERIFICADA (Bet365 solo referencia)",
               f"**Duplas WATCH cerca de +100:** {summary.get('parlay_price_pairs_watch', 0)}",
               f"**BET individuales calculados:** {summary.get('actionable_bets', 0)}",
