@@ -22,17 +22,54 @@ def _text(x: Any) -> str:
     return escape(str(x if x is not None else 'NOT VERIFIED'), quote=True)
 
 
-def render_board(batch: dict[str, Any], summary: dict[str, Any]) -> str:
+def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
+                 market_registry: dict[str, Any] | None = None,
+                 canonical: dict[str, Any] | None = None,
+                 advanced_context: dict[str, Any] | None = None) -> str:
     """Rendering never creates betting recommendations or uses market prices."""
     matches = batch.get('screened_fixtures') or []
     if not isinstance(matches, list):
         raise ValueError('Invalid screened_fixtures')
+    market_registry = market_registry or {}
+    canonical = canonical or {}
+    families = market_registry.get('families') or []
+    deep = {r['fixture_id']:r for r in (advanced_context or {}).get('reports',[]) if isinstance(r,dict) and 'fixture_id' in r}
+    family_rows = ''.join(
+        '<tr><td><b>' + _text(f.get('label')) + '</b></td>'
+        + '<td>' + _text(f.get('research_status')) + '</td>'
+        + '<td>' + _text('; '.join((f.get('blockers') or [])[:2]) or 'Sin suficientes garantías para BET') + '</td></tr>'
+        for f in families
+    )
+    history_ok = int(summary.get('history_multi_competition_verified') or 0)
+    canonical_status = _text(summary.get('canonical_market_status') or 'NOT_VERIFIED')
     cards = []
     for row in matches:
         raw = row.get('raw_sport_projection') or {}
         status = raw.get('status') or 'NOT_CONNECTED'
         sample = (raw.get('sample') or {}).get('minimum_split_sample')
         sample_note = 'MUESTRA INSUFICIENTE' if not isinstance(sample, int) or sample < 5 else 'NO CALIBRADO'
+        hist = row.get('multi_competition_history') or {}
+        history_text = ('Partidos previos en TODAS las competiciones: '
+                        + _text(hist.get('home_count', 0)) + ' local / '
+                        + _text(hist.get('away_count', 0)) + ' visitante. Estado: '
+                        + _text(hist.get('status') or 'NOT_VERIFIED'))
+        formation_text = _text(hist.get('formation_matchup_status') or 'NOT_VERIFIED_NO_VERIFIED_XI')
+        context = deep.get(row.get('fixture_id')) or {}
+        advanced_rows = ''
+        if context:
+            for key, label in [('corners','Córners'),('fouls','Faltas'),('yellow_cards','Tarjetas amarillas'),('shots','Tiros totales'),('shots_on_target','Tiros a puerta')]:
+                h=(context.get('home') or {}).get('observed_averages',{}).get(key,{})
+                a=(context.get('away') or {}).get('observed_averages',{}).get(key,{})
+                def field(y):
+                    return 'N/V' if y.get('average') is None else f"{_text(y['average'])} (n={_text(y.get('sample_count'))})"
+                advanced_rows += f'<tr><td>{label}</td><td>{field(h)}</td><td>{field(a)}</td></tr>'
+        advanced_html = ('<h4>Historial de mercados — descriptivo, NO predicción</h4>'
+                         '<table><thead><tr><th>Métrica</th><th>Local</th><th>Visitante</th></tr></thead>'
+                         '<tbody>'+advanced_rows+'</tbody></table>'
+                         '<p class="note">Formaciones previas verificadas: '
+                         + _text((context.get('home') or {}).get('past_formation_samples',0))+' / '
+                         + _text((context.get('away') or {}).get('past_formation_samples',0))
+                         + '. Sin once ni formación actual confirmados: NO ajuste táctico cuantitativo.</p>') if advanced_rows else ''
         name = _text(row.get('match') or 'Partido no identificado')
         fixture_id = _text(row.get('fixture_id'))
         league = _text(row.get('league_id'))
@@ -45,26 +82,38 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any]) -> str:
             f'<tr><td>Ambos marcan (Sí)</td><td>{_pct(raw.get("raw_btts_yes_prob"))}</td></tr>'
         )
         cards.append(f'''<details class="game"><summary><span><strong>{name}</strong><small>Fixture #{fixture_id} · Liga {league} · {sample_note}</small></span><b>WATCH</b></summary>
-        <div class="detail"><p>Modelo: <code>{_text(raw.get('projection_model'))}</code> · estado <b>{_text(status)}</b> · muestra local/visitante <b>{_text(sample)}</b>.</p>
-        <table><thead><tr><th>Mercado</th><th>Probabilidad RAW (NO calibrada)</th></tr></thead><tbody>{line}</tbody></table>
+        <div class="detail"><p>Modelo RAW: <code>{_text(raw.get('projection_model'))}</code> · estado <b>{_text(status)}</b> · muestra de esta liga <b>{_text(sample)}</b>.</p>
+        <p class="note">{history_text}<br>Formaciones y estilo: {formation_text}. El estado del módulo es investigativo, no un ajuste automático de goles.</p>
+        <table><thead><tr><th>Mercado</th><th>Probabilidad RAW (NO calibrada)</th></tr></thead><tbody>{line}</tbody></table>{advanced_html}
         <p class="note">No implica EV positivo. Alineaciones, disponibilidad, calibración OOS y precios de casa accionables: NOT VERIFIED. No BET.</p></div></details>''')
     day = _text(summary.get('match_date') or batch.get('match_date'))
     generated = _text(summary.get('generated_at_utc'))
     screened = int(summary.get('sports_screened') or 0)
     modeled = int(summary.get('raw_existing_engine_projections') or 0)
     low_sample = sum(1 for row in matches if (row.get('raw_sport_projection') or {}).get('sample_warning'))
+    market_section = ('<h2>Mercados del motor completo — evidencia, NO recomendaciones</h2>'
+                     '<p>Los reportes de validación pertenecen al motor existente; pueden ser históricos. '
+                     'No equivalen a pronósticos de cada partido ni autorizan apuestas.</p>'
+                     '<table class="market-table"><thead><tr><th>Familia</th><th>Estado de investigación</th><th>Bloqueos principales</th></tr></thead>'
+                     '<tbody>'+family_rows+'</tbody></table>') if family_rows else '<p>No se cargaron reportes de madurez de mercados.</p>'
     return f'''<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SPORTS EDGE · {day}</title>
-<style>:root{{color-scheme:dark;font-family:system-ui,Arial,sans-serif}}*{{box-sizing:border-box}}body{{background:#0d1324;color:#eaf0fb;margin:0}}main{{margin:auto;max-width:1020px;padding:25px 18px}}h1{{margin:8px 0}}p,small{{color:#aebbd1}}.metrics{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}}.metric,.game{{border:1px solid #34415c;background:#17223b;border-radius:12px;padding:14px}}.metric strong{{font-size:1.75rem;display:block}}.warning{{border-left:4px solid #e2b06a;padding:13px;background:#292638;border-radius:8px;margin:20px 0}}.game{{margin:10px 0;padding:0}}summary{{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:15px;cursor:pointer}}summary small{{display:block;margin-top:3px}}summary b{{color:#efcf95}}.detail{{padding:0 15px 15px}}table{{border-collapse:collapse;width:100%;max-width:650px}}th,td{{padding:10px;border-bottom:1px solid #3a455c;text-align:left}}th{{color:#b4c0d5}}.note{{font-size:.87rem}}input{{padding:10px;background:#233451;border:1px solid #4b6084;color:white;border-radius:8px;width:min(100%,400px)}}.hide{{display:none}}@media(max-width:700px){{.metrics{{grid-template-columns:repeat(2,1fr)}}}}</style></head><body><main>
+<style>:root{{color-scheme:dark;font-family:system-ui,Arial,sans-serif}}*{{box-sizing:border-box}}body{{background:#0d1324;color:#eaf0fb;margin:0}}main{{margin:auto;max-width:1020px;padding:25px 18px}}h1{{margin:8px 0}}p,small{{color:#aebbd1}}.metrics{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}}.metric,.game{{border:1px solid #34415c;background:#17223b;border-radius:12px;padding:14px}}.metric strong{{font-size:1.75rem;display:block}}.warning{{border-left:4px solid #e2b06a;padding:13px;background:#292638;border-radius:8px;margin:20px 0}}.game{{margin:10px 0;padding:0}}summary{{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:15px;cursor:pointer}}summary small{{display:block;margin-top:3px}}summary b{{color:#efcf95}}.detail{{padding:0 15px 15px}}table{{border-collapse:collapse;width:100%;max-width:650px}}th,td{{padding:10px;border-bottom:1px solid #3a455c;text-align:left}}th{{color:#b4c0d5}}.note{{font-size:.87rem}}.market-table{{max-width:none;font-size:.88rem}}.market-table td{{vertical-align:top}}input{{padding:10px;background:#233451;border:1px solid #4b6084;color:white;border-radius:8px;width:min(100%,400px)}}.hide{{display:none}}@media(max-width:700px){{.metrics{{grid-template-columns:repeat(2,1fr)}}}}</style></head><body><main>
 <small>SPORTS EDGE ENGINE · MOTOR ORIGINAL CONECTADO · PAPER RESEARCH</small><h1>Jornada {day}</h1><p>Generado {generated}. Estadísticas deportivas antes de mercados · probabilidades RAW del módulo original. Sin operaciones de apuesta.</p>
 <div class="metrics"><div class="metric"><strong>{screened}</strong><small>Examinados</small></div><div class="metric"><strong>{modeled}</strong><small>RAW calculados</small></div><div class="metric"><strong>{low_sample}</strong><small>Muestra local/visitante insuficiente</small></div><div class="metric"><strong>0</strong><small>BET aprobadas</small></div></div>
+<p>Historial multicompetición verificado para <b>{history_ok}/{screened}</b> partidos. Snapshot del motor canónico: <b>{canonical_status}</b>. Nunca usar datos de otro día como señal actual.</p>
 <div class="warning"><strong>ATENCIÓN:</strong> proyecciones Poisson limitadas y NO calibradas. <b>NO</b> extrapolar como recomendaciones. Para BET faltan ajuste histórico/OOS, XI y disponibilidad confirmados, y precios vigentes de la casa elegida.</div>
+{market_section}
+<h2>Partidos — perfiles y modelos RAW</h2>
 <input id="search" aria-label="Filtrar partido" placeholder="Buscar equipo o fixture..." oninput="document.querySelectorAll('.game').forEach(x=>x.classList.toggle('hide',!x.textContent.toLowerCase().includes(this.value.toLowerCase())))"><div>{''.join(cards)}</div>
 <p class="note">Fuente: API-Football Pro; motor existente fijado a commit 108c193c50e59f12f19f8693fc05c5cc9c607db4, función build_raw_projection. Sin captura de Caliente/Playdoit confirmada.</p></main></body></html>'''
 
 
-def write_board(batch: dict[str, Any], summary: dict[str, Any], filename: str | Path) -> None:
+def write_board(batch: dict[str, Any], summary: dict[str, Any], filename: str | Path, *,
+                market_registry: dict[str, Any] | None = None,
+                canonical: dict[str, Any] | None = None,
+                advanced_context: dict[str, Any] | None = None) -> None:
     path=Path(filename)
     path.parent.mkdir(parents=True,exist_ok=True)
     tmp=path.with_suffix('.tmp')
-    tmp.write_text(render_board(batch,summary),encoding='utf-8')
+    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context),encoding='utf-8')
     tmp.replace(path)

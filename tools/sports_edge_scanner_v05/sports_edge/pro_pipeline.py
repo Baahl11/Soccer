@@ -23,7 +23,7 @@ def api_pro_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
 
     Allows only fixed endpoint names. Never accesses a sportsbook website.
     """
-    allowed = {'fixtures', 'leagues', 'teams/statistics', 'injuries', 'fixtures/lineups', 'odds'}
+    allowed = {'fixtures', 'leagues', 'teams/statistics', 'injuries', 'fixtures/lineups', 'fixtures/statistics', 'odds'}
     if endpoint not in allowed:
         raise ProviderFailure(f'Endpoint not allowed by research adapter: {endpoint}')
     key = os.environ.get('API_FOOTBALL_KEY', '')
@@ -211,9 +211,26 @@ def sporting_research(fixture:dict[str,Any]) -> dict[str,Any]:
     coverage_flags=((coverage_rows[0].get('seasons') or [{}])[0].get('coverage') or {}) if coverage_rows else {}
     enough=all(r['verified'] and isinstance(r['played'],int) and r['played']>=5
                and r['gf_avg'] is not None and r['ga_avg'] is not None for r in stats)
-    raw_projection=from_existing_engine(fixture, team_payloads[0], team_payloads[1])
+    recent = [[], []]
+    history_errors = []
+    if os.getenv('SOCCER_ENABLE_RECENT_HISTORY', '0') == '1':
+        from .history import get_team_history
+        for i, team_id in enumerate((int(fixture['home_team_id']), int(fixture['away_team_id']))):
+            try:
+                recent[i] = get_team_history(team_id, fixture, api_pro_get, limit=12)
+            except (ProviderFailure, ValueError, TypeError, OSError) as exc:
+                history_errors.append({'team_id': team_id, 'reason': str(exc)[:170]})
+    raw_projection=from_existing_engine(fixture, team_payloads[0], team_payloads[1],
+                                         home_recent=recent[0], away_recent=recent[1])
     return {
         'raw_sport_projection':raw_projection,
+        'multi_competition_history': {
+            'status': 'VERIFIED_PAST_MATCHES' if all(recent) else 'INCOMPLETE_OR_NOT_VERIFIED',
+            'home_count': len(recent[0]), 'away_count': len(recent[1]),
+            'home_fixtures': recent[0], 'away_fixtures': recent[1],
+            'errors': history_errors,
+            'formation_matchup_status': 'RESEARCH_HOLD_REQUIRES_PRIOR_VERIFIED_XI_AND_STYLE',
+        },
         'generated_at_utc':now_iso(), 'stage':'SPORT_FIRST_RESEARCH',
         'fixture_id':fixture['fixture_id'], 'match':f"{fixture.get('home_team','')} vs {fixture.get('away_team','')}",
         'league_id':lid,'season':season,'coverage_flags':coverage_flags,

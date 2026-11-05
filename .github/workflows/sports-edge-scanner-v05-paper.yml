@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v0.5 - Soccer paper research
+name: SPORTS EDGE SCANNER v0.7 - Soccer full market research
 
 on:
   pull_request:
@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify 64 offline and engine safety tests
+      - name: Verify 79 research-only integrity tests
         run: python -m unittest discover -s tests -q
 
   paper-research:
@@ -65,6 +65,11 @@ jobs:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
       SOCCER_ENGINE_SOURCE_DIR: ${{ github.workspace }}/engine
       SOCCER_ENGINE_COMMIT_SHA: '108c193c50e59f12f19f8693fc05c5cc9c607db4'
+      SOCCER_ENABLE_RECENT_HISTORY: '1'
+      SOCCER_ENABLE_HISTORICAL_MARKETS: '1'
+      SOCCER_ADVANCED_DEEP_DIVES: '3'
+      SOCCER_ENABLE_CANONICAL_VIEWS: '1'
+      SOCCER_MARKET_EVIDENCE_DIR: ${{ github.workspace }}/market_evidence/soccer_edge_state/analysis
       API_FOOTBALL_RESEARCH_DAILY_CAP: '250'
       API_FOOTBALL_RESEARCH_MONTHLY_CAP: '9300'
       API_FOOTBALL_QUOTA_FILE: data/quota_api_football_paper.json
@@ -80,6 +85,24 @@ jobs:
           ref: '108c193c50e59f12f19f8693fc05c5cc9c607db4'
           path: engine
           persist-credentials: false
+      - name: Read-only checkout of canonical market maturity evidence
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: market_evidence
+          persist-credentials: false
+          sparse-checkout: |
+            soccer_edge_state/analysis/v4_016_ft_totals_production_validation.json
+            soccer_edge_state/analysis/v4_017_1x2_calibration_validation.json
+            soccer_edge_state/analysis/v4_018_btts_calibration_validation.json
+            soccer_edge_state/analysis/v4_019_team_totals_oos_validation.json
+            soccer_edge_state/analysis/v4_020_1h_oos_validation.json
+            soccer_edge_state/analysis/v4_021_2h_oos_validation.json
+            soccer_edge_state/analysis/v4_022_corners_oos_validation.json
+            soccer_edge_state/analysis/phase14_cards_referee_validation.json
+            soccer_edge_state/analysis/phase15_player_props_validation.json
+            soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
+          sparse-checkout-cone-mode: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -155,6 +178,10 @@ jobs:
               f"**Partidos elegibles:** {summary.get('eligible_games', 0)}",
               f"**Partidos examinados:** {summary.get('sports_screened', 0)}",
               f"**Proyecciones RAW del motor original:** {summary.get('raw_existing_engine_projections', 0)}",
+              f"**Historial multicompetición de ambos equipos:** {summary.get('history_multi_competition_verified', 0)}",
+              f"**Análisis profundos históricos (córners, faltas, XI anteriores):** {summary.get('historical_market_deep_dives', 0)}",
+              f"**Familias de mercados auditadas:** {summary.get('market_families_audited', 0)}",
+              f"**Estado del pipeline canónico:** {summary.get('canonical_market_status', 'NOT_VERIFIED')}",
               f"**Momios de referencia capturados:** {summary.get('odds_snapshots_captured', 0)}",
               "**Apuestas realizadas:** 0",
               "**Clasificación:** WATCH — proyección Poisson RAW sin calibración OOS, sin XI confirmado ni precios Caliente/Playdoit verificados.",

@@ -212,7 +212,25 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
         return result
     batch = screen_complete_slate(slate, research_fn=research_fn)
     _write_json(target / f'sport_first_{date}.json', batch)
+    from .market_context import collect_historical_market_context
+    from .pro_pipeline import api_pro_get
+    import os
+    historical_market = ({'status':'NOT_ENABLED','reports':[],'selected_fixture_count':0}
+                         if os.getenv('SOCCER_ENABLE_HISTORICAL_MARKETS','0') != '1'
+                         else collect_historical_market_context(batch, api_pro_get,
+                                max_fixtures=int(os.getenv('SOCCER_ADVANCED_DEEP_DIVES','3'))))
+    _write_json(target / f'historical_market_context_{date}.json', historical_market)
     odds = fetch_research_reference_odds(batch, target, odds_limit, odds_fn=odds_fn)
+    from .market_registry import load_market_registry
+    from .canonical_snapshot import fetch_canonical_market_views, match_canonical_fixtures
+    import os
+    market_registry = load_market_registry(os.getenv('SOCCER_MARKET_EVIDENCE_DIR', target / 'market_evidence'))
+    canonical = ({'status': 'NOT_ENABLED', 'is_fresh': False, 'matching_fixture_rows': []}
+                 if os.getenv('SOCCER_ENABLE_CANONICAL_VIEWS', '0') != '1'
+                 else match_canonical_fixtures(fetch_canonical_market_views(),
+                        {r['fixture_id'] for r in batch['screened_fixtures']}))
+    _write_json(target / f'market_registry_{date}.json', market_registry)
+    _write_json(target / f'canonical_market_views_{date}.json', canonical)
     result = {'generated_at_utc': datetime.now(timezone.utc).isoformat(),
               'match_date': date, 'status': 'PREFINAL_WATCH_RESEARCH',
               'source_slate_complete_verified': True, 'eligible_games': slate['eligible_count'],
@@ -223,6 +241,14 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'preliminary_goals_shortlist': batch['shortlists']['goals_fixture_ids'],
               'corners_track': batch['shortlists']['corners_status'],
               'raw_existing_engine_projections': batch.get('raw_existing_engine_projections', 0),
+              'historical_market_deep_dives': historical_market.get('selected_fixture_count',0),
+              'market_families_audited': len(market_registry['families']),
+              'market_evidence_available_families': sum(x['report_loaded'] for x in market_registry['families']),
+              'canonical_market_status': canonical.get('status'),
+              'canonical_same_fixture_rows': len(canonical.get('matching_fixture_rows', [])),
+              'history_multi_competition_verified': sum(
+                  1 for x in batch['screened_fixtures']
+                  if x.get('multi_competition_history', {}).get('status') == 'VERIFIED_PAST_MATCHES'),
               'odds_research_selected': odds['selected_count'],
               'odds_snapshots_captured': odds['captured_count'],
               'price_research_failures': odds['failures'],
@@ -234,5 +260,6 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     _write_json(target / f'odds_research_{date}.json', odds)
     _write_json(target / f'daily_summary_{date}.json', result)
     from .board import write_board
-    write_board(batch, result, target / f'board_{date}.html')
+    write_board(batch, result, target / f'board_{date}.html',
+                market_registry=market_registry, canonical=canonical, advanced_context=historical_market)
     return result

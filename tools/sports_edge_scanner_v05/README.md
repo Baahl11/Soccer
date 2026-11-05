@@ -113,3 +113,25 @@ probabilidades RAW `MODELED_LIMITED` de los partidos elegibles, destaca
 muestras pequeñas y mantiene WATCH sin fabricar cuotas de apuestas.
 Para abrirlo: Actions → ejecución del escáner → Artifacts → descargar
 `soccer-paper-research` → abrir `board_<fecha>.html` localmente.
+
+## v0.7 — Histórico multicompetición y mercado por mercado (2026-11-05)
+
+La integración no se limita a H2H ni a las tres fechas de una copa:
+
+- `sports_edge/history.py`: hasta 12 partidos oficiales **terminados** por equipo, de todas las competiciones accesibles, anteriores al kickoff del encuentro objetivo. Respuestas cacheadas, IDs cotejados. Si no se pueden verificar no se sustituyen con cero ni se afirma información de rivales inexistentes. Esos resultados se pasan al **mismo** `mcp_gateway/soccer_model.py` existente, sin momios; su lógica de mezcla sólo usa forma reciente cuando hay mínimo de datos.
+- `sports_edge/market_context.py`: durante la etapa deportiva, para un máximo conservador de tres candidatos por ejecución, recupera estadísticas históricas de partidos reales: córners, faltas, tarjetas, tiros, tiros a puerta y formaciones *pasadas* con XI de once titulares. Promedios meramente descriptivos con `n` verificable, sin convertirlos en probabilidades de apuesta ni asumir la formación futura.
+- `sports_edge/market_registry.py`: consulta de **solo lectura** los informes exactos de madurez por mercado de la rama original `soccer-edge-state`: 1X2, goles FT, BTTS, goles de equipo, 1H, 2H, córners FT/equipo, tarjetas, props, formación y faltas. Estados `RESEARCH_HOLD`, `REVIEW_ELIGIBLE` y `NOT_VERIFIED` se preservan, pero no promueven automáticamente ningún mercado a BET.
+- `sports_edge/canonical_snapshot.py`: lee `/product/views` del motor desplegado en Render **sin llamar a `/internal/tick`** y exige timestamp reciente más `fixture_id` idéntico para mostrar filas del pipeline actual. Snapshots viejos quedan `STALE_OR_UNDATED_CANONICAL_PIPELINE`, sin predicciones atribuidas a la jornada.
+- El tablero ahora incluye matriz de 12 familias, muestras de los últimos juegos, fuentes, razón de bloqueo y estadísticas descriptivas de candidatos. La hora de una consulta no sustituye el timestamp de un precio.
+
+**Separación crítica:** un modelo de córners, faltas, mitades, tarjetas o emparejamientos de formación que existe en el repositorio **no significa que esté calibrado o promovido**. Los informes de validación de octubre de 2026 señalan límites OOS, CLV, y suficiencia muestral todavía pendientes. Para esos mercados, ninguna proyección ajena (p. ej. 2.5 goles FT) puede reutilizarse.
+
+Configuración del flujo de GitHub Actions:
+
+- `SOCCER_ENABLE_RECENT_HISTORY=1`
+- `SOCCER_ENABLE_HISTORICAL_MARKETS=1`
+- `SOCCER_ADVANCED_DEEP_DIVES=3` (máximo absoluto 6)
+- `SOCCER_ENABLE_CANONICAL_VIEWS=1`
+- `SOCCER_MARKET_EVIDENCE_DIR=<ruta de reportes originales de la rama soccer-edge-state>`
+
+Las cuotas Caliente y Playdoit por selección y línea siguen siendo datos externos que deben verificarse con fuente, precio y momento de publicación. **Aún no hay EV ni recomendaciones BET.**

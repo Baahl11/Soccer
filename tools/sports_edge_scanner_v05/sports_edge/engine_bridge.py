@@ -46,7 +46,9 @@ def _validated_stats(payload: dict[str, Any], team_id: int, league_id: int, seas
 
 
 def from_existing_engine(fixture: dict[str, Any], home_payload: dict[str, Any],
-                         away_payload: dict[str, Any], *, engine_root: str | None = None) -> dict[str, Any]:
+                         away_payload: dict[str, Any], *, engine_root: str | None = None,
+                         home_recent: list[dict[str, Any]] | None = None,
+                         away_recent: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Evaluate exact existing soccer_model.py on independent API-Football stats.
 
     This raw GOAL_RATE_POISSON_LIMITED output is not OOS calibrated or betting
@@ -77,12 +79,28 @@ def from_existing_engine(fixture: dict[str, Any], home_payload: dict[str, Any],
     fn = getattr(module, 'build_raw_projection', None)
     if not callable(fn):
         return _refuse('EXISTING_ENGINE_RAW_PROJECTION_NOT_FOUND')
+    # History must be verified by the past-only normalizer. Never accept a later
+    # result as a feature of a prior fixture or allow odds to reach sport modeling.
+    from .history import normalize_finished_history
+    try:
+        for team_id, rows in ((home_id, home_recent or []), (away_id, away_recent or [])):
+            if not isinstance(rows, list):
+                return _refuse('HISTORY_INPUT_NOT_VERIFIED')
+            for entry in rows:
+                if entry.get('status') != 'FT' or team_id not in (entry.get('home_team_id'), entry.get('away_team_id')):
+                    return _refuse('HISTORY_IDENTITY_OR_STATUS_MISMATCH')
+                from datetime import datetime as _dt
+                past, target = _dt.fromisoformat(str(entry.get('kickoff'))), _dt.fromisoformat(str(fixture.get('kickoff')))
+                if past.tzinfo is None or target.tzinfo is None or past >= target:
+                    return _refuse('FUTURE_OR_UNDATED_HISTORY_BLOCKED')
+    except (KeyError, ValueError, TypeError):
+        return _refuse('HISTORY_DATE_NOT_VERIFIED')
     # No odds or market-price inputs enter the existing raw sport model.
     output = fn(dict(fixture), {
         'home_stats': home_payload['response'],
         'away_stats': away_payload['response'],
-        'home_recent': [],
-        'away_recent': [],
+        'home_recent': home_recent or [],
+        'away_recent': away_recent or [],
     }, None)
     if not isinstance(output, dict):
         return _refuse('EXISTING_ENGINE_INVALID_MODEL_OUTPUT')
@@ -93,8 +111,8 @@ def from_existing_engine(fixture: dict[str, Any], home_payload: dict[str, Any],
         'engine_git_sha': os.environ.get('SOCCER_ENGINE_COMMIT_SHA') or 'NOT_VERIFIED',
         'model_source': f'existing_soccer_edge_engine:{ENGINE_MODULE}',
         'source': 'API-Football season team stats (confirmed team/league/season)',
-        'home_recent': 'NOT_VERIFIED',
-        'away_recent': 'NOT_VERIFIED',
+        'home_recent': {'status': 'VERIFIED_PAST_RESULTS' if home_recent else 'NOT_VERIFIED', 'count': len(home_recent or [])},
+        'away_recent': {'status': 'VERIFIED_PAST_RESULTS' if away_recent else 'NOT_VERIFIED', 'count': len(away_recent or [])},
         'availability': 'NOT_VERIFIED',
         'calibrated': False,
         'bet_eligible': False,
