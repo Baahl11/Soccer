@@ -16,6 +16,7 @@ import json
 
 from .parlay_radar import _valid_quote
 from .parlay_risk import _raw_probability
+from .market_history_evidence import past_goals_market_evidence
 
 VERSION='SOCCER_BET365_SPORT_FIRST_MARKET_MATRIX_v1.0'
 
@@ -129,6 +130,7 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
         family=family_map.get(leg['family'],leg['family'])
         gate=families.get(family,{})
         gap=(p-be)*100 if p is not None else None
+        history_evidence=past_goals_market_evidence(leg,fx)
         # A positive RAW gap is NOT calibrated edge or EV.
         status=('RAW_ABOVE_BREAKEVEN_RESEARCH' if gap is not None and gap>0
                 else 'RAW_NOT_ABOVE_BREAKEVEN' if gap is not None
@@ -137,6 +139,7 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
         raw_above+=int(gap is not None and gap>0)
         diagnostics.append({**leg,'sport_first_fixture_verified':True,
               'raw_sport_probability':p,'raw_probability_source':why,
+              'all_competition_past_goal_evidence':history_evidence,
               'venue_sample_min':int(sample) if sample is not None else None,
               'sample_sufficient_for_bet':False if sample is None or sample<8 else None,
               'breakeven_probability':round(be,6),
@@ -180,16 +183,26 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
         if not 1.9<=combined<=2.1:continue
         min_sample=min(a['venue_sample_min'] or 0,b['venue_sample_min'] or 0)
         worst_gap=min(a['raw_minus_breakeven_pp_NOT_EV'],b['raw_minus_breakeven_pp_NOT_EV'])
+        history_a=a.get('all_competition_past_goal_evidence') or {}
+        history_b=b.get('all_competition_past_goal_evidence') or {}
+        history_min=min(history_a.get('sample_minimum') or 0,history_b.get('sample_minimum') or 0)
+        history_concordance=(history_a.get('both_team_directional_support') is True
+                             and history_b.get('both_team_directional_support') is True
+                             and history_min>=6)
         pairs.append({'classification':'WATCH','legs':[
             {k:x[k] for k in ('event_id','event_name','market','selection','point',
                               'price_decimal','raw_sport_probability',
                               'raw_probability_source','venue_sample_min',
-                              'raw_minus_breakeven_pp_NOT_EV','source_updated_at')}
+                              'raw_minus_breakeven_pp_NOT_EV','source_updated_at',
+                              'all_competition_past_goal_evidence')}
             for x in (a,b)],
             'bookmaker':'Bet365','theoretical_combined_decimal':round(combined,4),
             'combined_breakeven':round(1/combined,6),
             'minimum_raw_margin_pp_NOT_EV':round(worst_gap,2),
             'minimum_venue_sample':min_sample,
+            'minimum_all_competitions_prior_sample':history_min,
+            'all_competitions_descriptive_directional_agreement':history_concordance,
+            'all_competitions_event_evidence_is_calibrated':False,
             'research_sample_status':('VERY_LOW_LEAGUE_VENUE_SAMPLE'
                                       if min_sample<5 else
                                       'SAMPLE_STILL_NOT_OOS_CERTIFIED'),
@@ -198,7 +211,9 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
             'mexico_offer_verified':False,
             'priority':'SPORTING_RESEARCH_REVIEW_NOT_RISK_RANK',
             'reason':'RAW_ONLY;OOS_CALIBRATION_AND_AVAILABILITY_AND_JOINT_DEPENDENCE_UNVERIFIED'})
-    pairs.sort(key=lambda p:(-p['minimum_venue_sample'],
+    pairs.sort(key=lambda p:(-int(p['all_competitions_descriptive_directional_agreement']),
+        -p['minimum_all_competitions_prior_sample'],
+        -p['minimum_venue_sample'],
         -p['minimum_raw_margin_pp_NOT_EV'],
         abs(p['theoretical_combined_decimal']-2.0),
         p['legs'][0]['event_id'],p['legs'][1]['event_id']))
@@ -227,6 +242,10 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
             'sporting_screened_plus100_pairs':diverse,
             'sporting_screened_plus100_pairs_min_sample_5':sum(
                 p['minimum_venue_sample']>=5 for p in pairs),
+            'sporting_screened_plus100_pairs_with_6plus_history':sum(
+                p['minimum_all_competitions_prior_sample']>=6 for p in pairs),
+            'sporting_screened_plus100_pairs_history_agreement':sum(
+                p['all_competitions_descriptive_directional_agreement'] for p in pairs),
             'same_outcome_alias_quotes_collapsed':len(candidates)-len(priced_legs),
             'actionable_bets':0,'actionable_parlays':0,
             'caveats':['No model weights changed or fitted to bookmaker lines.',
