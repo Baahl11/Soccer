@@ -166,63 +166,97 @@ def evaluate_verified_parlay(leg_a: dict[str, Any], leg_b: dict[str, Any],
                              joint_evidence: dict[str, Any] | None,
                              *, now: datetime | None = None,
                              min_joint_lower: float = 0.55) -> dict[str, Any]:
-    """Only a real, correctly matched offered +100 ticket may be marked BET.
+    """Evaluate a Bet365-only two-leg +100 candidate without inventing a betslip.
 
-    Joint conservative probability comes from an audited joint-risk model,
-    never from multiplying arbitrary singles or using market-implied price.
+    Price = mathematical product of two individually published Bet365 bookmaker-8
+    quotes. For joint risk, audited OOS joint data is preferred. Otherwise the
+    Frechet/Boole bound max(0,p_lower_1+p_lower_2-1) is valid under ANY
+    dependence, provided both marginal lower bounds are independently approved.
+    A BET is a price-dependent recommendation, NOT a placed wager; recheck the
+    displayed combined price in Bet365 and approve portfolio exposure first.
     """
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
-    legs = [leg_a, leg_b]
-    blockers = []
-    if any(l.get('status') != 'BET' or l.get('tier') not in ('A','S') for l in legs):
-        blockers.append('BOTH_LEGS_TIER_A_S_BETS_REQUIRED')
-    if (not leg_a.get('event_id') or not leg_b.get('event_id')
-            or str(leg_a.get('event_id')) == str(leg_b.get('event_id'))):
+    blockers: list[str] = []
+    legs = (leg_a, leg_b)
+    if any(x.get('status') != 'BET' or x.get('tier') not in ('A', 'S') for x in legs):
+        blockers.append('BOTH_LEGS_VALIDATED_TIER_A_S_REQUIRED')
+    if not leg_a.get('event_id') or not leg_b.get('event_id') or str(leg_a['event_id']) == str(leg_b['event_id']):
         blockers.append('MUST_BE_DIFFERENT_FIXTURES')
-    book = leg_a.get('bookmaker')
-    if book != leg_b.get('bookmaker') or book not in BOOK_SOURCES:
+    if any(x.get('bookmaker') != 'Bet365' for x in legs):
         blockers.append('SAME_BET365_MARKET_SOURCE_REQUIRED')
+
     q = offered_ticket or {}
     offered = _num(q.get('price_decimal'))
-    ticket_ids = {tuple(x) for x in (q.get('leg_keys') or []) if isinstance(x, (list,tuple)) and len(x) == 5}
-    expected = {_leg_ticket_key(x) for x in legs}
-    if (offered is None or not 1.90 <= offered <= 2.10 or q.get('bookmaker') != book
-            or q.get('verified_offer_source') != BOOK_SOURCES.get(book)
-            or q.get('verified_offer') is not True
-            or not q.get('ticket_reference_id') or not _age_ok(q.get('source_updated_at'), now, 15)
-            or ticket_ids != expected):
-        blockers.append('EXACT_OFFERED_PARLAY_TICKET_NOT_VERIFIED')
-    j = joint_evidence or {}
-    joint_lower = _num(j.get('joint_p_lower'))
-    if (j.get('status') != 'VERIFIED' or j.get('method') != 'JOINT_OUTCOME_OOS'
-            or j.get('approved_for_decisions') is not True
-            or not isinstance(j.get('oos_joint_rows'),int) or j.get('oos_joint_rows') < 200
-            or j.get('event_ids') is None
-            or set(map(str,j.get('event_ids'))) != {str(leg_a.get('event_id')),str(leg_b.get('event_id'))}
-            or joint_lower is None or not 0 < joint_lower < 1
-            or joint_lower > min(_num(leg_a.get('p_lower')) or 0,
-                                 _num(leg_b.get('p_lower')) or 0)):
-        blockers.append('JOINT_DEPENDENCE_AND_LOWER_BOUND_NOT_VERIFIED')
+    a_price = _num(leg_a.get('price_decimal'))
+    b_price = _num(leg_b.get('price_decimal'))
+    product = a_price * b_price if a_price and b_price else None
+    keys = q.get('leg_keys') or []
+    quoted_keys = {tuple(x) for x in keys if isinstance(x, (list, tuple)) and len(x) == 5}
+    expected_keys = {_identity(x) for x in legs}
+    if (offered is None or product is None
+            or not 1.90 <= offered <= 2.10
+            or abs(offered-product) > 0.001
+            or q.get('bookmaker') != 'Bet365'
+            or q.get('bookmaker_id') != 8
+            or q.get('verified_offer_source') != BOOK_SOURCES['Bet365']
+            or q.get('theoretical_from_two_quotes') is not True
+            or q.get('individual_quotes_verified') is not True
+            or not _age_ok(q.get('source_updated_at'), now, 90)
+            or quoted_keys != expected_keys):
+        blockers.append('BET365_TWO_QUOTE_PRICE_NOT_VERIFIED')
+
+    p_a = _num(leg_a.get('p_lower'))
+    p_b = _num(leg_b.get('p_lower'))
+    joint_lower = None
+    joint_method = None
+    if joint_evidence is None:
+        joint_method = 'FRECHET_ANY_DEPENDENCE'
+        if p_a is None or p_b is None or not (0 < p_a < 1 and 0 < p_b < 1):
+            blockers.append('MARGINAL_OOS_LOWER_BOUNDS_MISSING')
+        else:
+            joint_lower = max(0.0, p_a + p_b - 1.0)
+    else:
+        j = joint_evidence
+        joint_method = 'JOINT_OUTCOME_OOS'
+        joint_lower = _num(j.get('joint_p_lower'))
+        if (j.get('status') != 'VERIFIED'
+                or j.get('method') != 'JOINT_OUTCOME_OOS'
+                or j.get('approved_for_decisions') is not True
+                or not isinstance(j.get('oos_joint_rows'), int)
+                or j.get('oos_joint_rows') < 200
+                or set(map(str, j.get('event_ids') or [])) !=
+                    {str(leg_a.get('event_id')), str(leg_b.get('event_id'))}
+                or joint_lower is None or not 0 < joint_lower < 1
+                or p_a is None or p_b is None
+                or joint_lower > min(p_a, p_b)):
+            blockers.append('JOINT_OOS_EVIDENCE_INVALID')
+    # No stake recommendation unless portfolio constraints are explicitly met.
     if q.get('portfolio_exposure_approved') is not True:
         blockers.append('PORTFOLIO_EXPOSURE_NOT_APPROVED')
-    out = {'status':'WATCH','reason':'REVIEW_REQUIRED','bookmaker':book,
-           'events':[leg_a.get('event_id'),leg_b.get('event_id')],
-           'leg_keys':[list(_leg_ticket_key(x)) for x in legs],
-           'ticket_price_decimal':offered,'ticket_reference_id':q.get('ticket_reference_id'),
-           'joint_p_lower':joint_lower if not blockers else None,
-           'conservative_joint_ev':None,'blockers':list(dict.fromkeys(blockers)),
-           'stake_units':0}
-    if out['blockers']:
+    out = {
+        'status': 'WATCH', 'reason': 'MISSING_REQUIRED_EVIDENCE',
+        'bookmaker': 'Bet365', 'events': [leg_a.get('event_id'), leg_b.get('event_id')],
+        'leg_keys': [list(_identity(x)) for x in legs],
+        'ticket_price_decimal': offered, 'ticket_reference_id': None,
+        'theoretical_price_only': True, 'bet365_betslip_recheck_required': True,
+        'joint_probability_method': joint_method,
+        'joint_p_lower': joint_lower if not blockers else None,
+        'conservative_joint_ev': None, 'blockers': list(dict.fromkeys(blockers)),
+        'stake_units': 0,
+    }
+    if blockers:
         return out
-    out['p_breakeven'] = round(1/offered,6)
-    out['conservative_joint_ev'] = round(ev_per_unit(joint_lower,offered),4)
-    if joint_lower < max(min_joint_lower,1/offered) or out['conservative_joint_ev'] <= 0:
-        out['status']='PASS'
-        out['reason']='JOINT_CONSERVATIVE_RISK_OR_EV_INSUFFICIENT'
+    if joint_lower is None or offered is None:
+        return out
+    out['p_breakeven'] = round(1/offered, 6)
+    out['conservative_joint_ev'] = round(ev_per_unit(joint_lower, offered), 4)
+    if joint_lower < max(min_joint_lower, 1/offered) or out['conservative_joint_ev'] <= 0:
+        out['status'] = 'PASS'
+        out['reason'] = 'CONSERVATIVE_JOINT_RISK_OR_EV_INSUFFICIENT'
     else:
-        out['status']='BET'
-        out['reason']='VERIFIED_OFFER_TWO_TIER_A_S_LEGS_POSITIVE_CONSERVATIVE_EV'
-        out['ticket_price_american']=dec_to_american(offered)
+        out['status'] = 'BET'
+        out['reason'] = 'BET365_VERIFIED_TWO_QUOTE_MODEL_EDGE_RECHECK_BETSLIP'
+        out['ticket_price_american'] = dec_to_american(offered)
     return out
 
 
