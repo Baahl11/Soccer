@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v0.8.1 - Soccer parlay radar / full market research
+name: SPORTS EDGE SCANNER v0.9 - Two-leg risk evidence / full market research
 
 on:
   pull_request:
@@ -50,7 +50,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify 99 binary-line & parlay radar safety tests
+      - name: Verify 112 risk evidence and market safety tests
         run: python -m unittest discover -s tests -q
 
   paper-research:
@@ -185,6 +185,9 @@ jobs:
               f"**Estado del pipeline canónico:** {summary.get('canonical_market_status', 'NOT_VERIFIED')}",
               f"**Momios de referencia capturados:** {summary.get('odds_snapshots_captured', 0)}",
               f"**Duplas WATCH cerca de +100:** {summary.get('parlay_price_pairs_watch', 0)}",
+              f"**Duplas con al menos una pierna RAW bajo breakeven:** {summary.get('parlay_raw_negative_pairs', 0)}",
+              f"**Piernas sin modelo RAW exacto:** {summary.get('parlay_legs_without_exact_raw_model', 0)}",
+              "**Ranking por menor riesgo:** NO VERIFICADO (requiere OOS y probabilidad conjunta)",
               "**Parlay EV y probabilidad conjunta:** NOT VERIFIED",
               "**Apuestas realizadas:** 0",
               "**Clasificación:** WATCH — proyección Poisson RAW sin calibración OOS, sin XI confirmado ni precios Caliente/Playdoit verificados.",
@@ -195,7 +198,7 @@ jobs:
                                   ("Goles", "preliminary_goals_shortlist")):
               ids = summary.get(field, [])[:5]
               lines.append(f"**{category}:** " + (", ".join(names.get(i, str(i)) for i in ids) if ids else "sin candidatos verificados"))
-          lines.extend(["", f"**Datos completos:** descarga el artefacto soccer-paper-research; abre `board_{date}.html` y `parlay_radar_{date}.json`."])
+          lines.extend(["", f"**Datos completos:** descarga el artefacto soccer-paper-research; abre `board_{date}.html` y `parlay_radar_{date}.json` y `parlay_leg_evidence_{date}.json`."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
               output.write("\n\n".join(lines) + "\n")
           PY

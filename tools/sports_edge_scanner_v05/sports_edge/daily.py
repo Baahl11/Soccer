@@ -261,10 +261,16 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     # This does not derive probabilities from odds or declare bets.
     from .parlay_radar import discover_saved_snapshot_pairs
     parlay_radar = discover_saved_snapshot_pairs(odds.get('snapshots', []))
+    from .parlay_risk import annotate_parlay_radar
+    parlay_radar = annotate_parlay_radar(parlay_radar, batch, market_registry)
     result['parlay_price_pairs_watch'] = len(parlay_radar['pairs'])
     result['parlay_price_pairs_found'] = parlay_radar['pairs_found_before_display_cap']
     result['parlay_actionable_bets'] = 0
+    result['parlay_raw_negative_pairs'] = parlay_radar.get('pairs_with_negative_raw_leg', 0)
+    result['parlay_legs_without_exact_raw_model'] = parlay_radar.get('legs_without_exact_raw_model', 0)
+    result['parlay_risk_ranking_available'] = False
     _write_json(target / f'parlay_radar_{date}.json', parlay_radar)
+    _write_json(target / f'parlay_leg_evidence_{date}.json', parlay_radar)
     _write_json(target / f'odds_research_{date}.json', odds)
     _write_json(target / f'daily_summary_{date}.json', result)
     from .board import write_board

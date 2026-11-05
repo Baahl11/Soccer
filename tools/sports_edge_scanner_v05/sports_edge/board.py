@@ -108,12 +108,30 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
             return ('<b>'+_text(leg.get('event_name') or 'Fixture '+str(leg.get('event_id')))
                     +'</b> · '+_text(leg.get('market'))+' · '+_text(leg.get('selection'))+point
                     +' · '+_text(leg.get('price_american')))
+        def evidence(leg):
+            raw = leg.get('raw_sport_probability')
+            pbe = leg.get('individual_price_breakeven')
+            delta = leg.get('raw_minus_individual_breakeven_pp')
+            diff = 'N/V' if delta is None else f'{float(delta):+.2f} pp'
+            warning = (' <b>RAW INFERIOR A BREAKEVEN</b>' if delta is not None and delta <= 0 else '')
+            return ('<small>RAW no calibrada: '+_pct(raw)
+                    +' · breakeven de esta pierna: '+_pct(pbe)
+                    +' · diferencia RAW (NO EV): '+_text(diff)
+                    +' · muestra local/visitante: '+_text(leg.get('raw_sample_venue_split_minimum'))
+                    +' · validación: '+_text(leg.get('market_validation_status'))
+                    +warning+'</small>')
+        status_msg = ('<b>ALERTA: al menos una pierna RAW queda bajo su breakeven</b>'
+                      if pair.get('joint_raw_sanity_status') == 'AT_LEAST_ONE_LEG_RAW_BELOW_ITS_BREAK_EVEN'
+                      else '<b>Sin probabilidad conjunta calibrada</b>')
         radar_cards.append('<li>'+label(legs[0])+' <b>+</b> '+label(legs[1])
                            +'<br>Casa de referencia: '+_text(pair.get('bookmaker'))
                            +' · cuota matemática '+_text(pair.get('theoretical_combined_decimal'))
                            +' ('+_text(pair.get('theoretical_combined_american'))+')'
                            +' · breakeven '+_text(round(100*float(pair.get('joint_breakeven') or 0),1))+'%'
-                           +' · <b>WATCH, EV NO VERIFICADO</b></li>')
+                           +' · <b>WATCH, EV NO VERIFICADO</b>'
+                           +'<br>'+evidence(legs[0])+'<br>'+evidence(legs[1])
+                           +'<br>'+status_msg
+                           +'</li>')
     radar_html=('<h2>Radar parlay cercano a +100 — WATCH</h2>'
                 '<p>Primero investigamos los partidos; luego exploramos posibles combinaciones de precios '
                 'en dos encuentros distintos y la misma casa de referencia. Esto no mide riesgo real '
@@ -122,7 +140,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
                    '<p>No se encontraron combinaciones con precios de origen verificados y suficientemente recientes '
                    'en los mercados consultados. Sin inventar oportunidades.</p>')
                 + '<p class="note">API-Football no verifica que el parlay sea ofrecido por Caliente/Playdoit. '
-                  'Independencia, disponibilidad, modelos por mercado, precio ofrecido y EV: NOT VERIFIED. '
+                  'Independencia, disponibilidad, calibración OOS, precio ofrecido y EV: NOT VERIFIED. La comparación RAW no mide riesgo. '
                   'Nunca BET por el mero hecho de sumar +100.</p>')
 
     day = _text(summary.get('match_date') or batch.get('match_date'))
