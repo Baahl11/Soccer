@@ -389,6 +389,8 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     result['bet365_price_snapshots_downloaded'] = market_matrix['bookmaker_snapshots_fetched']
     result['bet365_equivalent_outcomes_collapsed'] = market_matrix['same_outcome_alias_quotes_collapsed']
     result['bet365_research_pairs_min_5_sample'] = market_matrix['sporting_screened_plus100_pairs_min_sample_5']
+    result['bet365_pairs_6plus_prior_multicomp_games'] = market_matrix['sporting_screened_plus100_pairs_with_6plus_history']
+    result['bet365_pairs_history_directionally_agrees'] = market_matrix['sporting_screened_plus100_pairs_history_agreement']
     result['bet365_quotes_with_exact_or_derived_raw'] = market_matrix['exact_or_poisson_derived_raw_quotes']
     result['bet365_no_vig_market_quotes'] = market_matrix['two_way_or_three_way_novig_quotes']
     result['bet365_sport_first_review_pairs_plus100'] = market_matrix['sporting_screened_plus100_pairs_found']
