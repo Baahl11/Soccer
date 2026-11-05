@@ -94,6 +94,7 @@ def screen_complete_slate(slate: dict[str, Any],
             if screen.get('status') != 'WATCH' or screen.get('calibrated') is not False:
                 raise ValueError('Sport-first screen must not claim a validated BET')
             screen = dict(screen)
+            screen['kickoff_utc'] = fixture.get('kickoff')
             screen['screening_signals'] = preliminary_signals(screen)
             out.append(screen)
         except (ProviderFailure, ValueError, KeyError, TypeError, OSError) as exc:
@@ -156,6 +157,38 @@ def fetch_research_reference_odds(batch: dict[str, Any], directory: str | Path,
         selected.append(fid)
         if len(selected) >= max_fixtures:
             break
+    # Do not restrict PRICE RESEARCH to the two small-sample European games.
+    # After screening EVERY eligible fixture SPORT-FIRST, inspect remaining
+    # sports-projected games in a deterministic quality-first order. Low venue
+    # split sample still blocks BET: price discovery does NOT promote its model.
+    if max_fixtures > len(selected):
+        extras = []
+        now_utc = datetime.now(timezone.utc)
+        for row in batch.get('screened_fixtures', []):
+            fid = row.get('fixture_id')
+            if fid in selected or row.get('status') != 'WATCH':
+                continue
+            raw = row.get('raw_sport_projection') or {}
+            if raw.get('status') != 'MODELED_LIMITED':
+                continue
+            kick = row.get('kickoff_utc')
+            if kick:
+                try:
+                    from .core import parse_iso
+                    if parse_iso(str(kick)) <= now_utc:
+                        continue
+                except (ValueError,TypeError):
+                    continue
+            n = (raw.get('sample') or {}).get('minimum_split_sample') or 0
+            try: n = max(0,int(n))
+            except (TypeError,ValueError): n = 0
+            # Prefer better supported sport projections, never cheapest odds.
+            extras.append((-int(bool(row.get('min_sample_met'))),-n,str(fid),fid))
+        for _,_,__,fid in sorted(extras):
+            if fid not in selected:
+                selected.append(fid)
+            if len(selected) >= max_fixtures:
+                break
     if max_fixtures == 0:
         selected = []
     # One book is the price proxy; do not silently replace missing Bet365
