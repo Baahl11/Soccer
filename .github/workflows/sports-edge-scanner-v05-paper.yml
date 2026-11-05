@@ -189,6 +189,10 @@ jobs:
               f"**Historial multicompetición de ambos equipos:** {summary.get('history_multi_competition_verified', 0)}",
               f"**Análisis profundos históricos (córners, faltas, XI anteriores):** {summary.get('historical_market_deep_dives', 0)}",
               f"**Familias de mercados auditadas:** {summary.get('market_families_audited', 0)}",
+              f"**Auditoría de desbloqueo Bet365:** {summary.get('market_unblock_audited_families', 0)} familias",
+              f"**Candidatos para revisión manual:** {', '.join(summary.get('market_unblock_manual_review_candidates', [])) or 'ninguno'}",
+              f"**Modelos que no superan baseline:** {', '.join(summary.get('market_unblock_model_rebuild_candidates', [])) or 'ninguno'}",
+              '**CLV histórico atribuido exclusivamente a Bet365:** NO VERIFICADO hasta contar con procedencia del bookmaker.',
               f"**Estado del pipeline canónico:** {summary.get('canonical_market_status', 'NOT_VERIFIED')}",
               f"**Modelo canónico real (mismo fixture/mercado):** {summary.get('canonical_state_matches', 0)}",
               f"**Calibración experimental correctamente atribuida:** {summary.get('canonical_selection_research_models', 0)}",
@@ -252,6 +256,7 @@ jobs:
               if not matrix.get("sporting_screened_plus100_pairs"):
                   lines.append("Ninguna dupla con cotización reciente cumplió precio y filtro RAW.")
 
+          lines.extend(['', f'**Auditoría descargable:** market_unblock_{date}.json y market_unblock_{date}.md; ningún mercado se promociona por este informe.'])
           lines.extend(["", f"**Datos completos:** descarga el artefacto soccer-paper-research; abre `board_{date}.html` y `parlay_radar_{date}.json` y `parlay_leg_evidence_{date}.json` y `bet365_market_matrix_{date}.json`."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
               output.write("\n\n".join(lines) + "\n")
