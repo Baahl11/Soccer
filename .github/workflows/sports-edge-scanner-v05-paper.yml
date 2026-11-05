@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify 56 offline guardrail tests
+      - name: Verify 64 offline and engine safety tests
         run: python -m unittest discover -s tests -q
 
   paper-research:
@@ -165,7 +165,7 @@ jobs:
                                   ("Goles", "preliminary_goals_shortlist")):
               ids = summary.get(field, [])[:5]
               lines.append(f"**{category}:** " + (", ".join(names.get(i, str(i)) for i in ids) if ids else "sin candidatos verificados"))
-          lines.extend(["", "**Datos completos:** descarga el artefacto soccer-paper-research de esta ejecución."])
+          lines.extend(["", "**Datos completos:** descarga el artefacto soccer-paper-research de esta ejecución y abre `board_{date}.html`."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
               output.write("\n\n".join(lines) + "\n")
           PY

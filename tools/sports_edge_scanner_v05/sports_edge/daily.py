@@ -233,4 +233,6 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
               'next_step': 'OUT_OF_SAMPLE_CALIBRATION_AND_T-40_REFRESH'}
     _write_json(target / f'odds_research_{date}.json', odds)
     _write_json(target / f'daily_summary_{date}.json', result)
+    from .board import write_board
+    write_board(batch, result, target / f'board_{date}.html')
     return result

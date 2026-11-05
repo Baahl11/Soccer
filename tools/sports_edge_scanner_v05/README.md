@@ -105,3 +105,11 @@ It adds a `raw_sport_projection` field to every screening row and
 - The scheduled league allowlist now includes Conference League ID **848**.
 - Historical state snapshots and data from earlier competitions are not used
   to form a new 2026 prediction. No bookmaker screenshot becomes training data.
+
+### Tablero generado automáticamente
+Cada ejecución válida produce `run_data/<fecha>/board_<fecha>.html` dentro
+ del artefacto de GitHub Actions `soccer-paper-research`. Presenta todas las
+probabilidades RAW `MODELED_LIMITED` de los partidos elegibles, destaca
+muestras pequeñas y mantiene WATCH sin fabricar cuotas de apuestas.
+Para abrirlo: Actions → ejecución del escáner → Artifacts → descargar
+`soccer-paper-research` → abrir `board_<fecha>.html` localmente.
