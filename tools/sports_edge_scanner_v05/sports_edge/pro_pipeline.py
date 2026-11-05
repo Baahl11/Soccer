@@ -23,7 +23,7 @@ def api_pro_get(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
 
     Allows only fixed endpoint names. Never accesses a sportsbook website.
     """
-    allowed = {'fixtures', 'leagues', 'teams/statistics', 'injuries', 'fixtures/lineups', 'fixtures/statistics', 'odds'}
+    allowed = {'fixtures', 'leagues', 'teams/statistics', 'injuries', 'fixtures/lineups', 'fixtures/statistics', 'odds', 'odds/bookmakers'}
     if endpoint not in allowed:
         raise ProviderFailure(f'Endpoint not allowed by research adapter: {endpoint}')
     key = os.environ.get('API_FOOTBALL_KEY', '')
