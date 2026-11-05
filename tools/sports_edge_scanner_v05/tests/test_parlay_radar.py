@@ -96,7 +96,7 @@ class BoardParlayRadarTest(unittest.TestCase):
                           {'match_date':'2026-11-05','sports_screened':0},parlay_radar=radar)
         self.assertIn('Radar parlay cercano a +100',html)
         self.assertIn('WATCH, EV NO VERIFICADO',html)
-        self.assertIn('Caliente/Playdoit',html)
+        self.assertIn('Bet365',html)
         self.assertNotIn('apuesta aprobada por parlay',html)
     def test_missing_provider_odds_does_not_invent_pairs(self):
         from sports_edge.board import render_board

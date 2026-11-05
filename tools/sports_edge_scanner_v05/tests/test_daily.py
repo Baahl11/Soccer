@@ -96,7 +96,7 @@ class DailyTest(unittest.TestCase):
             self.assertEqual(r['classification'],'WATCH')
             document=json.loads(Path(r['snapshots'][0]['file']).read_text())
             self.assertEqual(document['quotes'][0]['source_updated_at'],'2026-11-04T16:00:00+00:00')
-            self.assertFalse(document['actionable_at_caliente_or_playdoit'])
+            self.assertFalse(document['bet365_betslip_price_confirmed'])
             self.assertNotEqual(document['quotes'][0]['source_updated_at'],document['checked_at_utc'])
 
     def test_no_reference_quotes_at_zero_limit(self):

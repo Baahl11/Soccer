@@ -46,12 +46,12 @@ class Bet365ReferenceProxyTest(TestCase):
             self.assertEqual(out['reference_bookmaker_id'],8)
             self.assertEqual(out['proxy_quote_fixtures'],2)
             self.assertEqual(out['proxy_quote_count'],2)
-            self.assertFalse(out['proxy_prices_actionable_in_mexico'])
+            self.assertFalse(out['bet365_direct_betslip_confirmed'])
             for snap in out['snapshots']:
                 content=json.loads(Path(snap['file']).read_text())
                 self.assertEqual({q['bookmaker'] for q in content['quotes']},{'Bet365'})
                 self.assertFalse(content['mexico_offer_verified'])
-                self.assertFalse(content['actionable_at_caliente_or_playdoit'])
+                self.assertFalse(content['bet365_betslip_price_confirmed'])
     def test_missing_bet365_does_not_fallback_to_pinnacle(self):
         with tempfile.TemporaryDirectory() as folder,patch.dict('os.environ',ENV):
             out=fetch_research_reference_odds(batch(),folder,2,odds_fn=lambda fid:odds(fid,['Pinnacle']))
