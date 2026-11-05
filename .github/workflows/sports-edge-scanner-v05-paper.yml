@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v1.3 - Bet365 full-market SPORT FIRST +100
+name: SPORTS EDGE SCANNER v1.3.1 - Bet365 verified-price research
 
 on:
   pull_request:
@@ -196,10 +196,12 @@ jobs:
               f"**Momios de referencia capturados:** {summary.get('odds_snapshots_captured', 0)}",
               f"**Casa proxy única:** {summary.get('proxy_reference_bookmaker', 'NOT_VERIFIED')} (ID {summary.get('proxy_reference_bookmaker_id', 'N/V')})",
               f"**Partidos con precio proxy:** {summary.get('proxy_quote_fixtures', 0)}",
+              f"**Partidos con precio RECIENTE verificable:** {summary.get('bet365_fresh_quoted_fixtures', 0)}",
               f"**Cotizaciones proxy:** {summary.get('proxy_quote_count', 0)}",
               f"**Bet365, mercados comparables con modelo RAW:** {summary.get('bet365_quotes_with_exact_or_derived_raw', 0)}",
               f"**Precios con mercado sin vigorish verificable:** {summary.get('bet365_no_vig_market_quotes', 0)}",
               f"**Duplas +100 tras evaluación deportiva RAW preliminar:** {summary.get('bet365_sport_first_review_pairs_plus100', 0)}",
+              f"**Duplas con muestras >=5 por pierna:** {summary.get('bet365_research_pairs_min_5_sample', 0)}",
               "**Disponibilidad Caliente/Playdoit:** NO VERIFICADA (Bet365 solo referencia)",
               f"**Duplas WATCH cerca de +100:** {summary.get('parlay_price_pairs_watch', 0)}",
               f"**BET individuales calculados:** {summary.get('actionable_bets', 0)}",
