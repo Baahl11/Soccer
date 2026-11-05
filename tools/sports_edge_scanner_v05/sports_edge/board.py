@@ -129,7 +129,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
          +'</tr></thead><tbody>'+live_rows_html+'</tbody></table>'
          if live_rows_html else '<p>No hay cotizaciones verificadas en ventana para comparar.</p>')
        +'<p class="note">La fuente Bet365 procede de API-Football y no verifica una '
-       +'oferta ejecutable en Caliente/Playdoit. Ningún modelo experimental se '
+       +'oferta ejecutable en Bet365. Ningún modelo experimental se '
        +'promueve y no se infiere probabilidad conjunta del parlay.</p>')
     market_matrix = market_matrix or {}
     matrix_market_rows = ''.join(
@@ -221,7 +221,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
        +' · Precios de referencia vigentes según su publicación: '
        +_text(canonical_research.get('reference_price_rows',0))
        +' · Directorio de casas: '+_text(bookmaker_catalogue.get('status','NOT_VERIFIED'))
-       +' · Ofertas verificadas Caliente/Playdoit: '
+       +' · Casa de referencia: Bet365 (API-Football ID 8). Observaciones: '
        +_text(bookmaker_catalogue.get('actionable_offers',0))+'</p>'
        +'<p class="note">La calibración experimental NO es producción. El porcentaje '
        +'de OVER 2.5 no equivale al de UNDER 2.5; solo se utiliza su complemento '
@@ -306,7 +306,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
                 + ('<ol>'+''.join(radar_cards)+'</ol>' if radar_cards else
                    '<p>No se encontraron combinaciones con precios de origen verificados y suficientemente recientes '
                    'en los mercados consultados. Sin inventar oportunidades.</p>')
-                + '<p class="note">API-Football no verifica que el parlay sea ofrecido por Caliente/Playdoit. '
+                + '<p class="note">API-Football no confirma el precio final del parlay en Bet365. '
                   'Independencia, disponibilidad, calibración OOS, precio ofrecido y EV: NOT VERIFIED. La comparación RAW no mide riesgo. '
                   'Nunca BET por el mero hecho de sumar +100.</p>')
 
@@ -339,7 +339,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
 {market_section}
 <h2>Partidos — perfiles y modelos RAW</h2>
 <input id="search" aria-label="Filtrar partido" placeholder="Buscar equipo o fixture..." oninput="document.querySelectorAll('.game').forEach(x=>x.classList.toggle('hide',!x.textContent.toLowerCase().includes(this.value.toLowerCase())))"><div>{''.join(cards)}</div>
-<p class="note">Fuente: API-Football Pro; motor existente fijado a commit 108c193c50e59f12f19f8693fc05c5cc9c607db4, función build_raw_projection. Sin captura de Caliente/Playdoit confirmada.</p></main></body></html>'''
+<p class="note">Fuente: API-Football Pro; motor existente fijado a commit 108c193c50e59f12f19f8693fc05c5cc9c607db4, función build_raw_projection. Cuotas Bet365 publicadas por API-Football; precio final sujeto a reconfirmación.</p></main></body></html>'''
 
 
 def write_board(batch: dict[str, Any], summary: dict[str, Any], filename: str | Path, *,

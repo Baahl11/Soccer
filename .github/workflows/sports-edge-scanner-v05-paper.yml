@@ -1,4 +1,4 @@
-name: SPORTS EDGE SCANNER v1.4.1 - Live decision evidence bridge
+name: SPORTS EDGE SCANNER v1.5 - Bet365 only | full decision pipeline
 
 on:
   pull_request:
@@ -67,7 +67,7 @@ jobs:
       SOCCER_TRUSTED_DECISION_INPUT: ${{ vars.SOCCER_TRUSTED_DECISION_INPUT }}
       SOCCER_DECISION_FEED_HMAC_KEY: ${{ secrets.SOCCER_DECISION_FEED_HMAC_KEY }}
       SOCCER_CANONICAL_STATE_PATH: ${{ github.workspace }}/market_evidence/soccer_edge_state/latest.json
-      SOCCER_BOOKMAKER_DIRECTORY_ENABLED: '1'
+      SOCCER_BOOKMAKER_DIRECTORY_ENABLED: '0' # fixed bookmaker ID 8
       SOCCER_PROXY_BOOKMAKER_ID: '8'
       SOCCER_PROXY_BOOKMAKER_NAME: 'Bet365'
       SOCCER_ENGINE_SOURCE_DIR: ${{ github.workspace }}/engine
@@ -200,6 +200,8 @@ jobs:
               f"**Cotizaciones proxy:** {summary.get('proxy_quote_count', 0)}",
               f"**Bet365, mercados comparables con modelo RAW:** {summary.get('bet365_quotes_with_exact_or_derived_raw', 0)}",
               f"**Cotizaciones reales enviadas al evaluador final:** {summary.get('actual_reference_quotes_sent_to_decision_gate', 0)}",
+              f"**Mercados Bet365 evaluados por decisor principal:** {summary.get('decision_singles_evaluated',0)}",
+              f"**Parlays Bet365 examinados:** {summary.get('decision_parlays_evaluated',0)}",
               f"**Cotizaciones con probabilidad RAW exacta:** {summary.get('actual_reference_quotes_with_raw', 0)}",
               f"**Duplas REALES pasadas por auditoría de piernas:** {summary.get('reference_parlay_ticket_reviews', 0)}",
               f"**Precios con mercado sin vigorish verificable:** {summary.get('bet365_no_vig_market_quotes', 0)}",
@@ -207,7 +209,7 @@ jobs:
               f"**Duplas con muestras >=5 por pierna:** {summary.get('bet365_research_pairs_min_5_sample', 0)}",
               f"**Duplas con al menos 6 partidos previos por equipo:** {summary.get('bet365_pairs_6plus_prior_multicomp_games', 0)}",
               f"**Duplas con respaldo histórico descriptivo en ambas piernas:** {summary.get('bet365_pairs_history_directionally_agrees', 0)}",
-              "**Disponibilidad Caliente/Playdoit:** NO VERIFICADA (Bet365 solo referencia)",
+              "**Bet365:** cuotas API-Football ID 8; reconfirmar precio del boleto antes de apostar.",
               f"**Duplas WATCH cerca de +100:** {summary.get('parlay_price_pairs_watch', 0)}",
               f"**BET individuales calculados:** {summary.get('actionable_bets', 0)}",
               f"**BET combinadas calculadas:** {summary.get('parlay_actionable_bets', 0)}",
@@ -218,7 +220,7 @@ jobs:
               "**Ranking por menor riesgo:** NO VERIFICADO (requiere OOS y probabilidad conjunta)",
               "**Parlay EV y probabilidad conjunta:** NOT VERIFIED",
               "**Apuestas realizadas:** 0",
-              "**Clasificación:** WATCH — proyección Poisson RAW sin calibración OOS, sin XI confirmado ni precios Caliente/Playdoit verificados.",
+              "**Clasificación:** WATCH — proyección Poisson RAW sin calibración OOS, sin XI confirmado y sin calibración OOS; precio de Bet365 sujeto a reconfirmación.",
               "",
               "## Prioridad preliminar (no picks)",
           ]

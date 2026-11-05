@@ -152,7 +152,7 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
               'classification':'WATCH','research_signal':status,
               'calibrated_probability':None,'conservative_probability_lower':None,
               'mexico_book_offer_verified':False,'expected_value':None,
-              'notes':'Research raw Poisson, not OOS calibrated; Bet365 quote not Mexico ticket.'})
+              'notes':'Research raw Poisson, not OOS calibrated; Bet365 price observed through API-Football; reconfirm on Bet365 before staking.'})
     preliminary=[x for x in diagnostics if x['raw_sport_probability'] is not None]
     preliminary.sort(key=lambda x:(
         -(x['venue_sample_min'] or 0),
@@ -252,4 +252,4 @@ def examine_bet365_market_matrix(snapshots, sport_screen, market_registry, *,
                 'Raw probability vs breakeven is NOT EV; quote may be stale outside the window.',
                 'Independent events do not establish betting-outcome independence.',
                 'Historical form/lineups, market family OOS and book offer remain material gates.',
-                'No Bet365 quote is confirmed Caliente/Playdoit offer.']}
+                'Bet365 reference quote is not a directly confirmed Bet365 betslip.']}

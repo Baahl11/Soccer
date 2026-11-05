@@ -1,3 +1,9 @@
+# V1.5 — BET365 EXCLUSIVO
+
+**Política activa:** único precio de referencia: API-Football bookmaker **8 (Bet365)**. No se consulta ni exige otra casa. `decision_gate_YYYY-MM-DD.json` registra las cotizaciones Bet365 reales evaluadas, identidad exacta, fecha y blockers del modelo. Los parlays +100 utilizan el producto teórico de dos cuotas Bet365 y, cuando existen probabilidades OOS validadas, la cota conservadora Fréchet sin presuponer independencia. El precio final de un boleto se reconfirma en Bet365 antes de apostar. No se realizan apuestas ni se declara calibrado un modelo experimental. Las secciones inferiores documentan versiones anteriores.
+
+---
+
 # SPORTS EDGE SCANNER v0.5 — Pro full-slate research + pregame refresh
 
 **Estado actual (5-nov-2026):** Integrado en `Baahl11/Soccer` y ejecutándose dos veces al día en GitHub Actions; probado con API-Football Pro y 41 partidos. El programador canónico de Soccer volvió a producir un tick persistido el 5-nov-2026. **NO ejecuta apuestas**. Los datos Pro estaban disponibles mediante la conexión Soccer Edge API en esta conversación; el acceso HTTP directo requiere `API_FOOTBALL_KEY` configurada como secreto del ejecutor (no la compartas por chat). La renovación Pro mostró 7,500 consultas/día y datos de temporada 2026 en la prueba anterior, pero los saldos pueden variar.

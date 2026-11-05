@@ -24,7 +24,7 @@ class DecisionBridgeTests(unittest.TestCase):
 
     def test_real_research_canonical_does_not_force_fake_actionable_bet(self):
         r=adjudicate_daily(self.canonical,slate_complete=True,now=NOW)
-        self.assertEqual(r['feed_status'],'TRUSTED_MODEL_AND_SPORTSBOOK_OFFERS_NOT_CONNECTED')
+        self.assertEqual(r['feed_status'],'BET365_PRODUCTION_MODEL_FEED_NOT_CONNECTED')
         self.assertEqual(r['actionable_bets'],0)
         self.assertEqual(r['canonical_research']['rows_examined'],1)
         self.assertIn('MODEL_RESEARCH_ONLY_NOT_PROMOTED',r['canonical_research']['blocker_counts'])

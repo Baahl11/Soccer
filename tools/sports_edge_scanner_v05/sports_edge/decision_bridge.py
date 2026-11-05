@@ -58,7 +58,7 @@ def adjudicate_daily(canonical: dict[str, Any], *,
     source_path=trusted_file or os.getenv('SOCCER_TRUSTED_DECISION_INPUT')
     if not source_path:
         report=adjudicate_offers([],[],now=now,slate_complete=slate_complete)
-        report['feed_status']='TRUSTED_MODEL_AND_SPORTSBOOK_OFFERS_NOT_CONNECTED'
+        report['feed_status']='BET365_PRODUCTION_MODEL_FEED_NOT_CONNECTED'
         report['feed_error']=None
     else:
         try:
