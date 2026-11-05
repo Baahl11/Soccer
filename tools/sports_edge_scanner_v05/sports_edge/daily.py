@@ -378,6 +378,16 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
         result['next_step'] = 'RECONFIRM_PRICE_AND_PORTFOLIO_BEFORE_STAKE'
     else:
         result['blockers'].append('CERTIFIED_MODEL_AND_BOOKMAKER_DECISION_FEED_NOT_READY')
+    # Price is second; analyze every accepted Bet365 quoted market against
+    # exact RAW sport outcomes rather than choosing pairs by +100 proximity.
+    from .market_matrix import examine_bet365_market_matrix
+    market_matrix = examine_bet365_market_matrix(
+        odds.get('snapshots', []), batch, market_registry)
+    _write_json(target / f'bet365_market_matrix_{date}.json', market_matrix)
+    result['bet365_market_quotes_fresh_supported'] = market_matrix['fresh_supported_market_quotes']
+    result['bet365_quotes_with_exact_or_derived_raw'] = market_matrix['exact_or_poisson_derived_raw_quotes']
+    result['bet365_no_vig_market_quotes'] = market_matrix['two_way_or_three_way_novig_quotes']
+    result['bet365_sport_first_review_pairs_plus100'] = market_matrix['sporting_screened_plus100_pairs_found']
     _write_json(target / f'parlay_radar_{date}.json', parlay_radar)
     _write_json(target / f'parlay_leg_evidence_{date}.json', parlay_radar)
     _write_json(target / f'odds_research_{date}.json', odds)
@@ -386,5 +396,6 @@ def run_daily(date: str, league_ids: set[int], directory: str | Path,
     write_board(batch, result, target / f'board_{date}.html',
                 market_registry=market_registry, canonical=canonical, advanced_context=historical_market,
                 parlay_radar=parlay_radar, decision_report=decision,
-                canonical_research=research_state, bookmaker_catalogue=bookmaker_directory)
+                canonical_research=research_state, bookmaker_catalogue=bookmaker_directory,
+                market_matrix=market_matrix)
     return result
