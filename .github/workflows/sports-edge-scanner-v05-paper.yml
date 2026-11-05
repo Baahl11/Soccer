@@ -50,7 +50,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify 142 decision gate and sportsbook safety tests
+      - name: Verify all decision-gate, parlay and dashboard tests
         run: python -m unittest discover -s tests -q
 
   paper-research:
