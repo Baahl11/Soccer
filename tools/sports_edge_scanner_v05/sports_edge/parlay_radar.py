@@ -45,6 +45,10 @@ def _market_family(market: str, selection: str, point: str) -> str | None:
             return None
     except (TypeError, ValueError):
         return None
+    # Avoid integer/quarter Asian lines: refunds, half-wins and half-losses
+    # make simple binary breakeven and two-leg multiplication misleading.
+    if abs((line % 1.0) - 0.5) > 1e-8:
+        return None
     if 'corner' in m:
         return 'CORNERS'
     if 'foul' in m:
@@ -109,8 +113,8 @@ def discover_two_leg_price_pairs(
         now: datetime | None = None,
         target_min: float = 1.90,
         target_max: float = 2.10,
-        min_leg_decimal: float = 1.24,
-        max_leg_decimal: float = 1.55,
+        min_leg_decimal: float = 1.28,
+        max_leg_decimal: float = 1.50,
         max_age_minutes: int = 120,
         top_n: int = 15,
         ) -> dict[str, Any]:
@@ -170,9 +174,25 @@ def discover_two_leg_price_pairs(
                 'reason':'TWO_CALIBRATED_PROJECTIONS_AND_INDEPENDENCE_AND_BOOK_OFFER_REQUIRED',
             })
     # Proximity to +100 is a sorting convenience; it does NOT mean lower risk.
+    # A balanced pair avoids relying on a particularly weak-priced leg.
+    # This is ONLY a price-shape heuristic; not a sporting probability estimate.
     results.sort(key=lambda x:(x['difference_from_decimal_2'],
+                               abs(x['legs'][0]['price_decimal']-x['legs'][1]['price_decimal']),
                                max(y['quote_age_minutes'] for y in x['legs']),
                                x['legs'][0]['event_id'],x['legs'][1]['event_id']))
+    diverse = []
+    event_pair_counts = Counter()
+    bookmaker_counts = Counter()
+    for pair in results:
+        pair_key = tuple(sorted(leg['event_id'] for leg in pair['legs']))
+        book_key = pair['bookmaker'].casefold()
+        if event_pair_counts[pair_key] >= 3 or bookmaker_counts[book_key] >= 4:
+            continue
+        diverse.append(pair)
+        event_pair_counts[pair_key] += 1
+        bookmaker_counts[book_key] += 1
+        if len(diverse) >= top_n:
+            break
     return {
         'status':'PRICE_ONLY_WATCH',
         'generated_at_utc':now.isoformat(),
@@ -181,7 +201,7 @@ def discover_two_leg_price_pairs(
         'accepted_legs':len(accepted),
         'rejected_quote_reasons':dict(exclusions),
         'pairs_found_before_display_cap':len(results),
-        'pairs':results[:top_n],
+        'pairs':diverse,
         'actionable_parlays':0,
         'wagers_placed':0,
         'notes':[

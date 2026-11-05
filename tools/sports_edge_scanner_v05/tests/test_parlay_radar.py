@@ -103,3 +103,21 @@ class BoardParlayRadarTest(unittest.TestCase):
         html=render_board({'screened_fixtures':[],'match_date':'2026-11-05'},
                           {'match_date':'2026-11-05','sports_screened':0},parlay_radar={'pairs':[]})
         self.assertIn('No se encontraron combinaciones',html)
+
+class BinaryLineSafetyTest(unittest.TestCase):
+    def test_integer_and_quarter_asian_lines_excluded(self):
+        for point in ('2.0','2.25','2.75','3.0','3.25'):
+            r=discover_two_leg_price_pairs([quote(1,market='Goals Over/Under',selection='Over',point=point),quote(2)],now=NOW)
+            self.assertEqual(r['pairs'],[],point)
+            self.assertEqual(r['rejected_quote_reasons'].get('UNSUPPORTED_OR_AMBIGUOUS_MARKET'),1)
+    def test_half_goal_binary_line_still_allowed(self):
+        r=discover_two_leg_price_pairs([quote(1,market='Goals Over/Under',selection='Over',point='2.5'),quote(2,price=1.43)],now=NOW)
+        self.assertEqual(len(r['pairs']),1)
+    def test_diversity_limit_by_pair_and_book(self):
+        q=[]
+        for event in (1,2):
+            for line in ('0.5','1.5','2.5','3.5','4.5'):
+                q.append(quote(event,market='Goals Over/Under',selection='Over',point=line,price=1.41))
+        r=discover_two_leg_price_pairs(q,now=NOW,top_n=100)
+        self.assertEqual(len(r['pairs']),3)
+        self.assertEqual(r['pairs_found_before_display_cap'],25)

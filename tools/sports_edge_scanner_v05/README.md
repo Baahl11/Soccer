@@ -147,11 +147,11 @@ Every `pro-soccer-daily` run now writes `parlay_radar_YYYY-MM-DD.json` from
 existing market research. The HTML board displays the short price-target list.
 
 - Price window: two legs on different fixtures, same **named** bookmaker,
-  individual decimal odds 1.24–1.55, combined theoretical decimal odds 1.90–2.10.
+  individual decimal odds 1.28–1.50, combined theoretical decimal odds 1.90–2.10.
   No automatic single-leg probability or value is inferred from the quote.
 - Both source timestamps must exist and be at most 120 minutes old; both
-  matches must still be in the future. Unspecified totals/derivative thresholds
-  and unsupported markets are excluded.
+  matches must still be in the future. Unspecified totals/derivative thresholds, push/quarter Asian lines
+  and unsupported markets are excluded. Only binary x.5 totals are allowed.
 - Includes 1X2, BTTS, double chance, explicitly priced goals/periods,
   corners, fouls, and cards *where actual data exists*. Model-family `RESEARCH_HOLD`
   states remain binding; market detection alone is not a market projection.
