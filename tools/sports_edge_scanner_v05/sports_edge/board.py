@@ -26,7 +26,8 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
                  market_registry: dict[str, Any] | None = None,
                  canonical: dict[str, Any] | None = None,
                  advanced_context: dict[str, Any] | None = None,
-                 parlay_radar: dict[str, Any] | None = None) -> str:
+                 parlay_radar: dict[str, Any] | None = None,
+                 decision_report: dict[str, Any] | None = None) -> str:
     """Rendering never creates betting recommendations or uses market prices."""
     matches = batch.get('screened_fixtures') or []
     if not isinstance(matches, list):
@@ -97,6 +98,37 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
         <p class="note">{history_text}<br>Formaciones y estilo: {formation_text}. El estado del módulo es investigativo, no un ajuste automático de goles.</p>
         <table><thead><tr><th>Mercado</th><th>Probabilidad RAW (NO calibrada)</th></tr></thead><tbody>{line}</tbody></table>{advanced_html}
         <p class="note">No implica EV positivo. Alineaciones, disponibilidad, calibración OOS y precios de casa accionables: NOT VERIFIED. No BET.</p></div></details>''')
+    decision_report = decision_report or {}
+    diag = decision_report.get('canonical_research') or {}
+    diag_blockers = diag.get('blocker_counts') or {}
+    main_blockers_html = ''.join(
+        '<li>'+_text(key)+': '+_text(n)+' registros</li>'
+        for key,n in sorted(diag_blockers.items(),key=lambda x:-x[1])[:8]
+    ) or '<li>Sin registros canónicos para esta selección.</li>'
+    singles_html = ''.join(
+        '<li><b>'+_text(x.get('status'))+'</b> · '+_text(x.get('event_name'))
+        +' · '+_text(x.get('market'))+' '+_text(x.get('selection'))
+        +' · cuota '+_text(x.get('price_decimal'))
+        +' · EV conservador '+_text(x.get('conservative_ev'))+'</li>'
+        for x in decision_report.get('singles',[]) if x.get('status') in ('BET','LEAN')
+    ) or '<li>No se ha validado una selección BET ni LEAN.</li>'
+    tickets_html = ''.join(
+        '<li><b>'+_text(x.get('status'))+'</b> · '+_text(x.get('bookmaker'))
+        +' · ticket '+_text(x.get('ticket_reference_id'))
+        +' · cuota '+_text(x.get('ticket_price_decimal'))
+        +' · EV conservador '+_text(x.get('conservative_joint_ev'))+'</li>'
+        for x in decision_report.get('parlays',[]) if x.get('status') == 'BET'
+    ) or '<li>Sin combinadas certificadas +100.</li>'
+    decision_html = ('<h2>Motor final: BET / LEAN / WATCH / PASS</h2>'
+      +'<p>Estado de evidencia: <b>'+_text(decision_report.get('feed_status','NOT_VERIFIED'))
+      +'</b>. BET individuales '+_text(decision_report.get('actionable_bets',0))
+      +'; BET combinadas '+_text(decision_report.get('actionable_parlays',0))
+      +'. Estos conteos los calcula el evaluador y no están fijados a cero.</p>'
+      +'<h4>Bloqueos del motor canónico</h4><ul>'+main_blockers_html+'</ul>'
+      +'<h4>Mercados aprobados o LEAN</h4><ul>'+singles_html+'</ul>'
+      +'<h4>Tickets combinados aprobados</h4><ul>'+tickets_html+'</ul>'
+      +'<p class="note">Las pruebas sintéticas de BET sirven exclusivamente para validar '
+      +'el código. No representan partidos, cuotas ni apuestas reales.</p>')
     parlay_radar = parlay_radar or {}
     radar_pairs = parlay_radar.get('pairs') or []
     radar_cards = []
@@ -164,6 +196,7 @@ def render_board(batch: dict[str, Any], summary: dict[str, Any], *,
 <div class="metrics"><div class="metric"><strong>{screened}</strong><small>Examinados</small></div><div class="metric"><strong>{modeled}</strong><small>RAW calculados</small></div><div class="metric"><strong>{low_sample}</strong><small>Muestra local/visitante insuficiente</small></div><div class="metric"><strong>0</strong><small>BET aprobadas</small></div></div>
 <p>Historial multicompetición verificado para <b>{history_ok}/{screened}</b> partidos. Snapshot del motor canónico: <b>{canonical_status}</b>. Nunca usar datos de otro día como señal actual.</p><p class="note">{pregame_text}</p>
 <div class="warning"><strong>ATENCIÓN:</strong> proyecciones Poisson limitadas y NO calibradas. <b>NO</b> extrapolar como recomendaciones. Para BET faltan ajuste histórico/OOS, XI y disponibilidad confirmados, y precios vigentes de la casa elegida.</div>
+{decision_html}
 {radar_html}
 {market_section}
 <h2>Partidos — perfiles y modelos RAW</h2>
@@ -175,9 +208,10 @@ def write_board(batch: dict[str, Any], summary: dict[str, Any], filename: str | 
                 market_registry: dict[str, Any] | None = None,
                 canonical: dict[str, Any] | None = None,
                 advanced_context: dict[str, Any] | None = None,
-                parlay_radar: dict[str, Any] | None = None) -> None:
+                parlay_radar: dict[str, Any] | None = None,
+                decision_report: dict[str, Any] | None = None) -> None:
     path=Path(filename)
     path.parent.mkdir(parents=True,exist_ok=True)
     tmp=path.with_suffix('.tmp')
-    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar),encoding='utf-8')
+    tmp.write_text(render_board(batch,summary,market_registry=market_registry,canonical=canonical,advanced_context=advanced_context,parlay_radar=parlay_radar,decision_report=decision_report),encoding='utf-8')
     tmp.replace(path)
