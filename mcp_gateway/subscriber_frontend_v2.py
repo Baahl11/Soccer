@@ -298,6 +298,12 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     <div id="researchPlus100" class="card-grid"></div>
     <div class="section-title"><div><h2>EDGE REGULAR</h2><span>Precios inferiores a -110 para investigación</span></div></div>
     <div id="researchRegular" class="card-grid"></div>
+    <div class="section-title"><div><h2>Same Game Parlay · Bet365 cotizado</h2><span>Mercados combinados del mismo partido con cuota del bookmaker; WATCH, sin EV validado.</span></div></div>
+    <div class="panel"><div id="sgpResearchStatus" class="sub">Buscando mercados combinados con precio verificable...</div></div>
+    <div id="sgpQuotedComposites" class="card-grid"></div>
+    <div class="section-title"><div><h2>SGP de jugadores · Constructor de investigación</h2><span>Explora tiros, tiros a puerta y goleadores. No calcula cuota conjunta ni asume independencia.</span></div></div>
+    <div class="panel"><div id="sgpBuilderSlip" class="sub">Selecciona dos o tres líneas de jugadores del mismo partido. No se enviarán apuestas.</div></div>
+    <div id="sgpPlayerLegs" class="card-grid"></div>
     <div class="section-title"><div><h2>Watch</h2><span>Waiting for price, XI, goalkeeper or other required evidence</span></div></div>
     <div class="panel"><div id="todayWatches" class="watch-list"></div></div>
     <div class="section-title"><div><h2>Full Slate</h2><span>Every eligible fixture stays visible, even when analysis is incomplete</span></div></div>
@@ -471,12 +477,77 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<div class="sub">WATCH · NO BET · confirmar precio y XI antes de actuar</div>'+
       '<a href="'+link+'" class="link-btn">Match Center</a></div>'
   }}
+  let sgpPlayerObservations=[];
+  let sgpSelectedPlayerIndexes=[];
+  function sgpComboCard(x){{
+    const odds=num(x.price_decimal),p=num(x.raw_joint_probability),ev=num(x.raw_hypothetical_ev_pct);
+    const target=odds!==null&&odds>=2.1?'+110 o mejor':'-110 a +110';
+    return '<div class="panel"><b>'+esc(x.home_team)+' vs '+esc(x.away_team)+'</b>'+
+      '<div class="sub">'+esc(x.provider_market)+' · '+esc(x.selection)+'</div>'+
+      '<div><b>Bet365 @ '+(odds===null?'NOT VERIFIED':odds.toFixed(2))+'</b> · '+target+'</div>'+
+      '<div class="sub">Probabilidad conjunta RAW: '+pct(p)+' · EV RAW hipotético: '+
+       (ev===null?'NOT VERIFIED':(ev>=0?'+':'')+ev.toFixed(2)+'%')+'</div>'+
+      '<div class="sub">Fuente actualizada: '+esc(x.quote_updated_at||'NOT VERIFIED')+'</div>'+
+      '<div class="sub">WATCH · Mercado combinado COTIZADO por casa, NO SGP personalizado, no BET</div>'+
+      '<a href="/app/match/'+encodeURIComponent(String(x.fixture_id))+'" class="link-btn">Ver partido</a></div>';
+  }}
+  function sgpPlayerCard(x,index){{
+    const odds=num(x.price_decimal);
+    return '<div class="panel">'+
+      '<label><input type="checkbox" data-sgp-player-index="'+index+'" '+(sgpSelectedPlayerIndexes.includes(index)?'checked':'')+
+       ' /> <b>'+esc(x.player_label||'Jugador NO VERIFICADO')+'</b></label>'+
+      '<div class="sub">'+esc(x.home_team)+' vs '+esc(x.away_team)+'</div>'+
+      '<div>'+esc(x.provider_market)+' · <b>'+esc(x.selection)+'</b></div>'+
+      '<div><b>Cuota individual Bet365 '+(odds===null?'NOT VERIFIED':odds.toFixed(2))+'</b></div>'+
+      '<div class="sub">XI, minutos y reglas de liquidación del prop: NOT VERIFIED</div>'+
+      '<div class="sub">Precio del ticket SGP con otros jugadores: NOT VERIFIED</div></div>';
+  }}
+  function renderSgpPlayerSlip(){{
+    const slip=$('sgpBuilderSlip');
+    if(!slip)return;
+    const legs=sgpSelectedPlayerIndexes.map(i=>sgpPlayerObservations[i]).filter(Boolean);
+    if(!legs.length){{
+      slip.textContent='Selecciona dos o tres líneas de jugadores del mismo partido. Cotización conjunta SGP: NOT VERIFIED.';
+      return;
+    }}
+    const allSameGame=legs.every(x=>x.fixture_id===legs[0].fixture_id);
+    const names=legs.map(x=>String(x.player_label||'Jugador')+' · '+String(x.selection||'')).join(' | ');
+    slip.textContent=(allSameGame?('SGP en estudio ('+legs.length+' piernas): '):'Partidos distintos: NO SGP · ')+
+      names+' · CUOTA COMBINADA: NOT VERIFIED · Correlación conjunta: NOT VERIFIED · NO BET';
+  }}
+  function wireSgpPlayerSelection(){{
+    const container=$('sgpPlayerLegs');
+    if(!container)return;
+    container.querySelectorAll('input[data-sgp-player-index]').forEach(input=>{{
+      input.addEventListener('change',()=>{{
+        const idx=Number(input.getAttribute('data-sgp-player-index'));
+        const row=sgpPlayerObservations[idx];
+        if(!row)return;
+        if(input.checked){{
+          const first=sgpSelectedPlayerIndexes.length?sgpPlayerObservations[sgpSelectedPlayerIndexes[0]]:null;
+          if((first&&first.fixture_id!==row.fixture_id)||sgpSelectedPlayerIndexes.length>=3){{
+            input.checked=false;
+            const slip=$('sgpBuilderSlip');
+            if(slip)slip.textContent='Máximo tres jugadores del MISMO partido. Desmarca uno para cambiar.';
+            return;
+          }}
+          sgpSelectedPlayerIndexes.push(idx);
+        }}else sgpSelectedPlayerIndexes=sgpSelectedPlayerIndexes.filter(i=>i!==idx);
+        renderSgpPlayerSlip();
+      }});
+    }});
+  }}
   async function loadResearchDesk(){{
     const status=$('researchStatus'),plus=$('researchPlus100'),regular=$('researchRegular');
+    const comboStatus=$('sgpResearchStatus'),comboBox=$('sgpQuotedComposites'),playerBox=$('sgpPlayerLegs');
     if(!status||!plus||!regular)return;
     if(!(ACCESS?.owner||ACCESS?.admin)){{
       status.textContent='Radar experimental restringido a owner/admin; no es una lista pública de apuestas.';
-      plus.innerHTML='';regular.innerHTML='';return;
+      plus.innerHTML='';regular.innerHTML='';
+      if(comboStatus)comboStatus.textContent='Investigación SGP solo para owner/admin.';
+      if(comboBox)comboBox.innerHTML='';
+      if(playerBox)playerBox.innerHTML='';
+      return;
     }}
     status.textContent='Consultando cuotas recientes y proyecciones registradas...';
     try{{
@@ -486,12 +557,27 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       const low=rows.filter(x=>x.price_bucket==='EDGE_REGULAR');
       plus.innerHTML=high.map(researchPriceCard).join('');
       regular.innerHTML=low.map(researchPriceCard).join('');
+      const combos=Array.isArray(data.sgp_composites)?data.sgp_composites:[];
+      const playerRows=Array.isArray(data.sgp_player_components)?data.sgp_player_components:[];
+      sgpPlayerObservations=playerRows;
+      sgpSelectedPlayerIndexes=[];
+      if(comboBox)comboBox.innerHTML=combos.map(sgpComboCard).join('');
+      if(playerBox)playerBox.innerHTML=playerRows.slice(0,42).map(sgpPlayerCard).join('');
+      if(comboStatus)comboStatus.textContent=combos.length||playerRows.length?
+        ('SGP investigación: '+combos.length+' mercados combinados cotizados; '+playerRows.length+
+         ' líneas individuales de jugadores. +110 orientativo; precio/valor del ticket de varios jugadores NOT VERIFIED.'):
+        'Sin cotizaciones SGP/props lo suficientemente recientes. No mostrar cuotas caducadas.';
+      renderSgpPlayerSlip();
+      wireSgpPlayerSelection();
       status.textContent=rows.length?
        'INVESTIGACIÓN · '+rows.length+' precios vigentes · WATCH solamente · Push próximamente':
        'No hay cuotas vigentes verificadas para partidos futuros (ventana 90 min); no mostrar precios viejos.';
     }}catch(e){{
       status.textContent='Radar no disponible: NO VERIFICADO. La app canónica funciona por separado.';
       plus.innerHTML='';regular.innerHTML='';
+      if(comboStatus)comboStatus.textContent='SGP: fuente NO VERIFICADA.';
+      if(comboBox)comboBox.innerHTML='';
+      if(playerBox)playerBox.innerHTML='';
     }}
   }}
   function matchPath(fid){{return '/app/match/'+encodeURIComponent(fid)}}
