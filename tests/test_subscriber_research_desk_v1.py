@@ -187,3 +187,21 @@ def test_sgp_bridge_fetches_single_source_payload(monkeypatch):
     result=desk._query_research_feed()
     assert len(requests)==1
     assert len(result["sgp_rows"])==1
+
+
+def test_sgp_archived_quote_is_displayed_but_never_claimed_fresh():
+    row={"fixture_id":1,"home_team":"Home","away_team":"Away","league_name":"J1",
+         "kickoff_utc":"2026-11-07T06:00:00Z","bookmaker_id":8,
+         "provider_market":"Total Goals/Both Teams To Score","provider_market_id":49,
+         "selection":"o/yes 2.5","offered_price_decimal":"2.00",
+         "provider_updated_at":"2026-11-06T21:03:16Z",
+         "captured_at":"2026-11-06T22:36:40Z",
+         "offer_type":"BOOK_QUOTED_COMPOSITE","raw_joint_probability":"0.56267103",
+         "raw_hypothetical_ev_pct":"12.534","quote_freshness":"NEEDS_RECONFIRMATION",
+         "classification":"WATCH","bet_eligible":False,
+         "bookmaker_direct_combo_quote":True,"research_flags":[]}
+    x=desk.make_board([],[row])["sgp_composites"][0]
+    assert x["source_quote_fresh"] is False
+    assert x["quote_reconfirmation_required"] is True
+    assert x["bet_eligible"] is False and x["actionable"] is False
+    assert "PRICE_SOURCE_OUTDATED_RECONFIRM_BEFORE_ACTION" in x["research_flags"]
