@@ -484,3 +484,51 @@ Before public paid launch:
 - perform responsive visual QA;
 - approve legal/responsible-gambling copy and jurisdiction policy.
 
+
+
+---
+
+## FE-10 — Alertas de candidatos y notificaciones móviles (plan añadido 2026-11-06)
+
+**Prioridad:** P1 para diseño de datos/eventos y alertas internas; P3 para entrega push/PWA; P4 para app nativa, solo tras validación de web y permisos.  
+**Estado:** ESPECIFICADO / NO DESPLEGADO. No afirmar que el navegador o el teléfono ya reciben push.
+
+**Objetivo del usuario:** recibir una notificación pop-up en su dispositivo cuando Soccer Edge identifique una oportunidad deportiva y un precio verificable de **-110 americano a +100 o mejor**. La regla de precio significa decimal **>= 21/11 (1.90909...)**, sin techo artificial: +110, +150 y superiores también cuentan. El precio por sí mismo nunca dispara una alerta de valor.
+
+### Evento de candidato
+
+El *trigger* debe ser emitido por el motor canónico **después** de SPORT FIRST y la verificación del precio. Requiere:
+
+1. Mismo `fixture_id`, `market_family`, selección exacta, línea (si aplica), casa y fuente.
+2. Cuota decimal >= 21/11; fuente Bet365 ID8 verificada como referencia, no afirmada ejecutable en otra casa.
+3. Probabilidad RAW independiente de la cuota y proyección conservadora; edge frente a breakeven y EV estimado solo cuando el modelo/mercado concreto lo soporte.
+4. `generated_at`, `captured_at`, `provider_updated_at` (si está disponible), expiración y `model_version`. No alertar precios caducados o ya iniciados.
+5. Estado canónico, `availability_confidence`, confirmación XI/GK/lesiones relevante y lista de `blockers`. Nunca inferir que una alineación inexistente está confirmada.
+6. La clasificación `BET` únicamente si el motor canónico ya la autorizó; `LEAN` y `WATCH` no se presentan como picks accionables.
+
+### Modalidades y UX
+
+- **ALERTA BET**: opt-in, solo cuando haya clasificación BET canónica, precio vigente y gate de disponibilidad completo. Incluir partido/mercado/línea/cuota/hora, razón principal, vencimiento y enlace a Match Center para **reconfirmar** precio antes de apostar manualmente. Nunca ejecutar apuesta ni abrir una casa con orden precargada.
+- **RADAR DE CANDIDATOS**: opt-in separado para LEAN/WATCH con evidencia suficiente para seguimiento, etiquetado **INVESTIGACIÓN / NO BET**, indicando exactamente qué condición falta. Sin notificaciones agresivas ni garantías de ganar.
+- Preferencias por ligas, mercados, rango de precio, hora de silencio, frecuencia máxima y canal (in-app, web push/PWA, app nativa futura). Permitir desactivar todo.
+- Dedupe por `fixture_id|market|selection|line|bookmaker|quote_version|status`; evitar spam entre T-90/T-40/T-20, cambios de cuota menores, retiradas de precio o candidato invalidado.
+- Alertas de `PRICE_MOVED`, `NO_LONGER_ELIGIBLE` y `CANCELLED` deben invalidar la recomendación anterior, nunca editarla silenciosamente.
+- Entrega push requiere consentimiento explícito del usuario, permisos del navegador/dispositivo, persistencia de suscripción, VAPID/APNs/FCM según canal, backend de envío, expiración/TTL, notificación sin revelar datos sensibles en pantalla bloqueada y reglas legales / de edad aplicables.
+
+### Contrato mínimo para futuros eventos
+
+`candidate_id, fixture_id, market_family, selection, line, bookmaker_id, bookmaker_name, offered_price_decimal, quote_captured_at, quote_source_updated_at, classification, tier, raw_probability, shrunk_probability, breakeven_probability, estimated_ev, availability_confidence, model_version, status_version, expires_at, blockers, event_type, audience, created_at`.
+
+El backend decide elegibilidad; el cliente no crea picks ni recalcula probabilidades. **No hay envío push ni alertas accionables hasta que existan productor canónico autorizado, servicio de entrega, consentimiento y pruebas E2E.**
+
+### Aceptación y secuencia de entrega
+
+1. **Render/estado actual:** verificar salud, frescura de datos, 200 y contrato para `/app-v2`, `/app/api/v2/today`, `/picks`, `/leans`; no publicar datos de octubre como actuales.
+2. **Conexión de datos:** exponer vista de investigación/prospective con lectura controlada, manteniendo la lógica BET exclusivamente en el canónico; preservar distinción RAW, shrunk, fair, breakeven y EV de diagnóstico.
+3. **Frontend:** tarjetas separadas `EDGE +100` y `EDGE REGULAR` filtrables por precio, estado y mercado, detalle Match Center e historial prospectivo; sin falsos BET ni cuotas obsoletas.
+4. **QA:** probar navegación desktop/móvil, accesibilidad, FREE/PRO, manejo de errores, placeholders, tiempo de espera, disponibilidad de API, seguridad/RLS y discrepancias de datos. No mover rutas públicas sin verificación.
+5. **Alertas de investigación:** registrar eventos idempotentes y preferencias; probar modo in-app/preview sin push real.
+6. **Web Push/PWA (futuro):** completar consentimiento y entrega, pruebas de caducidad/dedupe/retirada, throttling, legal/jurisdicción; solo entonces habilitar.
+7. **App nativa (si existe demanda):** reutilizar backend/notificaciones, sin duplicar lógica deportiva ni autorización de apuestas.
+
+**Política comercial:** las alertas venden acceso a información y transparencia; no prometer ganancias, exigir atención a edad/jurisdicción y evitar mecánicas compulsivas. 
