@@ -171,10 +171,21 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
         )
         if not configured:
             return JSONResponse({"status":"NOT_CONFIGURED"},status_code=503)
-        rows = await asyncio.to_thread(subscriber_research_desk_v1._query_rows)
+        feed = await asyncio.to_thread(subscriber_research_desk_v1._query_research_feed)
+        rows = feed["rows"]
+        sgp = feed["sgp_rows"]
+        combos = [x for x in sgp if x.get("offer_type")=="BOOK_QUOTED_COMPOSITE"]
+        players = [x for x in sgp if x.get("offer_type")=="PLAYER_COMPONENT_QUOTE"]
         return JSONResponse({
             "status":"CONNECTED_RESEARCH_ONLY",
             "fresh_research_rows":len(rows),
+            "sgp_direct_combo_quotes":len(combos),
+            "sgp_recent_combo_quotes":sum(x.get("quote_freshness")=="CURRENT_QUOTE" for x in combos),
+            "sgp_player_component_quotes":len(players),
+            "sgp_raw_positive_research":sum(
+                (float(x.get("raw_hypothetical_ev_pct") or -1) > 0)
+                for x in combos
+            ),
             "source":"SUPABASE_PRIVATE_BRIDGE",
             "bet_eligible":False,
             "tokens_exposed":False,
