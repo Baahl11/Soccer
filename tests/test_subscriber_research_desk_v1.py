@@ -62,7 +62,7 @@ def test_anonymous_research_forbidden_before_database_access(monkeypatch):
     monkeypatch.setattr(desk.subscriber_contract_v2, "_resolve_entitlement", anonymous)
     def prohibited():
         raise AssertionError("DB must not be contacted")
-    monkeypatch.setattr(desk, "_query_rows", prohibited)
+    monkeypatch.setattr(desk, "_query_research_feed", prohibited)
     req = Request({"type": "http", "method": "GET", "path": "/", "headers": []})
     response = asyncio.run(desk.priced_research(req))
     assert response.status_code == 403
@@ -75,7 +75,7 @@ def test_owner_database_unavailable_fails_closed(monkeypatch):
     monkeypatch.setattr(desk.subscriber_contract_v2, "_resolve_entitlement", owner)
     def unavailable():
         raise RuntimeError("private backend detail")
-    monkeypatch.setattr(desk, "_query_rows", unavailable)
+    monkeypatch.setattr(desk, "_query_research_feed", unavailable)
     req = Request({"type": "http", "method": "GET", "path": "/", "headers": []})
     response = asyncio.run(desk.priced_research(req))
     assert response.status_code == 503
@@ -121,3 +121,69 @@ def test_bridge_iso_datetime_preserves_utc_and_rejects_naive():
     assert desk._time("2026-11-06T14:30:00-06:00")=="2026-11-06T20:30:00+00:00"
     assert desk._time("2026-11-06T20:30:00Z")=="2026-11-06T20:30:00+00:00"
     assert desk._time("2026-11-06T20:30:00") is None
+
+def test_sgp_direct_book_quote_is_not_player_betslip_and_keeps_raw_unvalidated():
+    source = {
+        "fixture_id": 1556133,"home_team":"FC Tokyo","away_team":"Kashima",
+        "league_name":"J1 League","kickoff_utc":"2026-11-07T06:00:00+00:00",
+        "bookmaker_id":8,"provider_market":"Total Goals/Both Teams To Score",
+        "provider_market_id":49,"selection":"o/yes 2.5","offered_price_decimal":"2.00",
+        "provider_updated_at":"2026-11-06T21:03:16+00:00",
+        "captured_at":"2026-11-06T22:16:45+00:00",
+        "offer_type":"BOOK_QUOTED_COMPOSITE",
+        "raw_joint_probability":"0.56267103",
+        "raw_hypothetical_ev_pct":"12.534",
+        "quote_freshness":"CURRENT_QUOTE",
+        "classification":"WATCH","bet_eligible":False,
+        "bookmaker_direct_combo_quote":True,
+        "research_flags":["MODEL_NOT_OOS_VALIDATED"],
+    }
+    board=desk.make_board([],[source])
+    assert board["bets"]==0
+    assert board["sgp_custom_player_ticket_price_verified"] is False
+    combo=board["sgp_composites"][0]
+    assert combo["price_decimal"]==2.0
+    assert combo["raw_joint_probability"]>0.56
+    assert combo["price_bucket"]=="MINUS110_TO_PLUS110"
+    assert combo["price_meaning"]=="BOOK_QUOTED_SINGLE_COMPOSITE_MARKET"
+    assert combo["joint_probability_validated"] is False
+    assert combo["bet_eligible"] is False and combo["actionable"] is False
+    leg={**source,"offer_type":"PLAYER_COMPONENT_QUOTE",
+         "provider_market":"Home Player Shots","provider_market_id":240,
+         "selection":"Shion Homma - 3","player_label":"Shion Homma",
+         "offered_price_decimal":"2.10","raw_joint_probability":None,
+         "raw_hypothetical_ev_pct":None,"bookmaker_direct_combo_quote":False}
+    p=desk.make_board([],[source,leg])
+    assert len(p["sgp_composites"])==1 and len(p["sgp_player_components"])==1
+    assert p["sgp_player_components"][0]["price_bucket"]=="PLUS110_OR_BETTER"
+    assert p["sgp_player_components"][0]["price_meaning"]=="INDIVIDUAL_PLAYER_LEG_NOT_SGP_TICKET"
+    assert p["sgp_player_components"][0]["raw_joint_probability"] is None
+
+
+def test_sgp_stale_and_unverified_quotes_are_not_displayed():
+    src={"offer_type":"BOOK_QUOTED_COMPOSITE","quote_freshness":"STALE_OR_NOT_ELIGIBLE",
+         "bookmaker_id":8,"bet_eligible":False,"classification":"WATCH",
+         "bookmaker_direct_combo_quote":True,"offered_price_decimal":"2.10"}
+    assert not desk._sgp_market_rows([src])["sgp_composites"]
+    src["quote_freshness"]="CURRENT_QUOTE"
+    src["bookmaker_id"]=12
+    assert not desk._sgp_market_rows([src])["sgp_composites"]
+    src["bookmaker_id"]=8
+    src["bet_eligible"]=True
+    assert not desk._sgp_market_rows([src])["sgp_composites"]
+
+
+def test_sgp_bridge_fetches_single_source_payload(monkeypatch):
+    monkeypatch.setenv("SOCCER_RESEARCH_BRIDGE_URL",
+      "https://pqoobjacewxigngzhbhp.supabase.co/functions/v1/soccer-owner-price-bridge")
+    monkeypatch.setenv("SOCCER_RESEARCH_BRIDGE_TOKEN","c"*96)
+    requests=[]
+    class Reply:
+        def raise_for_status(self): pass
+        def json(self): return {"status":"CONNECTED_RESEARCH_READ_ONLY",
+          "production_bets_authorized":False,
+          "rows":[],"sgp_rows":[{"offer_type":"BOOK_QUOTED_COMPOSITE"}]}
+    monkeypatch.setattr(desk.httpx,"get",lambda *a,**k:(requests.append(1) or Reply()))
+    result=desk._query_research_feed()
+    assert len(requests)==1
+    assert len(result["sgp_rows"])==1
