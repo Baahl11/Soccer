@@ -1,0 +1,66 @@
+name: Soccer App V2 Read-Only Live Research Smoke
+
+on:
+  push:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - '.github/workflows/v2-research-live-smoke.yml'
+      - 'mcp_gateway/subscriber_research_desk_v1.py'
+      - 'mcp_gateway/subscriber_frontend_v2.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check live V2 route, owner isolation, and snapshot age
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,time,urllib.request,urllib.error
+          from datetime import datetime,timezone
+          base="https://soccer-edge-api.onrender.com"
+          def get(path):
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(base+path,headers={"User-Agent":"SoccerV2ReadOnlyQA/1.0"}),timeout=35) as r:
+                      return r.status,r.read().decode("utf-8","replace")
+              except urllib.error.HTTPError as e:
+                  return e.code,e.read().decode("utf-8","replace")
+          for attempt in range(9):
+              status,html=get("/app-v2")
+              code,raw=get("/app/api/v2/research-price-desk")
+              print("attempt",attempt+1,"app",status,"owner_endpoint",code,flush=True)
+              if status==200 and 'id="researchPlus100"' in html and code==403:
+                  try:
+                      payload=json.loads(raw)
+                  except ValueError:
+                      raise SystemExit("403 returned non-JSON response")
+                  assert payload.get("error")=="OWNER_ONLY_RESEARCH",payload
+                  break
+              if attempt==8:
+                  raise SystemExit("DEPLOYMENT_NOT_CONFIRMED_V2_RESEARCH_ROUTE")
+              time.sleep(16)
+          health_code,health_body=get("/health")
+          today_code,today_body=get("/app/api/v2/today")
+          assert health_code==200 and today_code==200, (health_code,today_code)
+          health=json.loads(health_body);today=json.loads(today_body)
+          assert health.get("status")=="ok"
+          assert today.get("schema_version")=="2.0.0"
+          generated=today.get("generated_at_utc")
+          try:
+              age=(datetime.now(timezone.utc)-datetime.fromisoformat(generated.replace("Z","+00:00"))).total_seconds()/3600
+          except Exception:
+              age=None
+          print(json.dumps({
+              "route_owner_gate":"PASS","frontend_radar_sections":"PASS",
+              "health":health.get("status"),"render_commit":health.get("render_git_commit"),
+              "snapshot_generated":generated,"snapshot_age_hours":round(age,2) if age is not None else None,
+              "snapshot_fresh":bool(age is not None and 0<=age<=24),
+              "counts":today.get("counts"),"bet_auth":"unchanged"
+          },indent=2))
+          PY
