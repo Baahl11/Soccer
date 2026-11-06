@@ -153,6 +153,39 @@ async def internal_post_v223_visit_matrix_v4_build(request: Request) -> Response
         return JSONResponse({"error":"post_v223_visit_matrix_failed","detail":str(exc)[:500]}, status_code=500)
 
 
+
+@mcp.custom_route("/internal/research-price-bridge-check", methods=["GET"])
+async def internal_research_price_bridge_check(request: Request) -> Response:
+    """GitHub OIDC-only source check. No prices, tokens, or admin data returned."""
+    try:
+        _base_server._github_oidc_claims(
+            request, {".github/workflows/v2-price-bridge-verification.yml"}
+        )
+    except Exception:
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
+    try:
+        from mcp_gateway import subscriber_research_desk_v1
+        configured = bool(
+            os.getenv("SOCCER_RESEARCH_BRIDGE_URL", "").strip()
+            and os.getenv("SOCCER_RESEARCH_BRIDGE_TOKEN", "").strip()
+        )
+        if not configured:
+            return JSONResponse({"status":"NOT_CONFIGURED"},status_code=503)
+        rows = await asyncio.to_thread(subscriber_research_desk_v1._query_rows)
+        return JSONResponse({
+            "status":"CONNECTED_RESEARCH_ONLY",
+            "fresh_research_rows":len(rows),
+            "source":"SUPABASE_PRIVATE_BRIDGE",
+            "bet_eligible":False,
+            "tokens_exposed":False,
+        },headers={"Cache-Control":"no-store"})
+    except Exception:
+        return JSONResponse({
+            "status":"SOURCE_NOT_VERIFIED","fresh_research_rows":0,
+            "bet_eligible":False,"tokens_exposed":False,
+        },status_code=503,headers={"Cache-Control":"no-store"})
+
+
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
 V215_SIGNAL_LEDGER_WORKFLOW = ".github/workflows/v215-signal-ledger-postgres-materialization.yml"
 V215_SIGNAL_LEDGER_REF = "refs/heads/main"
