@@ -97,6 +97,7 @@ def _install_subscriber_app_routes() -> None:
             landing_page_v2,
             subscriber_product_v235,
             subscriber_contract_v2,
+            subscriber_research_desk_v1,
             subscriber_frontend_v2,
             subscriber_frontend_v3,
             subscriber_react_v3,
@@ -156,6 +157,8 @@ def _install_subscriber_app_routes() -> None:
             additions.append(Route("/app/api/v2/leans", subscriber_contract_v2.leans, methods=["GET"], name="subscriber_v2_leans"))
         if "/app/api/v2/watches" not in existing_paths:
             additions.append(Route("/app/api/v2/watches", subscriber_contract_v2.watches, methods=["GET"], name="subscriber_v2_watches"))
+        if "/app/api/v2/research-price-desk" not in existing_paths:
+            additions.append(Route("/app/api/v2/research-price-desk", subscriber_research_desk_v1.priced_research, methods=["GET"], name="subscriber_v2_research_price_desk"))
         if "/app/api/v2/performance" not in existing_paths:
             additions.append(Route("/app/api/v2/performance", subscriber_contract_v2.performance, methods=["GET"], name="subscriber_v2_performance"))
         if "/app/api/v2/my-edge" not in existing_paths:
