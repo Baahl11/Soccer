@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import sys
 from pathlib import Path
@@ -182,6 +183,13 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
         except Exception:
             cached = []
             cache_status = "NOT_VERIFIED"
+        print("SGP_SOURCE_HEALTH " + json.dumps({
+            "supabase_composites": len(combos),
+            "supabase_player_components": len(players),
+            "render_cached_rows": len(cached),
+            "render_cache_status": cache_status,
+            "render_cached_fresh": sum(x.get("quote_freshness")=="CURRENT_QUOTE" for x in cached)
+        }, separators=(",", ":")), flush=True)
         return JSONResponse({
             "render_cached_sgp_rows": len(cached),
             "render_cached_sgp_fresh_rows": sum(x.get("quote_freshness")=="CURRENT_QUOTE" for x in cached),
