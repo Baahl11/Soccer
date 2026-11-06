@@ -38,8 +38,8 @@ jobs:
           mkdir -p /tmp/frontend-audit
           curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/health" > /tmp/frontend-audit/health.json
           curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/today" > /tmp/frontend-audit/today.json
-          curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/picks" > /tmp/frontend-audit/picks.json
-          curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/leans" > /tmp/frontend-audit/leans.json
+          curl -sS --retry 4 --retry-delay 4 --max-time 45 -o /tmp/frontend-audit/picks.json -w "%{http_code}" "$BASE_URL/app/api/v2/picks" > /tmp/frontend-audit/picks.status
+          curl -sS --retry 4 --retry-delay 4 --max-time 45 -o /tmp/frontend-audit/leans.json -w "%{http_code}" "$BASE_URL/app/api/v2/leans" > /tmp/frontend-audit/leans.status
           curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/watches" > /tmp/frontend-audit/watches.json
           curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app-v2" > /tmp/frontend-audit/app-v2.html
 
@@ -53,6 +53,15 @@ jobs:
           picks = json.loads(Path("/tmp/frontend-audit/picks.json").read_text())
           leans = json.loads(Path("/tmp/frontend-audit/leans.json").read_text())
           watches = json.loads(Path("/tmp/frontend-audit/watches.json").read_text())
+          pick_status = Path("/tmp/frontend-audit/picks.status").read_text().strip()
+          lean_status = Path("/tmp/frontend-audit/leans.status").read_text().strip()
+          assert pick_status in ("200","403"), pick_status
+          assert lean_status in ("200","403"), lean_status
+          if pick_status == "403":
+              assert picks.get("error") in ("PRO_REQUIRED","AUTH_REQUIRED"), picks
+          if lean_status == "403":
+              assert leans.get("error") in ("PRO_REQUIRED","AUTH_REQUIRED"), leans
+
           generated = today.get("generated_at_utc")
           try:
               snapshot_age_hours = round(
@@ -81,6 +90,8 @@ jobs:
               "render_git_commit": health.get("render_git_commit"),
               "snapshot_age_hours": snapshot_age_hours,
               "snapshot_freshness": freshness,
+              "picks_http_status": pick_status,
+              "leans_http_status": lean_status,
               "picks_schema": picks.get("schema_version"),
               "leans_schema": leans.get("schema_version"),
               "watches_schema": watches.get("schema_version"),
