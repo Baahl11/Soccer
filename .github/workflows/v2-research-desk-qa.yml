@@ -1,0 +1,52 @@
+name: Soccer V2 Research Desk - Offline Safety QA
+
+on:
+  pull_request:
+    branches:
+      - soccer-edge-mcp-v1
+    paths:
+      - 'mcp_gateway/subscriber_research_desk_v1.py'
+      - 'mcp_gateway/subscriber_frontend_v2.py'
+      - 'mcp_gateway/__init__.py'
+      - 'tests/test_subscriber_research_desk_v1.py'
+      - 'tests/test_subscriber_frontend_v2.py'
+      - '.github/workflows/v2-research-desk-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install minimal backend test dependencies
+        run: |
+          python -m pip install -q -r mcp_gateway/requirements.txt pytest
+      - name: Python syntax and regression tests
+        run: |
+          python -m compileall -q mcp_gateway/subscriber_research_desk_v1.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/__init__.py
+          python -m pytest tests/test_subscriber_research_desk_v1.py tests/test_subscriber_frontend_v2.py -q
+      - name: Validate rendered V2 inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          from mcp_gateway import subscriber_frontend_v2
+          html = subscriber_frontend_v2.render()
+          js = re.search(r'<script id="soccer-edge-v2-app">(.*?)</script>',html,re.S)
+          assert js, "V2 JS script not found"
+          Path('/tmp/soccer-v2.js').write_text(js.group(1),encoding='utf-8')
+          assert html.count('id="researchPlus100"')==1
+          assert html.count('id="researchRegular"')==1
+          assert 'MutationObserver' not in html
+          PY
+          node --check /tmp/soccer-v2.js
