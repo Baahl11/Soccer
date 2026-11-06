@@ -82,7 +82,7 @@ def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
     combos: list[dict[str, Any]] = []
     players: list[dict[str, Any]] = []
     for row in sgp_rows:
-        if (row.get("quote_freshness") != "CURRENT_QUOTE"
+        if (row.get("quote_freshness") not in {"CURRENT_QUOTE", "NEEDS_RECONFIRMATION"}
             or row.get("classification") != "WATCH"
             or row.get("bet_eligible") is not False
             or row.get("bookmaker_id") != 8):
@@ -111,6 +111,9 @@ def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
             "selection": row["selection"],
             "price_decimal": price,
             "quote_updated_at": _time(row.get("provider_updated_at")),
+            "quote_freshness": row.get("quote_freshness"),
+            "quote_reconfirmation_required": True,
+            "source_quote_fresh": row.get("quote_freshness") == "CURRENT_QUOTE",
             "captured_at": _time(row.get("captured_at")),
             "offer_type": offer_type,
             "price_bucket": ("PLUS110_OR_BETTER" if price >= 2.10
@@ -125,16 +128,19 @@ def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
             "classification": "WATCH",
             "bet_eligible": False,
             "actionable": False,
-            "research_flags": list(row.get("research_flags") or []),
+            "research_flags": list(row.get("research_flags") or []) +
+                 (["PRICE_SOURCE_OUTDATED_RECONFIRM_BEFORE_ACTION"]
+                  if row.get("quote_freshness") != "CURRENT_QUOTE" else []),
             "price_meaning": ("BOOK_QUOTED_SINGLE_COMPOSITE_MARKET" if is_direct
                               else "INDIVIDUAL_PLAYER_LEG_NOT_SGP_TICKET"),
         }
         (combos if is_direct else players).append(item)
     combos.sort(key=lambda x: (
+        not x["source_quote_fresh"],
         -(x["raw_hypothetical_ev_pct"] if x["raw_hypothetical_ev_pct"] is not None else -999),
         abs(x["price_decimal"]-2.10),x["fixture_id"]
     ))
-    players.sort(key=lambda x: (abs(x["price_decimal"]-2.10), x["fixture_id"],str(x["selection"])))
+    players.sort(key=lambda x: (not x["source_quote_fresh"], abs(x["price_decimal"]-2.10), x["fixture_id"],str(x["selection"])))
     return {"sgp_composites": combos[:20], "sgp_player_components": players[:50]}
 
 
