@@ -38,6 +38,9 @@ jobs:
           mkdir -p /tmp/frontend-audit
           curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/health" > /tmp/frontend-audit/health.json
           curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/today" > /tmp/frontend-audit/today.json
+          curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/picks" > /tmp/frontend-audit/picks.json
+          curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/leans" > /tmp/frontend-audit/leans.json
+          curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app/api/v2/watches" > /tmp/frontend-audit/watches.json
           curl -fsS --retry 4 --retry-delay 4 --max-time 45 "$BASE_URL/app-v2" > /tmp/frontend-audit/app-v2.html
 
           python - <<'PY'
@@ -46,6 +49,22 @@ jobs:
 
           health = json.loads(Path("/tmp/frontend-audit/health.json").read_text())
           today = json.loads(Path("/tmp/frontend-audit/today.json").read_text())
+          from datetime import datetime, timezone
+          picks = json.loads(Path("/tmp/frontend-audit/picks.json").read_text())
+          leans = json.loads(Path("/tmp/frontend-audit/leans.json").read_text())
+          watches = json.loads(Path("/tmp/frontend-audit/watches.json").read_text())
+          generated = today.get("generated_at_utc")
+          try:
+              snapshot_age_hours = round(
+                  (datetime.now(timezone.utc) -
+                   datetime.fromisoformat(str(generated).replace("Z", "+00:00"))).total_seconds()/3600, 2)
+          except (TypeError, ValueError):
+              snapshot_age_hours = None
+          freshness = "FRESH" if snapshot_age_hours is not None and 0 <= snapshot_age_hours <= 24 else "STALE_OR_NOT_VERIFIED"
+          Path("/tmp/frontend-audit/freshness.json").write_text(
+              json.dumps({"snapshot_age_hours": snapshot_age_hours, "freshness": freshness,
+                          "generated_at_utc": generated}, indent=2), encoding="utf-8")
+
           html = Path("/tmp/frontend-audit/app-v2.html").read_text()
 
           assert health.get("status") == "ok", health
@@ -60,6 +79,11 @@ jobs:
           assert "setTimeout(" not in html
           print(json.dumps({
               "render_git_commit": health.get("render_git_commit"),
+              "snapshot_age_hours": snapshot_age_hours,
+              "snapshot_freshness": freshness,
+              "picks_schema": picks.get("schema_version"),
+              "leans_schema": leans.get("schema_version"),
+              "watches_schema": watches.get("schema_version"),
               "today_status": today.get("status"),
               "counts": today.get("counts"),
               "effective_plan": (today.get("access") or {}).get("effective_plan"),
@@ -214,6 +238,10 @@ jobs:
           cp /tmp/frontend-audit/visual-failures.json .
           cp /tmp/frontend-audit/health.json .
           cp /tmp/frontend-audit/today.json .
+          cp /tmp/frontend-audit/freshness.json .
+          cp /tmp/frontend-audit/picks.json .
+          cp /tmp/frontend-audit/leans.json .
+          cp /tmp/frontend-audit/watches.json .
           git add .
           git commit -m "Update live frontend visual audit"
           git branch -M frontend-audit-artifacts
