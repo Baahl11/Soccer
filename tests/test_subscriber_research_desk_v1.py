@@ -80,3 +80,44 @@ def test_owner_database_unavailable_fails_closed(monkeypatch):
     response = asyncio.run(desk.priced_research(req))
     assert response.status_code == 503
     assert "private backend detail" not in response.body.decode()
+
+def test_render_supabase_bridge_connection_uses_server_only_token(monkeypatch):
+    calls = []
+    class Reply:
+        def raise_for_status(self): pass
+        def json(self):
+            return {"status":"CONNECTED_RESEARCH_READ_ONLY",
+                    "production_bets_authorized":False,
+                    "rows":[{"fixture_id":234}]}
+    def fake_get(url, *, headers, timeout, follow_redirects):
+        calls.append((url,headers,timeout,follow_redirects))
+        return Reply()
+    monkeypatch.setenv("SOCCER_RESEARCH_BRIDGE_URL",
+      "https://pqoobjacewxigngzhbhp.supabase.co/functions/v1/soccer-owner-price-bridge")
+    monkeypatch.setenv("SOCCER_RESEARCH_BRIDGE_TOKEN","a"*96)
+    monkeypatch.setattr(desk.httpx,"get",fake_get)
+    assert desk._query_rows()==[{"fixture_id":234}]
+    assert len(calls)==1 and calls[0][1]["x-soccer-bridge-token"]=="a"*96
+    assert calls[0][3] is False
+
+
+def test_bridge_fails_closed_on_partial_config_and_bad_source(monkeypatch):
+    monkeypatch.setenv("SOCCER_RESEARCH_BRIDGE_URL",
+      "https://pqoobjacewxigngzhbhp.supabase.co/functions/v1/soccer-owner-price-bridge")
+    monkeypatch.delenv("SOCCER_RESEARCH_BRIDGE_TOKEN",raising=False)
+    import pytest
+    with pytest.raises(RuntimeError,match="configuration invalid"):
+        desk._query_rows()
+    monkeypatch.setenv("SOCCER_RESEARCH_BRIDGE_TOKEN","b"*96)
+    class Reply:
+        def raise_for_status(self): pass
+        def json(self): return {"status":"CONNECTED_RESEARCH_READ_ONLY","rows":[]}
+    monkeypatch.setattr(desk.httpx,"get",lambda *a,**k:Reply())
+    with pytest.raises(RuntimeError,match="invalid provenance"):
+        desk._query_rows()
+
+
+def test_bridge_iso_datetime_preserves_utc_and_rejects_naive():
+    assert desk._time("2026-11-06T14:30:00-06:00")=="2026-11-06T20:30:00+00:00"
+    assert desk._time("2026-11-06T20:30:00Z")=="2026-11-06T20:30:00+00:00"
+    assert desk._time("2026-11-06T20:30:00") is None
