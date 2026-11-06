@@ -1,0 +1,26 @@
+name: Soccer V2 Private Price Bridge - OIDC Live Verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v2-price-bridge-verification.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  read-only-bridge-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Validate live Render / Supabase bridge without any research credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          OIDC_JSON=$(curl -fsS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+          TOKEN=$(echo "$OIDC_JSON" | jq -r '.value // empty')
+          test -n "$TOKEN"
+          echo "::add-mask::$TOKEN"
+          curl -fsS --max-time 60 -o /tmp/bridge.json -w "HTTP %{http_code}\n"             -H "Authorization: Bearer $TOKEN"             https://soccer-edge-api.onrender.com/internal/research-price-bridge-check
+          jq -e '.status == "CONNECTED_RESEARCH_ONLY" and .source == "SUPABASE_PRIVATE_BRIDGE" and .bet_eligible == false and .tokens_exposed == false and (.fresh_research_rows | type == "number")' /tmp/bridge.json
+          jq '{status,fresh_research_rows,source,bet_eligible,tokens_exposed}' /tmp/bridge.json
