@@ -1,4 +1,4 @@
-# Live SGP bridge reconfirmation 2026-11-06 at 17:35 Mexico City (after Render 4a75b8f).
+# Production SGP Render-cache auto-feed verification 2026-11-06 after fd c6b1e deployment.
 # Verify after ASGI dispatch fix and Render deploy fb950fd.
 # Re-run after secure bridge + runtime cap deployed.
 name: Soccer V2 Private Price Bridge - OIDC Live Verification
@@ -27,4 +27,5 @@ jobs:
           curl -fsS --max-time 60 -o /tmp/bridge.json -w "HTTP %{http_code}\n"             -H "Authorization: Bearer $TOKEN"             https://soccer-edge-api.onrender.com/internal/research-price-bridge-check
           jq -e '.status == "CONNECTED_RESEARCH_ONLY" and .source == "SUPABASE_PRIVATE_BRIDGE" and .bet_eligible == false and .tokens_exposed == false and (.fresh_research_rows | type == "number")' /tmp/bridge.json
           jq -e '(.sgp_direct_combo_quotes | type=="number") and (.sgp_player_component_quotes | type=="number") and .bet_eligible == false' /tmp/bridge.json
-          jq '{status,fresh_research_rows,sgp_direct_combo_quotes,sgp_recent_combo_quotes,sgp_player_component_quotes,sgp_raw_positive_research,source,bet_eligible,tokens_exposed}' /tmp/bridge.json
+          jq -e '.render_cache_status == "READ_OK" and (.render_cached_sgp_rows | type == "number") and (.render_cached_sgp_fresh_rows | type == "number")' /tmp/bridge.json
+          jq '{status,fresh_research_rows,sgp_direct_combo_quotes,sgp_recent_combo_quotes,sgp_player_component_quotes,sgp_raw_positive_research,render_cached_sgp_rows,render_cached_sgp_fresh_rows,render_cache_status,source,bet_eligible,tokens_exposed}' /tmp/bridge.json
