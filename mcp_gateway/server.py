@@ -547,6 +547,11 @@ class V215SignalLedgerRouter:
             if path == V215_SIGNAL_LEDGER_ROUTE and method == "POST":
                 await _handle_v215_signal_ledger(scope, receive, send)
                 return
+            if path == "/internal/research-price-bridge-check" and method == "GET":
+                request = Request(scope, receive=receive)
+                response = await internal_research_price_bridge_check(request)
+                await response(scope, receive, send)
+                return
             if path == TICK_ROUTE and method == "POST":
                 await _handle_instrumented_tick(scope, receive, send)
                 return
