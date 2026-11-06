@@ -286,14 +286,14 @@ def _dedup_sgp_quotes(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Keep the freshest matching source quote without hiding provenance."""
     order = sorted(rows, key=lambda r: (
         r.get("quote_freshness") == "CURRENT_QUOTE",
-        str(r.get("captured_at") or ""),
+        _as_utc_datetime(r.get("captured_at")) or datetime.min.replace(tzinfo=timezone.utc),
     ), reverse=True)
     seen: set[tuple[Any, ...]] = set()
     out = []
     for row in order:
         key = (row.get("fixture_id"),row.get("bookmaker_id"),
                row.get("provider_market_id"),row.get("selection"),
-               str(row.get("provider_updated_at")))
+               _time(row.get("provider_updated_at")) or str(row.get("provider_updated_at")))
         if key in seen:
             continue
         seen.add(key)
