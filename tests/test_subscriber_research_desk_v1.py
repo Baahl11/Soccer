@@ -274,6 +274,12 @@ def test_sgp_source_duplicate_cache_dedupes_same_offer():
     merged=desk._dedup_sgp_quotes([old,e])
     assert len(merged)==1
     assert merged[0]["quote_freshness"]=="CURRENT_QUOTE"
+    # Same provider quote may be represented as an ISO timestamp from Supabase
+    # and a timezone-aware datetime from Render PostgreSQL.
+    iso={**old,"provider_updated_at":old["provider_updated_at"].isoformat(),
+         "captured_at":old["captured_at"].isoformat()}
+    merged=desk._dedup_sgp_quotes([iso,e])
+    assert len(merged)==1 and merged[0]["quote_freshness"]=="CURRENT_QUOTE"
 
 
 def test_render_cached_odds_query_is_bounded_with_no_api_requests():
