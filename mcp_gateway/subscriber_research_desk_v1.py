@@ -30,7 +30,7 @@ ORDER BY provider_update_at DESC, kickoff_utc, fixture_id
 LIMIT 60
 """
 
-def _query_rows() -> list[dict[str, Any]]:
+def _query_research_feed() -> dict[str, Any]:
     """Prefer restricted owner-only Supabase bridge, never browser credentials.
 
     The canonical subscriber pipeline remains on Render Postgres. The separate
@@ -55,9 +55,10 @@ def _query_rows() -> list[dict[str, Any]]:
         if (not isinstance(payload, dict)
             or payload.get("status") != "CONNECTED_RESEARCH_READ_ONLY"
             or not isinstance(payload.get("rows"), list)
+            or not isinstance(payload.get("sgp_rows", []), list)
             or payload.get("production_bets_authorized") is not False):
             raise RuntimeError("Research bridge returned invalid provenance")
-        return payload["rows"]
+        return {"rows": payload["rows"], "sgp_rows": payload.get("sgp_rows", [])}
 
     # Legacy development fallback only; never infer that Render Postgres
     # contains the private Supabase schema from a successful Render deployment.
@@ -67,7 +68,75 @@ def _query_rows() -> list[dict[str, Any]]:
                 cur.execute("SET TRANSACTION READ ONLY")
                 cur.execute(SQL)
                 fields = [col.name for col in cur.description]
-                return [dict(zip(fields, row)) for row in cur.fetchall()]
+                return {"rows": [dict(zip(fields, row)) for row in cur.fetchall()],
+                        "sgp_rows": []}
+
+
+def _query_rows() -> list[dict[str, Any]]:
+    """Backward compatible for private connectivity health and offline tests."""
+    return _query_research_feed()["rows"]
+
+
+def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Book-offered combo != custom correlated player bet builder ticket."""
+    combos: list[dict[str, Any]] = []
+    players: list[dict[str, Any]] = []
+    for row in sgp_rows:
+        if (row.get("quote_freshness") != "CURRENT_QUOTE"
+            or row.get("classification") != "WATCH"
+            or row.get("bet_eligible") is not False
+            or row.get("bookmaker_id") != 8):
+            continue
+        price = _number(row.get("offered_price_decimal"))
+        if price is None or price < 21/11:
+            continue
+        offer_type = row.get("offer_type")
+        if offer_type not in {"BOOK_QUOTED_COMPOSITE", "PLAYER_COMPONENT_QUOTE"}:
+            continue
+        is_direct = offer_type == "BOOK_QUOTED_COMPOSITE"
+        if is_direct and row.get("bookmaker_direct_combo_quote") is not True:
+            continue
+        if not is_direct and row.get("bookmaker_direct_combo_quote") is not False:
+            continue
+        item = {
+            "fixture_id": row["fixture_id"],
+            "home_team": row["home_team"],
+            "away_team": row["away_team"],
+            "league": row["league_name"],
+            "kickoff_utc": _time(row.get("kickoff_utc")),
+            "bookmaker": "Bet365",
+            "bookmaker_id": 8,
+            "provider_market": row["provider_market"],
+            "provider_market_id": row["provider_market_id"],
+            "selection": row["selection"],
+            "price_decimal": price,
+            "quote_updated_at": _time(row.get("provider_updated_at")),
+            "captured_at": _time(row.get("captured_at")),
+            "offer_type": offer_type,
+            "price_bucket": ("PLUS110_OR_BETTER" if price >= 2.10
+                             else "MINUS110_TO_PLUS110"),
+            "player_label": row.get("player_label"),
+            "observed_team_side": row.get("observed_team_side"),
+            "raw_joint_probability": _number(row.get("raw_joint_probability")) if is_direct else None,
+            "raw_hypothetical_ev_pct": _number(row.get("raw_hypothetical_ev_pct")) if is_direct else None,
+            "joint_probability_validated": False,
+            "model_validated": False,
+            "sgp_betslip_price_verified": False,
+            "classification": "WATCH",
+            "bet_eligible": False,
+            "actionable": False,
+            "research_flags": list(row.get("research_flags") or []),
+            "price_meaning": ("BOOK_QUOTED_SINGLE_COMPOSITE_MARKET" if is_direct
+                              else "INDIVIDUAL_PLAYER_LEG_NOT_SGP_TICKET"),
+        }
+        (combos if is_direct else players).append(item)
+    combos.sort(key=lambda x: (
+        -(x["raw_hypothetical_ev_pct"] if x["raw_hypothetical_ev_pct"] is not None else -999),
+        abs(x["price_decimal"]-2.10),x["fixture_id"]
+    ))
+    players.sort(key=lambda x: (abs(x["price_decimal"]-2.10), x["fixture_id"],str(x["selection"])))
+    return {"sgp_composites": combos[:20], "sgp_player_components": players[:50]}
+
 
 def _number(value: Any) -> float | None:
     if value is None:
@@ -88,7 +157,7 @@ def _time(value: Any) -> str | None:
         return value.astimezone(timezone.utc).isoformat()
     return None
 
-def make_board(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def make_board(rows: list[dict[str, Any]], sgp_rows: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Strictly research. A source 'BET' never becomes a new product BET."""
     result = []
     for row in rows:
@@ -128,9 +197,11 @@ def make_board(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "bet_eligible": False,
             "actionable": False,
         })
+    sgp = _sgp_market_rows(sgp_rows or [])
     return {
-        "schema_version": "1.0.0",
-        "status": "RESEARCH_ONLY_FRESH_QUOTE_PREVIEW" if result else "NO_FRESH_RESEARCH_QUOTES",
+        "schema_version": "1.1.0",
+        "status": ("RESEARCH_ONLY_FRESH_QUOTE_PREVIEW" if result or sgp["sgp_composites"] or sgp["sgp_player_components"]
+                   else "NO_FRESH_RESEARCH_QUOTES"),
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "data_use": "OWNER_ONLY_PROSPECTIVE_RESEARCH",
         "bets": 0,
@@ -139,6 +210,9 @@ def make_board(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "prices_reconfirmation_required": True,
         "provider_requests_added": 0,
         "rows": result,
+        **sgp,
+        "sgp_custom_player_ticket_price_verified": False,
+        "sgp_player_builder_enabled": False,
     }
 
 async def priced_research(request: Request) -> JSONResponse:
@@ -150,8 +224,8 @@ async def priced_research(request: Request) -> JSONResponse:
         return JSONResponse({"error": "OWNER_ONLY_RESEARCH"}, status_code=403,
                             headers={"Cache-Control": "no-store"})
     try:
-        rows = await asyncio.to_thread(_query_rows)
+        feed = await asyncio.to_thread(_query_research_feed)
     except Exception:
         return JSONResponse({"error": "RESEARCH_SOURCE_UNAVAILABLE", "status": "NOT_VERIFIED"},
                             status_code=503, headers={"Cache-Control": "no-store"})
-    return JSONResponse(make_board(rows), headers={"Cache-Control": "no-store"})
+    return JSONResponse(make_board(feed["rows"], feed["sgp_rows"]), headers={"Cache-Control": "no-store"})
