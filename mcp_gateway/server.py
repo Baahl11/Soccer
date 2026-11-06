@@ -176,7 +176,16 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
         sgp = feed["sgp_rows"]
         combos = [x for x in sgp if x.get("offer_type")=="BOOK_QUOTED_COMPOSITE"]
         players = [x for x in sgp if x.get("offer_type")=="PLAYER_COMPONENT_QUOTE"]
+        try:
+            cached = await asyncio.to_thread(subscriber_research_desk_v1._query_render_cached_sgp)
+            cache_status = "READ_OK"
+        except Exception:
+            cached = []
+            cache_status = "NOT_VERIFIED"
         return JSONResponse({
+            "render_cached_sgp_rows": len(cached),
+            "render_cached_sgp_fresh_rows": sum(x.get("quote_freshness")=="CURRENT_QUOTE" for x in cached),
+            "render_cache_status": cache_status,
             "status":"CONNECTED_RESEARCH_ONLY",
             "fresh_research_rows":len(rows),
             "sgp_direct_combo_quotes":len(combos),

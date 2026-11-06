@@ -205,3 +205,87 @@ def test_sgp_archived_quote_is_displayed_but_never_claimed_fresh():
     assert x["quote_reconfirmation_required"] is True
     assert x["bet_eligible"] is False and x["actionable"] is False
     assert "PRICE_SOURCE_OUTDATED_RECONFIRM_BEFORE_ACTION" in x["research_flags"]
+
+
+def test_canonical_render_cached_market_quotes_feed_only_fresh_known_bookmaker_and_future_fixture():
+    from datetime import timedelta
+    now=datetime(2026,11,6,23,40,tzinfo=timezone.utc)
+    base={
+        "fixture_id":1556133,"league_name":"J1 League",
+        "home_team":"FC Tokyo","away_team":"Kashima",
+        "kickoff_utc":now+timedelta(hours=6),
+        "bookmaker_id":8,"provider_market_id":49,
+        "provider_market":"Total Goals/Both Teams To Score",
+        "provider_updated_at":now-timedelta(minutes=20),
+        "captured_at":now-timedelta(minutes=10),
+        "values":[{"raw_selection":"o/yes 2.5","decimal_price":"2.00"},
+                  {"raw_selection":"u/no 2.5","decimal_price":"2.75"}],
+    }
+    v=desk._render_cache_sgp_rows([base],now=now)
+    assert len(v)==2
+    assert all(x["offer_type"]=="BOOK_QUOTED_COMPOSITE" for x in v)
+    assert all(x["quote_freshness"]=="CURRENT_QUOTE" for x in v)
+    assert all(x["raw_joint_probability"] is None and x["bet_eligible"] is False for x in v)
+    old={**base,"provider_updated_at":now-timedelta(hours=2)}
+    a=desk._render_cache_sgp_rows([old],now=now)
+    assert len(a)==2 and all(x["quote_freshness"]=="NEEDS_RECONFIRMATION" for x in a)
+    assert desk._render_cache_sgp_rows([{**base,"bookmaker_id":10}],now=now)==[]
+    assert desk._render_cache_sgp_rows([{**base,"kickoff_utc":now-timedelta(seconds=1)}],now=now)==[]
+    assert desk._render_cache_sgp_rows([{**base,"provider_updated_at":None}],now=now)==[]
+
+
+def test_player_prop_cached_quote_is_single_leg_with_no_custom_ticket_price():
+    from datetime import timedelta
+    now=datetime(2026,11,6,23,40,tzinfo=timezone.utc)
+    row={
+        "fixture_id":1556133,"league_name":"J1 League",
+        "home_team":"FC Tokyo","away_team":"Kashima",
+        "kickoff_utc":now+timedelta(hours=6),
+        "bookmaker_id":8,"provider_market_id":240,
+        "provider_market":"Home Player Shots",
+        "provider_updated_at":now-timedelta(minutes=15),
+        "captured_at":now-timedelta(minutes=10),
+        "values":[{"raw_selection":"Shion Homma - 3","decimal_price":"2.20"},
+                  {"raw_selection":"Unusable - 3","decimal_price":"1.45"}],
+    }
+    vals=desk._render_cache_sgp_rows([row],now=now)
+    assert len(vals)==1 and vals[0]["player_label"]=="Shion Homma"
+    assert vals[0]["observed_team_side"]=="HOME"
+    board=desk.make_board([] ,vals)
+    assert len(board["sgp_player_components"])==1
+    p=board["sgp_player_components"][0]
+    assert p["price_meaning"]=="INDIVIDUAL_PLAYER_LEG_NOT_SGP_TICKET"
+    assert p["raw_joint_probability"] is None
+    assert board["sgp_custom_player_ticket_price_verified"] is False
+    assert board["provider_requests_added"]==0
+
+
+def test_sgp_source_duplicate_cache_dedupes_same_offer():
+    from datetime import timedelta
+    now=datetime(2026,11,6,23,40,tzinfo=timezone.utc)
+    e={
+      "fixture_id":3,"bookmaker_id":8,"provider_market_id":49,
+      "selection":"o/yes 2.5","quote_freshness":"CURRENT_QUOTE",
+      "provider_updated_at":now-timedelta(minutes=3),
+      "captured_at":now-timedelta(minutes=1),
+    }
+    old={**e,"quote_freshness":"NEEDS_RECONFIRMATION",
+         "captured_at":now-timedelta(minutes=12)}
+    merged=desk._dedup_sgp_quotes([old,e])
+    assert len(merged)==1
+    assert merged[0]["quote_freshness"]=="CURRENT_QUOTE"
+    # Same provider quote may be represented as an ISO timestamp from Supabase
+    # and a timezone-aware datetime from Render PostgreSQL.
+    iso={**old,"provider_updated_at":old["provider_updated_at"].isoformat(),
+         "captured_at":old["captured_at"].isoformat()}
+    merged=desk._dedup_sgp_quotes([iso,e])
+    assert len(merged)==1 and merged[0]["quote_freshness"]=="CURRENT_QUOTE"
+
+
+def test_render_cached_odds_query_is_bounded_with_no_api_requests():
+    assert "soccer_market_snapshots" in desk.RENDER_CACHED_SGP_SQL
+    assert "soccer_fixtures" in desk.RENDER_CACHED_SGP_SQL
+    assert "bookmaker_id = 8" in desk.RENDER_CACHED_SGP_SQL
+    assert "LIMIT 80" in desk.RENDER_CACHED_SGP_SQL
+    assert "status = 'NS'" in desk.RENDER_CACHED_SGP_SQL
+    assert "now() - interval '12 hours'" in desk.RENDER_CACHED_SGP_SQL
