@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import httpx
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from typing import Any
 from starlette.requests import Request
@@ -131,6 +132,7 @@ def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
             "research_flags": list(row.get("research_flags") or []) +
                  (["PRICE_SOURCE_OUTDATED_RECONFIRM_BEFORE_ACTION"]
                   if row.get("quote_freshness") != "CURRENT_QUOTE" else []),
+            "quote_source": row.get("research_source") or "SOCCER_PROSPECTIVE_PRIVATE",
             "price_meaning": ("BOOK_QUOTED_SINGLE_COMPOSITE_MARKET" if is_direct
                               else "INDIVIDUAL_PLAYER_LEG_NOT_SGP_TICKET"),
         }
@@ -142,6 +144,161 @@ def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
     ))
     players.sort(key=lambda x: (not x["source_quote_fresh"], abs(x["price_decimal"]-2.10), x["fixture_id"],str(x["selection"])))
     return {"sgp_composites": combos[:20], "sgp_player_components": players[:50]}
+
+
+
+RENDER_CACHED_SGP_SQL = """
+WITH latest AS (
+  SELECT DISTINCT ON (m.fixture_id, m.market_id)
+    m.fixture_id, f.league AS league_name, f.home_team, f.away_team,
+    f.kickoff AS kickoff_utc, m.bookmaker_id, m.bookmaker,
+    m.market_id AS provider_market_id, m.market AS provider_market,
+    m.values, m.provider_update AS provider_updated_at,
+    m.captured_at
+  FROM soccer_market_snapshots m
+  JOIN soccer_fixtures f ON f.fixture_id = m.fixture_id
+  WHERE m.bookmaker_id = 8
+    AND m.market_id IN (7, 24, 25, 49, 92, 240, 241, 269, 270)
+    AND f.status = 'NS'
+    AND f.kickoff > now() AND f.kickoff < now() + interval '36 hours'
+    AND m.captured_at >= now() - interval '12 hours'
+    AND m.provider_update >= now() - interval '12 hours'
+    AND m.provider_update <= now() + interval '5 minutes'
+  ORDER BY m.fixture_id, m.market_id, m.captured_at DESC, m.snapshot_id DESC
+)
+SELECT * FROM latest ORDER BY captured_at DESC LIMIT 80
+"""
+
+_RENDER_COMPOSITE_MARKETS = {7, 24, 25, 49}
+_RENDER_PLAYER_MARKETS = {92, 240, 241, 269, 270}
+
+
+def _render_cache_sgp_rows(market_rows: list[dict[str, Any]],
+                           *, now: datetime | None = None) -> list[dict[str, Any]]:
+    """Convert cached Bet365 ID8 sportsbook rows into research-only SGP evidence.
+
+    This reads EXISTING canonical sport-shortlist price snapshots. It never
+    calls API-Football, manufactures a multi-player joint price, or certifies EV.
+    """
+    now = now or datetime.now(timezone.utc)
+    out: list[dict[str, Any]] = []
+    for market in market_rows:
+        try:
+            market_id = int(market.get("provider_market_id"))
+            bookmaker_id = int(market.get("bookmaker_id"))
+        except (TypeError, ValueError):
+            continue
+        if bookmaker_id != 8 or market_id not in _RENDER_COMPOSITE_MARKETS | _RENDER_PLAYER_MARKETS:
+            continue
+        kickoff = _as_utc_datetime(market.get("kickoff_utc"))
+        updated = _as_utc_datetime(market.get("provider_updated_at"))
+        captured = _as_utc_datetime(market.get("captured_at"))
+        if not kickoff or not updated or not captured:
+            continue
+        if not (now < kickoff < now + timedelta(hours=36)):
+            continue
+        if not (now-timedelta(hours=12) <= updated <= now+timedelta(minutes=5)):
+            continue
+        if not (now-timedelta(hours=12) <= captured <= now+timedelta(minutes=5)):
+            continue
+        freshness = ("CURRENT_QUOTE" if updated>=now-timedelta(minutes=90)
+                     and captured>=now-timedelta(minutes=60)
+                     else "NEEDS_RECONFIRMATION")
+        is_direct = market_id in _RENDER_COMPOSITE_MARKETS
+        source_values = market.get("values")
+        if not isinstance(source_values, list):
+            continue
+        count = 0
+        for item in source_values:
+            if not isinstance(item, dict):
+                continue
+            price = _number(item.get("decimal_price", item.get("odd")))
+            if price is None or price < 21/11:
+                continue
+            selection = str(item.get("raw_selection") or item.get("selection") or "").strip()
+            if not selection:
+                continue
+            if not is_direct and price > 2.55:
+                continue
+            player = (re.sub(r"\s*-\s*\d+(?:\.\d+)?\s*$","",selection).strip()
+                      if not is_direct else None)
+            side = ("HOME" if market_id in {240,269} else
+                    "AWAY" if market_id in {241,270} else None)
+            out.append({
+                "fixture_id": market.get("fixture_id"),
+                "home_team": market.get("home_team"),
+                "away_team": market.get("away_team"),
+                "league_name": market.get("league_name"),
+                "kickoff_utc": kickoff,
+                "bookmaker_id": 8,
+                "provider_market_id": market_id,
+                "provider_market": market.get("provider_market"),
+                "selection": selection,
+                "offered_price_decimal": price,
+                "provider_updated_at": updated,
+                "captured_at": captured,
+                "offer_type": ("BOOK_QUOTED_COMPOSITE" if is_direct else "PLAYER_COMPONENT_QUOTE"),
+                "player_label": player or None,
+                "observed_team_side": side,
+                "raw_joint_probability": None,
+                "raw_hypothetical_ev_pct": None,
+                "quote_freshness": freshness,
+                "classification": "WATCH",
+                "bet_eligible": False,
+                "bookmaker_direct_combo_quote": is_direct,
+                "research_flags": [
+                    "RENDER_SNAPSHOT_RESEARCH_ONLY", "NO_PROVEN_CORRELATED_JOINT_MODEL",
+                    "BOOKMAKER_OFFER_RECONFIRMATION_REQUIRED", "XI_AND_PLAYER_MINUTES_NOT_VERIFIED",
+                ],
+                "research_source": "RENDER_POSTGRES_PERSISTED_API_FOOTBALL_ID8",
+            })
+            count += 1
+            if count >= 16:
+                break
+    return out
+
+
+def _as_utc_datetime(value: Any) -> datetime | None:
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value.replace("Z","+00:00"))
+        except ValueError:
+            return None
+    if isinstance(value, datetime) and value.tzinfo is not None:
+        return value.astimezone(timezone.utc)
+    return None
+
+
+def _query_render_cached_sgp() -> list[dict[str, Any]]:
+    if not persistence.persistence_configured():
+        return []
+    with persistence._connect() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute("SET TRANSACTION READ ONLY")
+                cur.execute(RENDER_CACHED_SGP_SQL)
+                fields = [col.name for col in cur.description]
+                rows = [dict(zip(fields,row)) for row in cur.fetchall()]
+    return _render_cache_sgp_rows(rows)
+
+
+def _dedup_sgp_quotes(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep the freshest matching source quote without hiding provenance."""
+    order = sorted(rows, key=lambda r: (
+        r.get("quote_freshness") == "CURRENT_QUOTE",
+        str(r.get("captured_at") or ""),
+    ), reverse=True)
+    seen: set[tuple[Any, ...]] = set()
+    out = []
+    for row in order:
+        key = (row.get("fixture_id"),row.get("bookmaker_id"),
+               row.get("provider_market_id"),row.get("selection"),
+               str(row.get("provider_updated_at")))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(row)
+    return out
 
 
 def _number(value: Any) -> float | None:
@@ -234,4 +391,13 @@ async def priced_research(request: Request) -> JSONResponse:
     except Exception:
         return JSONResponse({"error": "RESEARCH_SOURCE_UNAVAILABLE", "status": "NOT_VERIFIED"},
                             status_code=503, headers={"Cache-Control": "no-store"})
-    return JSONResponse(make_board(feed["rows"], feed["sgp_rows"]), headers={"Cache-Control": "no-store"})
+    # PostgreSQL is the canonical scanner cache; Supabase is the isolated pilot.
+    # A missing cache must not cause an otherwise functioning owner preview to fail.
+    try:
+        cached = await asyncio.to_thread(_query_render_cached_sgp)
+    except Exception:
+        cached = []
+    all_sgp = _dedup_sgp_quotes(feed["sgp_rows"] + cached)
+    board = make_board(feed["rows"], all_sgp)
+    board["render_cached_sgp_sources"] = len(cached)
+    return JSONResponse(board, headers={"Cache-Control": "no-store"})
