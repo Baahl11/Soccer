@@ -29,6 +29,13 @@ class MarketUnblockTrackerTest(unittest.TestCase):
                 "status": "OOS_REVIEW_ELIGIBLE",
                 "oos_sample": {"evaluated_fixtures": 500},
                 "true_clv": {"rows": 703, "unique_fixtures": 110},
+                "canonical_clv_outcome_context": {
+                    "by_line": {
+                        "0.5": {"hypothetical_roi_per_priced_settled_observation": 0.10},
+                        "1.5": {"hypothetical_roi_per_priced_settled_observation": -0.15},
+                        "2.5": {"hypothetical_roi_per_priced_settled_observation": -0.23},
+                    },
+                },
                 "blockers": [],
             })
             self._write(root, "v4_020_1h_oos_validation.json", {
@@ -54,6 +61,18 @@ class MarketUnblockTrackerTest(unittest.TestCase):
             self.assertTrue(all(not r["production_promotion_allowed"] and not r["bet_eligible"]
                                 for r in report["families"]))
             self.assertIn("CLV Bet365 verified", render_markdown(report))
+            self.assertEqual(by_name["1X2"]["release_gate"], "NOT_APPROVED")
+            self.assertIn("CANONICAL_PRODUCTION_APPROVAL_NOT_GRANTED",
+                          by_name["1X2"]["release_blockers"])
+            self.assertIn("BET365_ID8_ENTRY_CLOSE_PROVENANCE_NOT_VERIFIED",
+                          by_name["1X2"]["release_blockers"])
+            self.assertIn("NEGATIVE_CANONICAL_HYPOTHETICAL_ROI_LINE_1_5",
+                          by_name["TEAM_TOTALS"]["release_blockers"])
+            self.assertIn("NEGATIVE_CANONICAL_HYPOTHETICAL_ROI_LINE_2_5",
+                          by_name["TEAM_TOTALS"]["release_blockers"])
+            self.assertNotIn("NEGATIVE_CANONICAL_HYPOTHETICAL_ROI_LINE_0_5",
+                             by_name["TEAM_TOTALS"]["release_blockers"])
+            self.assertIn("Release gate: NOT APPROVED", render_markdown(report))
 
     def test_only_explicit_bookmaker_8_with_provenance_counts(self):
         with tempfile.TemporaryDirectory() as root:
@@ -76,6 +95,10 @@ class MarketUnblockTrackerTest(unittest.TestCase):
             second = build_market_unblock_report(root)
             self.assertEqual(second["families"][2]["clv"]["bet365_verified_rows"], 50)
             self.assertFalse(second["families"][2]["bet_eligible"])
+            self.assertIn("CANONICAL_PRODUCTION_APPROVAL_NOT_GRANTED",
+                          second["families"][2]["release_blockers"])
+            self.assertNotIn("BET365_ID8_ENTRY_CLOSE_PROVENANCE_NOT_VERIFIED",
+                             second["families"][2]["release_blockers"])
 
     def test_second_half_fail_and_absent_reports_do_not_halt(self):
         with tempfile.TemporaryDirectory() as root:
