@@ -69,20 +69,37 @@ def _elastic_deep_dive_cap(daily_remaining: Any, due_count: int) -> tuple[int, s
 
 
 def _elastic_request_cap(daily_remaining: Any) -> tuple[int, str]:
-    """Hard per-tick request ceiling; cache hits consume zero provider requests."""
+    """Verified daily quota drives the cap; a smaller runtime cap can prevent OOM.
+
+    SOCCER_EDGE_MEMORY_SAFE_API_CAP reduces *requests*, not model weights,
+    probabilities, thresholds, prices or historical records. Subsequent work
+    must be deferred and marked incomplete, never assumed verified.
+    """
     try:
         remaining = int(daily_remaining)
     except (TypeError, ValueError):
-        return 35, "QUOTA_UNKNOWN_LEGACY"
-    if remaining > 6000:
-        return 70, "GT_6000"
-    if remaining > 4500:
-        return 55, "GT_4500"
-    if remaining > 3000:
-        return 45, "GT_3000"
-    if remaining > 1500:
-        return 35, "GT_1500"
-    return 25, "RESERVE_MODE"
+        cap, reason = 35, "QUOTA_UNKNOWN_LEGACY"
+    else:
+        if remaining > 6000:
+            cap, reason = 70, "GT_6000"
+        elif remaining > 4500:
+            cap, reason = 55, "GT_4500"
+        elif remaining > 3000:
+            cap, reason = 45, "GT_3000"
+        elif remaining > 1500:
+            cap, reason = 35, "GT_1500"
+        else:
+            cap, reason = 25, "RESERVE_MODE"
+
+    safe_cap_raw = os.getenv("SOCCER_EDGE_MEMORY_SAFE_API_CAP", "").strip()
+    if safe_cap_raw:
+        try:
+            safe_cap = int(safe_cap_raw)
+            if 8 <= safe_cap <= 70 and safe_cap < cap:
+                return safe_cap, f"{reason}_MEMORY_SAFE_CAP_{safe_cap}"
+        except ValueError:
+            pass
+    return cap, reason
 
 
 def _request_cap_with_reserve(global_cap: int) -> tuple[int, int]:
