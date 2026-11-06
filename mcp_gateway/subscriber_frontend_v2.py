@@ -292,6 +292,12 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     <div id="todayPicks" class="card-grid"></div>
     <div class="section-title"><div><h2>Leans</h2><span>Interesting, but not promoted to BET</span></div><button class="link-btn" data-go="leans">View leans →</button></div>
     <div id="todayLeans" class="card-grid"></div>
+    <div class="section-title"><div><h2>Radar de precios · Investigación</h2><span>Datos prospectivos; NO BET y sin notificaciones push habilitadas</span></div></div>
+    <div class="panel"><div id="researchStatus" class="sub">Verificando conexión del radar de precios...</div></div>
+    <div class="section-title"><div><h2>EDGE -110 o mejor</h2><span>Incluye +100, +110, +150 y superiores. Precio no equivale a valor.</span></div></div>
+    <div id="researchPlus100" class="card-grid"></div>
+    <div class="section-title"><div><h2>EDGE REGULAR</h2><span>Precios inferiores a -110 para investigación</span></div></div>
+    <div id="researchRegular" class="card-grid"></div>
     <div class="section-title"><div><h2>Watch</h2><span>Waiting for price, XI, goalkeeper or other required evidence</span></div></div>
     <div class="panel"><div id="todayWatches" class="watch-list"></div></div>
     <div class="section-title"><div><h2>Full Slate</h2><span>Every eligible fixture stays visible, even when analysis is incomplete</span></div></div>
@@ -448,7 +454,45 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         DATA=await api('/today');
       }}else throw e
     }}
-    ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate()
+    ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate();void loadResearchDesk()
+  }}
+  function researchPriceCard(x){{
+    const market=esc(x.market_family)+(x.line===null?'':' · '+esc(x.line));
+    const odds=num(x.price_decimal), oddsText=odds===null?'NOT VERIFIED':odds.toFixed(2);
+    const evText=x.hypothetical_ev_pct===null?'NOT VERIFIED':((Number(x.hypothetical_ev_pct)>=0?'+':'')+Number(x.hypothetical_ev_pct).toFixed(2)+'%');
+    const link='/app/match/'+encodeURIComponent(String(x.fixture_id||''));
+    return '<div class="panel"><div><b>'+esc(x.home_team)+' vs '+esc(x.away_team)+'</b></div>'+
+      '<div class="sub">'+esc(x.league)+' · '+esc(x.market_family)+' · '+esc(x.selection)+'</div>'+
+      '<div><b>'+market+' @ '+oddsText+'</b> · '+esc(x.bookmaker)+'</div>'+
+      '<div class="sub">RAW '+pct(x.raw_sport_probability)+' · Shrunk '+pct(x.market_shrunk_probability)+
+      ' · Breakeven '+pct(x.breakeven_probability)+'</div>'+
+      '<div class="sub">EV hipotético: '+evText+' · No es EV validado</div>'+
+      '<div class="sub">Cuota actualizada por proveedor: '+esc(x.quote_provider_updated_at||'NOT VERIFIED')+'</div>'+
+      '<div class="sub">WATCH · NO BET · confirmar precio y XI antes de actuar</div>'+
+      '<a href="'+link+'" class="link-btn">Match Center</a></div>'
+  }}
+  async function loadResearchDesk(){{
+    const status=$('researchStatus'),plus=$('researchPlus100'),regular=$('researchRegular');
+    if(!status||!plus||!regular)return;
+    if(!(ACCESS?.owner||ACCESS?.admin)){{
+      status.textContent='Radar experimental restringido a owner/admin; no es una lista pública de apuestas.';
+      plus.innerHTML='';regular.innerHTML='';return;
+    }}
+    status.textContent='Consultando cuotas recientes y proyecciones registradas...';
+    try{{
+      const data=await api('/research-price-desk');
+      const rows=Array.isArray(data.rows)?data.rows:[];
+      const high=rows.filter(x=>x.price_bucket==='EDGE_MINUS110_OR_BETTER');
+      const low=rows.filter(x=>x.price_bucket==='EDGE_REGULAR');
+      plus.innerHTML=high.map(researchPriceCard).join('');
+      regular.innerHTML=low.map(researchPriceCard).join('');
+      status.textContent=rows.length?
+       'INVESTIGACIÓN · '+rows.length+' precios vigentes · WATCH solamente · Push próximamente':
+       'No hay cuotas vigentes verificadas para partidos futuros (ventana 90 min); no mostrar precios viejos.';
+    }}catch(e){{
+      status.textContent='Radar no disponible: NO VERIFICADO. La app canónica funciona por separado.';
+      plus.innerHTML='';regular.innerHTML='';
+    }}
   }}
   function matchPath(fid){{return '/app/match/'+encodeURIComponent(fid)}}
   function routeMatchId(){{const parts=location.pathname.split('/').filter(Boolean);return parts.length===3&&parts[0]==='app'&&parts[1]==='match'&&/^[0-9]+$/.test(parts[2])?parts[2]:null}}

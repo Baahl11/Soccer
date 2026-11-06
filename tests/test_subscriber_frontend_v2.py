@@ -217,3 +217,15 @@ def test_fe2_sport_tab_matches_premium_visual_hierarchy():
     assert "Team sport profile" in html
     assert "from score matrix" in html
     assert "goal-dist-bars" in html
+
+
+def test_fe10_research_desk_owner_preview_preserves_canonical_picks():
+    html = subscriber_frontend_v2.render()
+    assert 'id="researchStatus"' in html
+    assert 'id="researchPlus100"' in html
+    assert 'id="researchRegular"' in html
+    assert "api('/research-price-desk')" in html
+    assert "EDGE -110 o mejor" in html
+    assert "loadResearchDesk()" in html
+    assert "WATCH · NO BET" in html
+    assert "notification" not in html.lower() or "notificaciones push habilitadas" in html.lower()
