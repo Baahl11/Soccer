@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import asyncio
+import os
+import httpx
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
@@ -29,6 +31,36 @@ LIMIT 60
 """
 
 def _query_rows() -> list[dict[str, Any]]:
+    """Prefer restricted owner-only Supabase bridge, never browser credentials.
+
+    The canonical subscriber pipeline remains on Render Postgres. The separate
+    prospective *research* schema lives in a dedicated Supabase project.
+    A read-only bearer capability authenticates only this internal server hop.
+    """
+    bridge_url = os.getenv("SOCCER_RESEARCH_BRIDGE_URL", "").strip()
+    bridge_token = os.getenv("SOCCER_RESEARCH_BRIDGE_TOKEN", "").strip()
+    if bridge_url or bridge_token:
+        allowed = ("https://pqoobjacewxigngzhbhp.supabase.co/"
+                   "functions/v1/soccer-owner-price-bridge")
+        if bridge_url != allowed or len(bridge_token) != 96:
+            raise RuntimeError("Research bridge configuration invalid")
+        response = httpx.get(
+            bridge_url,
+            headers={"x-soccer-bridge-token": bridge_token, "Accept":"application/json"},
+            timeout=8.0,
+            follow_redirects=False,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if (not isinstance(payload, dict)
+            or payload.get("status") != "CONNECTED_RESEARCH_READ_ONLY"
+            or not isinstance(payload.get("rows"), list)
+            or payload.get("production_bets_authorized") is not False):
+            raise RuntimeError("Research bridge returned invalid provenance")
+        return payload["rows"]
+
+    # Legacy development fallback only; never infer that Render Postgres
+    # contains the private Supabase schema from a successful Render deployment.
     with persistence._connect() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
@@ -47,6 +79,11 @@ def _number(value: Any) -> float | None:
         return None
 
 def _time(value: Any) -> str | None:
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            return None
     if isinstance(value, datetime) and value.tzinfo is not None:
         return value.astimezone(timezone.utc).isoformat()
     return None
