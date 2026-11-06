@@ -12,6 +12,7 @@ from starlette.responses import JSONResponse, Response
 
 from mcp_gateway import player_props_shots_anchor_patch_v4
 from mcp_gateway import price_resolver_v4
+from mcp_gateway import sgp_research_capture_v1
 from mcp_gateway import primary_clv_anchor_v4
 from mcp_gateway import primary_clv_anchor_normalized_v4
 from mcp_gateway import primary_clv_signal_anchor_store_v4
@@ -153,6 +154,25 @@ async def internal_post_v223_visit_matrix_v4_build(request: Request) -> Response
     except Exception as exc:
         return JSONResponse({"error":"post_v223_visit_matrix_failed","detail":str(exc)[:500]}, status_code=500)
 
+
+
+@mcp.custom_route("/internal/sgp-research-capture-v1", methods=["POST"])
+async def internal_sgp_research_capture_v1(request: Request) -> Response:
+    """Only authorized main-branch workflow can capture at most 2 provider odds pages."""
+    try:
+        _base_server._github_oidc_claims(
+            request, {".github/workflows/sgp-research-price-capture.yml"}
+        )
+    except Exception:
+        return JSONResponse({"error":"unauthorized"},status_code=401)
+    try:
+        result=await asyncio.to_thread(sgp_research_capture_v1._capture)
+        return JSONResponse(result,headers={"Cache-Control":"no-store"})
+    except Exception:
+        return JSONResponse({
+            "status":"SGP_CAPTURE_SOURCE_NOT_VERIFIED",
+            "bet_eligible":False
+        },status_code=503,headers={"Cache-Control":"no-store"})
 
 
 @mcp.custom_route("/internal/research-price-bridge-check", methods=["GET"])
@@ -574,6 +594,11 @@ class V215SignalLedgerRouter:
                 return
             if path == V215_SIGNAL_LEDGER_ROUTE and method == "POST":
                 await _handle_v215_signal_ledger(scope, receive, send)
+                return
+            if path == "/internal/sgp-research-capture-v1" and method == "POST":
+                request=Request(scope,receive=receive)
+                response=await internal_sgp_research_capture_v1(request)
+                await response(scope,receive,send)
                 return
             if path == "/internal/research-price-bridge-check" and method == "GET":
                 request = Request(scope, receive=receive)
