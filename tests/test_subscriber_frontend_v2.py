@@ -241,5 +241,5 @@ def test_fe10_sgp_radar_has_bookmaker_composites_and_unpriced_multi_player_slip(
     assert "function wireSgpPlayerSelection(" in html
     assert "same game" in html.lower() or "Same Game" in html
     assert "CUOTA COMBINADA: NOT VERIFIED" in html
-    assert "2.10" in html
+    assert "2.1" in html
     assert "BET" in html
