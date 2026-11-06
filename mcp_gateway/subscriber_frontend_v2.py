@@ -482,23 +482,28 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   function sgpComboCard(x){{
     const odds=num(x.price_decimal),p=num(x.raw_joint_probability),ev=num(x.raw_hypothetical_ev_pct);
     const target=odds!==null&&odds>=2.1?'+110 o mejor':'-110 a +110';
+    const stale=!x.source_quote_fresh;
+    const sourceState=stale?'CUOTA OBSERVADA HISTÓRICA · NECESITA RECONFIRMAR':'Fuente reciente · RECONFIRMAR ANTES DE ACTUAR';
     return '<div class="panel"><b>'+esc(x.home_team)+' vs '+esc(x.away_team)+'</b>'+
       '<div class="sub">'+esc(x.provider_market)+' · '+esc(x.selection)+'</div>'+
       '<div><b>Bet365 @ '+(odds===null?'NOT VERIFIED':odds.toFixed(2))+'</b> · '+target+'</div>'+
       '<div class="sub">Probabilidad conjunta RAW: '+pct(p)+' · EV RAW hipotético: '+
        (ev===null?'NOT VERIFIED':(ev>=0?'+':'')+ev.toFixed(2)+'%')+'</div>'+
       '<div class="sub">Fuente actualizada: '+esc(x.quote_updated_at||'NOT VERIFIED')+'</div>'+
+      '<div class="sub">'+sourceState+'</div>'+
       '<div class="sub">WATCH · Mercado combinado COTIZADO por casa, NO SGP personalizado, no BET</div>'+
       '<a href="/app/match/'+encodeURIComponent(String(x.fixture_id))+'" class="link-btn">Ver partido</a></div>';
   }}
   function sgpPlayerCard(x,index){{
     const odds=num(x.price_decimal);
+    const state=x.source_quote_fresh?'RECENTE · reconfirmar':'HISTÓRICA · reconfirmar';
     return '<div class="panel">'+
       '<label><input type="checkbox" data-sgp-player-index="'+index+'" '+(sgpSelectedPlayerIndexes.includes(index)?'checked':'')+
        ' /> <b>'+esc(x.player_label||'Jugador NO VERIFICADO')+'</b></label>'+
       '<div class="sub">'+esc(x.home_team)+' vs '+esc(x.away_team)+'</div>'+
       '<div>'+esc(x.provider_market)+' · <b>'+esc(x.selection)+'</b></div>'+
       '<div><b>Cuota individual Bet365 '+(odds===null?'NOT VERIFIED':odds.toFixed(2))+'</b></div>'+
+      '<div class="sub">'+state+' · '+esc(x.quote_updated_at||'NOT VERIFIED')+'</div>'+
       '<div class="sub">XI, minutos y reglas de liquidación del prop: NOT VERIFIED</div>'+
       '<div class="sub">Precio del ticket SGP con otros jugadores: NOT VERIFIED</div></div>';
   }}
@@ -563,10 +568,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       sgpSelectedPlayerIndexes=[];
       if(comboBox)comboBox.innerHTML=combos.map(sgpComboCard).join('');
       if(playerBox)playerBox.innerHTML=playerRows.slice(0,42).map(sgpPlayerCard).join('');
-      if(comboStatus)comboStatus.textContent=combos.length||playerRows.length?
-        ('SGP investigación: '+combos.length+' mercados combinados cotizados; '+playerRows.length+
-         ' líneas individuales de jugadores. +110 orientativo; precio/valor del ticket de varios jugadores NOT VERIFIED.'):
-        'Sin cotizaciones SGP/props lo suficientemente recientes. No mostrar cuotas caducadas.';
+      if(comboStatus){{
+        const fresh=combos.filter(x=>x.source_quote_fresh).length;
+        comboStatus.textContent=combos.length||playerRows.length?
+         ('SGP WATCH: '+fresh+' mercados combinados con fuente reciente de '+combos.length+
+          '; '+playerRows.length+' líneas de jugadores, algunas históricas. RECONFIRMAR precio siempre. '+
+          'Cuota del ticket multiprop: NOT VERIFIED.'):
+         'Sin cotizaciones SGP/props verificables, ni siquiera como historial reciente.';
+      }}
       renderSgpPlayerSlip();
       wireSgpPlayerSelection();
       status.textContent=rows.length?
