@@ -121,6 +121,47 @@ def _clv(report: dict[str, Any]) -> dict[str, Any]:
             "historical_minimum_reported": legacy.get("minimum_rows")}
 
 
+
+def _release_blockers(report: dict[str, Any], family: str, status: str,
+                      clv: dict[str, Any]) -> list[str]:
+    """Explicit, non-authorizing checklist: canonical research != approved BET.
+
+    Provenance requires actual Bet365-ID8 matched-source evidence. Canonical
+    CLV rows, even when numerous, are not Bet365-specific by themselves.
+    Hypothetical ROI diagnostics are risk flags, never estimates of model EV.
+    """
+    blockers = []
+    if not report:
+        return ["CANONICAL_VALIDATION_REPORT_MISSING"]
+    if report.get("production_promotion_allowed") is not True:
+        blockers.append("CANONICAL_PRODUCTION_APPROVAL_NOT_GRANTED")
+    if report.get("manual_review_required") is not False:
+        blockers.append("MANUAL_APPROVAL_REQUIRED")
+    if clv.get("provenance") != "VERIFIED_BET365_ID8":
+        blockers.append("BET365_ID8_ENTRY_CLOSE_PROVENANCE_NOT_VERIFIED")
+    if status not in ("CALIBRATION_REVIEW_ELIGIBLE", "OOS_REVIEW_ELIGIBLE"):
+        blockers.append("CANONICAL_MARKET_STILL_RESEARCH_HOLD")
+    for warning in report.get("warnings") or []:
+        if isinstance(warning, str) and warning:
+            blockers.append("CANONICAL_REVIEW_WARNING:" + warning)
+    if family == "1X2":
+        outcome = _get(report, "canonical_clv_outcome_context",
+                       "fixture_equal_weight_roi",
+                       "mean_hypothetical_roi_units_per_fixture")
+        if isinstance(outcome, (int, float)) and not isinstance(outcome, bool) and outcome < 0:
+            blockers.append("NEGATIVE_CANONICAL_HYPOTHETICAL_FIXTURE_ROI_REVIEW")
+    if family == "TEAM_TOTALS":
+        by_line = _get(report, "canonical_clv_outcome_context", "by_line")
+        if isinstance(by_line, dict):
+            for line, data in sorted(by_line.items()):
+                if not isinstance(data, dict):
+                    continue
+                value = data.get("hypothetical_roi_per_priced_settled_observation")
+                if isinstance(value, (int, float)) and not isinstance(value, bool) and value < 0:
+                    blockers.append("NEGATIVE_CANONICAL_HYPOTHETICAL_ROI_LINE_" +
+                                    str(line).replace(".", "_"))
+    return sorted(set(blockers))
+
 def build_market_unblock_report(source_dir: str | Path, *,
                                 generated_at: str | None = None) -> dict[str, Any]:
     """Triage all twelve market families in declared order, zero external calls."""
@@ -156,7 +197,9 @@ def build_market_unblock_report(source_dir: str | Path, *,
             "report_freshness": "NOT_VERIFIED",
             "sample_n": n, "sample_unit": unit,
             "baseline_comparison": comp, "clv": clv, "blockers": blockers,
-            "research_decision": stage, "production_promotion_allowed": False,
+            "research_decision": stage, "release_gate": "NOT_APPROVED",
+            "release_blockers": _release_blockers(report, family, status, clv),
+            "production_promotion_allowed": False,
             "bet_eligible": False, "next_action": ACTIONS[family],
         })
     return {
@@ -195,6 +238,13 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"| {bet365 if bet365 is not None else 'N/V'} "
             f"| {row['research_decision']} |"
         )
+    lines.extend(["", "## Release gate: NOT APPROVED (all markets)", "",
+                  "Research-review readiness never enables BET. Historical canonical "
+                  "CLV counts do not verify Bet365-ID8 entry/close provenance.", ""])
+    for row in report["families"]:
+        if row["market_family"] in ("1X2", "TEAM_TOTALS"):
+            reasons = ", ".join(row["release_blockers"]) or "NOT_VERIFIED"
+            lines.append(f"- **{row['market_family']}**: {reasons}")
     lines.extend(["", "## Next actions, in order", ""])
     for row in report["families"]:
         lines.append(f"{row['priority']}. **{row['market_family']}**: {row['next_action']}")
