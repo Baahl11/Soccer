@@ -93,7 +93,7 @@ def _capture() -> dict[str, Any]:
     api_key = os.getenv("API_FOOTBALL_KEY", "").strip()
     if not api_key:
         return {"status":"SOURCE_API_KEY_NOT_VERIFIED","api_requests":0,"snapshots_written":0}
-    targets = _shortlist()
+    targets = _shortlist()[:MAX_FIXTURES_PER_RUN]
     if not targets:
         return {"status":"NO_PRIOR_SPORTING_SHORTLIST","api_requests":0,"snapshots_written":0}
     now = datetime.now(timezone.utc)
