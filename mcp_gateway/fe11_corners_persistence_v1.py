@@ -5,7 +5,14 @@ import json
 from typing import Any
 
 from mcp_gateway import fe11_universal_lifecycle_v1 as lifecycle
-from mcp_gateway import fe11_postgame_corners_v1 as corners
+# Do NOT import fe11_postgame_corners_v1 here. The API's long-lived
+# persistence import graph otherwise also imports automation_v2, the raw
+# sporting model and its large dependency graph into the web parent. That
+# extra RSS pushes the shared 512MiB cgroup over the scheduler OOM guard.
+# Keep worker-only source literals at this dependency-free SQL boundary.
+CORNERS_SOURCE = "API_FOOTBALL_FIXTURE_STATISTICS"
+CORNERS_VERSION = "SOCCER_FE11_POSTGAME_CORNERS_v1.0"
+MAX_SOURCE_ROWS = 10
 
 ATTEMPT_SQL = """
     WITH incoming AS (
@@ -114,7 +121,7 @@ def _valid_corners(row: Any) -> bool:
         and all(type(row.get(k)) is int and 0 <= row[k] <= 60
                 for k in ("home_corners", "away_corners"))
         and row.get("period") == "FT_90"
-        and row.get("source") == corners.SOURCE
+        and row.get("source") == CORNERS_SOURCE
         and row.get("source_response_verified") is True
         and row.get("bet_eligible") is False
     )
@@ -125,11 +132,11 @@ def persist(cur: Any, tick: dict[str, Any]) -> None:
     summary = tick.get("fe11_postgame_corner_summary")
     obs = tick.get("fe11_postgame_corner_observations")
     attempts = tick.get("fe11_postgame_corner_attempts")
-    if (not isinstance(summary, dict) or summary.get("version") != corners.VERSION
+    if (not isinstance(summary, dict) or summary.get("version") != CORNERS_VERSION
             or summary.get("bet_eligible") is not False
             or summary.get("market_inputs_used") is not False
             or not isinstance(obs, list) or not isinstance(attempts, list)
-            or len(obs) > corners.MAX_FIXTURES or len(attempts) > corners.MAX_FIXTURES
+            or len(obs) > MAX_SOURCE_ROWS or len(attempts) > MAX_SOURCE_ROWS
             or summary.get("captured") != len(obs)
             or any(not _valid_attempt(x) for x in attempts)
             or any(not _valid_corners(x) for x in obs)):
