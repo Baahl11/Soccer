@@ -45,7 +45,7 @@ def test_betslip_is_an_unpriced_draft_not_a_bookmaker_quote():
     assert "CUOTA COMBINADA: NOT VERIFIED" in html
     assert "No se suman ni multiplican cuotas" in html
     assert "No se envían apuestas" in html
-    assert "solo crea un borrador" in html
+    assert "No se crea borrador con cotizaciones aisladas" in html
     assert "first.fixture_id!==row.fixture_id" in html
     assert "sgpSelectedPlayerIndexes.length>=3" in html
 
