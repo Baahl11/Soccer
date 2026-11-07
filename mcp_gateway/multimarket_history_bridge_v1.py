@@ -268,3 +268,41 @@ def read_for_match(fixture_id: Any) -> dict[str, Any]:
                     "XI_AND_MATERIAL_AVAILABILITY_NOT_VERIFIED",
                     "DESCRIPTIVE_ONLY_NOT_OPPONENT_ADJUSTED"],
     }
+
+
+
+def inventory_readiness() -> dict[str, Any]:
+    """OIDC-guarded, aggregate-only verification of actual FE11 DB persistence."""
+    if not persistence.persistence_configured():
+        return {"status":"NOT_VERIFIED","reason":"DB_UNAVAILABLE"}
+    persistence.ensure_schema()
+    with persistence._connect() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute("SET TRANSACTION READ ONLY")
+                cur.execute("""
+                    SELECT COUNT(*)::integer,
+                           COUNT(DISTINCT p.fixture_id)::integer,
+                           COUNT(DISTINCT p.fixture_id) FILTER (
+                             WHERE p.kickoff > now()
+                               AND f.status = 'NS'
+                               AND f.kickoff = p.kickoff
+                               AND f.home_team_id = p.home_team_id
+                               AND f.away_team_id = p.away_team_id
+                               AND p.source_generated_at >= now() - interval '36 hours'
+                           )::integer,
+                           MAX(p.source_generated_at)
+                    FROM soccer_multimarket_history_profiles p
+                    JOIN soccer_fixtures f ON f.fixture_id = p.fixture_id
+                """)
+                row=cur.fetchone()
+    total, fixtures, current, latest = row or (0,0,0,None)
+    return {
+        "status":"VERIFIED_READ",
+        "research_rows_persisted":int(total),
+        "unique_fixtures":int(fixtures),
+        "current_pregame_profiles":int(current),
+        "last_source_generated_at_utc":_utc(latest).isoformat() if _utc(latest) else None,
+        "production_bets_authorized":False,
+        "provider_requests_added":0,
+    }
