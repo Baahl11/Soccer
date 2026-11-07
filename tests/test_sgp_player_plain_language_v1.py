@@ -28,7 +28,7 @@ def test_player_card_does_not_mislabel_offer_as_predicted_probability():
     assert "Tiros a puerta" in html
     assert "Tiros del jugador" in html
     assert "Jugador goleador" in html
-    assert "Cuota decimal individual" in html
+    assert "Cuota americana individual" in html
     assert "Precio reciente · confirmar" in html
     assert "Precio anterior · reconfirmar" in html
     assert "titularidad y minutos" in html

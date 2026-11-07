@@ -367,7 +367,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       <p class="sgp-player-note">Cada tarjeta muestra una <b>selección observada en Bet365</b>, no una predicción del modelo. La cantidad mostrada no confirma por sí sola si es «más de», «al menos» o un resultado exacto.</p>
       <div class="sgp-guide-steps">
         <div class="sgp-guide-step"><b>1. Cantidad del mercado</b><span>«3 tiros» es la referencia publicada. La condición exacta debe comprobarse en la casa.</span></div>
-        <div class="sgp-guide-step"><b>2. Cuota individual</b><span>«2.10» es un precio observado para un solo jugador; puede cambiar.</span></div>
+        <div class="sgp-guide-step"><b>2. Cuota individual</b><span>«+110» es la cuota americana observada para un solo jugador; puede cambiar.</span></div>
         <div class="sgp-guide-step"><b>3. Combinada SGP</b><span>Seleccionar jugadores solo crea un borrador. No hay cuota conjunta verificada ni apuesta preparada.</span></div>
       </div>
     </div>
@@ -435,6 +435,24 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   const token=()=>localStorage.getItem(AK)||'';
   const pct=v=>{{if(v===null||v===undefined||v==='')return '—';const n=Number(v);if(!Number.isFinite(n))return '—';const p=Math.abs(n)<=1?n*100:n;return p.toFixed(1)+'%'}};
   const num=v=>{{if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null}};
+  // Presentation only: canonical prices and model calculations are unchanged.
+  // Decimal 2.10 => American +110; decimal 1.91 => approximately -110.
+  function americanOddsFromDecimal(value){{
+    const decimal=num(value);
+    if(decimal===null||decimal<=1)return 'NOT VERIFIED';
+    const american=decimal>=2?
+      Math.round((decimal-1)*100):-Math.round(100/(decimal-1));
+    if(!Number.isSafeInteger(american)||Math.abs(american)<100)return 'NOT VERIFIED';
+    return american>0?'+'+american:String(american);
+  }}
+  function americanOdds(value,format='DECIMAL'){{
+    const f=String(format||'').toUpperCase(),v=num(value);
+    if(v===null)return 'NOT VERIFIED';
+    if(f==='DECIMAL')return americanOddsFromDecimal(v);
+    if(f==='AMERICAN'&&Math.abs(v)>=100&&Number.isSafeInteger(v))
+      return v>0?'+'+v:String(v);
+    return 'NOT VERIFIED';
+  }}
   const pp=v=>{{const n=num(v);return n===null?'—':(n>=0?'+':'')+n.toFixed(1)+' pp'}};
   const ev=v=>{{const n=num(v);return n===null?'—':(n>=0?'+':'')+(Math.abs(n)<=1?n*100:n).toFixed(1)+'%'}};
   const units=v=>{{const n=num(v);return n===null?'—':(n>=0?'+':'')+n.toFixed(2)+'u'}};
@@ -464,8 +482,8 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   const fixture=c=>c?.fixture||{{}},market=c=>c?.market||{{}},proj=c=>c?.projections||{{}},avail=c=>c?.availability||{{}};
   const premium=()=>!!ACCESS?.premium_unlocked;
   function crest(url,name){{const src=String(url||'');return '<span class="crest '+(src?'has-img':'')+'">'+(src?'<img loading="lazy" decoding="async" src="'+esc(src)+'" alt="'+esc(name)+' crest" onerror="this.style.display=\\'none\\';this.parentElement.classList.remove(\\'has-img\\')">':'')+'<span class="fallback">'+esc(initials(name))+'</span></span>'}}
-  function priceText(c){{const p=market(c).price||{{}},v=num(p.value),f=String(p.format||'NOT VERIFIED').toUpperCase();if(v===null)return 'Price NOT VERIFIED';if(f==='DECIMAL')return v.toFixed(2)+(p.bookmaker?' · '+p.bookmaker:'');return String(v)+' · format '+f}}
-  function priceVerified(c){{const p=market(c).price||{{}},f=String(p.format||'NOT VERIFIED').toUpperCase();return num(p.value)!==null&&f!=='NOT VERIFIED'&&!!p.bookmaker&&!!p.captured_at}}
+  function priceText(c){{const p=market(c).price||{{}},price=americanOdds(p.value,p.format);return price==='NOT VERIFIED'?'Cuota NO VERIFICADA':price+(p.bookmaker?' · '+p.bookmaker:'')}}
+  function priceVerified(c){{const p=market(c).price||{{}};return americanOdds(p.value,p.format)!=='NOT VERIFIED'&&!!p.bookmaker&&!!p.captured_at}}
   function evidence(c){{const e=c?.evidence||{{}},s=(e.sporting_reasons||[])[0],m=(e.market_reasons||[])[0],b=(e.blockers||[])[0];if(s)return '<b>Sport:</b> '+esc(s);if(m)return '<b>Market:</b> '+esc(m);if(b)return '<b>Blocker:</b> '+esc(b);return 'No additional persisted explanation in this snapshot.'}}
   function decisionClass(c){{const x=classification(c);return x==='BET'?'bet':x==='LEAN'?'lean':'watch'}}
   function decisionLabel(c){{const d=c?.decision||{{}};return classification(c)||d.display_bucket||String(d.execution_status||'WATCH').replaceAll('_',' ')}}
@@ -533,7 +551,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   }}
   function researchPriceCard(x){{
     const market=esc(x.market_family)+(x.line===null?'':' · '+esc(x.line));
-    const odds=num(x.price_decimal), oddsText=odds===null?'NOT VERIFIED':odds.toFixed(2);
+    const oddsText=americanOddsFromDecimal(x.price_decimal);
     const evText=x.hypothetical_ev_pct===null?'NOT VERIFIED':((Number(x.hypothetical_ev_pct)>=0?'+':'')+Number(x.hypothetical_ev_pct).toFixed(2)+'%');
     const link='/app/match/'+encodeURIComponent(String(x.fixture_id||''));
     return '<div class="panel"><div><b>'+esc(x.home_team)+' vs '+esc(x.away_team)+'</b></div>'+
@@ -555,7 +573,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const sourceState=stale?'CUOTA OBSERVADA HISTÓRICA · NECESITA RECONFIRMAR':'Fuente reciente · RECONFIRMAR ANTES DE ACTUAR';
     return '<div class="panel"><div class="sub"><b>ÚNICA SEÑAL RAW DEL PARTIDO · NO BET</b></div><b>'+esc(x.home_team)+' vs '+esc(x.away_team)+'</b>'+
       '<div class="sub">'+esc(x.provider_market)+' · '+esc(x.selection)+'</div>'+
-      '<div><b>Bet365 @ '+(odds===null?'NOT VERIFIED':odds.toFixed(2))+'</b> · '+target+'</div>'+
+      '<div><b>Bet365 @ '+americanOddsFromDecimal(x.price_decimal)+'</b> · '+target+'</div>'+
       '<div class="sub">Probabilidad conjunta RAW: '+pct(p)+' · EV RAW hipotético: '+
        (ev===null?'NOT VERIFIED':(ev>=0?'+':'')+ev.toFixed(2)+'%')+'</div>'+
       '<div class="sub">Fuente actualizada: '+esc(x.quote_updated_at||'NOT VERIFIED')+'</div>'+
@@ -564,7 +582,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<a href="/app/match/'+encodeURIComponent(String(x.fixture_id))+'" class="link-btn">Ver partido</a></div>';
   }}
   function sgpCatalogCard(x){{
-    const odds=num(x.price_decimal), ev=num(x.raw_hypothetical_ev_pct);
+    const ev=num(x.raw_hypothetical_ev_pct);
     const reason=String(x.catalog_reason||'NO_JOINT_PROBABILITY_MODEL');
     const message=reason==='NON_POSITIVE_RAW_HYPOTHETICAL_EV'?'DESCARTADA: EV RAW no positivo':
       reason==='NO_JOINT_PROBABILITY_MODEL'?'SIN MODELO CONJUNTO · NO CANDIDATA':
@@ -572,7 +590,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       'Ya aparece como señal RAW experimental arriba';
     return '<div class="panel"><div><b>'+esc(x.home_team)+' vs '+esc(x.away_team)+'</b></div>'+
       '<div class="sub">'+esc(x.provider_market)+' · '+esc(x.selection)+'</div>'+
-      '<div>Cuota Bet365 observada: '+(odds===null?'NOT VERIFIED':odds.toFixed(2))+'</div>'+
+      '<div>Cuota Bet365 observada: '+americanOddsFromDecimal(x.price_decimal)+'</div>'+
       '<div class="sub">EV RAW hipotético: '+(ev===null?'NO CALCULADO':((ev>=0?'+':'')+ev.toFixed(2)+'%'))+'</div>'+
       '<div class="sub">'+esc(message)+' · '+(x.source_quote_fresh?'fuente reciente':'cuota histórica, reconfirmar')+'</div>'+
       '<div class="sub">CATÁLOGO DE MERCADO, NO PICK · NO BET</div></div>';
@@ -610,13 +628,12 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     }}).format(d)+' CDMX';
   }}
   function sgpPlayerCard(x,index){{
-    const odds=num(x.price_decimal);
     const recent=x.source_quote_fresh===true;
     const quantity=sgpPlayerQuantity(x),marketName=sgpPlayerMarketName(x);
     const role=String(x.observed_team_side||'').toUpperCase()==='HOME'?'Equipo local':
       String(x.observed_team_side||'').toUpperCase()==='AWAY'?'Equipo visitante':'Equipo por confirmar';
     const selected=sgpSelectedPlayerIndexes.includes(index);
-    const price=odds===null?'Sin cuota verificable':odds.toFixed(2);
+    const price=americanOddsFromDecimal(x.price_decimal);
     const reference=quantity!==null?sgpPlayerShortSelection(x):'Ver selección original';
     return '<article class="sgp-leg-card'+(selected?' selected':'')+'">'+
       '<div class="sgp-leg-head"><div class="sgp-leg-player">'+
@@ -630,7 +647,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<strong>'+esc(reference)+'</strong>'+
       '<small>Referencia publicada. La condición exacta («más de», «al menos» o exacta) no está confirmada.</small></div>'+
       '<div class="sgp-leg-price"><strong>'+esc(price)+'</strong>'+
-      '<small>Cuota decimal individual</small></div></div>'+
+      '<small>Cuota americana individual</small></div></div>'+
       '<div class="sgp-leg-review"><span class="sgp-caution-tag">'+
       (recent?'Precio reciente · confirmar':'Precio anterior · reconfirmar')+'</span>'+
       '<span>Actualización: '+esc(sgpPlayerTime(x.quote_updated_at))+'</span></div>'+
