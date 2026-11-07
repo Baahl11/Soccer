@@ -1,0 +1,115 @@
+name: FE11 Universal Official Slate - OIDC Continuous Collector
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fe11-universal-slate.yml"
+  schedule:
+    - cron: "40 12 * * *" # 06:40 CDMX, after canonical scheduler
+    - cron: "40 15 * * *" # 09:40 CDMX, observe morning completions
+    - cron: "40 19 * * *" # 13:40 CDMX, after canonical scheduler
+    - cron: "40 22 * * *" # 16:40 CDMX, observe afternoon completions
+    - cron: "40 01 * * *" # 19:40 CDMX, observe evening completions
+    - cron: "20 04 * * *" # 22:20 CDMX, preregister next-day slate
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+
+concurrency:
+  group: fe11-universal-official-slate-oidc
+  cancel-in-progress: false
+
+jobs:
+  official-universal-collector:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - name: Warm protected Render service without provider requests
+        run: |
+          curl -sS -f --max-time 60 --retry 2 --retry-delay 5 \
+            https://soccer-edge-api.onrender.com/health >/tmp/fe11_health.json
+          jq -e '.status == "ok" and .scheduler_isolated_worker == true' /tmp/fe11_health.json >/dev/null
+
+      - name: Invoke authenticated standalone all-eligible capture, fail closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          get_oidc() {
+            local response
+            response=$(curl -fsS \
+              -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=soccer-edge-render")
+            echo "$response" | jq -r '.value // empty'
+          }
+          token=$(get_oidc)
+          test -n "$token"
+          echo "::add-mask::$token"
+          request() {
+            curl -sS --max-time 350 \
+              -o /tmp/fe11_universal_receipt.json -w "%{http_code}" \
+              -X POST -H "Authorization: Bearer $token" \
+              -H "Content-Type: application/json" \
+              https://soccer-edge-api.onrender.com/internal/fe11-universal-slate-v1
+          }
+          http=$(request)
+          if [ "$http" = "409" ] && jq -e '.error == "db_heavy_busy" and .retryable == true' \
+            /tmp/fe11_universal_receipt.json >/dev/null 2>&1; then
+            for attempt in 1 2 3; do
+              echo "Shared DB-heavy gate busy: retry $attempt/3"
+              sleep 20
+              token=$(get_oidc)
+              test -n "$token"
+              echo "::add-mask::$token"
+              http=$(request)
+              if [ "$http" != "409" ]; then break; fi
+            done
+          fi
+          echo "FE11 standalone live HTTP: $http"
+          if [ "$http" != "200" ]; then
+            jq -c '{error,detail,status,persistence_status}' /tmp/fe11_universal_receipt.json || true
+            exit 1
+          fi
+          jq -e '
+              .status == "VERIFIED_ALL_ELIGIBLE_LIFECYCLE"
+              and .version == "FE11_STANDALONE_OFFICIAL_SLATE_COLLECTOR_v1.0"
+              and .bet_eligible == false
+              and .probabilities_calibrated == false
+              and .market_inputs_used == false
+              and .database_persisted == true
+              and (.provider_requests_added | type == "number" and . >= 1 and . <= 12)
+              and (.approved_eligible_source_rows | type == "number" and . >= 0)
+              and (.pregame_source_accepted | type == "number" and . >= 0)
+              and .inventory.status == "VERIFIED_READ"
+              and .inventory.production_bets_authorized == false
+              and .inventory.provider_requests_added == 0
+          ' /tmp/fe11_universal_receipt.json >/dev/null
+          jq '{status,version,source_observed_at_utc,source_date_audit,
+               provider_fixtures_seen,approved_eligible_source_rows,
+               pregame_source_accepted,official_terminal_source_accepted,
+               source_invalid_identities,official_corner_attempts,
+               official_corner_verified,corner_status,
+               provider_requests_added,last_daily_remaining,
+               database_persisted,inventory,bet_eligible,
+               probabilities_calibrated}' /tmp/fe11_universal_receipt.json
+
+      - name: Open deduplicated FE11 collection incident if live run fails
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="FE11 universal official slate collection failed"
+          number=$(gh issue list --state open \
+            --search '"FE11 universal official slate collection failed" in:title' \
+            --json number --jq '.[0].number // ""')
+          if [ -z "$number" ]; then
+            gh issue create --title "$title" --body \
+              "The isolated OIDC official-all-eligible FE11 collection failed its real-source/DB proof. No fake rows or bets may be created. Inspect Render cgroup guard, quota, auth and immutable source joins. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          else
+            echo "Tracked in existing incident #$number"
+          fi
