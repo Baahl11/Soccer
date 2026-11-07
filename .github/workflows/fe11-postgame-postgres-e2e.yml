@@ -1,0 +1,47 @@
+name: FE11 Disposable PostgreSQL - End-to-End Postgame Truth
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/fe11_universal_persistence_v1.py"
+      - "mcp_gateway/fe11_corners_persistence_v1.py"
+      - "mcp_gateway/fe11_universal_lifecycle_v1.py"
+      - "mcp_gateway/schema.sql"
+      - "tests/test_fe11_universal_postgres_e2e.py"
+      - ".github/workflows/fe11-postgame-postgres-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      pg:
+        image: postgres:16
+        env:
+          POSTGRES_DB: fe11_ci_disposable
+          POSTGRES_USER: fe11_ci
+          POSTGRES_PASSWORD: ci_test_no_production
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U fe11_ci -d fe11_ci_disposable"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      FE11_DISPOSABLE_POSTGRES_URL: postgresql://fe11_ci:ci_test_no_production@127.0.0.1:5432/fe11_ci_disposable
+      DATABASE_SSLMODE: disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install only local Python SQL dependencies
+        run: python -m pip install "psycopg[binary]>=3.2,<4" pytest
+      - name: Real SQL DDL, immutable pregame, FT join, 90m corners
+        run: |
+          python -m pytest -v -s tests/test_fe11_universal_postgres_e2e.py
