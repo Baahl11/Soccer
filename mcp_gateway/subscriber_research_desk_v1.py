@@ -11,6 +11,7 @@ from typing import Any
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from mcp_gateway import persistence, subscriber_contract_v2
+from mcp_gateway import player_prop_sport_first_bridge_v1 as player_sport_bridge
 
 SQL = """
 SELECT fixture_id, home_team, away_team, league_name, kickoff_utc,
@@ -295,13 +296,16 @@ def _render_cache_sgp_rows(market_rows: list[dict[str, Any]],
             if not isinstance(item, dict):
                 continue
             price = _number(item.get("decimal_price", item.get("odd")))
-            if price is None or price < 21/11:
+            if price is None or price <= 1:
+                continue
+            if is_direct and price < 21/11:
                 continue
             selection = str(item.get("raw_selection") or item.get("selection") or "").strip()
             if not selection:
                 continue
-            if not is_direct and price > 2.55:
-                continue
+            # Player quote inventory is not a shortlist: no filtering by
+            # +110, -110 or any other price. Sports model selection is
+            # independent and happens before optional exact source matching.
             player = (re.sub(r"\s*-\s*\d+(?:\.\d+)?\s*$","",selection).strip()
                       if not is_direct else None)
             side = ("HOME" if market_id in {240,269} else
@@ -322,6 +326,22 @@ def _render_cache_sgp_rows(market_rows: list[dict[str, Any]],
                 "offer_type": ("BOOK_QUOTED_COMPOSITE" if is_direct else "PLAYER_COMPONENT_QUOTE"),
                 "player_label": player or None,
                 "observed_team_side": side,
+                # Only IDs derived from an official confirmed XI can attach
+                # to frozen player-sport model snapshots. Never infer an ID
+                # from name resemblance or a bookmaker decimal price.
+                "player_id": item.get("player_id"),
+                "team_id": item.get("team_id"),
+                "xi_alignment_status": item.get("xi_alignment_status"),
+                "line_basis": item.get("line_basis"),
+                "parsed_line": item.get("parsed_line"),
+                "player_market_family": (
+                    "SHOTS" if market_id in (240,241)
+                    and "shot" in str(market.get("provider_market") or "").lower()
+                    and "target" not in str(market.get("provider_market") or "").lower()
+                    else "SOT" if market_id in (269,270)
+                    and "target" in str(market.get("provider_market") or "").lower()
+                    else None
+                ),
                 "raw_joint_probability": None,
                 "raw_hypothetical_ev_pct": None,
                 "quote_freshness": freshness,
@@ -483,4 +503,21 @@ async def priced_research(request: Request) -> JSONResponse:
     all_sgp = _dedup_sgp_quotes(feed["sgp_rows"] + cached)
     board = make_board(feed["rows"], all_sgp)
     board["render_cached_sgp_sources"] = len(cached)
+    # Bounded, read-only: canonical frozen pregame player-model snapshots are
+    # selected by fixture kickoff/stage, never by quote price. Matched offers
+    # require official player ID + team ID + exact operator/line + as-of time.
+    try:
+        board["player_sport_research"] = await asyncio.to_thread(
+            player_sport_bridge.build_live_research, all_sgp
+        )
+    except Exception:
+        board["player_sport_research"] = {
+            "status": "NOT_VERIFIED_SPORT_MODEL_SOURCE_UNAVAILABLE",
+            "sport": {"rows": [], "verified_pregame_sport_models": 0},
+            "market_alignment": {"raw_model_exact_matches": 0,
+                                  "unverified_offer_count": len(all_sgp)},
+            "oos": {"status": "NOT_VERIFIED_CURRENT_OOS_REPORT"},
+            "bet_eligible": False, "production_promotion_allowed": False,
+            "provider_requests_added": 0,
+        }
     return JSONResponse(board, headers={"Cache-Control": "no-store"})
