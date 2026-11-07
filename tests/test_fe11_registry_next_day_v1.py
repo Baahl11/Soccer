@@ -65,6 +65,38 @@ def test_event_uses_existing_daily_discovery_persistence_contract():
     assert evt["calibrated_joint_probability"] is None
 
 
+def test_tampered_roster_cannot_inject_market_or_forged_identity_into_db_event():
+    roster = select_verified_next_day([official()], now_utc=NOW)
+    roster["fixtures"][0]["odds"] = 2.1
+    assert discovery_event(roster) is None
+    roster = select_verified_next_day([official()], now_utc=NOW)
+    roster["source"] = "UNTRUSTED_SOURCE"
+    assert discovery_event(roster) is None
+    roster = select_verified_next_day([official()], now_utc=NOW)
+    roster["fixtures"][0]["kickoff"] = "2026-11-08T12:00:00Z"
+    assert discovery_event(roster) is None
+
+
+def test_uses_existing_parameterized_registry_writer_no_db_connect(monkeypatch):
+    from mcp_gateway import persistence
+    event = discovery_event(select_verified_next_day([official()], now_utc=NOW))
+    assert event is not None
+    class FakeCursor:
+        def __init__(self): self.calls = []
+        def execute(self, sql, params): self.calls.append((sql, params))
+    cursor = FakeCursor()
+    persistence._upsert_fixture(cursor, event["fixtures"][0])
+    assert len(cursor.calls) == 1
+    sql, params = cursor.calls[0]
+    assert "INSERT INTO soccer_fixtures" in sql
+    assert "ON CONFLICT (fixture_id) DO UPDATE SET" in sql
+    assert params["fixture_id"] == 1270001
+    assert params["status"] == "NS"
+    assert params["home_team_id"] == 44
+    assert params["away_team_id"] == 45
+    assert set(params) == set(PERSISTENCE_FIELDS)
+
+
 def test_conflicting_duplicates_fail_closed_entire_roster():
     a, b = official(), official()
     b["away_team_id"] = 993
