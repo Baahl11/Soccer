@@ -131,13 +131,6 @@ def test_fe11_ingest_only_persists_verified_ids(monkeypatch):
     doc["generated_at_utc"]=(now-timedelta(minutes=2)).isoformat()
     ko=(now+timedelta(hours=7)).isoformat()
     doc["reports"][0]["kickoff"]=ko
-    t=datetime.fromisoformat(ko)
-    registry_record=(
-        None if kind=="NOT_FOUND" else
-        ("NS",t,999,202) if kind=="TEAM_CONFLICT" else
-        ("PST",t,101,202) if kind=="POSTPONED" else
-        ("NS",t+timedelta(minutes=5),101,202)
-    )
     for side in ("home_profile","away_profile"):
         doc["reports"][0][side]["target_kickoff"]=ko
     class Cursor:
@@ -206,6 +199,13 @@ def test_fe11_registry_rejection_diagnostic_never_forces_persistence(
     doc["generated_at_utc"]=(now-timedelta(minutes=1)).isoformat()
     ko=(now+timedelta(hours=7)).isoformat()
     doc["reports"][0]["kickoff"]=ko
+    t=datetime.fromisoformat(ko)
+    registry_record=(
+        None if kind=="NOT_FOUND" else
+        ("NS",t,999,202) if kind=="TEAM_CONFLICT" else
+        ("PST",t,101,202) if kind=="POSTPONED" else
+        ("NS",t+timedelta(minutes=5),101,202)
+    )
     for side in ("home_profile","away_profile"):
         doc["reports"][0][side]["target_kickoff"]=ko
     class Cursor:
