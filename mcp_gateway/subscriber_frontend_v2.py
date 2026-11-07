@@ -722,11 +722,85 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   function keyTakeaways(features,a,f){{const rows=[],hf=featureVerified(features,'team_performance.home_form')?featureValue(features,'team_performance.home_form'):null,af=featureVerified(features,'team_performance.away_form')?featureValue(features,'team_performance.away_form'):null,hgf=featureVerified(features,'team_performance.home_goals_for_avg')?nval(featureValue(features,'team_performance.home_goals_for_avg')):null,agf=featureVerified(features,'team_performance.away_goals_for_avg')?nval(featureValue(features,'team_performance.away_goals_for_avg')):null,hga=featureVerified(features,'team_performance.home_goals_against_avg')?nval(featureValue(features,'team_performance.home_goals_against_avg')):null,aga=featureVerified(features,'team_performance.away_goals_against_avg')?nval(featureValue(features,'team_performance.away_goals_against_avg')):null,hbase=nval(featureValue(features,'team_performance.home_goal_rate_blend')),abase=nval(featureValue(features,'team_performance.away_goal_rate_blend'));if(hf||af)rows.push(['Recent form',(f.home_team||'Home')+': '+(hf||'N/V')+' · '+(f.away_team||'Away')+': '+(af||'N/V')]);if(hgf!==null||agf!==null)rows.push(['Verified scoring',(f.home_team||'Home')+': '+(hgf!==null?hgf.toFixed(2):'N/V')+' GF/match · '+(f.away_team||'Away')+': '+(agf!==null?agf.toFixed(2):'N/V')+' GF/match']);else if(hbase!==null||abase!==null)rows.push(['Goal-rate baseline',(f.home_team||'Home')+': '+(hbase!==null?hbase.toFixed(2):'N/V')+' · '+(f.away_team||'Away')+': '+(abase!==null?abase.toFixed(2):'N/V')]);if(hga!==null||aga!==null)rows.push(['Verified goals allowed',(f.home_team||'Home')+': '+(hga!==null?hga.toFixed(2):'N/V')+' · '+(f.away_team||'Away')+': '+(aga!==null?aga.toFixed(2):'N/V')]);if(a?.confidence!==null&&a?.confidence!==undefined)rows.push(['Availability','Confidence '+pct(a.confidence)+' · confirmation status remains separate']);return rows.length?'<div class="takeaway-list">'+rows.slice(0,4).map((x,i)=>'<div class="takeaway"><div class="takeaway-num">'+(i+1)+'</div><div><b>'+esc(x[0])+'</b><small>'+esc(x[1])+'</small></div></div>').join('')+'</div>':'<div class="visual-empty compact">No verified sporting takeaway is supported yet.</div>'}}
 
   function analystLens(decisionText,markets,missing,counts,features){{const state=String(decisionText||'').toUpperCase(),sportN=sportFeatureCount(features),marketN=Number(counts?.market_snapshots||0);if(state==='BET')return 'Sporting evidence produced a canonical BET and the market layer also passed. Review availability and exact price before acting.';if(state==='LEAN')return 'The sporting case is interesting, but the market layer did not justify BET. Sport remains the primary reason to inspect this match.';if(state==='WATCH')return 'The match has a WATCH state because sporting evidence exists but at least one required condition is unresolved.';if(sportN>0)return 'Sport-first evidence exists for this match. Start with team performance, formation and availability. Market snapshots are secondary context, not proof of value.';if(marketN>0)return 'Market data exists, but verified sporting evidence is not sufficient. Do not treat the number of available markets as an edge.';return 'Only fixture identity is verified right now. There is not enough sporting evidence to support a conclusion.'}}
+  function fe11ProfileMetric(profile,where,key,label){{
+    const v=profile?.splits?.[where]?.features?.[key]||{{}},n=Number(v.n||0),avg=num(v.mean);
+    const value=n>0&&avg!==null?avg.toFixed(2):'NOT VERIFIED';
+    const enough=v.minimum_descriptive_sample_met===true;
+    return '<div class="item"><span>'+esc(label)+'</span><span>'+value+
+      ' · n='+n+(enough?'':' · MUESTRA BAJA')+'</span></div>';
+  }}
+  function fe11TeamProfile(profile,title,venue){{
+    if(!profile||profile.descriptive_only!==true||profile.bet_eligible!==false)
+      return '<div class="intel-card"><h3>'+esc(title)+'</h3><div class="intel-footnote">Perfil deportivo histórico NOT VERIFIED.</div></div>';
+    const all=profile.splits?.all||{{}},split=profile.splits?.[venue]||{{}};
+    const share=num(split.period_goals_share_scored_second_half);
+    const period=share===null?'NO VERIFICADO':(share*100).toFixed(1)+'%';
+    const n=Number(split.matches_with_valid_ft||0);
+    return '<div class="intel-card"><h3>'+esc(title)+' · '+esc(venue==='home'?'Local':'Visitante')+'</h3>'+
+      '<div class="intel-footnote">Muestra localía: '+n+
+      ' partidos FT históricos. Media y frecuencia observadas; NO son pronósticos.</div>'+
+      '<div class="detail-list">'+
+      fe11ProfileMetric(profile,venue,'first_half_goals_for','Goles a favor 1H / partido')+
+      fe11ProfileMetric(profile,venue,'second_half_goals_for','Goles a favor 2H / partido')+
+      fe11ProfileMetric(profile,venue,'first_half_goals_total','Goles totales 1H / partido')+
+      fe11ProfileMetric(profile,venue,'second_half_goals_total','Goles totales 2H / partido')+
+      fe11ProfileMetric(profile,venue,'team_corners_ft','Córners a favor FT')+
+      fe11ProfileMetric(profile,venue,'opponent_corners_ft','Córners concedidos FT')+
+      fe11ProfileMetric(profile,venue,'total_corners_ft','Córners del partido FT')+
+      '<div class="item"><span>Goles propios en segundo tiempo (share histórico)</span><span>'+
+      esc(period)+' · n='+Number(split.second_half_goal_share_sample_fixtures||0)+'</span></div>'+
+      '<div class="item"><span>Partidos totales válidos</span><span>'+Number(all.matches_with_valid_ft||0)+'</span></div>'+
+      '</div></div>';
+  }}
+  function fe11PatternCard(pattern,title,venue){{
+    const a=pattern?.ASIAN||null,t=pattern?.THREE_WAY||null;
+    if(!a||!t)return '<div class="intel-card"><h3>'+esc(title)+'</h3><div class="intel-footnote">No existe una muestra histórica completa para el patrón.</div></div>';
+    const rows=(type,name)=>{{
+      const x=pattern[type]||{{}},n=Number(x.complete_historical_rows||0),
+      wins=Number(x.observed_joint_hits||0),push=Number(x.asian_handicap_push_records||0);
+      return '<div class="item"><span>'+esc(name)+'</span><span>'+wins+'/'+n+
+        ' coincidencias históricas'+(type==='ASIAN'?' · '+push+' push de hándicap':'')+
+        (n<8?' · MUESTRA BAJA':'')+'</span></div>';
+    }};
+    return '<div class="intel-card"><h3>'+esc(title)+'</h3>'+
+      '<div class="intel-footnote">Ejemplo histórico: Over 1.5 goles FT + Over 6.5 córners FT + equipo +1. '+
+      'Las tres condiciones se comprueban en LOS MISMOS PARTIDOS, sin multiplicar estadísticas.</div>'+
+      '<div class="detail-list">'+rows('ASIAN','Hándicap asiático +1')+
+      rows('THREE_WAY','Hándicap tres vías +1')+'</div>'+
+      '<div class="intel-footnote">El push asiático NO equivale al empate de hándicap 3 vías. '+
+      'El operador puede liquidar builders de forma distinta. NO es una probabilidad conjunta futura.</div></div>';
+  }}
+  function fe11MultimarketSection(research,f){{
+    const section='<div class="intel-section-title"><h3>Periodos, córners y hándicap</h3>'+
+      '<span>SPORT FIRST · investigación histórica · NO BET</span></div>';
+    if(!research||research.status!=='HISTORICAL_DESCRIPTIVE_ONLY'||research.history_fresh!==true)
+      return '<div class="intel-card">'+section+'<div class="visual-empty compact">'+
+        'NOT VERIFIED: no hay perfil histórico validado y reciente para este fixture. '+
+        'No se infieren porcentajes, córners ni picks. Fuente: '+esc(research?.reason||research?.status||'NO_RESEARCH_FEED')+
+        '</div></div>';
+    return '<div class="intel-card" style="margin-bottom:10px">'+section+
+      '<div class="intel-footnote">Fuente del análisis: '+esc(research.source_generated_at_utc||'NOT VERIFIED')+
+      ' · Modelo '+esc(research.model_version||'NOT VERIFIED')+
+      ' · Aún sin calibración OOS ni comparación de precio.</div>'+
+      '<div class="intel-footnote">Cada n es una observación histórica; un partido con córners no documentados '+
+      'no cuenta para la intersección del builder. Ninguna tarjeta constituye recomendación de apuesta.</div></div>'+
+      '<div class="intel-grid">'+
+      fe11TeamProfile(research.home,f.home_team||'Local','home')+
+      fe11TeamProfile(research.away,f.away_team||'Visitante','away')+
+      '</div><div class="intel-card" style="margin-top:10px"><h3>Constructor de 3 selecciones (historial, sin cuota)</h3>'+
+      '<div class="intel-footnote">Un boleto completo necesita modelo conjunto calibrado, XI y precio exacto del bookmaker. '+
+      'El perfil histórico no predice que se cumplan los tres eventos.</div></div>'+
+      '<div class="intel-grid">'+
+      fe11PatternCard(research.home_pattern,f.home_team||'Local','home')+
+      fe11PatternCard(research.away_pattern,f.away_team||'Visitante','away')+
+      '</div><div class="intel-footnote" style="margin-top:10px">Bloqueos: correlación y joint OOS NOT VERIFIED; cuota del Bet Builder NOT VERIFIED; '+
+      'hándicap y reglas de liquidación requieren confirmación de la casa. Estado WATCH, NO BET.</div>';
+  }}
   function renderMatch(d){{const box=$('matchDetail'),rawF=d?.fixture||{{}},known=fixtureTargets().find(x=>String(x?.fixture?.fixture_id||'')===String(rawF.fixture_id||''))?.fixture||{{}},f={{...rawF,...known}},c=d?.selected_candidate||{{}},p=d?.projection_ladder||c?.projections||{{}},a=d?.availability||c?.availability||{{}},ctx=d?.sport_context||{{}},decision=d?.decision_summary||c?.decision||{{}},marketCtx=d?.market_context||{{}},modelCtx=d?.model_context||{{}},review=d?.analyst_review||{{}},rel=d?.relational_evidence||{{}},counts=rel.counts||{{}},disc=d?.data_disclosure||{{}},e=d?.evidence||c?.evidence||{{}};
     const selectedMarket=marketCtx.selected||c?.market||{{}},missing=(disc.missing_sections||review.missing_sections||[]),currentMarkets=(review.available_markets||[]),persistedMarkets=(counts.market_names||[]),markets=[...new Set([...currentMarkets,...persistedMarkets].filter(Boolean))],verifiedPrices=(review.verified_price_markets||[]),features=sportFeatures(rel),sportN=sportFeatureCount(features),sportMissing=sportFeatureMissing(features),decisionText=decision.classification||decision.display_bucket||decision.execution_status||review.status||'INSUFFICIENT DATA',fresh=freshnessLabel(counts),coverage=review.status||decisionText||'NOT VERIFIED',tone=coverageTone(coverage),[kickTime,kickDate]=dt(f.kickoff);
     const hero='<div class="intel-hero"><div class="match-brand-row"><div class="match-brand"><span>SE</span><b>SOCCER<br>EDGE</b></div><button id="backToMatches" type="button" class="intel-back">← Matches</button></div><div class="match-context-row"><span>'+esc(f.league||f.country||'Competition')+'</span><b>'+esc(kickDate)+' · '+esc(kickTime)+'</b></div><div class="intel-matchup"><div class="intel-team">'+crest(f.home_team_logo,f.home_team)+'<div class="intel-team-name"><b>'+esc(f.home_team||'Home')+'</b><span>Home</span></div></div><div class="intel-vs">VS</div><div class="intel-team away"><div class="intel-team-name"><b>'+esc(f.away_team||'Away')+'</b><span>Away</span></div>'+crest(f.away_team_logo,f.away_team)+'</div></div><div class="intel-scoreline">'+esc(f.country||'')+'</div></div>';
     const summary='<div class="intel-summary"><div class="intel-metrics"><div class="intel-metric '+tone+'"><span>Sport coverage</span><b>'+esc(sportN?sportN+' inputs':'NOT VERIFIED')+'</b></div><div class="intel-metric info"><span>Data tier</span><b>'+esc(featureValue(features,'context.data_tier')||a.data_tier||'NOT VERIFIED')+'</b></div><div class="intel-metric"><span>Availability</span><b>'+esc(a.confidence!==null&&a.confidence!==undefined?pct(a.confidence):'NOT VERIFIED')+'</b></div><div class="intel-metric"><span>Freshness</span><b>'+esc(fresh)+'</b></div></div></div>';
-    const tabs=[['overview','Overview'],['sport','Sport'],['availability','Availability'],['markets','Markets'],['advanced','Advanced']];
+    const tabs=[['overview','Overview'],['sport','Sport'],['periods','1H / 2H / Córners'],['availability','Availability'],['markets','Markets'],['advanced','Advanced']];
     const tabHtml='<div class="intel-tabs">'+tabs.map((x,i)=>'<button class="intel-tab '+(i===0?'active':'')+'" data-detail-tab="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
 
     const coreCov=coreCoverage(features);
@@ -757,7 +831,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 
     const advanced='<section class="intel-section" data-detail-section="advanced"><div class="intel-accordion"><details><summary>Feature snapshots <span>'+esc(counts.feature_snapshots??0)+'</span></summary><div class="intel-accordion-body">'+snapshotCards(rel.feature_snapshots||[],'feature')+'</div></details><details><summary>Model runs <span>'+esc(counts.model_runs??0)+'</span></summary><div class="intel-accordion-body">'+snapshotCards(rel.model_runs||[],'model')+'</div></details><details><summary>Market snapshots <span>'+esc(counts.market_snapshots??0)+'</span></summary><div class="intel-accordion-body">'+snapshotCards(rel.market_snapshots||[],'market')+'</div></details><details><summary>Raw current-snapshot market table <span>'+esc((marketCtx.candidates||[]).length)+'</span></summary><div class="intel-accordion-body">'+marketTable(marketCtx.candidates||[])+'</div></details><details><summary>Missing / not verified <span>'+esc(missing.length)+'</span></summary><div class="intel-accordion-body">'+infoPills(missing,'missing')+'</div></details></div></section>';
 
-    box.innerHTML='<div class="match-detail">'+hero+summary+tabHtml+'<div class="intel-body">'+overview+marketsSection+sportSection+availabilitySection+advanced+'</div></div>';
+    const multiMarket='<section class="intel-section" data-detail-section="periods">'+
+       fe11MultimarketSection(d?.multi_market_research||null,f)+'</section>';
+    box.innerHTML='<div class="match-detail">'+hero+summary+tabHtml+'<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+'</div></div>';
     box.querySelectorAll('[data-detail-tab]').forEach(btn=>btn.onclick=()=>{{const id=btn.dataset.detailTab;box.querySelectorAll('[data-detail-tab]').forEach(x=>x.classList.toggle('active',x===btn));box.querySelectorAll('[data-detail-section]').forEach(x=>x.classList.toggle('active',x.dataset.detailSection===id))}});
     const back=$('backToMatches');if(back)back.onclick=closeMatchRoute;
   }}
