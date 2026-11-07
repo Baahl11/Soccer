@@ -107,25 +107,21 @@ class FakeClient:
 
 
 def test_worker_can_freeze_more_than_three_without_importing_heavy_tick(monkeypatch):
-    now = datetime.now(timezone.utc)
+    from datetime import time
     from zoneinfo import ZoneInfo
-    local = now.astimezone(ZoneInfo("America/Mexico_City"))
+
+    actual = datetime.now(timezone.utc)
+    timezone_local = ZoneInfo("America/Mexico_City")
+    local = actual.astimezone(timezone_local)
     today = local.date()
-    today_dt = datetime(today.year, today.month, today.day, 23, 30,
-                        tzinfo=ZoneInfo("America/Mexico_City"))
-    # Ensure future rows even if this test executes after 23:30 local.
-    tomorrow = today_dt + timedelta(days=1)
+    # Force the optional official date to be tomorrow regardless of the hour
+    # when CI runs; all tomorrow fixtures remain genuinely future to actual.
+    simulated_now = datetime.combine(today, time(14, 0), tzinfo=timezone_local)
+    tomorrow_date = today + timedelta(days=1)
+    tomorrow = datetime.combine(tomorrow_date, time(14, 0), tzinfo=timezone_local)
     rows = [fixture(i + 100, tomorrow, league=39) for i in range(9)]
-    provider_payload = {
-        "response": rows, "results": len(rows), "paging": {"total": 1},
-        "quota": {"daily_remaining": None},
-    }
-    # The test's current date fixture response should never claim the tomorrow
-    # rows are today's. Return an empty primary today slate, then reserve-skip
-    # optional tomorrow due to unknown quota. No database writes are invented.
-    provider_payload["response"] = []
-    provider_payload["results"] = 0
     spy = []
+
     monkeypatch.setenv("API_FOOTBALL_KEY", "OFFLINE_DUMMY_NOT_REAL")
     monkeypatch.setenv("DATABASE_URL", "postgresql://offline.invalid/offline")
     monkeypatch.setattr(w.persistence, "persistence_configured", lambda: True)
@@ -133,20 +129,35 @@ def test_worker_can_freeze_more_than_three_without_importing_heavy_tick(monkeypa
     monkeypatch.setattr(w.persistence, "_connect", lambda: FakeConn())
     monkeypatch.setattr(w.writer, "persist", lambda cur, tick, upsert: spy.append(tick))
     monkeypatch.setattr(w.writer, "inventory", lambda cur: {
-        "status":"VERIFIED_READ", "eligible_pregame_baselines":0
+        "status": "VERIFIED_READ", "eligible_pregame_baselines": 9
     })
     monkeypatch.setattr(w.httpx, "AsyncClient", FakeClient)
+
     async def get(endpoint, params):
         assert endpoint == "fixtures"
-        assert params["date"] == today.isoformat()
-        return provider_payload
+        if params["date"] == today.isoformat():
+            return {
+                "response": [], "results": 0,
+                "paging": {"total": 1},
+                "quota": {"daily_remaining": 5000},
+            }
+        assert params["date"] == tomorrow_date.isoformat()
+        return {
+            "response": rows, "results": len(rows),
+            "paging": {"total": 1},
+            "quota": {"daily_remaining": None},
+        }
+
     monkeypatch.setattr(w.provider, "_api_get", get)
-    result = asyncio.run(w.run_once(now_utc=now))
+    result = asyncio.run(w.run_once(now_utc=simulated_now.astimezone(timezone.utc)))
     assert result["status"] == "VERIFIED_ALL_ELIGIBLE_LIFECYCLE"
-    assert result["provider_requests_added"] == 1
+    assert result["provider_requests_added"] == 2
+    assert result["pregame_source_accepted"] == 9
+    assert result["approved_eligible_source_rows"] == 9
     assert len(result["source_date_audit"]) == 2
-    assert result["source_date_audit"][1]["status"] == "DEFERRED_PROVIDER_RESERVE"
+    assert result["source_date_audit"][1]["status"] == "OFFICIAL_DATE_COMPLETE"
     assert len(spy) == 1
+    assert spy[0]["fe11_universal_lifecycle"]["pregame_count"] == 9
     assert spy[0]["fe11_universal_lifecycle"]["bet_eligible"] is False
 
 
