@@ -1,0 +1,36 @@
+name: FE11 Isolated Universal Slate Worker - Offline QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/fe11_universal_worker_v1.py"
+      - "mcp_gateway/server.py"
+      - "tests/test_fe11_isolated_universal_worker_v1.py"
+      - ".github/workflows/fe11-isolated-worker-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime and regression test dependencies
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Check source compiles without live providers
+        run: |
+          python -m compileall -q mcp_gateway/fe11_universal_worker_v1.py mcp_gateway/server.py
+      - name: Assert isolated worker, exact provenance and no market promotion
+        run: |
+          python -m pytest -q \
+            tests/test_fe11_isolated_universal_worker_v1.py \
+            tests/test_fe11_parent_memory_isolation_v1.py \
+            tests/test_fe11_universal_lifecycle_v1.py \
+            tests/test_fe11_postgame_corners_v1.py \
+            tests/test_runtime_memory_cap_v1.py
