@@ -212,7 +212,8 @@ def describe_three_leg_historical_pattern(
     """Historical intersection of three legs, with explicit handicap rules.
 
     These are observed prior-game frequencies **not future joint predictions**.
-    On Asian +1, a one-goal loss is a PUSH, not a joint win/loss.
+    On Asian +1, a one-goal loss pushes that leg; another losing leg still
+    defeats the joint condition. Otherwise builder push terms remain unknown.
     Three-way (+1) has a handicap draw outcome and does NOT push.
     Unknown settlement => refuse pattern evaluation.
     """
@@ -230,14 +231,20 @@ def describe_three_leg_historical_pattern(
                 and type(r.get("ft_goals_total")) is int
                 and type(r.get("goals_for")) is int
                 and type(r.get("goals_against")) is int]
-    hits, misses, pushes = 0, 0, 0
+    hits, misses, pushes, asian_leg_pushes = 0, 0, 0, 0
     for r in complete:
         gd_after_handicap = r["goals_for"] - r["goals_against"] + team_handicap
-        if gd_after_handicap == 0 and handicap_settlement == "ASIAN":
-            pushes += 1
-            continue
         goal_hit = r["ft_goals_total"] > goals_over
         corner_hit = r["total_corners_ft"] > corners_over
+        if gd_after_handicap == 0 and handicap_settlement == "ASIAN":
+            # A push on *one leg* does not rescue an already-losing builder.
+            # Only surviving legs require a sportsbook-specific push/void rule.
+            asian_leg_pushes += 1
+            if not goal_hit or not corner_hit:
+                misses += 1
+            else:
+                pushes += 1
+            continue
         handicap_hit = gd_after_handicap > 0
         if goal_hit and corner_hit and handicap_hit:
             hits += 1
@@ -259,6 +266,8 @@ def describe_three_leg_historical_pattern(
         "observed_joint_hits": hits,
         "observed_joint_misses": misses,
         "asian_handicap_push_records": pushes,
+        "asian_handicap_leg_push_records": asian_leg_pushes,
+        "settlement_semantics_patch": "FE11_1.0.1_LOSING_LEG_OVERRIDES_PUSH",
         "observed_joint_hit_frequency": round(hits / valid, 4) if valid else None,
         "eligible_as_joint_model_probability": False,
         "price_decimal": None,
