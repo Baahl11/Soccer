@@ -137,8 +137,27 @@ def discovery_event(roster: dict[str, Any]) -> dict[str, Any] | None:
             or type(roster.get("count")) is not int
             or not isinstance(roster.get("fixtures"), list)
             or len(roster["fixtures"]) != roster["count"]
-            or not 0 < roster["count"] <= MAX_VERIFIED_NEXT_DAY):
+            or not 0 < roster["count"] <= MAX_VERIFIED_NEXT_DAY
+            or roster.get("source") != "API_FOOTBALL_FIXTURES_DATE"
+            or _utc(roster.get("source_observed_at_utc")) is None
+            or not isinstance(roster.get("date"), str)):
         return None
+    # Protect the persistence boundary even if a caller mutates the
+    # previously validated roster. No price/model extras can be upserted.
+    for fx in roster["fixtures"]:
+        if (not isinstance(fx, dict) or set(fx) != set(PERSISTENCE_FIELDS)
+                or fx.get("status") != "NS"
+                or fx.get("league_id") not in SCANNER_APPROVED_LEAGUES
+                or not _identifier(fx.get("fixture_id"))
+                or not _identifier(fx.get("home_team_id"))
+                or not _identifier(fx.get("away_team_id"))
+                or fx["home_team_id"] == fx["away_team_id"]):
+            return None
+        kickoff = _utc(fx.get("kickoff"))
+        if (kickoff is None
+                or kickoff.astimezone(LOCAL_TIMEZONE).date().isoformat() != roster["date"]
+                or kickoff <= _utc(roster["source_observed_at_utc"])):
+            return None
     return {
         "event_type": "DAILY_DISCOVERY",
         "stage": "FE11_NEXT_DAY_PRESEED",
