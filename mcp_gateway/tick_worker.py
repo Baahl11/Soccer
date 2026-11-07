@@ -8,7 +8,6 @@ import httpx
 
 from mcp_gateway import automation_v6, automation_v7, automation_v129, product_views_v4
 from mcp_gateway import research_backfill_v1, fixture_observations_v1
-from mcp_gateway import fe11_postgame_corners_v1
 from mcp_gateway.persistence_v2 import persist_tick
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -274,33 +273,6 @@ async def _main() -> int:
         payload["shortlist_seed_imported"] = imported
         payload["fair_scheduler_seed_imported"] = fairness_imported
         payload["tick_stage_timings_ms"] = timings
-
-        # Official FE11 FT corners are after the canonical sport-first and
-        # market decisions, but ahead of optional generic evidence backfills.
-        # Only previous real FT score observations with frozen as-of pregame
-        # identities can enter this quota-limited queue.
-        stage_started = time.monotonic()
-        try:
-            await fe11_postgame_corners_v1.collect(payload)
-        except Exception as corner_exc:
-            payload["fe11_postgame_corner_summary"] = {
-                "version": fe11_postgame_corners_v1.VERSION,
-                "status": "NOT_VERIFIED_RUNTIME_ERROR",
-                "error_type": type(corner_exc).__name__,
-                "provider_requests_added": 0,
-                "bet_eligible": False,
-                "market_inputs_used": False,
-            }
-            payload["fe11_postgame_corner_observations"] = []
-            payload["fe11_postgame_corner_attempts"] = []
-        timings["fe11_corners_ms"] = _elapsed_ms(stage_started)
-        _emit_timing(
-            "fe11_postgame_corners_done",
-            status=payload.get("fe11_postgame_corner_summary", {}).get("status"),
-            selected=payload.get("fe11_postgame_corner_summary", {}).get("selected", 0),
-            captured=payload.get("fe11_postgame_corner_summary", {}).get("captured", 0),
-            provider_requests_added=payload.get("fe11_postgame_corner_summary", {}).get("provider_requests_added", 0),
-        )
 
         # After canonical sport/market decisions, capture bounded fixture observations
         # BEFORE historical backfill: otherwise secondary backfill can consume all

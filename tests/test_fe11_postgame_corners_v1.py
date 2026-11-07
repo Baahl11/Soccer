@@ -171,11 +171,11 @@ def test_queue_is_all_matched_scores_not_top_three_deepdives():
     assert "12 hours" in sql and "30 days" in sql
     assert "LIMIT %s" in sql
     worker = (Path(__file__).resolve().parents[1]/"mcp_gateway"/"tick_worker.py").read_text()
-    assert "await fe11_postgame_corners_v1.collect(payload)" in worker
+    assert "await fe11_postgame_corners_v1.collect(payload)" not in worker
     assert "fixture_observations_v1.collect(payload)" in worker
-    assert worker.index("await fe11_postgame_corners_v1.collect(payload)") < worker.index(
-        "fixture_observations_v1.collect(payload)"
-    )
+    # The existing generic fixture-observation queue remains available
+    # without FE11 heavy postgame work in the canonical child.
+    assert "fixture_observations_v1.collect(payload)" in worker
 
 
 def test_no_overwrite_of_prior_scored_predictions_or_historical_truth():

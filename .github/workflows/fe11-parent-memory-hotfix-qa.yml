@@ -1,0 +1,28 @@
+name: FE11 Canonical Memory Regression - Offline QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/automation_v7.py"
+      - "mcp_gateway/tick_worker.py"
+      - "mcp_gateway/fe11_corners_persistence_v1.py"
+      - "tests/test_fe11_parent_memory_isolation_v1.py"
+      - ".github/workflows/fe11-parent-memory-hotfix-qa.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime and pytest
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Enforce parent-web memory isolation and canonical scheduler preservation
+        run: |
+          python -m compileall -q mcp_gateway/automation_v7.py mcp_gateway/tick_worker.py mcp_gateway/fe11_corners_persistence_v1.py
+          python -m pytest -q tests/test_fe11_parent_memory_isolation_v1.py tests/test_fe11_universal_lifecycle_v1.py tests/test_fe11_postgame_corners_v1.py tests/test_runtime_memory_cap_v1.py
