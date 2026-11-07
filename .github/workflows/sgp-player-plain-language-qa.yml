@@ -1,0 +1,54 @@
+name: Soccer App V2 Player Markets - Plain Spanish UX QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/subscriber_frontend_v2.py"
+      - "tests/test_sgp_player_plain_language_v1.py"
+      - "tests/sgp_player_ui_runtime.js"
+      - ".github/workflows/sgp-player-plain-language-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-and-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install existing gateway and test dependencies
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Compile Python and verify customer language safety contracts
+        run: |
+          python -m compileall -q mcp_gateway/subscriber_frontend_v2.py
+          python -m pytest -c /dev/null -q \
+            tests/test_sgp_player_plain_language_v1.py \
+            tests/test_subscriber_frontend_v2.py
+      - name: Extract exact shipped JavaScript from rendered App V2 HTML
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from mcp_gateway import subscriber_frontend_v2
+          html = subscriber_frontend_v2.render()
+          a = '<script id="soccer-edge-v2-app">'
+          assert html.count(a) == 1
+          begin = html.index(a) + len(a)
+          end = html.index("</script>", begin)
+          js = html[begin:end]
+          assert "function sgpPlayerCard(" in js
+          assert "function renderSgpPlayerSlip(" in js
+          Path("/tmp/soccer_edge_v2_actual.js").write_text(js, encoding="utf-8")
+          print("Rendered actual UI JS length:",len(js))
+          PY
+      - name: Validate full JavaScript grammar and execute real player components
+        run: |
+          node --check /tmp/soccer_edge_v2_actual.js
+          node tests/sgp_player_ui_runtime.js /tmp/soccer_edge_v2_actual.js
