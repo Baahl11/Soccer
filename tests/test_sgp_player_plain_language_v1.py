@@ -10,13 +10,13 @@ from mcp_gateway import subscriber_frontend_v2
 
 def test_player_section_explains_threshold_price_and_joint_market():
     html = subscriber_frontend_v2.render()
-    assert "¿Qué significan estas tarjetas?" in html
-    assert "Mercados de jugadores · Solo para investigar" in html
-    assert "«3 tiros» es la referencia publicada" in html
-    assert "La condición exacta" in html
-    assert "cuota conjunta verificada" in html
-    assert "EN OBSERVACIÓN · NO APOSTAR" in html
-    assert "No son recomendaciones" in html
+    assert "La cuota NO selecciona jugadores" in html
+    assert "Jugadores · Análisis estadístico primero" in html
+    assert "tiros o tiros a puerta por 90 minutos" in html
+    assert "XI confirmada, umbral y reglas exactas" in html
+    assert "proyección deportiva independiente" in html
+    assert "SIN STATS VERIFICADAS = SIN PICK" in html
+    assert "No se elige por cuota" in html
 
 
 def test_player_card_does_not_mislabel_offer_as_predicted_probability():
@@ -61,4 +61,6 @@ def test_responsive_accessible_safe_structural_markup():
     assert "esc(x.selection||'Sin selección verificada')" in html
     assert "esc(sgpPlayerShortSelection(x))" in html
     assert "innerHTML=playerRows.length?" in html
+    assert "rawPlayerRows.filter(playerStatEvidenceEligible)" in html
+    assert "0 jugadores con ventaja estadística verificada" in html
     assert "No se inventarán cuotas" in html
