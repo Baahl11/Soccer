@@ -183,3 +183,41 @@ def test_fe11_inventory_is_aggregate_only_and_never_promotes_bets(monkeypatch):
     assert r["production_bets_authorized"] is False
     assert r["provider_requests_added"]==0
     assert "market_price" not in r and "bet" not in r
+
+
+
+@pytest.mark.parametrize("registry_record,expected",[
+    (None,"REGISTRY_FIXTURE_NOT_FOUND"),
+    (("NS",datetime.now(timezone.utc)+timedelta(hours=7),999,202),
+     "REGISTRY_TEAM_ID_CONFLICT"),
+    (("PST",datetime.now(timezone.utc)+timedelta(hours=7),101,202),
+     "REGISTRY_STATUS_NOT_NS"),
+])
+def test_fe11_registry_rejection_diagnostic_never_forces_persistence(
+        monkeypatch,registry_record,expected):
+    now=datetime.now(timezone.utc)
+    doc=sample_doc()
+    doc["generated_at_utc"]=(now-timedelta(minutes=1)).isoformat()
+    ko=(now+timedelta(hours=7)).isoformat()
+    doc["reports"][0]["kickoff"]=ko
+    for side in ("home_profile","away_profile"):
+        doc["reports"][0][side]["target_kickoff"]=ko
+    class Cursor:
+        def execute(self,sql,args): self.last=sql
+        def fetchone(self):
+            if self.last==fe11.INSERT_SQL:return None
+            return registry_record
+        def __enter__(self):return self
+        def __exit__(self,*a):pass
+    class Conn:
+        def transaction(self):return self
+        def cursor(self):return Cursor()
+        def __enter__(self):return self
+        def __exit__(self,*a):pass
+    monkeypatch.setattr(fe11.persistence,"ensure_schema",lambda:None)
+    monkeypatch.setattr(fe11.persistence,"_connect",lambda:Conn())
+    res=fe11.ingest(doc)
+    assert res["validated_reports"]==1
+    assert res["newly_persisted"]==0
+    assert res["not_persisted_by_registry_reason"][expected]==1
+    assert res["bet_eligible"] is False
