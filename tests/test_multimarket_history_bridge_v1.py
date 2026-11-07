@@ -156,3 +156,30 @@ def test_fe11_ingest_only_persists_verified_ids(monkeypatch):
 def test_fe11_non_integer_fixture_fails_closed():
     assert fe11.read_for_match("3501")["status"]=="NOT_VERIFIED"
     assert fe11.read_for_match(None)["bet_eligible"] is False
+
+
+
+def test_fe11_inventory_is_aggregate_only_and_never_promotes_bets(monkeypatch):
+    class Cursor:
+        def execute(self,query,*params):
+            assert "SET TRANSACTION READ ONLY" in query or "soccer_multimarket_history_profiles" in query
+        def fetchone(self):
+            return (3,2,1,datetime.now(timezone.utc))
+        def __enter__(self):return self
+        def __exit__(self,*args):pass
+    class Conn:
+        def transaction(self):return self
+        def cursor(self):return Cursor()
+        def __enter__(self):return self
+        def __exit__(self,*args):pass
+    monkeypatch.setattr(fe11.persistence,"persistence_configured",lambda:True)
+    monkeypatch.setattr(fe11.persistence,"ensure_schema",lambda:None)
+    monkeypatch.setattr(fe11.persistence,"_connect",lambda:Conn())
+    r=fe11.inventory_readiness()
+    assert r["status"]=="VERIFIED_READ"
+    assert r["research_rows_persisted"]==3
+    assert r["unique_fixtures"]==2
+    assert r["current_pregame_profiles"]==1
+    assert r["production_bets_authorized"] is False
+    assert r["provider_requests_added"]==0
+    assert "market_price" not in r and "bet" not in r
