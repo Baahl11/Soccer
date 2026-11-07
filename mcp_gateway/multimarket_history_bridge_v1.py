@@ -202,6 +202,7 @@ def ingest(doc: Any) -> dict[str, Any]:
     items = validate_import(doc)
     persistence.ensure_schema()
     saved, identities = 0, []
+    not_inserted: dict[str, int] = {}
     with persistence._connect() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
@@ -217,10 +218,31 @@ def ingest(doc: Any) -> dict[str, Any]:
                     if cur.fetchone() is not None:
                         saved += 1
                         identities.append(row["fixture_id"])
+                    else:
+                        cur.execute(
+                            "SELECT status,kickoff,home_team_id,away_team_id "
+                            "FROM soccer_fixtures WHERE fixture_id=%s",
+                            (row["fixture_id"],)
+                        )
+                        reg = cur.fetchone()
+                        if reg is None:
+                            reason="REGISTRY_FIXTURE_NOT_FOUND"
+                        elif reg[2] != row["home_id"] or reg[3] != row["away_id"]:
+                            reason="REGISTRY_TEAM_ID_CONFLICT"
+                        elif _utc(reg[1]) != row["kickoff"]:
+                            reason="REGISTRY_KICKOFF_MISMATCH"
+                        elif reg[0] != "NS":
+                            reason="REGISTRY_STATUS_NOT_NS"
+                        elif row["kickoff"] <= datetime.now(timezone.utc):
+                            reason="FIXTURE_ALREADY_STARTED"
+                        else:
+                            reason="ALREADY_IMPORTED_OR_DUPLICATE"
+                        not_inserted[reason]=not_inserted.get(reason,0)+1
     return {
         "status":"SPORT_FIRST_HISTORY_IMPORTED",
         "source_version":VERSION,"validated_reports":len(items),
         "newly_persisted":saved,"persisted_fixture_ids":identities,
+        "not_persisted_by_registry_reason":not_inserted,
         "bet_eligible":False,"probabilities_calibrated":False,
         "provider_requests_added":0,
     }
