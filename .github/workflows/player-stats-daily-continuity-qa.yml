@@ -25,10 +25,12 @@ jobs:
           back=(root/"player-props-postgame-backfill.yml").read_text()
           reg=(root/"player-trend-registry-backfill.yml").read_text()
           oos=(root/"player-props-oos-validation.yml").read_text()
-          assert 'cron: "25 08 * * *"' in back
-          assert 'cron: "40 10 * * *"' in reg
-          assert back.count("- cron:") == 1
-          assert reg.count("- cron:") == 1
+          # Production 512MiB OOM proved daily heavy backfill unsafe.
+          # Manual OIDC and future-only guards remain available.
+          assert back.count("- cron:") == 0
+          assert reg.count("- cron:") == 0
+          assert "Automatic Render backfill DISABLED" in back
+          assert "Automatic Render backfill DISABLED" in reg
           assert 'id-token: write' in back and 'id-token: write' in reg
           assert '"max_fixtures":5' in back
           assert '"max_fixtures":16' in reg
@@ -45,5 +47,5 @@ jobs:
           assert ".player_sport_readiness.prices_used_to_select == false" in audit
           assert ".player_sport_readiness.provider_requests_added == 0" in audit
           assert "player_sport_model_readiness" in audit
-          print("Daily real player stats -> future only registry + OOS chain PASS")
+          print("Blocked unsafe player backfill cron; OIDC and source/OOS contracts intact PASS")
           PY
