@@ -600,3 +600,40 @@ Cada cálculo debe conservar partido, liga, horario, n por local/visita, cortes 
 - CI includes deterministic offline tests for event timestamps, published-as-of cutoff, missing stats, duplicate fixtures, period consistency, contamination by market inputs and joint settlement semantics.
 
 **Next operational prerequisites:** prove Render ingestion/visibility end-to-end; build reliable provenance-preserving history storage beyond scanner's small per-team window; evaluate viable training sample size by league/market; walk-forward baselines and calibrated joint model **only after** coverage gates. Continue preserving SPORT FIRST → JOINT → MARKET. No automatic bets.
+
+
+---
+
+## FE-11 Phase 2 checkpoint — frozen OOS baseline comparison (2026-11-06)
+
+**Status: RESEARCH IMPLEMENTATION; NOT trained on verified real Soccer data.**
+
+The new `fe11_oos_baselines.py` method evaluates whether a frozen, historical
+**same-fixture joint three-leg rate** is better at out-of-sample prediction than
+multiplying three separately estimated probabilities. The two baselines are
+estimated solely from a training partition completed/published before a
+predeclared cutoff and embargo, then scored over one untouched chronological
+holdout. Runs measure Brier, log loss, the training dependence difference
+in percentage points, sample counts, and Wilson interval for the test
+observed hit rate.
+
+Strict limits:
+- Only **THREE_WAY +1** labels are currently evaluated; Asian +1 push and
+  bookmaker builder void/repricing cannot be collapsed into binary wins.
+- Validation requires original source-availability timestamps, same historical
+  FT fixture, complete two-team corners, unambiguous labels, no duplicated IDs,
+  no market input in features, and all labels known by the research cutoff.
+- If the minimum training/holdout thresholds are not met, status remains
+  `NOT_ENOUGH_OOS_DATA` with no metrics, probability estimates, or BET.
+- These are **constant, non-opponent-adjusted baseline probabilities**;
+  even a lower historical Brier does NOT establish a calibrated
+  feature-conditional multi-market model or a profitable quote.
+- No provider calls, app customer changes, sportsbook ticket requests,
+  notifications, production model promotion, or bet classification changes.
+- Unit tests use explicitly **synthetic fixtures** only. Never represent QA
+  fixture performance as real-world Soccer validation.
+
+The next phases are (a) reliable historical availability provenance,
+(b) competition-specific coverage and sufficient fixture counts,
+(c) opponent/style-adjusted joint model plus genuine walk-forward calibration,
+(d) verified book-specific combined prices and settlement, then (e) gated UI.
