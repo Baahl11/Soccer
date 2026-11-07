@@ -13,6 +13,7 @@ from starlette.responses import JSONResponse, Response
 from mcp_gateway import player_props_shots_anchor_patch_v4
 from mcp_gateway import price_resolver_v4
 from mcp_gateway import sgp_research_capture_v1
+from mcp_gateway import multimarket_history_bridge_v1
 from mcp_gateway import primary_clv_anchor_v4
 from mcp_gateway import primary_clv_anchor_normalized_v4
 from mcp_gateway import primary_clv_signal_anchor_store_v4
@@ -173,6 +174,35 @@ async def internal_sgp_research_capture_v1(request: Request) -> Response:
             "status":"SGP_CAPTURE_SOURCE_NOT_VERIFIED",
             "bet_eligible":False
         },status_code=503,headers={"Cache-Control":"no-store"})
+
+
+@mcp.custom_route("/internal/fe11-multimarket-history-import-v1", methods=["POST"])
+async def internal_fe11_multimarket_history_import_v1(request: Request) -> Response:
+    """Read-only source data import from GitHub main scheduler, not a pick event."""
+    try:
+        _base_server._github_oidc_claims(
+            request, {".github/workflows/sports-edge-scanner-v05-paper.yml"}
+        )
+    except Exception:
+        return JSONResponse({"error":"unauthorized"},status_code=401)
+    length_text = request.headers.get("content-length", "")
+    if length_text.isdigit() and int(length_text) > multimarket_history_bridge_v1.MAX_BODY_BYTES:
+        return JSONResponse({"error":"payload_too_large"},status_code=413)
+    body = await request.body()
+    if len(body) > multimarket_history_bridge_v1.MAX_BODY_BYTES:
+        return JSONResponse({"error":"payload_too_large"},status_code=413)
+    try:
+        obj = json.loads(body)
+        # Fail before any DB write when date/sport/source/provenance is invalid.
+        multimarket_history_bridge_v1.validate_import(obj)
+    except (ValueError, TypeError):
+        return JSONResponse({"error":"invalid_sport_first_profile"},status_code=400)
+    try:
+        result = await asyncio.to_thread(multimarket_history_bridge_v1.ingest, obj)
+        return JSONResponse(result,headers={"Cache-Control":"no-store"})
+    except Exception:
+        return JSONResponse({"error":"research_history_persistence_unavailable"},
+                            status_code=503,headers={"Cache-Control":"no-store"})
 
 
 @mcp.custom_route("/internal/research-price-bridge-check", methods=["GET"])
@@ -599,6 +629,11 @@ class V215SignalLedgerRouter:
                 request=Request(scope,receive=receive)
                 response=await internal_sgp_research_capture_v1(request)
                 await response(scope,receive,send)
+                return
+            if path == "/internal/fe11-multimarket-history-import-v1" and method == "POST":
+                request = Request(scope, receive=receive)
+                response = await internal_fe11_multimarket_history_import_v1(request)
+                await response(scope, receive, send)
                 return
             if path == "/internal/research-price-bridge-check" and method == "GET":
                 request = Request(scope, receive=receive)
