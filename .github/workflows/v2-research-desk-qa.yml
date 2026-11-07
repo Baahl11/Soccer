@@ -10,6 +10,10 @@ on:
       - 'mcp_gateway/server.py'
       - 'tests/test_sgp_research_capture_v1.py'
       - 'mcp_gateway/subscriber_frontend_v2.py'
+      - 'mcp_gateway/multimarket_history_bridge_v1.py'
+      - 'mcp_gateway/subscriber_contract_v2.py'
+      - 'mcp_gateway/schema.sql'
+      - 'tests/test_multimarket_history_bridge_v1.py'
       - 'mcp_gateway/__init__.py'
       - 'tests/test_subscriber_research_desk_v1.py'
       - 'tests/test_subscriber_frontend_v2.py'
@@ -36,9 +40,10 @@ jobs:
           python -m pip install -q -r mcp_gateway/requirements.txt pytest
       - name: Python syntax and regression tests
         run: |
-          python -m compileall -q mcp_gateway/subscriber_research_desk_v1.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/__init__.py mcp_gateway/sgp_research_capture_v1.py mcp_gateway/server.py
+          python -m compileall -q mcp_gateway/subscriber_research_desk_v1.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/__init__.py mcp_gateway/sgp_research_capture_v1.py mcp_gateway/server.py mcp_gateway/multimarket_history_bridge_v1.py mcp_gateway/subscriber_contract_v2.py
           python -m pytest tests/test_subscriber_research_desk_v1.py -q
           python -m pytest tests/test_sgp_research_capture_v1.py -q
+          python -m pytest tests/test_multimarket_history_bridge_v1.py -q
           python -m pytest tests/test_subscriber_frontend_v2.py -q -k "fe10 or fe2_shell_contains_no_design_time_mock_data or fe2_primary_information_architecture_is_customer_first or fe2_visually_preserves_sport_first_market_second_separation or fe2_consumes_only_v2_customer_contract_for_decision_data or fe2_has_one_customer_bootstrap_controller"
           echo 'NOTE: legacy V2 test suite contains 4 pre-existing copy-mismatch failures (Scoring profile, visible inputs, insufficient data label). Track separately; do not mask them as new regression.'
       - name: Validate rendered V2 inline JavaScript syntax
