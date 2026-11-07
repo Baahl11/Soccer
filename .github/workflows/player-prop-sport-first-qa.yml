@@ -11,6 +11,7 @@ on:
       - "mcp_gateway/player_props_oos_postgres_v4.py"
       - "mcp_gateway/subscriber_research_desk_v1.py"
       - "mcp_gateway/subscriber_frontend_v2.py"
+      - "mcp_gateway/server.py"
       - "tests/test_player_prop_sport_first_bridge_v1.py"
       - ".github/workflows/player-prop-sport-first-qa.yml"
   workflow_dispatch:
@@ -41,7 +42,8 @@ jobs:
             mcp_gateway/player_props_oos_postgres_v4.py \
             mcp_gateway/build_player_trend_model_registry.py \
             mcp_gateway/subscriber_research_desk_v1.py \
-            mcp_gateway/subscriber_frontend_v2.py
+            mcp_gateway/subscriber_frontend_v2.py \
+            mcp_gateway/server.py
       - name: Source, time, identity, sample, price independence and real OOS gates
         run: |
           python -m pytest -c /dev/null -q \
