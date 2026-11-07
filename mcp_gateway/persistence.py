@@ -7,6 +7,8 @@ from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from mcp_gateway import feature_snapshot_v4, primary_clv_signal_anchor_store_v4
+from mcp_gateway import fe11_universal_persistence_v1
+from mcp_gateway import fe11_corners_persistence_v1
 
 _SCHEMA_READY = False
 _SCHEMA_LOCK = threading.Lock()
@@ -309,6 +311,16 @@ def _persist_final_observations(cur, tick: dict[str, Any]) -> None:
     """, (serialized, tick.get("generated_at_utc"), tick.get("generated_at_utc")))
 
 
+def fe11_universal_readiness() -> dict[str, Any]:
+    """Aggregate-only official all-fixture readiness, no private match IDs."""
+    if not persistence_configured():
+        return {"status": "NOT_VERIFIED", "reason": "DB_UNAVAILABLE"}
+    ensure_schema()
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            return fe11_universal_persistence_v1.inventory(cur)
+
+
 def load_latest_pipeline_payload() -> dict[str, Any] | None:
     """Return the most recent compact persisted pipeline payload."""
     if not persistence_configured():
@@ -365,7 +377,12 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                     # events) again in soccer_pipeline_runs temporarily creates a
                     # very large JSON string on the 512 MB worker. Persist a
                     # compact run envelope here instead.
-                    json.dumps({key: value for key, value in tick.items() if key not in {"events", "shortlist_state", "observed_final_fixtures"}}),
+                    json.dumps({key: value for key, value in tick.items() if key not in {
+                        "events", "shortlist_state", "observed_final_fixtures",
+                        "fe11_universal_lifecycle",
+                        "fe11_postgame_corner_observations",
+                        "fe11_postgame_corner_attempts",
+                    }}),
                 ),
             )
             primary_clv_signal_anchor_store_v4.persist_tick_anchor_rows(cur, tick)
@@ -414,4 +431,6 @@ def persist_tick(tick: dict[str, Any]) -> bool:
             # Always apply terminal scores LAST: backfill events may carry an older
             # registry status; final results must not regress to NS in this tick.
             _persist_final_observations(cur, tick)
+            fe11_universal_persistence_v1.persist(cur, tick, _upsert_fixture)
+            fe11_corners_persistence_v1.persist(cur, tick)
     return True

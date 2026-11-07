@@ -1,0 +1,53 @@
+name: FE11 Universal All-Eligible Lifecycle - Offline QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/fe11_universal_lifecycle_v1.py"
+      - "mcp_gateway/fe11_universal_persistence_v1.py"
+      - "mcp_gateway/fe11_postgame_corners_v1.py"
+      - "mcp_gateway/fe11_corners_persistence_v1.py"
+      - "mcp_gateway/tick_worker.py"
+      - "mcp_gateway/automation_v7.py"
+      - "mcp_gateway/persistence.py"
+      - "mcp_gateway/schema.sql"
+      - "mcp_gateway/server.py"
+      - "tests/test_fe11_universal_lifecycle_v1.py"
+      - "tests/test_fe11_postgame_corners_v1.py"
+      - ".github/workflows/fe11-universal-lifecycle-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gateway runtime and tests
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Verify runtime and SQL contract syntax
+        run: |
+          python -m compileall -q \
+            mcp_gateway/fe11_universal_lifecycle_v1.py \
+            mcp_gateway/fe11_universal_persistence_v1.py \
+            mcp_gateway/fe11_postgame_corners_v1.py \
+            mcp_gateway/fe11_corners_persistence_v1.py \
+            mcp_gateway/tick_worker.py \
+            mcp_gateway/automation_v7.py \
+            mcp_gateway/persistence.py \
+            mcp_gateway/server.py
+      - name: Run universal and protected bridge regression without external calls
+        run: |
+          python -m pytest -q \
+            tests/test_fe11_universal_lifecycle_v1.py \
+            tests/test_fe11_postgame_corners_v1.py \
+            tests/test_fe11_registry_next_day_v1.py \
+            tests/test_multimarket_history_bridge_v1.py \
+            tests/test_automation_v7_rollover_import.py \
+            tests/test_runtime_memory_cap_v1.py

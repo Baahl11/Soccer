@@ -301,3 +301,88 @@ ALTER TABLE soccer_training_dataset_rows ADD COLUMN IF NOT EXISTS row_payload JS
 
 CREATE INDEX IF NOT EXISTS idx_soccer_research_backfill_discovery_attempted
 ON soccer_research_backfill_discovery (research_key, attempted_at DESC);
+
+-- FE11 universal sport-first identity baseline. A baseline is frozen only
+-- when the official fixture was observed as NS BEFORE its actual kickoff.
+-- Not a projection, not a bookmaker quote, not a wager or OOS training label.
+CREATE TABLE IF NOT EXISTS soccer_fe11_pregame_baselines (
+    fixture_id BIGINT PRIMARY KEY REFERENCES soccer_fixtures (fixture_id),
+    captured_at TIMESTAMPTZ NOT NULL,
+    kickoff TIMESTAMPTZ NOT NULL,
+    league_id BIGINT NOT NULL,
+    home_team_id BIGINT NOT NULL,
+    away_team_id BIGINT NOT NULL,
+    source TEXT NOT NULL
+        CHECK (source = 'API_FOOTBALL_FIXTURES_DATE'),
+    source_status TEXT NOT NULL DEFAULT 'NS'
+        CHECK (source_status = 'NS'),
+    snapshot JSONB NOT NULL,
+    classification TEXT NOT NULL DEFAULT 'RESEARCH_ONLY'
+        CHECK (classification = 'RESEARCH_ONLY'),
+    bet_eligible BOOLEAN NOT NULL DEFAULT FALSE
+        CHECK (bet_eligible = FALSE),
+    CHECK (captured_at < kickoff),
+    CHECK (home_team_id > 0 AND away_team_id > 0 AND home_team_id <> away_team_id)
+);
+CREATE INDEX IF NOT EXISTS idx_soccer_fe11_pregame_kickoff
+    ON soccer_fe11_pregame_baselines (kickoff, league_id);
+
+-- FE11 official finished-score observations are append-only. One fixture can
+-- receive a later corrected official snapshot without editing the original.
+-- Corners and other markets stay NULL/NOT VERIFIED unless a separate source
+-- verifies the correct period and participant IDs.
+CREATE TABLE IF NOT EXISTS soccer_fe11_official_outcome_snapshots (
+    fixture_id BIGINT NOT NULL REFERENCES soccer_fe11_pregame_baselines (fixture_id),
+    observed_at TIMESTAMPTZ NOT NULL,
+    kickoff TIMESTAMPTZ NOT NULL,
+    final_status TEXT NOT NULL CHECK (final_status IN ('FT', 'AET', 'PEN')),
+    home_goals INTEGER NOT NULL CHECK (home_goals BETWEEN 0 AND 50),
+    away_goals INTEGER NOT NULL CHECK (away_goals BETWEEN 0 AND 50),
+    halftime_home_goals INTEGER CHECK (halftime_home_goals BETWEEN 0 AND 50),
+    halftime_away_goals INTEGER CHECK (halftime_away_goals BETWEEN 0 AND 50),
+    regulation_home_goals INTEGER CHECK (regulation_home_goals BETWEEN 0 AND 50),
+    regulation_away_goals INTEGER CHECK (regulation_away_goals BETWEEN 0 AND 50),
+    second_half_home_goals INTEGER CHECK (second_half_home_goals BETWEEN 0 AND 50),
+    second_half_away_goals INTEGER CHECK (second_half_away_goals BETWEEN 0 AND 50),
+    corners_home INTEGER,
+    corners_away INTEGER,
+    corners_verified BOOLEAN NOT NULL DEFAULT FALSE CHECK (corners_verified = FALSE),
+    source TEXT NOT NULL CHECK (source = 'API_FOOTBALL_FIXTURES_DATE'),
+    payload JSONB NOT NULL,
+    bet_eligible BOOLEAN NOT NULL DEFAULT FALSE CHECK (bet_eligible = FALSE),
+    PRIMARY KEY (fixture_id, observed_at),
+    CHECK (observed_at >= kickoff),
+    CHECK (corners_home IS NULL AND corners_away IS NULL)
+);
+CREATE INDEX IF NOT EXISTS idx_soccer_fe11_postgame_fixture_date
+    ON soccer_fe11_official_outcome_snapshots (fixture_id, observed_at DESC);
+
+-- A separate FT-only provider-statistics observation prevents invented
+-- corners from entering the official-score payload. Corner values are
+-- independently sourced, never inferred from fixture goals or team means.
+CREATE TABLE IF NOT EXISTS soccer_fe11_verified_corner_snapshots (
+    fixture_id BIGINT NOT NULL REFERENCES soccer_fe11_pregame_baselines (fixture_id),
+    observed_at TIMESTAMPTZ NOT NULL,
+    kickoff TIMESTAMPTZ NOT NULL,
+    home_corners INTEGER NOT NULL CHECK (home_corners BETWEEN 0 AND 60),
+    away_corners INTEGER NOT NULL CHECK (away_corners BETWEEN 0 AND 60),
+    period TEXT NOT NULL CHECK (period = 'FT_90'),
+    source TEXT NOT NULL CHECK (source = 'API_FOOTBALL_FIXTURE_STATISTICS'),
+    source_response_verified BOOLEAN NOT NULL CHECK (source_response_verified = TRUE),
+    bet_eligible BOOLEAN NOT NULL DEFAULT FALSE CHECK (bet_eligible = FALSE),
+    PRIMARY KEY (fixture_id, observed_at),
+    CHECK (observed_at >= kickoff)
+);
+CREATE INDEX IF NOT EXISTS idx_soccer_fe11_corners_fixture_time
+    ON soccer_fe11_verified_corner_snapshots (fixture_id, observed_at DESC);
+
+-- Attempt throttling makes unavailable team stats explicit and prevents
+-- repeatedly burning quota on the same match every scheduler tick.
+CREATE TABLE IF NOT EXISTS soccer_fe11_corner_capture_attempts (
+    fixture_id BIGINT PRIMARY KEY REFERENCES soccer_fe11_pregame_baselines (fixture_id),
+    last_attempt_at TIMESTAMPTZ NOT NULL,
+    attempt_count INTEGER NOT NULL DEFAULT 1 CHECK (attempt_count BETWEEN 1 AND 20),
+    last_status TEXT NOT NULL,
+    provider_requests_added INTEGER NOT NULL DEFAULT 0 CHECK (provider_requests_added BETWEEN 0 AND 1),
+    CHECK (length(last_status) <= 64)
+);
