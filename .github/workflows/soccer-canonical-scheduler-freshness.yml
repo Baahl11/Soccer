@@ -1,0 +1,70 @@
+name: Soccer Canonical Scheduler - Read-Only Freshness Alarm
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/soccer_scheduler_state_guard.py"
+      - "tests/test_soccer_scheduler_state_guard.py"
+      - ".github/workflows/soccer-canonical-scheduler-freshness.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/soccer_scheduler_state_guard.py"
+      - "tests/test_soccer_scheduler_state_guard.py"
+      - ".github/workflows/soccer-canonical-scheduler-freshness.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: '00 13 * * *'  # 07:00 CDMX, after canonical 06:10 tick
+    - cron: '00 20 * * *'  # 14:00 CDMX, after canonical 13:10 tick
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: soccer-canonical-scheduler-freshness
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prove watchdog contract offline
+        run: python -m unittest discover -s tests -p test_soccer_scheduler_state_guard.py -v
+      - name: Checkout authoritative compact scheduler health, not history
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          sparse-checkout: |
+            soccer_edge_state/health.json
+          sparse-checkout-cone-mode: false
+      - name: Verify latest authentic tick and persisted DB handoff
+        id: health
+        if: github.event_name != 'pull_request'
+        run: |
+          python scripts/soccer_scheduler_state_guard.py \
+            --health state/soccer_edge_state/health.json \
+            --output /tmp/soccer_scheduler_readiness.json --max-age-minutes 180
+      - name: Publish read-only state report
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-canonical-scheduler-readiness
+          path: /tmp/soccer_scheduler_readiness.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Open one deduplicated scheduled incident
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Soccer canonical scheduler freshness failed"
+          number=$(gh issue list --state open --search '"Soccer canonical scheduler freshness failed" in:title' --json number --jq '.[0].number // ""')
+          if [ -z "$number" ]; then
+            gh issue create --title "$title" --body "A scheduled read-only health audit did not verify a recent canonical tick with persisted PostgreSQL handoff. Do not fabricate a tick or backdate events; inspect original Render and GitHub scheduler evidence. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          else
+            echo "Already-tracked canonical scheduler incident #$number"
+          fi
