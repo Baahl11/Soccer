@@ -154,10 +154,12 @@ def test_sgp_direct_book_quote_is_not_player_betslip_and_keeps_raw_unvalidated()
          "offered_price_decimal":"2.10","raw_joint_probability":None,
          "raw_hypothetical_ev_pct":None,"bookmaker_direct_combo_quote":False}
     p=desk.make_board([],[source,leg])
-    assert len(p["sgp_composites"])==1 and len(p["sgp_player_components"])==1
-    assert p["sgp_player_components"][0]["price_bucket"]=="PLUS110_OR_BETTER"
-    assert p["sgp_player_components"][0]["price_meaning"]=="INDIVIDUAL_PLAYER_LEG_NOT_SGP_TICKET"
-    assert p["sgp_player_components"][0]["raw_joint_probability"] is None
+    assert len(p["sgp_composites"]) == 1
+    assert p["sgp_player_components"] == []
+    assert p["sgp_player_quote_catalog_count"] == 1
+    assert p["sgp_player_selection_status"] == "BLOCKED_NO_VERIFIED_PLAYER_SPORT_MODEL"
+    assert p["sgp_player_quote_price_used_for_ranking"] is False
+    assert p["sgp_player_prices_are_picks"] is False
 
 
 def test_sgp_stale_and_unverified_quotes_are_not_displayed():
@@ -252,12 +254,11 @@ def test_player_prop_cached_quote_is_single_leg_with_no_custom_ticket_price():
     assert len(vals)==1 and vals[0]["player_label"]=="Shion Homma"
     assert vals[0]["observed_team_side"]=="HOME"
     board=desk.make_board([] ,vals)
-    assert len(board["sgp_player_components"])==1
-    p=board["sgp_player_components"][0]
-    assert p["price_meaning"]=="INDIVIDUAL_PLAYER_LEG_NOT_SGP_TICKET"
-    assert p["raw_joint_probability"] is None
+    assert board["sgp_player_components"] == []
+    assert board["sgp_player_quote_catalog_count"] == 1
+    assert board["sgp_player_selection_status"] == "BLOCKED_NO_VERIFIED_PLAYER_SPORT_MODEL"
     assert board["sgp_custom_player_ticket_price_verified"] is False
-    assert board["provider_requests_added"]==0
+    assert board["provider_requests_added"] == 0
 
 
 def test_sgp_source_duplicate_cache_dedupes_same_offer():
