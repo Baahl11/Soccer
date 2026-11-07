@@ -106,6 +106,19 @@ const base = {
 };
 assert.equal(sandbox.sgpPlayerMarketName(base), "Tiros del jugador");
 assert.equal(sandbox.sgpPlayerQuantity(base), "3");
+assert.equal(sandbox.playerStatEvidenceEligible(base),false,
+  "A Bet365-only price cannot become a verified sporting candidate");
+const spoofed = {...base, independent_player_sport_evidence:{
+  source:"CANONICAL_INDEPENDENT_PLAYER_SPORT_MODEL",
+  player_identity_verified:true, historical_stats_verified:true,
+  opponent_adjusted:true, minutes_projection_verified:true,
+  starting_xi_verified:true, exact_market_operator_verified:true,
+  oos_validation_complete:false, projection_before_market:true,
+  raw_sport_probability:.67, player_shots_or_sot_per90:3.5,
+  verified_sample_matches:12, expected_minutes:78,
+}, player_sport_gate:"VERIFIED_SPORT_FIRST_OOS_MARKET_ALIGNED"};
+assert.equal(sandbox.playerStatEvidenceEligible(spoofed),false,
+  "Even apparently modeled quote must fail without independently validated OOS");
 const card = sandbox.sgpPlayerCard(base,0);
 assert.match(card, /Min-Hyeok Yang/);
 assert.match(card, /KVC Westerlo vs Charleroi/);

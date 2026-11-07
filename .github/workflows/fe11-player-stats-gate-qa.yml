@@ -1,0 +1,52 @@
+name: FE11 Player Props - Stats First No Odds-Based Picks
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/subscriber_research_desk_v1.py"
+      - "mcp_gateway/subscriber_frontend_v2.py"
+      - "tests/test_fe11_player_stats_first_gate_v1.py"
+      - "tests/test_subscriber_research_desk_v1.py"
+      - "tests/test_sgp_player_plain_language_v1.py"
+      - "tests/sgp_player_ui_runtime.js"
+      - ".github/workflows/fe11-player-stats-gate-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  never-price-rank-player-props:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install existing gateway runtime for owner-only research contracts
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Prove ten +110 offers never create one statistical player candidate
+        run: |
+          python -m pytest -c /dev/null -q \
+            tests/test_fe11_player_stats_first_gate_v1.py \
+            tests/test_subscriber_research_desk_v1.py \
+            tests/test_sgp_player_plain_language_v1.py
+      - name: Validate actual rendered player UI blocks incomplete sport evidence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from mcp_gateway import subscriber_frontend_v2
+          html=subscriber_frontend_v2.render()
+          token='<script id="soccer-edge-v2-app">'
+          assert html.count(token)==1
+          a=html.index(token)+len(token)
+          b=html.index('</script>',a)
+          Path('/tmp/fe11_app_v2_actual.js').write_text(html[a:b],encoding='utf-8')
+          print("Real UI JS preserved", b-a)
+          PY
+          node --check /tmp/fe11_app_v2_actual.js
+          node tests/sgp_player_ui_runtime.js /tmp/fe11_app_v2_actual.js

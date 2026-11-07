@@ -361,17 +361,17 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       <div class="sub">Aquí se muestran alternativas incompatibles, sin modelo o con EV RAW negativo solamente para comparar precios; nunca son recomendaciones.</div>
       <div id="sgpMarketCatalog" class="card-grid"></div>
     </details>
-    <div class="section-title"><div><h2>Mercados de jugadores · Solo para investigar</h2><span>Consulta tiros, tiros a puerta y goleadores. No son recomendaciones.</span></div></div>
-    <div class="sgp-player-guide" aria-label="Cómo interpretar los mercados de jugadores">
-      <div class="sgp-player-guide-head"><span class="sgp-caution-tag">EN OBSERVACIÓN · NO APOSTAR</span><strong>¿Qué significan estas tarjetas?</strong></div>
-      <p class="sgp-player-note">Cada tarjeta muestra una <b>selección observada en Bet365</b>, no una predicción del modelo. La cantidad mostrada no confirma por sí sola si es «más de», «al menos» o un resultado exacto.</p>
+    <div class="section-title"><div><h2>Jugadores · Análisis estadístico primero</h2><span>Solo candidatos con evidencia deportiva y mercado validado. No se elige por cuota.</span></div></div>
+    <div class="sgp-player-guide" aria-label="Requisitos estadísticos para proponer jugadores">
+      <div class="sgp-player-guide-head"><span class="sgp-caution-tag">SIN STATS VERIFICADAS = SIN PICK</span><strong>La cuota NO selecciona jugadores</strong></div>
+      <p class="sgp-player-note">Retiramos la lista que priorizaba ofertas Bet365 cercanas a +110. Un momio no indica cuántos tiros hará un futbolista. <b>Primero debe existir una proyección deportiva independiente</b> del precio. No se envían apuestas.</p>
       <div class="sgp-guide-steps">
-        <div class="sgp-guide-step"><b>1. Cantidad del mercado</b><span>«3 tiros» es la referencia publicada. La condición exacta debe comprobarse en la casa.</span></div>
-        <div class="sgp-guide-step"><b>2. Cuota individual</b><span>«+110» es la cuota americana observada para un solo jugador; puede cambiar.</span></div>
-        <div class="sgp-guide-step"><b>3. Combinada SGP</b><span>Seleccionar jugadores solo crea un borrador. No hay cuota conjunta verificada ni apuesta preparada.</span></div>
+        <div class="sgp-guide-step"><b>1. Estadísticas reales</b><span>Identidad confirmada, tiros o tiros a puerta por 90 minutos, tamaño de muestra, rol y minutos jugados.</span></div>
+        <div class="sgp-guide-step"><b>2. Proyección del jugador</b><span>Rival y contexto ajustados, minutos esperados, probabilidad RAW y evaluación fuera de muestra.</span></div>
+        <div class="sgp-guide-step"><b>3. Mercado, al final</b><span>XI confirmada, umbral y reglas exactas, cuota vigente y comparación de valor. Si falta algo, WATCH.</span></div>
       </div>
     </div>
-    <div id="sgpBuilderSlip" class="sgp-slip" role="status" aria-live="polite">Elige hasta tres jugadores del mismo partido para comparar sus mercados. No se envían apuestas.</div>
+    <div id="sgpBuilderSlip" class="sgp-slip" role="status" aria-live="polite">Esperando candidatos respaldados por estadísticas; ninguna cuota por sí sola crea una selección.</div>
     <div id="sgpPlayerLegs" class="card-grid sgp-player-grid"></div>
     <div class="section-title"><div><h2>Watch</h2><span>Waiting for price, XI, goalkeeper or other required evidence</span></div></div>
     <div class="panel"><div id="todayWatches" class="watch-list"></div></div>
@@ -627,6 +627,26 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       timeZone:'America/Mexico_City',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'
     }}).format(d)+' CDMX';
   }}
+  // Defense-in-depth: stale or raw price-only source JSON never becomes
+  // a player candidate in the UI. Independent sport evidence must precede
+  // line/price comparison and have OOS and starting-XI verification.
+  function playerStatEvidenceEligible(x){{
+    const e=x?.independent_player_sport_evidence;
+    if(!e||typeof e!=='object')return false;
+    const modelProbability=num(e.raw_sport_probability);
+    const rate=num(e.player_shots_or_sot_per90),sample=num(e.verified_sample_matches);
+    const expectedMinutes=num(e.expected_minutes);
+    return x?.player_sport_gate==='VERIFIED_SPORT_FIRST_OOS_MARKET_ALIGNED'&&
+      e.source==='CANONICAL_INDEPENDENT_PLAYER_SPORT_MODEL'&&
+      e.player_identity_verified===true&&e.historical_stats_verified===true&&
+      e.opponent_adjusted===true&&e.minutes_projection_verified===true&&
+      e.starting_xi_verified===true&&e.exact_market_operator_verified===true&&
+      e.oos_validation_complete===true&&e.projection_before_market===true&&
+      modelProbability!==null&&modelProbability>0&&modelProbability<1&&
+      rate!==null&&rate>=0&&sample!==null&&sample>0&&
+      expectedMinutes!==null&&expectedMinutes>0&&expectedMinutes<=120&&
+      x?.source_quote_fresh===true;
+  }}
   function sgpPlayerCard(x,index){{
     const recent=x.source_quote_fresh===true;
     const quantity=sgpPlayerQuantity(x),marketName=sgpPlayerMarketName(x);
@@ -734,7 +754,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       regular.innerHTML=low.map(researchPriceCard).join('');
       const combos=Array.isArray(data.sgp_composites)?data.sgp_composites:[];
       const catalog=Array.isArray(data.sgp_market_catalog)?data.sgp_market_catalog:[];
-      const playerRows=Array.isArray(data.sgp_player_components)?data.sgp_player_components:[];
+      const rawPlayerRows=Array.isArray(data.sgp_player_components)?data.sgp_player_components:[];
+      const playerRows=rawPlayerRows.filter(playerStatEvidenceEligible);
+      const priceOnlyCount=num(data.sgp_player_quote_catalog_count)||0;
       sgpPlayerObservations=playerRows;
       sgpSelectedPlayerIndexes=[];
       if(comboBox)comboBox.innerHTML=combos.length?combos.map(sgpComboCard).join(''):
@@ -742,7 +764,8 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       if(catalogBox)catalogBox.innerHTML=catalog.map(sgpCatalogCard).join('');
       if(playerBox)playerBox.innerHTML=playerRows.length?
         playerRows.slice(0,42).map(sgpPlayerCard).join(''):
-        '<div class="panel"><b>No hay mercados individuales disponibles para comparar.</b><div class="sub">No se inventarán cuotas, alineaciones ni selecciones de jugadores.</div></div>';
+        '<div class="panel"><b>0 jugadores con ventaja estadística verificada</b>'+
+        '<div class="sub">Se detectaron '+esc(priceOnlyCount)+' cotizaciones individuales, pero ninguna acredita todavía estadísticas del jugador, minutos/XI, proyección propia, línea exacta y validación OOS. No aparecen como picks. No se inventarán cuotas ni probabilidades. Una cuota +110 NO es una proyección.</div></div>';
       if(comboStatus){{
         const fresh=combos.filter(x=>x.source_quote_fresh).length;
         const rejected=catalog.filter(x=>x.catalog_reason==='NON_POSITIVE_RAW_HYPOTHETICAL_EV').length;
@@ -753,8 +776,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
           '. Máximo UNA señal por encuentro. Todas son WATCH, NO BET. '+
           'Mercados descartados disponibles solo en el catálogo de cuotas.');
       }}
-      renderSgpPlayerSlip();
-      wireSgpPlayerSelection();
+      if(playerRows.length){{
+        renderSgpPlayerSlip();
+        wireSgpPlayerSelection();
+      }}else if($('sgpBuilderSlip')){{
+        $('sgpBuilderSlip').innerHTML='<div class="sgp-slip-title"><b>Sin selecciones de jugadores verificadas</b>'+
+          '<span class="sgp-caution-tag">SPORT FIRST · NO BET</span></div>'+
+          '<div class="sgp-slip-description">No se crea borrador con cotizaciones aisladas. Hasta contar con estadísticas y proyección deportiva independiente, la lista permanece vacía.</div>';
+      }}
       status.textContent=rows.length?
        'INVESTIGACIÓN · '+rows.length+' precios vigentes · WATCH solamente · Push próximamente':
        'No hay cuotas vigentes verificadas para partidos futuros (ventana 90 min); no mostrar precios viejos.';
