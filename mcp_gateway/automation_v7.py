@@ -8,7 +8,6 @@ import httpx
 
 from mcp_gateway import automation as base
 from mcp_gateway import fe11_registry_next_day_v1 as fe11_registry
-from mcp_gateway import fe11_universal_lifecycle_v1 as fe11_universal
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v3 as v3
 from mcp_gateway import automation_v4 as v4
@@ -204,45 +203,6 @@ async def run_tick() -> dict[str, Any]:
         ) if next_day_rows else None
         if fe11_roster is not None:
             fe11_registry_status = fe11_roster["status"]
-
-        # The scheduled morning capture sees today's slate, but a fixture
-        # that finished late yesterday would otherwise never receive its
-        # terminal score. Ask for ONE official previous-day date only when
-        # daily quota and existing per-tick reserves permit; never fold those
-        # old matches into today's scouting or market candidates.
-        prior_day = local_now.date() - timedelta(days=1)
-        fe11_prior_day_status = "NOT_IN_MORNING_SETTLEMENT_WINDOW"
-        fe11_prior_day_closed: list[dict[str, Any]] = []
-        if 6 <= local_now.hour < 12:
-            if (v2._LAST_DAILY_REMAINING is None
-                    or v2._LAST_DAILY_REMAINING <= 125
-                    or v2._API_CALLS_THIS_TICK > v2.MAX_API_CALLS_PER_TICK - 5):
-                fe11_prior_day_status = "DEFERRED_PROVIDER_QUOTA_RESERVE"
-            else:
-                try:
-                    prior_payload = await base._api_get(
-                        "fixtures", {"date": prior_day.isoformat(),
-                                     "timezone": base.TIMEZONE_NAME}
-                    )
-                    fe11_prior_day_closed = [
-                        fx for row in (prior_payload.get("response") or [])
-                        if isinstance(row, dict)
-                        for fx in [base._compact_fixture(row)]
-                        if fx.get("league_id") in fe11_universal.APPROVED_LEAGUES
-                        and fx.get("status") in fe11_universal.TERMINAL_STATUSES
-                    ]
-                    fe11_prior_day_status = "VERIFIED_OFFICIAL_DATE_RESPONSE"
-                    del prior_payload
-                except Exception:
-                    fe11_prior_day_status = "NOT_VERIFIED_PROVIDER_UNAVAILABLE"
-
-        # Freeze EVERY source-verified eligible upcoming identity. Capture
-        # finished official scores from today and (when quota permits) from
-        # the previous date, with zero bookmaker inputs and no market impact.
-        fe11_all_eligible_capture = fe11_universal.build_capture(
-            fixtures + fe11_prior_day_closed,
-            now_utc=now_utc, next_day_roster=fe11_roster,
-        )
 
         upcoming_market_capture_fixtures = _upcoming_market_capture_fixtures(fixtures, now_utc)
         current_halftime_research_fixtures = _current_halftime_research_fixtures(fixtures)
@@ -482,23 +442,6 @@ async def run_tick() -> dict[str, Any]:
         }
 
         return {
-            # The relational writer removes the detail arrays from the compact
-            # historical tick payload; it persists them in FE11 append-only tables.
-            "fe11_universal_lifecycle": fe11_all_eligible_capture,
-            "fe11_universal_lifecycle_summary": {
-                key: value for key, value in fe11_all_eligible_capture.items()
-                if key not in {"pregame_fixtures", "official_final_fixtures"}
-            },
-            "fe11_prior_day_settlement": {
-                "status": fe11_prior_day_status,
-                "date": prior_day.isoformat(),
-                "closed_source_fixtures": len(fe11_prior_day_closed),
-                "provider_requests_added_maximum": (
-                    1 if fe11_prior_day_status == "VERIFIED_OFFICIAL_DATE_RESPONSE" else 0
-                ),
-                "market_inputs_used": False,
-                "bet_eligible": False,
-            },
             "observed_final_fixtures": sorted(
                 [
                     fx for fx in fixtures
