@@ -85,6 +85,61 @@ linear-gradient(180deg,rgba(10,28,41,.97),rgba(7,20,29,.98));border-radius:12px;
 border-radius:6px;padding:5px 7px;color:#8ea9b8;font-size:8px}}.badge.good{{border-color:#21624f;color:#64dfb3;background:#09281f}}.badge.warn{{border-color:#6c5522;color:#e8bd67;background:#2b220e}}
 .empty{{padding:26px;text-align:center;border:1px dashed #28485b;border-radius:10px;color:#7690a1;background:#071722}}.empty b{{display:block;color:#cbdde6;font-size:12px;margin-bottom:5px}}
 .section-title{{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:19px 1px 9px}}.section-title h2{{font-size:15px;margin:0}}.section-title span{{color:var(--muted);font-size:9px}}
+/* Player markets are RESEARCH ONLY. Large labels and one explicit warning
+   replace raw English sportsbook keys and repeated 8px NOT VERIFIED lines. */
+.sgp-player-guide{{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 12px;padding:15px;
+  border:1px solid #285169;border-radius:12px;background:#0a2231}}
+.sgp-player-guide-head{{display:flex;align-items:center;gap:10px;flex-wrap:wrap}}
+.sgp-player-guide-head strong{{font-size:13px;line-height:1.4;color:#e9f5fb}}
+.sgp-player-note{{margin:0;color:#adc6d3;font-size:12px;line-height:1.55}}
+.sgp-guide-steps{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}}
+.sgp-guide-step{{border:1px solid #1c455b;border-radius:9px;padding:10px 11px;background:#081b28}}
+.sgp-guide-step b{{display:block;font-size:11px;color:#e0eff6;margin-bottom:5px}}
+.sgp-guide-step span{{font-size:10px;line-height:1.45;color:#9db9c8}}
+.sgp-caution-tag{{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;
+  border:1px solid #85612a;background:#322510;color:#f3c778;font-weight:850;font-size:10px;white-space:nowrap}}
+.sgp-player-grid{{align-items:stretch}}
+.sgp-leg-card{{margin:0;min-width:0;display:flex;flex-direction:column;gap:12px;
+  border:1px solid #1b465e;border-radius:13px;padding:16px;
+  background:linear-gradient(160deg,#0b2636,#081a26 70%);box-shadow:0 10px 28px #0003}}
+.sgp-leg-card.selected{{border-color:#4daee1;box-shadow:0 0 0 1px #2f83ae,0 14px 34px #0005}}
+.sgp-leg-head{{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}}
+.sgp-leg-player{{min-width:0}}.sgp-leg-player b{{display:block;font-size:16px;line-height:1.25;overflow-wrap:anywhere}}
+.sgp-leg-team{{display:block;margin-top:5px;color:#a1bac8;font-size:11px;line-height:1.3}}
+.sgp-leg-match{{color:#a3c0cf;font-size:11px;line-height:1.5;overflow-wrap:anywhere}}
+.sgp-leg-market{{display:flex;gap:7px;flex-wrap:wrap;align-items:center}}
+.sgp-leg-pill{{display:inline-flex;border:1px solid #25526a;border-radius:6px;padding:5px 8px;color:#a7d6ed;
+  background:#092536;font-size:11px;font-weight:730}}
+.sgp-leg-pill.muted{{color:#a7bac4;border-color:#274356;background:#0b1b27}}
+.sgp-leg-main{{display:flex;gap:16px;justify-content:space-between;align-items:end;flex-wrap:wrap}}
+.sgp-leg-count{{display:grid;gap:4px;min-width:0}}
+.sgp-leg-count strong{{font-size:22px;line-height:1.1;color:#f5fbff;overflow-wrap:anywhere}}
+.sgp-leg-count small{{color:#93afbe;font-size:10px;line-height:1.45;max-width:260px}}
+.sgp-leg-price{{display:grid;gap:4px;justify-items:end;text-align:right}}
+.sgp-leg-price strong{{font-size:24px;color:#a8e3ff;font-variant-numeric:tabular-nums}}
+.sgp-leg-price small{{font-size:10px;color:#9ebdcd}}
+.sgp-leg-review{{display:flex;flex-wrap:wrap;gap:7px;align-items:center;color:#9eb7c4;font-size:10px;line-height:1.5}}
+.sgp-leg-review .sgp-caution-tag{{font-size:9px;padding:4px 7px}}
+.sgp-leg-details{{margin:0;padding:11px 12px;border:1px solid #29495b;border-radius:8px;
+  background:#071821;color:#9db8c7;font-size:11px;line-height:1.65}}
+.sgp-leg-details b{{color:#f3c878}}
+.sgp-leg-source{{margin-top:-6px;color:#809eb0;font-size:10px;line-height:1.4}}
+.sgp-leg-select{{display:flex;align-items:center;gap:10px;margin-top:auto;padding-top:11px;
+  border-top:1px solid #214357;color:#e4f5fc;font-size:12px;font-weight:800;cursor:pointer}}
+.sgp-leg-select input{{appearance:auto;width:17px;height:17px;accent-color:#4abdf1;flex:0 0 auto;margin:0;cursor:pointer}}
+.sgp-leg-select span{{flex:1}}
+.sgp-slip{{margin-bottom:11px;padding:16px;background:#0a2331;border:1px solid #25516a;border-radius:12px}}
+.sgp-slip-title{{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}}
+.sgp-slip-title b{{font-size:13px;color:#e5f4fa}}.sgp-slip-description{{margin-top:8px;font-size:11px;line-height:1.55;color:#a1bac8}}
+.sgp-slip-items{{display:grid;gap:6px;margin-top:12px}}
+.sgp-slip-item{{padding:9px 10px;border:1px solid #214458;background:#071b28;border-radius:7px;
+  color:#d6eaf4;font-size:11px;overflow-wrap:anywhere}}
+.sgp-slip-warning{{margin-top:11px;color:#efc677;font-size:11px;line-height:1.5}}
+.sgp-slip-help{{font-size:11px;color:#a7bdc9;line-height:1.55}}
+@media(max-width:700px){{.sgp-guide-steps{{grid-template-columns:1fr}}.sgp-leg-card{{padding:13px}}
+ .sgp-leg-main{{align-items:start}}.sgp-leg-count strong{{font-size:20px}}.sgp-leg-price strong{{font-size:22px}}
+ .sgp-leg-player b{{font-size:14px}}.sgp-player-guide{{padding:12px}}}}
+
 .card-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}.pick-card{{border:1px solid var(--line);background:linear-gradient(180deg,#0a1e2b,#081720);
 border-radius:12px;padding:14px;min-width:0;box-shadow:0 12px 32px #0003}}.pick-card:hover{{border-color:#245c79}}.card-top{{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}}
 .card-match{{min-width:0}}.card-match b{{font-size:12px;display:block;overflow-wrap:anywhere}}.card-match small{{display:block;color:#6c899a;margin-top:3px;font-size:8px}}.card-market{{font-size:16px;font-weight:900;margin:13px 0 8px}}
@@ -306,9 +361,18 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       <div class="sub">Aquí se muestran alternativas incompatibles, sin modelo o con EV RAW negativo solamente para comparar precios; nunca son recomendaciones.</div>
       <div id="sgpMarketCatalog" class="card-grid"></div>
     </details>
-    <div class="section-title"><div><h2>SGP de jugadores · Constructor de investigación</h2><span>Explora tiros, tiros a puerta y goleadores. No calcula cuota conjunta ni asume independencia.</span></div></div>
-    <div class="panel"><div id="sgpBuilderSlip" class="sub">Selecciona dos o tres líneas de jugadores del mismo partido. No se enviarán apuestas.</div></div>
-    <div id="sgpPlayerLegs" class="card-grid"></div>
+    <div class="section-title"><div><h2>Mercados de jugadores · Solo para investigar</h2><span>Consulta tiros, tiros a puerta y goleadores. No son recomendaciones.</span></div></div>
+    <div class="sgp-player-guide" aria-label="Cómo interpretar los mercados de jugadores">
+      <div class="sgp-player-guide-head"><span class="sgp-caution-tag">EN OBSERVACIÓN · NO APOSTAR</span><strong>¿Qué significan estas tarjetas?</strong></div>
+      <p class="sgp-player-note">Cada tarjeta muestra una <b>selección observada en Bet365</b>, no una predicción del modelo. La cantidad mostrada no confirma por sí sola si es «más de», «al menos» o un resultado exacto.</p>
+      <div class="sgp-guide-steps">
+        <div class="sgp-guide-step"><b>1. Cantidad del mercado</b><span>«3 tiros» es la referencia publicada. La condición exacta debe comprobarse en la casa.</span></div>
+        <div class="sgp-guide-step"><b>2. Cuota individual</b><span>«2.10» es un precio observado para un solo jugador; puede cambiar.</span></div>
+        <div class="sgp-guide-step"><b>3. Combinada SGP</b><span>Seleccionar jugadores solo crea un borrador. No hay cuota conjunta verificada ni apuesta preparada.</span></div>
+      </div>
+    </div>
+    <div id="sgpBuilderSlip" class="sgp-slip" role="status" aria-live="polite">Elige hasta tres jugadores del mismo partido para comparar sus mercados. No se envían apuestas.</div>
+    <div id="sgpPlayerLegs" class="card-grid sgp-player-grid"></div>
     <div class="section-title"><div><h2>Watch</h2><span>Waiting for price, XI, goalkeeper or other required evidence</span></div></div>
     <div class="panel"><div id="todayWatches" class="watch-list"></div></div>
     <div class="section-title"><div><h2>Full Slate</h2><span>Every eligible fixture stays visible, even when analysis is incomplete</span></div></div>
