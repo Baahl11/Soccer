@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 import os
 from typing import Any
 
-from mcp_gateway import automation_v2 as v2, persistence
+from mcp_gateway import automation_v2 as v2
 
 VERSION = "SOCCER_FE11_POSTGAME_CORNERS_v1.0"
 SOURCE = "API_FOOTBALL_FIXTURE_STATISTICS"
@@ -77,6 +77,7 @@ def parse_verified_ft_corners(raw: Any, home_id: int, away_id: int) -> dict | No
 
 
 def pending(limit: int) -> list[dict]:
+    from mcp_gateway import persistence
     if limit <= 0 or not persistence.persistence_configured():
         return []
     persistence.ensure_schema()
