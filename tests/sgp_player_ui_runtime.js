@@ -66,7 +66,7 @@ const sot = {...base, player_label:"Thomas Van Den Keybus",
   selection:"Thomas Van Den Keybus - 1",
   source_quote_fresh:false };
 assert.equal(sandbox.sgpPlayerMarketName(sot), "Tiros a puerta");
-assert.equal(sandbox.sgpPlayerShortSelection(sot), "1 tiros a puerta");
+assert.equal(sandbox.sgpPlayerShortSelection(sot), "1 tiro a puerta");
 const sotCard = sandbox.sgpPlayerCard(sot,1);
 assert.match(sotCard,/Precio anterior · reconfirmar/);
 assert.match(sotCard,/Equipo visitante/);
