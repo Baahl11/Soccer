@@ -29,7 +29,20 @@ const sandbox = {
   $: id => id === "sgpBuilderSlip" ? slip : null,
 };
 vm.createContext(sandbox);
+const oddsStart = app.indexOf("function americanOddsFromDecimal(");
+const oddsEnd = app.indexOf("const pp=", oddsStart);
+assert.ok(oddsStart >= 0 && oddsEnd > oddsStart, "actual price converter loaded");
+vm.runInContext(app.slice(oddsStart,oddsEnd), sandbox);
 vm.runInContext(app.slice(a,b), sandbox);
+assert.equal(sandbox.americanOddsFromDecimal(2.10), "+110");
+assert.equal(sandbox.americanOddsFromDecimal(2.00), "+100");
+assert.equal(sandbox.americanOddsFromDecimal(1.91), "-110");
+assert.equal(sandbox.americanOddsFromDecimal(1.50), "-200");
+assert.equal(sandbox.americanOddsFromDecimal(1), "NOT VERIFIED");
+assert.equal(sandbox.americanOdds(null,"DECIMAL"), "NOT VERIFIED");
+assert.equal(sandbox.americanOdds(110,"AMERICAN"), "+110");
+assert.equal(sandbox.americanOdds(-110,"AMERICAN"), "-110");
+assert.equal(sandbox.americanOdds(2.10,"UNKNOWN"), "NOT VERIFIED");
 
 const base = {
   player_label: "Min-Hyeok Yang",
@@ -49,8 +62,8 @@ const card = sandbox.sgpPlayerCard(base,0);
 assert.match(card, /Min-Hyeok Yang/);
 assert.match(card, /KVC Westerlo vs Charleroi/);
 assert.match(card, /<strong>3 tiros<\/strong>/);
-assert.match(card, /<strong>2\.10<\/strong>/);
-assert.match(card, /Cuota decimal individual/);
+assert.match(card, /<strong>\+110<\/strong>/);
+assert.match(card, /Cuota americana individual/);
 assert.match(card, /Equipo local/);
 assert.match(card, /NO BET/);
 assert.match(card, /condición exacta/);
