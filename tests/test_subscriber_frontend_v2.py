@@ -256,3 +256,18 @@ def test_fe10_sgp_competing_outcomes_are_only_in_collapsed_market_catalog():
     assert "CATÁLOGO DE MERCADO, NO PICK" in html
     assert "Máximo UNA señal por encuentro" in html
     assert "NO BET" in html
+
+
+def test_fe11_sport_first_period_corners_handicap_tab_never_creates_bet():
+    html = subscriber_frontend_v2.render()
+    assert "['periods','1H / 2H / Córners']" in html
+    assert "data-detail-section=\"periods\"" in html
+    assert "function fe11MultimarketSection(" in html
+    assert "function fe11TeamProfile(" in html
+    assert "function fe11PatternCard(" in html
+    assert "d?.multi_market_research||null" in html
+    assert "NO BET" in html
+    assert "MUESTRA BAJA" in html
+    assert "probabilidad conjunta futura" in html
+    assert "NOT VERIFIED: no hay perfil histórico" in html
+    assert "bookmaker" in html.lower()
