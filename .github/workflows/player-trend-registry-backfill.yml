@@ -2,6 +2,10 @@ name: Player Trend Registry Backfill
 
 on:
   workflow_dispatch:
+  # Daily continuity: collect real finished player-game evidence, then
+  # refresh independent model priors for FUTURE fixtures only.
+  schedule:
+    - cron: "40 10 * * *" # 04:40 CDMX daily: time-stamped historical model registry, after OOS
   push:
     branches: [main]
     paths: [".github/workflows/player-trend-registry-backfill.yml"]
