@@ -18,6 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          path: controls
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
           ref: soccer-edge-mcp-v1
           path: engine
           fetch-depth: 1
@@ -32,12 +36,22 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Prove production workflow never contacts Render or provider
+      - name: Prove scheduled workflow cannot call Render or sports provider
         run: |
           python - <<'PY'
           from pathlib import Path
-          text=Path("engine/.github/workflows/player-stat-registry-runner-only.yml").read_text()
-          # PR may predate main engine workflow; use source from PR checkout below.
+          s=Path("controls/.github/workflows/player-stat-registry-runner-only.yml").read_text()
+          assert 'cron: "40 10 * * *"' in s
+          assert "workflow_dispatch:" in s
+          assert "ref: soccer-edge-state" in s
+          assert "ref: soccer-edge-mcp-v1" in s
+          assert "python engine/mcp_gateway/build_player_trend_model_registry.py" in s
+          assert "soccer-edge-api.onrender.com" not in s
+          assert "curl " not in s
+          assert "API_FOOTBALL_KEY" not in s
+          assert "id-token: write" not in s
+          assert "player_trend_model_registry.json" in s
+          print("SCHEDULED WORKER SAFE: 0 provider calls, 0 Render API hits")
           PY
       - name: No network in actual model build (existing locally retained evidence)
         shell: bash
