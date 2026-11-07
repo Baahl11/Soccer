@@ -251,11 +251,16 @@ def test_player_prop_cached_quote_is_single_leg_with_no_custom_ticket_price():
                   {"raw_selection":"Unusable - 3","decimal_price":"1.45"}],
     }
     vals=desk._render_cache_sgp_rows([row],now=now)
-    assert len(vals)==1 and vals[0]["player_label"]=="Shion Homma"
+    # Every valid price now enters the audit, regardless of being near +110.
+    # These are unverified source quotes, not player prop recommendations.
+    assert len(vals)==2 and vals[0]["player_label"]=="Shion Homma"
     assert vals[0]["observed_team_side"]=="HOME"
+    assert vals[1]["offered_price_decimal"]==1.45
+    assert vals[0]["player_id"] is None
+    assert vals[0]["xi_alignment_status"] is None
     board=desk.make_board([] ,vals)
     assert board["sgp_player_components"] == []
-    assert board["sgp_player_quote_catalog_count"] == 1
+    assert board["sgp_player_quote_catalog_count"] == 2
     assert board["sgp_player_selection_status"] == "BLOCKED_NO_VERIFIED_PLAYER_SPORT_MODEL"
     assert board["sgp_custom_player_ticket_price_verified"] is False
     assert board["provider_requests_added"] == 0
