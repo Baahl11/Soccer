@@ -364,7 +364,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     <div class="section-title"><div><h2>Jugadores · Análisis estadístico primero</h2><span>Solo candidatos con evidencia deportiva y mercado validado. No se elige por cuota.</span></div></div>
     <div class="sgp-player-guide" aria-label="Requisitos estadísticos para proponer jugadores">
       <div class="sgp-player-guide-head"><span class="sgp-caution-tag">SIN STATS VERIFICADAS = SIN PICK</span><strong>La cuota NO selecciona jugadores</strong></div>
-      <p class="sgp-player-note">Retiramos la lista que priorizaba ofertas Bet365 cercanas a +110. Un momio no indica cuántos tiros hará un futbolista. <b>Primero debe existir una proyección deportiva independiente</b> del precio.</p>
+      <p class="sgp-player-note">Retiramos la lista que priorizaba ofertas Bet365 cercanas a +110. Un momio no indica cuántos tiros hará un futbolista. <b>Primero debe existir una proyección deportiva independiente</b> del precio. No se envían apuestas.</p>
       <div class="sgp-guide-steps">
         <div class="sgp-guide-step"><b>1. Estadísticas reales</b><span>Identidad confirmada, tiros o tiros a puerta por 90 minutos, tamaño de muestra, rol y minutos jugados.</span></div>
         <div class="sgp-guide-step"><b>2. Proyección del jugador</b><span>Rival y contexto ajustados, minutos esperados, probabilidad RAW y evaluación fuera de muestra.</span></div>
@@ -765,7 +765,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       if(playerBox)playerBox.innerHTML=playerRows.length?
         playerRows.slice(0,42).map(sgpPlayerCard).join(''):
         '<div class="panel"><b>0 jugadores con ventaja estadística verificada</b>'+
-        '<div class="sub">Se detectaron '+esc(priceOnlyCount)+' cotizaciones individuales, pero ninguna acredita todavía estadísticas del jugador, minutos/XI, proyección propia, línea exacta y validación OOS. No aparecen como picks. Una cuota +110 NO es una proyección.</div></div>';
+        '<div class="sub">Se detectaron '+esc(priceOnlyCount)+' cotizaciones individuales, pero ninguna acredita todavía estadísticas del jugador, minutos/XI, proyección propia, línea exacta y validación OOS. No aparecen como picks. No se inventarán cuotas ni probabilidades. Una cuota +110 NO es una proyección.</div></div>';
       if(comboStatus){{
         const fresh=combos.filter(x=>x.source_quote_fresh).length;
         const rejected=catalog.filter(x=>x.catalog_reason==='NON_POSITIVE_RAW_HYPOTHETICAL_EV').length;
