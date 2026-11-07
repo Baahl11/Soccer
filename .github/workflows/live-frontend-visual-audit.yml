@@ -89,7 +89,7 @@ jobs:
           assert '<details id="sgpMarketCatalogDetails"' in html
           assert "function fe11MultimarketSection(" in html
           assert "['periods','1H / 2H / Córners']" in html
-          assert "data-detail-section=\\\"periods\\\"" in html
+          assert 'data-detail-section="periods"' in html
           assert "MUESTRA BAJA" in html
           assert '<summary>Ver catálogo de cuotas combinadas (NO son picks)</summary>' in html
           assert 'id="sgpMarketCatalog"' in html
