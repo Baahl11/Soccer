@@ -289,3 +289,67 @@ def test_render_cached_odds_query_is_bounded_with_no_api_requests():
     assert "LIMIT 80" in desk.RENDER_CACHED_SGP_SQL
     assert "status = 'NS'" in desk.RENDER_CACHED_SGP_SQL
     assert "now() - interval '12 hours'" in desk.RENDER_CACHED_SGP_SQL
+
+
+def _sgp_combo_fixture(fixture_id, selection, price, raw_prob, ev, market_id=49):
+    return {
+        "fixture_id": fixture_id,
+        "home_team": "Home", "away_team": "Away", "league_name": "J1",
+        "kickoff_utc": "2026-11-07T06:00:00+00:00",
+        "bookmaker_id": 8, "provider_market_id": market_id,
+        "provider_market": "Total Goals/Both Teams To Score",
+        "selection": selection, "offered_price_decimal": price,
+        "provider_updated_at": "2026-11-06T21:03:16+00:00",
+        "captured_at": "2026-11-06T23:35:00+00:00",
+        "offer_type": "BOOK_QUOTED_COMPOSITE",
+        "raw_joint_probability": raw_prob, "raw_hypothetical_ev_pct": ev,
+        "quote_freshness": "NEEDS_RECONFIRMATION",
+        "classification": "WATCH", "bet_eligible": False,
+        "bookmaker_direct_combo_quote": True, "research_flags": [],
+    }
+
+
+def test_sgp_exclusive_opposite_outcomes_only_one_positive_raw_signal():
+    over = _sgp_combo_fixture(1556133, "o/yes 2.5", "2.00", ".56267103", "12.534")
+    under = _sgp_combo_fixture(1556133, "u/no 2.5", "2.75", ".23102597", "-36.468")
+    board = desk.make_board([], [under,over])
+    assert len(board["sgp_composites"]) == 1
+    assert board["sgp_composites"][0]["selection"] == "o/yes 2.5"
+    assert board["sgp_composites"][0]["signal_label"] == "RAW_EXPERIMENTAL_NOT_BET"
+    assert len(board["sgp_market_catalog"]) == 2
+    under_catalog = next(x for x in board["sgp_market_catalog"] if x["selection"] == "u/no 2.5")
+    assert under_catalog["catalog_reason"] == "NON_POSITIVE_RAW_HYPOTHETICAL_EV"
+    assert under_catalog["catalog_only"] is True and under_catalog["not_a_pick"] is True
+    assert all(x["bet_eligible"] is False for x in board["sgp_composites"])
+    assert board["bets"] == 0
+    assert board["notification_delivery_enabled"] is False
+
+
+def test_sgp_two_negative_raw_alternatives_show_no_candidate():
+    under = _sgp_combo_fixture(1556131, "u/no 2.5", "2.20", ".41796190", "-8.048")
+    over = _sgp_combo_fixture(1556131, "o/yes 2.5", "2.40", ".36398839", "-12.643")
+    board = desk.make_board([], [under,over])
+    assert board["sgp_composites"] == []
+    assert len(board["sgp_market_catalog"]) == 2
+    assert all(x["catalog_reason"]=="NON_POSITIVE_RAW_HYPOTHETICAL_EV" for x in board["sgp_market_catalog"])
+    assert board["status"] == "NO_FRESH_RESEARCH_QUOTES"
+
+
+def test_sgp_one_signal_per_fixture_even_if_two_markets_happen_to_be_positive():
+    main = _sgp_combo_fixture(101,"o/yes 2.5", "2.00", ".60", "20.0")
+    alternative = _sgp_combo_fixture(101,"Home/Over 2.5", "3.0", ".40", "20.0",market_id=7)
+    other_fixture = _sgp_combo_fixture(102,"o/yes 2.5", "2.00", ".55", "10.0")
+    board = desk.make_board([], [main,alternative,other_fixture])
+    assert len(board["sgp_composites"]) == 2
+    assert {x["fixture_id"] for x in board["sgp_composites"]} == {101,102}
+    assert board["sgp_composites_suppressed"] == 1
+    assert sum(x["catalog_reason"]=="SUPPRESSED_ALTERNATIVE_SAME_FIXTURE" for x in board["sgp_market_catalog"])==1
+
+
+def test_sgp_unmodeled_book_quote_is_catalog_only_not_model_candidate():
+    unknown = _sgp_combo_fixture(103,"Home/Home", "3.10", None, None, market_id=25)
+    board = desk.make_board([], [unknown])
+    assert board["sgp_composites"] == []
+    assert len(board["sgp_market_catalog"]) == 1
+    assert board["sgp_market_catalog"][0]["catalog_reason"] == "NO_JOINT_PROBABILITY_MODEL"
+    assert board["sgp_player_components"] == []
