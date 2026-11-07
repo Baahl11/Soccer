@@ -356,3 +356,33 @@ CREATE TABLE IF NOT EXISTS soccer_fe11_official_outcome_snapshots (
 );
 CREATE INDEX IF NOT EXISTS idx_soccer_fe11_postgame_fixture_date
     ON soccer_fe11_official_outcome_snapshots (fixture_id, observed_at DESC);
+
+-- A separate FT-only provider-statistics observation prevents invented
+-- corners from entering the official-score payload. Corner values are
+-- independently sourced, never inferred from fixture goals or team means.
+CREATE TABLE IF NOT EXISTS soccer_fe11_verified_corner_snapshots (
+    fixture_id BIGINT NOT NULL REFERENCES soccer_fe11_pregame_baselines (fixture_id),
+    observed_at TIMESTAMPTZ NOT NULL,
+    kickoff TIMESTAMPTZ NOT NULL,
+    home_corners INTEGER NOT NULL CHECK (home_corners BETWEEN 0 AND 60),
+    away_corners INTEGER NOT NULL CHECK (away_corners BETWEEN 0 AND 60),
+    period TEXT NOT NULL CHECK (period = 'FT_90'),
+    source TEXT NOT NULL CHECK (source = 'API_FOOTBALL_FIXTURE_STATISTICS'),
+    source_response_verified BOOLEAN NOT NULL CHECK (source_response_verified = TRUE),
+    bet_eligible BOOLEAN NOT NULL DEFAULT FALSE CHECK (bet_eligible = FALSE),
+    PRIMARY KEY (fixture_id, observed_at),
+    CHECK (observed_at >= kickoff)
+);
+CREATE INDEX IF NOT EXISTS idx_soccer_fe11_corners_fixture_time
+    ON soccer_fe11_verified_corner_snapshots (fixture_id, observed_at DESC);
+
+-- Attempt throttling makes unavailable team stats explicit and prevents
+-- repeatedly burning quota on the same match every scheduler tick.
+CREATE TABLE IF NOT EXISTS soccer_fe11_corner_capture_attempts (
+    fixture_id BIGINT PRIMARY KEY REFERENCES soccer_fe11_pregame_baselines (fixture_id),
+    last_attempt_at TIMESTAMPTZ NOT NULL,
+    attempt_count INTEGER NOT NULL DEFAULT 1 CHECK (attempt_count BETWEEN 1 AND 20),
+    last_status TEXT NOT NULL,
+    provider_requests_added INTEGER NOT NULL DEFAULT 0 CHECK (provider_requests_added BETWEEN 0 AND 1),
+    CHECK (length(last_status) <= 64)
+);
