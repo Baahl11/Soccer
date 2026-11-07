@@ -7,6 +7,7 @@ from typing import Any
 import httpx
 
 from mcp_gateway import automation as base
+from mcp_gateway import fe11_registry_next_day_v1 as fe11_registry
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v3 as v3
 from mcp_gateway import automation_v4 as v4
@@ -164,6 +165,45 @@ async def run_tick() -> dict[str, Any]:
                 ):
                     fixtures.append(fx)
 
+        # FE11 registry preseed: at the existing 13:10 CDMX canonical tick,
+        # request at most ONE additional official next-day fixtures/date slate.
+        # This cannot consume critical quota/market reserves; it is skipped
+        # rather than blocking the normal sporting decision lifecycle.
+        next_day_date = local_now.date() + timedelta(days=1)
+        next_day_rows = [
+            fx for fx in fixtures
+            if base._dt(fx["kickoff"]).astimezone(base.TIMEZONE).date() == next_day_date
+        ] if next_day_date in dates else []
+        fe11_registry_status = "NOT_IN_PRESEED_WINDOW"
+        if next_day_rows:
+            fe11_registry_status = "NEXT_DAY_ALREADY_IN_CANONICAL_SCAN"
+        elif 13 <= local_now.hour < 14:
+            if (v2._LAST_DAILY_REMAINING is None
+                    or v2._LAST_DAILY_REMAINING <= 125
+                    or v2._API_CALLS_THIS_TICK > v2.MAX_API_CALLS_PER_TICK - 5):
+                fe11_registry_status = "SKIPPED_PROVIDER_QUOTA_RESERVE"
+            else:
+                try:
+                    payload_next = await base._api_get(
+                        "fixtures", {"date": next_day_date.isoformat(),
+                                     "timezone": base.TIMEZONE_NAME}
+                    )
+                    next_day_rows = [
+                        base._compact_fixture(row)
+                        for row in (payload_next.get("response") or [])
+                        if isinstance(row, dict)
+                    ]
+                    fe11_registry_status = "NEXT_DAY_SOURCE_FETCHED"
+                except Exception:
+                    # Nonessential research preseed must never fail the
+                    # established scheduler or bypass quota budget guards.
+                    fe11_registry_status = "NOT_VERIFIED_PROVIDER_UNAVAILABLE"
+        fe11_roster = fe11_registry.select_verified_next_day(
+            next_day_rows, now_utc=now_utc
+        ) if next_day_rows else None
+        if fe11_roster is not None:
+            fe11_registry_status = fe11_roster["status"]
+
         upcoming_market_capture_fixtures = _upcoming_market_capture_fixtures(fixtures, now_utc)
         current_halftime_research_fixtures = _current_halftime_research_fixtures(fixtures)
 
@@ -171,6 +211,13 @@ async def run_tick() -> dict[str, Any]:
         discovery = await v3._daily_discovery_event(fixtures, now_utc, local_now)
         if discovery is not None:
             events.append(discovery)
+        # Existing persistence.persist_tick writes only verified canonical
+        # identity for this DAILY_DISCOVERY event; it never imports FE11
+        # history until the separate OIDC profile bridge validates its source.
+        if fe11_roster is not None:
+            roster_event = fe11_registry.discovery_event(fe11_roster)
+            if roster_event is not None:
+                events.append(roster_event)
 
         due: list[dict[str, Any]] = []
         low_data_counts: Counter[str] = Counter()
@@ -414,6 +461,15 @@ async def run_tick() -> dict[str, Any]:
             "generated_at_local": local_now.isoformat(),
             "timezone": base.TIMEZONE_NAME,
             "fixture_scan_count": len(fixtures),
+            "fe11_next_day_registry_preseed": {
+                "status": fe11_registry_status,
+                "date": next_day_date.isoformat(),
+                "official_verified_fixture_count": fe11_roster["count"] if fe11_roster else 0,
+                "sport_first": True, "market_inputs_used": False,
+                "bet_eligible": False,
+                "provider_requests_added_maximum": 1 if 13 <= local_now.hour < 14 else 0,
+                "pipeline_scope": "CANONICAL_IDENTITY_ONLY_NOT_A_BET",
+            },
             "upcoming_market_capture_fixture_count": len(upcoming_market_capture_fixtures),
             "upcoming_market_capture_fixtures": upcoming_market_capture_fixtures,
             "current_halftime_research_fixture_count": len(current_halftime_research_fixtures),
