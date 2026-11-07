@@ -6,6 +6,7 @@ on:
       - ".github/workflows/player-props-postgame-backfill.yml"
       - ".github/workflows/player-trend-registry-backfill.yml"
       - ".github/workflows/player-props-oos-validation.yml"
+      - ".github/workflows/v2-price-bridge-verification.yml"
       - ".github/workflows/player-stats-daily-continuity-qa.yml"
   workflow_dispatch:
 permissions:
@@ -39,5 +40,10 @@ jobs:
           assert '"Player Props Postgame Backfill"' in oos
           assert "workflows:" in oos and "workflow_run:" in oos
           assert "soccer-edge-db-heavy-runtime" in oos
+          audit=(root/"v2-price-bridge-verification.yml").read_text()
+          assert "FE11_PLAYER_SPORT_FIRST_OFFER_BRIDGE_v1.0" in audit
+          assert ".player_sport_readiness.prices_used_to_select == false" in audit
+          assert ".player_sport_readiness.provider_requests_added == 0" in audit
+          assert "player_sport_model_readiness" in audit
           print("Daily real player stats -> future only registry + OOS chain PASS")
           PY
