@@ -8,6 +8,7 @@ import httpx
 
 from mcp_gateway import automation as base
 from mcp_gateway import fe11_registry_next_day_v1 as fe11_registry
+from mcp_gateway import fe11_universal_lifecycle_v1 as fe11_universal
 from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v3 as v3
 from mcp_gateway import automation_v4 as v4
@@ -203,6 +204,13 @@ async def run_tick() -> dict[str, Any]:
         ) if next_day_rows else None
         if fe11_roster is not None:
             fe11_registry_status = fe11_roster["status"]
+
+        # Independently freeze every eligible approved-league identity and
+        # capture all official terminal scores from already-paid date slates.
+        # Deep-dive shortlists and bookmaker gates below remain unchanged.
+        fe11_all_eligible_capture = fe11_universal.build_capture(
+            fixtures, now_utc=now_utc, next_day_roster=fe11_roster
+        )
 
         upcoming_market_capture_fixtures = _upcoming_market_capture_fixtures(fixtures, now_utc)
         current_halftime_research_fixtures = _current_halftime_research_fixtures(fixtures)
@@ -442,6 +450,9 @@ async def run_tick() -> dict[str, Any]:
         }
 
         return {
+            # The relational writer removes the detail arrays from the compact
+            # historical tick payload; it persists them in FE11 append-only tables.
+            "fe11_universal_lifecycle": fe11_all_eligible_capture,
             "observed_final_fixtures": sorted(
                 [
                     fx for fx in fixtures
