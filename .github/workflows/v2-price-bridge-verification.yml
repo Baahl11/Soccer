@@ -51,7 +51,9 @@ jobs:
           # calls the sports provider or writes Postgres.
           python scripts/fe11_universal_inventory_guard.py \
             --bridge /tmp/bridge.json --output /tmp/fe11_universal_inventory.json
-          jq '{status,fresh_research_rows,sgp_direct_combo_quotes,sgp_recent_combo_quotes,sgp_player_component_quotes,sgp_raw_positive_research,render_cached_sgp_rows,render_cached_sgp_fresh_rows,render_cache_status,source,bet_eligible,tokens_exposed}' /tmp/bridge.json
+          # Independent player forecasts must be sourced from as-of sports data.
+          jq -e '.player_sport_readiness.player_source_model == "FE11_PLAYER_SPORT_FIRST_OFFER_BRIDGE_v1.0" and (.player_sport_readiness.asof_fixture_rows_read | type == "number") and (.player_sport_readiness.verified_pregame_sport_models | type == "number") and .player_sport_readiness.prices_used_to_select == false and .player_sport_readiness.provider_requests_added == 0 and .player_sport_readiness.bet_eligible == false and (.player_sport_readiness.status == "VERIFIED_SPORTING_INPUTS_RESEARCH_ONLY" or .player_sport_readiness.status == "NO_SPORTING_PROFILE_WITH_FULL_PROVENANCE")' /tmp/bridge.json >/dev/null
+          jq '{status,fresh_research_rows,sgp_direct_combo_quotes,sgp_recent_combo_quotes,sgp_player_component_quotes,render_cache_status,source,bet_eligible,player_sport_readiness}' /tmp/bridge.json
 
       - name: Publish FE11 aggregate-only audit receipt
         env:
@@ -67,6 +69,10 @@ jobs:
           inventory=src["fe11_history_inventory"]
           assert inventory.get("status")=="VERIFIED_READ"
           assert inventory.get("production_bets_authorized") is False
+          player=src["player_sport_readiness"]
+          assert player["provider_requests_added"]==0
+          assert player["prices_used_to_select"] is False
+          assert player["bet_eligible"] is False
           universal=json.loads(Path("/tmp/fe11_universal_inventory.json").read_text())
           assert universal["status"]=="VERIFIED_AGGREGATE_CONSISTENCY"
           assert universal["provider_requests_added"]==0
@@ -81,6 +87,7 @@ jobs:
               "bookmaker_prices_exposed":False,
               "production_bets_authorized":False,
               "universal_lifecycle":universal,
+              "player_sport_model_readiness":player,
           }
           Path("/tmp/fe11_inventory.json").write_text(json.dumps(safe,indent=2)+"\n")
           print("FE11 retained rows:",safe["research_rows_persisted"],
