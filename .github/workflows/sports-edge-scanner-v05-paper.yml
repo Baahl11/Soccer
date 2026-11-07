@@ -55,6 +55,9 @@ jobs:
 
   paper-research:
     name: Research only - manual or one-shot, no bets
+    permissions:
+      contents: read
+      id-token: write
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'schedule'
     needs: tests
     runs-on: ubuntu-latest
@@ -260,6 +263,56 @@ jobs:
           lines.extend(["", f"**Datos completos:** descarga el artefacto soccer-paper-research; abre `board_{date}.html` y `parlay_radar_{date}.json` y `parlay_leg_evidence_{date}.json` y `bet365_market_matrix_{date}.json`."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
               output.write("\n\n".join(lines) + "\n")
+          PY
+      - name: Publish verified FE11 SPORT-FIRST profiles to Match Center
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          FE11_TRANSPORT=$(python - <<'PY'
+          from pathlib import Path
+          from sports_edge.multimarket_export import export_from_daily_dir
+          roots=sorted([p for p in Path("run_data").glob("20??-??-??")
+                        if p.is_dir()],key=lambda p:p.stat().st_mtime,reverse=True)
+          if not roots:
+              raise SystemExit("FE11_TRANSPORT_NOT_FOUND")
+          folder=roots[0]
+          date=folder.name
+          result=export_from_daily_dir(folder,date)
+          print(folder / f"fe11_multimarket_transport_{date}.json")
+          PY
+          )
+          test -s "$FE11_TRANSPORT"
+          REPORTS=$(python - "$FE11_TRANSPORT" <<'PY'
+          import json,sys
+          content=json.load(open(sys.argv[1],encoding="utf-8"))
+          print(len(content.get("reports",[])))
+          PY
+          )
+          echo "FE11 sport-first historical reports eligible for transport: $REPORTS"
+          if [ "$REPORTS" = "0" ]; then
+            echo "No verified historical profiles to deliver; no fake data emitted."
+            exit 0
+          fi
+          OIDC_REPLY=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=soccer-edge-render")
+          OIDC=$(echo "$OIDC_REPLY" | python -c "import sys,json;print(json.load(sys.stdin)['value'])")
+          test -n "$OIDC"
+          echo "::add-mask::$OIDC"
+          HTTP=$(curl -sS --max-time 60 --request POST \
+            -H "Authorization: Bearer $OIDC" \
+            -H "Content-Type: application/json" \
+            --data-binary @"$FE11_TRANSPORT" \
+            -o /tmp/fe11-result.json -w "%{http_code}" \
+            https://soccer-edge-api.onrender.com/internal/fe11-multimarket-history-import-v1)
+          echo "FE11 POST HTTP $HTTP"
+          test "$HTTP" = "200"
+          python - <<'PY'
+          import json
+          r=json.load(open("/tmp/fe11-result.json"))
+          assert r.get("status")=="SPORT_FIRST_HISTORY_IMPORTED"
+          assert r.get("bet_eligible") is False
+          assert r.get("probabilities_calibrated") is False
+          print("Valid:",r.get("validated_reports"),"newly persisted:",r.get("newly_persisted"))
           PY
       - name: Save research reports for 7 days
         if: always()
