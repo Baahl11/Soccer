@@ -243,3 +243,16 @@ def test_fe10_sgp_radar_has_bookmaker_composites_and_unpriced_multi_player_slip(
     assert "CUOTA COMBINADA: NOT VERIFIED" in html
     assert "2.1" in html
     assert "BET" in html
+
+
+def test_fe10_sgp_competing_outcomes_are_only_in_collapsed_market_catalog():
+    html = subscriber_frontend_v2.render()
+    assert '<details id="sgpMarketCatalogDetails"' in html
+    assert '<summary>Ver catálogo de cuotas combinadas (NO son picks)</summary>' in html
+    assert 'id="sgpMarketCatalog"' in html
+    assert 'id="sgpQuotedComposites"' in html
+    assert "const catalog=Array.isArray(data.sgp_market_catalog)" in html
+    assert "function sgpCatalogCard(" in html
+    assert "CATÁLOGO DE MERCADO, NO PICK" in html
+    assert "Máximo UNA señal por encuentro" in html
+    assert "NO BET" in html

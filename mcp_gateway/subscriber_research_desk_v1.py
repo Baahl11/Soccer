@@ -137,13 +137,66 @@ def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
                               else "INDIVIDUAL_PLAYER_LEG_NOT_SGP_TICKET"),
         }
         (combos if is_direct else players).append(item)
+    # An available bookmaker market is *not* a model candidate.
+    # All market prices remain accessible only in a separate, explicitly
+    # non-recommendation catalog. Never display opposite outcomes as picks.
     combos.sort(key=lambda x: (
         not x["source_quote_fresh"],
         -(x["raw_hypothetical_ev_pct"] if x["raw_hypothetical_ev_pct"] is not None else -999),
         abs(x["price_decimal"]-2.10),x["fixture_id"]
     ))
+    positive_raw = [
+        item for item in combos
+        if item["raw_joint_probability"] is not None
+        and item["raw_hypothetical_ev_pct"] is not None
+        and item["raw_hypothetical_ev_pct"] > 0
+        and item["raw_joint_probability"] > 1/item["price_decimal"]
+    ]
+    # Conservative fixture-level portfolio suppression: max ONE hypothesis
+    # per match, even when markets are not strictly complementary. This
+    # prevents contradictory or correlated options being sold as a pick set.
+    selected: list[dict[str, Any]] = []
+    used_fixture_ids: set[int] = set()
+    for item in positive_raw:
+        fixture_id = item["fixture_id"]
+        if fixture_id in used_fixture_ids:
+            continue
+        used_fixture_ids.add(fixture_id)
+        selected.append({
+            **item,
+            "signal_scope": "ONE_UNVALIDATED_RAW_HYPOTHESIS_PER_FIXTURE",
+            "signal_label": "RAW_EXPERIMENTAL_NOT_BET",
+        })
+    chosen_keys = {
+        (x["fixture_id"], x["provider_market_id"], x["selection"])
+        for x in selected
+    }
+    market_catalog: list[dict[str, Any]] = []
+    for item in combos[:50]:
+        key = (item["fixture_id"], item["provider_market_id"], item["selection"])
+        ev = item["raw_hypothetical_ev_pct"]
+        if key in chosen_keys:
+            reason = "RAW_EXPERIMENTAL_SIGNAL_SHOWN_SEPARATELY"
+        elif ev is None or item["raw_joint_probability"] is None:
+            reason = "NO_JOINT_PROBABILITY_MODEL"
+        elif ev <= 0:
+            reason = "NON_POSITIVE_RAW_HYPOTHETICAL_EV"
+        else:
+            reason = "SUPPRESSED_ALTERNATIVE_SAME_FIXTURE"
+        market_catalog.append({
+            **item,
+            "catalog_reason": reason,
+            "catalog_only": True,
+            "not_a_pick": True,
+        })
     players.sort(key=lambda x: (not x["source_quote_fresh"], abs(x["price_decimal"]-2.10), x["fixture_id"],str(x["selection"])))
-    return {"sgp_composites": combos[:20], "sgp_player_components": players[:50]}
+    return {
+        "sgp_composites": selected[:20],
+        "sgp_market_catalog": market_catalog,
+        "sgp_catalog_count": len(combos),
+        "sgp_composites_suppressed": max(0,len(combos)-len(selected)),
+        "sgp_player_components": players[:50],
+    }
 
 
 
@@ -362,7 +415,7 @@ def make_board(rows: list[dict[str, Any]], sgp_rows: list[dict[str, Any]] | None
         })
     sgp = _sgp_market_rows(sgp_rows or [])
     return {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "status": ("RESEARCH_ONLY_FRESH_QUOTE_PREVIEW" if result or sgp["sgp_composites"] or sgp["sgp_player_components"]
                    else "NO_FRESH_RESEARCH_QUOTES"),
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
