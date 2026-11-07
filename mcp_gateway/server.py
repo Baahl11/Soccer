@@ -181,7 +181,10 @@ async def internal_fe11_multimarket_history_import_v1(request: Request) -> Respo
     """Read-only source data import from GitHub main scheduler, not a pick event."""
     try:
         _base_server._github_oidc_claims(
-            request, {".github/workflows/sports-edge-scanner-v05-paper.yml"}
+            request, {
+                ".github/workflows/sports-edge-scanner-v05-paper.yml",
+                ".github/workflows/fe11-replay-latest-history.yml",
+            }
         )
     except Exception:
         return JSONResponse({"error":"unauthorized"},status_code=401)
@@ -199,6 +202,13 @@ async def internal_fe11_multimarket_history_import_v1(request: Request) -> Respo
         return JSONResponse({"error":"invalid_sport_first_profile"},status_code=400)
     try:
         result = await asyncio.to_thread(multimarket_history_bridge_v1.ingest, obj)
+        # Aggregate-only auditable receipt; never log user keys, player data
+        # or any full historical match/prediction payload.
+        print("FE11_HISTORY_IMPORT " + json.dumps({
+            "validated_reports":result.get("validated_reports",0),
+            "newly_persisted":result.get("newly_persisted",0),
+            "registry_rejections":result.get("not_persisted_by_registry_reason",{}),
+        }, separators=(",",":")), flush=True)
         return JSONResponse(result,headers={"Cache-Control":"no-store"})
     except Exception:
         return JSONResponse({"error":"research_history_persistence_unavailable"},
