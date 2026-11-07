@@ -88,13 +88,18 @@ def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
             or row.get("bet_eligible") is not False
             or row.get("bookmaker_id") != 8):
             continue
-        price = _number(row.get("offered_price_decimal"))
-        if price is None or price < 21/11:
-            continue
         offer_type = row.get("offer_type")
         if offer_type not in {"BOOK_QUOTED_COMPOSITE", "PLAYER_COMPONENT_QUOTE"}:
             continue
         is_direct = offer_type == "BOOK_QUOTED_COMPOSITE"
+        price = _number(row.get("offered_price_decimal"))
+        if price is None or price <= 1:
+            continue
+        # Existing composite catalog may use its own research price floor.
+        # Player quotes have NO price-based selection threshold; a price
+        # is neither a player statistic nor a sport-first model projection.
+        if is_direct and price < 21/11:
+            continue
         if is_direct and row.get("bookmaker_direct_combo_quote") is not True:
             continue
         if not is_direct and row.get("bookmaker_direct_combo_quote") is not False:
@@ -189,13 +194,37 @@ def _sgp_market_rows(sgp_rows: list[dict[str, Any]]) -> dict[str, Any]:
             "catalog_only": True,
             "not_a_pick": True,
         })
-    players.sort(key=lambda x: (not x["source_quote_fresh"], abs(x["price_decimal"]-2.10), x["fixture_id"],str(x["selection"])))
+    # HARD SPORT-FIRST GATE:
+    # A bookmaker quote alone (even when fresh) never identifies a genuine
+    # player prop candidate. These source rows contain no canonical player ID,
+    # verified player-level historical sample, opponent-adjusted rate,
+    # projected minutes/XI, exact settlement operator or calibrated model P.
+    # Do not sort by closeness to decimal 2.10 (+110), display these as
+    # statistical picks, or use the bookmaker price to infer probabilities.
+    # Preserve ONLY aggregate audit counts until an independent canonical
+    # player sport model supplies, verifies and joins all required evidence.
+    verified_player_candidates: list[dict[str, Any]] = []
     return {
         "sgp_composites": selected[:20],
         "sgp_market_catalog": market_catalog,
         "sgp_catalog_count": len(combos),
         "sgp_composites_suppressed": max(0,len(combos)-len(selected)),
-        "sgp_player_components": players[:50],
+        "sgp_player_components": verified_player_candidates,
+        "sgp_player_quote_catalog_count": len(players),
+        "sgp_player_statistically_validated_count": 0,
+        "sgp_player_selection_policy": "SPORT_FIRST_STATS_AND_OOS_BEFORE_MARKET",
+        "sgp_player_selection_status": "BLOCKED_NO_VERIFIED_PLAYER_SPORT_MODEL",
+        "sgp_player_quote_price_used_for_ranking": False,
+        "sgp_player_prices_are_picks": False,
+        "sgp_player_verification_needed": [
+            "CANONICAL_PLAYER_ID_AND_VERIFIED_RECENT_SAMPLE",
+            "PLAYER_SHOTS_OR_SOT_RATE_AND_EXPECTED_MINUTES",
+            "OPPONENT_ADJUSTED_PREMATCH_PROJECTION",
+            "CONFIRMED_STARTER_XI_AVAILABILITY",
+            "EXACT_MARKET_OPERATOR_AND_SETTLEMENT",
+            "INDEPENDENT_OOS_PROBABILITY_VALIDATION",
+            "FRESH_BOOK_PRICE_FOR_VALUE_COMPARISON_ONLY",
+        ],
     }
 
 
@@ -416,8 +445,9 @@ def make_board(rows: list[dict[str, Any]], sgp_rows: list[dict[str, Any]] | None
     sgp = _sgp_market_rows(sgp_rows or [])
     return {
         "schema_version": "1.2.0",
-        "status": ("RESEARCH_ONLY_FRESH_QUOTE_PREVIEW" if result or sgp["sgp_composites"] or sgp["sgp_player_components"]
-                   else "NO_FRESH_RESEARCH_QUOTES"),
+        "status": ("RESEARCH_ONLY_FRESH_QUOTE_PREVIEW" if result or sgp["sgp_composites"]
+                   else "PLAYER_QUOTES_ONLY_NO_VERIFIED_SPORTING_EDGE"
+                   if sgp["sgp_player_quote_catalog_count"] else "NO_FRESH_RESEARCH_QUOTES"),
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "data_use": "OWNER_ONLY_PROSPECTIVE_RESEARCH",
         "bets": 0,
