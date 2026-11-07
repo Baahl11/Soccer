@@ -1,0 +1,90 @@
+# Replays ONE immutable original FE11 research envelope, not new data/odds.
+# GitHub main workflow OIDC is allowlisted by App V2 bridge PR #91.
+name: Soccer FE11 original historical import replay - safe diagnosis
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fe11-replay-latest-history.yml
+
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+
+jobs:
+  original-fe11-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Retrieve original pinned scanner run artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC_RUN=42329502551
+          SRC_SHA=fd9f3995e3c1ca1666176d8110045a79211f69fb
+          REAL_SHA=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SRC_RUN" --jq '.head_sha')
+          test "$REAL_SHA" = "$SRC_SHA" || { echo "PINNED_SOURCE_IDENTITY_MISMATCH"; exit 1; }
+          mkdir -p /tmp/fe11-pinned
+          gh run download "$SRC_RUN" -R "$GITHUB_REPOSITORY" \
+            -n soccer-paper-research -D /tmp/fe11-pinned
+          COUNT=$(find /tmp/fe11-pinned -type f -name 'fe11_multimarket_transport_*.json' | wc -l)
+          test "$COUNT" -eq 1 || {
+            echo "SOURCE_ARTIFACT_MISSING_OR_AMBIGUOUS"; exit 1;
+          }
+          FILE=$(find /tmp/fe11-pinned -type f -name 'fe11_multimarket_transport_*.json' -print -quit)
+          cp "$FILE" /tmp/fe11-original-envelope.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from datetime import datetime,timezone,timedelta
+          x=json.loads(Path("/tmp/fe11-original-envelope.json").read_text())
+          assert x.get("source")=="SPORTS_EDGE_SCANNER_V15_HISTORICAL_CONTEXT"
+          assert x.get("bet_eligible") is False
+          assert x.get("calibrated_joint_probability") is None
+          assert x.get("bookmaker_ticket_quote") is None
+          rows=x.get("reports")
+          assert isinstance(rows,list) and 1<=len(rows)<=3
+          t=datetime.fromisoformat(x["generated_at_utc"].replace("Z","+00:00"))
+          now=datetime.now(timezone.utc)
+          assert t.tzinfo and now-timedelta(hours=48)<=t<=now+timedelta(minutes=5), \
+                 "ORIGINAL_RESEARCH_SOURCE_TOO_OLD"
+          assert all(isinstance(r,dict) and r.get("fixture_id") for r in rows)
+          print("Original source research profiles:",len(rows))
+          PY
+
+      - name: Replay unchanged envelope via main-branch GitHub OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          OIDC_REPLY=$(curl -fsS \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=soccer-edge-render")
+          TOKEN=$(printf '%s' "$OIDC_REPLY" | jq -r '.value // empty')
+          test -n "$TOKEN"
+          echo "::add-mask::$TOKEN"
+          HTTP=$(curl -sS --max-time 60 --request POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/fe11-original-envelope.json \
+            -o /tmp/fe11-replay-receipt.json -w '%{http_code}' \
+            https://soccer-edge-api.onrender.com/internal/fe11-multimarket-history-import-v1)
+          echo "FE11 replay response HTTP $HTTP"
+          test "$HTTP" = "200" || { echo "FE11_REPLAY_ENDPOINT_NOT_READY"; exit 1; }
+          jq -e '.status=="SPORT_FIRST_HISTORY_IMPORTED"
+                 and .bet_eligible==false
+                 and .probabilities_calibrated==false
+                 and (.validated_reports|type=="number")
+                 and (.newly_persisted|type=="number")' /tmp/fe11-replay-receipt.json >/dev/null
+          if ! jq -e '(.not_persisted_by_registry_reason|type=="object")' \
+            /tmp/fe11-replay-receipt.json >/dev/null; then
+            echo "FE11_REGISTRY_DIAGNOSTICS_NOT_YET_DEPLOYED"
+            exit 1
+          fi
+          jq '{status,validated_reports,newly_persisted,
+               not_persisted_by_registry_reason,bet_eligible,
+               probabilities_calibrated}' /tmp/fe11-replay-receipt.json
+          echo "FE11 original source replay finished; zero BET authorizations."
