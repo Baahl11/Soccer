@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from datetime import datetime, timezone
 from collections import defaultdict
 from typing import Any
 
@@ -221,6 +222,9 @@ def main() -> None:
     report = {
         "schema_version": "1.1.0",
         "status": "RESEARCH_PLAYER_TREND_MODEL_REGISTRY",
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "source_player_trends_generated_at_utc": trends.get("generated_at_utc"),
+        "source_player_roles_generated_at_utc": roles.get("generated_at_utc"),
         "source_player_trends_schema": trends.get("schema_version"),
         "source_player_role_registry_schema": roles.get("schema_version"),
         "model": "ROLE_MINUTES_PLUS_GAMMA_POISSON_COUNT_RATES_v0.1",
