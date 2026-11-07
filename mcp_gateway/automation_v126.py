@@ -9,6 +9,7 @@ from mcp_gateway import automation_v90 as v90
 from mcp_gateway import automation_v123 as v123
 from mcp_gateway import automation_v125 as v125
 from mcp_gateway import price_resolver_v4
+from mcp_gateway import runtime_memory_cap_v1
 
 MODEL_VERSION = v125.MODEL_VERSION
 AUTOMATION_VERSION = "4.35.2-upstream-phase-cap-lock"
@@ -162,8 +163,18 @@ async def run_tick() -> dict[str, Any]:
     # discovers a lower quota-derived cap, the lock tightens and can never be
     # reopened by a counter reset or a later orchestration layer.
     initial_upstream_cap, initial_reserved_calls = v123._reserve_from_elastic_cap(70)
+    # The cgroup guard previously killed 512MiB ticks after roughly 50
+    # upstream provider calls, before the expensive resolver finished. Apply
+    # a smaller *upstream-only* limit on such instances, never a budget rise.
+    # Verified quota-aware reductions can still tighten this limit later.
+    memory_cap_observation = runtime_memory_cap_v1.safe_upstream_phase_cap(
+        int(initial_upstream_cap),
+        cgroup_limit_bytes=runtime_memory_cap_v1.cgroup_memory_limit_bytes(),
+    )
+    initial_upstream_cap = memory_cap_observation["effective_upstream_cap"]
     phase_lock = {
         "active": True,
+        "resource_memory_guard": memory_cap_observation,
         "seed_cap": int(initial_upstream_cap),
         "low_water_cap": int(initial_upstream_cap),
         "reserved_calls": int(initial_reserved_calls),

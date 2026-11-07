@@ -1,0 +1,31 @@
+name: Soccer Scheduler Small-Memory Guard - Offline QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/runtime_memory_cap_v1.py"
+      - "mcp_gateway/automation_v126.py"
+      - "tests/test_runtime_memory_cap_v1.py"
+      - ".github/workflows/soccer-scheduler-memory-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gateway runtime test dependencies
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Verify modified scheduler compiles
+        run: |
+          python -m compileall -q mcp_gateway/runtime_memory_cap_v1.py mcp_gateway/automation_v126.py
+      - name: Validate small-memory budget without provider or DB
+        run: |
+          python -m pytest -q tests/test_runtime_memory_cap_v1.py tests/test_automation_v7_rollover_import.py tests/test_multimarket_history_bridge_v1.py
