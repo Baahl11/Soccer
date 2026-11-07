@@ -187,6 +187,33 @@ CREATE TABLE IF NOT EXISTS soccer_results (
     payload JSONB NOT NULL
 );
 
+-- FE-11: append-only sport-first research profiles, never betting outputs.
+CREATE TABLE IF NOT EXISTS soccer_multimarket_history_profiles (
+    fixture_id BIGINT NOT NULL REFERENCES soccer_fixtures (fixture_id),
+    source_generated_at TIMESTAMPTZ NOT NULL,
+    kickoff TIMESTAMPTZ NOT NULL,
+    home_team_id BIGINT NOT NULL,
+    away_team_id BIGINT NOT NULL,
+    source TEXT NOT NULL
+        CHECK (source = 'SPORTS_EDGE_SCANNER_V15_HISTORICAL_CONTEXT'),
+    model_version TEXT NOT NULL
+        CHECK (model_version = 'SOCCER_SPORT_FIRST_MULTIMARKET_PROFILE_v1.0'),
+    home_profile JSONB NOT NULL,
+    away_profile JSONB NOT NULL,
+    home_pattern JSONB NOT NULL,
+    away_pattern JSONB NOT NULL,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    classification TEXT NOT NULL DEFAULT 'WATCH'
+        CHECK (classification = 'WATCH'),
+    bet_eligible BOOLEAN NOT NULL DEFAULT FALSE
+        CHECK (bet_eligible = FALSE),
+    PRIMARY KEY (fixture_id, source_generated_at),
+    CHECK (home_team_id <> away_team_id),
+    CHECK (source_generated_at < kickoff)
+);
+CREATE INDEX IF NOT EXISTS idx_soccer_multimarket_history_profile_latest
+    ON soccer_multimarket_history_profiles (fixture_id, source_generated_at DESC);
+
 CREATE TABLE IF NOT EXISTS soccer_research_backfill_discovery (
     research_key TEXT NOT NULL,
     team_id BIGINT NOT NULL,
