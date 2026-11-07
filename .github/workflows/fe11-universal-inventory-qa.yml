@@ -1,0 +1,40 @@
+name: FE11 Universal Linked Postgame Inventory - Offline QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/fe11_universal_inventory_guard.py"
+      - "tests/test_fe11_universal_inventory_guard.py"
+      - ".github/workflows/v2-price-bridge-verification.yml"
+      - ".github/workflows/fe11-universal-inventory-qa.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  aggregate-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install offline test runner only
+        run: python -m pip install pytest
+      - name: Reject nonverified baseline counts, missing final and corner stats
+        run: |
+          python -m compileall -q scripts/fe11_universal_inventory_guard.py
+          python -m pytest -q tests/test_fe11_universal_inventory_guard.py
+      - name: Protect zero-provider and append-only inventory wiring
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path(".github/workflows/v2-price-bridge-verification.yml").read_text()
+          assert "python scripts/fe11_universal_inventory_guard.py" in s
+          assert "--bridge /tmp/bridge.json --output /tmp/fe11_universal_inventory.json" in s
+          assert '"universal_lifecycle":universal' in s
+          assert "fe11_history_inventory" in s
+          assert "scripts/fe11_universal_inventory_guard.py" in s
+          assert "fe11-universal-slate-v1" not in s
+          print("FE11 read-only protected inventory wiring PASS")
+          PY
