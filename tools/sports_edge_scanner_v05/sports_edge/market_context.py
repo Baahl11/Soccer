@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import statistics
 
 from .providers import ProviderFailure
+from .multi_market_sport_profile import build_multimarket_sport_profile, describe_three_leg_historical_pattern
 
 STAT_KEYS = {
     'Corner Kicks':'corners', 'Fouls':'fouls', 'Yellow Cards':'yellow_cards',
@@ -63,6 +64,27 @@ def parse_historical_formation(payload: dict[str, Any], team_id: int) -> str | N
         if isinstance(form,str) and len(form) <= 14 and isinstance(starters,list) and len(starters) == 11:
             return form
     return None
+
+
+
+def _fulltime_corner_pair(payload: dict[str, Any], home_id: int, away_id: int) -> dict[str, Any] | None:
+    """Both teams' match-total Corner Kicks from a documented completed fixture.
+
+    API-Football half=true *adds* half-time details; use only plain numeric
+    match-total Corner Kicks, never guess an interval from a nested value.
+    A future/extra-time fixture is excluded by the profile's FT-status guard.
+    """
+    try:
+        home = parse_historical_stats(payload, home_id).get('corners')
+        away = parse_historical_stats(payload, away_id).get('corners')
+    except ProviderFailure:
+        return None
+    if not isinstance(home,int) or not isinstance(away,int):
+        return None
+    if not (0 <= home <= 40 and 0 <= away <= 40):
+        return None
+    return {'home':home,'away':away,'period':'FT_90',
+            'source':'API_FOOTBALL_MATCH_TOTALS_TWO_TEAMS'}
 
 
 def _mean(rows: list[dict[str, Any]], key: str) -> dict[str, Any]:
@@ -131,7 +153,45 @@ def collect_historical_market_context(batch: dict[str, Any],
                     'scored_average':round(statistics.mean(gf),3) if gf else None,
                     'conceded_average':round(statistics.mean(ga),3) if ga else None,
                 }
+            # No new provider calls: derive only from historical scores and
+            # the same-fixture statistics already verified in stats_cache.
+            # Missing FT stats stay absent, never inferred from team averages.
+            future_kickoff = source.get('kickoff_utc')
+            if isinstance(future_kickoff,str) and isinstance(team_id,int) and team_id>0:
+                fulltime_corners = {}
+                for historic in past:
+                    historic_id = historic.get('fixture_id')
+                    if historic.get('status') != 'FT' or historic_id not in stats_cache:
+                        continue
+                    ids = (historic.get('home_team_id'), historic.get('away_team_id'))
+                    if not all(type(x) is int and x > 0 for x in ids):
+                        continue
+                    pair = _fulltime_corner_pair(stats_cache[historic_id], ids[0], ids[1])
+                    if pair is not None:
+                        fulltime_corners[historic_id] = pair
+                try:
+                    sport_profile = build_multimarket_sport_profile(
+                        past, team_id=team_id, target_kickoff=future_kickoff,
+                        corners_by_fixture=fulltime_corners,
+                    )
+                    example_pattern = {
+                        kind: describe_three_leg_historical_pattern(
+                            sport_profile, goals_over=1.5, corners_over=6.5,
+                            team_handicap=1, handicap_settlement=kind,
+                        )
+                        for kind in ('ASIAN','THREE_WAY')
+                    }
+                except (TypeError, ValueError):
+                    sport_profile = {'status':'NOT_VERIFIED', 'bet_eligible':False}
+                    example_pattern = {'status':'NOT_VERIFIED'}
+            else:
+                sport_profile = {'status':'NOT_VERIFIED', 'bet_eligible':False,
+                                 'reason':'FUTURE_KICKOFF_OR_TEAM_ID_MISSING'}
+                example_pattern = {'status':'NOT_VERIFIED'}
+
             sides[label] = {
+                'sport_first_multimarket_profile': sport_profile,
+                'example_goals_corners_handicap_pattern': example_pattern,
                 'period_descriptive':period_descriptive,
                 'team_id':team_id, 'matches_examined':len(rows),
                 'past_formation_samples':sum(bool(x['verified_historical_formation']) for x in rows),

@@ -1,0 +1,39 @@
+name: Soccer SPORT FIRST Multi-Market Profile - QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/sports_edge_scanner_v05/sports_edge/multi_market_sport_profile.py'
+      - 'tools/sports_edge_scanner_v05/sports_edge/market_context.py'
+      - 'tools/sports_edge_scanner_v05/tests/test_multi_market_sport_profile.py'
+      - '.github/workflows/soccer-multimarket-sport-profile-qa.yml'
+      - '17_SOCCER_FRONTEND_PRODUCT_ROADMAP_v1.0.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sport-first-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile clean model-independent historical profile
+        run: |
+          python -m compileall -q \
+            tools/sports_edge_scanner_v05/sports_edge/multi_market_sport_profile.py \
+            tools/sports_edge_scanner_v05/sports_edge/market_context.py
+      - name: Run half-time, full-time corners, handicap settlement, and history tests
+        env:
+          PYTHONPATH: tools/sports_edge_scanner_v05
+        run: |
+          python -m unittest discover -v -s tools/sports_edge_scanner_v05/tests \
+            -p "test_multi_market_sport_profile.py"
+          python -m unittest discover -v -s tools/sports_edge_scanner_v05/tests \
+            -p "test_market_context.py"
+          python -m unittest discover -v -s tools/sports_edge_scanner_v05/tests \
+            -p "test_multimarket_history.py"
