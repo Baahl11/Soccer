@@ -1,0 +1,42 @@
+name: Soccer SGP Research Price Capture (max 2 calls)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sgp-research-price-capture.yml'
+  schedule:
+    - cron: '30 4,10,23 * * *'
+
+concurrency:
+  group: soccer-sgp-research-capture
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Authorized sport-first SGP capture with price-source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          OIDC_JSON=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=soccer-edge-render")
+          TOKEN=$(echo "$OIDC_JSON" | jq -r '.value // empty')
+          test -n "$TOKEN"
+          echo "::add-mask::$TOKEN"
+          HTTP=$(curl -sS --max-time 80 --request POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{}' -o /tmp/sgp.json -w "%{http_code}" \
+            https://soccer-edge-api.onrender.com/internal/sgp-research-capture-v1)
+          echo "HTTP $HTTP"
+          test "$HTTP" = "200"
+          jq -e '.status == "RESEARCH_CAPTURE_COMPLETED" or .status == "NO_PRIOR_SPORTING_SHORTLIST"' /tmp/sgp.json
+          jq -e '(.api_requests // 0) <= 2 and (.snapshots_written // 0) >= 0' /tmp/sgp.json
+          jq -e '(.bet_eligible // false) == false and (.sgp_betslip_price_verified // false) == false' /tmp/sgp.json
+          jq '{status,api_requests,snapshots_written,provider_requests_cap,fixtures}' /tmp/sgp.json
