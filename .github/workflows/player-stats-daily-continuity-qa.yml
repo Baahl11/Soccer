@@ -29,6 +29,7 @@ jobs:
           # Manual OIDC and future-only guards remain available.
           assert back.count("- cron:") == 0
           assert reg.count("- cron:") == 0
+          assert "\\n  push:" not in back and "\\n  push:" not in reg
           assert "Automatic Render backfill DISABLED" in back
           assert "Automatic Render backfill DISABLED" in reg
           assert 'id-token: write' in back and 'id-token: write' in reg
