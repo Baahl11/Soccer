@@ -46,7 +46,7 @@ def test_betslip_is_an_unpriced_draft_not_a_bookmaker_quote():
     assert "No se suman ni multiplican cuotas" in html
     assert "No se envían apuestas" in html
     assert "solo crea un borrador" in html
-    assert "x.fixture_id!==row.fixture_id" in html
+    assert "first.fixture_id!==row.fixture_id" in html
     assert "sgpSelectedPlayerIndexes.length>=3" in html
 
 
