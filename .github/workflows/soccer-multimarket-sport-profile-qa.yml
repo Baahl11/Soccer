@@ -8,6 +8,8 @@ on:
       - 'tools/sports_edge_scanner_v05/sports_edge/multimarket_export.py'
       - 'tools/sports_edge_scanner_v05/sports_edge/fe11_oos_dataset.py'
       - 'tools/sports_edge_scanner_v05/tests/test_fe11_oos_dataset.py'
+      - 'tools/sports_edge_scanner_v05/sports_edge/fe11_oos_baselines.py'
+      - 'tools/sports_edge_scanner_v05/tests/test_fe11_oos_baselines.py'
       - 'tools/sports_edge_scanner_v05/tests/test_multimarket_export.py'
       - '.github/workflows/sports-edge-scanner-v05-paper.yml'
       - 'tools/sports_edge_scanner_v05/tests/test_multi_market_sport_profile.py'
@@ -33,7 +35,8 @@ jobs:
             tools/sports_edge_scanner_v05/sports_edge/multi_market_sport_profile.py \
             tools/sports_edge_scanner_v05/sports_edge/market_context.py \
             tools/sports_edge_scanner_v05/sports_edge/multimarket_export.py \
-            tools/sports_edge_scanner_v05/sports_edge/fe11_oos_dataset.py
+            tools/sports_edge_scanner_v05/sports_edge/fe11_oos_dataset.py \
+            tools/sports_edge_scanner_v05/sports_edge/fe11_oos_baselines.py
       - name: Run half-time, full-time corners, handicap settlement, and history tests
         env:
           PYTHONPATH: tools/sports_edge_scanner_v05
@@ -48,3 +51,5 @@ jobs:
             -p "test_multimarket_export.py"
           python -m unittest discover -v -s tools/sports_edge_scanner_v05/tests \
             -p "test_fe11_oos_dataset.py"
+          python -m unittest discover -v -s tools/sports_edge_scanner_v05/tests \
+            -p "test_fe11_oos_baselines.py"
