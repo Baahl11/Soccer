@@ -29,5 +29,9 @@ jobs:
             mcp_gateway/automation_v7.py \
             mcp_gateway/persistence.py \
             tests/test_fe11_registry_next_day_v1.py
-      - name: Run synthetic official fixture registry contract tests
-        run: python -m pytest -q tests/test_fe11_registry_next_day_v1.py
+      - name: Run official registry, v7 rollover and FE11 bridge regression tests
+        run: |
+          python -m pytest -q \
+            tests/test_fe11_registry_next_day_v1.py \
+            tests/test_automation_v7_rollover_import.py \
+            tests/test_multimarket_history_bridge_v1.py
