@@ -367,7 +367,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       <p class="sgp-player-note">Cada tarjeta muestra una <b>selección observada en Bet365</b>, no una predicción del modelo. La cantidad mostrada no confirma por sí sola si es «más de», «al menos» o un resultado exacto.</p>
       <div class="sgp-guide-steps">
         <div class="sgp-guide-step"><b>1. Cantidad del mercado</b><span>«3 tiros» es la referencia publicada. La condición exacta debe comprobarse en la casa.</span></div>
-        <div class="sgp-guide-step"><b>2. Cuota individual</b><span>«+110» es la cuota americana observada para un solo jugador (equivale a 2.10 decimal); puede cambiar.</span></div>
+        <div class="sgp-guide-step"><b>2. Cuota individual</b><span>«+110» es la cuota americana observada para un solo jugador; puede cambiar.</span></div>
         <div class="sgp-guide-step"><b>3. Combinada SGP</b><span>Seleccionar jugadores solo crea un borrador. No hay cuota conjunta verificada ni apuesta preparada.</span></div>
       </div>
     </div>
@@ -483,7 +483,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   const premium=()=>!!ACCESS?.premium_unlocked;
   function crest(url,name){{const src=String(url||'');return '<span class="crest '+(src?'has-img':'')+'">'+(src?'<img loading="lazy" decoding="async" src="'+esc(src)+'" alt="'+esc(name)+' crest" onerror="this.style.display=\\'none\\';this.parentElement.classList.remove(\\'has-img\\')">':'')+'<span class="fallback">'+esc(initials(name))+'</span></span>'}}
   function priceText(c){{const p=market(c).price||{{}},price=americanOdds(p.value,p.format);return price==='NOT VERIFIED'?'Cuota NO VERIFICADA':price+(p.bookmaker?' · '+p.bookmaker:'')}}
-  function priceVerified(c){{const p=market(c).price||{{}},f=String(p.format||'NOT VERIFIED').toUpperCase();return num(p.value)!==null&&f!=='NOT VERIFIED'&&!!p.bookmaker&&!!p.captured_at}}
+  function priceVerified(c){{const p=market(c).price||{{}};return americanOdds(p.value,p.format)!=='NOT VERIFIED'&&!!p.bookmaker&&!!p.captured_at}}
   function evidence(c){{const e=c?.evidence||{{}},s=(e.sporting_reasons||[])[0],m=(e.market_reasons||[])[0],b=(e.blockers||[])[0];if(s)return '<b>Sport:</b> '+esc(s);if(m)return '<b>Market:</b> '+esc(m);if(b)return '<b>Blocker:</b> '+esc(b);return 'No additional persisted explanation in this snapshot.'}}
   function decisionClass(c){{const x=classification(c);return x==='BET'?'bet':x==='LEAN'?'lean':'watch'}}
   function decisionLabel(c){{const d=c?.decision||{{}};return classification(c)||d.display_bucket||String(d.execution_status||'WATCH').replaceAll('_',' ')}}
