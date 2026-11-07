@@ -90,9 +90,11 @@ class MultiMarketSportFirstTests(unittest.TestCase):
         )
         self.assertEqual(asian["complete_historical_rows"],3)
         self.assertEqual(asian["observed_joint_hits"],2)
-        self.assertEqual(asian["asian_handicap_push_records"],1)
-        self.assertEqual(asian["resolved_without_push"],2)
-        self.assertEqual(asian["observed_joint_hit_frequency"],1.0)
+        self.assertEqual(asian["observed_joint_misses"],1)
+        self.assertEqual(asian["asian_handicap_leg_push_records"],1)
+        self.assertEqual(asian["asian_handicap_push_records"],0)
+        self.assertEqual(asian["resolved_without_push"],3)
+        self.assertEqual(asian["observed_joint_hit_frequency"],round(2/3,4))
         self.assertEqual(threeway["observed_joint_hits"],2)
         self.assertEqual(threeway["observed_joint_misses"],1)
         self.assertEqual(threeway["observed_joint_hit_frequency"],round(2/3,4))
@@ -117,7 +119,31 @@ class MultiMarketSportFirstTests(unittest.TestCase):
             describe_three_leg_historical_pattern(
               self.profile(),goals_over=1.5,corners_over=6.5,
               handicap_settlement="ASIAN",venue="away",
-            )["asian_handicap_push_records"],1)
+            )["asian_handicap_leg_push_records"],1)
+
+
+    def test_asian_push_with_other_legs_winning_is_unresolved_not_a_win(self):
+        p=build_multimarket_sport_profile(
+            [past(17,11,22,(1,2),(0,1))],
+            team_id=11,target_kickoff=TARGET,
+            corners_by_fixture={17:{"home":5,"away":4,"period":"FT_90"}},
+        )
+        asian=describe_three_leg_historical_pattern(
+            p, goals_over=1.5, corners_over=6.5,
+            team_handicap=1, handicap_settlement="ASIAN",
+        )
+        three=describe_three_leg_historical_pattern(
+            p, goals_over=1.5, corners_over=6.5,
+            team_handicap=1, handicap_settlement="THREE_WAY",
+        )
+        self.assertEqual(asian["asian_handicap_leg_push_records"],1)
+        self.assertEqual(asian["asian_handicap_push_records"],1)
+        self.assertEqual(asian["observed_joint_hits"],0)
+        self.assertEqual(asian["observed_joint_misses"],0)
+        self.assertIsNone(asian["observed_joint_hit_frequency"])
+        self.assertEqual(three["observed_joint_misses"],1)
+        self.assertEqual(three["asian_handicap_push_records"],0)
+        self.assertFalse(asian["bet_eligible"])
 
     def test_missing_corners_are_not_zero_or_fake_joint_probabilities(self):
         p=build_multimarket_sport_profile(
