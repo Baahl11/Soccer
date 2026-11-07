@@ -40,8 +40,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install only local Python SQL dependencies
-        run: python -m pip install "psycopg[binary]>=3.2,<4" pytest
+      - name: Install existing gateway runtime and local SQL test dependencies
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
       - name: Real SQL DDL, immutable pregame, FT join, 90m corners
         run: |
           python -m pytest -v -s tests/test_fe11_universal_postgres_e2e.py
