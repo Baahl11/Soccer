@@ -624,6 +624,40 @@ async def _handle_instrumented_prospective_registry(scope, receive, send) -> Non
         _base_server._release_db_heavy_gate()
 
 
+FE11_UNIVERSAL_WORKFLOW = ".github/workflows/fe11-universal-slate.yml"
+FE11_UNIVERSAL_ROUTE = "/internal/fe11-universal-slate-v1"
+
+
+async def _handle_fe11_universal_slate(scope, receive, send) -> None:
+    """OIDC-only isolated official-date collector, shared DB-heavy mutex.
+
+    Authentication is pinned to this exact main-branch GitHub workflow.
+    The collector is NOT the 512MiB canonical v129 sporting/market tick.
+    The cgroup memory monitor and timeout still apply to this subprocess.
+    """
+    request = Request(scope, receive=receive)
+    try:
+        _base_server._github_oidc_claims(
+            request, {FE11_UNIVERSAL_WORKFLOW}
+        )
+    except Exception:
+        response = JSONResponse({"error": "unauthorized"}, status_code=401)
+        await response(scope, receive, send)
+        return
+    busy = _base_server._acquire_db_heavy_gate("fe11_official_universal_capture")
+    if busy is not None:
+        await busy(scope, receive, send)
+        return
+    try:
+        await _run_instrumented_tick(
+            scope, receive, send,
+            worker_module="mcp_gateway.fe11_universal_worker_v1",
+            error_prefix="fe11_universal",
+        )
+    finally:
+        _base_server._release_db_heavy_gate()
+
+
 class V215SignalLedgerRouter:
     """Intercept isolated compatibility routes and delegate every other request."""
 
@@ -666,6 +700,9 @@ class V215SignalLedgerRouter:
                 request = Request(scope, receive=receive)
                 response = await internal_research_price_bridge_check(request)
                 await response(scope, receive, send)
+                return
+            if path == FE11_UNIVERSAL_ROUTE and method == "POST":
+                await _handle_fe11_universal_slate(scope, receive, send)
                 return
             if path == TICK_ROUTE and method == "POST":
                 await _handle_instrumented_tick(scope, receive, send)
