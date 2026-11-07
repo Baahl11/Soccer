@@ -78,6 +78,10 @@ def test_missing_quota_is_not_promoted_to_an_invented_remaining_balance():
 class FakeCursor:
     def __init__(self):
         self.queries = []
+    def __enter__(self):
+        return self
+    def __exit__(self, *args):
+        return False
     def execute(self, sql, args):
         self.queries.append((sql, args))
 
