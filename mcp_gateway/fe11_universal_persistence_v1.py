@@ -108,7 +108,18 @@ INVENTORY_SQL = """
          WHERE s.halftime_home_goals IS NOT NULL
            AND s.halftime_away_goals IS NOT NULL
            AND s.second_half_home_goals IS NOT NULL
-           AND s.second_half_away_goals IS NOT NULL)::integer
+           AND s.second_half_away_goals IS NOT NULL)::integer,
+        (SELECT COUNT(DISTINCT fixture_id)
+         FROM soccer_fe11_verified_corner_snapshots)::integer,
+        (SELECT COUNT(DISTINCT o.fixture_id)
+         FROM soccer_fe11_official_outcome_snapshots o
+         JOIN soccer_fe11_verified_corner_snapshots c
+           ON c.fixture_id = o.fixture_id
+         WHERE o.final_status = 'FT'
+           AND o.halftime_home_goals IS NOT NULL
+           AND o.halftime_away_goals IS NOT NULL
+           AND o.second_half_home_goals IS NOT NULL
+           AND o.second_half_away_goals IS NOT NULL)::integer
 """
 
 
@@ -134,15 +145,19 @@ def persist(cur: Any, tick: dict[str, Any], upsert_fixture: Callable) -> None:
 def inventory(cur: Any) -> dict[str, Any]:
     """Aggregate-only read via already-open trusted internal DB connection."""
     cur.execute(INVENTORY_SQL)
-    pre, done, future, period = cur.fetchone() or (0, 0, 0, 0)
+    pre, done, future, period, corners_count, full_components = (
+        cur.fetchone() or (0, 0, 0, 0, 0, 0)
+    )
     return {
         "status": "VERIFIED_READ",
         "eligible_pregame_baselines": int(pre),
         "matched_official_final_fixtures": int(done),
         "current_future_baselines": int(future),
         "official_period_complete_fixtures": int(period),
+        "official_ft_corners_verified_fixtures": int(corners_count),
+        "official_period_and_corners_complete_fixtures": int(full_components),
         "joint_goals_corners_handicap_training_rows": 0,
-        "joint_rows_status": "NOT_VERIFIED_CORNERS_MISSING",
+        "joint_rows_status": "NOT_VERIFIED_JOINT_OOS_CALIBRATION",
         "provider_requests_added": 0,
         "production_bets_authorized": False,
     }
