@@ -3,10 +3,9 @@ name: Player Props Postgame Backfill
 
 on:
   workflow_dispatch:
-  # Daily continuity: collect real finished player-game evidence, then
-  # refresh independent model priors for FUTURE fixtures only.
-  schedule:
-    - cron: "25 08 * * *" # 02:25 CDMX daily: official finalized player shots/SOT outcomes
+  # Automatic Render backfill DISABLED after 512MiB production OOM.
+  # Manual OIDC workflow_dispatch remains; future automated source refresh
+  # must run outside the 512MiB web cgroup or use a verified bounded worker.
   push:
     branches: [main]
     paths: [".github/workflows/player-props-postgame-backfill.yml"]
