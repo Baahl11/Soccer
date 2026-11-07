@@ -24,7 +24,7 @@ jobs:
       - name: Reject nonverified baseline counts, missing final and corner stats
         run: |
           python -m compileall -q scripts/fe11_universal_inventory_guard.py
-          python -m pytest -q tests/test_fe11_universal_inventory_guard.py
+          python -m pytest -c /dev/null -q tests/test_fe11_universal_inventory_guard.py
       - name: Protect zero-provider and append-only inventory wiring
         run: |
           python - <<'PY'
