@@ -174,8 +174,11 @@ def test_no_retrospective_pregame_from_official_terminal_only():
 
 def test_existing_shortlist_and_betting_logic_not_replaced_by_whole_slate():
     source = (Path(__file__).resolve().parents[1] / "mcp_gateway" / "automation_v7.py").read_text()
-    assert "fe11_universal.build_capture(" in source
-    assert '"fe11_universal_lifecycle": fe11_all_eligible_capture' in source
+    # The cgroup-constrained canonical deep-dive worker must not also carry
+    # universal/whole-slate capture payloads; a separate lightweight worker
+    # will take over this duty.
+    assert "fe11_universal.build_capture(" not in source
+    assert '"fe11_universal_lifecycle": fe11_all_eligible_capture' not in source
     assert "_upcoming_market_capture_fixtures(fixtures, now_utc)" in source
     assert "MAX_DEEP_DIVE_FIXTURES_PER_TICK" in source
     persistence = (Path(__file__).resolve().parents[1] / "mcp_gateway" / "persistence.py").read_text()
