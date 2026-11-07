@@ -9,9 +9,21 @@ on:
     paths:
       - '.github/workflows/v2-price-bridge-verification.yml'
   workflow_dispatch:
+  # Read-only OIDC proof shortly after 07:15 and 13:20 CDMX scanner scans.
+  # This never triggers the scanner, provider requests or a historical replay.
+  schedule:
+    - cron: '50 13 * * *'  # 07:50 America/Mexico_City
+    - cron: '50 19 * * *'  # 13:50 America/Mexico_City
+
 permissions:
   contents: write
   id-token: write
+  issues: write
+
+concurrency:
+  group: fe11-aggregate-read-only-inventory
+  cancel-in-progress: false
+
 jobs:
   read-only-bridge-check:
     runs-on: ubuntu-latest
@@ -29,7 +41,7 @@ jobs:
           jq -e '.status == "CONNECTED_RESEARCH_ONLY" and .source == "SUPABASE_PRIVATE_BRIDGE" and .bet_eligible == false and .tokens_exposed == false and (.fresh_research_rows | type == "number")' /tmp/bridge.json
           jq -e '(.sgp_direct_combo_quotes | type=="number") and (.sgp_player_component_quotes | type=="number") and .bet_eligible == false' /tmp/bridge.json
           jq -e '.render_cache_status == "READ_OK" and (.render_cached_sgp_rows | type == "number") and (.render_cached_sgp_fresh_rows | type == "number")' /tmp/bridge.json
-          jq -e '.fe11_history_inventory.status == "VERIFIED_READ" and (.fe11_history_inventory.research_rows_persisted | type == "number") and (.fe11_history_inventory.current_pregame_profiles | type == "number") and .fe11_history_inventory.production_bets_authorized == false' /tmp/bridge.json
+          jq -e '.fe11_history_inventory.status == "VERIFIED_READ" and (.fe11_history_inventory.research_rows_persisted | type == "number") and (.fe11_history_inventory.research_rows_persisted >= 3) and (.fe11_history_inventory.unique_fixtures | type == "number") and (.fe11_history_inventory.current_pregame_profiles | type == "number") and (.fe11_history_inventory.provider_requests_added == 0) and .fe11_history_inventory.production_bets_authorized == false' /tmp/bridge.json
           jq '{fe11_history_inventory}' /tmp/bridge.json
           jq '{status,fresh_research_rows,sgp_direct_combo_quotes,sgp_recent_combo_quotes,sgp_player_component_quotes,sgp_raw_positive_research,render_cached_sgp_rows,render_cached_sgp_fresh_rows,render_cache_status,source,bet_eligible,tokens_exposed}' /tmp/bridge.json
 
@@ -79,3 +91,18 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Content-Type: application/json" \
             --data "$PAYLOAD" "$URL" >/dev/null
+
+      - name: Open one deduplicated FE11 integrity incident when a scheduled audit fails
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="FE11 protected inventory audit failed"
+          number=$(gh issue list --state open --search '"FE11 protected inventory audit failed" in:title' --json number --jq '.[0].number // ""')
+          if [ -z "$number" ]; then
+            gh issue create --title "$title" --body "A scheduled aggregate-only read-only FE11 audit failed. Investigate Render/OIDC/Postgres or the append-only row-count floor; no bet activation or historical rewrite is authorized. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          else
+            echo "Existing deduplicated incident: #$number"
+          fi

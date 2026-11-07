@@ -1,0 +1,33 @@
+name: FE11 Protected Inventory Schedule - Offline QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/v2-price-bridge-verification.yml"
+      - ".github/workflows/fe11-inventory-schedule-qa.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert cron, access isolation and immutable floor without provider calls
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          w = Path(".github/workflows/v2-price-bridge-verification.yml").read_text()
+          assert w.count("- cron:") == 2
+          assert "'50 13 * * *'" in w
+          assert "'50 19 * * *'" in w
+          assert "fe11-aggregate-read-only-inventory" in w
+          assert "/internal/research-price-bridge-check" in w
+          assert "fe11_history_inventory.research_rows_persisted >= 3" in w
+          assert "fe11_history_inventory.provider_requests_added == 0" in w
+          assert "production_bets_authorized == false" in w
+          assert "gh issue create --title" in w
+          assert "on: workflow_dispatch" not in w
+          print("FE11 read-only scheduled aggregate inventory contract PASS")
+          PY
