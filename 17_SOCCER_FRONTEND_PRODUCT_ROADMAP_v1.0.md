@@ -584,3 +584,19 @@ Cada cálculo debe conservar partido, liga, horario, n por local/visita, cortes 
 **Secuencia:** histórico amplio y auditado → modelos de períodos/córners/hándicap calibrados por mercado → correlación OOS → puente oficial de cotización de Bet Builder → UI móvil y QA → alertas push opt-in. No promocionar mercados por ganar un ejemplo aislado.
 
 **Restricciones:** no fabricar cuotas conjuntas multiplicando probabilidades o precios, no inferir que Tijuana +1 es asiático, no asignar cuota a un SGP de jugadores sin ticket verificable, no convertir WATCH a BET por estar +100, no mostrar selecciones incompatibles como recomendaciones simultáneas.
+
+---
+
+## FE-11 Phase 2 checkpoint — audited OOS data contract (2026-11-06)
+
+**Status:** DATASET BUILDER IMPLEMENTED AS RESEARCH LIBRARY / NOT YET WIRED TO PRODUCTION. **No trained joint model, probabilities, bookmaker builder quote, BET or customer alert.**
+
+- `tools/sports_edge_scanner_v05/sports_edge/fe11_oos_dataset.py` creates labeled historical match rows with **strictly as-of** team features: no future fixtures, same-match target leakage, stale/backfilled reports, AET/postponed results, invalid 1H/2H scores, one-sided/missing FT corners, bookmaker odds or prices.
+- Requires attributable `source_available_at_utc` for both match results and same-fixture two-team corners. **Existing historical scanner records do not automatically have this attestation.** This library must not be fed retrospective `retrieved_at` masquerading as historical availability: absence means no eligible training row until provenance is addressed.
+- Pre-match feature window is bounded and keyed by `fixture_id`, club ID and UTC kickoff; home/away venue and valid sample sizes stay distinct. All statistical rows are historical observations, not calibrated probabilities.
+- Joint **outcome labels** distinguish all other losing legs from an unresolved Asian +1 push, and separate 3-way +1 from Asian settlement. This enables future evaluation once sufficient independently sourced history is available; labels alone do not constitute an expected probability.
+- `chronological_holdout` creates training/holdout fixture manifests with a publication-aware embargo, without claiming model training or performance.
+- **FE-11 settlement patch `FE11_1.0.1_LOSING_LEG_OVERRIDES_PUSH`:** the descriptive same-fixture intersection now counts an Asian +1 handicap leg push separately from a builder unresolved push. If goals or corners lost, the historical joint condition is a miss, not a push. This corrects the replay logic without silently changing old published forecasts; the existing profile transport version remains compatible.
+- CI includes deterministic offline tests for event timestamps, published-as-of cutoff, missing stats, duplicate fixtures, period consistency, contamination by market inputs and joint settlement semantics.
+
+**Next operational prerequisites:** prove Render ingestion/visibility end-to-end; build reliable provenance-preserving history storage beyond scanner's small per-team window; evaluate viable training sample size by league/market; walk-forward baselines and calibrated joint model **only after** coverage gates. Continue preserving SPORT FIRST → JOINT → MARKET. No automatic bets.
