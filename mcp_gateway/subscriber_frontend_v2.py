@@ -594,8 +594,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   function sgpPlayerShortSelection(x){{
     const quantity=sgpPlayerQuantity(x),family=sgpPlayerMarketName(x);
     if(quantity!==null){{
-      if(family==='Tiros del jugador')return quantity+' tiros';
-      if(family==='Tiros a puerta')return quantity+' tiros a puerta';
+      const singular=Number(quantity)===1;
+      if(family==='Tiros del jugador')return quantity+(singular?' tiro':' tiros');
+      if(family==='Tiros a puerta')return quantity+(singular?' tiro a puerta':' tiros a puerta');
       if(family==='Jugador goleador')return quantity+' (referencia del mercado)';
       return quantity+' · selección publicada';
     }}
