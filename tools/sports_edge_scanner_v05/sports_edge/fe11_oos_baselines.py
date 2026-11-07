@@ -40,8 +40,8 @@ def _id(value: Any) -> int | None:
     return value if type(value) is int and 0 < value < 10**12 else None
 
 
-def _safe_float(value: Any) -> bool:
-    return type(value) in (int, float) and 0 <= value <= 80
+def _safe_count(value: Any) -> bool:
+    return type(value) is int and 0 <= value <= 80
 
 
 def _wilson_95(hits: int, n: int) -> list[float] | None:
@@ -66,9 +66,10 @@ def _metrics(labels: list[int], p: float) -> dict[str, float]:
 
 def _validated_row(row: Any, market: str, goal_line: float,
                    corner_line: float, research_cutoff: datetime) -> dict[str, Any]:
-    if not isinstance(row, dict) or not isinstance(row.get("labels"), dict):
+    if (not isinstance(row, dict) or not isinstance(row.get("labels"), dict)
+            or not isinstance(row.get("features"), dict)):
         raise ValueError("MALFORMED_FE11_ROW")
-    if any(word in str(key).lower() for key in row.get("features", {}).keys()
+    if any(word in str(key).lower() for key in row["features"].keys()
            for word in FORBIDDEN_FEATURES):
         raise ValueError("MARKET_OR_TARGET_LEAKAGE_IN_FEATURES")
     fid = _id(row.get("fixture_id"))
@@ -85,7 +86,7 @@ def _validated_row(row: Any, market: str, goal_line: float,
         raise ValueError("FE11_ROW_IDENTITY_OR_PROVENANCE_INVALID")
     lab = row["labels"]
     goals, corners, margin = lab.get("ft_goals"), lab.get("ft_corners"), lab.get("home_margin")
-    if not (_safe_float(goals) and _safe_float(corners)
+    if not (_safe_count(goals) and _safe_count(corners)
             and type(margin) is int and -40 <= margin <= 40):
         raise ValueError("FE11_LABELS_INVALID")
     if goals > 40 or corners > 80:
