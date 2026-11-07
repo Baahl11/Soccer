@@ -298,7 +298,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     <div id="researchPlus100" class="card-grid"></div>
     <div class="section-title"><div><h2>EDGE REGULAR</h2><span>Precios inferiores a -110 para investigación</span></div></div>
     <div id="researchRegular" class="card-grid"></div>
-    <div class="section-title"><div><h2>SGP · Señales deportivas RAW (NO BET)</h2><span>Máximo una hipótesis experimental por partido; EV RAW positivo no demuestra valor real.</span></div></div>
+    <div class="section-title"><div><h2>Same Game Parlay (SGP) · Señales RAW (NO BET)</h2><span>Máximo una hipótesis experimental por partido; EV RAW positivo no demuestra valor real.</span></div></div>
     <div class="panel"><div id="sgpResearchStatus" class="sub">Revisando probabilidades conjuntas y precios observados...</div></div>
     <div id="sgpQuotedComposites" class="card-grid"></div>
     <details id="sgpMarketCatalogDetails" class="panel">
