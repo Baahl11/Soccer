@@ -167,6 +167,13 @@ def build(
         }
 
     profiles = player_registry.get("profiles") if isinstance(player_registry, dict) and isinstance(player_registry.get("profiles"), dict) else {}
+    # Freeze the independently generated registry timestamp into each event.
+    # Without an as-of source timestamp the offer bridge cannot validate
+    # that historical player statistics existed before kickoff.
+    registry_generated_at_utc = (
+        player_registry.get("generated_at_utc")
+        if isinstance(player_registry, dict) else None
+    )
     team_idx = _team_index(team_report)
     home_id = fixture.get("home_team_id")
     away_id = fixture.get("away_team_id")
@@ -228,6 +235,10 @@ def build(
                 "confirmed_starter": True,
                 "status": "LIVE_RESEARCH_SHOTS_DISTRIBUTION",
                 "sample_band": sample_band,
+                "historical_played_matches_last20": int(l20.get("played_matches") or 0),
+                "historical_captured_matches_last20": int(l20.get("captured_matches") or 0),
+                "historical_observed_minutes_last20": l20.get("total_minutes"),
+                "registry_generated_at_utc": registry_generated_at_utc,
                 "expected_minutes_if_confirmed_starter": round(expected_minutes, 3),
                 "base_posterior_mean_shots_per90": shots.get("posterior_mean_per90"),
                 "opponent_adjustment": opp_mod,

@@ -136,6 +136,20 @@ border-radius:6px;padding:5px 7px;color:#8ea9b8;font-size:8px}}.badge.good{{bord
   color:#d6eaf4;font-size:11px;overflow-wrap:anywhere}}
 .sgp-slip-warning{{margin-top:11px;color:#efc677;font-size:11px;line-height:1.5}}
 .sgp-slip-help{{font-size:11px;color:#a7bdc9;line-height:1.55}}
+.sport-model-summary{{padding:14px;border:1px solid #245069;background:#092434;border-radius:12px;margin-bottom:12px}}
+.sport-model-summary strong{{font-size:13px;color:#edf7ff}}
+.sport-model-sub{{color:#aac2cf;font-size:11px;line-height:1.6;margin-top:7px}}
+.sport-model-projection{{border:1px solid #2a4c64;border-radius:12px;padding:14px;background:#071f2d;
+display:flex;flex-direction:column;gap:9px}}
+.sport-model-top{{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}}
+.sport-model-top b{{font-size:13px;line-height:1.4;overflow-wrap:anywhere}}
+.sport-model-big{{font-size:21px;font-weight:800;color:#e2f4ff;font-variant-numeric:tabular-nums}}
+.sport-model-stats{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}}
+.sport-model-stat{{padding:8px;border-radius:8px;background:#112e40;min-width:0}}
+.sport-model-stat b{{display:block;font-size:12px;color:#e1f1fa}}
+.sport-model-stat small{{font-size:10px;line-height:1.4;color:#9bb4c4}}
+.sport-model-foot{{font-size:10px;color:#a5b7c2;line-height:1.5}}
+
 @media(max-width:700px){{.sgp-guide-steps{{grid-template-columns:1fr}}.sgp-leg-card{{padding:13px}}
  .sgp-leg-main{{align-items:start}}.sgp-leg-count strong{{font-size:20px}}.sgp-leg-price strong{{font-size:22px}}
  .sgp-leg-player b{{font-size:14px}}.sgp-player-guide{{padding:12px}}}}
@@ -371,6 +385,8 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         <div class="sgp-guide-step"><b>3. Mercado, al final</b><span>XI confirmada, umbral y reglas exactas, cuota vigente y comparación de valor. Si falta algo, WATCH.</span></div>
       </div>
     </div>
+    <div id="playerSportModelSummary" class="sport-model-summary" role="status" aria-live="polite"><strong>Proyecciones deportivas independientes</strong><div class="sport-model-sub">Verificando historial, minutos, XI oficial y predicciones anteriores al partido. No se consultan momios para seleccionar jugadores.</div></div>
+    <div id="playerSportModelRows" class="card-grid"></div>
     <div id="sgpBuilderSlip" class="sgp-slip" role="status" aria-live="polite">Esperando candidatos respaldados por estadísticas; ninguna cuota por sí sola crea una selección.</div>
     <div id="sgpPlayerLegs" class="card-grid sgp-player-grid"></div>
     <div class="section-title"><div><h2>Watch</h2><span>Waiting for price, XI, goalkeeper or other required evidence</span></div></div>
@@ -595,6 +611,59 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<div class="sub">'+esc(message)+' · '+(x.source_quote_fresh?'fuente reciente':'cuota histórica, reconfirmar')+'</div>'+
       '<div class="sub">CATÁLOGO DE MERCADO, NO PICK · NO BET</div></div>';
   }}
+  function playerSportModelCard(x){{
+    const family=x.family==='SOT'?'Tiros a puerta':'Tiros';
+    const projected=num(x.projected_count),rate=num(x.historical_rate_per90);
+    const played=num(x.historical_played_matches),minutes=num(x.expected_minutes);
+    const observedMinutes=num(x.historical_observed_minutes);
+    const opponent=num(x.opponent_adjustment_factor);
+    const val=n=>n===null?'NOT VERIFIED':n.toFixed(2);
+    return '<article class="sport-model-projection">'+
+      '<div class="sport-model-top"><b>'+esc(x.player||'Jugador')+'</b>'+
+      '<span class="sgp-caution-tag">RESEARCH ONLY · OOS PENDIENTE</span></div>'+
+      '<div class="sgp-leg-match">'+esc(x.home_team||'Local')+' vs '+
+      esc(x.away_team||'Visitante')+' · '+esc(family)+'</div>'+
+      '<div><span class="sport-model-big">'+esc(val(projected))+'</span>'+
+      '<span class="sport-model-sub"> · '+esc(x.family==='SOT'?'tiros a puerta previstos':'tiros previstos')+', estimación bruta sin calibrar</span></div>'+
+      '<div class="sport-model-stats">'+
+      '<div class="sport-model-stat"><b>'+esc(val(rate))+'</b><small>Histórico por 90 minutos</small></div>'+
+      '<div class="sport-model-stat"><b>'+esc(played===null?'NOT VERIFIED':String(played))+'</b><small>Partidos con minutos verificados</small></div>'+
+      '<div class="sport-model-stat"><b>'+esc(minutes===null?'NOT VERIFIED':String(minutes))+'</b><small>Minutos esperados</small></div>'+
+      '</div><div class="sport-model-foot">Minutos históricos: '+esc(observedMinutes===null?'NOT VERIFIED':String(Math.round(observedMinutes)))+
+      ' · Factor rival: '+esc(val(opponent))+
+      ' · ID jugador: '+esc(x.player_id||'NOT VERIFIED')+
+      ' · Predicción: '+esc(sgpPlayerTime(x.pregame_snapshot_at_utc))+
+      '. Sin probabilidad OOS aprobada ni apuesta sugerida.</div></article>';
+  }}
+  function renderPlayerSportResearch(value){{
+    const area=$('playerSportModelSummary'),box=$('playerSportModelRows');
+    if(!area||!box)return;
+    const root=value&&typeof value==='object'?value:{{}};
+    const sport=root.sport&&typeof root.sport==='object'?root.sport:{{}};
+    const matches=root.market_alignment&&typeof root.market_alignment==='object'?root.market_alignment:{{}};
+    const oos=root.oos&&typeof root.oos==='object'?root.oos:{{}};
+    const families=oos.families&&typeof oos.families==='object'?oos.families:{{}};
+    const example=(key)=>{{
+      const item=families[key]||{{}};
+      const count=num(item.unique_player_fixtures);
+      return count===null?'NO VERIFICADO':String(Math.floor(count));
+    }};
+    const sportRows=Array.isArray(sport.rows)?sport.rows:[];
+    const quoteMatches=num(matches.raw_model_exact_matches)||0;
+    const headline=sportRows.length?
+      'Proyecciones deportivas independientes: '+sportRows.length:
+      'Sin proyecciones completas verificadas para los próximos partidos';
+    area.innerHTML='<strong>'+esc(headline)+'</strong>'+
+      '<div class="sport-model-sub">Base de validación fuera de muestra: tiros '+
+      esc(example('SHOTS'))+'/500; tiros a puerta '+esc(example('SOT'))+
+      '/500. Para revisión accionable se requieren al menos 2,000 observaciones y validación de precisión. <b>Actualmente ninguna apuesta está autorizada.</b></div>'+
+      '<div class="sport-model-sub">Ofertas enlazadas por ID, XI, línea exacta y tiempo: '+
+      esc(quoteMatches)+'. Estas coincidencias son diagnósticas, no picks. '+
+      'No se usan cuotas para generar ni ordenar predicciones.</div>'+
+      '<div class="sport-model-sub">Estado OOS: '+esc(oos.status||'NOT VERIFIED')+
+      ' · Estado de fuentes prepartido: '+esc(sport.status||root.status||'NOT VERIFIED')+'</div>';
+    box.innerHTML=sportRows.length?sportRows.slice(0,12).map(playerSportModelCard).join(''):'';
+  }}
   function sgpPlayerMarketName(x){{
     const raw=String(x.provider_market||'Mercado individual');
     if(/shots? on target|on target shots?|sot/i.test(raw))return 'Tiros a puerta';
@@ -754,6 +823,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       regular.innerHTML=low.map(researchPriceCard).join('');
       const combos=Array.isArray(data.sgp_composites)?data.sgp_composites:[];
       const catalog=Array.isArray(data.sgp_market_catalog)?data.sgp_market_catalog:[];
+      renderPlayerSportResearch(data.player_sport_research);
       const rawPlayerRows=Array.isArray(data.sgp_player_components)?data.sgp_player_components:[];
       const playerRows=rawPlayerRows.filter(playerStatEvidenceEligible);
       const priceOnlyCount=num(data.sgp_player_quote_catalog_count)||0;

@@ -517,6 +517,7 @@ def build_from_postgres(*, lookback_days: int = 180, max_rows: int = 50000) -> d
     return {
         "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "status": "PLAYER_PROP_OOS_REVIEW_READY" if all_ready else "COLLECTING_PLAYER_PROP_OOS",
         "lookback_days": lookback_days,
         "pregame_event_rows_loaded": len(pregame),
