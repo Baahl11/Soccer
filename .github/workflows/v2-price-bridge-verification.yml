@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/v2-price-bridge-verification.yml'
+      - 'scripts/fe11_universal_inventory_guard.py'
   workflow_dispatch:
   # Read-only OIDC proof shortly after 07:15 and 13:20 CDMX scanner scans.
   # This never triggers the scanner, provider requests or a historical replay.
@@ -29,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - uses: actions/checkout@v4
       - name: Validate live Render / Supabase bridge without any research credentials
         shell: bash
         run: |
@@ -43,6 +45,12 @@ jobs:
           jq -e '.render_cache_status == "READ_OK" and (.render_cached_sgp_rows | type == "number") and (.render_cached_sgp_fresh_rows | type == "number")' /tmp/bridge.json
           jq -e '.fe11_history_inventory.status == "VERIFIED_READ" and (.fe11_history_inventory.research_rows_persisted | type == "number") and (.fe11_history_inventory.research_rows_persisted >= 3) and (.fe11_history_inventory.unique_fixtures | type == "number") and (.fe11_history_inventory.current_pregame_profiles | type == "number") and (.fe11_history_inventory.provider_requests_added == 0) and .fe11_history_inventory.production_bets_authorized == false' /tmp/bridge.json
           jq '{fe11_history_inventory}' /tmp/bridge.json
+          # The new protected DB inventory must retain the 23 real pregame
+          # baselines frozen on Nov 6. Zero linked results is valid until an
+          # authentic registered fixture actually finishes. This guard never
+          # calls the sports provider or writes Postgres.
+          python scripts/fe11_universal_inventory_guard.py \
+            --bridge /tmp/bridge.json --output /tmp/fe11_universal_inventory.json
           jq '{status,fresh_research_rows,sgp_direct_combo_quotes,sgp_recent_combo_quotes,sgp_player_component_quotes,sgp_raw_positive_research,render_cached_sgp_rows,render_cached_sgp_fresh_rows,render_cache_status,source,bet_eligible,tokens_exposed}' /tmp/bridge.json
 
       - name: Publish FE11 aggregate-only audit receipt
@@ -59,6 +67,10 @@ jobs:
           inventory=src["fe11_history_inventory"]
           assert inventory.get("status")=="VERIFIED_READ"
           assert inventory.get("production_bets_authorized") is False
+          universal=json.loads(Path("/tmp/fe11_universal_inventory.json").read_text())
+          assert universal["status"]=="VERIFIED_AGGREGATE_CONSISTENCY"
+          assert universal["provider_requests_added"]==0
+          assert universal["bet_eligible"] is False
           safe={
               "audit":"FE11_PRIVATE_RENDER_HISTORICAL_SPORT_READINESS",
               "status":inventory["status"],
@@ -68,10 +80,14 @@ jobs:
               "last_source_generated_at_utc":inventory.get("last_source_generated_at_utc"),
               "bookmaker_prices_exposed":False,
               "production_bets_authorized":False,
+              "universal_lifecycle":universal,
           }
           Path("/tmp/fe11_inventory.json").write_text(json.dumps(safe,indent=2)+"\n")
           print("FE11 retained rows:",safe["research_rows_persisted"],
-                "current fixtures:",safe["current_pregame_profiles"])
+                "current fixtures:",safe["current_pregame_profiles"],
+                "all-eligible baselines:", universal["eligible_pregame_baselines"],
+                "matched official finals:", universal["matched_official_final_fixtures"],
+                "FT corners:", universal["official_ft_corners_verified_fixtures"])
           PY
           URL="https://api.github.com/repos/$GH_REPO/contents/fe11_inventory.json"
           SHA=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
