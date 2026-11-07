@@ -532,3 +532,55 @@ El backend decide elegibilidad; el cliente no crea picks ni recalcula probabilid
 7. **App nativa (si existe demanda):** reutilizar backend/notificaciones, sin duplicar lógica deportiva ni autorización de apuestas.
 
 **Política comercial:** las alertas venden acceso a información y transparencia; no prometer ganancias, exigir atención a edad/jurisdicción y evitar mecánicas compulsivas. 
+
+
+---
+
+## FE-11 — Constructor multimerkado: goles, córners, hándicap y períodos
+
+**Fecha:** 2026-11-06. **Origen:** captura Novibet facilitada por usuario. **Estado:** PERFIL DEPORTIVO DESCRIPTIVO IMPLEMENTADO; estimación conjunta OOS, boletos con precio verificable y producto comercial aún pendientes.
+
+### Qué representa la captura
+
+- **Necaxa–Tijuana:** misma partida, tres componentes: Over 6.5 córners totales, Over 1.5 goles totales y Tijuana +1 hándicap. El creador de apuestas muestra **cuota +100 para el conjunto**.
+- **Atlético San Luis–FC Juárez:** Over 0.5 goles, Over 6.5 córners y San Luis +1 hándicap, combinados dentro del mismo encuentro a -300.
+- Los dos constructores del mismo partido se reúnen en una apuesta de **dos boletos entre encuentros** a aproximadamente +167 en la captura. No confundir el precio de un componente individual con el precio conjunto del builder, ni multiplicar cuotas sin evidencia de una oferta.
+
+Estos constructores son distintos de un mercado combinado ya cotizado (p.ej. Over 2.5 + BTTS), de un SGP personalizado con jugadores y de un parlay ordinario entre partidos.
+
+### Orden SPORT FIRST → JOINT → MARKET
+
+1. Verificar slate, torneo, kickoff, historia anterior al partido, disponibilidad, XI/GK, ritmo y calidad del rival.
+2. Modelar por separado FT goles, team totals, 1H y 2H goles, corners 1H/2H/FT (ambos equipos), hándicap y márgenes de victoria/empate/derrota. Añadir tiros a puerta, presiones, centros, balón parado, jugadores y minutos cuando estén disponibles.
+3. Construir una **distribución conjunta para selecciones del mismo partido**, no multiplicar marginales. Las decisiones de corners, goles y hándicap comparten estilo, ritmo y estado del marcador; verificar correlación OOS.
+4. Solicitar **precio exacto de Bet Builder de la casa concreta**, selección, línea, lado, regla de liquidación, hora, disponibilidad. No inferir cuota ejecutable de la imagen ni de odds API-Football ID8.
+5. Evaluar escenario de dos o más builders en un boleto interpartidos con **precio total confirmado**, sin asumir que el producto representa apuestas independientes.
+6. Clasificar BET/LEAN/WATCH/PASS con el gate canónico, sin activar ninguna alerta BET sin OOS, cuotas y disponibilidad defendibles.
+
+### Cobertura deportiva imprescindible
+
+| Mercado | Evidencia deportiva previa a cuota | Dato que nunca debe inventarse |
+|---|---|---|
+| 1H y 2H goles | goles al descanso, FT coherente, xG y tiros por intervalo si fuente los da, formaciones, rival, local/visitante | p de cada tiempo sin modelo separado |
+| FT goles, BTTS y TT | xG/xGA, chances, tiros totales y al arco, oposición, XI, calendario y localía | probabilidad independiente del resto del ticket |
+| Córners 1H, 2H y FT | favor y contra por tiempo, centros, tiros bloqueados, juego por bandas, posesión avanzada, esquemas y rival | córners del rival cuando fuente devuelve null |
+| Hándicap | distribución de diferencia de goles, probabilidad de cubrir, empatar o devolver según línea | asumir +1 asiático sin verificar Novibet |
+| Jugadores | XI y minutos verificados, tiros por 90, rol, disciplina, rival y settlement exacto | cuota combinada de varias piernas no ofrecida |
+| Contexto | recambios, cansancio, rivales, congestión, viajes y clima acreditados | motivaciones inventadas o muestras fuera de corte |
+
+Cada cálculo debe conservar partido, liga, horario, n por local/visita, cortes temporales, periodización, fuente, porcentajes descriptivos y si está realmente calibrado. Ausente no es cero. Si hay pocos casos, mostrar muestra insuficiente, no un pick más fuerte.
+
+### Código implementado ahora (solo SPORT FIRST)
+
+- **multi_market_sport_profile.py:** recibe marcadores 90 minutos, descanso y estadísticas FT de ambos equipos; calcula perfiles descriptivos de goles 1H/2H/FT, córners a favor/en contra, patrones por localía y propensión temporal.
+- Reproduce un ejemplo de triple componente: Over 1.5 FT goles + Over 6.5 FT córners + equipo +1. Cuenta coincidencias en **un mismo partido pasado**, y distingue push asiático de hándicap a tres vías. Es una frecuencia histórica, **NO** probabilidad futura de acierto.
+- Restringe historia a FT anteriores al kickoff, rechaza tiempos incoherentes y córners cuyo periodo/identidad no estén documentados.
+- Integración suplementaria en market_context, sin llamadas adicionales a la API. Devuelve calibración y elegibilidad BET falsas.
+
+### Interfaz que falta desarrollar
+
+**Match Center:** pestañas de 1H/2H, córners for/against, margen de victoria, estadísticas por rival con intervalos y n. **Builder de 2–4 piernas:** combina goles/córners/hándicaps (luego jugadores) con compatibilidad por fixture, settlement y dependencias, mostrando cuota conjunta solamente si está cotizada por el bookmaker. **Combinada de builders:** agrupa 2+ tickets de encuentros distintos, reconfirma el precio de cada uno y el precio del parlay total. **Historial público:** registra selección, precio, timestamp, modelo, resultado y liquidación por componente y ticket, incluso pérdidas.
+
+**Secuencia:** histórico amplio y auditado → modelos de períodos/córners/hándicap calibrados por mercado → correlación OOS → puente oficial de cotización de Bet Builder → UI móvil y QA → alertas push opt-in. No promocionar mercados por ganar un ejemplo aislado.
+
+**Restricciones:** no fabricar cuotas conjuntas multiplicando probabilidades o precios, no inferir que Tijuana +1 es asiático, no asignar cuota a un SGP de jugadores sin ticket verificable, no convertir WATCH a BET por estar +100, no mostrar selecciones incompatibles como recomendaciones simultáneas.
