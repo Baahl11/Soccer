@@ -13,6 +13,7 @@ from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
 from mcp_gateway import subscriber_billing_v2
 from mcp_gateway import subscriber_preview_data_v231
+from mcp_gateway import multimarket_history_bridge_v1
 from mcp_gateway import subscriber_saved_items_v4
 from mcp_gateway import subscriber_ui_contract_v231
 from mcp_gateway import subscriber_validation_metrics_v231
@@ -2416,6 +2417,17 @@ async def match_detail(request: Request) -> JSONResponse:
     )
     if result is None:
         return _no_store({"error": "FIXTURE_NOT_IN_REGISTRY_OR_PERSISTED_SNAPSHOT"}, status_code=404)
+    try:
+        multimarket = await asyncio.to_thread(
+            multimarket_history_bridge_v1.read_for_match, fixture_value
+        )
+    except Exception:
+        multimarket = {
+            "status":"NOT_VERIFIED",
+            "reason":"MULTIMARKET_HISTORY_SOURCE_UNAVAILABLE",
+            "bet_eligible":False,
+        }
+    result["multi_market_research"] = multimarket
     return _no_store(result)
 
 
