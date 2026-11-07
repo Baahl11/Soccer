@@ -247,6 +247,17 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
             fe11_inventory=await asyncio.to_thread(multimarket_history_bridge_v1.inventory_readiness)
         except Exception:
             fe11_inventory={"status":"NOT_VERIFIED","reason":"FE11_INVENTORY_READ_FAILED"}
+        # Aggregate-only inspection: official whole-eligible pregame freeze
+        # and matched terminal score counts, never fixture IDs or private data.
+        try:
+            fe11_universal_inventory = await asyncio.to_thread(
+                _base_server.persistence_base.fe11_universal_readiness
+            )
+        except Exception:
+            fe11_universal_inventory = {
+                "status": "NOT_VERIFIED",
+                "reason": "FE11_UNIVERSAL_INVENTORY_READ_FAILED",
+            }
         print("SGP_SOURCE_HEALTH " + json.dumps({
             "supabase_composites": len(combos),
             "supabase_player_components": len(players),
@@ -259,6 +270,7 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
             "render_cached_sgp_fresh_rows": sum(x.get("quote_freshness")=="CURRENT_QUOTE" for x in cached),
             "render_cache_status": cache_status,
             "fe11_history_inventory": fe11_inventory,
+            "fe11_universal_inventory": fe11_universal_inventory,
             "status":"CONNECTED_RESEARCH_ONLY",
             "fresh_research_rows":len(rows),
             "sgp_direct_combo_quotes":len(combos),
