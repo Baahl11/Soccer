@@ -71,7 +71,11 @@ def make_fe11_envelope(summary: dict[str, Any],
             or _utc(hp.get("target_kickoff")) != _utc(kickoff)
             or _utc(ap.get("target_kickoff")) != _utc(kickoff)
             or hp.get("bet_eligible") is not False
-            or ap.get("bet_eligible") is not False):
+            or ap.get("bet_eligible") is not False
+            or not isinstance(hp.get("observations"),list)
+            or not isinstance(ap.get("observations"),list)
+            or len(hp["observations"]) == 0
+            or len(ap["observations"]) == 0):
             skipped.append({"fixture_id":fixture_id,"reason":"HISTORICAL_PROFILES_INCOMPLETE"})
             continue
         patterns=(home.get("example_goals_corners_handicap_pattern"),
