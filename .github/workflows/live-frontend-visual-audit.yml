@@ -85,6 +85,14 @@ jobs:
           assert "Control Tower" not in html
           assert "Research Lab" not in html
           assert html.count('id="boot"') == 1
+          assert 'id="sgpQuotedComposites"' in html
+          assert '<details id="sgpMarketCatalogDetails"' in html
+          assert '<summary>Ver catálogo de cuotas combinadas (NO son picks)</summary>' in html
+          assert 'id="sgpMarketCatalog"' in html
+          assert 'Máximo UNA señal por encuentro' in html
+          assert "function sgpCatalogCard(" in html
+          assert '<details id="sgpMarketCatalogDetails" open' not in html
+
           assert "MutationObserver" not in html
           assert "setTimeout(" not in html
           print(json.dumps({
