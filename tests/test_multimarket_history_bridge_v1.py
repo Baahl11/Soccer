@@ -131,6 +131,13 @@ def test_fe11_ingest_only_persists_verified_ids(monkeypatch):
     doc["generated_at_utc"]=(now-timedelta(minutes=2)).isoformat()
     ko=(now+timedelta(hours=7)).isoformat()
     doc["reports"][0]["kickoff"]=ko
+    t=datetime.fromisoformat(ko)
+    registry_record=(
+        None if kind=="NOT_FOUND" else
+        ("NS",t,999,202) if kind=="TEAM_CONFLICT" else
+        ("PST",t,101,202) if kind=="POSTPONED" else
+        ("NS",t+timedelta(minutes=5),101,202)
+    )
     for side in ("home_profile","away_profile"):
         doc["reports"][0][side]["target_kickoff"]=ko
     class Cursor:
@@ -186,15 +193,14 @@ def test_fe11_inventory_is_aggregate_only_and_never_promotes_bets(monkeypatch):
 
 
 
-@pytest.mark.parametrize("registry_record,expected",[
-    (None,"REGISTRY_FIXTURE_NOT_FOUND"),
-    (("NS",datetime.now(timezone.utc)+timedelta(hours=7),999,202),
-     "REGISTRY_TEAM_ID_CONFLICT"),
-    (("PST",datetime.now(timezone.utc)+timedelta(hours=7),101,202),
-     "REGISTRY_STATUS_NOT_NS"),
+@pytest.mark.parametrize("kind,expected",[
+    ("NOT_FOUND","REGISTRY_FIXTURE_NOT_FOUND"),
+    ("TEAM_CONFLICT","REGISTRY_TEAM_ID_CONFLICT"),
+    ("POSTPONED","REGISTRY_STATUS_NOT_NS"),
+    ("KICKOFF_CHANGED","REGISTRY_KICKOFF_MISMATCH"),
 ])
 def test_fe11_registry_rejection_diagnostic_never_forces_persistence(
-        monkeypatch,registry_record,expected):
+        monkeypatch,kind,expected):
     now=datetime.now(timezone.utc)
     doc=sample_doc()
     doc["generated_at_utc"]=(now-timedelta(minutes=1)).isoformat()
