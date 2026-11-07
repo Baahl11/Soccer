@@ -69,6 +69,12 @@ const researchStart = app.indexOf("function researchPriceCard(");
 const researchEnd = app.indexOf("let sgpPlayerObservations=", researchStart);
 assert.ok(researchStart >= 0 && researchEnd > researchStart);
 vm.runInContext(app.slice(researchStart,researchEnd), sandbox);
+const comboStart = app.indexOf("function sgpComboCard(");
+const catalogStart = app.indexOf("function sgpCatalogCard(", comboStart);
+const catalogEnd = app.indexOf("function sgpPlayerMarketName(", catalogStart);
+assert.ok(comboStart >= 0 && catalogStart > comboStart && catalogEnd > catalogStart);
+vm.runInContext(app.slice(comboStart,catalogStart), sandbox);
+vm.runInContext(app.slice(catalogStart,catalogEnd), sandbox);
 const offer = {
   fixture_id:701231,home_team:"KVC Westerlo",away_team:"Charleroi",
   league:"Belgium",bookmaker:"Bet365",market_family:"Player Shots",
