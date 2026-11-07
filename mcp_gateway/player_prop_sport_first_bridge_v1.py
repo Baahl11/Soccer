@@ -15,6 +15,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 import math
 import re
+import time
 from typing import Any
 
 VERSION = "FE11_PLAYER_SPORT_FIRST_OFFER_BRIDGE_v1.0"
@@ -347,6 +348,81 @@ def match_offers_to_sport(
     }
 
 
+OOS_STATE_URL = (
+    "https://raw.githubusercontent.com/Baahl11/Soccer/"
+    "soccer-edge-state/soccer_edge_state/analysis/player_props_oos_v4_report.json"
+)
+_OOS_READ_MEMO: dict[str, Any] = {"expires_at": 0.0, "payload": None}
+
+
+def get_oos_readiness(*, now_utc: datetime | None = None) -> dict[str, Any]:
+    """Read published OOS-only result, never treat 500 N as model approval.
+
+    Real historical, finalized outcomes are produced by the existing protected
+    OIDC PostgreSQL OOS workflow. Cached 15 min, source freshness <=72 h;
+    missing/stale/malformed reports keep the gate CLOSED.
+    """
+    now = _dt(now_utc or datetime.now(timezone.utc))
+    if not now:
+        raise ValueError("INVALID_OOS_AUDIT_TIME")
+    clock = time.monotonic()
+    source = _OOS_READ_MEMO["payload"] if clock < _OOS_READ_MEMO["expires_at"] else None
+    if source is None:
+        try:
+            import httpx
+            response=httpx.get(OOS_STATE_URL, timeout=5, follow_redirects=True)
+            response.raise_for_status()
+            source=response.json()
+            if not isinstance(source,dict):
+                source=None
+        except Exception:
+            source=None
+        _OOS_READ_MEMO["payload"]=source
+        _OOS_READ_MEMO["expires_at"]=clock+900
+    good = isinstance(source,dict) and source.get("model_version")==OOS_MODEL_VERSION
+    ts=_dt(source.get("generated_at_utc")) if good else None
+    fresh=bool(ts and timedelta(0)<=now-ts<=timedelta(hours=72))
+    families={}
+    for family in SUPPORTED_FAMILIES:
+        row=(source.get("families") or {}).get(family) if good else None
+        row=row if isinstance(row,dict) else {}
+        n=row.get("unique_player_fixtures")
+        n=n if type(n) is int and n>=0 else None
+        brier=_num(row.get("brier_score"))
+        loss=_num(row.get("log_loss"))
+        bins=row.get("binary_probability_rows")
+        bins=bins if type(bins) is int and bins>=0 else None
+        ready_for_review=bool(
+            fresh and n is not None and n>=MIN_OOS_REVIEW_PLAYER_GAMES
+            and bins is not None and bins>=MIN_OOS_REVIEW_PLAYER_GAMES
+            and brier is not None and loss is not None
+            and row.get("oos_validation_complete") is True
+        )
+        families[family]={
+            "unique_player_fixtures":n,
+            "binary_probability_rows":bins,
+            "minimum_review_sample":MIN_OOS_REVIEW_PLAYER_GAMES,
+            "minimum_actionable_review_sample":MIN_OOS_ACTIONABLE_PLAYER_GAMES,
+            "brier_score":brier if brier is not None and brier>=0 else None,
+            "log_loss":loss if loss is not None and loss>=0 else None,
+            "ready_for_manual_oos_review":ready_for_review,
+            "calibration_approved":False,
+            "status":("REVIEW_SAMPLE_READY_NOT_APPROVED" if ready_for_review
+                      else "COLLECTING_OR_UNVERIFIED_OOS"),
+        }
+    return {
+        "status":"VERIFIED_RECENT_OOS_SOURCE_FOR_REVIEW" if fresh
+                 else "NOT_VERIFIED_CURRENT_OOS_REPORT",
+        "source_model_version":OOS_MODEL_VERSION if good else None,
+        "source_generated_at_utc":ts.isoformat() if ts else None,
+        "families":families,
+        "manual_performance_review_required":True,
+        "production_promotion_allowed":False,
+        "provider_requests_added":0,
+        "bet_eligible":False,
+    }
+
+
 def load_frozen_models() -> list[dict[str, Any]]:
     """Owner-only bounded read. Does not import heavy canonical model modules."""
     from mcp_gateway import persistence
@@ -367,12 +443,14 @@ def build_live_research(offers: list[dict[str, Any]]) -> dict[str, Any]:
     rows=load_frozen_models()
     sport=sport_profiles(rows, now_utc=now)
     compared=match_offers_to_sport(offers, sport, now_utc=now)
+    oos=get_oos_readiness(now_utc=now)
     return {
         "status":"SPORT_FIRST_RESEARCH_ONLY",
         "model_version":VERSION,
         "sport":sport,
         "market_alignment":compared,
-        "oos_readiness_status":"NOT_VERIFIED_FROM_FROZEN_PREGAME_RECORD_ALONE",
+        "oos":oos,
+        "oos_readiness_status":oos["status"],
         "oos_review_minimum_player_games":MIN_OOS_REVIEW_PLAYER_GAMES,
         "oos_actionable_review_minimum_player_games":MIN_OOS_ACTIONABLE_PLAYER_GAMES,
         "production_promotion_allowed":False,
