@@ -12,6 +12,8 @@ on:
       - 'tools/sports_edge_scanner_v05/tests/test_fe11_oos_baselines.py'
       - 'tools/sports_edge_scanner_v05/tests/test_multimarket_export.py'
       - '.github/workflows/sports-edge-scanner-v05-paper.yml'
+      - '.github/workflows/fe11-replay-latest-history.yml'
+      - 'tools/sports_edge_scanner_v05/tests/test_fe11_replay_policy.py'
       - 'tools/sports_edge_scanner_v05/tests/test_multi_market_sport_profile.py'
       - '.github/workflows/soccer-multimarket-sport-profile-qa.yml'
       - '17_SOCCER_FRONTEND_PRODUCT_ROADMAP_v1.0.md'
@@ -53,3 +55,5 @@ jobs:
             -p "test_fe11_oos_dataset.py"
           python -m unittest discover -v -s tools/sports_edge_scanner_v05/tests \
             -p "test_fe11_oos_baselines.py"
+          python -m unittest discover -v -s tools/sports_edge_scanner_v05/tests \
+            -p "test_fe11_replay_policy.py"

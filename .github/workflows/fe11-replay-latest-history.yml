@@ -2,11 +2,9 @@
 # GitHub main workflow OIDC is allowlisted by App V2 bridge PR #91.
 name: Soccer FE11 original historical import replay - safe diagnosis
 on:
+  # Manual only: backend may not yet deploy the strict allowlist, and source
+  # evidence expires 48h after generation. Never spam auto-replay POSTs.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/fe11-replay-latest-history.yml
 
 permissions:
   actions: read
@@ -66,6 +64,35 @@ jobs:
           TOKEN=$(printf '%s' "$OIDC_REPLY" | jq -r '.value // empty')
           test -n "$TOKEN"
           echo "::add-mask::$TOKEN"
+          # Diagnostic only: decode local claims but DO NOT verify the JWT here.
+          # Render remains sole token verifier (signature, issuer, audience).
+          # Print neither token nor individual claims, only pass/fail marker.
+          export FE11_OIDC_JWT="$TOKEN"
+          python - <<'PY'
+          import base64,json,os
+          token=os.environ["FE11_OIDC_JWT"]
+          pieces=token.split(".")
+          if len(pieces)!=3:
+              raise SystemExit("FE11_OIDC_LOCAL_CLAIMS_NOT_VERIFIED")
+          try:
+              encoded=pieces[1]
+              claims=json.loads(base64.urlsafe_b64decode(encoded+"="*((-len(encoded))%4)))
+          except Exception:
+              raise SystemExit("FE11_OIDC_LOCAL_CLAIMS_NOT_VERIFIED")
+          expected_path="Baahl11/Soccer/.github/workflows/fe11-replay-latest-history.yml@"
+          verified=(
+              claims.get("repository")=="Baahl11/Soccer"
+              and claims.get("ref")=="refs/heads/main"
+              and str(claims.get("workflow_ref","")).startswith(expected_path)
+              and claims.get("iss")=="https://token.actions.githubusercontent.com"
+              and claims.get("aud")=="soccer-edge-render"
+              and all(claims.get(k) is not None for k in ("sub","exp","iat"))
+          )
+          if not verified:
+              raise SystemExit("FE11_OIDC_LOCAL_CLAIMS_NOT_VERIFIED")
+          print("FE11_OIDC_LOCAL_CLAIMS_MATCH_EXPECTED_BACKEND_ALLOWLIST")
+          PY
+          unset FE11_OIDC_JWT
           HTTP=$(curl -sS --max-time 60 --request POST \
             -H "Authorization: Bearer $TOKEN" \
             -H "Content-Type: application/json" \
@@ -73,7 +100,15 @@ jobs:
             -o /tmp/fe11-replay-receipt.json -w '%{http_code}' \
             https://soccer-edge-api.onrender.com/internal/fe11-multimarket-history-import-v1)
           echo "FE11 replay response HTTP $HTTP"
-          test "$HTTP" = "200" || { echo "FE11_REPLAY_ENDPOINT_NOT_READY"; exit 1; }
+          if [ "$HTTP" != "200" ]; then
+            case "$HTTP" in
+              401) echo "FE11_SERVER_REJECTED_VERIFIED_LOCAL_CLAIMS: DEPLOYED_ALLOWLIST_OR_SERVER_OIDC_DIFFERENCE" ;;
+              400) echo "FE11_SERVER_REJECTED_ORIGINAL_RESEARCH_ENVELOPE" ;;
+              503) echo "FE11_SERVER_PERSISTENCE_UNAVAILABLE" ;;
+              *) echo "FE11_REPLAY_ENDPOINT_NOT_READY_HTTP_$HTTP" ;;
+            esac
+            exit 1
+          fi
           jq -e '.status=="SPORT_FIRST_HISTORY_IMPORTED"
                  and .bet_eligible==false
                  and .probabilities_calibrated==false
