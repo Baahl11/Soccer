@@ -1,0 +1,146 @@
+name: Soccer Player Statistical Registry - Runner Only
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "40 10 * * *" # 04:40 America/Mexico_City; NO Render / API-Football calls.
+
+permissions:
+  contents: write
+
+concurrency:
+  group: player-stats-runner-only-registry
+  cancel-in-progress: false
+
+jobs:
+  rebuild-with-existing-official-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: engine
+          fetch-depth: 1
+
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Record before-run official state provenance (no provider)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from datetime import datetime,timezone
+          from pathlib import Path
+          root=Path("state/soccer_edge_state")
+          inputs=[
+            root/"analysis/player_trend_registry_backfill.json",
+            root/"analysis/player_trends.json",
+            root/"analysis/player_role_registry.json",
+          ]
+          files={}
+          for path in inputs:
+            if path.exists():
+              raw=path.read_bytes()
+              try: header=json.loads(raw)
+              except (ValueError,UnicodeError): header={}
+              files[path.name]={
+                "size_bytes":len(raw),
+                "sha256":hashlib.sha256(raw).hexdigest(),
+                "prior_status":header.get("status"),
+                "prior_generated_at_utc":header.get("generated_at_utc"),
+              }
+          assert (root/"history").exists(), "MISSING_PERSISTED_OFFICIAL_HISTORY"
+          print(json.dumps({
+            "status":"RUNNER_ONLY_ORIGINAL_STATE_INPUTS",
+            "observed_at_utc":datetime.now(timezone.utc).isoformat(),
+            "files":files,
+            "api_football_calls":0,"render_http_calls":0,
+            "retroactive_predictions_created":False,
+          },sort_keys=True))
+          PY
+
+      - name: Rebuild future-only player shots/SOT model using existing history
+        shell: bash
+        env:
+          PYTHONPATH: engine
+        run: |
+          set -euo pipefail
+          python engine/mcp_gateway/analyze_player_trends.py \
+            --history-dir state/soccer_edge_state/history \
+            --registry-backfill state/soccer_edge_state/analysis/player_trend_registry_backfill.json \
+            --output state/soccer_edge_state/analysis/player_trends.json
+          python engine/mcp_gateway/build_player_role_registry.py \
+            --player-trends state/soccer_edge_state/analysis/player_trends.json \
+            --output state/soccer_edge_state/analysis/player_role_registry.json
+          python engine/mcp_gateway/build_player_trend_model_registry.py \
+            --player-trends state/soccer_edge_state/analysis/player_trends.json \
+            --player-roles state/soccer_edge_state/analysis/player_role_registry.json \
+            --output state/soccer_edge_state/analysis/player_trend_model_registry.json
+
+      - name: Verify independent as-of statistics and hard no-bet guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from datetime import datetime,timezone
+          from pathlib import Path
+          base=Path("state/soccer_edge_state/analysis")
+          trend=json.loads((base/"player_trends.json").read_text())
+          role=json.loads((base/"player_role_registry.json").read_text())
+          registry=json.loads((base/"player_trend_model_registry.json").read_text())
+          assert trend.get("status")=="RESEARCH_ONLY_PLAYER_TRENDS"
+          assert role.get("status")=="RESEARCH_PLAYER_ROLE_REGISTRY"
+          assert registry.get("status")=="RESEARCH_PLAYER_TREND_MODEL_REGISTRY"
+          assert registry.get("actionable") is False
+          assert registry.get("decision_weight")==0.0
+          assert isinstance(registry.get("profiles"),dict)
+          assert isinstance(registry.get("generated_at_utc"),str)
+          ts=datetime.fromisoformat(registry["generated_at_utc"].replace("Z","+00:00"))
+          assert ts.tzinfo and 0<=(datetime.now(timezone.utc)-ts.astimezone(timezone.utc)).total_seconds()<900
+          for name in ("shots","shots_on_target"):
+            assert name in (registry.get("global_priors") or {}),name
+          print(json.dumps({
+            "status":"FUTURE_ONLY_RESEARCH_PLAYER_REGISTRY_VERIFIED",
+            "profiles":len(registry["profiles"]),
+            "registry_generated_at_utc":registry["generated_at_utc"],
+            "source_player_trends_generated_at_utc":registry.get("source_player_trends_generated_at_utc"),
+            "model_version":registry.get("model"),
+            "provider_requests_added":0,
+            "render_service_calls_added":0,
+            "oos_validation_complete":False,
+            "production_bets_authorized":False,
+            "retroactive_pregame_signals_created":False,
+          },sort_keys=True))
+          PY
+
+      - name: Persist player research registry to state branch
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f \
+            soccer_edge_state/analysis/player_trends.json \
+            soccer_edge_state/analysis/player_role_registry.json \
+            soccer_edge_state/analysis/player_trend_model_registry.json
+          if git diff --cached --quiet; then echo "No source changes"; exit 0; fi
+          git commit -m "Rebuild future-only player models on GitHub runner from already verified history"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt*2))
+          done
+          exit 1
