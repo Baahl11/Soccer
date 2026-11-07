@@ -624,7 +624,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<div class="sgp-leg-match">'+esc(x.home_team||'Local')+' vs '+
       esc(x.away_team||'Visitante')+' · '+esc(family)+'</div>'+
       '<div><span class="sport-model-big">'+esc(val(projected))+'</span>'+
-      '<span class="sport-model-sub"> · tiros previstos, estimación bruta sin calibrar</span></div>'+
+      '<span class="sport-model-sub"> · '+esc(x.family==='SOT'?'tiros a puerta previstos':'tiros previstos')+', estimación bruta sin calibrar</span></div>'+
       '<div class="sport-model-stats">'+
       '<div class="sport-model-stat"><b>'+esc(val(rate))+'</b><small>Histórico por 90 minutos</small></div>'+
       '<div class="sport-model-stat"><b>'+esc(played===null?'NOT VERIFIED':String(played))+'</b><small>Partidos con minutos verificados</small></div>'+
