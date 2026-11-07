@@ -258,6 +258,35 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
                 "status": "NOT_VERIFIED",
                 "reason": "FE11_UNIVERSAL_INVENTORY_READ_FAILED",
             }
+        # Separate aggregate-only proof that frozen, independently modeled
+        # player shots/SOT history can be read before any price matching.
+        # Zero eligible rows is valid; NEVER fill with bookmaker names or
+        # invented player IDs. This does not make anything BET eligible.
+        try:
+            from mcp_gateway import player_prop_sport_first_bridge_v1 as player_bridge
+            model_source = await asyncio.to_thread(player_bridge.load_frozen_models)
+            model_audit = player_bridge.sport_profiles(
+                model_source, now_utc=datetime.now(timezone.utc)
+            )
+            player_sport_readiness = {
+                "status": model_audit["status"],
+                "asof_fixture_rows_read": len(model_source),
+                "verified_pregame_sport_models": model_audit["verified_pregame_sport_models"],
+                "unverified_input_reasons": model_audit["unverified_input_reasons"],
+                "player_source_model": player_bridge.VERSION,
+                "provider_requests_added": 0,
+                "prices_used_to_select": False,
+                "bet_eligible": False,
+            }
+        except Exception:
+            player_sport_readiness = {
+                "status": "NOT_VERIFIED_PLAYER_MODEL_POSTGRES_READ",
+                "asof_fixture_rows_read": 0,
+                "verified_pregame_sport_models": 0,
+                "provider_requests_added": 0,
+                "prices_used_to_select": False,
+                "bet_eligible": False,
+            }
         print("SGP_SOURCE_HEALTH " + json.dumps({
             "supabase_composites": len(combos),
             "supabase_player_components": len(players),
@@ -271,6 +300,7 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
             "render_cache_status": cache_status,
             "fe11_history_inventory": fe11_inventory,
             "fe11_universal_inventory": fe11_universal_inventory,
+            "player_sport_readiness": player_sport_readiness,
             "status":"CONNECTED_RESEARCH_ONLY",
             "fresh_research_rows":len(rows),
             "sgp_direct_combo_quotes":len(combos),
