@@ -62,7 +62,8 @@ class Fe11ReplayPolicy(unittest.TestCase):
         self.assertNotIn("print(claims)", source)
         self.assertNotIn("print(token)", source)
         self.assertNotIn("API_FOOTBALL_KEY", source)
-        executable = "\n".join(line for line in source.splitlines()\n                               if not line.lstrip().startswith("#"))\n        self.assertNotIn("/odds", executable)
+        executable = "\n".join(line for line in source.splitlines()
+                               if not line.lstrip().startswith("#"))\n        self.assertNotIn("/odds", executable)
 
     def test_embedded_shell_and_python_are_syntactically_valid(self):
         # Verify exact run scripts with bash -n: never execute remote calls.
