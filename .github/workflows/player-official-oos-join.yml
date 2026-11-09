@@ -1,0 +1,185 @@
+name: Soccer Player SHOTS/SOT - Verified Frozen Prematch OOS Join
+
+# Reads only 25 verified FT fixture IDs from protected Render via main OIDC.
+# Never opens Postgres firewall; never backfills on the 512 MiB web process.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/player_official_oos_join.py"
+      - ".github/workflows/player-official-oos-join.yml"
+  push:
+    branches: [main]
+    paths: [".github/workflows/player-official-oos-join.yml"]
+  schedule:
+    - cron: "8 10 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: player-stats-runner-only-registry
+  cancel-in-progress: false
+
+jobs:
+  offline-anti-leakage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Strict offline OOS as-of, identity, missing stat and duplicate tests
+        run: |
+          set -euo pipefail
+          python .github/scripts/player_official_oos_join.py --self-test
+          python - <<'PY'
+          from pathlib import Path
+          w=Path(".github/workflows/player-official-oos-join.yml").read_text()
+          s=Path(".github/scripts/player_official_oos_join.py").read_text()
+          assert "id-token: write" in w
+          assert 'cron: "8 10 * * *"' in w
+          assert "player-stats-runner-only-registry" in w
+          assert "MAX_SNAPSHOTS = 25" in s
+          assert "POSTGAME_RUNNER_OFFICIAL_API" in s
+          assert "registry_generated_at_utc" in s
+          assert "confirmed_starter" in s
+          assert "production_promotion_allowed" in s
+          print("FROZEN_OOS_JOIN_OFFLINE_QA_PASS")
+          PY
+
+  guarded-read-and-grade:
+    if: github.event_name != 'pull_request'
+    needs: offline-anti-leakage
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      BASE_URL: https://soccer-edge-api.onrender.com
+      STATE_BRANCH: soccer-edge-state
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install scorer dependencies in isolated GitHub runner (never Render)
+        run: python -m pip install -r runtime/mcp_gateway/requirements.txt
+
+      - name: Query at most 25 verified official fixture IDs with fresh GitHub OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python - <<'PY'
+          import json, os, pathlib, sys
+          import urllib.parse, urllib.request, urllib.error
+          sys.path.insert(0, "controls/.github/scripts")
+          from player_official_oos_join import fixture_ids
+          registry = json.loads(pathlib.Path(
+              "state/soccer_edge_state/analysis/player_trend_registry_backfill.json"
+          ).read_text())
+          ids = fixture_ids(registry)
+          if not ids:
+              raise RuntimeError("NO_POSTGAME_CAPTURE_WITH_STRICT_PROVENANCE")
+          if len(ids) > 25:
+              raise RuntimeError("FIXTURE_REQUEST_LIMIT_EXCEEDED")
+          request_url=os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"]
+          separator="&" if "?" in request_url else "?"
+          request_url+=separator+urllib.parse.urlencode({"audience":"soccer-edge-render"})
+          token_request=urllib.request.Request(
+              request_url, headers={
+                  "Authorization": "bearer " + os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]
+              })
+          with urllib.request.urlopen(token_request, timeout=20) as response:
+              token=json.load(response).get("value")
+          if not token or not isinstance(token, str):
+              raise RuntimeError("OIDC_TOKEN_NOT_VERIFIED")
+          request=urllib.request.Request(
+              os.environ["BASE_URL"].rstrip("/")+"/internal/player-frozen-pregame-v1/read",
+              data=json.dumps({"fixture_ids":ids}).encode("utf-8"),
+              headers={"Authorization":"Bearer "+token,"Content-Type":"application/json"},
+              method="POST")
+          try:
+              with urllib.request.urlopen(request, timeout=42) as response:
+                  body=response.read(1_500_001)
+          except urllib.error.HTTPError as ex:
+              raise RuntimeError("READ_ONLY_FROZEN_SOURCE_HTTP_"+str(ex.code)) from None
+          if len(body)>1_500_000:
+              raise RuntimeError("UNBOUNDED_FROZEN_SOURCE_RESPONSE")
+          payload=json.loads(body)
+          if (payload.get("status")!="VERIFIED_FROZEN_PLAYER_PREGAME_READONLY"
+                  or payload.get("queried_fixtures")!=len(ids)
+                  or payload.get("provider_requests_added")!=0
+                  or payload.get("db_write_queries")!=0
+                  or payload.get("production_promotion_allowed") is not False):
+              raise RuntimeError("UNVERIFIED_FROZEN_READONLY_RESPONSE")
+          pathlib.Path("/tmp/verified_player_frozen.json").write_text(
+              json.dumps(payload,ensure_ascii=False),encoding="utf-8")
+          print(json.dumps({
+              "read_only_source_verified":True,
+              "queried_fixtures":len(ids),
+              "frozen_fixture_rows_found":payload.get("frozen_fixture_rows_found"),
+              "provider_calls_added":0,
+              "postgres_writes":0,
+              "bet_eligible":False
+          }))
+          PY
+
+      - name: Strictly grade only matching genuine pregame models with official FT truth
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python controls/.github/scripts/player_official_oos_join.py \
+            --export-file /tmp/verified_player_frozen.json \
+            --registry state/soccer_edge_state/analysis/player_trend_registry_backfill.json \
+            --tracking state/soccer_edge_state/analysis/player_props_oos_v4_tracking.jsonl \
+            --report state/soccer_edge_state/analysis/player_props_oos_v4_report.json \
+            --audit state/soccer_edge_state/analysis/player_official_oos_live_join_audit.json \
+            | tee /tmp/strict_player_oos_join_summary.json
+          jq -e '
+            .production_promotion_allowed == false
+            and .retroactive_pregame_predictions_created == false
+            and .provider_requests_added == 0
+            and .postgres_write_queries == 0
+            and .updated_oos_player_rows == (.existing_oos_player_rows + .new_oos_player_rows)
+          ' /tmp/strict_player_oos_join_summary.json >/dev/null
+
+      - name: Persist only OOS audit and genuinely matched research rows to state
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/player_official_oos_live_join_audit.json
+          git add -f soccer_edge_state/analysis/player_props_oos_v4_tracking.jsonl
+          git add -f soccer_edge_state/analysis/player_props_oos_v4_report.json
+          if git diff --cached --quiet; then
+            echo "No changes to persist"
+            exit 0
+          fi
+          git commit -m "Audit true frozen pregame player OOS against independently captured official FT truth"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
