@@ -44,6 +44,10 @@
 name: Phase 17 Postgres CLV Validation - Canonical Refresh
 
 on:
+  # Proven bounded live recovery on 2026-11-09 (run #42701932171).
+  # Executes after incremental v215 ledger (10:55 UTC) and before canonical tick (12:10).
+  schedule:
+    - cron: '25 11 * * *'
   workflow_dispatch:
   push:
     branches: [main]
