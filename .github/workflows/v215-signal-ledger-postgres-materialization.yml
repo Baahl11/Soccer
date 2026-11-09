@@ -4,6 +4,11 @@
 name: v215 Signal Ledger Postgres Materialization
 
 on:
+  # Recovered from 27-day stale gap in run #42701359517 (136 new point-in-time rows).
+  # Daily incremental checkpoint after previous day's soccer scheduler;
+  # no provider calls, 200 rows/page, max 100 pages, strict no-rewrite gates.
+  schedule:
+    - cron: '55 10 * * *'
   workflow_dispatch:
   push:
     branches: [main]
