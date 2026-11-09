@@ -46,6 +46,9 @@ jobs:
           assert "postgres_write_queries" in script
           assert "HISTORICAL_CLV_COUNT_REGRESSION" in script
           assert "NO_SUCCESSFUL_RUN" in script
+          assert "SPORT_FIRST_DEEP_DIVE_COVERAGE_UNDER_25_PCT" in script
+          assert "PRICE_ENTRY_CANDIDATES_ZERO_WITH_DUE_FIXTURES" in script
+          assert "--latest state/soccer_edge_state/latest.json" in text
           print("SOCcer_MATURATION_CONTINUITY_STATIC_SAFETY_PASS")
           PY
 
@@ -68,6 +71,7 @@ jobs:
           fetch-depth: 1
           sparse-checkout: |
             soccer_edge_state/health.json
+            soccer_edge_state/latest.json
             soccer_edge_state/analysis/signal_ledger_summary.json
             soccer_edge_state/analysis/clv_v4_postgres_report.json
             soccer_edge_state/analysis/market_maturation_continuity_health.json
@@ -87,6 +91,7 @@ jobs:
           set -euo pipefail
           python controls/.github/scripts/soccer_market_maturation_continuity.py \
             --health state/soccer_edge_state/health.json \
+            --latest state/soccer_edge_state/latest.json \
             --ledger state/soccer_edge_state/analysis/signal_ledger_summary.json \
             --clv state/soccer_edge_state/analysis/clv_v4_postgres_report.json \
             --ledger-runs /tmp/soccer-ledger-runs.json \
@@ -121,18 +126,19 @@ jobs:
           set -euo pipefail
           fail=$(jq -r '.status != "PASS"' /tmp/soccer-market-continuity.json)
           stalled=$(jq -r '.stalled_market_families_3plus_days | length' /tmp/soccer-market-continuity.json)
-          if [ "$fail" = "false" ] && [ "$stalled" = "0" ]; then
+          coverage=$(jq -r '.sport_to_market_admission.three_daily_low_coverage_checks' /tmp/soccer-market-continuity.json)
+          if [ "$fail" = "false" ] && [ "$stalled" = "0" ] && [ "$coverage" != "true" ]; then
             echo "MARKET_CONTINUITY_HEALTHY; verified exact close growth is monitored separately"
             exit 0
           fi
           title="Soccer Market Data Continuity Stall"
           number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number,title --jq '.[] | select(.title == "Soccer Market Data Continuity Stall") | .number' | head -n1)
           if [ -z "$number" ]; then
-            jq -r --arg run_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '"Daily continuity status: \(.status)\nBlocking reasons: \(.blockers | join(","))\nMarket families unchanged 3+ daily checks: \(.stalled_market_families_3plus_days | join(","))\nRun: \($run_url)\nNo observed close quote was synthesized; BET remains blocked."' /tmp/soccer-market-continuity.json >/tmp/soccer-market-alert.md
+            jq -r --arg run_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '"Daily continuity status: \(.status)\nBlocking reasons: \(.blockers | join(","))\nMarket families unchanged 3+ daily checks: \(.stalled_market_families_3plus_days | join(","))\nSport-first coverage: \(.sport_to_market_admission.sport_deep_dive_coverage)\nSport/quote admission warnings: \(.sport_to_market_admission.warnings | join(","))\nRun: \($run_url)\nNo observed close quote was synthesized; BET remains blocked."' /tmp/soccer-market-continuity.json >/tmp/soccer-market-alert.md
             gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/soccer-market-alert.md
           fi
           if [ "$fail" = "true" ]; then
             echo "::error::Soccer market evidence pipeline failed freshness verification"
             exit 1
           fi
-          echo "::warning::Soccer market family counters have not grown in three daily checks"
+          echo "::warning::Soccer market family counters or sport-first admission have been stalled for three daily checks"
