@@ -54,6 +54,9 @@ jobs:
           assert "/internal/" not in script
           assert not re.search(r"^\s*id-token:\s*write\s*$", workflow, flags=re.M)
           assert not re.search(r"^  schedule:\s*$", workflow, flags=re.M)
+          assert 'API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}' in workflow
+          assert 'FIXTURE_DATE_INPUT: ${{ inputs.fixture_date }}' in workflow
+          assert 'FIXTURE_CAP_INPUT: ${{ inputs.max_fixtures }}' in workflow
           print("OFFLINE_SECURITY_GATES_PASS: MANUAL_ONLY, NO_RENDER, RESEARCH_ONLY")
           PY
 
@@ -80,11 +83,15 @@ jobs:
       - name: Capture bounded final-time player statistics in runner memory only
         shell: bash
         env:
-          API_FOOTBALL_KEY: ${ secrets.API_FOOTBALL_KEY }}
-          FIXTURE_DATE_INPUT: ${ inputs.fixture_date }}
-          FIXTURE_CAP_INPUT: ${ inputs.max_fixtures }}
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          FIXTURE_DATE_INPUT: ${{ inputs.fixture_date }}
+          FIXTURE_CAP_INPUT: ${{ inputs.max_fixtures }}
         run: |
           set -euo pipefail
+          if [[ -z "${API_FOOTBALL_KEY:-}" ]]; then
+            echo "REQUIRED_SECRET_NOT_CONFIGURED: API_FOOTBALL_KEY" >&2
+            exit 1
+          fi
           args=(--registry state/soccer_edge_state/analysis/player_trend_registry_backfill.json --max-fixtures "${FIXTURE_CAP_INPUT:-3}")
           if [[ -n "${FIXTURE_DATE_INPUT:-}" ]]; then
             args+=(--date "$FIXTURE_DATE_INPUT")
@@ -93,8 +100,9 @@ jobs:
           jq -e '
             .production_promotion_allowed == false
             and .provider_requests_added <= 6
-            and (.status == "RESEARCH_ONLY_POSTGAME_CAPTURE"
-              or .status == "SKIPPED_MISSING_GITHUB_ACTIONS_SECRET")
+            and (.status == "RESEARCH_ONLY_POSTGAME_CAPTURE")
+            and (.errors | length == 0)
+            and (.daily_remaining_reported >= 1000)
           ' /tmp/player_official_runner_summary.json >/dev/null
 
       - name: Commit only future-registry research observations
