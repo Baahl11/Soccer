@@ -51,7 +51,97 @@ def recent_workflow(runs, now, max_age_hours):
     return {"status": state, "run_id": success.get("id"), "last_success": completed.isoformat() if completed else None}
 
 
-def assess(health, ledger, clv, ledger_runs, clv_runs, previous, *, now):
+
+
+def _count(raw):
+    return raw if type(raw) is int and raw >= 0 else None
+
+
+def sport_to_market_admission(latest, previous, *, now):
+    """Expose the sport-first -> quote -> close path, without reclassifying bets.
+
+    CLV absence on a single snapshot cannot be attributed to provider failure:
+    it may reflect no frozen sport signal, no upcoming kickoff, admission caps,
+    price freshness, or no later authentic provider update. These are distinct.
+    """
+    previous = previous if isinstance(previous, dict) else {}
+    if not isinstance(latest, dict):
+        return {
+            "status": "SOURCE_NOT_VERIFIED",
+            "warnings": ["LATEST_SCHEDULER_PAYLOAD_NOT_VERIFIED"],
+            "three_daily_low_coverage_checks": False,
+        }
+    observed = timestamp(latest.get("generated_at_utc"))
+    if observed is None or observed > now or now - observed > timedelta(hours=SCHEDULER_MAX_AGE_HOURS):
+        return {
+            "status": "SOURCE_NOT_VERIFIED",
+            "warnings": ["LATEST_SCHEDULER_TIMESTAMP_INVALID_OR_STALE"],
+            "three_daily_low_coverage_checks": False,
+        }
+    fair = latest.get("fair_scheduler") if isinstance(latest.get("fair_scheduler"), dict) else {}
+    price = latest.get("price_resolution_v4") if isinstance(latest.get("price_resolution_v4"), dict) else {}
+    guard = (
+        ((price.get("v209_post_reserve_verification") or {}).get("upstream_phase_lock") or {})
+        .get("resource_memory_guard")
+    )
+    if not isinstance(guard, dict):
+        guard = {}
+    eligible = _count(fair.get("eligible_tier_ab_due_count"))
+    analyzed = _count(fair.get("due_with_any_deep_dive_count"))
+    due = _count(latest.get("due_fixture_count"))
+    entry = _count(price.get("candidate_rows"))
+    maturing = _count(price.get("primary_clv_maturation_candidates"))
+    priced = _count(price.get("api_calls_added"))
+    price_budget = _count(price.get("max_api_calls"))
+    remaining = _count(latest.get("last_daily_remaining"))
+    mandatory = (eligible, analyzed, due, entry, maturing, priced, price_budget)
+    invalid = any(v is None for v in mandatory)
+    warnings = []
+    if invalid:
+        warnings.append("SPORT_TO_PRICE_COUNTS_NOT_VERIFIED")
+    sport_coverage = round(analyzed / eligible, 6) if eligible and analyzed is not None else None
+    low_coverage = eligible is not None and eligible >= 10 and analyzed is not None and analyzed * 4 < eligible
+    entry_gap = due is not None and due >= 10 and entry == 0
+    leftover = price_budget is not None and price_budget > 0 and priced == 0 and entry == 0 and maturing == 0
+    if low_coverage:
+        warnings.append("SPORT_FIRST_DEEP_DIVE_COVERAGE_UNDER_25_PCT")
+    if entry_gap:
+        warnings.append("PRICE_ENTRY_CANDIDATES_ZERO_WITH_DUE_FIXTURES")
+    if leftover:
+        warnings.append("PRICE_RESERVED_CAPACITY_UNUSED_WITH_NO_ELIGIBLE_TARGETS")
+    if guard.get("applied") is True:
+        warnings.append("UPSTREAM_LOW_MEMORY_GUARD_APPLIED")
+    prev = previous.get("sport_to_market_admission")
+    old = prev if isinstance(prev, dict) else {}
+    prior_streak = _count(old.get("consecutive_low_coverage_daily_checks")) or 0
+    old_check = timestamp(previous.get("observed_at_utc"))
+    daily = old_check is not None and timedelta(hours=20) <= now - old_check <= timedelta(days=4)
+    streak = prior_streak + 1 if daily and low_coverage and old.get("low_coverage") is True else (1 if low_coverage else 0)
+    return {
+        "status": "SOURCE_NOT_VERIFIED" if invalid else ("GAPS_OBSERVED" if warnings else "NO_GAPS_OBSERVED"),
+        "latest_tick_utc": observed.isoformat(),
+        "eligible_tier_ab_due": eligible,
+        "deep_dives_for_due_tier_ab": analyzed,
+        "sport_deep_dive_coverage": sport_coverage,
+        "due_fixtures_all_tiers": due,
+        "direct_price_candidate_rows": entry,
+        "primary_clv_maturation_candidate_fixtures": maturing,
+        "price_provider_calls_this_tick": priced,
+        "price_provider_call_cap_this_tick": price_budget,
+        "provider_daily_remaining_observed": remaining,
+        "low_memory_guard_applied": guard.get("applied") is True,
+        "low_memory_cgroup_limit_bytes": _count(guard.get("cgroup_limit_bytes")),
+        "upstream_calls_deferred_by_resource_guard": _count(guard.get("deferred_extra_upstream_calls_max")),
+        "low_coverage": low_coverage,
+        "consecutive_low_coverage_daily_checks": streak,
+        "three_daily_low_coverage_checks": streak >= 3,
+        "warnings": warnings,
+        "bet_eligible": False,
+        "no_new_market_evidence_inferred": True,
+        "interpretation": "One tick is descriptive only. A zero CLV candidate count is not proof of odds-provider outage. Source football projection must precede price resolution; CLV additionally requires a later comparable real quote.",
+    }
+
+def assess(health, ledger, clv, ledger_runs, clv_runs, previous, *, now, latest=None):
     if now.tzinfo is None:
         raise ValueError("AUDIT_TIME_MUST_BE_UTC_AWARE")
     now = now.astimezone(timezone.utc)
@@ -118,6 +208,9 @@ def assess(health, ledger, clv, ledger_runs, clv_runs, previous, *, now):
     ledger_rows = ledger.get("rows")
     if type(ledger_rows) is not int or ledger_rows < 0:
         issues.append("LEDGER_ROW_COUNT_NOT_VERIFIED")
+    source_funnel = sport_to_market_admission(latest, previous, now=now)
+    if source_funnel["status"] == "SOURCE_NOT_VERIFIED":
+        issues.append("SPORT_TO_PRICE_FUNNEL_SOURCE_NOT_VERIFIED")
     prev_ledger_rows = previous.get("ledger_rows") if isinstance(previous, dict) else None
     if type(ledger_rows) is int and type(prev_ledger_rows) is int and ledger_rows < prev_ledger_rows:
         issues.append("HISTORICAL_LEDGER_ROW_COUNT_REGRESSION")
@@ -131,6 +224,7 @@ def assess(health, ledger, clv, ledger_runs, clv_runs, previous, *, now):
         "ledger_rows": ledger_rows,
         "previous_ledger_rows": prev_ledger_rows,
         "clv_total_rows": total,
+        "sport_to_market_admission": source_funnel,
         "families": alarms,
         "source_workflows": workflows,
         "blockers": issues,
@@ -153,18 +247,45 @@ def self_test():
            "production_promotion_allowed":False}
     runs={"workflow_runs":[{"head_branch":"main","id":900,"created_at":iso(now-timedelta(hours=1)),
             "updated_at":iso(now-timedelta(minutes=5)),"conclusion":"success","status":"completed"}]}
-    good=assess(health,ledger,clv,runs,runs,{},now=now)
+    latest = {
+        "generated_at_utc": iso(now-timedelta(hours=2)), "due_fixture_count":34,
+        "last_daily_remaining":7427,
+        "fair_scheduler":{"eligible_tier_ab_due_count":25,"due_with_any_deep_dive_count":2},
+        "price_resolution_v4":{
+            "candidate_rows":0,"primary_clv_maturation_candidates":0,
+            "api_calls_added":0,"max_api_calls":8,
+            "v209_post_reserve_verification":{
+                "upstream_phase_lock":{"resource_memory_guard":{
+                    "applied":True,"cgroup_limit_bytes":536870912,
+                    "deferred_extra_upstream_calls_max":34
+                }}
+            }
+        },
+    }
+    source=sport_to_market_admission(latest, {}, now=now)
+    assert source["status"]=="GAPS_OBSERVED"
+    assert source["eligible_tier_ab_due"]==25
+    assert source["deep_dives_for_due_tier_ab"]==2
+    assert source["sport_deep_dive_coverage"]==0.08
+    assert source["primary_clv_maturation_candidate_fixtures"]==0
+    assert source["price_provider_call_cap_this_tick"]==8
+    assert source["price_provider_calls_this_tick"]==0
+    assert "SPORT_FIRST_DEEP_DIVE_COVERAGE_UNDER_25_PCT" in source["warnings"]
+    assert "PRICE_ENTRY_CANDIDATES_ZERO_WITH_DUE_FIXTURES" in source["warnings"]
+    assert "UPSTREAM_LOW_MEMORY_GUARD_APPLIED" in source["warnings"]
+    assert sport_to_market_admission({}, {}, now=now)["status"]=="SOURCE_NOT_VERIFIED"
+    good=assess(health,ledger,clv,runs,runs,{},now=now,latest=latest)
     assert good["status"]=="PASS" and good["provider_requests_added"]==0
     assert good["clv_total_rows"]==789 and good["families"]["1X2"]["clv_rows"]==53
     old={**good,"observed_at_utc":iso(now-timedelta(days=1))}
     old["families"]["1X2"]["consecutive_unchanged_daily_checks"]=2
-    stalled=assess(health,ledger,clv,runs,runs,old,now=now)
+    stalled=assess(health,ledger,clv,runs,runs,old,now=now,latest=latest)
     assert stalled["status"]=="PASS"
     assert stalled["families"]["1X2"]["stalled_3plus_days"] is True
     regressed={**clv,"family_counts":{**clv["family_counts"],"1X2":52}}
-    bad=assess(health,ledger,regressed,runs,runs,old,now=now)
+    bad=assess(health,ledger,regressed,runs,runs,old,now=now,latest=latest)
     assert "1X2_HISTORICAL_CLV_COUNT_REGRESSION" in bad["blockers"]
-    stale=assess(health,ledger,clv,{"workflow_runs":[]},runs,{},now=now)
+    stale=assess(health,ledger,clv,{"workflow_runs":[]},runs,{},now=now,latest=latest)
     assert stale["status"]=="FAIL_CLOSED"
     print("SOCCER_MARKET_MATURATION_CONTINUITY_OFFLINE_PASS")
 
@@ -172,19 +293,19 @@ def self_test():
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--self-test",action="store_true")
-    for k in ["health","ledger","clv","ledger-runs","clv-runs","previous","output"]:
+    for k in ["health","latest","ledger","clv","ledger-runs","clv-runs","previous","output"]:
         p.add_argument("--"+k)
     args=p.parse_args()
     if args.self_test:
         self_test()
         return
-    required=["health","ledger","clv","ledger_runs","clv_runs","output"]
+    required=["health","latest","ledger","clv","ledger_runs","clv_runs","output"]
     if not all(getattr(args,k) for k in required):
-        p.error("health, ledger, clv, ledger-runs, clv-runs, output required")
+        p.error("health, latest, ledger, clv, ledger-runs, clv-runs, output required")
     read=lambda path:json.loads(Path(path).read_text(encoding="utf-8"))
     previous=read(args.previous) if args.previous and Path(args.previous).exists() else {}
     result=assess(read(args.health),read(args.ledger),read(args.clv),
-                  read(args.ledger_runs),read(args.clv_runs),previous,now=datetime.now(timezone.utc))
+                  read(args.ledger_runs),read(args.clv_runs),previous,now=datetime.now(timezone.utc),latest=read(args.latest))
     target=Path(args.output)
     target.parent.mkdir(parents=True,exist_ok=True)
     target.write_text(json.dumps(result,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
