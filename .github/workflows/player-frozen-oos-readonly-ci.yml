@@ -1,0 +1,43 @@
+name: Soccer Frozen Player OOS - Indexed Read-Only QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/player_frozen_oos_readonly_v1.py"
+      - "mcp_gateway/server.py"
+      - "tests/test_player_frozen_oos_readonly_v1.py"
+      - ".github/workflows/player-frozen-oos-readonly-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pure-offline-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated test runner
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Test indexed as-of query and anti-leakage without database
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_player_frozen_oos_readonly_v1.py
+          python - <<'PY'
+          from pathlib import Path
+          src = Path("mcp_gateway/server.py").read_text()
+          module = Path("mcp_gateway/player_frozen_oos_readonly_v1.py").read_text()
+          assert 'FROZEN_PLAYER_READONLY_WORKFLOW = ".github/workflows/player-official-oos-join.yml"' in src
+          assert 'if path == FROZEN_PLAYER_READONLY_ROUTE and method == "POST":' in src
+          assert 'player_frozen_oos_readonly_v1.export_frozen' in src
+          assert "_github_oidc_claims(" in src
+          assert 'SET TRANSACTION READ ONLY' in module
+          assert "MAX_FIXTURES = 25" in module
+          assert "LIMIT 1" in module
+          assert "persistence.ensure_schema" not in module
+          assert "production_promotion_allowed" in module
+          print("FROZEN_OOS_READONLY_QA_PASS")
+          PY

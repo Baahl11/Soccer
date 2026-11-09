@@ -20,6 +20,7 @@ from mcp_gateway import primary_clv_anchor_normalized_v4
 from mcp_gateway import primary_clv_signal_anchor_store_v4
 from mcp_gateway import server_base as _base_server
 from mcp_gateway import signal_ledger_postgres_delta_v4
+from mcp_gateway import player_frozen_oos_readonly_v1
 from mcp_gateway import team_totals_phase17_anchor_patch_v4
 from mcp_gateway import team_totals_capture_signal_reconciliation_v4
 
@@ -320,6 +321,52 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
             "status":"SOURCE_NOT_VERIFIED","fresh_research_rows":0,
             "bet_eligible":False,"tokens_exposed":False,
         },status_code=503,headers={"Cache-Control":"no-store"})
+
+
+
+FROZEN_PLAYER_READONLY_ROUTE = "/internal/player-frozen-pregame-v1/read"
+FROZEN_PLAYER_READONLY_WORKFLOW = ".github/workflows/player-official-oos-join.yml"
+
+
+async def _handle_player_frozen_readonly(scope, receive, send) -> None:
+    """Only the pinned main-branch GitHub workflow may read indexed as-of models."""
+    request = Request(scope, receive=receive)
+    try:
+        _base_server._github_oidc_claims(
+            request, {FROZEN_PLAYER_READONLY_WORKFLOW}
+        )
+    except Exception:
+        response = JSONResponse({"error": "unauthorized"}, status_code=401)
+        await response(scope, receive, send)
+        return
+    try:
+        length_header = request.headers.get("content-length") or ""
+        if length_header.isdigit() and int(length_header) > 1800:
+            raise ValueError("REQUEST_TOO_LARGE")
+        body_bytes = await request.body()
+        if len(body_bytes) > 1800:
+            raise ValueError("REQUEST_TOO_LARGE")
+        body = json.loads(body_bytes)
+        ids = player_frozen_oos_readonly_v1.validate_fixture_ids(
+            body.get("fixture_ids") if isinstance(body, dict) else None
+        )
+    except (ValueError, TypeError):
+        response = JSONResponse({"error": "invalid_fixture_ids"}, status_code=400)
+        await response(scope, receive, send)
+        return
+    try:
+        result = await asyncio.wait_for(
+            asyncio.to_thread(player_frozen_oos_readonly_v1.export_frozen, ids),
+            timeout=32.0,
+        )
+        response = JSONResponse(result, headers={"Cache-Control": "no-store"})
+    except Exception:
+        response = JSONResponse(
+            {"error": "bounded_frozen_read_failed", "retryable": False},
+            status_code=503,
+            headers={"Cache-Control": "no-store"},
+        )
+    await response(scope, receive, send)
 
 
 V215_SIGNAL_LEDGER_ROUTE = "/internal/signal-ledger-postgres-v4/build"
@@ -713,6 +760,9 @@ class V215SignalLedgerRouter:
                 request = Request(scope, receive=receive)
                 response = await internal_team_totals_capture_signal_reconciliation_v4_build(request)
                 await response(scope, receive, send)
+                return
+            if path == FROZEN_PLAYER_READONLY_ROUTE and method == "POST":
+                await _handle_player_frozen_readonly(scope, receive, send)
                 return
             if path == V215_SIGNAL_LEDGER_ROUTE and method == "POST":
                 await _handle_v215_signal_ledger(scope, receive, send)
