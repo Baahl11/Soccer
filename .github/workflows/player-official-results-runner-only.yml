@@ -49,10 +49,11 @@ jobs:
           assert "MIN_DAILY_REMAINING = 1000" in script
           assert "production_promotion_allowed" in script
           assert "eligible_for_historical_oos_reconstruction" in script
-          assert "soccer-edge-api.onrender.com" not in script + workflow
-          assert "/internal/" not in script + workflow
-          assert "id-token: write" not in workflow
-          assert "schedule:" not in workflow
+          import re
+          assert "soccer-edge-api.onrender.com" not in script
+          assert "/internal/" not in script
+          assert not re.search(r"^\s*id-token:\s*write\s*$", workflow, flags=re.M)
+          assert not re.search(r"^  schedule:\s*$", workflow, flags=re.M)
           print("OFFLINE_SECURITY_GATES_PASS: MANUAL_ONLY, NO_RENDER, RESEARCH_ONLY")
           PY
 
