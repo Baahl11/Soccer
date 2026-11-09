@@ -1,0 +1,35 @@
+name: Soccer Primary CLV Provider Attempt - Offline QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/price_resolver_v4.py"
+      - "tests/test_price_resolver_v4.py"
+      - ".github/workflows/soccer-primary-price-quote-attempt-qa.yml"
+permissions:
+  contents: read
+jobs:
+  strict-provider-attempts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scoped runtime dependencies
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Validate exact quote provenance and no fabricated CLV
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_price_resolver_v4.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path("mcp_gateway/price_resolver_v4.py").read_text()
+          assert 'PRIMARY_TRUE_CLV_MATURATION_ATTEMPT_ONLY' in s
+          assert 'primary_clv_maturation_attempt_events_added' in s
+          assert 'provider_update_after_signal"] = False' in s
+          assert 'production_promotion_allowed"] = False' in s
+          assert 'matured_families"] = []' in s
+          print("PRIMARY_PRICE_ATTEMPT_NO_FAKE_CLV_QA_PASS")
+          PY
