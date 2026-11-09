@@ -101,3 +101,64 @@ def test_no_broken_pg_connection_when_not_configured():
         output = mod.export_frozen([123])
     assert output["status"] == "POSTGRES_NOT_CONFIGURED"
     assert output["rows"] == []
+
+
+
+def test_inventory_only_real_pregame_model_envelopes_and_no_lookahead():
+    now = datetime.now(timezone.utc)
+    kickoff = now - timedelta(hours=2)
+    generated = kickoff - timedelta(minutes=25)
+    samples = [
+        (123, 900, generated, "T-20", kickoff, 11, 22,
+         "LIVE_RESEARCH_SHOTS_PROPS", None),
+        (123, 899, generated - timedelta(minutes=10), "T-30", kickoff, 11, 22,
+         "LIVE_RESEARCH_SHOTS_PROPS", None),
+        (456, 901, generated, "T-10", kickoff, 33, 44,
+         None, "LIVE_RESEARCH_SOT_PROPS"),
+        (789, 902, now, "T-20", kickoff, 55, 66,
+         "LIVE_RESEARCH_SHOTS_PROPS", None),  # postkickoff - no leak
+        (790, 903, generated, "POSTGAME", kickoff, 55, 66,
+         "LIVE_RESEARCH_SHOTS_PROPS", None),
+        (791, 904, generated, "T-20", kickoff, 55, 66,
+         "NOT_VERIFIED", None),
+    ]
+    conn = _Conn([])
+    conn.cur.fetchall = lambda: samples
+    with patch.object(mod.persistence, "persistence_configured", return_value=True), \
+         patch.object(mod.persistence, "_connect", return_value=conn):
+        report = mod.discover_frozen(lookback_days=10)
+    assert report["status"] == mod.INVENTORY_STATUS
+    assert report["candidate_fixture_ids"] == [123, 456]
+    assert report["candidate_fixtures"] == 2
+    assert report["invalid_rows_excluded"] == 3
+    assert report["provider_requests_added"] == 0
+    assert report["db_write_queries"] == 0
+    assert report["production_promotion_allowed"] is False
+    assert all(x["oos_eligible"] is False and x["official_final_result_verified"] is False
+               for x in report["candidates"])
+    assert "shots" not in report["candidates"][0]
+    queries = conn.cur.queries
+    assert any("SET TRANSACTION READ ONLY" in q for q, _ in queries)
+    assert any("statement_timeout" in q for q, _ in queries)
+    discovery = [(q, p) for q, p in queries if "FROM soccer_refresh_events e" in q]
+    assert len(discovery) == 1
+    assert "e.generated_at < f.kickoff" in discovery[0][0]
+    assert "f.kickoff <= %s" in discovery[0][0]
+    assert "LIVE_RESEARCH_SHOTS_PROPS" in discovery[0][0]
+    assert "LIVE_RESEARCH_SOT_PROPS" in discovery[0][0]
+    assert "LIMIT %s" in discovery[0][0]
+    assert discovery[0][1][-1] == 250
+
+
+@pytest.mark.parametrize("invalid", [0, -1, 15, True, None, "10", 1.5])
+def test_inventory_lookback_rejects_bad_values(invalid):
+    with pytest.raises(ValueError):
+        mod.discover_frozen(lookback_days=invalid)
+
+
+def test_inventory_not_configured_never_connects():
+    with patch.object(mod.persistence, "persistence_configured", return_value=False):
+        output = mod.discover_frozen(lookback_days=5)
+    assert output["status"] == "POSTGRES_NOT_CONFIGURED"
+    assert output["candidates"] == []
+    assert output["production_promotion_allowed"] is False
