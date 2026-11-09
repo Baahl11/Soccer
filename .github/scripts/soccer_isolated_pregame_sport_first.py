@@ -23,8 +23,8 @@ VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.0.0"
 BASE_URL = "https://v3.football.api-sports.io"
 TIMEZONE = ZoneInfo("America/Mexico_City")
 ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})
-MAX_PROVIDER_REQUESTS = 6  # 2 date slates + 2 team statistics per fixture (max 2)
-MAX_FIXTURES = 2
+MAX_PROVIDER_REQUESTS = 14  # 2 date slates + 2 team statistics per fixture (max 6)
+MAX_FIXTURES = 6
 MIN_DAILY_REMAINING = 1000
 MIN_KICKOFF_LEAD = timedelta(minutes=45)
 MAX_KICKOFF_LOOKAHEAD = timedelta(hours=32)
@@ -169,7 +169,7 @@ def _load_canonical_model(model_path: Path):
 def _read_rows(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
-    if path.stat().st_size > 2_000_000:
+    if path.stat().st_size > 20_000_000:
         raise RuntimeError("SPORT_RESEARCH_STATE_TOO_LARGE")
     rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -179,7 +179,7 @@ def _read_rows(path: Path) -> list[dict[str, Any]]:
         if not isinstance(value, dict) or _integer(value.get("fixture_id")) is None:
             raise RuntimeError("EXISTING_SPORT_STATE_INTEGRITY_FAILED")
         rows.append(value)
-    if len(rows) > 500:
+    if len(rows) > 5000:
         raise RuntimeError("SPORT_RESEARCH_REGISTRY_UNBOUNDED")
     return rows
 
@@ -253,6 +253,37 @@ def _build_one(fx: dict[str, Any], provider, model, model_sha: str,
     }
 
 
+def _select_diverse_upcoming(choices: list[dict[str, Any]], limit: int, now: datetime) -> list[dict[str, Any]]:
+    """SPORT schedule first: upcoming <=6h, then other games, diverse leagues.
+
+    This only selects a hard-capped research sample. No odds or tier eligibility.
+    """
+    chosen: list[dict[str, Any]] = []
+    seen_ids: set[int] = set()
+    for bucket in (
+        [fx for fx in choices if (_dt(fx["kickoff"]) - now) <= timedelta(hours=6)],
+        [fx for fx in choices if (_dt(fx["kickoff"]) - now) > timedelta(hours=6)],
+    ):
+        seen_leagues: set[int] = set()
+        for fx in bucket:
+            league_id = fx["league_id"]
+            if league_id in seen_leagues or fx["fixture_id"] in seen_ids:
+                continue
+            chosen.append(fx)
+            seen_leagues.add(league_id)
+            seen_ids.add(fx["fixture_id"])
+            if len(chosen) >= limit:
+                return chosen
+        for fx in bucket:
+            if fx["fixture_id"] in seen_ids:
+                continue
+            chosen.append(fx)
+            seen_ids.add(fx["fixture_id"])
+            if len(chosen) >= limit:
+                return chosen
+    return chosen
+
+
 def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
             clock, max_fixtures: int = MAX_FIXTURES):
     if not 1 <= max_fixtures <= MAX_FIXTURES:
@@ -280,7 +311,7 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
         key=lambda f: (f["kickoff"], f["fixture_id"]),
     )
     frozen, excluded = [], []
-    for fx in choices[:max_fixtures]:
+    for fx in _select_diverse_upcoming(choices, max_fixtures, now):
         result = _build_one(fx, provider, model, model_sha, clock)
         if result.get("status") == "FROZEN_RESEARCH_PREMATCH_SPORT_PROJECTION":
             frozen.append(result)
@@ -292,6 +323,7 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
         "status": "CAPTURED_RESEARCH_ONLY" if frozen else "NO_NEW_VALID_PREGAME_MODELS",
         "generated_at_utc": clock().isoformat(),
         "candidate_fixtures": len(choices),
+        "selection_policy": "UPCOMING_WITHIN_6H_THEN_LATER;DISTINCT_LEAGUES_FIRST;NO_BET_TIER_ASSUMED",
         "attempted_fixtures": len(frozen)+len(excluded),
         "new_frozen_pregame_models": len(frozen),
         "excluded": excluded, "frozen": frozen,
@@ -349,6 +381,14 @@ def self_test(model_path: Path):
     assert deduped["new_frozen_pregame_models"] == 0
     bad = {**fixture,"teams":{"home":{"id":5},"away":{"id":5}}}
     assert _fixture(bad,now) is None
+    sample = [
+        {**f, "fixture_id":i,"league_id":55 if i < 109 else 56,
+         "kickoff":(now+timedelta(hours=(2 if i<109 else 3))).isoformat()}
+        for i in range(101,111)
+    ]
+    fair = _select_diverse_upcoming(sample, 3, now)
+    assert len(fair)==3 and len({x["league_id"] for x in fair})==2
+    assert fair[0]["fixture_id"]==101
     invalid = {"response":{"team":{"id":0},"league":{"id":55,"season":2026},
                "fixtures":{"played":{"home":6}}}}
     assert _valid_team_stats(invalid,f,"home") is None
