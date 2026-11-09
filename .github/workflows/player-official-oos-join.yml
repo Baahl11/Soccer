@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - ".github/scripts/player_official_oos_join.py"
+      - ".github/scripts/player_model_targeted_capture.py"
       - ".github/workflows/player-official-oos-join.yml"
   push:
     branches: [main]
@@ -35,6 +36,7 @@ jobs:
         run: |
           set -euo pipefail
           python .github/scripts/player_official_oos_join.py --self-test
+          python .github/scripts/player_model_targeted_capture.py --self-test
           python - <<'PY'
           from pathlib import Path
           w=Path(".github/workflows/player-official-oos-join.yml").read_text()
@@ -43,6 +45,8 @@ jobs:
           assert 'cron: "8 10 * * *"' in w
           assert "player-stats-runner-only-registry" in w
           assert "FROZEN_PLAYER_INVENTORY_NOT_VERIFIED" in w
+          assert "player_model_targeted_capture.py" in w
+          assert "API_FOOTBALL_KEY:" in w
           assert '"inventory":True,"lookback_days":10' in w
           assert "MAX_SNAPSHOTS = 25" in s
           assert "POSTGAME_RUNNER_OFFICIAL_API" in s
@@ -134,6 +138,22 @@ jobs:
               "production_promotion_allowed":False}))
           PY
 
+      - name: Capture at most one official FT result whose pregame player model was frozen
+        shell: bash
+        env:
+          API_FOOTBALL_KEY: API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: |
+          set -euo pipefail
+          python controls/.github/scripts/player_model_targeted_capture.py \
+            --inventory state/soccer_edge_state/analysis/player_frozen_pregame_fixture_inventory.json \
+            --registry state/soccer_edge_state/analysis/player_trend_registry_backfill.json \
+            | tee /tmp/targeted_official_model_fixture_capture.json
+          jq -e '
+            .production_promotion_allowed == false
+            and .provider_requests_added <= 2
+            and (.captured == 0 or .captured == 1)
+          ' /tmp/targeted_official_model_fixture_capture.json >/dev/null
+
       - name: Query at most 25 verified official fixture IDs with fresh GitHub OIDC
         shell: bash
         run: |
@@ -221,6 +241,7 @@ jobs:
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add -f soccer_edge_state/analysis/player_official_oos_live_join_audit.json
           git add -f soccer_edge_state/analysis/player_frozen_pregame_fixture_inventory.json
+          git add -f soccer_edge_state/analysis/player_trend_registry_backfill.json
           git add -f soccer_edge_state/analysis/player_props_oos_v4_tracking.jsonl
           git add -f soccer_edge_state/analysis/player_props_oos_v4_report.json
           if git diff --cached --quiet; then
