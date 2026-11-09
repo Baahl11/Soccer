@@ -128,7 +128,7 @@ jobs:
           title="Soccer Market Data Continuity Stall"
           number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number,title --jq '.[] | select(.title == "Soccer Market Data Continuity Stall") | .number' | head -n1)
           if [ -z "$number" ]; then
-            jq -r '"Daily continuity status: \(.status)\nBlocking reasons: \(.blockers | join(","))\nMarket families unchanged 3+ daily checks: \(.stalled_market_families_3plus_days | join(","))\nRun: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\nNo observed close quote was synthesized; BET remains blocked."' /tmp/soccer-market-continuity.json >/tmp/soccer-market-alert.md
+            jq -r --arg run_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '"Daily continuity status: \(.status)\nBlocking reasons: \(.blockers | join(","))\nMarket families unchanged 3+ daily checks: \(.stalled_market_families_3plus_days | join(","))\nRun: \($run_url)\nNo observed close quote was synthesized; BET remains blocked."' /tmp/soccer-market-continuity.json >/tmp/soccer-market-alert.md
             gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/soccer-market-alert.md
           fi
           if [ "$fail" = "true" ]; then
