@@ -1421,9 +1421,47 @@ def test_primary_clv_maturation_rejects_unchanged_provider_update(monkeypatch):
     assert result["primary_clv_maturation_api_calls_added"] == 1
     assert result["primary_clv_maturation_fixtures_refreshed"] == 0
     assert result["primary_clv_maturation_unchanged_provider_updates"] == 1
-    assert payload["events"] == []
+    assert result["primary_clv_maturation_attempt_events_added"] == 1
+    assert len(payload["events"]) == 1
+    attempt = payload["events"][0]
+    assert attempt["event_type"] == v.PRIMARY_CLV_MATURATION_EVENT_TYPE
+    assert attempt["market_use"] == "PRIMARY_TRUE_CLV_MATURATION_ATTEMPT_ONLY"
+    assert attempt["classification"] == "RESEARCH_ONLY"
+    assert attempt["bet_eligible"] is False
+    assert attempt["production_promotion_allowed"] is False
+    assert attempt["decision_weight"] == 0.0
+    assert attempt["primary_clv_maturation"]["matured_families"] == []
+    assert attempt["primary_clv_maturation"]["provider_update_after_signal"] is False
+    assert attempt["primary_clv_maturation"]["fresh_attempt_persisted"] is True
+    assert attempt["market"]["markets"][0]["provider_update"] == "2026-09-25T05:59:00+00:00"
     assert payload["api_calls_this_tick"] == 6
 
+
+
+
+def test_primary_clv_research_attempts_do_not_attach_wrong_instrument_or_line():
+    signal = {
+        "market_family": "1H", "market": "First Half Goals Over/Under",
+        "selection": "Over", "line": 1.5,
+        "signal_generated_at": "2026-09-25T06:00:00+00:00",
+    }
+    wrong = [
+        {"market": "Second Half Goals Over/Under",
+         "values": [{"selection": "Over", "line": 1.5, "decimal_price": 2.0}],
+         "provider_update": "2026-09-25T05:59:00+00:00"},
+        {"market": "First Half Goals Over/Under",
+         "values": [{"selection": "Over", "line": 2.5, "decimal_price": 2.0}],
+         "provider_update": "2026-09-25T05:59:00+00:00"},
+        {"market": "First Half Goals Over/Under",
+         "values": [{"selection": "Under", "line": 1.5, "decimal_price": 2.0}],
+         "provider_update": "2026-09-25T05:59:00+00:00"},
+    ]
+    assert v._primary_exact_research_attempt_markets(wrong, [signal]) == []
+    actual = {"market": "First Half Goals Over/Under",
+              "values": [{"selection": "Over", "line": 1.5, "decimal_price": 1.8}],
+              "provider_update": "2026-09-25T05:59:00+00:00"}
+    assert v._primary_exact_research_attempt_markets(wrong + [actual], [signal]) == [actual]
+    assert v._primary_signals_with_later_provider_quote([actual], [signal]) == set()
 
 def test_primary_maturation_quote_helper_requires_same_market_and_later_update():
     signals = [
