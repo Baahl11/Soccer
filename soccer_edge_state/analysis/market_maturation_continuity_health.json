@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "status": "PASS",
+  "observed_at_utc": "2026-11-09T21:43:03.405784+00:00",
+  "scheduler_latest_tick_utc": "2026-11-09T19:14:07.758304+00:00",
+  "scheduler_database_persisted": true,
+  "ledger_latest_evidence_utc": "2026-11-09T19:14:07.758304+00:00",
+  "ledger_rows": 32178,
+  "previous_ledger_rows": null,
+  "clv_total_rows": 789,
+  "families": {
+    "1X2": {
+      "clv_rows": 53,
+      "prior_clv_rows": null,
+      "new_verified_clv_rows_since_prior_check": null,
+      "consecutive_unchanged_daily_checks": 0,
+      "stalled_3plus_days": false,
+      "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
+    },
+    "BTTS": {
+      "clv_rows": 20,
+      "prior_clv_rows": null,
+      "new_verified_clv_rows_since_prior_check": null,
+      "consecutive_unchanged_daily_checks": 0,
+      "stalled_3plus_days": false,
+      "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
+    },
+    "FT_TOTALS": {
+      "clv_rows": 8,
+      "prior_clv_rows": null,
+      "new_verified_clv_rows_since_prior_check": null,
+      "consecutive_unchanged_daily_checks": 0,
+      "stalled_3plus_days": false,
+      "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
+    },
+    "HOME_TT": {
+      "clv_rows": 343,
+      "prior_clv_rows": null,
+      "new_verified_clv_rows_since_prior_check": null,
+      "consecutive_unchanged_daily_checks": 0,
+      "stalled_3plus_days": false,
+      "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
+    },
+    "AWAY_TT": {
+      "clv_rows": 365,
+      "prior_clv_rows": null,
+      "new_verified_clv_rows_since_prior_check": null,
+      "consecutive_unchanged_daily_checks": 0,
+      "stalled_3plus_days": false,
+      "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
+    }
+  },
+  "source_workflows": {
+    "postgre_delta_ledger": {
+      "status": "RECENT_SUCCESS",
+      "run_id": 42701772706,
+      "last_success": "2026-11-09T21:22:09+00:00"
+    },
+    "market_clv": {
+      "status": "RECENT_SUCCESS",
+      "run_id": 42702752994,
+      "last_success": "2026-11-09T21:31:42+00:00"
+    }
+  },
+  "blockers": [],
+  "stalled_market_families_3plus_days": [],
+  "provider_requests_added": 0,
+  "postgres_write_queries": 0,
+  "historical_predictions_recomputed": false,
+  "production_promotion_allowed": false,
+  "notes": "Successful jobs and historical rows do not prove a new close-price exists. Missing strictly later quotes remain missing. No thresholds changed."
+}
