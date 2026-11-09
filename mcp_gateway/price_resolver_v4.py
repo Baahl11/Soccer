@@ -1343,6 +1343,37 @@ def _primary_signals_with_later_provider_quote(
             break
     return matured
 
+
+def _primary_exact_research_attempt_markets(
+    markets: list[dict[str, Any]],
+    signals: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Keep only observed market instruments that actually match a frozen signal.
+
+    This does NOT prove chronology or close eligibility; it is a research-only
+    record of what the provider returned on a real paid /odds request.
+    """
+    out: list[dict[str, Any]] = []
+    for market in markets:
+        if not isinstance(market, dict):
+            continue
+        for signal in signals:
+            if not isinstance(signal, dict) or not _primary_market_matches_signal(market, signal):
+                continue
+            family = str(signal.get("market_family") or "").upper()
+            if family in {"1H", "2H", "FT_CORNERS", "TEAM_CORNERS"}:
+                selection = str(signal.get("selection") or "")
+                line = _num(signal.get("line"))
+                if not selection or line is None:
+                    continue
+                values = [v for v in (market.get("values") or []) if isinstance(v, dict)]
+                if not any(_selection_matches(v, selection, line) for v in values):
+                    continue
+            out.append(market)
+            break
+    return out
+
+
 def _primary_maturation_family_accounting(
     signals: list[dict[str, Any]],
     matured_families: set[str],
@@ -3756,6 +3787,7 @@ async def resolve_payload(
     primary_maturation_budget_exhausted = 0
     primary_maturation_primary_payload_reuse_fixtures = 0
     primary_maturation_synthetic_events_added = 0
+    primary_maturation_attempt_events_added = 0
 
     if primary_maturation_events:
         async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SECONDS, follow_redirects=True) as primary_maturation_client:
@@ -3830,6 +3862,35 @@ async def resolve_payload(
                     primary_maturation_not_matured_family_counts[family] += 1
                 if not matured_families:
                     primary_maturation_unchanged_provider_updates += 1
+                    # A real paid provider request still has research value when
+                    # its provider_update is unchanged. Preserve the exact
+                    # returned instrument AS AN ATTEMPT ONLY, never a new close.
+                    # This prevents NO_LATER_SNAPSHOT from masking known
+                    # NO_LATER_PROVIDER_UPDATE cases without relaxing CLV.
+                    if provider_calls_for_event > 0:
+                        attempted = _primary_exact_research_attempt_markets(markets, signals)
+                        if attempted:
+                            _attach_market_to_event(
+                                event, attempted,
+                                status or "PRIMARY_CLV_MATURATION_PROVIDER_ATTEMPT",
+                            )
+                            event["market_use"] = "PRIMARY_TRUE_CLV_MATURATION_ATTEMPT_ONLY"
+                            event["classification"] = "RESEARCH_ONLY"
+                            event["research_only"] = True
+                            event["bet_eligible"] = False
+                            event["decision_weight"] = 0.0
+                            event["production_promotion_allowed"] = False
+                            event["primary_clv_maturation"]["matured_families"] = []
+                            event["primary_clv_maturation"]["not_matured_families"] = sorted(
+                                not_matured_families
+                            )
+                            event["primary_clv_maturation"]["provider_update_after_signal"] = False
+                            event["primary_clv_maturation"]["provider_requests_added"] = (
+                                provider_calls_for_event
+                            )
+                            event["primary_clv_maturation"]["fresh_attempt_persisted"] = True
+                            events.append(event)
+                            primary_maturation_attempt_events_added += 1
                     if len(primary_maturation_unchanged_provider_update_examples) < 8:
                         provider_updates = sorted({
                             str(market.get("provider_update"))
@@ -4631,7 +4692,8 @@ async def resolve_payload(
         "primary_clv_maturation_budget_exhausted": primary_maturation_budget_exhausted,
         "primary_clv_maturation_primary_payload_reuse_fixtures": primary_maturation_primary_payload_reuse_fixtures,
         "primary_clv_maturation_synthetic_events_added": primary_maturation_synthetic_events_added,
-        "primary_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;THEN_PRICED_1X2_FT_TOTALS_BTTS_FROM_PHASE16_OR_MATCH_TABLE+1H_2H_FROM_DERIVATIVE_INTELLIGENCE;1H_2H_REQUIRE_EXACT_SELECTION_AND_LINE;RESEARCH_ONLY_ROWS_MAY_MATURE_CLOSE_WITH_ZERO_DECISION_WEIGHT;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;SAME_GLOBAL_PRICE_BUDGET_ONLY",
+        "primary_clv_maturation_attempt_events_added": primary_maturation_attempt_events_added,
+        "primary_clv_maturation_policy": "PRIMARY_TARGETS_FIRST;THEN_PRICED_1X2_FT_TOTALS_BTTS_FROM_PHASE16_OR_MATCH_TABLE+1H_2H_FROM_DERIVATIVE_INTELLIGENCE;1H_2H_REQUIRE_EXACT_SELECTION_AND_LINE;RESEARCH_ONLY_ROWS_MAY_MATURE_CLOSE_WITH_ZERO_DECISION_WEIGHT;REAL_PAID_UNCHANGED_QUOTES_PERSIST_ATTEMPT_ONLY;CACHE_REPLAY_NOT_CLOSE;THEN_TEAM_TOTALS;SAME_GLOBAL_PRICE_BUDGET_ONLY",
         "player_props_clv_maturation_source": player_props_maturation.get("source"),
         "player_props_clv_maturation_candidates": player_props_maturation_candidates,
         "player_props_clv_maturation_candidate_family_counts": dict(
