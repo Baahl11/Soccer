@@ -38,6 +38,9 @@
 # Team Totals post-v123 CLV refresh: 2026-09-24 20:37 CDMX
 # 2026-09-30 recovery: allow the bounded CLV retries to complete after Postgres recovery
 # 2026-09-30 runner isolation: execute stdlib-only CLV merge directly, avoiding package commercial imports
+# 2026-11-09 bounded canary after verified v215 backlog recovery.
+# This re-runs only the existing 4-day/500-signal read-only CLV endpoint;
+# it does NOT change provider budgets, model weights or true-close criteria.
 name: Phase 17 Postgres CLV Validation - Canonical Refresh
 
 on:
