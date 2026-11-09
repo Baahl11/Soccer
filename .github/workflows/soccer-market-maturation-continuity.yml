@@ -1,0 +1,138 @@
+name: Soccer Market Maturation Continuity - Evidence Alarm
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/soccer_market_maturation_continuity.py"
+      - ".github/workflows/soccer-market-maturation-continuity.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/scripts/soccer_market_maturation_continuity.py"
+      - ".github/workflows/soccer-market-maturation-continuity.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "25 13 * * *"
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: soccer-market-maturation-continuity-audit
+  cancel-in-progress: false
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify true timestamps, anti-regression and no-bet safety
+        run: |
+          set -euo pipefail
+          python .github/scripts/soccer_market_maturation_continuity.py --self-test
+          python - <<'PY'
+          from pathlib import Path
+          path = Path(".github/workflows/soccer-market-maturation-continuity.yml")
+          text = path.read_text()
+          script = Path(".github/scripts/soccer_market_maturation_continuity.py").read_text()
+          assert "cron: \"25 13 * * *\"" in text
+          assert "production_promotion_allowed" in script
+          assert "provider_requests_added" in script
+          assert "postgres_write_queries" in script
+          assert "HISTORICAL_CLV_COUNT_REGRESSION" in script
+          assert "NO_SUCCESSFUL_RUN" in script
+          print("SOCcer_MATURATION_CONTINUITY_STATIC_SAFETY_PASS")
+          PY
+
+  audit:
+    if: github.event_name != 'pull_request'
+    needs: offline-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/health.json
+            soccer_edge_state/analysis/signal_ledger_summary.json
+            soccer_edge_state/analysis/clv_v4_postgres_report.json
+            soccer_edge_state/analysis/market_maturation_continuity_health.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Read actual GitHub Actions job histories without provider or Postgres
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/v215-signal-ledger-postgres-materialization.yml/runs?branch=main&per_page=10" >/tmp/soccer-ledger-runs.json
+          gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/phase17-clv-postgres-validation.yml/runs?branch=main&per_page=10" >/tmp/soccer-clv-runs.json
+      - name: Build point-in-time process health and market no-growth audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python controls/.github/scripts/soccer_market_maturation_continuity.py \
+            --health state/soccer_edge_state/health.json \
+            --ledger state/soccer_edge_state/analysis/signal_ledger_summary.json \
+            --clv state/soccer_edge_state/analysis/clv_v4_postgres_report.json \
+            --ledger-runs /tmp/soccer-ledger-runs.json \
+            --clv-runs /tmp/soccer-clv-runs.json \
+            --previous state/soccer_edge_state/analysis/market_maturation_continuity_health.json \
+            --output state/soccer_edge_state/analysis/market_maturation_continuity_health.json \
+            | tee /tmp/soccer-market-continuity.json
+          jq -e '.production_promotion_allowed == false
+                 and .provider_requests_added == 0
+                 and .postgres_write_queries == 0
+                 and .historical_predictions_recomputed == false' \
+             /tmp/soccer-market-continuity.json >/dev/null
+      - name: Persist research-only continuity evidence
+        shell: bash
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/market_maturation_continuity_health.json
+          git commit -m "Observe daily soccer market evidence continuity without provider calls"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase origin/soccer-edge-state && git push origin HEAD:soccer-edge-state; then exit 0; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          exit 1
+      - name: Alert once if pipeline failed or no markets have matured in three daily checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail=$(jq -r '.status != "PASS"' /tmp/soccer-market-continuity.json)
+          stalled=$(jq -r '.stalled_market_families_3plus_days | length' /tmp/soccer-market-continuity.json)
+          if [ "$fail" = "false" ] && [ "$stalled" = "0" ]; then
+            echo "MARKET_CONTINUITY_HEALTHY; verified exact close growth is monitored separately"
+            exit 0
+          fi
+          title="Soccer Market Data Continuity Stall"
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number,title --jq '.[] | select(.title == "Soccer Market Data Continuity Stall") | .number' | head -n1)
+          if [ -z "$number" ]; then
+            jq -r --arg run_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '"Daily continuity status: \(.status)\nBlocking reasons: \(.blockers | join(","))\nMarket families unchanged 3+ daily checks: \(.stalled_market_families_3plus_days | join(","))\nRun: \($run_url)\nNo observed close quote was synthesized; BET remains blocked."' /tmp/soccer-market-continuity.json >/tmp/soccer-market-alert.md
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/soccer-market-alert.md
+          fi
+          if [ "$fail" = "true" ]; then
+            echo "::error::Soccer market evidence pipeline failed freshness verification"
+            exit 1
+          fi
+          echo "::warning::Soccer market family counters have not grown in three daily checks"
