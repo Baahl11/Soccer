@@ -38,7 +38,7 @@ jobs:
       - name: Capture one already independently verified FT fixture via provider
         shell: bash
         env:
-          API_FOOTBALL_KEY: ${ secrets.API_FOOTBALL_KEY }}
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         run: |
           set -euo pipefail
           if [[ -z "${API_FOOTBALL_KEY:-}" ]]; then
