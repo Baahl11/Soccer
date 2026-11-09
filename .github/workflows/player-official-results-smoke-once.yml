@@ -1,0 +1,84 @@
+name: Soccer Official Player Results - One-Shot Real-Data Smoke
+
+# Temporary, one-shot push smoke. Remove this file after run. No schedule,
+# no Render, no retrospective pregame forecasts, no betting enablement.
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/player-official-results-smoke-once.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: player-stats-runner-only-registry
+  cancel-in-progress: false
+
+jobs:
+  verify-real-official-outcome-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Prove bounded collector quality gates without provider calls
+        run: python controls/.github/scripts/player_official_results_runner.py --self-test
+
+      - name: Capture one already independently verified FT fixture via provider
+        shell: bash
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${API_FOOTBALL_KEY:-}" ]]; then
+            echo "REQUIRED_SECRET_NOT_CONFIGURED: API_FOOTBALL_KEY" >&2
+            exit 1
+          fi
+          python controls/.github/scripts/player_official_results_runner.py \
+            --registry state/soccer_edge_state/analysis/player_trend_registry_backfill.json \
+            --date 2026-11-08 \
+            --fixture-id 1593703 \
+            --max-fixtures 1 | tee /tmp/one_shot_player_capture.json
+          jq -e '
+            .status == "RESEARCH_ONLY_POSTGAME_CAPTURE"
+            and .captured == 1
+            and .attempted == 1
+            and .provider_requests_added == 2
+            and .daily_remaining_reported >= 1000
+            and .production_promotion_allowed == false
+            and .oos_validation_complete == false
+            and .retroactive_predictions_created == false
+            and (.errors | length == 0)
+          ' /tmp/one_shot_player_capture.json >/dev/null
+
+      - name: Persist one provider-observed fixture for future-only models
+        working-directory: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/player_trend_registry_backfill.json
+          if git diff --cached --quiet; then
+            echo "ERROR: expected an append-only genuine player capture" >&2
+            exit 1
+          fi
+          git commit -m "Capture real A-League 2026-11-08 players on isolated runner for future models only"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            git rebase origin/soccer-edge-state
+            if git push origin HEAD:soccer-edge-state; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1

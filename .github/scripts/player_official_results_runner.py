@@ -176,6 +176,7 @@ def collect(
     *,
     now: datetime,
     max_fixtures: int,
+    requested_fixture_id: int | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     known = {}
     for capture in existing.get("captures") or []:
@@ -183,8 +184,15 @@ def collect(
             fid = as_int(capture.get("fixture_id"))
             if fid:
                 known[fid] = capture
-    response, remaining = get("fixtures", {"date": fixture_date, "timezone": "America/Mexico_City"})
+    params = ({"id": requested_fixture_id} if requested_fixture_id is not None
+              else {"date": fixture_date, "timezone": "America/Mexico_City"})
+    response, remaining = get("fixtures", params)
     candidates = [f for f in candidate_fixtures(response, now) if f["fixture_id"] not in known]
+    if requested_fixture_id is not None:
+        candidates = [f for f in candidates
+                      if f["fixture_id"] == requested_fixture_id
+                      and datetime.fromisoformat(f["kickoff"]).astimezone(
+                          ZoneInfo("America/Mexico_City")).date().isoformat() == fixture_date]
     attempted = captured = rejected = 0
     errors = []
     # Unknown quota must never turn into unrestricted requests.
@@ -264,6 +272,12 @@ def self_test() -> None:
     assert output["production_promotion_allowed"] is False
     output2, report2 = collect("2026-11-07", output, get, now=now, max_fixtures=5)
     assert report2["captured"] == 0 and report2["provider_requests_added"] == 1
+    targeted, targeted_report = collect("2026-11-07", {"captures": []}, get,
+                                        now=now, max_fixtures=1, requested_fixture_id=123)
+    assert targeted_report["captured"] == 1 and targeted["capture_count"] == 1
+    mismatched, mismatched_report = collect("2026-11-06", {"captures": []}, get,
+                                        now=now, max_fixtures=1, requested_fixture_id=123)
+    assert mismatched_report["captured"] == 0
     _, report3 = collect("2026-11-07", {"captures": []}, lambda e,p:(source[e],None), now=now, max_fixtures=5)
     assert report3["attempted"] == 0 and report3["provider_requests_added"] == 1
     source["fixtures/players"] = {"response": [stats(11, 100), stats(999, 200)]}
@@ -277,6 +291,8 @@ def main() -> None:
     parser.add_argument("--registry", default="state/soccer_edge_state/analysis/player_trend_registry_backfill.json")
     parser.add_argument("--date", default=None)
     parser.add_argument("--max-fixtures", type=int, default=3)
+    parser.add_argument("--fixture-id", type=int, default=None,
+                        help="Optional exact provider fixture ID; FT and selected local date must match")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -284,6 +300,8 @@ def main() -> None:
         return
     if not 1 <= args.max_fixtures <= MAX_FIXTURES_PER_RUN:
         parser.error("max-fixtures out of bounds")
+    if args.fixture_id is not None and args.fixture_id <= 0:
+        parser.error("fixture-id must be positive")
     now = datetime.now(timezone.utc)
     local = now.astimezone(ZoneInfo("America/Mexico_City"))
     fixture_date = args.date or (local.date() - timedelta(days=1)).isoformat()
@@ -300,6 +318,7 @@ def main() -> None:
     updated, report = collect(
         fixture_date, existing, lambda e, p: provider_get(e, p, key),
         now=now, max_fixtures=args.max_fixtures,
+        requested_fixture_id=args.fixture_id,
     )
     # Never rewrite historical predictions, market prices, results or OOS labels.
     if report["captured"]:
