@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "status": "REAL_POSTGAME_CAPTURE_TO_FROZEN_PREGAME_OOS_RECONCILIATION",
+  "audited_at_utc": "2026-11-09T19:11:53.647Z",
+  "scope": "GitHub soccer-edge-state only; does not inspect unseen Postgres refresh events",
+  "sources": {
+    "captured_official_player_results": {
+      "path": "soccer_edge_state/analysis/player_trend_registry_backfill.json",
+      "sha": "845f98091529ec4b8bcbc1dd821f6bee3e08b20e"
+    },
+    "existing_graded_player_oos": {
+      "path": "soccer_edge_state/analysis/player_props_oos_v4_tracking.jsonl",
+      "sha": "489bb444d8766f5f81364bd8d5e0b08d027a0966"
+    },
+    "existing_oos_report": {
+      "path": "soccer_edge_state/analysis/player_props_oos_v4_report.json",
+      "sha": "bb0c5b146ac4fd641b67b48c1fc6b6ff52d1dd33"
+    }
+  },
+  "real_official_fixtures_captured": 23,
+  "real_official_fixture_ids": [
+    1492668,
+    1528882,
+    1528883,
+    1528886,
+    1528887,
+    1549029,
+    1549030,
+    1550145,
+    1550990,
+    1550991,
+    1556134,
+    1556674,
+    1557421,
+    1558649,
+    1558650,
+    1558652,
+    1570405,
+    1575511,
+    1575517,
+    1593325,
+    1593327,
+    1593328,
+    1593703
+  ],
+  "graded_oos_tracking_rows": 324,
+  "distinct_oos_tracking_fixtures": 21,
+  "cross_source_matching_fixtures": 0,
+  "cross_source_matching_fixture_ids": [],
+  "captured_fixtures_without_matching_state_oos": 23,
+  "first_verified_runner_fixture_id": 1556134,
+  "first_verified_github_actions_fixture_id": 1593703,
+  "historical_oos_additions_justified": 0,
+  "oos_rows_appended": 0,
+  "current_shots_player_game_rows": 63,
+  "current_sot_player_game_rows": 61,
+  "minimum_review_player_games_shots": 500,
+  "minimum_review_player_games_sot": 500,
+  "methodology": "Only compare exact official fixture_id matches against pre-existing graded OOS tracking; absence of a state match is not proof that remote Postgres contains no pregame record.",
+  "oos_claims_from_new_captures_allowed": false,
+  "must_obtain_true_frozen_pregame_fixture_player_market_timestamp": true,
+  "retroactive_pregame_predictions_created": false,
+  "production_promotion_allowed": false
+}
