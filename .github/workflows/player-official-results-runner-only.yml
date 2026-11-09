@@ -1,8 +1,11 @@
 name: Soccer Official Player Results - Isolated Bounded Capture
 
-# Intentionally MANUAL ONLY until provider secret, quota headers and first real
-# captured fixtures have been independently verified. No Render/DB worker.
+# Bounded official outcome collection: no Render worker, 3 fixtures/run by default.
+# Offline QA on PRs; live collection on UTC daily schedule or manual dispatch.
 on:
+  # Verified live capture 2026-11-09: 2 calls, daily remaining 7443.
+  schedule:
+    - cron: "23 9 * * *"
   workflow_dispatch:
     inputs:
       fixture_date:
@@ -53,15 +56,16 @@ jobs:
           assert "soccer-edge-api.onrender.com" not in script
           assert "/internal/" not in script
           assert not re.search(r"^\s*id-token:\s*write\s*$", workflow, flags=re.M)
-          assert not re.search(r"^  schedule:\s*$", workflow, flags=re.M)
+          assert "  schedule:" in workflow
+          assert 'cron: "23 9 * * *"' in workflow
           assert ('API_FOOTBALL_KEY: ' + chr(36) + '{{ secrets.API_FOOTBALL_KEY }}') in workflow
           assert ('FIXTURE_DATE_INPUT: ' + chr(36) + '{{ inputs.fixture_date }}') in workflow
           assert ('FIXTURE_CAP_INPUT: ' + chr(36) + '{{ inputs.max_fixtures }}') in workflow
-          print("OFFLINE_SECURITY_GATES_PASS: MANUAL_ONLY, NO_RENDER, RESEARCH_ONLY")
+          print("OFFLINE_SECURITY_GATES_PASS: QUOTA_GUARDED_DAILY, NO_RENDER, RESEARCH_ONLY")
           PY
 
   capture:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
     needs: offline-gates
     runs-on: ubuntu-latest
     timeout-minutes: 12
