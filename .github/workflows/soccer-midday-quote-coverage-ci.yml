@@ -1,0 +1,53 @@
+name: Soccer Midday CLV Quote-Coverage - Offline Schedule QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/soccer-edge-scheduler.yml'
+      - '.github/workflows/soccer-midday-quote-coverage-ci.yml'
+permissions:
+  contents: read
+jobs:
+  static-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate exactly one schedule change and existing safety contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1
+          python - <<'PY'
+          import pathlib, subprocess
+          p='.github/workflows/soccer-edge-scheduler.yml'
+          current=pathlib.Path(p).read_text()
+          baseline=subprocess.check_output(['git','show',f'origin/main:{p}'],text=True)
+          old='\n'.join([
+              '  # Two guarded OIDC ticks daily; the 28 paused workflows stay paused.',
+              '  schedule:',
+              "    \u002d cron: '10 12 * * *'  # 06:10 America/Mexico_City",
+              "    \u002d cron: '10 19 * * *'  # 13:10 America/Mexico_City",
+          ])
+          new='\n'.join([
+              '  # Three guarded OIDC ticks daily: one cautious midday price-coverage pilot.',
+              '  # Original 06:10/13:10 slots and per-tick quota/cap unchanged.',
+              '  # All 28 paused workflows remain paused; no betting gate changes.',
+              '  schedule:',
+              "    \u002d cron: '10 12 * * *'  # 06:10 America/Mexico_City",
+              "    \u002d cron: '10 16 * * *'  # 10:10 America/Mexico_City; midday pilot",
+              "    \u002d cron: '10 19 * * *'  # 13:10 America/Mexico_City",
+          ])
+          assert baseline.count(old)==1, 'Baseline schedule anchor missing'
+          assert current==baseline.replace(old,new), 'Unexpected change outside cron'
+          assert current.count("    - cron: '")==3
+          assert 'group: soccer-edge-db-heavy-runtime' in current
+          assert 'cancel-in-progress: false' in current
+          assert 'API quota circuit breaker' in current
+          assert 'quota_block_until.txt' in current
+          assert 'permissions: {contents: write, issues: write, id-token: write}' in current
+          assert 'github.event_name == ' + chr(39) + 'push' + chr(39) in current
+          print('MIDDAY_SCHEDULE_OFFLINE_QA_PASS: only one added bounded daily tick')
+          PY
