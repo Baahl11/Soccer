@@ -281,7 +281,12 @@ def self_test():
             }] if pre[0]["event_payload"].get("player_shots_intelligence", {}).get("players") else []
 
     import types
+    old_pkg = sys.modules.get("mcp_gateway")
     saved = sys.modules.get("mcp_gateway.player_props_oos_postgres_v4")
+    fake_pkg = types.ModuleType("mcp_gateway")
+    fake_pkg.__path__ = []
+    fake_pkg.player_props_oos_postgres_v4 = FakeScorer
+    sys.modules["mcp_gateway"] = fake_pkg
     sys.modules["mcp_gateway.player_props_oos_postgres_v4"] = FakeScorer
     try:
         kick = datetime(2026,11,8,6,0,tzinfo=timezone.utc)
@@ -324,6 +329,8 @@ def self_test():
     finally:
         if saved is None: del sys.modules["mcp_gateway.player_props_oos_postgres_v4"]
         else: sys.modules["mcp_gateway.player_props_oos_postgres_v4"] = saved
+        if old_pkg is None: del sys.modules["mcp_gateway"]
+        else: sys.modules["mcp_gateway"] = old_pkg
 
 
 def main():
