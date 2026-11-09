@@ -130,7 +130,7 @@ def test_inventory_only_real_pregame_model_envelopes_and_no_lookahead():
     assert report["status"] == mod.INVENTORY_STATUS
     assert report["candidate_fixture_ids"] == [123, 456]
     assert report["candidate_fixtures"] == 2
-    assert report["invalid_rows_excluded"] == 3
+    assert report["invalid_rows_excluded"] == 4  # one duplicate + three invalid snapshots
     assert report["provider_requests_added"] == 0
     assert report["db_write_queries"] == 0
     assert report["production_promotion_allowed"] is False
