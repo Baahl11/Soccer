@@ -134,3 +134,116 @@ def export_frozen(fixture_ids: Any) -> dict[str, Any]:
     if len(json.dumps(output, default=str).encode("utf-8")) > MAX_RESPONSE_BYTES:
         raise ValueError("FROZEN_MODEL_RESPONSE_TOO_LARGE")
     return output
+
+
+# Discovery is intentionally separate from grading. It does not assert that a
+# game finished, that player outcomes are known, or that its model is eligible.
+# Each candidate must independently pass official-FT and as-of checks downstream.
+MAX_INVENTORY_EVENTS = 250
+MAX_INVENTORY_FIXTURES = 20
+INVENTORY_STATUS = "FROZEN_PLAYER_MODEL_FIXTURE_INVENTORY_RESEARCH_ONLY"
+
+_INVENTORY_SQL = """
+SELECT e.fixture_id, e.event_id, e.generated_at, e.stage, f.kickoff,
+       f.home_team_id, f.away_team_id,
+       e.payload->'player_shots_intelligence'->>'status' AS shots_status,
+       e.payload->'player_sot_intelligence'->>'status' AS sot_status
+FROM soccer_refresh_events e
+JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+WHERE e.generated_at >= %s
+  AND e.generated_at < f.kickoff
+  AND f.kickoff <= %s
+  AND e.stage IN ('T-40','T-30','T-20','T-10')
+  AND (
+    e.payload->'player_shots_intelligence'->>'status' = 'LIVE_RESEARCH_SHOTS_PROPS'
+    OR
+    e.payload->'player_sot_intelligence'->>'status' = 'LIVE_RESEARCH_SOT_PROPS'
+  )
+ORDER BY e.generated_at DESC
+LIMIT %s
+"""
+
+
+def discover_frozen(*, lookback_days: int = 10) -> dict[str, Any]:
+    """Bounded indexed lookback; returns *unverified outcome* candidates only.
+
+    The result must never be used as official-FT evidence, market prices, OOS
+    membership, or proof that any player has a valid probability forecast.
+    """
+    from datetime import timedelta
+    if type(lookback_days) is not int or not 1 <= lookback_days <= 14:
+        raise ValueError("INVALID_INVENTORY_LOOKBACK_DAYS")
+    if not persistence.persistence_configured():
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "status": "POSTGRES_NOT_CONFIGURED",
+            "candidates": [],
+            "provider_requests_added": 0,
+            "db_write_queries": 0,
+            "production_promotion_allowed": False,
+        }
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=lookback_days)
+    with persistence._connect() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute("SET TRANSACTION READ ONLY")
+                cur.execute("SET LOCAL statement_timeout = '2500ms'")
+                cur.execute(_INVENTORY_SQL, (cutoff, now, MAX_INVENTORY_EVENTS))
+                raw = cur.fetchall()
+
+    candidates: list[dict[str, Any]] = []
+    seen: set[int] = set()
+    rejected = 0
+    for row in raw:
+        fid, event_id, generated, stage, kickoff, home, away, shots, sot = row
+        if (type(fid) is not int or fid <= 0 or fid in seen
+                or type(event_id) is not int or event_id <= 0
+                or stage not in PREGAME_STAGES
+                or type(home) is not int or type(away) is not int
+                or home <= 0 or away <= 0 or home == away
+                or not isinstance(generated, datetime)
+                or not isinstance(kickoff, datetime)
+                or generated.tzinfo is None or kickoff.tzinfo is None
+                or not (cutoff <= generated < kickoff <= now)):
+            rejected += 1
+            continue
+        has_shots = shots == "LIVE_RESEARCH_SHOTS_PROPS"
+        has_sot = sot == "LIVE_RESEARCH_SOT_PROPS"
+        if not has_shots and not has_sot:
+            rejected += 1
+            continue
+        seen.add(fid)
+        candidates.append({
+            "fixture_id": fid,
+            "pregame_source_event_id": event_id,
+            "prediction_timestamp": _iso(generated),
+            "kickoff": _iso(kickoff),
+            "home_team_id": home,
+            "away_team_id": away,
+            "shots_model_envelope_present": has_shots,
+            "sot_model_envelope_present": has_sot,
+            "official_final_result_verified": False,
+            "modelled_player_probability_rows_verified": False,
+            "oos_eligible": False,
+        })
+        if len(candidates) == MAX_INVENTORY_FIXTURES:
+            break
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "status": INVENTORY_STATUS,
+        "source": "POSTGRES_CANONICAL_SOCCER_REFRESH_EVENTS",
+        "generated_at_utc": now.isoformat(),
+        "lookback_days": lookback_days,
+        "max_events_scanned": MAX_INVENTORY_EVENTS,
+        "max_fixtures_returned": MAX_INVENTORY_FIXTURES,
+        "raw_events_returned": len(raw),
+        "candidate_fixtures": len(candidates),
+        "invalid_rows_excluded": rejected,
+        "candidate_fixture_ids": [x["fixture_id"] for x in candidates],
+        "candidates": candidates,
+        "provider_requests_added": 0,
+        "db_write_queries": 0,
+        "retroactive_predictions_created": False,
+        "production_promotion_allowed": False,
+    }
