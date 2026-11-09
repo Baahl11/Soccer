@@ -347,16 +347,30 @@ async def _handle_player_frozen_readonly(scope, receive, send) -> None:
         if len(body_bytes) > 1800:
             raise ValueError("REQUEST_TOO_LARGE")
         body = json.loads(body_bytes)
-        ids = player_frozen_oos_readonly_v1.validate_fixture_ids(
-            body.get("fixture_ids") if isinstance(body, dict) else None
-        )
+        inventory = isinstance(body, dict) and body.get("inventory") is True
+        if inventory:
+            if set(body) != {"inventory", "lookback_days"}:
+                raise ValueError("INVALID_INVENTORY_INPUT_KEYS")
+            days = body.get("lookback_days")
+            if type(days) is not int or not 1 <= days <= 14:
+                raise ValueError("INVALID_INVENTORY_LOOKBACK_DAYS")
+            if body.get("fixture_ids") is not None:
+                raise ValueError("INVENTORY_DISALLOWS_FIXTURE_IDS")
+        else:
+            ids = player_frozen_oos_readonly_v1.validate_fixture_ids(
+                body.get("fixture_ids") if isinstance(body, dict) else None
+            )
     except (ValueError, TypeError):
-        response = JSONResponse({"error": "invalid_fixture_ids"}, status_code=400)
+        response = JSONResponse({"error": "invalid_frozen_player_read_parameters"}, status_code=400)
         await response(scope, receive, send)
         return
     try:
         result = await asyncio.wait_for(
-            asyncio.to_thread(player_frozen_oos_readonly_v1.export_frozen, ids),
+            asyncio.to_thread(
+                player_frozen_oos_readonly_v1.discover_frozen, lookback_days=days
+            ) if inventory else asyncio.to_thread(
+                player_frozen_oos_readonly_v1.export_frozen, ids
+            ),
             timeout=32.0,
         )
         response = JSONResponse(result, headers={"Cache-Control": "no-store"})
