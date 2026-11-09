@@ -147,8 +147,11 @@ def grade_export(export: dict, registry: dict, existing_keys: set[tuple[int, str
                     counters[f"{family}_OFFICIAL_STAT_MISSING"] += 1
                     continue
                 reg_time = as_utc(p.get("registry_generated_at_utc"))
-                if not reg_time or reg_time > frozen:
-                    counters[f"{family}_PLAYER_REGISTRY_NOT_ASOF"] += 1
+                if reg_time is None:
+                    counters[f"{family}_PLAYER_REGISTRY_TIMESTAMP_MISSING_OR_INVALID"] += 1
+                    continue
+                if reg_time > frozen:
+                    counters[f"{family}_PLAYER_REGISTRY_GENERATED_AFTER_FROZEN_SNAPSHOT"] += 1
                     continue
                 if num(p.get(expected_key)) is None:
                     counters[f"{family}_RAW_PROJECTION_NOT_VERIFIED"] += 1
@@ -315,7 +318,12 @@ def self_test():
         assert not dup and r2["ALREADY_GRADED"]==1
         unsafe=copy.deepcopy(exp)
         unsafe["rows"][0]["event_payload"]["player_shots_intelligence"]["players"][0]["registry_generated_at_utc"]=(kick+timedelta(days=1)).isoformat()
-        assert not grade_export(unsafe,reg,set())[0]
+        late, late_reasons, _ = grade_export(unsafe,reg,set())
+        assert not late and late_reasons["SHOTS_PLAYER_REGISTRY_GENERATED_AFTER_FROZEN_SNAPSHOT"] == 1
+        missingreg=copy.deepcopy(exp)
+        missingreg["rows"][0]["event_payload"]["player_shots_intelligence"]["players"][0].pop("registry_generated_at_utc")
+        missingrows, missing_reasons, _ = grade_export(missingreg,reg,set())
+        assert not missingrows and missing_reasons["SHOTS_PLAYER_REGISTRY_TIMESTAMP_MISSING_OR_INVALID"] == 1
         badkick=copy.deepcopy(exp)
         badkick["rows"][0]["kickoff"]=(kick+timedelta(minutes=1)).isoformat()
         assert not grade_export(badkick,reg,set())[0]
