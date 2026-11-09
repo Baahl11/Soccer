@@ -260,8 +260,8 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
     now = clock()
     if now.tzinfo is None:
         raise ValueError("NOW_MUST_BE_AWARE")
-    dates = sorted({now.astimezone(TIMEZONE).date(),
-                    (now + timedelta(hours=MAX_KICKOFF_LOOKAHEAD)).astimezone(TIMEZONE).date()})
+    local_today = now.astimezone(TIMEZONE).date()
+    dates = [local_today, local_today + timedelta(days=1)]
     if len(dates) > 2:
         raise RuntimeError("UNEXPECTED_SLATE_DAY_COUNT")
     candidates = []
