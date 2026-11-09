@@ -1,3 +1,6 @@
+# 2026-11-09 repair canary: materialize genuine Postgres delta after 27 days of
+# stalled state ledger, no provider calls, no historical prediction rewrites.
+# PR-only checks do not execute this job; push on main runs exactly once.
 name: v215 Signal Ledger Postgres Materialization
 
 on:
@@ -186,6 +189,7 @@ jobs:
           jq -e '.production_promotion_allowed == false' "$SUMMARY" >/dev/null
 
           echo "v215 materialization rows: $OLD_ROWS -> $NEW_ROWS (delta rows=$V215_TOTAL_ROWS, pages=$V215_PAGES)"
+          echo "V215_SOURCE_RECOVERY: existing=$OLD_ROWS resulting=$NEW_ROWS delta=$V215_TOTAL_ROWS raw_events=$V215_TOTAL_RAW pages=$V215_PAGES"
           jq '{
             schema_version,
             rows,
