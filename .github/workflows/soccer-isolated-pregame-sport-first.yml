@@ -1,0 +1,146 @@
+name: Soccer Isolated Sport First Prematch - Official Prospective Pilot
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/soccer_isolated_pregame_sport_first.py"
+      - ".github/workflows/soccer-isolated-pregame-sport-first.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/scripts/soccer_isolated_pregame_sport_first.py"
+      - ".github/workflows/soccer-isolated-pregame-sport-first.yml"
+  workflow_dispatch:
+  # Strict max 6 provider requests / tick; no Render workload or market calls.
+  schedule:
+    - cron: "50 11 * * *"  # 05:50 Mexico City, prospective morning
+    - cron: "50 19 * * *"  # 13:50 Mexico City, prospective afternoon
+
+permissions:
+  contents: write
+
+concurrency:
+  group: soccer-isolated-sport-first-pregame-pilot
+  cancel-in-progress: false
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+      - uses: actions/checkout@v4
+        with:
+          repository: Baahl11/Soccer
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          sparse-checkout: |
+            mcp_gateway/soccer_model.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate canonical model and offline fake-provider invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha=$(git -C runtime rev-parse HEAD)
+          python controls/.github/scripts/soccer_isolated_pregame_sport_first.py \
+            --self-test \
+            --model-file runtime/mcp_gateway/soccer_model.py \
+            --runtime-model-sha "$sha"
+          python - <<'PY'
+          from pathlib import Path
+          s=Path("controls/.github/scripts/soccer_isolated_pregame_sport_first.py").read_text()
+          w=Path("controls/.github/workflows/soccer-isolated-pregame-sport-first.yml").read_text()
+          assert 'MAX_PROVIDER_REQUESTS = 6' in s
+          assert 'MAX_FIXTURES = 2' in s
+          assert 'MIN_DAILY_REMAINING = 1000' in s
+          assert 'ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})' in s
+          assert 'FROZEN_RESEARCH_PREMATCH_SPORT_PROJECTION' in s
+          assert '"production_promotion_allowed": False' in s
+          assert '"bet_eligible": False' in s
+          assert '"provider_odds_requests_added": 0' in s
+          assert "soccer-edge-state" in w
+          print("ISOLATED_PROSPECTIVE_SPORT_ONLY_STATIC_CONTRACT_PASS")
+          PY
+
+  capture:
+    if: github.event_name != 'pull_request'
+    needs: offline-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+      - uses: actions/checkout@v4
+        with:
+          repository: Baahl11/Soccer
+          ref: soccer-edge-mcp-v1
+          path: runtime
+          sparse-checkout: |
+            mcp_gateway/soccer_model.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl
+            soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Capture only genuine prospective sport projections
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${API_FOOTBALL_KEY:-}" || { echo "::error::API_FOOTBALL_KEY_NOT_CONFIGURED"; exit 1; }
+          model_sha=$(git -C runtime rev-parse HEAD)
+          mkdir -p state/soccer_edge_state/analysis
+          touch state/soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl
+          python controls/.github/scripts/soccer_isolated_pregame_sport_first.py \
+            --model-file runtime/mcp_gateway/soccer_model.py \
+            --runtime-model-sha "$model_sha" \
+            --registry state/soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl \
+            --receipt state/soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json
+          jq -e '
+            (.status == "CAPTURED_RESEARCH_ONLY" or .status == "NO_NEW_VALID_PREGAME_MODELS")
+            and .production_promotion_allowed == false
+            and .retroactive_pregame_signals_created == false
+            and .provider_odds_requests_added == 0
+            and .postgres_write_queries == 0
+            and (.provider_requests_added <= 6)
+            and (.new_frozen_pregame_models <= 2)
+            and (.daily_remaining_reported >= 1000)
+          ' state/soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json >/dev/null
+      - name: Save genuine pregame observations without rewriting historical predictions
+        shell: bash
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl \
+                     soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json
+          if git diff --cached --quiet; then
+            echo "NO_STATE_FILE_DELTA"
+            exit 0
+          fi
+          git commit -m "Store authentic frozen pregame SPORT FIRST observations (research-only)"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase origin/soccer-edge-state && git push origin HEAD:soccer-edge-state; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((2 * attempt))
+          done
+          exit 1
