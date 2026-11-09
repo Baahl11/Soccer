@@ -1,0 +1,113 @@
+name: Soccer Isolated Sport - Genuine Frozen Prematch Official FT OOS
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/soccer_isolated_sport_oos_ft.py"
+      - ".github/workflows/soccer-isolated-sport-official-ft-oos.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/scripts/soccer_isolated_sport_oos_ft.py"
+      - ".github/workflows/soccer-isolated-sport-official-ft-oos.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "25 12 * * *" # 06:25 Mexico City
+    - cron: "25 21 * * *" # 15:25 Mexico City
+
+permissions:
+  contents: write
+
+concurrency:
+  group: soccer-isolated-sport-official-ft-oos
+  cancel-in-progress: false
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test genuine as-of frozen model and official regulation FT only
+        run: |
+          set -euo pipefail
+          python .github/scripts/soccer_isolated_sport_oos_ft.py --self-test
+          python - <<'PY'
+          from pathlib import Path
+          s=Path(".github/scripts/soccer_isolated_sport_oos_ft.py").read_text()
+          assert 'MAX_FIXTURES_PER_RUN = 4' in s
+          assert 'MAX_POSTGAME_AGE = timedelta(days=14)' in s
+          assert '"FT_TOTALS_OVER_2_5"' in s
+          assert '"market_price_verified":False' in s
+          assert '"clv_eligible":False' in s
+          assert '"model_recomputed_after_result":False' in s
+          assert 'if (fixture.get("status") or {}).get("short") != "FT":' in s
+          print("OFFICIAL_SPORT_OOS_ANTI_LEAKAGE_CONTRACT_PASS")
+          PY
+
+  official-ft-join:
+    if: github.event_name != 'pull_request'
+    needs: offline-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl
+            soccer_edge_state/analysis/isolated_sport_first_oos_v1.jsonl
+            soccer_edge_state/analysis/isolated_sport_first_oos_receipt_v1.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Join only original frozen snapshots with verified official FT
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${API_FOOTBALL_KEY:-}" || { echo "::error::API_FOOTBALL_KEY_NOT_CONFIGURED"; exit 1; }
+          mkdir -p state/soccer_edge_state/analysis
+          touch state/soccer_edge_state/analysis/isolated_sport_first_oos_v1.jsonl
+          python controls/.github/scripts/soccer_isolated_sport_oos_ft.py \
+            --frozen state/soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl \
+            --oos state/soccer_edge_state/analysis/isolated_sport_first_oos_v1.jsonl \
+            --receipt state/soccer_edge_state/analysis/isolated_sport_first_oos_receipt_v1.json
+          jq -e '
+            (.status == "VERIFIED_OFFICIAL_FT_OOS_CAPTURE" or .status == "NO_NEW_VERIFIED_FT_OOS")
+            and .production_promotion_allowed == false
+            and .bet_eligible == false
+            and .retroactive_predictions_created == false
+            and .market_prices_used == false
+            and (.new_oos_fixture_rows <= 4)
+            and (.provider_requests_added <= 4)
+            and (.provider_requests_added == 0 or .daily_remaining_reported >= 1000)
+          ' state/soccer_edge_state/analysis/isolated_sport_first_oos_receipt_v1.json >/dev/null
+      - name: Persist research-only official FT OOS without altering model snapshots
+        shell: bash
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/isolated_sport_first_oos_v1.jsonl \
+                     soccer_edge_state/analysis/isolated_sport_first_oos_receipt_v1.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Record FT results against already-frozen sport-only predictions, never price or BET"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase origin/soccer-edge-state && git push origin HEAD:soccer-edge-state; then exit 0; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((2 * attempt))
+          done
+          exit 1
