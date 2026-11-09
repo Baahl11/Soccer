@@ -141,7 +141,7 @@ jobs:
       - name: Capture at most one official FT result whose pregame player model was frozen
         shell: bash
         env:
-          API_FOOTBALL_KEY: API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         run: |
           set -euo pipefail
           python controls/.github/scripts/player_model_targeted_capture.py \
