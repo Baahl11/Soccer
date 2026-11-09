@@ -42,6 +42,8 @@ jobs:
           assert "id-token: write" in w
           assert 'cron: "8 10 * * *"' in w
           assert "player-stats-runner-only-registry" in w
+          assert "FROZEN_PLAYER_INVENTORY_NOT_VERIFIED" in w
+          assert '"inventory":True,"lookback_days":10' in w
           assert "MAX_SNAPSHOTS = 25" in s
           assert "POSTGAME_RUNNER_OFFICIAL_API" in s
           assert "registry_generated_at_utc" in s
@@ -82,6 +84,55 @@ jobs:
 
       - name: Install scorer dependencies in isolated GitHub runner (never Render)
         run: python -m pip install -r runtime/mcp_gateway/requirements.txt
+
+      - name: Discover recent genuine pregame SHOTS/SOT fixture IDs (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, pathlib
+          import urllib.parse, urllib.request, urllib.error
+          oidc=os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"]
+          separator="&" if "?" in oidc else "?"
+          oidc+=separator+urllib.parse.urlencode({"audience":"soccer-edge-render"})
+          req=urllib.request.Request(oidc,headers={
+              "Authorization":"bearer "+os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]})
+          with urllib.request.urlopen(req,timeout=20) as resp:
+              token=json.load(resp).get("value")
+          if not token or not isinstance(token,str):
+              raise RuntimeError("OIDC_TOKEN_NOT_VERIFIED")
+          request=urllib.request.Request(
+              os.environ["BASE_URL"].rstrip("/")+"/internal/player-frozen-pregame-v1/read",
+              data=json.dumps({"inventory":True,"lookback_days":10}).encode(),
+              headers={"Authorization":"Bearer "+token,
+                       "Content-Type":"application/json"},method="POST")
+          try:
+              with urllib.request.urlopen(request,timeout=42) as resp:
+                  raw=resp.read(200001)
+          except urllib.error.HTTPError as ex:
+              raise RuntimeError("FROZEN_PLAYER_INVENTORY_HTTP_"+str(ex.code)) from None
+          if len(raw)>200000:
+              raise RuntimeError("FROZEN_PLAYER_INVENTORY_UNBOUNDED")
+          inventory=json.loads(raw)
+          if (inventory.get("status")!="FROZEN_PLAYER_MODEL_FIXTURE_INVENTORY_RESEARCH_ONLY"
+                  or inventory.get("db_write_queries")!=0
+                  or inventory.get("provider_requests_added")!=0
+                  or inventory.get("production_promotion_allowed") is not False
+                  or not 0<=int(inventory.get("candidate_fixtures",-1))<=20
+                  or len(inventory.get("candidates") or [])!=inventory["candidate_fixtures"]):
+              raise RuntimeError("FROZEN_PLAYER_INVENTORY_NOT_VERIFIED")
+          target=pathlib.Path(
+              "state/soccer_edge_state/analysis/player_frozen_pregame_fixture_inventory.json")
+          target.parent.mkdir(parents=True,exist_ok=True)
+          target.write_text(json.dumps(inventory,indent=2,ensure_ascii=False)+"\n",
+                            encoding="utf-8")
+          print(json.dumps({
+              "inventory_source":"FROZEN_PREMATCH_MODEL_ENVELOPES_NOT_OFFICIAL_RESULTS",
+              "candidate_fixtures":inventory["candidate_fixtures"],
+              "candidate_fixture_ids":inventory["candidate_fixture_ids"],
+              "provider_calls":0,"postgres_writes":0,"oos_added":0,
+              "production_promotion_allowed":False}))
+          PY
 
       - name: Query at most 25 verified official fixture IDs with fresh GitHub OIDC
         shell: bash
@@ -169,6 +220,7 @@ jobs:
           git config user.name soccer-edge-bot
           git config user.email soccer-edge-bot@users.noreply.github.com
           git add -f soccer_edge_state/analysis/player_official_oos_live_join_audit.json
+          git add -f soccer_edge_state/analysis/player_frozen_pregame_fixture_inventory.json
           git add -f soccer_edge_state/analysis/player_props_oos_v4_tracking.jsonl
           git add -f soccer_edge_state/analysis/player_props_oos_v4_report.json
           if git diff --cached --quiet; then
