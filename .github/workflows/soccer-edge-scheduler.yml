@@ -57,9 +57,12 @@ on:
     paths:
       - 'ops/trigger-soccer-canonical-tick-*.json'
   # Canonical update precedes paper-scanner at 07:15 / 14:15 CDMX.
-  # Two guarded OIDC ticks daily; the 28 paused workflows stay paused.
+  # Three guarded OIDC ticks daily: one cautious midday price-coverage pilot.
+  # Original 06:10/13:10 slots and per-tick quota/cap unchanged.
+  # All 28 paused workflows remain paused; no betting gate changes.
   schedule:
     - cron: '10 12 * * *'  # 06:10 America/Mexico_City
+    - cron: '10 16 * * *'  # 10:10 America/Mexico_City; midday pilot
     - cron: '10 19 * * *'  # 13:10 America/Mexico_City
 concurrency:
   group: soccer-edge-db-heavy-runtime
