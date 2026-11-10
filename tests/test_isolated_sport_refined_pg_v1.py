@@ -31,6 +31,7 @@ def sample_row():
                          "lineup_state": "NOT VERIFIED"},
         "raw_sport_projection": {
             "status": "MODELED_LIMITED",
+            "model_version": "SOCCER EDGE ENGINE v1.0",
             "projection_model": v.MODEL,
             "raw_home_win_prob": 0.45, "raw_draw_prob": 0.25,
             "raw_away_win_prob": 0.30,
@@ -101,6 +102,7 @@ def test_valid_batch_and_source_free_persistence_payload():
     lambda x: x["snapshots"][0].update({"sport_analysis_started_at_utc": (NOW - timedelta(hours=2)).isoformat()}),
     lambda x: x["snapshots"][0].update({"sport_analysis_finished_at_utc": (NOW + timedelta(minutes=3)).isoformat()}),
     lambda x: x["snapshots"][0]["raw_sport_projection"].update({"raw_home_win_prob": 0.99}),
+    lambda x: x["snapshots"][0]["raw_sport_projection"].update({"market_odds": {"fake": 1.5}}),
     lambda x: x["snapshots"][0]["raw_sport_projection"].update({"raw_btts_yes_prob": float("nan")}),
     lambda x: x["transport_proof"].update({"actual_provider_calls": 41}),
     lambda x: x["transport_proof"].update({"transport_budget_denied": 1}),
