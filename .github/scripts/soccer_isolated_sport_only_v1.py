@@ -76,6 +76,9 @@ def _frozen_record(fx: dict, raw: dict, *, started: datetime, finished: datetime
             json.dumps(sporting_inputs, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest(),
         "league_id": fx.get("league_id"),
+        "league": fx.get("league"),
+        "home_team": fx.get("home_team"),
+        "away_team": fx.get("away_team"),
         "home_team_id": fx.get("home_team_id"),
         "away_team_id": fx.get("away_team_id"),
         "source_runtime_commit": runtime_sha,
@@ -171,6 +174,9 @@ def research_watch_card(rows: list[dict]) -> list[dict]:
             continue
         card.append({
             "fixture_id": row["fixture_id"],
+            "home_team": row.get("home_team") or "NOT VERIFIED",
+            "away_team": row.get("away_team") or "NOT VERIFIED",
+            "league": row.get("league") or "NOT VERIFIED",
             "kickoff_utc": row["kickoff_utc"],
             "source_runtime_commit": row["source_runtime_commit"],
             "sport_analysis_finished_at_utc": row["sport_analysis_finished_at_utc"],
@@ -188,6 +194,7 @@ def research_watch_card(rows: list[dict]) -> list[dict]:
                 "availability_confidence"),
             "status": "RESEARCH_WATCH_NOT_A_PICK",
             "classification": "WATCH",
+            "reason": "SPORTING_SHORTLIST_ONLY; NO_VERIFIED_EXECUTABLE_PRICE_OR_INDEPENDENT_MARKET_VALIDATION",
             "market_quote": "NOT VERIFIED",
             "market_shrunk_probability": "NOT VERIFIED",
             "estimated_ev": "NOT VERIFIED",
