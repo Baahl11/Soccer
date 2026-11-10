@@ -261,6 +261,16 @@ def _matching_price_pairs(attempts,fixture_id,frozen,kickoff):
     return list(seen.values())
 
 
+def _quote_provenance_status(instruments,updated,frozen_at):
+    if not instruments:
+        return "NO_EXACT_PROVIDER_MARKETS"
+    source=_dt(updated)
+    frozen=_dt(frozen_at)
+    if not source or not frozen or source<=frozen:
+        return "PROXY_QUOTE_VISIBLE_BUT_LAST_PROVIDER_UPDATE_NOT_POST_MODEL"
+    return "PROXY_QUOTE_SOURCE_UPDATED_AFTER_FROZEN_MODEL"
+
+
 def capture(frozen,receipt,previous,provider,now):
     eligible=eligible_frozen(frozen,receipt,previous,now)
     output=[]
@@ -282,7 +292,10 @@ def capture(frozen,receipt,previous,provider,now):
             "price_source":PRICE_SOURCE,
             "prior_attempts":prior_count,
             "instruments":instruments,
-            "status":"REAL_PROVIDER_MARKETS_FOUND" if instruments else "NO_EXACT_PROVIDER_MARKETS",
+            "status":_quote_provenance_status(instruments,updated,model["captured_at_utc"]),
+            "provider_update_post_model_verified":bool(
+                instruments and _dt(updated) and _dt(updated)>_dt(model["captured_at_utc"])
+            ),
             "direct_executable_betslip_verified":False,
             "canonical_clv_eligible":False,
             "production_promotion_allowed":False,"bet_eligible":False,
@@ -297,6 +310,12 @@ def capture(frozen,receipt,previous,provider,now):
         "eligible_model_fixtures":len(eligible),
         "price_visits_added":len(output),
         "visits_with_complete_exact_market":sum(bool(x["instruments"]) for x in output),
+        "visits_with_provider_update_after_model":sum(x["provider_update_post_model_verified"] for x in output),
+        "visits_with_stale_provider_update_at_model":sum(
+            x["status"]=="PROXY_QUOTE_VISIBLE_BUT_LAST_PROVIDER_UPDATE_NOT_POST_MODEL"
+            for x in output
+        ),
+        "visits_without_exact_bookmaker_markets":sum(not x["instruments"] for x in output),
         "verified_provider_update_pairs_this_run":len(pairs),
         "research_pairs":pairs,
         "new":output,
@@ -335,6 +354,9 @@ def self_test():
             {"id":5,"name":"Goals Over/Under","values":[{"value":"Over 2.5","odd":over},{"value":"Under 2.5","odd":"1.85"}]},
           ]}]}]}
     quotes,u=normalize_exact(payload(now),42,now)
+    assert _quote_provenance_status(quotes,u,freeze.isoformat())=="PROXY_QUOTE_SOURCE_UPDATED_AFTER_FROZEN_MODEL"
+    assert _quote_provenance_status(quotes,(freeze-timedelta(hours=1)).isoformat(),freeze.isoformat())=="PROXY_QUOTE_VISIBLE_BUT_LAST_PROVIDER_UPDATE_NOT_POST_MODEL"
+    assert _quote_provenance_status([],None,freeze.isoformat())=="NO_EXACT_PROVIDER_MARKETS"
     assert len(quotes)==7 and u==now.isoformat()
     assert all(x["bookmaker_id"]==8 for x in quotes)
     first={"source":SOURCE,"fixture_id":42,"frozen_at_utc":freeze.isoformat(),
@@ -389,6 +411,9 @@ def main():
         report={"status":"RESEARCH_ONLY_REAL_ODDS_VISIT","generated_at_utc":now.isoformat(),
                 "eligible_model_fixtures":0,"price_visits_added":0,
                 "visits_with_complete_exact_market":0,
+                "visits_with_provider_update_after_model":0,
+                "visits_with_stale_provider_update_at_model":0,
+                "visits_without_exact_bookmaker_markets":0,
                 "verified_provider_update_pairs_this_run":0,"research_pairs":[],"new":[],
                 "provider_requests_added":0,"daily_remaining_reported":None,
                 "bookmaker_id":BOOKMAKER_ID,"direct_betslip_price_verified":False,
