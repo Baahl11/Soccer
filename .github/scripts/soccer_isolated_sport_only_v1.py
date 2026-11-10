@@ -160,6 +160,49 @@ async def _sport_fixture(fx, coverage, stage, now, runtime_sha, v5, model):
     ), ("MODELED_LIMITED" if _valid_raw(raw) else "SPORT_MODEL_NOT_SUPPORTED")
 
 
+def research_watch_card(rows: list[dict]) -> list[dict]:
+    """Sport-first candidate display. WATCH is never a priced pick or BET."""
+    card = []
+    for row in rows:
+        raw = row.get("raw_sport_projection") or {}
+        shortlist = row.get("sport_shortlist") or {}
+        if (not shortlist.get("shortlisted") or not _valid_raw(raw)
+                or row.get("bet_eligible") is not False):
+            continue
+        card.append({
+            "fixture_id": row["fixture_id"],
+            "kickoff_utc": row["kickoff_utc"],
+            "source_runtime_commit": row["source_runtime_commit"],
+            "sport_analysis_finished_at_utc": row["sport_analysis_finished_at_utc"],
+            "sporting_inputs_sha256": row["sporting_inputs_sha256"],
+            "model_version": row["model_version"],
+            "projection_model": row["projection_model"],
+            "shortlist_tracks": shortlist.get("tracks") or [],
+            "sport_screen_rank": shortlist.get("rank"),
+            "p_raw_1x2_home": raw["raw_home_win_prob"],
+            "p_raw_1x2_draw": raw["raw_draw_prob"],
+            "p_raw_1x2_away": raw["raw_away_win_prob"],
+            "p_raw_btts_yes": raw["raw_btts_yes_prob"],
+            "p_raw_over_2_5": raw["raw_over_2_5_prob"],
+            "availability_confidence": (row.get("availability") or {}).get(
+                "availability_confidence"),
+            "status": "RESEARCH_WATCH_NOT_A_PICK",
+            "classification": "WATCH",
+            "market_quote": "NOT VERIFIED",
+            "market_shrunk_probability": "NOT VERIFIED",
+            "estimated_ev": "NOT VERIFIED",
+            "stake_units": 0,
+            "bet_eligible": False,
+            "production_promotion_allowed": False,
+        })
+    return sorted(card, key=lambda x: (
+        -(x["sport_screen_rank"] if type(x["sport_screen_rank"]) in (int, float) else 0),
+        x["kickoff_utc"], x["fixture_id"],
+    ))
+
+
+
+
 async def run(runtime_sha: str, output: Path) -> dict:
     if not re.fullmatch("[0-9a-f]{40}", runtime_sha):
         raise RuntimeError("INVALID_PINNED_RUNTIME_SHA")
@@ -314,6 +357,8 @@ async def run(runtime_sha: str, output: Path) -> dict:
         "model_stages": "CANONICAL_V5_CHEAP_SCREEN_REFINED_FORM_AVAILABILITY_RAW",
         "markets_queried": 0, "price_resolver_invocations": 0, "clv_rows_added": 0,
         "db_writes": 0, "bet_eligible": False, "production_promotion_allowed": False,
+        "research_watch_candidate_count": len(research_watch_card(rows)),
+        "research_watch_candidates": research_watch_card(rows),
         "raw_research_snapshots": rows,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -378,6 +423,11 @@ def self_test():
     assert row["availability"]["lineup_state"] == "NOT VERIFIED"
     assert row["availability_verified_for_bet"] is False
     assert row["raw_sport_projection"] == raw
+    card = research_watch_card([row])
+    assert len(card) == 1 and card[0]["classification"] == "WATCH"
+    assert card[0]["bet_eligible"] is False and card[0]["stake_units"] == 0
+    assert card[0]["market_quote"] == "NOT VERIFIED"
+    assert not research_watch_card([{**row, "sport_shortlist": {"shortlisted": False}}])
     assert len(row["sporting_inputs_sha256"]) == 64
     assert row["sporting_inputs"]["home_recent"] == []
     print("SPORT_ONLY_OFFLINE_CONTRACT_PASS")
