@@ -232,6 +232,7 @@ async def run(runtime_sha: str, output: Path) -> dict:
     traffic = {"outgoing": 0, "denied": 0, "quota_headers": 0,
                "last_daily_remaining": None, "by_path": {}}
     original_send = httpx.AsyncClient.send
+    original_sync_send = httpx.Client.send
     original_get = base._api_get
 
     async def limited_send(client, request, *args, **kwargs):
@@ -258,12 +259,19 @@ async def run(runtime_sha: str, output: Path) -> dict:
             raise SportOnlyBudgetStop("SPORT_ONLY_DAILY_QUOTA_HEADER_NOT_VERIFIED")
         return response
 
+    def limited_sync_send(client, request, *args, **kwargs):
+        # Runtime helper is async-only. Sync HTTP is never expected and cannot
+        # bypass the per-process official provider transport restriction.
+        traffic["denied"] += 1
+        raise SportOnlyBudgetStop("SPORT_ONLY_SYNC_HTTP_FORBIDDEN")
+
     async def only_sport(endpoint, params):
         if "/" + endpoint.lstrip("/") not in ALLOWED_ENDPOINTS:
             raise SportOnlyBudgetStop("SPORT_ONLY_FORBIDDEN_ENDPOINT")
         return await v2._ORIGINAL_API_GET(endpoint, params)
 
     httpx.AsyncClient.send = limited_send
+    httpx.Client.send = limited_sync_send
     base._api_get = only_sport
     base._HTTP_CLIENT = httpx.AsyncClient(
         timeout=base.TIMEOUT,
@@ -338,6 +346,7 @@ async def run(runtime_sha: str, output: Path) -> dict:
         await base._HTTP_CLIENT.aclose()
         base._HTTP_CLIENT = None
         httpx.AsyncClient.send = original_send
+        httpx.Client.send = original_sync_send
         if base._CACHE_CONN is not None:
             base._CACHE_CONN.commit()
             base._CACHE_CONN.close()
