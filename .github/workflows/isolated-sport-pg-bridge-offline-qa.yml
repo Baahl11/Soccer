@@ -1,0 +1,44 @@
+name: Soccer Isolated Frozen Sport PostgreSQL - OIDC/As-of QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - 'mcp_gateway/isolated_sport_frozen_pg_v1.py'
+      - 'mcp_gateway/server.py'
+      - 'mcp_gateway/schema.sql'
+      - 'tests/test_isolated_sport_frozen_pg_v1.py'
+      - '.github/workflows/isolated-sport-pg-bridge-offline-qa.yml'
+permissions:
+  contents: read
+jobs:
+  immutable-store:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install scoped dependencies
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Reject postkickoff, fabricated forecasts, model mutation and price laundering
+        run: |
+          set -euo pipefail
+          python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_isolated_sport_frozen_pg_v1.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('mcp_gateway/server.py').read_text()
+          m=Path('mcp_gateway/isolated_sport_frozen_pg_v1.py').read_text()
+          assert 'ISOLATED_SPORT_FROZEN_IMPORT_WORKFLOW = ".github/workflows/soccer-isolated-frozen-pg-import.yml"' in s
+          assert '_base_server._github_oidc_claims(' in s
+          assert 'ISOLATED_SPORT_FROZEN_IMPORT_ROUTE' in s
+          assert 'MAX_ROWS = 16' in m
+          assert 'MAX_BODY_BYTES = 250_000' in m
+          assert 'ON CONFLICT (fixture_id, source_generated_at) DO NOTHING' in m
+          assert 'FROZEN_SPORT_MODEL_IMMUTABILITY_CONFLICT' in m
+          assert 'canonical_deep_dives_added": 0' in m
+          assert 'canonical_clv_rows_added": 0' in m
+          assert 'provider_requests_added": 0' in m
+          assert 'production_promotion_allowed": False' in m
+          print('PG_BRIDGE_AUTH_IMMUTABLE_RESEARCH_QA_PASS')
+          PY
