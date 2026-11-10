@@ -1,0 +1,46 @@
+name: Soccer Refined SPORT ONLY - OIDC Research Postgres QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - 'mcp_gateway/isolated_sport_refined_pg_v1.py'
+      - 'mcp_gateway/server.py'
+      - 'tests/test_isolated_sport_refined_pg_v1.py'
+      - '.github/workflows/isolated-sport-refined-pg-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  research-only-asof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated test dependencies
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Test server as-of, hash, storage and OIDC boundaries offline
+        run: |
+          set -euo pipefail
+          python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_isolated_sport_refined_pg_v1.py
+          python - <<'PY'
+          from pathlib import Path
+          model=Path('mcp_gateway/isolated_sport_refined_pg_v1.py').read_text()
+          server=Path('mcp_gateway/server.py').read_text()
+          assert 'ISOLATED_REFINED_SPORT_IMPORT_WORKFLOW = ".github/workflows/soccer-isolated-sport-refined-pg-v1.yml"' in server
+          assert '_base_server._github_oidc_claims(' in server
+          assert 'ISOLATED_REFINED_SPORT_IMPORT_ROUTE' in server
+          assert 'MAX_ROWS = 12' in model
+          assert 'MAX_BODY_BYTES = 250_000' in model
+          assert 'REFINED_RESEARCH_IMMUTABILITY_CONFLICT' in model
+          assert 'source_analysis_finished_at <= kickoff' in model
+          assert 'SERVER_TIME_MUST_BE_AWARE' in model
+          assert 'PROSPECTIVE_QUOTA_OR_COMMERCIAL_GATE_FAILED' in model
+          assert 'UPSTREAM_PROVIDER_INPUTS_NOT_ACCEPTED' in model
+          assert 'canonical_clv_rows_added": 0' in model
+          assert 'production_promotion_allowed": False' in model
+          print('REFINED_SPORT_OIDC_ONLY_RESEARCH_PG_GATES_PASS')
+          PY
