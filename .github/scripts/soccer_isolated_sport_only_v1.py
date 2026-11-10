@@ -345,9 +345,11 @@ def self_test():
         def public_raw_projection(raw):
             return raw
 
+    future_fx = {**fx, "kickoff": (datetime.now(timezone.utc)
+                 + timedelta(hours=1)).isoformat()}
     row, reason = asyncio.run(_sport_fixture(
-        fx, {"injuries": True, "lineups": True}, "T-40", now,
-        "a"*40, FakeV5, FakeModel))
+        future_fx, {"injuries": True, "lineups": True}, "T-40",
+        datetime.now(timezone.utc), "a"*40, FakeV5, FakeModel))
     assert reason == "MODELED_LIMITED" and row is not None
     assert row["availability"]["lineup_state"] == "NOT VERIFIED"
     assert row["availability_verified_for_bet"] is False
