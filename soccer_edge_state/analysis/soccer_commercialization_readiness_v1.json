@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "model_version": "SOCCER_COMMERCIAL_READINESS_AUDIT_v1.0.0",
-  "generated_at_utc": "2026-11-10T17:53:17.287710+00:00",
+  "generated_at_utc": "2026-11-10T17:57:24.019537+00:00",
   "status": "RESEARCH_VALIDATED_COMMERCIAL_PRODUCTION_BLOCKED",
   "verified_frozen_sport_research_models": 10,
   "original_commit_imported_model_ids_count": 10,
@@ -13,6 +13,9 @@
   },
   "actual_provider_proxy_price_visit_count": 2,
   "visits_with_exact_complete_markets": 1,
+  "visits_with_exact_market_but_stale_provider_update": 1,
+  "visits_with_provider_update_after_original_frozen_model": 0,
+  "visits_without_complete_exact_market": 1,
   "research_proxy_price_fixtures": 1,
   "research_quote_instrument_pairs_with_advanced_provider_timestamp": 0,
   "research_pairs_observed_within_40min_kickoff": 0,
@@ -244,7 +247,8 @@
     "INSUFFICIENT_SPORT_MODEL_AVAILABILITY_AND_DEEP_DIVE_COVERAGE",
     "MARKET_INDEPENDENT_OOS_AND_SETTLEMENT_GATES_NOT_MET",
     "LICENSING_GEO_COMPLIANCE_PAYMENT_AND_PRODUCT_UX_NOT_VERIFIED",
-    "NO_NEW_TWO_VISIT_PROVIDER_UPDATE_QUOTE_PAIRS"
+    "NO_NEW_TWO_VISIT_PROVIDER_UPDATE_QUOTE_PAIRS",
+    "EXACT_QUOTES_EXIST_BUT_LAST_PROVIDER_UPDATE_PRECEDES_SPORT_MODEL"
   ],
   "canonical_clv_rows_created_by_this_audit": 0,
   "retroactive_predictions_created": false,
