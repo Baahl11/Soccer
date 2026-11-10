@@ -461,7 +461,10 @@ def main():
     if a.output is None:
         ap.error("--output required for live run")
     report = asyncio.run(run(a.runtime_sha, a.output))
-    print(json.dumps({k: v for k, v in report.items() if k != "raw_research_snapshots"},
+    # Logs from a public repository are not a licensed data-delivery channel.
+    # Do not print fixture-level forecasts or upstream feature snapshots.
+    print(json.dumps({k: v for k, v in report.items()
+                      if k not in {"raw_research_snapshots", "research_watch_candidates"}},
                      sort_keys=True))
 
 
