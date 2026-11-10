@@ -1,0 +1,121 @@
+name: Soccer Commercial Readiness - Honest Market Go-NoGo Evidence
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/scripts/soccer_commercial_readiness_v1.py'
+      - '.github/workflows/soccer-commercial-readiness-audit-v1.yml'
+      - 'docs/SOCCER_COMMERCIALIZATION_LAUNCH_GATES_v1.md'
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/soccer_commercial_readiness_v1.py'
+      - '.github/workflows/soccer-commercial-readiness-audit-v1.yml'
+      - 'docs/SOCCER_COMMERCIALIZATION_LAUNCH_GATES_v1.md'
+  workflow_dispatch:
+  schedule:
+    - cron: '30 22 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: soccer-commercial-evidence-audit
+  cancel-in-progress: false
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify no-go overrides any green pipeline / proxy price
+        run: |
+          set -euo pipefail
+          python .github/scripts/soccer_commercial_readiness_v1.py --self-test
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('.github/scripts/soccer_commercial_readiness_v1.py').read_text()
+          w=Path('.github/workflows/soccer-commercial-readiness-audit-v1.yml').read_text()
+          assert '"paid_advisory_product_eligibility":"NO_GO"' in s
+          assert '"paid_betting_alerts_eligibility":"NO_GO"' in s
+          assert '"legal_regulatory_data_license_approval":"NOT VERIFIED"' in s
+          assert '"canonical_clv_rows_created_by_this_audit":0' in s
+          assert "PRICE_NOT_ACTUALLY_ASOF_OR_RESEARCH_ONLY" in s
+          assert "RETROSPECTIVE_OOS_MODEL_MISMATCH" in s
+          assert "production_promotion_allowed" in s
+          assert "cron: '30 22 * * *'" in w
+          print("COMMERCIAL_NO_GO_GATE_OFFLINE_PASS")
+          PY
+
+  evidence:
+    if: github.event_name != 'pull_request'
+    needs: offline-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/latest.json
+            soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl
+            soccer_edge_state/analysis/isolated_sport_first_oos_v1.jsonl
+            soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json
+            soccer_edge_state/analysis/isolated_sport_quotes
+            soccer_edge_state/analysis/clv_v4_postgres_report.json
+            soccer_edge_state/analysis/phase19_promotion_framework_report.json
+            soccer_edge_state/analysis/player_props_oos_v4_report.json
+            soccer_edge_state/analysis/soccer_commercialization_readiness_v1.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Create evidence-derived market-family, OOS, quote and product launch gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python controls/.github/scripts/soccer_commercial_readiness_v1.py \
+            --frozen state/soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl \
+            --oos state/soccer_edge_state/analysis/isolated_sport_first_oos_v1.jsonl \
+            --import-receipt state/soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json \
+            --quote-dir state/soccer_edge_state/analysis/isolated_sport_quotes \
+            --clv state/soccer_edge_state/analysis/clv_v4_postgres_report.json \
+            --promotion state/soccer_edge_state/analysis/phase19_promotion_framework_report.json \
+            --player state/soccer_edge_state/analysis/player_props_oos_v4_report.json \
+            --latest state/soccer_edge_state/latest.json \
+            --output state/soccer_edge_state/analysis/soccer_commercialization_readiness_v1.json
+          jq -e '
+            .status == "RESEARCH_VALIDATED_COMMERCIAL_PRODUCTION_BLOCKED"
+            and .paid_advisory_product_eligibility == "NO_GO"
+            and .paid_betting_alerts_eligibility == "NO_GO"
+            and .production_promotion_allowed == false
+            and .bet_eligible == false
+            and .canonical_clv_rows_created_by_this_audit == 0
+            and .retroactive_predictions_created == false
+          ' state/soccer_edge_state/analysis/soccer_commercialization_readiness_v1.json >/dev/null
+      - name: Publish only truthful internal commercial readiness JSON
+        shell: bash
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/soccer_commercialization_readiness_v1.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update soccer commercial launch go-no-go from real OOS/quote/CLV sources"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase origin/soccer-edge-state && git push origin HEAD:soccer-edge-state; then exit 0; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          exit 1
