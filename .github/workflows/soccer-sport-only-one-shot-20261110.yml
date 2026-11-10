@@ -1,0 +1,89 @@
+name: Soccer SPORT ONLY one-shot live audit 2026-11-10
+on:
+  push:
+    branches:
+      - ops/soccer-sport-only-one-shot-20261110
+    paths:
+      - '.github/workflows/soccer-sport-only-one-shot-20261110.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: soccer-sport-only-one-shot-20261110
+  cancel-in-progress: false
+
+jobs:
+  bounded-live-research:
+    if: >-
+      github.repository == 'Baahl11/Soccer' &&
+      github.ref == 'refs/heads/ops/soccer-sport-only-one-shot-20261110' &&
+      github.event.head_commit.message == 'ops(soccer): one-shot provider-safe SPORT ONLY execution 2026-11-10'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      API_FOOTBALL_KEY: \${{ secrets.API_FOOTBALL_KEY }}
+      DATABASE_URL: ''
+      SOCCER_EDGE_MAX_API_CALLS_PER_TICK: '40'
+      SOCCER_EDGE_CACHE_PATH: /tmp/soccer_sport_only_one_shot_20261110.sqlite3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: Baahl11/Soccer
+          ref: 0fa12e5499f711722104c8b31acd8c06320289df
+          path: controls
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: Baahl11/Soccer
+          ref: 2c9d073dcca25152ea7c6e890022814672b0bc05
+          path: runtime
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check source SHA and offline anti-market contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C controls rev-parse HEAD)" = 0fa12e5499f711722104c8b31acd8c06320289df
+          test "$(git -C runtime rev-parse HEAD)" = 2c9d073dcca25152ea7c6e890022814672b0bc05
+          python controls/.github/scripts/soccer_isolated_sport_only_v1.py --self-test
+          test -n "\${API_FOOTBALL_KEY:-}" || { echo "::error::API_FOOTBALL_KEY_NOT_CONFIGURED"; exit 1; }
+      - name: Install runtime requirements
+        run: python -m pip install -r runtime/mcp_gateway/requirements.txt
+      - name: Execute real prospective SPORT ONLY (zero odds or BET)
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=runtime python controls/.github/scripts/soccer_isolated_sport_only_v1.py \
+            --runtime-sha 2c9d073dcca25152ea7c6e890022814672b0bc05 \
+            --output sport_only_research_receipt.json
+          jq -e '
+            .status == "SPORT_ONLY_RESEARCH_CANARY" and
+            .actual_provider_calls <= 40 and .transport_budget_denied == 0 and
+            .quota_headers_verified > 0 and .last_daily_remaining >= 1000 and
+            .markets_queried == 0 and .price_resolver_invocations == 0 and
+            .clv_rows_added == 0 and .db_writes == 0 and
+            .bet_eligible == false and .production_promotion_allowed == false and
+            .full_deep_dives_verified == 0
+          ' sport_only_research_receipt.json >/dev/null
+          jq '{
+            schema_version, status, generated_at_utc, runtime_sha,
+            fixture_scan_count, tier_ab_due_in_180m, candidate_attempts,
+            real_frozen_raw_count, research_watch_candidate_count,
+            full_deep_dives_verified, drop_reasons, actual_provider_calls,
+            provider_calls_by_endpoint, transport_budget_denied,
+            quota_headers_verified, last_daily_remaining, model_stages,
+            markets_queried, price_resolver_invocations, clv_rows_added,
+            db_writes, bet_eligible, production_promotion_allowed,
+            public_audit_only: true
+          }' sport_only_research_receipt.json > sport_only_public_audit.json
+          jq '.' sport_only_public_audit.json
+      - name: Upload redacted audit only
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-one-shot-redacted-research-audit-20261110
+          path: sport_only_public_audit.json
+          retention-days: 7
