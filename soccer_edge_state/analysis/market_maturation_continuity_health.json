@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "status": "PASS",
-  "observed_at_utc": "2026-11-09T22:03:36.000075+00:00",
-  "scheduler_latest_tick_utc": "2026-11-09T19:14:07.758304+00:00",
+  "observed_at_utc": "2026-11-10T13:29:11.188442+00:00",
+  "scheduler_latest_tick_utc": "2026-11-10T12:21:52.864406+00:00",
   "scheduler_database_persisted": true,
   "ledger_latest_evidence_utc": "2026-11-09T19:14:07.758304+00:00",
   "ledger_rows": 32178,
@@ -10,16 +10,16 @@
   "clv_total_rows": 789,
   "sport_to_market_admission": {
     "status": "GAPS_OBSERVED",
-    "latest_tick_utc": "2026-11-09T19:14:07.758304+00:00",
-    "eligible_tier_ab_due": 25,
+    "latest_tick_utc": "2026-11-10T12:21:52.864406+00:00",
+    "eligible_tier_ab_due": 64,
     "deep_dives_for_due_tier_ab": 2,
-    "sport_deep_dive_coverage": 0.08,
-    "due_fixtures_all_tiers": 34,
-    "direct_price_candidate_rows": 0,
+    "sport_deep_dive_coverage": 0.03125,
+    "due_fixtures_all_tiers": 103,
+    "direct_price_candidate_rows": 2,
     "primary_clv_maturation_candidate_fixtures": 0,
-    "price_provider_calls_this_tick": 0,
+    "price_provider_calls_this_tick": 2,
     "price_provider_call_cap_this_tick": 8,
-    "provider_daily_remaining_observed": 7427,
+    "provider_daily_remaining_observed": 7472,
     "low_memory_guard_applied": true,
     "low_memory_cgroup_limit_bytes": 536870912,
     "upstream_calls_deferred_by_resource_guard": 34,
@@ -28,8 +28,6 @@
     "three_daily_low_coverage_checks": false,
     "warnings": [
       "SPORT_FIRST_DEEP_DIVE_COVERAGE_UNDER_25_PCT",
-      "PRICE_ENTRY_CANDIDATES_ZERO_WITH_DUE_FIXTURES",
-      "PRICE_RESERVED_CAPACITY_UNUSED_WITH_NO_ELIGIBLE_TARGETS",
       "UPSTREAM_LOW_MEMORY_GUARD_APPLIED"
     ],
     "bet_eligible": false,
@@ -81,13 +79,13 @@
   "source_workflows": {
     "postgre_delta_ledger": {
       "status": "RECENT_SUCCESS",
-      "run_id": 42701772706,
-      "last_success": "2026-11-09T21:22:09+00:00"
+      "run_id": 42803478255,
+      "last_success": "2026-11-10T10:57:56+00:00"
     },
     "market_clv": {
       "status": "RECENT_SUCCESS",
-      "run_id": 42702752994,
-      "last_success": "2026-11-09T21:31:42+00:00"
+      "run_id": 42807566228,
+      "last_success": "2026-11-10T11:30:06+00:00"
     }
   },
   "blockers": [],
