@@ -45,7 +45,7 @@ jobs:
           assert 'timeout=180' in s
           assert 'SOCCER_EDGE_MAX_API_CALLS_PER_TICK: "40"' in w
           assert 'DATABASE_URL: ""' in w
-          assert 'schedule:' not in w
+          assert not any(line.lstrip().startswith("- cron:") for line in w.splitlines())
           print("FULL_SPORT_OFF_RENDER_PILOT_OFFLINE_PASS")
           PY
 
