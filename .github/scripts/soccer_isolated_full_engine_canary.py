@@ -20,6 +20,50 @@ MAX_FROZEN_EVENTS=20
 MIN_BEFORE_KICKOFF=timedelta(minutes=5)
 
 
+
+def _official_transport_budget_guard():
+    """Hard cap on actual HTTPX provider transport across all canonical phases.
+
+    Important: v129's reported api_calls_this_tick may include the downstream
+    price-resolution phase, outside v2's upstream budget. This guard ensures
+    no more than 40 *outgoing* API-Football requests even if a component fails
+    to respect the upstream-only cap. It is local to one disposable runner.
+    """
+    import httpx
+    import threading
+    lock=threading.Lock()
+    actual={"outgoing":0,"blocked":0,"quota_headers_verified":0}
+    original_async=httpx.AsyncClient.send
+    original_sync=httpx.Client.send
+    hosts={"v3.football.api-sports.io","api-football-v1.p.rapidapi.com"}
+    def admit(request):
+        if request.url.host not in hosts:
+            return False
+        with lock:
+            if actual["outgoing"]>=MAX_PROVIDER_REQUESTS:
+                actual["blocked"]+=1
+                raise RuntimeError("ISOLATED_CANONICAL_FULL_ENGINE_TRANSPORT_LIMIT")
+            actual["outgoing"]+=1
+        return True
+    def observe(response, tracked):
+        if tracked and response.headers.get("x-ratelimit-requests-remaining") is not None:
+            with lock:
+                actual["quota_headers_verified"]+=1
+        return response
+    async def async_send(client, request, *a, **k):
+        tracked=admit(request)
+        return observe(await original_async(client, request, *a, **k),tracked)
+    def sync_send(client, request, *a, **k):
+        tracked=admit(request)
+        return observe(original_sync(client, request, *a, **k),tracked)
+    httpx.AsyncClient.send=async_send
+    httpx.Client.send=sync_send
+    def restore():
+        httpx.AsyncClient.send=original_async
+        httpx.Client.send=original_sync
+    return actual,restore
+
+
 def _utc(v):
     if not isinstance(v,str):
         return None
@@ -130,6 +174,7 @@ def self_test():
     assert health["model_events_not_safely_pregame"]==1
     assert "quota" not in rows[0] and "price" not in rows[0]
     assert MAX_PROVIDER_REQUESTS==40
+    assert callable(_official_transport_budget_guard)
     print("ISOLATED_FULL_CANONICAL_ENGINE_SPORT_ONLY_ASOF_QA_PASS")
 
 
@@ -145,7 +190,11 @@ async def run(output,records,sha):
     # Import AFTER env setup, so v2/v6 budget reads the canary limit.
     from mcp_gateway import automation_v129
     finished_at=None
-    payload=await asyncio.wait_for(automation_v129.run_tick(),timeout=180)
+    traffic,restore=_official_transport_budget_guard()
+    try:
+        payload=await asyncio.wait_for(automation_v129.run_tick(),timeout=180)
+    finally:
+        restore()
     finished_at=datetime.now(timezone.utc)
     models,summary=extract_sport_only(payload,finished_at,sha)
     api_calls=payload.get("api_calls_this_tick")
@@ -154,7 +203,13 @@ async def run(output,records,sha):
     if type(remain) is not int:
         remain=provider_report.get("daily_remaining")
     quota_verified=(type(remain) is int and remain>=1000)
-    call_count_verified=(type(api_calls) is int and 0<=api_calls<=MAX_PROVIDER_REQUESTS)
+    call_count_verified=(
+        type(api_calls) is int
+        and 0<=api_calls
+        and 0<=traffic["outgoing"]<=MAX_PROVIDER_REQUESTS
+        and traffic["quota_headers_verified"]>0
+        and traffic["blocked"]==0
+    )
     if not (quota_verified and call_count_verified):
         # The complete engine ran, but without quota proof we MUST NOT save
         # sport snapshots or claim an operational success. Publish a bounded,
@@ -167,6 +222,9 @@ async def run(output,records,sha):
             "quota_daily_remaining_type":type(provider_report.get("daily_remaining")).__name__,
             "quota_verified":quota_verified,
             "call_count_verified":call_count_verified,
+            "transport_outbound_requests":traffic["outgoing"],
+            "transport_budget_denied":traffic["blocked"],
+            "transport_quota_headers_verified":traffic["quota_headers_verified"],
             "sport_only_summary":summary,
             "canonical_clv_rows_added":0,
             "bet_eligible":False,
@@ -177,6 +235,9 @@ async def run(output,records,sha):
         "schema_version":"1.0.0","status":"ISOLATED_FULL_ENGINE_RESEARCH_CANARY_COMPLETED",
         "generated_at_utc":finished_at.isoformat(),
         "canonical_runtime_commit":sha,"api_calls_this_run":api_calls,
+        "actual_httpx_provider_calls":traffic["outgoing"],
+        "provider_transport_budget_denied":traffic["blocked"],
+        "transport_quota_headers_verified":traffic["quota_headers_verified"],
         "daily_remaining_reported":remain,
         "no_db_credentials":True,"postgres_write_queries":0,
         "sport_model_weights_changed":False,"market_gates_changed":False,
