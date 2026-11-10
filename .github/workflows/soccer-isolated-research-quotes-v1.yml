@@ -1,0 +1,117 @@
+name: Soccer Prospective Bookmaker Quote Visits - Frozen Sport First Research
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/scripts/soccer_isolated_research_quotes_v1.py'
+      - '.github/workflows/soccer-isolated-research-quotes-v1.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/soccer_isolated_research_quotes_v1.py'
+      - '.github/workflows/soccer-isolated-research-quotes-v1.yml'
+  workflow_dispatch:
+  schedule:
+    # Two prospective observations per hour so a late frozen model may get
+    # entry and revisit pre-kickoff; max TWO provider calls per run.
+    - cron: '5,35 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: soccer-isolated-real-quote-visit-v1
+  cancel-in-progress: false
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test strictly increasing provider update and exact instrument, no bookmaker fiction
+        run: |
+          set -euo pipefail
+          python .github/scripts/soccer_isolated_research_quotes_v1.py --self-test
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('.github/scripts/soccer_isolated_research_quotes_v1.py').read_text()
+          w=Path('.github/workflows/soccer-isolated-research-quotes-v1.yml').read_text()
+          assert "MAX_CALLS=2" in s and "MAX_FIXTURES=2" in s
+          assert "MIN_DAILY_REMAINING=1000" in s
+          assert "BOOKMAKER_ID=8" in s
+          assert "PRICE_SOURCE=\"API_FOOTBALL_BET365_PROXY_NOT_DIRECT_BETSLIP\"" in s
+          assert "RESEARCH_PRICE_MOVEMENT_NOT_CANONICAL_CLV" in s
+          assert '"canonical_clv_rows_added":0' in s
+          assert 'direct_betslip_price_verified":False' in s
+          assert "cron: '5,35 * * * *'" in w
+          print("SPORT_FIRST_PREKICKOFF_PROVIDER_QUOTES_ANTI_FAKE_CLV_PASS")
+          PY
+
+  capture:
+    if: github.event_name != 'pull_request'
+    needs: offline-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 1
+          sparse-checkout: |
+            soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl
+            soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json
+            soccer_edge_state/analysis/isolated_sport_quote_receipt_v1.json
+            soccer_edge_state/analysis/isolated_sport_quotes
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Capture strictly prospective exact API-Football bookmaker 8 prices
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p state/soccer_edge_state/analysis/isolated_sport_quotes
+          python controls/.github/scripts/soccer_isolated_research_quotes_v1.py \
+            --frozen state/soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl \
+            --import-receipt state/soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json \
+            --quote-dir state/soccer_edge_state/analysis/isolated_sport_quotes \
+            --receipt state/soccer_edge_state/analysis/isolated_sport_quote_receipt_v1.json
+          jq -e '
+            .status == "RESEARCH_ONLY_REAL_ODDS_VISIT"
+            and .production_promotion_allowed == false
+            and .bet_eligible == false
+            and .direct_betslip_price_verified == false
+            and .canonical_clv_rows_added == 0
+            and .retroactive_prices_created == false
+            and (.provider_requests_added <= 2)
+            and (.price_visits_added <= 2)
+            and (.provider_requests_added == 0 or .daily_remaining_reported >= 1000)
+          ' state/soccer_edge_state/analysis/isolated_sport_quote_receipt_v1.json >/dev/null
+      - name: Persist actual point-in-time price attempts and audit
+        shell: bash
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/isolated_sport_quotes \
+                     soccer_edge_state/analysis/isolated_sport_quote_receipt_v1.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Record actual proxy bookmaker odds visits after frozen SPORT FIRST (no BET)"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase origin/soccer-edge-state && git push origin HEAD:soccer-edge-state; then exit 0; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((2 * attempt))
+          done
+          exit 1
