@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 from datetime import datetime, timedelta, timezone
 import json
 import math
@@ -53,7 +54,7 @@ def _valid_raw(raw: dict) -> bool:
 
 def _frozen_record(fx: dict, raw: dict, *, started: datetime, finished: datetime,
                    runtime_sha: str, shortlist: dict, availability: dict,
-                   stage: str, feature_reads: dict) -> dict | None:
+                   stage: str, feature_reads: dict, sporting_inputs: dict) -> dict | None:
     try:
         kickoff = _utc(fx["kickoff"])
     except (KeyError, TypeError, ValueError):
@@ -70,6 +71,10 @@ def _frozen_record(fx: dict, raw: dict, *, started: datetime, finished: datetime
         "sport_analysis_started_at_utc": started.isoformat(),
         "sport_analysis_finished_at_utc": finished.isoformat(),
         "feature_observation": feature_reads,
+        "sporting_inputs": sporting_inputs,
+        "sporting_inputs_sha256": hashlib.sha256(
+            json.dumps(sporting_inputs, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
         "league_id": fx.get("league_id"),
         "home_team_id": fx.get("home_team_id"),
         "away_team_id": fx.get("away_team_id"),
@@ -102,6 +107,19 @@ async def _sport_fixture(fx, coverage, stage, now, runtime_sha, v5, model):
     shortlist = initial_shortlist
     if initial_shortlist.get("shortlisted"):
         refined = await v5._refine_sport_bundle(fx, cheap, now)
+        # Only finished history strictly before the start of this model run.
+        # No future/post-kickoff data from malformed provider/cache fixtures.
+        refined = dict(refined)
+        for side in ("home_recent", "away_recent"):
+            clean = []
+            for match in (refined.get(side) or []):
+                try:
+                    if (_utc(match["kickoff"]) < started
+                            and match.get("status") in {"FT", "AET", "PEN"}):
+                        clean.append(match)
+                except (KeyError, TypeError, ValueError):
+                    continue
+            refined[side] = clean
         interim = model.build_raw_projection(fx, refined, None)
         shortlist = v5._screen_shortlist(interim)
     availability = {
@@ -127,6 +145,12 @@ async def _sport_fixture(fx, coverage, stage, now, runtime_sha, v5, model):
     return _frozen_record(
         fx, raw, started=started, finished=finished, runtime_sha=runtime_sha,
         shortlist=shortlist, availability=availability, stage=stage,
+        sporting_inputs={
+            "home_stats": refined.get("home_stats"),
+            "away_stats": refined.get("away_stats"),
+            "home_recent": refined.get("home_recent"),
+            "away_recent": refined.get("away_recent"),
+        },
         feature_reads={
             "team_statistics": "FETCHED_OR_CACHE_AT_RUN_TIME",
             "recent_fixtures": "FETCHED_OR_CACHE_AT_RUN_TIME" if initial_shortlist.get("shortlisted") else "NOT_REQUESTED",
@@ -312,7 +336,7 @@ def self_test():
     kw = dict(started=now, finished=now + timedelta(minutes=1),
               runtime_sha="a"*40, shortlist={"shortlisted": True},
               availability={"availability_confidence": .5},
-              stage="T-60", feature_reads={})
+              stage="T-60", feature_reads={}, sporting_inputs={})
     row = _frozen_record(fx, raw, **kw)
     assert row and not row["bet_eligible"] and row["full_deep_dive_verified"] is False
     assert row["market_used_to_generate_raw_probability"] is False
@@ -354,6 +378,8 @@ def self_test():
     assert row["availability"]["lineup_state"] == "NOT VERIFIED"
     assert row["availability_verified_for_bet"] is False
     assert row["raw_sport_projection"] == raw
+    assert len(row["sporting_inputs_sha256"]) == 64
+    assert row["sporting_inputs"]["home_recent"] == []
     print("SPORT_ONLY_OFFLINE_CONTRACT_PASS")
 
 
