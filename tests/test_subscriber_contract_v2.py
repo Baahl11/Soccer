@@ -660,3 +660,72 @@ def test_registry_only_fixture_with_no_model_does_not_invent_probabilities():
     assert "OUTCOME_PROBABILITIES" not in result["analyst_review"]["available_sections"]
     assert result["selected_candidate"] is None
 
+
+
+def test_edge_radar_reconciles_all_registry_fixtures_without_guessing_model_coverage():
+    payload = _payload([
+        _base_row(fixture_id=101, classification="WATCH", p_raw=0.61,
+                  market_family="1X2", market="Match Winner"),
+        _base_row(fixture_id=202, classification="WATCH", p_raw=None,
+                  market_family="BTTS", market="Both Teams To Score"),
+    ])
+    contract = subscriber_contract_v2.build_contract(payload, _pro_entitlement())
+    rows = [
+        {"fixture_id": fid, "kickoff": "2026-11-10T23:00:00Z",
+         "status": "NS", "league": "Test", "country": "Test",
+         "home_team_id": fid*2, "away_team_id": fid*2+1,
+         "home_team": "Home", "away_team": "Away",
+         "evidence_inventory": inventory}
+        for fid, inventory in (
+            (101, {"model_runs": 1, "feature_snapshots": 1,
+                   "lineup_snapshots": 0, "availability_snapshots": 0}),
+            (202, {"refresh_events": 1}),
+            (303, {"model_runs": 1, "lineup_snapshots": 2,
+                   "availability_snapshots": 1}),
+            (404, {"market_snapshots": 2}),
+            (505, {}),
+        )
+    ]
+    result = subscriber_contract_v2._attach_full_registry_slate(
+        contract, payload, {"status": "FULL_SLATE_READY",
+                            "slate_date": "2026-11-10",
+                            "timezone": "America/Mexico_City",
+                            "rows": rows}
+    )
+    radar = result["radar"]
+    assert radar["status"] == "PERSISTED_EVIDENCE_AUDIT_READY"
+    assert radar["eligible_registry_count"] == 5
+    assert radar["reconciliation_complete"] is True
+    assert radar["raw_sport_recorded_count"] == 1
+    assert radar["partial_analysis_count"] == 1
+    assert radar["sport_only_count"] == 1
+    assert radar["market_only_count"] == 1
+    assert radar["no_persisted_analysis_count"] == 1
+    states = {row["fixture"]["fixture_id"]: row["screening"] for row in result["slate"]["rows"]}
+    assert states[101]["status_code"] == "RAW_SPORT_RECORDED"
+    assert states[101]["classification"] == "RESEARCH_ONLY_NOT_BET"
+    assert states[101]["raw_projection_recorded"] is True
+    assert states[202]["status_code"] == "PARTIAL_ANALYSIS"
+    assert "RAW_SPORT_NOT_RECORDED" in states[202]["missing_evidence_codes"]
+    assert states[303]["status_code"] == "SPORT_EVIDENCE_ONLY"
+    assert "LINEUP_SNAPSHOT_NOT_RECORDED" not in states[303]["missing_evidence_codes"]
+    # A lineup snapshot exists; Radar does NOT infer both XI/GK confirmed.
+    assert "both_xi_confirmed" not in states[303]
+    assert states[404]["status_code"] == "MARKET_ONLY"
+    assert "sin modelo deportivo" in states[404]["reason"]
+    assert states[505]["status_code"] == "NO_PERSISTED_ANALYSIS"
+    assert "puede faltar" in states[505]["reason"]
+    assert radar["not_a_full_sport_screening_claim"] is True
+    assert radar["not_real_time_provider_coverage"] is True
+    assert radar["provider_requests_added"] == 0
+    assert radar["production_promotion_allowed"] is False
+
+
+def test_edge_radar_does_not_misreport_complete_coverage_when_registry_missing():
+    contract = subscriber_contract_v2.build_contract(_payload([]), _pro_entitlement())
+    result = subscriber_contract_v2._attach_full_registry_slate(contract, _payload([]), None)
+    assert result["radar"]["status"] == "REGISTRY_UNAVAILABLE"
+    assert result["radar"]["eligible_registry_count"] is None
+    assert result["radar"]["raw_sport_recorded_count"] is None
+    assert result["slate"]["full_slate"] is False
+    assert result["radar"]["production_promotion_allowed"] is False

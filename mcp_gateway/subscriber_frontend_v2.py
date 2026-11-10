@@ -84,6 +84,13 @@ linear-gradient(180deg,rgba(10,28,41,.97),rgba(7,20,29,.98));border-radius:12px;
 .projection b{{display:block;font-size:18px;margin-top:3px;white-space:nowrap}}.projection.edge b{{color:var(--green)}}.badges{{display:flex;gap:6px;flex-wrap:wrap}}.badge{{border:1px solid #1d4359;background:#091d29;
 border-radius:6px;padding:5px 7px;color:#8ea9b8;font-size:8px}}.badge.good{{border-color:#21624f;color:#64dfb3;background:#09281f}}.badge.warn{{border-color:#6c5522;color:#e8bd67;background:#2b220e}}
 .empty{{padding:26px;text-align:center;border:1px dashed #28485b;border-radius:10px;color:#7690a1;background:#071722}}.empty b{{display:block;color:#cbdde6;font-size:12px;margin-bottom:5px}}
+.edge-radar-grid{{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}}
+.edge-radar-cell{{border:1px solid #21485d;border-radius:9px;padding:11px;background:#081d2a;min-width:0}}
+.edge-radar-cell b{{display:block;font-size:21px;color:#a7d9ed;line-height:1.15}}
+.edge-radar-cell span{{display:block;font-size:9px;color:#9fb9c8;margin-top:5px;line-height:1.35}}
+.radar-reason{{display:block;color:#bbd1de;margin-top:5px;font-size:9px;line-height:1.35}}
+.radar-evidence{{display:block;color:#7394a7;margin-top:3px;font-size:8px;line-height:1.35}}
+@media(max-width:850px){{.edge-radar-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}}}
 .section-title{{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:19px 1px 9px}}.section-title h2{{font-size:15px;margin:0}}.section-title span{{color:var(--muted);font-size:9px}}
 /* Player markets are RESEARCH ONLY. Large labels and one explicit warning
    replace raw English sportsbook keys and repeated 8px NOT VERIFIED lines. */
@@ -356,6 +363,11 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       <div class="kpi watch"><b id="kpiWatches">—</b><span>watch</span></div>
       <div class="kpi"><b id="kpiPasses">—</b><span>pass</span></div>
     </div>
+    <section id="edgeSportRadar" class="panel" aria-label="Edge Radar · análisis deportivo">
+      <div class="panel-head"><h2>Edge Radar · Cobertura deportiva real</h2><span class="badge warn">INVESTIGACIÓN · NO BET</span></div>
+      <div id="edgeRadarStatus" class="sub" role="status" aria-live="polite">Leyendo únicamente datos de partidos persistidos; no se inventan estadísticas.</div>
+      <div id="edgeRadarStats" class="edge-radar-grid"></div>
+    </section>
     <div id="hero" class="panel hero"></div>
     <div class="section-title"><div><h2>Best Bets</h2><span>Only explicit persisted BET classifications</span></div><button class="link-btn" data-go="picks">View picks →</button></div>
     <div id="todayPicks" class="card-grid"></div>
@@ -532,9 +544,17 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     document.querySelectorAll('.pick-card[data-fixture]').forEach(el=>el.onclick=()=>openMatch(el.dataset.fixture));wireSaveButtons();
   }}
   function watchRow(c){{const f=fixture(c),m=market(c),[time,date]=dt(f.kickoff),d=c?.decision||{{}};return '<div class="watch-row"><div class="time"><b>'+esc(time)+'</b>'+esc(date)+'</div><div class="row-teams"><b>'+esc((f.home_team||'Home')+' vs '+(f.away_team||'Away'))+'</b><small>'+esc(m.name||m.family||'Market')+(d.reason_display?' · '+esc(d.reason_display):'')+'</small></div><div class="row-state"><span class="status watch">'+esc(d.classification||d.display_bucket||'WATCH')+'</span></div></div>'}}
+  function renderEdgeSportRadar(){{const r=DATA?.radar||{{}},status=$('edgeRadarStatus'),stats=$('edgeRadarStats');if(!status||!stats)return;
+    if(r.status!=='PERSISTED_EVIDENCE_AUDIT_READY'||r.reconciliation_complete!==true){{status.textContent='Cobertura del registro NO VERIFICADA: no hay recuento fiable para esta jornada.';stats.innerHTML='';return}}
+    const count=x=>Number.isSafeInteger(x)&&x>=0?String(x):'—';
+    status.textContent='Solo calendario elegible persistido · '+(r.slate_date||'Fecha no verificada')+' · sin consultas nuevas a la API · una proyección guardada NO es BET.';
+    const items=[['En calendario',r.eligible_registry_count],['RAW registrado',r.raw_sport_recorded_count],['Análisis parcial',r.partial_analysis_count],['Evidencia deportiva',r.sport_only_count],['Sin análisis guardado',r.no_persisted_analysis_count]];
+    stats.innerHTML=items.map(([label,n])=>'<div class="edge-radar-cell"><b>'+count(n)+'</b><span>'+esc(label)+'</span></div>').join('');
+    if(r.market_only_count)status.textContent+=' · '+count(r.market_only_count)+' con únicamente datos de mercado.';
+  }}
   function slateCoverage(r){{const c=r?.coverage||{{}},sport=Number(c.sport_evidence_count||0),market=Number(c.market_evidence_count||0),rows=Number(c.analysis_rows||0),parts=[];if(rows>0)parts.push(rows+' current analysis row'+(rows===1?'':'s'));if(sport>0)parts.push('Sport data: '+sport+' snapshots');else parts.push('Sport data: NOT VERIFIED');if(market>0)parts.push('Market data: '+market+' snapshots');if(c.raw_sport_projection_present===false&&rows>0)parts.push('Raw sport projection NOT VERIFIED');return parts.join(' · ')}}
-  function slateRow(r){{const f=r?.fixture||{{}},s=r?.state||{{}},c=r?.coverage||{{}},[time,date]=dt(f.kickoff),hasIntel=Number(c.analysis_rows||0)>0,status=String(s.display_status||c.coverage_status||'NOT VERIFIED').toUpperCase(),tone=status==='BET'?'bet':status==='LEAN'?'lean':status==='WATCH'?'watch':'',href=matchPath(f.fixture_id||'');return '<a class="slate-row" href="'+esc(href)+'" data-fixture="'+esc(f.fixture_id||'')+'" data-intel="'+(hasIntel?'1':'0')+'" title="Open every persisted fact available for this fixture"><div class="time"><b>'+esc(time)+'</b>'+esc(date)+'</div><div class="row-teams"><b>'+esc((f.home_team||'Home')+' vs '+(f.away_team||'Away'))+'</b><small>'+esc(f.league||f.country||'Competition')+' · '+esc(slateCoverage(r))+'</small></div><div class="row-state"><span class="status '+tone+'">'+esc(status)+'</span><span class="link-btn">Open data →</span></div></a>'}}
-  function renderWatchSlate(){{const w=DATA?.watches?.rows||[],s=DATA?.slate?.rows||[];$('todayWatches').innerHTML=w.map(watchRow).join('')||empty('No active WATCH states','No persisted wait state is active in this snapshot.');
+  function slateRow(r){{const f=r?.fixture||{{}},s=r?.state||{{}},c=r?.coverage||{{}},e=r?.screening||{{}},[time,date]=dt(f.kickoff),hasIntel=Number(c.analysis_rows||0)>0,status=String(s.display_status||c.coverage_status||'NOT VERIFIED').toUpperCase(),tone=status==='BET'?'bet':status==='LEAN'?'lean':status==='WATCH'?'watch':'',href=matchPath(f.fixture_id||'');const screenReason=e.reason||s.reason_display||'Estado de análisis: NOT VERIFIED';const missing=Array.isArray(e.missing_evidence_codes)?e.missing_evidence_codes:[];const labels={{RAW_SPORT_NOT_RECORDED:'proyección RAW',SPORT_FEATURE_SNAPSHOT_NOT_RECORDED:'estadísticas deportivas guardadas',LINEUP_SNAPSHOT_NOT_RECORDED:'registro de alineación',AVAILABILITY_SNAPSHOT_NOT_RECORDED:'registro de disponibilidad',MARKET_SNAPSHOT_NOT_RECORDED:'precio guardado'}};const missingText=missing.map(k=>labels[k]||k);const sources=Array.isArray(c.data_sources)?c.data_sources:[];return '<a class="slate-row" href="'+esc(href)+'" data-fixture="'+esc(f.fixture_id||'')+'" data-intel="'+(hasIntel?'1':'0')+'" title="Open every persisted fact available for this fixture"><div class="time"><b>'+esc(time)+'</b>'+esc(date)+'</div><div class="row-teams"><b>'+esc((f.home_team||'Home')+' vs '+(f.away_team||'Away'))+'</b><small>'+esc(f.league||f.country||'Competition')+' · '+esc(slateCoverage(r))+'</small><span class="radar-reason">'+esc(screenReason)+'</span><span class="radar-evidence">'+esc('Fuente: '+(sources.join(', ')||'registro de fixtures')+' · Faltan: '+(missingText.join(', ')||'sin faltantes comprobados'))+'</span></div><div class="row-state"><span class="status '+tone+'">'+esc(status)+'</span><span class="link-btn">Open data →</span></div></a>'}}
+  function renderWatchSlate(){{renderEdgeSportRadar();const w=DATA?.watches?.rows||[],s=DATA?.slate?.rows||[];$('todayWatches').innerHTML=w.map(watchRow).join('')||empty('No active WATCH states','No persisted wait state is active in this snapshot.');
     const slate=s.map(slateRow).join('')||empty('No eligible fixtures','No eligible fixtures remain in the current slate.');$('todaySlate').innerHTML=slate;$('matchesList').innerHTML=slate;
   }}
   function renderPlan(){{ACCESS=DATA?.access||ACCESS||{{}};const plan=ACCESS?.display_role||ACCESS?.effective_plan||(token()?'FREE':'EXPLORER');$('planChip').textContent=String(plan).toUpperCase();$('accountBtn').textContent=token()?'Account':'Sign in';$('accountPageBtn').textContent=token()?'Manage account':'Sign in';$('accountPlan').textContent=premium()?'Edge Pro':'Explorer';$('accountCopy').textContent=premium()?'Premium decision evidence is unlocked for this account.':'Browse the verified slate and watch states. Premium probability, price and evidence fields remain redacted.';$('signOut').classList.toggle('hidden',!token())}}

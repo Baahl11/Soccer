@@ -1,0 +1,46 @@
+name: Soccer Edge Radar - Evidence-Only Full Slate and Reasons QA
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - 'mcp_gateway/subscriber_contract_v2.py'
+      - 'mcp_gateway/subscriber_frontend_v2.py'
+      - 'tests/test_subscriber_contract_v2.py'
+      - 'tests/test_subscriber_frontend_v2.py'
+      - '.github/workflows/edge-radar-evidence-v1-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  registry-radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated runtime dependencies
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Full customer-contract and frontend evidence audit
+        run: |
+          set -euo pipefail
+          python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider tests/test_subscriber_contract_v2.py tests/test_subscriber_frontend_v2.py
+          python - <<'PY'
+          from pathlib import Path
+          api=Path('mcp_gateway/subscriber_contract_v2.py').read_text()
+          ui=Path('mcp_gateway/subscriber_frontend_v2.py').read_text()
+          radar=api.split('def _radar_evidence_status(',1)[1].split('def _attach_full_registry_slate(',1)[0]
+          assert '_api_get' not in radar
+          assert 'evaluate_market' not in radar
+          assert 'SPORT_EVIDENCE_ONLY' in radar
+          assert 'NO_PERSISTED_ANALYSIS' in radar
+          assert 'LINEUP_SNAPSHOT_NOT_RECORDED' in radar
+          assert 'production_promotion_allowed": False' in api
+          assert 'REGISTRY_UNAVAILABLE' in api
+          assert 'raw_sport_recorded_count' in api
+          assert 'Edge Radar · Cobertura deportiva real' in ui
+          assert 'NOT VERIFIED' in ui
+          print('SOCCER_RADAR_REGISTRY_SCREENING_EVIDENCE_REASON_GATES_PASS')
+          PY
