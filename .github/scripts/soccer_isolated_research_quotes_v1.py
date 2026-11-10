@@ -241,7 +241,7 @@ def _matching_price_pairs(attempts,fixture_id,frozen,kickoff):
                 continue
             first_time,first_update,first=firsts[k]
             if (first_time<visited<kickoff and first_update<update
-                    and update>_dt(frozen)):
+                    and first_update>_dt(frozen) and update>_dt(frozen)):
                 pairs.append({
                     "bookmaker_id":BOOKMAKER_ID,"market_id":q["market_id"],
                     "family":q["family"],"selection":q["selection"],"line":q["line"],
@@ -370,6 +370,9 @@ def self_test():
     stale={**second,"provider_update_utc":now.isoformat(),
            "instruments":[{**q,"provider_update_utc":now.isoformat()} for q in later_quotes]}
     assert _matching_price_pairs([first,stale],42,freeze.isoformat(),kickoff)==[]
+    old_entry={**first,"provider_update_utc":(freeze-timedelta(minutes=30)).isoformat(),
+               "instruments":[{**q,"provider_update_utc":(freeze-timedelta(minutes=30)).isoformat()} for q in quotes]}
+    assert _matching_price_pairs([old_entry,second],42,freeze.isoformat(),kickoff)==[]
     false_second={**second,"captured_at_utc":(kickoff+timedelta(minutes=1)).isoformat()}
     assert _matching_price_pairs([first,false_second],42,freeze.isoformat(),kickoff)==[]
     wrong=payload(now)

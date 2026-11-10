@@ -146,7 +146,7 @@ def audit(frozen,official,import_receipt,quotes,clv,promotion,player,latest,now)
         first=visits[0]
         for next_visit in visits[1:]:
             if (first[0]<next_visit[0]<kick
-                    and first[1]<next_visit[1] and next_visit[1]>frozen_at):
+                    and frozen_at<first[1]<next_visit[1]):
                 pairs.append({
                     "fixture_id":fid,"market_family":key[3],
                     "market_id":key[2],"selection":key[4],"line":key[5],
