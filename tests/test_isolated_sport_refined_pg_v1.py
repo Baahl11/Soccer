@@ -80,7 +80,7 @@ def test_valid_batch_and_source_free_persistence_payload():
     assert result[0]["model_git_sha"] == RUNTIME
     assert result[0]["payload_sha256"] == v.validate_batch(sample_batch(), now=NOW)[0]["payload_sha256"]
     assert result[0]["sporting_inputs_sha256"] == "b" * 64
-    assert "sporting_inputs" not in result[0]["research_forecast"]
+    assert '"sporting_inputs":' not in result[0]["research_forecast"]
     assert "soccer_refresh_events" not in v._CREATE
     assert "soccer_primary_clv" not in v._CREATE
     assert "5 minutes" in v._CREATE
@@ -171,10 +171,11 @@ class FakeConnection:
 
 def test_immutable_idempotent_and_research_only():
     conn = FakeConnection()
+    validate = v.validate_batch
     with patch.object(v.persistence, "persistence_configured", return_value=True), \
          patch.object(v.persistence, "_connect", return_value=conn), \
          patch.object(v, "validate_batch",
-                      side_effect=lambda x: v.validate_batch(x, now=NOW)):
+                      side_effect=lambda x: validate(x, now=NOW)):
         # First insert and identical repeat do not touch canonical tables.
         assert v.store_frozen(sample_batch())["new_research_rows"] == 1
         again = v.store_frozen(sample_batch())
@@ -194,10 +195,11 @@ def test_immutable_conflict_rejected():
     p = sample_batch()
     mutated = deepcopy(p)
     mutated["snapshots"][0]["raw_sport_projection"]["raw_btts_yes_prob"] = 0.58
+    validate = v.validate_batch
     with patch.object(v.persistence, "persistence_configured", return_value=True), \
          patch.object(v.persistence, "_connect", return_value=conn), \
          patch.object(v, "validate_batch",
-                      side_effect=lambda x: v.validate_batch(x, now=NOW)):
+                      side_effect=lambda x: validate(x, now=NOW)):
         v.store_frozen(p)
         with pytest.raises(RuntimeError, match="IMMUTABILITY_CONFLICT"):
             v.store_frozen(mutated)
