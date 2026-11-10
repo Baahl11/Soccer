@@ -87,8 +87,22 @@ jobs:
             and .actual_provider_calls <= 40 and .transport_budget_denied == 0
             and .quota_headers_verified > 0 and .last_daily_remaining >= 1000
           ' sport_only_refined_research_receipt.json >/dev/null
+      - name: Redact fixture-level provider features and model forecasts for public CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq '
+            del(.raw_research_snapshots, .research_watch_candidates)
+            | .fixture_level_forecasts_artifact_exported = false
+            | .public_audit_only = true
+          ' sport_only_refined_research_receipt.json > sport_only_public_audit.json
+          jq -e '
+            .public_audit_only == true and .fixture_level_forecasts_artifact_exported == false
+            and (has("raw_research_snapshots") | not)
+            and (has("research_watch_candidates") | not)
+          ' sport_only_public_audit.json >/dev/null
       - uses: actions/upload-artifact@v4
         with:
-          name: soccer-sport-only-refined-research-receipt
-          path: sport_only_refined_research_receipt.json
+          name: soccer-sport-only-research-redacted-audit
+          path: sport_only_public_audit.json
           retention-days: 7
