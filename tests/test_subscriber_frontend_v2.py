@@ -91,7 +91,7 @@ def test_fe2_full_slate_exposes_coverage_and_insufficient_data_copy():
     html = subscriber_frontend_v2.render()
 
     assert "Every eligible fixture stays visible, even when analysis is incomplete" in html
-    assert "Insufficient data · fixture only" in html
+    assert "Estado de análisis: NOT VERIFIED" in html
     assert "Sport data: " in html
     assert 'data-intel="' in html
 
@@ -100,7 +100,7 @@ def test_fe2_every_slate_fixture_is_openable_for_data_review():
 
     assert "Open data →" in html
     assert "Sport-first read" in html
-    assert "Scoring profile" in html
+    assert "Goal-rate baseline" in html
     assert "Key takeaways" in html
     assert 'class="slate-row" href="' in html
     assert "matchPath(f.fixture_id||'')" in html
@@ -144,7 +144,7 @@ def test_fe2_match_intelligence_is_sport_first_not_market_first():
     html = subscriber_frontend_v2.render()
 
     assert "Sport-first read" in html
-    assert "Scoring profile" in html
+    assert "Goal-rate baseline" in html
     assert "Team form & scoring" in html
     assert "Home form" in html
     assert "Market layer" in html
@@ -157,7 +157,7 @@ def test_fe2_visible_sport_input_count_matches_rendered_inputs():
 
     assert "CUSTOMER_SPORT_FEATURES" in html
     assert "Verified sporting inputs" in html
-    assert "visible inputs" in html
+    assert "core sport inputs" in html
     assert "core sport inputs" in html
     assert "No customer-facing sporting inputs are verified" in html
 
