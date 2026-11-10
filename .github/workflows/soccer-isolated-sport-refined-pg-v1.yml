@@ -5,6 +5,12 @@ on:
     paths:
       - '.github/scripts/soccer_isolated_refined_oidc_bridge_v1.py'
       - '.github/workflows/soccer-isolated-sport-refined-pg-v1.yml'
+  # One-time main merge trigger, guarded by exact commit-title prefix;
+  # removed immediately after the first private research proof.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/soccer-isolated-sport-refined-pg-v1.yml'
   workflow_dispatch:
 
 permissions:
@@ -47,7 +53,14 @@ jobs:
           PY
 
   live-private-research:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'push' &&
+         startsWith(github.event.head_commit.message,
+           'ops(soccer): one-shot private refined capture #149'))
+      )
     needs: offline-contract
     runs-on: ubuntu-latest
     timeout-minutes: 9
