@@ -19,7 +19,11 @@ import re
 MAX_PROVIDER_REQUESTS = 40
 MIN_DAILY_REMAINING = 1000
 MAX_CANDIDATES = 20
-WINDOW_MINUTES = 180
+# 180m remains default. A wider window is explicit and capped at 32 hours.
+# Genuine tomorrow slates are used for early research; never a BET signal.
+WINDOW_MINUTES = int(os.getenv("SOCCER_EDGE_SPORT_ONLY_WINDOW_MINUTES", "180"))
+if not 180 <= WINDOW_MINUTES <= 1920:
+    raise ValueError("SPORT_ONLY_LOOKAHEAD_WINDOW_NOT_BOUNDED")
 KICKOFF_CUTOFF = timedelta(minutes=5)
 OFFICIAL_HOSTS = {"v3.football.api-sports.io", "api-football-v1.p.rapidapi.com"}
 ALLOWED_ENDPOINTS = {
@@ -285,7 +289,7 @@ async def run(runtime_sha: str, output: Path) -> dict:
         # does not depend on bookmaker quotes or their availability.
         local = now.astimezone(base.TIMEZONE)
         dates = [local.date()]
-        if local.hour >= 21:
+        if local.hour >= 21 or WINDOW_MINUTES > 180:
             dates.append((local + timedelta(days=1)).date())
         fixtures = []
         seen = set()
@@ -363,7 +367,8 @@ async def run(runtime_sha: str, output: Path) -> dict:
         "schema_version": "1.0.0", "status": "SPORT_ONLY_RESEARCH_CANARY",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "runtime_sha": runtime_sha, "fixture_scan_count": scanned,
-        "tier_ab_due_in_180m": due_ab, "candidate_attempts": attempts,
+        "sport_scan_window_minutes": WINDOW_MINUTES,
+        "tier_ab_due_in_window": due_ab, "candidate_attempts": attempts,
         "real_frozen_raw_count": len(rows), "full_deep_dives_verified": 0,
         "drop_reasons": dropped, "actual_provider_calls": traffic["outgoing"],
         "provider_calls_by_endpoint": traffic["by_path"],
@@ -383,6 +388,7 @@ async def run(runtime_sha: str, output: Path) -> dict:
 
 
 def self_test():
+    assert 180 <= WINDOW_MINUTES <= 1920
     assert allowed_provider_request("GET", "v3.football.api-sports.io", "/teams/statistics")
     assert not allowed_provider_request("GET", "v3.football.api-sports.io", "/odds")
     assert not allowed_provider_request("GET", "evil.example", "/fixtures")

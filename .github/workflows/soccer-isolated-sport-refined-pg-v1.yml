@@ -11,6 +11,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/soccer-isolated-sport-refined-pg-v1.yml'
+      - '.github/scripts/soccer_isolated_sport_only_v1.py'
   workflow_dispatch:
 
 permissions:
@@ -59,7 +60,7 @@ jobs:
         github.event_name == 'workflow_dispatch' ||
         (github.event_name == 'push' &&
          startsWith(github.event.head_commit.message,
-           'ops(soccer): one-shot private refined capture #149'))
+           'ops(soccer): second prospective 32h refined capture #150'))
       )
     needs: offline-contract
     runs-on: ubuntu-latest
@@ -71,6 +72,7 @@ jobs:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
       DATABASE_URL: ''
       SOCCER_EDGE_MAX_API_CALLS_PER_TICK: '40'
+      SOCCER_EDGE_SPORT_ONLY_WINDOW_MINUTES: '1920'
       SOCCER_EDGE_CACHE_PATH: /tmp/soccer_refined_live_oidc_research.sqlite3
     steps:
       - uses: actions/checkout@v4
