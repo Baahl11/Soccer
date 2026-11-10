@@ -322,17 +322,22 @@ async def run(runtime_sha: str, output: Path) -> dict:
             except (KeyError, TypeError, ValueError):
                 dropped["INVALID_FIXTURE_OR_KICKOFF"] = dropped.get("INVALID_FIXTURE_OR_KICKOFF", 0) + 1
         candidates.sort(key=lambda it: it[0])
-        for _, fx, coverage, stage in candidates[:MAX_CANDIDATES]:
+        bounded_candidates = candidates[:MAX_CANDIDATES]
+        for idx, (_, fx, coverage, stage) in enumerate(bounded_candidates):
             if traffic["outgoing"] >= MAX_PROVIDER_REQUESTS - 6:
                 dropped["NOT_ANALYZED_RESOURCE_CAP"] = (
-                    dropped.get("NOT_ANALYZED_RESOURCE_CAP", 0) + 1
+                    dropped.get("NOT_ANALYZED_RESOURCE_CAP", 0)
+                    + len(bounded_candidates) - idx
                 )
                 break
             attempts += 1
             try:
                 row, reason = await _sport_fixture(fx, coverage, stage, now, runtime_sha, v5, model)
             except SportOnlyBudgetStop:
-                dropped["NOT_ANALYZED_RESOURCE_CAP"] = dropped.get("NOT_ANALYZED_RESOURCE_CAP", 0) + 1
+                dropped["NOT_ANALYZED_RESOURCE_CAP"] = (
+                    dropped.get("NOT_ANALYZED_RESOURCE_CAP", 0)
+                    + len(bounded_candidates) - idx
+                )
                 break
             except Exception as exc:
                 dropped["SPORT_PROCESSING_ERROR_" + type(exc).__name__] = (
