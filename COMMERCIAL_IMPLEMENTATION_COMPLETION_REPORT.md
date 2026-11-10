@@ -1,3 +1,5 @@
+> **ARCHIVED / NON-GOVERNING LEGACY DOCUMENT (2025).** This file preserves an old implementation narrative, **not** a current independent audit or product launch approval. Statements such as **"87% accuracy"**, **"production ready"**, and **"commercial licensing ready"** were not verified against the current SOCCER EDGE ENGINE v1.0/V4 as-of frozen OOS, true CLV, settlement, legal/data-rights, or subscription security gates. They **must not** be used in product marketing, investor claims, payment activation, or betting recommendations. Current launch source of truth: [SOCCER COMMERCIALIZATION LAUNCH GATES v1](docs/SOCCER_COMMERCIALIZATION_LAUNCH_GATES_v1.md) and the [live evidence JSON](https://github.com/Baahl11/Soccer/blob/soccer-edge-state/soccer_edge_state/analysis/soccer_commercialization_readiness_v1.json). Current paid betting alerts remain **NO-GO**.
+
 # COMMERCIAL IMPLEMENTATION COMPLETION REPORT
 ## Soccer Prediction Master Pipeline - Production Ready
 

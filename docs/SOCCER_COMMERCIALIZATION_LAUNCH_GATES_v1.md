@@ -48,6 +48,42 @@ and current workflow logs for up-to-date counters.
 picks. No implied A/S/B tier, BET, staking or claims of proven profitability
 until the sport-specific promotion evidence actually passes.
 
+## Commercial product foundation already in the repository (do not rebuild it)
+
+The governing [Frontend Product Roadmap v1.0](../17_SOCCER_FRONTEND_PRODUCT_ROADMAP_v1.0.md)
+records FE-0/FE-1 deployed, FE-2 through FE-6 and FE-8 deployed as a
+customer preview, FE-7 **Auth & Subscriptions implemented/guarded**, FE-9 PWA
+installability implemented, and **push delivery disabled**. Intended customer
+surfaces: \`/app-v2\` and \`/landing-v2\`.
+
+FE-7 documents an existing **Supabase Auth / FREE-PRO entitlement / Stripe
+Checkout / Stripe webhook / Customer Portal** architecture. A historical
+version of the roadmap records *configured* US and MX-LATAM subscription
+prices; that is **not approval of those prices**, not proof of today's billing
+configuration, and not proof that the complete charge/refund lifecycle has
+been tested. **DO NOT create live charges or turn on public billing** by
+merging this documentation or a research worker.
+
+The explicit public payment switch is
+\`SOCCER_PUBLIC_BILLING_ENABLED\` (default false). The remaining **real**
+FE-7 gates are checkout/return URLs, webhook entitlement, FREE→PRO and
+PRO→FREE transitions, renewal/past_due/cancellation, Supabase Auth
+leaked-password protection, RLS, privacy/age/geo controls, legal copy, and
+approval of final pricing. These require live account inspection and
+controlled sandbox tests; **NOT VERIFIED** here.
+
+Commercial progress now has **two parallel tracks**:
+1. **Product readiness**: finish V2 UI, authentication tests, privacy,
+   subscription sandbox, support, landing and permissible prelaunch outreach.
+2. **Prediction readiness**: improve full-model deep dives, independent OOS,
+   real exact executable prices, strict-close maturity and market-specific
+   promotions. Keep paid picks/SGP/+110 NO-GO until both tracks pass.
+
+Old repository docs dated 2025 describing "87% accuracy" or "fully
+production ready" were legacy implementation narratives, **not current,
+independently verified calibration or permissible marketing claims**. Treat
+them as archived and do not reuse those claims in the V2 landing.
+
 ## Commercial sequence (start work in order, not with selling picks)
 
 ### Stage A — product discovery and private demonstration
