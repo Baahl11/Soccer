@@ -27,7 +27,9 @@ PROBABILITIES = (
     "raw_home_win_prob", "raw_draw_prob", "raw_away_win_prob",
     "raw_btts_yes_prob", "raw_over_2_5_prob",
 )
-ALLOWED_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-20", "T-10"}
+ALLOWED_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10"}
+ALLOWED_ENDPOINTS = {"/fixtures", "/leagues", "/teams/statistics",
+                     "/injuries", "/fixtures/lineups"}
 _CREATE = """
 CREATE TABLE IF NOT EXISTS soccer_isolated_sport_refined_research_v1 (
     fixture_id BIGINT NOT NULL CHECK (fixture_id > 0),
@@ -196,6 +198,13 @@ def validate_batch(payload: Any, *, now: datetime | None = None) -> list[dict[st
             or proof.get("production_promotion_allowed") is not False
             or proof.get("full_deep_dives_verified") != 0):
         raise ValueError("PROSPECTIVE_QUOTA_OR_COMMERCIAL_GATE_FAILED")
+    by_path = proof.get("provider_calls_by_endpoint")
+    if (not isinstance(by_path, dict)
+            or not by_path
+            or any(path not in ALLOWED_ENDPOINTS or type(number) is not int
+                   or number < 0 for path, number in by_path.items())
+            or sum(by_path.values()) != calls):
+        raise ValueError("RESEARCH_PROOF_CONTAINS_NON_SPORT_PROVIDER_PATH")
     snapshots = payload["snapshots"]
     if not isinstance(snapshots, list) or not 1 <= len(snapshots) <= MAX_ROWS:
         raise ValueError("INVALID_REFINEMENT_BATCH")
