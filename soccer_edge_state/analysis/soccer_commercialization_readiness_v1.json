@@ -1,0 +1,254 @@
+{
+  "schema_version": "1.0.0",
+  "model_version": "SOCCER_COMMERCIAL_READINESS_AUDIT_v1.0.0",
+  "generated_at_utc": "2026-11-10T17:53:17.287710+00:00",
+  "status": "RESEARCH_VALIDATED_COMMERCIAL_PRODUCTION_BLOCKED",
+  "verified_frozen_sport_research_models": 10,
+  "original_commit_imported_model_ids_count": 10,
+  "official_FT_research_OOS_fixture_count": 4,
+  "research_OOS_1X2_BTTs_FT25_fixture_counts": {
+    "1X2": 4,
+    "BTTS": 4,
+    "FT_TOTALS": 4
+  },
+  "actual_provider_proxy_price_visit_count": 2,
+  "visits_with_exact_complete_markets": 1,
+  "research_proxy_price_fixtures": 1,
+  "research_quote_instrument_pairs_with_advanced_provider_timestamp": 0,
+  "research_pairs_observed_within_40min_kickoff": 0,
+  "same_fixture_FT_and_research_price_pairs": 0,
+  "canonical_true_clv_total": 789,
+  "canonical_clv_family_counts": {
+    "1X2": 53,
+    "AWAY_TT": 365,
+    "BTTS": 20,
+    "FT_TOTALS": 8,
+    "HOME_TT": 343
+  },
+  "canonical_promotion_counts": {
+    "RESEARCH": 7,
+    "SHADOW": 3
+  },
+  "market_family_gates": {
+    "FT_TOTALS": {
+      "promotion_stage": "RESEARCH",
+      "canonical_true_clv_rows": 8,
+      "settled_bets": 15,
+      "unique_clv_fixtures": 8,
+      "gate_blockers": [
+        "UNIQUE_FIXTURES_8_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_8_LT_TIER_B_REVIEW_50",
+        "SETTLED_15_LT_DIRECTIONAL_20",
+        "SETTLED_15_LT_TIER_B_REVIEW_50",
+        "STABILITY_DATA_BLOCKED",
+        "PROMOTION_SHADOW_ROI_NOT_POSITIVE",
+        "PROMOTION_SHADOW_NEGATIVE_DIRECTIONAL_STAGES:EARLY_RESEARCH,T-20,T-60",
+        "VALIDATION:FT_TOTALS_TRUE_CLV_8_LT_50"
+      ],
+      "production_bet_authorized": false,
+      "isolated_limited_model_FT_OOS_research_fixtures": 4,
+      "research_exact_instrument_provider_pairs": 0
+    },
+    "1X2": {
+      "promotion_stage": "SHADOW",
+      "canonical_true_clv_rows": 53,
+      "settled_bets": 10,
+      "unique_clv_fixtures": 53,
+      "gate_blockers": [
+        "SETTLED_10_LT_DIRECTIONAL_20",
+        "SETTLED_10_LT_TIER_B_REVIEW_50",
+        "PROMOTION_SHADOW_ROI_NOT_POSITIVE",
+        "PROMOTION_SHADOW_NEGATIVE_DIRECTIONAL_STAGES:T-10,T-20,T-40",
+        "PROMOTION_SHADOW_1X2_CLASS_DISCRIMINATION_NOT_READY:DRAW"
+      ],
+      "production_bet_authorized": false,
+      "isolated_limited_model_FT_OOS_research_fixtures": 4,
+      "research_exact_instrument_provider_pairs": 0
+    },
+    "BTTS": {
+      "promotion_stage": "SHADOW",
+      "canonical_true_clv_rows": 20,
+      "settled_bets": 0,
+      "unique_clv_fixtures": 20,
+      "gate_blockers": [
+        "UNIQUE_FIXTURES_20_LT_TIER_B_REVIEW_50",
+        "SETTLED_0_LT_DIRECTIONAL_20",
+        "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "ROI_MISSING",
+        "STABILITY_DIRECTIONAL_ONLY",
+        "PROMOTION_SHADOW_NEGATIVE_DIRECTIONAL_STAGES:EARLY_RESEARCH,T-10,T-30",
+        "VALIDATION:BTTS_TRUE_CLV_20_LT_50"
+      ],
+      "production_bet_authorized": false,
+      "isolated_limited_model_FT_OOS_research_fixtures": 4,
+      "research_exact_instrument_provider_pairs": 0
+    },
+    "TEAM_TOTALS": {
+      "promotion_stage": "SHADOW",
+      "canonical_true_clv_rows": 708,
+      "settled_bets": 0,
+      "unique_clv_fixtures": 111,
+      "gate_blockers": [
+        "SETTLED_0_LT_DIRECTIONAL_20",
+        "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "ROI_MISSING",
+        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20"
+      ],
+      "production_bet_authorized": false
+    },
+    "1H": {
+      "promotion_stage": "RESEARCH",
+      "canonical_true_clv_rows": 0,
+      "settled_bets": 0,
+      "unique_clv_fixtures": 0,
+      "gate_blockers": [
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
+        "SETTLED_0_LT_DIRECTIONAL_20",
+        "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
+        "ROI_NOT_POSITIVE",
+        "STABILITY_MISSING",
+        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+        "VALIDATION:CHALLENGER_BRIER_NOT_BETTER_THAN_BASELINE",
+        "VALIDATION:CHALLENGER_LOG_LOSS_NOT_BETTER_THAN_BASELINE",
+        "VALIDATION:1H_TRUE_CLV_0_LT_50",
+        "VALIDATION:SOURCE_1H_PROMOTION_GATE_DISABLED"
+      ],
+      "production_bet_authorized": false
+    },
+    "2H": {
+      "promotion_stage": "RESEARCH",
+      "canonical_true_clv_rows": 0,
+      "settled_bets": 3,
+      "unique_clv_fixtures": 0,
+      "gate_blockers": [
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
+        "SETTLED_3_LT_DIRECTIONAL_20",
+        "SETTLED_3_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
+        "ROI_NOT_POSITIVE",
+        "STABILITY_MISSING",
+        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+        "VALIDATION:HALFTIME_CONDITIONED_CHALLENGER_DOES_NOT_BEAT_BASELINE",
+        "VALIDATION:2H_TRUE_CLV_0_LT_50",
+        "VALIDATION:SOURCE_2H_PROMOTION_GATE_DISABLED"
+      ],
+      "production_bet_authorized": false
+    },
+    "FT_CORNERS": {
+      "promotion_stage": "RESEARCH",
+      "canonical_true_clv_rows": 0,
+      "settled_bets": 0,
+      "unique_clv_fixtures": 0,
+      "gate_blockers": [
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
+        "SETTLED_0_LT_DIRECTIONAL_20",
+        "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
+        "ROI_MISSING",
+        "STABILITY_MISSING",
+        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+        "VALIDATION:FORMATION_ADJUSTED_44_LT_100",
+        "VALIDATION:FT_CORNERS_TRUE_CLV_0_LT_50",
+        "VALIDATION:FT_CORNERS_LEAGUE_LIFT_NOT_STABLE"
+      ],
+      "production_bet_authorized": false
+    },
+    "TEAM_CORNERS": {
+      "promotion_stage": "RESEARCH",
+      "canonical_true_clv_rows": 0,
+      "settled_bets": 0,
+      "unique_clv_fixtures": 0,
+      "gate_blockers": [
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
+        "SETTLED_0_LT_DIRECTIONAL_20",
+        "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
+        "ROI_MISSING",
+        "STABILITY_MISSING",
+        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+        "VALIDATION:TEAM_CORNERS_SIDE_SPECIFIC_FORMATION_44_LT_100",
+        "VALIDATION:TEAM_CORNERS_TRUE_CLV_0_LT_50",
+        "VALIDATION:PARENT_FT_CORNERS_NOT_REVIEW_READY",
+        "VALIDATION:TEAM_CORNERS_LEAGUE_VENUE_STABILITY_NOT_READY"
+      ],
+      "production_bet_authorized": false
+    },
+    "CARDS": {
+      "promotion_stage": "RESEARCH",
+      "canonical_true_clv_rows": 0,
+      "settled_bets": 0,
+      "unique_clv_fixtures": 0,
+      "gate_blockers": [
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
+        "SETTLED_0_LT_DIRECTIONAL_20",
+        "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
+        "ROI_MISSING",
+        "STABILITY_MISSING",
+        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+        "VALIDATION:YELLOW_REFEREE_ADJUSTED_0_LT_100",
+        "VALIDATION:YELLOW_CARDS_PROMOTION_GATE_DISABLED",
+        "VALIDATION:RED_CARD_OOS_184_LT_MARKET_REVIEW_500",
+        "VALIDATION:RED_CARD_OOS_184_LT_ACTIONABLE_1000",
+        "VALIDATION:RED_CARD_REFEREE_ADJUSTED_SAMPLE_INSUFFICIENT",
+        "VALIDATION:RED_CARDS_PROMOTION_GATE_DISABLED",
+        "VALIDATION:PLAYER_CARDS_OOS_VALIDATION_INCOMPLETE",
+        "VALIDATION:CARD_TRUE_CLV_0_LT_50"
+      ],
+      "production_bet_authorized": false
+    },
+    "PLAYER_PROPS": {
+      "promotion_stage": "RESEARCH",
+      "canonical_true_clv_rows": 0,
+      "settled_bets": 0,
+      "unique_clv_fixtures": 0,
+      "gate_blockers": [
+        "UNIQUE_FIXTURES_0_LT_DIRECTIONAL_20",
+        "UNIQUE_FIXTURES_0_LT_TIER_B_REVIEW_50",
+        "SETTLED_0_LT_DIRECTIONAL_20",
+        "SETTLED_0_LT_TIER_B_REVIEW_50",
+        "FAMILY_TRUE_CLV_MISSING",
+        "ROI_MISSING",
+        "STABILITY_MISSING",
+        "PROMOTION_SHADOW_SETTLED_0_LT_DIRECTIONAL_20",
+        "VALIDATION:SHOTS_OOS_VALIDATION_INCOMPLETE",
+        "VALIDATION:SOT_OOS_VALIDATION_INCOMPLETE",
+        "VALIDATION:GOALSCORER_OOS_VALIDATION_INCOMPLETE",
+        "VALIDATION:ASSISTS_OOS_VALIDATION_INCOMPLETE",
+        "VALIDATION:CARDS_OOS_VALIDATION_INCOMPLETE",
+        "VALIDATION:GK_SAVES_OOS_VALIDATION_INCOMPLETE",
+        "VALIDATION:GK_SAVES_VALID_PROFILES_22_LT_100",
+        "VALIDATION:PLAYER_PROP_TRUE_CLV_0_LT_50"
+      ],
+      "production_bet_authorized": false
+    }
+  },
+  "sgp_joint_bookmaker_ticket_priced": "NOT VERIFIED",
+  "plus110_live_executable_price": "NOT VERIFIED",
+  "research_engine_operational_subsystem": "SPORT_FIRST_FROZEN_PG_AND_FT_OOS_PROVEN",
+  "private_research_preview_eligibility": "REVIEW_REQUIRED_PRODUCT_SECURITY_AND_LEGAL",
+  "paid_advisory_product_eligibility": "NO_GO",
+  "paid_betting_alerts_eligibility": "NO_GO",
+  "marketing_claims_or_advertising_clearance": "NOT VERIFIED",
+  "legal_regulatory_data_license_approval": "NOT VERIFIED",
+  "subscription_billing_security_and_age_controls": "NOT VERIFIED",
+  "blockers": [
+    "NO_VERIFIED_DIRECT_EXECUTABLE_BOOKMAKER_BETSLIP_QUOTE",
+    "CANONICAL_MARKET_GATE_NOT_PROMOTED",
+    "INSUFFICIENT_SPORT_MODEL_AVAILABILITY_AND_DEEP_DIVE_COVERAGE",
+    "MARKET_INDEPENDENT_OOS_AND_SETTLEMENT_GATES_NOT_MET",
+    "LICENSING_GEO_COMPLIANCE_PAYMENT_AND_PRODUCT_UX_NOT_VERIFIED",
+    "NO_NEW_TWO_VISIT_PROVIDER_UPDATE_QUOTE_PAIRS"
+  ],
+  "canonical_clv_rows_created_by_this_audit": 0,
+  "retroactive_predictions_created": false,
+  "production_promotion_allowed": false,
+  "bet_eligible": false,
+  "interpretation": "As-of Poisson research baseline and exact proxy odds visits do not inherit canonical BET, CLV or market calibration gates."
+}
