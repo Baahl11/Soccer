@@ -39,7 +39,7 @@ jobs:
           assert "id-token: write" in w
           assert "DATABASE_URL: ''" in w
           assert "SOCCER_EDGE_MAX_API_CALLS_PER_TICK: '40'" in w
-          assert "- cron:" not in w
+          assert not any(line.lstrip().startswith("- cron:") for line in w.splitlines())
           assert "REFINED_RESEARCH_STORE_ACK_NOT_VERIFIED" in s
           assert "MODEL_SOURCE_FEATURE_FINGERPRINT_CONFLICT" in s
           assert "UPSTREAM_PROVIDER" not in s or "upstream_provider_inputs_transmitted" in s
