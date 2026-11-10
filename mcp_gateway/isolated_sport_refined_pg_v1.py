@@ -27,6 +27,14 @@ PROBABILITIES = (
     "raw_home_win_prob", "raw_draw_prob", "raw_away_win_prob",
     "raw_btts_yes_prob", "raw_over_2_5_prob",
 )
+ALLOWED_RAW_KEYS = {
+    "status", "model_version", "projection_model", "model_limitations",
+    "advanced_metrics", "sample", "raw_home_goal_rate", "raw_away_goal_rate",
+    "raw_total_goals", "raw_home_xg", "raw_away_xg", "raw_home_win_prob",
+    "raw_draw_prob", "raw_away_win_prob", "raw_btts_yes_prob",
+    "raw_over_1_5_prob", "raw_over_2_5_prob", "raw_over_3_5_prob",
+    "top_scorelines", "scoring_path", "screen_scores",
+}
 ALLOWED_STAGES = {"EARLY_RESEARCH", "T-90", "T-60", "T-40", "T-30", "T-20", "T-10"}
 ALLOWED_ENDPOINTS = {"/fixtures", "/leagues", "/teams/statistics",
                      "/injuries", "/fixtures/lineups"}
@@ -129,6 +137,10 @@ def validated_row(row: Any, *, now: datetime, runtime_sha: str) -> dict[str, Any
             or raw.get("projection_model") != MODEL
             or any(not _p(raw.get(k)) for k in PROBABILITIES)):
         raise ValueError("RAW_SPORT_PROBABILITY_NOT_VERIFIED")
+    if not set(raw).issubset(ALLOWED_RAW_KEYS):
+        raise ValueError("RAW_RESEARCH_CONTAINS_NON_SPORT_FIELDS")
+    if raw.get("model_version") != row.get("model_version"):
+        raise ValueError("RAW_MODEL_VERSION_NOT_PINNED")
     if abs(sum(raw[k] for k in PROBABILITIES[:3]) - 1) > 0.002:
         raise ValueError("ONE_X_TWO_MASS_INVALID")
     if row.get("sporting_inputs") is not None:
