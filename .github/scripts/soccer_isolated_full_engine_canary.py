@@ -128,6 +128,8 @@ def self_test():
     assert rows[0]["canonical_clv_eligible"] is False
     assert health["tier_ab_with_deep_dive"]==6
     assert health["model_events_not_safely_pregame"]==1
+    assert "quota" not in rows[0] and "price" not in rows[0]
+    assert MAX_PROVIDER_REQUESTS==40
     print("ISOLATED_FULL_CANONICAL_ENGINE_SPORT_ONLY_ASOF_QA_PASS")
 
 
@@ -148,8 +150,28 @@ async def run(output,records,sha):
     models,summary=extract_sport_only(payload,finished_at,sha)
     api_calls=payload.get("api_calls_this_tick")
     remain=payload.get("last_daily_remaining")
-    if (type(api_calls) is not int or not 0<=api_calls<=MAX_PROVIDER_REQUESTS
-            or type(remain) is not int or remain<1000):
+    provider_report=payload.get("quota") if isinstance(payload.get("quota"),dict) else {}
+    if type(remain) is not int:
+        remain=provider_report.get("daily_remaining")
+    quota_verified=(type(remain) is int and remain>=1000)
+    call_count_verified=(type(api_calls) is int and 0<=api_calls<=MAX_PROVIDER_REQUESTS)
+    if not (quota_verified and call_count_verified):
+        # The complete engine ran, but without quota proof we MUST NOT save
+        # sport snapshots or claim an operational success. Publish a bounded,
+        # no-secrets forensic summary so this can be diagnosed.
+        print(json.dumps({
+            "status":"CANONICAL_FULL_ENGINE_QUOTA_GATE_FAILED",
+            "api_calls_type":type(api_calls).__name__,
+            "api_calls_observed":api_calls if type(api_calls) is int else None,
+            "last_daily_remaining_type":type(payload.get("last_daily_remaining")).__name__,
+            "quota_daily_remaining_type":type(provider_report.get("daily_remaining")).__name__,
+            "quota_verified":quota_verified,
+            "call_count_verified":call_count_verified,
+            "sport_only_summary":summary,
+            "canonical_clv_rows_added":0,
+            "bet_eligible":False,
+            "production_promotion_allowed":False,
+        },sort_keys=True),flush=True)
         raise RuntimeError("CANONICAL_PROVIDER_QUOTA_PROOF_NOT_VERIFIED")
     report={
         "schema_version":"1.0.0","status":"ISOLATED_FULL_ENGINE_RESEARCH_CANARY_COMPLETED",
