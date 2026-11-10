@@ -271,3 +271,25 @@ def test_fe11_sport_first_period_corners_handicap_tab_never_creates_bet():
     assert "probabilidad conjunta futura" in html
     assert "NOT VERIFIED: no hay perfil histórico" in html
     assert "bookmaker" in html.lower()
+
+
+def test_edge_sport_radar_is_visible_with_real_evidence_reasons_and_safe_fallback():
+    html = subscriber_frontend_v2.render()
+    assert 'id="edgeSportRadar"' in html
+    assert 'id="edgeRadarStats"' in html
+    assert 'id="edgeRadarStatus"' in html
+    assert "Edge Radar · Cobertura deportiva real" in html
+    assert "PERSISTED_EVIDENCE_AUDIT_READY" in html
+    assert "renderEdgeSportRadar()" in html
+    assert "renderWatchSlate(){renderEdgeSportRadar()" in html
+    assert "r?.screening||{}" in html
+    assert "e.missing_evidence_codes" in html
+    assert "e.reason||s.reason_display" in html
+    assert "Cobertura del registro NO VERIFICADA" in html
+    assert "sin consultas nuevas a la API" in html
+    assert "INVESTIGACIÓN · NO BET" in html
+    assert "data-intel=" in html
+    assert "api('/today')" in html
+    assert "renderEdgeSportRadar" in html
+    assert "renderEdgeSportRadar(){" in html
+    assert "No synthetic probabilities" not in html
