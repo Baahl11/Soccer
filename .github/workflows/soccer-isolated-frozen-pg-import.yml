@@ -1,0 +1,123 @@
+name: Soccer Isolated Frozen Sport to Postgres - Provenance Attested OIDC
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/scripts/soccer_isolated_frozen_pg_import.py'
+      - '.github/workflows/soccer-isolated-frozen-pg-import.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/soccer_isolated_frozen_pg_import.py'
+      - '.github/workflows/soccer-isolated-frozen-pg-import.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '15 12 * * *'
+    - cron: '15 20 * * *'
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: soccer-isolated-frozen-pg-provenance-import
+  cancel-in-progress: false
+
+jobs:
+  offline-anti-lookahead:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+          sparse-checkout: |
+            soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl
+            soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prove original source commits existed before kickoff
+        run: |
+          set -euo pipefail
+          python controls/.github/scripts/soccer_isolated_frozen_pg_import.py --self-test
+          python controls/.github/scripts/soccer_isolated_frozen_pg_import.py \
+            --state state \
+            --receipt state/soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json \
+            --audit-only
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('controls/.github/scripts/soccer_isolated_frozen_pg_import.py').read_text()
+          w=Path('controls/.github/workflows/soccer-isolated-frozen-pg-import.yml').read_text()
+          assert 'ORIGINAL_GIT_COMMIT_NOT_PREGAME' in s
+          assert 'MATCHING_FROZEN_SOURCE_NOT_IN_GIT_HISTORY' in s
+          assert 'production_promotion_allowed":False' in s
+          assert 'canonical_clv_rows_added":0' in s
+          assert "fetch-depth: 0" in w
+          assert "id-token: write" in w
+          assert ".github/workflows/soccer-isolated-frozen-pg-import.yml" in w
+          print("SPORT_ORIGINAL_GIT_HISTORY_BEFORE_KICKOFF_QA_PASS")
+          PY
+
+  import:
+    if: github.event_name != 'pull_request'
+    needs: offline-anti-lookahead
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: controls
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          path: state
+          fetch-depth: 0
+          sparse-checkout: |
+            soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl
+            soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Import only Git-attested frozen research baselines via OIDC to Render PG
+        shell: bash
+        run: |
+          set -euo pipefail
+          python controls/.github/scripts/soccer_isolated_frozen_pg_import.py \
+            --state state \
+            --receipt state/soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json \
+            --endpoint https://soccer-edge-api.onrender.com
+          jq -e '
+            .status == "RESEARCH_ONLY_FROZEN_PG_IMPORT"
+            and .production_promotion_allowed == false
+            and .bet_eligible == false
+            and .canonical_clv_rows_added == 0
+            and .canonical_deep_dives_added == 0
+            and .provider_requests_added == 0
+            and .retroactive_predictions_created == false
+            and .postgres_write_only_isolated_research_table == true
+          ' state/soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json >/dev/null
+      - name: Preserve only verified import receipt in research state
+        shell: bash
+        working-directory: state
+        run: |
+          set -euo pipefail
+          git config user.name soccer-edge-bot
+          git config user.email soccer-edge-bot@users.noreply.github.com
+          git add -f soccer_edge_state/analysis/isolated_sport_frozen_pg_import_receipt_v1.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Audit original-commit-attested frozen soccer research model Postgres import"
+          for attempt in 1 2 3; do
+            git fetch origin soccer-edge-state
+            if git rebase origin/soccer-edge-state && git push origin HEAD:soccer-edge-state; then exit 0; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          exit 1
