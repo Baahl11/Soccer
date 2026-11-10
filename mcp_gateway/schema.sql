@@ -386,3 +386,28 @@ CREATE TABLE IF NOT EXISTS soccer_fe11_corner_capture_attempts (
     provider_requests_added INTEGER NOT NULL DEFAULT 0 CHECK (provider_requests_added BETWEEN 0 AND 1),
     CHECK (length(last_status) <= 64)
 );
+
+
+-- Research-only input from the isolated, GitHub-runner canonical baseline.
+-- NEVER add these rows to soccer_refresh_events or CLV signal anchors.
+-- Original source timestamp is preserved separately from ingestion time.
+CREATE TABLE IF NOT EXISTS soccer_isolated_sport_frozen_research_v1 (
+    fixture_id BIGINT NOT NULL CHECK (fixture_id > 0),
+    source_generated_at TIMESTAMPTZ NOT NULL,
+    kickoff TIMESTAMPTZ NOT NULL,
+    home_team_id BIGINT NOT NULL CHECK (home_team_id > 0),
+    away_team_id BIGINT NOT NULL CHECK (away_team_id > 0),
+    source TEXT NOT NULL CHECK (source = 'LIVE_API_FOOTBALL_OFFICIAL_PREGAME_SPORT_INPUTS'),
+    projection_model TEXT NOT NULL CHECK (projection_model = 'GOAL_RATE_POISSON_LIMITED_v0.1'),
+    model_git_sha TEXT NOT NULL,
+    payload_sha256 TEXT NOT NULL,
+    raw_projection JSONB NOT NULL,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    classification TEXT NOT NULL DEFAULT 'RESEARCH_ONLY' CHECK (classification = 'RESEARCH_ONLY'),
+    bet_eligible BOOLEAN NOT NULL DEFAULT FALSE CHECK (bet_eligible = FALSE),
+    production_promotion_allowed BOOLEAN NOT NULL DEFAULT FALSE
+        CHECK (production_promotion_allowed = FALSE),
+    PRIMARY KEY (fixture_id, source_generated_at),
+    CHECK (source_generated_at <= kickoff - INTERVAL '45 minutes'),
+    CHECK (home_team_id <> away_team_id)
+);
