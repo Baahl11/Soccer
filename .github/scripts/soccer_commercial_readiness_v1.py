@@ -92,6 +92,9 @@ def audit(frozen,official,import_receipt,quotes,clv,promotion,player,latest,now)
             raise ValueError("OFFICIAL_RESULT_BEFORE_KICKOFF")
         verified_grade_ids.add(fid)
     price_visits,exact_markets=0,0
+    exact_but_stale_updates=0
+    exact_with_post_model_updates=0
+    no_exact_market_visits=0
     pairs=[]
     grouped=defaultdict(list)
     for q in quotes:
@@ -113,9 +116,15 @@ def audit(frozen,official,import_receipt,quotes,clv,promotion,player,latest,now)
         instr=q.get("instruments") or []
         if not isinstance(instr,list):
             raise ValueError("PRICE_INSTRUMENTS_INVALID")
+        updated=_dt(q.get("provider_update_utc"))
         if instr:
             exact_markets+=1
-        updated=_dt(q.get("provider_update_utc"))
+            if updated is not None and updated>frozen_at:
+                exact_with_post_model_updates+=1
+            else:
+                exact_but_stale_updates+=1
+        else:
+            no_exact_market_visits+=1
         for x in instr:
             if x.get("bookmaker_id")!=8 or x.get("family") not in ("1X2","BTTS","FT_TOTALS"):
                 raise ValueError("UNSUPPORTED_INSTRUMENT")
@@ -181,6 +190,8 @@ def audit(frozen,official,import_receipt,quotes,clv,promotion,player,latest,now)
     ]
     if not pairs:
         blocker.append("NO_NEW_TWO_VISIT_PROVIDER_UPDATE_QUOTE_PAIRS")
+    if exact_but_stale_updates:
+        blocker.append("EXACT_QUOTES_EXIST_BUT_LAST_PROVIDER_UPDATE_PRECEDES_SPORT_MODEL")
     if stale:
         blocker.append("LATEST_CANONICAL_SCHEDULER_STALE")
     if not verified_grade_ids:
@@ -197,6 +208,9 @@ def audit(frozen,official,import_receipt,quotes,clv,promotion,player,latest,now)
         "research_OOS_1X2_BTTs_FT25_fixture_counts":isolated_oos,
         "actual_provider_proxy_price_visit_count":price_visits,
         "visits_with_exact_complete_markets":exact_markets,
+        "visits_with_exact_market_but_stale_provider_update":exact_but_stale_updates,
+        "visits_with_provider_update_after_original_frozen_model":exact_with_post_model_updates,
+        "visits_without_complete_exact_market":no_exact_market_visits,
         "research_proxy_price_fixtures":len(priced_fixtures),
         "research_quote_instrument_pairs_with_advanced_provider_timestamp":len(pairs),
         "research_pairs_observed_within_40min_kickoff":sum(p["second_within_40min_of_kickoff"] for p in pairs),
