@@ -1179,6 +1179,60 @@ def _registry_fixture(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _radar_evidence_status(cov: dict[str, Any], inventory: dict[str, Any]) -> dict[str, Any]:
+    """Read-only evidence audit, NOT a live screening or betting signal.
+
+    A record being absent does not prove the worker never ran. Similarly, a
+    lineup/availability snapshot count does not establish confirmed XI or GK.
+    """
+    analyzed = int(cov.get("analysis_rows") or 0)
+    sport = int(cov.get("sport_evidence_count") or 0)
+    market = int(cov.get("market_evidence_count") or 0)
+    raw = cov.get("raw_sport_projection_present") is True
+    if analyzed and raw:
+        code = "RAW_SPORT_RECORDED"
+        reason = "Existe proyección deportiva RAW persistida; puede ser limitada y no implica BET."
+    elif analyzed:
+        code = "PARTIAL_ANALYSIS"
+        reason = "Hay análisis persistido, pero falta una probabilidad RAW deportiva verificable."
+    elif sport:
+        code = "SPORT_EVIDENCE_ONLY"
+        reason = "Hay registros deportivos, pero no un análisis RAW visible en la vista actual."
+    elif market:
+        code = "MARKET_ONLY"
+        reason = "Existen cuotas registradas sin modelo deportivo RAW verificable; no hay valor calculado."
+    else:
+        code = "NO_PERSISTED_ANALYSIS"
+        reason = "Partido en el calendario, sin análisis deportivo persistido; puede faltar cobertura, tiempo o presupuesto."
+    missing = []
+    if not raw:
+        missing.append("RAW_SPORT_NOT_RECORDED")
+    if int(inventory.get("feature_snapshots") or 0) == 0:
+        missing.append("SPORT_FEATURE_SNAPSHOT_NOT_RECORDED")
+    if int(inventory.get("lineup_snapshots") or 0) == 0:
+        missing.append("LINEUP_SNAPSHOT_NOT_RECORDED")
+    if int(inventory.get("availability_snapshots") or 0) == 0:
+        missing.append("AVAILABILITY_SNAPSHOT_NOT_RECORDED")
+    if not market:
+        missing.append("MARKET_SNAPSHOT_NOT_RECORDED")
+    return {
+        "status_code": code,
+        "reason": reason,
+        "raw_projection_recorded": raw,
+        "analysis_rows": analyzed,
+        "sport_snapshot_count": sport,
+        "market_snapshot_count": market,
+        "feature_snapshot_count": int(inventory.get("feature_snapshots") or 0),
+        "lineup_snapshot_count": int(inventory.get("lineup_snapshots") or 0),
+        "availability_snapshot_count": int(inventory.get("availability_snapshots") or 0),
+        "verified_family_labels": list(cov.get("markets") or []),
+        "missing_evidence_codes": missing,
+        "source": "PERSISTED_REGISTRY_AND_ANALYSIS_INVENTORY",
+        "classification": "RESEARCH_ONLY_NOT_BET",
+        "live_provider_calls": 0,
+    }
+
+
 def _attach_full_registry_slate(
     contract_payload: dict[str, Any],
     payload: dict[str, Any],
@@ -1190,10 +1244,29 @@ def _attach_full_registry_slate(
         slate["registry_status"] = "REGISTRY_UNAVAILABLE"
         slate["source"] = "PERSISTED_ANALYSIS_ROWS_FALLBACK"
         contract_payload["slate"] = slate
+        contract_payload["radar"] = {
+            "status": "REGISTRY_UNAVAILABLE",
+            "scope": "PERSISTED_ELIGIBLE_SLATE_ONLY",
+            "reason": "Registro del calendario no disponible; los conteos de screening no son verificables.",
+            "eligible_registry_count": None,
+            "raw_sport_recorded_count": None,
+            "partial_analysis_count": None,
+            "sport_only_count": None,
+            "market_only_count": None,
+            "no_persisted_analysis_count": None,
+            "production_promotion_allowed": False,
+        }
         return contract_payload
 
     coverage = _coverage_by_fixture(payload)
     full_rows: list[dict[str, Any]] = []
+    radar_summary = {
+        "RAW_SPORT_RECORDED": 0,
+        "PARTIAL_ANALYSIS": 0,
+        "SPORT_EVIDENCE_ONLY": 0,
+        "MARKET_ONLY": 0,
+        "NO_PERSISTED_ANALYSIS": 0,
+    }
     summary = {
         "BET": 0,
         "LEAN": 0,
@@ -1290,6 +1363,8 @@ def _attach_full_registry_slate(
         cov["persisted_market_names"] = list(inventory.get("market_names") or [])
         cov["evidence_inventory"] = inventory
 
+        radar = _radar_evidence_status(cov, inventory)
+        radar_summary[radar["status_code"]] += 1
         summary[status] = summary.get(status, 0) + 1
         full_rows.append(
             {
@@ -1302,6 +1377,7 @@ def _attach_full_registry_slate(
                     "reason_display": reason,
                 },
                 "coverage": cov,
+                "screening": radar,
             }
         )
 
@@ -1320,6 +1396,24 @@ def _attach_full_registry_slate(
         }
     )
     contract_payload["slate"] = slate
+    contract_payload["radar"] = {
+        "status": "PERSISTED_EVIDENCE_AUDIT_READY",
+        "scope": "PERSISTED_ELIGIBLE_SLATE_ONLY",
+        "source": "POSTGRES_FIXTURE_REGISTRY_AND_SNAPSHOTS",
+        "slate_date": registry.get("slate_date"),
+        "timezone": registry.get("timezone"),
+        "eligible_registry_count": len(full_rows),
+        "raw_sport_recorded_count": radar_summary["RAW_SPORT_RECORDED"],
+        "partial_analysis_count": radar_summary["PARTIAL_ANALYSIS"],
+        "sport_only_count": radar_summary["SPORT_EVIDENCE_ONLY"],
+        "market_only_count": radar_summary["MARKET_ONLY"],
+        "no_persisted_analysis_count": radar_summary["NO_PERSISTED_ANALYSIS"],
+        "reconciliation_complete": sum(radar_summary.values()) == len(full_rows),
+        "not_a_full_sport_screening_claim": True,
+        "not_real_time_provider_coverage": True,
+        "production_promotion_allowed": False,
+        "provider_requests_added": 0,
+    }
     counts = _dict(contract_payload.get("counts"))
     counts["fixtures"] = len(full_rows)
     contract_payload["counts"] = counts
