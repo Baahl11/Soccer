@@ -437,9 +437,14 @@ def evaluate_market(raw: dict[str, Any], market: Any, coverage: dict[str, Any], 
                 classification = "WATCH"
                 reasons.append("Tier A/S blocked until advanced-metric layer is verified; automated model is limited goal-rate baseline.")
 
+            # API-Football /odds offers are a provider proxy, not an independently
+            # verified executable bookmaker betslip. Never promote limited sport
+            # model + proxy price to BET or LEAN, regardless of theoretical edge.
+            if classification in {"BET", "LEAN"}:
+                classification = "WATCH"
+            reasons.append("DIRECT_EXECUTABLE_BOOKMAKER_QUOTE_NOT_VERIFIED")
+            reasons.append("INDEPENDENT_FAMILY_OOS_AND_SETTLEMENT_GATE_NOT_PROMOTED")
             stake = 0.0
-            if classification == "BET" and tier == "B":
-                stake = round(0.40 * float(availability or 0.0), 2)
 
             decisions.append({
                 "family": family,
@@ -461,6 +466,9 @@ def evaluate_market(raw: dict[str, Any], market: Any, coverage: dict[str, Any], 
                 "tier": tier,
                 "classification": classification,
                 "stake_units": stake,
+                "quote_evidence_type": "API_FOOTBALL_PROVIDER_PROXY_NOT_EXECUTABLE",
+                "commercial_bet_eligible": False,
+                "family_oos_verified": False,
                 "discrepancy_recheck": discrepancy,
                 "reasons": reasons,
             })
@@ -473,7 +481,9 @@ def evaluate_market(raw: dict[str, Any], market: Any, coverage: dict[str, Any], 
         "model_version": MODEL_VERSION,
         "projection_model": PROJECTION_MODEL,
         "advanced_metrics": "NOT VERIFIED",
-        "automated_tier_cap": "B until advanced-metric layer is verified",
+        "market_verification_status": "DIRECT_EXECUTABLE_QUOTE_NOT_VERIFIED",
+        "bet_eligible": False,
+        "automated_tier_cap": "NONE; WATCH until executable price and per-family OOS",
         "best_decision": best,
         "decisions": decisions[:20],
         "decision_count": len(decisions),

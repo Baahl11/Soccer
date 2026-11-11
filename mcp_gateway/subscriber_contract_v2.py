@@ -9,6 +9,7 @@ from starlette.responses import JSONResponse
 
 from mcp_gateway import persistence as persistence_base
 from mcp_gateway import highlightly_research_pg_v1
+from mcp_gateway import soccer_family_research_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -1598,6 +1599,19 @@ def _attach_highlightly_owner_research(
     return contract_payload
 
 
+def _attach_owner_family_research_catalog(
+    contract_payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Static market-family *code* maturity; never invents model or quote data."""
+    access=_dict(contract_payload.get("access"))
+    if not (access.get("owner") or access.get("admin")):
+        return contract_payload
+    radar=_dict(contract_payload.get("radar"))
+    radar["market_family_research"]=soccer_family_research_v1.research_market_family_catalog()
+    contract_payload["radar"]=radar
+    return contract_payload
+
+
 async def _resolve_entitlement(request: Request) -> tuple[dict[str, Any] | None, JSONResponse | None]:
     token = supabase_auth_v4.bearer_token(request.headers.get("authorization"))
     if not token:
@@ -1656,6 +1670,7 @@ async def _contract_for_request(
         contract_payload=_attach_highlightly_owner_research(
             contract_payload,supplementary
         )
+    contract_payload=_attach_owner_family_research_catalog(contract_payload)
     return contract_payload, payload, None
 
 

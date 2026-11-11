@@ -88,6 +88,12 @@ border-radius:6px;padding:5px 7px;color:#8ea9b8;font-size:8px}}.badge.good{{bord
 .edge-radar-cell{{border:1px solid #21485d;border-radius:9px;padding:11px;background:#081d2a;min-width:0}}
 .edge-radar-cell b{{display:block;font-size:21px;color:#a7d9ed;line-height:1.15}}
 .edge-radar-cell span{{display:block;font-size:9px;color:#9fb9c8;margin-top:5px;line-height:1.35}}
+.edge-family-grid{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}}
+.edge-family-row{{padding:9px;border:1px solid #234459;border-radius:8px;background:#071b27}}
+.edge-family-row b{{font-size:11px;display:block;color:#b7e0ed}}
+.edge-family-row span{{font-size:10px;display:block;color:#a7b9c7;margin-top:4px;line-height:1.4}}
+@media(max-width:850px){{.edge-family-grid{{grid-template-columns:repeat(1,minmax(0,1fr))}}}}
+
 .radar-reason{{display:block;color:#bbd1de;margin-top:5px;font-size:9px;line-height:1.35}}
 .radar-evidence{{display:block;color:#7394a7;margin-top:3px;font-size:8px;line-height:1.35}}
 @media(max-width:850px){{.edge-radar-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}}}
@@ -367,6 +373,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       <div class="panel-head"><h2>Edge Radar · Cobertura deportiva real</h2><span class="badge warn">INVESTIGACIÓN · NO BET</span></div>
       <div id="edgeRadarStatus" class="sub" role="status" aria-live="polite">Leyendo únicamente datos de partidos persistidos; no se inventan estadísticas.</div>
       <div id="edgeRadarStats" class="edge-radar-grid"></div>
+      <div id="edgeRadarFamilyPanel" class="hidden" style="margin-top:12px">
+        <details>
+          <summary style="cursor:pointer;font-size:12px;color:#c5e7f5">Modelos por mercado · 12 familias · investigación (NO BET)</summary>
+          <p class="sub">Estado del código, NO del rendimiento en vivo. Se necesitan estadísticas prepartido, OOS, cuotas ejecutables y licencias por mercado.</p>
+          <div id="edgeRadarFamilyList" class="edge-family-grid"></div>
+        </details>
+      </div>
+
     </section>
     <div id="hero" class="panel hero"></div>
     <div class="section-title"><div><h2>Best Bets</h2><span>Only explicit persisted BET classifications</span></div><button class="link-btn" data-go="picks">View picks →</button></div>
@@ -545,6 +559,19 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   }}
   function watchRow(c){{const f=fixture(c),m=market(c),[time,date]=dt(f.kickoff),d=c?.decision||{{}};return '<div class="watch-row"><div class="time"><b>'+esc(time)+'</b>'+esc(date)+'</div><div class="row-teams"><b>'+esc((f.home_team||'Home')+' vs '+(f.away_team||'Away'))+'</b><small>'+esc(m.name||m.family||'Market')+(d.reason_display?' · '+esc(d.reason_display):'')+'</small></div><div class="row-state"><span class="status watch">'+esc(d.classification||d.display_bucket||'WATCH')+'</span></div></div>'}}
   function renderEdgeSportRadar(){{const r=DATA?.radar||{{}},status=$('edgeRadarStatus'),stats=$('edgeRadarStats');if(!status||!stats)return;
+    const familyPanel=$('edgeRadarFamilyPanel'),familyList=$('edgeRadarFamilyList');
+    const marketResearch=r?.market_family_research||{{}},families=Array.isArray(marketResearch.families)?marketResearch.families:[];
+    const owner=!!(ACCESS?.owner||ACCESS?.admin);
+    if(familyPanel&&familyList){{
+      familyPanel.classList.toggle('hidden',!owner||families.length===0);
+      familyList.innerHTML=(owner?families:[]).map(f=>
+        '<div class="edge-family-row"><b>'+esc(f.family)+' · '+esc(f.group)+'</b>'+
+        '<span>Modelo: código de investigación, no validado en OOS</span>'+
+        '<span>Datos requeridos: '+esc(f.sport_inputs_required||'NOT VERIFIED')+'</span>'+
+        '<span>Cuota ejecutable: NO VERIFICADA · BET: BLOQUEADO</span></div>'
+      ).join('');
+    }}
+
     if(r.status!=='PERSISTED_EVIDENCE_AUDIT_READY'||r.reconciliation_complete!==true){{status.textContent='Cobertura del registro NO VERIFICADA: no hay recuento fiable para esta jornada.';stats.innerHTML='';return}}
     const count=x=>Number.isSafeInteger(x)&&x>=0?String(x):'—';
     status.textContent='Solo calendario elegible persistido · '+(r.slate_date||'Fecha no verificada')+' · sin consultas nuevas a la API · una proyección guardada NO es BET.';
