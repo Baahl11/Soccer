@@ -110,3 +110,15 @@ def test_read_api_does_not_contact_db_with_no_canonical_fixture_ids(monkeypatch)
     monkeypatch.setattr(p.persistence,"_connect",never)
     assert p.read_for_fixture_ids([])=={}
     assert p.read_for_fixture_ids([-12,0,"123"])=={}
+
+
+def test_upcoming_fixture_without_two_sided_verified_features_is_not_prematch_model():
+    v=p.validate_batch(_envelope([_row(
+        evidence_status="IDENTITY_EXACT_NO_FEATURES",families=[]
+    )]),now=NOW)
+    assert v[0]["evidence_status"]=="IDENTITY_EXACT_NO_FEATURES"
+    with pytest.raises(ValueError):
+        p.validate_batch(_envelope([_row(
+            kickoff_utc=HISTORY,
+            evidence_status="IDENTITY_EXACT_NO_FEATURES",families=[]
+        )]),now=NOW)
