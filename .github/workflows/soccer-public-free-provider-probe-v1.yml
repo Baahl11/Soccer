@@ -1,19 +1,12 @@
 name: Soccer Public Free Provider Coverage Probe (No Secrets)
 on:
   workflow_dispatch:
-  push:
-    branches: [research/soccer-public-free-api-probe-v1]
-    paths:
-      - '.github/scripts/soccer_public_free_provider_probe_v1.py'
 
 permissions:
   contents: read
 
 jobs:
   bounded-public-probe:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.event.head_commit.message == 'ops(soccer): execute public free provider probe once')
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -23,7 +16,7 @@ jobs:
           python-version: '3.12'
       - name: Compile bounded probe with zero credentials and zero canonical DB writes
         run: python -m py_compile .github/scripts/soccer_public_free_provider_probe_v1.py
-      - name: Run actual public-source requests (11 maximum)
+      - name: Run actual public-source requests (13 maximum)
         run: |
           set -euo pipefail
           python .github/scripts/soccer_public_free_provider_probe_v1.py | tee /tmp/soccer_public_free_provider_probe_v1.json
