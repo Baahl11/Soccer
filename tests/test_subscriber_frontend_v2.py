@@ -293,3 +293,14 @@ def test_edge_sport_radar_is_visible_with_real_evidence_reasons_and_safe_fallbac
     assert "renderEdgeSportRadar" in html
     assert "renderEdgeSportRadar(){" in html
     assert "No synthetic probabilities" not in html
+
+
+def test_edge_radar_highlightly_owner_only_metadata_never_becomes_bet():
+    html=subscriber_frontend_v2.render()
+    assert "OWNER_RESEARCH_COVERAGE_AVAILABLE" in html
+    assert "supplementary_sport_research" in html
+    assert "Highlightly BASIC" in html
+    assert "(ACCESS?.owner||ACCESS?.admin)" in html
+    assert "sin evidencia apta para modelar" in html
+    assert "sin licencia de publicación" in html or "licencia pendiente" in html
+    assert "NO BET" in html

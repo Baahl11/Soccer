@@ -23,6 +23,7 @@ from mcp_gateway import signal_ledger_postgres_delta_v4
 from mcp_gateway import player_frozen_oos_readonly_v1
 from mcp_gateway import isolated_sport_frozen_pg_v1
 from mcp_gateway import isolated_sport_refined_pg_v1
+from mcp_gateway import highlightly_research_pg_v1
 from mcp_gateway import team_totals_phase17_anchor_patch_v4
 from mcp_gateway import team_totals_capture_signal_reconciliation_v4
 
@@ -752,6 +753,49 @@ async def _handle_fe11_universal_slate(scope, receive, send) -> None:
         _base_server._release_db_heavy_gate()
 
 
+HIGHLIGHTLY_RESEARCH_IMPORT_ROUTE = "/internal/highlightly-sport-research-v1/import"
+HIGHLIGHTLY_RESEARCH_IMPORT_WORKFLOW = ".github/workflows/soccer-highlightly-asof-coverage-v1.yml"
+
+
+async def _handle_highlightly_research_import(scope, receive, send) -> None:
+    """Strict GitHub main OIDC → private derived coverage only; no commercial data."""
+    request = Request(scope, receive=receive)
+    try:
+        _base_server._github_oidc_claims(
+            request, {HIGHLIGHTLY_RESEARCH_IMPORT_WORKFLOW}
+        )
+    except Exception:
+        await JSONResponse({"error":"unauthorized"},status_code=401)(scope,receive,send)
+        return
+    try:
+        length=request.headers.get("content-length","")
+        if length.isdigit() and int(length)>highlightly_research_pg_v1.MAX_BODY_BYTES:
+            raise ValueError("RESEARCH_INPUT_OVERSIZE")
+        raw=await request.body()
+        if len(raw)>highlightly_research_pg_v1.MAX_BODY_BYTES:
+            raise ValueError("RESEARCH_INPUT_OVERSIZE")
+        payload=json.loads(raw)
+        highlightly_research_pg_v1.validate_batch(payload)
+    except (TypeError,ValueError,json.JSONDecodeError):
+        await JSONResponse({"error":"invalid_highlightly_sport_research_input"},
+                           status_code=400)(scope,receive,send)
+        return
+    try:
+        result=await asyncio.wait_for(
+            asyncio.to_thread(highlightly_research_pg_v1.store_batch,payload),
+            timeout=18
+        )
+        response=JSONResponse(result,headers={"Cache-Control":"no-store"})
+    except RuntimeError as exc:
+        if str(exc)=="HIGHLIGHTLY_SOURCE_IMMUTABILITY_CONFLICT":
+            response=JSONResponse({"error":"immutable_source_conflict"},status_code=409)
+        else:
+            response=JSONResponse({"error":"private_research_store_unavailable"},status_code=503)
+    except Exception:
+        response=JSONResponse({"error":"private_research_store_unavailable"},status_code=503)
+    await response(scope,receive,send)
+
+
 ISOLATED_REFINED_SPORT_IMPORT_ROUTE = "/internal/isolated-sport-refined-pg-v1/import"
 ISOLATED_REFINED_SPORT_IMPORT_WORKFLOW = ".github/workflows/soccer-isolated-sport-refined-pg-v1.yml"
 
@@ -868,6 +912,9 @@ class V215SignalLedgerRouter:
                 request = Request(scope, receive=receive)
                 response = await internal_team_totals_capture_signal_reconciliation_v4_build(request)
                 await response(scope, receive, send)
+                return
+            if path == HIGHLIGHTLY_RESEARCH_IMPORT_ROUTE and method == "POST":
+                await _handle_highlightly_research_import(scope, receive, send)
                 return
             if path == ISOLATED_REFINED_SPORT_IMPORT_ROUTE and method == "POST":
                 await _handle_isolated_refined_sport_import(scope, receive, send)

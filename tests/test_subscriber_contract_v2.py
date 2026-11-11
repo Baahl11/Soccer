@@ -729,3 +729,47 @@ def test_edge_radar_does_not_misreport_complete_coverage_when_registry_missing()
     assert result["radar"]["raw_sport_recorded_count"] is None
     assert result["slate"]["full_slate"] is False
     assert result["radar"]["production_promotion_allowed"] is False
+
+
+def test_highlightly_research_visible_to_owner_only_and_never_promotes_bet():
+    payload = _payload([])
+    admin = _pro_entitlement()
+    admin["user"] = {"id": "admin", "role": "OWNER"}
+    contract=subscriber_contract_v2.build_contract(payload,admin)
+    registry={"status":"FULL_SLATE_READY","slate_date":"2026-11-11",
+        "timezone":"America/Mexico_City","rows":[{
+            "fixture_id":1581906,"kickoff":"2026-11-11T09:30:00Z","status":"NS",
+            "league":"Persha Liga","country":"Ukraine",
+            "home_team_id":100,"away_team_id":200,
+            "home_team":"Chernihiv","away_team":"Inhulets",
+        }]}
+    contract=subscriber_contract_v2._attach_full_registry_slate(contract,payload,registry)
+    supplement={"1581906":{
+        "identity_status":"IDENTITY_EXACT_VERIFIED",
+        "evidence_status":"PREMATCH_RESEARCH_LIMITED",
+        "families_research":["FORM"],
+        "captured_at":"2026-11-11T05:02:00+00:00",
+    }}
+    contract=subscriber_contract_v2._attach_highlightly_owner_research(contract,supplement)
+    assert contract["radar"]["highlightly_research"]["prematch_research_limited_count"]==1
+    assert contract["counts"]["picks"]==0
+    assert contract["radar"]["raw_sport_recorded_count"]==0
+    assert contract["slate"]["rows"][0]["screening"]["supplementary_sport_research"]["families_research"]==["FORM"]
+    assert contract["slate"]["rows"][0]["screening"]["supplementary_sport_research"]["model_input_allowed"] is False
+    assert contract["slate"]["rows"][0]["screening"]["supplementary_sport_research"]["bet_eligible"] is False
+
+    free=subscriber_contract_v2.build_contract(payload,subscriber_app_v4.anonymous_entitlement())
+    free=subscriber_contract_v2._attach_full_registry_slate(free,payload,registry)
+    before=free["slate"]["rows"][0]["screening"].copy()
+    free=subscriber_contract_v2._attach_highlightly_owner_research(free,supplement)
+    assert "highlightly_research" not in free["radar"]
+    assert free["slate"]["rows"][0]["screening"]==before
+
+
+def test_highlightly_research_unavailable_is_unknown_not_zero_for_owner():
+    payload=_payload([])
+    entitlement=_pro_entitlement()
+    entitlement["user"]={"id":"owner","role":"OWNER"}
+    contract=subscriber_contract_v2.build_contract(payload,entitlement)
+    contract=subscriber_contract_v2._attach_highlightly_owner_research(contract,None)
+    assert contract["radar"]["highlightly_research"]["status"]=="SOURCE_NOT_VERIFIED"
