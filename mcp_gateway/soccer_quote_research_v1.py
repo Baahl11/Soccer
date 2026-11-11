@@ -40,7 +40,7 @@ def _prob(raw: Any) -> float | None:
 
 
 def _family_bucket(family: str) -> str:
-    return "SIDE" if family in {"1X2", "1H_1X2", "2H_1X2"} else (
+    return "SIDE" if family == "1X2" else (
         "GOALS" if family in {"FT_TOTALS", "BTTS"} else "DERIVATIVE")
 
 
@@ -91,6 +91,14 @@ def analyze_frozen_sport_and_quote(
         market_snapshot.get("bookmaker"), market_snapshot.get("line"), market_snapshot.get("selection"))
     if not isinstance(book,str) or not book.strip() or not isinstance(selection,str):
         return _result("EXACT_BOOK_AND_SELECTION_REQUIRED")
+    if family in {"TEAM_TOTALS","TEAM_CORNERS","PLAYER_SHOTS"}:
+        if type(market_snapshot.get("entity_id")) is not int or market_snapshot["entity_id"]<=0:
+            return _result("EXACT_TEAM_OR_PLAYER_ID_REQUIRED")
+        if frozen_sport.get("entity_id") != market_snapshot["entity_id"]:
+            return _result("PLAYER_OR_TEAM_INSTRUMENT_MISMATCH")
+    if family in {"1H_1X2","1H_TOTALS","2H_1X2","2H_TOTALS"}:
+        if market_snapshot.get("period") != family[:2] or frozen_sport.get("period") != family[:2]:
+            return _result("PERIOD_MISMATCH")
     if family in {"FT_TOTALS","TEAM_TOTALS","1H_TOTALS","2H_TOTALS","FT_CORNERS","TEAM_CORNERS","FT_CARDS","PLAYER_SHOTS"}:
         if type(threshold) not in (float,int) or not math.isfinite(threshold) or not (
                 abs(2 * threshold - round(2 * threshold)) < 1e-8 and int(round(2 * threshold)) % 2 == 1):
@@ -103,9 +111,16 @@ def analyze_frozen_sport_and_quote(
         return _result("QUOTE_SOURCE_ASOF_NOT_VERIFIED")
     if now < captured or now - captured > timedelta(minutes=10):
         return _result("QUOTE_NOT_FRESH")
+    # Only the SAME half-line is compared, never prices at different goals.
+    selection_probs = raw
+    if threshold is not None:
+        selection_probs = {k:v for k,v in raw.items()
+                           if k in {f"over_{threshold:g}",f"under_{threshold:g}"}}
+        if len(selection_probs)!=2:
+            return _result("RAW_NOT_MODELED_AT_EXACT_THRESHOLD")
     selections = market_snapshot.get("outcomes")
-    if not isinstance(selections, dict) or set(selections) != set(raw):
-        return _result("COMPLETE_TWO_WAY_OR_THREE_WAY_PRICES_REQUIRED")
+    if not isinstance(selections, dict) or set(selections) != set(selection_probs):
+        return _result("COMPLETE_SAME_LINE_TWO_WAY_OR_THREE_WAY_REQUIRED")
     prices = {key:_price(v) for key,v in selections.items()}
     if any(p is None for p in prices.values()):
         return _result("INVALID_OR_MISSING_OPPOSITE_PRICE")
@@ -124,7 +139,7 @@ def analyze_frozen_sport_and_quote(
     if vig < 0.99 or vig > 1.60:
         return _result("QUOTE_VIG_OUTSIDE_SANITY_RANGE")
     fair={k:implied[k]/vig for k in prices}
-    raw_p=raw[selection]
+    raw_p=selection_probs[selection]
     fair_p=fair[selection]
     shrunk=shrink_weight*raw_p+(1-shrink_weight)*fair_p
     edge_pp=(shrunk-fair_p)*100
@@ -151,7 +166,7 @@ def analyze_frozen_sport_and_quote(
 
 def compare_close_same_instrument(opening: dict[str,Any], close: dict[str,Any]) -> dict[str, Any]:
     """No claimed CLV without immutable same-instrument verified bookmaker quotes."""
-    identity=("fixture_id","family","bookmaker","market_id","selection","line")
+    identity=("fixture_id","family","bookmaker","market_id","selection","line","entity_id","period")
     if any(opening.get(k)!=close.get(k) for k in identity):
         return {"status":"NOT_VERIFIED","reason":"CLOSING_QUOTE_INSTRUMENT_MISMATCH","true_clv":None}
     if opening.get("source_type")!="DIRECT_BOOKMAKER_EXECUTABLE_VERIFIED" or close.get("source_type")!="DIRECT_BOOKMAKER_EXECUTABLE_VERIFIED":
