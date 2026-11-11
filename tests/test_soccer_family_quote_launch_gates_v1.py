@@ -264,3 +264,32 @@ def test_binary_quote_rejects_wrong_period_and_disconnected_player():
     q={**_quote(),"family":"PLAYER_SHOTS","entity_id":1000}
     assert market.analyze_frozen_sport_and_quote(
         frozen,q,evaluated_at_utc="2026-11-11T16:07:00Z")["reason"]=="PLAYER_OR_TEAM_INSTRUMENT_MISMATCH"
+
+
+def test_family_catalog_is_explicitly_code_only_and_owner_only():
+    from mcp_gateway import subscriber_contract_v2 as contract
+    catalog=sport.research_market_family_catalog()
+    assert catalog["family_count"]==12
+    assert set(x["family"] for x in catalog["families"])==set(sport.MARKETS)
+    assert all(x["implementation_status"]=="RESEARCH_CODE_ONLY" for x in catalog["families"])
+    assert all(x["live_fixture_feature_coverage"]=="NOT_VERIFIED" for x in catalog["families"])
+    assert all(x["official_ft_unique_fixtures_validated"] is None for x in catalog["families"])
+    assert all(x["bet_eligible"] is False for x in catalog["families"])
+    owner={"access":{"owner":True,"admin":True},"radar":{"eligible_registry_count":10}}
+    out=contract._attach_owner_family_research_catalog(owner)
+    assert out["radar"]["market_family_research"]["family_count"]==12
+    assert out["radar"]["eligible_registry_count"]==10
+    free={"access":{"owner":False,"admin":False},"radar":{"eligible_registry_count":10}}
+    out=contract._attach_owner_family_research_catalog(free)
+    assert "market_family_research" not in out["radar"]
+
+
+def test_frontend_market_catalog_is_only_owner_metadata_not_a_premium_bet():
+    from mcp_gateway import subscriber_frontend_v2
+    html=subscriber_frontend_v2.render()
+    assert "edgeRadarFamilyPanel" in html
+    assert "edgeRadarFamilyList" in html
+    assert "market_family_research" in html
+    assert "familyPanel.classList.toggle('hidden',!owner" in html
+    assert "Cuota ejecutable: NO VERIFICADA" in html
+    assert "BET: BLOQUEADO" in html
