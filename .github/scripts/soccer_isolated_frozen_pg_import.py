@@ -18,6 +18,7 @@ import urllib.error
 
 MAX_BATCH=16
 MAX_BODY=250_000
+MAX_BATCHES_PER_RUN=4  # bounded total max 64 immutable research rows
 MAX_HISTORY_COMMITS=300
 RELATIVE="soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl"
 STATUS="FROZEN_RESEARCH_PREMATCH_SPORT_PROJECTION"
@@ -148,9 +149,22 @@ def post_oidc(body,endpoint):
     return json.loads(raw)
 
 
-def run(state:Path,receipt:Path,endpoint:str):
-    payload,b,keys,proofs,imported,registry_total=prepare(state,receipt)
-    if keys:
+def _import_receipt(state:Path, receipt:Path, endpoint:str, *, max_batches:int=MAX_BATCHES_PER_RUN):
+    if not 1 <= max_batches <= MAX_BATCHES_PER_RUN:
+        raise ValueError("UNBOUNDED_IMPORT_ATTEMPTS")
+    all_proofs=[]
+    new_total=0
+    identical_total=0
+    batches=0
+    imported=set()
+    registry_total=0
+    for _ in range(max_batches):
+        payload,b,keys,proofs,already,registry_total=prepare(state,receipt)
+        imported=set(already)
+        if not keys:
+            break
+        # Only complete Git-attested, immutable sources reach the OIDC endpoint.
+        # Failed requests never advance the local manifest.
         response=post_oidc(b,endpoint)
         if (response.get("status")!="AUTHENTIC_PREGAME_SPORT_RESEARCH_IMPORTED"
             or response.get("snapshots_validated")!=len(keys)
@@ -163,25 +177,52 @@ def run(state:Path,receipt:Path,endpoint:str):
             or response.get("provider_requests_added")!=0):
             raise RuntimeError("FROZEN_PG_IMPORT_RESPONSE_NOT_VERIFIED")
         imported.update(keys)
-    else:
-        response={"new_research_rows":0,"identical_existing_rows":0}
-    out={"status":"RESEARCH_ONLY_FROZEN_PG_IMPORT",
-         "generated_at_utc":datetime.now(timezone.utc).isoformat(),
-         "total_original_pregame_records":registry_total,
-         "verified_pre_kickoff_commits_this_run":proofs,
-         "new_research_rows":response["new_research_rows"],
-         "existing_identical_rows":response["identical_existing_rows"],
-         "imported_keys":sorted(imported),
-         "unimported_rows_remaining":registry_total-len(imported),
-         "postgres_write_only_isolated_research_table":True,
-         "canonical_clv_rows_added":0,"canonical_deep_dives_added":0,
-         "provider_requests_added":0,"retroactive_predictions_created":False,
-         "production_promotion_allowed":False,"bet_eligible":False}
-    receipt.parent.mkdir(parents=True,exist_ok=True)
-    receipt.write_text(json.dumps(out,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+        all_proofs.extend(proofs)
+        new_total+=response["new_research_rows"]
+        identical_total+=response["identical_existing_rows"]
+        batches+=1
+        # Checkpoint only after the DB acknowledges this exact immutable batch.
+        # A subsequent failure can be safely rerun without duplicating models.
+        out={"status":"RESEARCH_ONLY_FROZEN_PG_IMPORT",
+             "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+             "total_original_pregame_records":registry_total,
+             "verified_pre_kickoff_commits_this_run":all_proofs,
+             "new_research_rows":new_total,
+             "existing_identical_rows":identical_total,
+             "imported_keys":sorted(imported),
+             "unimported_rows_remaining":max(0,registry_total-len(imported)),
+             "batches_completed":batches,
+             "postgres_write_only_isolated_research_table":True,
+             "canonical_clv_rows_added":0,"canonical_deep_dives_added":0,
+             "provider_requests_added":0,"retroactive_predictions_created":False,
+             "production_promotion_allowed":False,"bet_eligible":False}
+        receipt.parent.mkdir(parents=True,exist_ok=True)
+        receipt.write_text(json.dumps(out,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+        if len(imported)>=registry_total:
+            break
+    # Retain a stable manifest even when no rows were added this time.
+    if not receipt.is_file():
+        out={"status":"RESEARCH_ONLY_FROZEN_PG_IMPORT",
+             "generated_at_utc":datetime.now(timezone.utc).isoformat(),
+             "total_original_pregame_records":registry_total,
+             "verified_pre_kickoff_commits_this_run":[],
+             "new_research_rows":0,"existing_identical_rows":0,
+             "imported_keys":sorted(imported),
+             "unimported_rows_remaining":max(0,registry_total-len(imported)),
+             "batches_completed":0,"postgres_write_only_isolated_research_table":True,
+             "canonical_clv_rows_added":0,"canonical_deep_dives_added":0,
+             "provider_requests_added":0,"retroactive_predictions_created":False,
+             "production_promotion_allowed":False,"bet_eligible":False}
+        receipt.parent.mkdir(parents=True,exist_ok=True)
+        receipt.write_text(json.dumps(out,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+    out=json.loads(receipt.read_text(encoding="utf-8"))
     print(json.dumps({k:v for k,v in out.items() if k not in ("imported_keys","verified_pre_kickoff_commits_this_run")},
                      sort_keys=True))
     return out
+
+
+def run(state:Path,receipt:Path,endpoint:str):
+    return _import_receipt(state,receipt,endpoint)
 
 
 def self_test():
@@ -190,7 +231,7 @@ def self_test():
     assert _canonical(example)==_canonical(dict(reversed(list(example.items()))))
     assert _utc("2026-11-10T10:00:00Z")<_utc(example["kickoff"])
     assert not _utc("2026-11-10T10:00:00")
-    assert MAX_BATCH<=16 and MAX_BODY<=250000
+    assert MAX_BATCH<=16 and MAX_BODY<=250000 and MAX_BATCHES_PER_RUN<=4
     print("SOCCER_FROZEN_PG_GIT_ASOF_PROVENANCE_SELF_TEST_PASS")
 
 

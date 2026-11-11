@@ -19,12 +19,13 @@ from typing import Any
 import urllib.parse
 import urllib.request
 
-VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.0.0"
+VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.1.0"
 BASE_URL = "https://v3.football.api-sports.io"
 TIMEZONE = ZoneInfo("America/Mexico_City")
 ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})
-MAX_PROVIDER_REQUESTS = 14  # 2 date slates + 2 team statistics per fixture (max 6)
-MAX_FIXTURES = 6
+MAX_PROVIDER_REQUESTS = 38  # 2 date slates + 2 verified season splits for at most 18 fixtures
+MAX_FIXTURES = 18
+MIN_VERIFIED_SPLIT_SAMPLE = 5
 MIN_DAILY_REMAINING = 1000
 MIN_KICKOFF_LEAD = timedelta(minutes=45)
 MAX_KICKOFF_LOOKAHEAD = timedelta(hours=32)
@@ -214,6 +215,13 @@ def _build_one(fx: dict[str, Any], provider, model, model_sha: str,
         return {"fixture_id": fx["fixture_id"], "status": "NOT_MODELED",
                 "reason": raw.get("reason") or "CANONICAL_SPORT_MODEL_DID_NOT_PROJECT"}
     public = model.public_raw_projection(raw)
+    sample = public.get("sample") if isinstance(public.get("sample"), dict) else {}
+    minimum = sample.get("minimum_split_sample")
+    if type(minimum) is not int or minimum < MIN_VERIFIED_SPLIT_SAMPLE:
+        return {
+            "fixture_id": fx["fixture_id"], "status": "NOT_MODELED",
+            "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE",
+        }
     if not all(_number(public.get(key)) is not None for key in (
             "raw_home_goal_rate", "raw_away_goal_rate",
             "raw_home_win_prob", "raw_draw_prob", "raw_away_win_prob",
