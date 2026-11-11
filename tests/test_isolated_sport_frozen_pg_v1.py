@@ -143,3 +143,70 @@ def test_immutable_conflict_rejects_modified_source():
         v.store_frozen({"snapshots":[original]})
         with pytest.raises(RuntimeError,match="IMMUTABILITY_CONFLICT"):
             v.store_frozen({"snapshots":[changed]})
+
+
+def test_owner_preview_bridge_requires_immutable_asof_sample_and_no_market():
+    from mcp_gateway import soccer_p0_persisted_view_v1 as preview
+    row = snapshot()
+    row["raw_sport_projection"]["sample"] = {"minimum_split_sample": 5}
+    now = datetime(2026, 11, 12, 18, 30, tzinfo=timezone.utc)
+    got = preview.asof_isolated_preview(row, now=now)
+    assert got is not None
+    assert got["fixture_id"] == 42
+    assert got["min_split_sample"] == 5
+    assert got["raw_probabilities"]["raw_home_win_prob"] == 0.52
+    assert got["model_validation"] == "NOT_VERIFIED_OOS"
+    assert got["bet_eligible"] is False
+    assert got["commercial_display_allowed"] is False
+    assert got["market_queried"] is False
+
+    weak = deepcopy(row)
+    weak["raw_sport_projection"]["sample"]["minimum_split_sample"] = 4
+    assert preview.asof_isolated_preview(weak, now=now) is None
+    assert preview.asof_isolated_preview(row, now=datetime(2026, 11, 12, 21, tzinfo=timezone.utc)) is None
+    assert preview.asof_isolated_preview(row, now=datetime(2026, 11, 12, 17, tzinfo=timezone.utc)) is None
+    altered = deepcopy(row)
+    altered["provider_odds_requests_added"] = 1
+    assert preview.asof_isolated_preview(altered, now=now) is None
+
+
+def test_owner_preview_bridge_reads_only_matching_fixtures_with_no_provider_calls(monkeypatch):
+    from mcp_gateway import soccer_p0_persisted_view_v1 as preview
+    row = snapshot()
+    row["raw_sport_projection"]["sample"] = {"minimum_split_sample": 7}
+    now = datetime(2026, 11, 12, 18, 30, tzinfo=timezone.utc)
+
+    class Cursor:
+        def __init__(self):
+            self.queries = []
+            self.result = []
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def execute(self, sql, params=None):
+            self.queries.append((sql, params))
+            self.result = ([(42, row)] if "soccer_isolated_sport_frozen_research_v1" in sql else [])
+        def fetchall(self): return self.result
+
+    class Connection:
+        def __init__(self): self.cur = Cursor()
+        def cursor(self): return self.cur
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    conn = Connection()
+    monkeypatch.setattr(preview.persistence, "_connect", lambda: conn)
+    result = preview.read_previews([42, 42, -1, "42"], now=now)
+    assert result["status"] == "PREMATCH_LIMITED_RESEARCH"
+    assert result["forecast_count"] == 1
+    assert result["provider_requests_added"] == 0
+    assert result["bet_eligible"] is False
+    assert result["source_redisplay_rights_verified"] is False
+    assert len(conn.cur.queries) == 2
+    sql, params = conn.cur.queries[-1]
+    assert "f.home_team_id = s.home_team_id" in sql
+    assert "f.away_team_id = s.away_team_id" in sql
+    assert "f.kickoff = s.kickoff" in sql
+    assert params[0] == [42]
+
+    no_slates = preview.read_previews([], now=now)
+    assert no_slates["status"] == "NO_SLATE_FIXTURES"
