@@ -1,9 +1,5 @@
 name: Soccer Highlightly - One-time Secret and Football Coverage Probe
 on:
-  push:
-    branches: [research/soccer-highlightly-free-verified-probe-v1]
-    paths:
-      - '.github/scripts/soccer_highlightly_free_probe_v1.py'
   workflow_dispatch:
 
 permissions:
@@ -11,7 +7,6 @@ permissions:
 
 jobs:
   verify:
-    if: "github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'ops(soccer): verify highlightly secret once'"
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
