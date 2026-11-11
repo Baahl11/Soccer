@@ -21,6 +21,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 SCHEMA = "SOCCER_PUBLIC_FREE_PROVIDER_PROBE_v1.0"
+# One-shot test: public documented keys only; no production provider credentials.
 SAMPLE = (
     (1570011, "2026-11-09T19:30:00Z", "Las Palmas", "Eldense", "Spain Segunda"),
     (1576529, "2026-11-09T20:15:00Z", "Torreense", "União de Leiria", "Portugal Segunda"),
