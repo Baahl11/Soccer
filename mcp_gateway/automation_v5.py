@@ -660,7 +660,8 @@ async def _daily_p0_sport_previews(
             # Mark only completed attempts; never re-use a partial failed team pair.
             base._cache_set("p0_sport_screen_daily", cache_key,
                 {"status": event["raw_sport_screen_status"]}, now)
-            _shortlist_set(fx["fixture_id"], shortlist, now)
+            # Research P0 is never allowed to overwrite the canonical
+            # lifecycle shortlist used by later availability/market gates.
         except v2.TickBudgetExceeded:
             result["deferred_due_to_quota"] += 1
             break
