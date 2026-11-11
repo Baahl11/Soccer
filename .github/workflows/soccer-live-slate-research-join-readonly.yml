@@ -1,0 +1,93 @@
+name: Soccer Live Slate-to-Frozen-Research Join (Read Only)
+
+on:
+  push:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - '.github/workflows/soccer-live-slate-research-join-readonly.yml'
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - '.github/workflows/soccer-live-slate-research-join-readonly.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: soccer-edge-state
+          persist-credentials: false
+          sparse-checkout: |
+            soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read the LIVE customer endpoint, health and served frontend (no provider calls)
+        shell: bash
+        env:
+          BASE_URL: https://soccer-edge-api.onrender.com
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 3 --retry-delay 3 --max-time 45 "$BASE_URL/health" > /tmp/soccer-health.json
+          curl -fsS --retry 3 --retry-delay 3 --max-time 45 "$BASE_URL/app/api/v2/today" > /tmp/soccer-today.json
+          curl -fsS --retry 3 --retry-delay 3 --max-time 45 "$BASE_URL/app-v2" > /tmp/soccer-frontend.html
+          python - <<'PY'
+          import json
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          health = json.loads(Path('/tmp/soccer-health.json').read_text())
+          today = json.loads(Path('/tmp/soccer-today.json').read_text())
+          html = Path('/tmp/soccer-frontend.html').read_text()
+          now = datetime.now(timezone.utc)
+          mxdate = now.astimezone(ZoneInfo('America/Mexico_City')).date()
+          slate = (today.get('slate') or {}).get('rows') or []
+          ids = {int(v['fixture']['fixture_id']) for v in slate
+                 if isinstance(v, dict)
+                 and isinstance(v.get('fixture'), dict)
+                 and str(v['fixture'].get('fixture_id') or '').isdigit()}
+          records = [json.loads(s) for s in Path(
+              'soccer_edge_state/analysis/isolated_sport_first_pregame_v1.jsonl'
+          ).read_text().splitlines() if s.strip()]
+          today_models = []
+          for row in records:
+              try:
+                  kickoff = datetime.fromisoformat(row['kickoff'].replace('Z', '+00:00'))
+                  captured = datetime.fromisoformat(row['captured_at_utc'].replace('Z', '+00:00'))
+                  n = (row['raw_sport_projection']['sample'] or {})['minimum_split_sample']
+              except (KeyError, TypeError, ValueError):
+                  continue
+              if (row.get('status') == 'FROZEN_RESEARCH_PREMATCH_SPORT_PROJECTION'
+                  and row.get('bet_eligible') is False
+                  and row.get('production_promotion_allowed') is False
+                  and isinstance(n, int) and n >= 5
+                  and captured <= now < kickoff - timedelta(minutes=5)
+                  and kickoff.astimezone(ZoneInfo('America/Mexico_City')).date() == mxdate):
+                  today_models.append(row['fixture_id'])
+          matched = sorted(set(today_models) & ids)
+          print(json.dumps({
+              'audit': 'SPORT_ONLY_NO_PROVIDER_READ_ONLY',
+              'render_git_commit': health.get('render_git_commit'),
+              'runtime_automation_version': health.get('version'),
+              'contract_generated_at': today.get('generated_at_utc'),
+              'customer_slate_fixtures': len(ids),
+              'frozen_pregame_model_records': len(records),
+              'research_valid_today_min_sample_5': len(set(today_models)),
+              'research_matches_customer_slate': len(matched),
+              'research_missing_from_customer_slate': len(set(today_models) - ids),
+              'live_frontend_has_all_filter_default': "let focusFilter='all';" in html,
+              'research_published_to_free': False,
+              'audit_not_forecast_promotion': True,
+          }, indent=2))
+          assert health.get('status') == 'ok'
+          assert today.get('status') == 'SUBSCRIBER_CONTRACT_V2_READY'
+          assert 'soccer-edge-v2-app' in html
+          PY
