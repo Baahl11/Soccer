@@ -585,6 +585,118 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     '<div class="reason">'+evidence(c)+'</div><div class="card-actions">'+(premium()?'<button type="button" class="secondary save-btn" data-save-key="'+esc(candidateKey(c))+'">☆ Save</button>':'')+'</div></article>'}}
   function empty(title,copy){{return '<div class="empty"><b>'+esc(title)+'</b>'+esc(copy)+'</div>'}}
   function lock(resource,count){{return '<div class="lock"><b>'+esc(resource)+' · Edge Pro</b>'+esc(count||0)+' canonical item'+((count||0)===1?'':'s')+' in this snapshot. Premium probability, price and evidence fields remain server-redacted.</div>'}}
+
+  let focusFilter='pending';
+  function sportForecastEntries(){{
+    const rows=[...(DATA?.picks?.rows||[]),...(DATA?.leans?.rows||[]),...(DATA?.watches?.rows||[])];
+    const seen=new Set(),entries=[];
+    for(const row of rows){{
+      const f=fixture(row),m=market(row),p=proj(row);
+      const probability=p.raw_sport_probability;
+      if(!f.fixture_id||typeof probability!=='number'||!Number.isFinite(probability)||probability<0||probability>1)continue;
+      if(!m.selection&&!m.name)continue;
+      const key=[f.fixture_id,m.family,m.name,m.selection,m.line??''].join('|');
+      if(seen.has(key))continue;
+      seen.add(key);
+      const kickoff=Date.parse(f.kickoff||'');
+      const snap=Date.parse(DATA?.generated_at_utc||DATA?.generated_at_local||'');
+      const before=Number.isFinite(kickoff)&&Number.isFinite(snap)&&snap<=kickoff-5*60*1000;
+      const future=Number.isFinite(kickoff)&&kickoff>Date.now()+5*60*1000;
+      entries.push({{row,kickoff,before,future,active:before&&future}});
+    }}
+    return entries.sort((a,b)=>Number(b.active)-Number(a.active)||(a.kickoff-b.kickoff));
+  }}
+  function sportSelection(row){{
+    const m=market(row),s=String(m.selection||'').toLowerCase().trim();
+    if(s==='home'||s==='1')return 'Victoria local';
+    if(s==='away'||s==='2')return 'Victoria visitante';
+    if(s==='draw'||s==='x')return 'Empate';
+    if(s==='yes')return 'Ambos anotan: Sí';
+    if(s==='no')return 'Ambos anotan: No';
+    if(/^over/i.test(s))return 'Más de '+(m.line??s.replace(/[^0-9.]/g,''))+' goles';
+    if(/^under/i.test(s))return 'Menos de '+(m.line??s.replace(/[^0-9.]/g,''))+' goles';
+    return m.selection||m.name||'Resultado deportivo';
+  }}
+  function focusForecastCard(entry){{
+    const row=entry.row,f=fixture(row),p=proj(row),[time,date]=dt(f.kickoff);
+    const label=entry.active?'Pronóstico prepartido · MODELO LIMITADO':'Registro antiguo · NO VIGENTE';
+    return '<div class="focus-card '+(entry.active?'':'past')+'"><span class="focus-tag">'+esc(label)+'</span>'+
+      '<h3>'+esc(f.home_team||'Local')+' vs '+esc(f.away_team||'Visitante')+'</h3>'+
+      '<p>'+esc(f.league||f.country||'Competición')+' · '+esc(date)+' · '+esc(time)+'</p>'+
+      '<div class="focus-prob">'+pct(p.raw_sport_probability)+'</div>'+
+      '<div>'+esc(sportSelection(row))+'</div>'+
+      '<p>'+esc(entry.active?'Estimación deportiva RAW; todavía no calibrada para apuestas. No hay cuota ejecutable verificada.':
+        'Conservado para auditoría. El partido comenzó, la fecha expiró o no consta el corte prepartido.')+'</p>'+
+      '<button class="secondary focus-open" data-fixture="'+esc(f.fixture_id)+'" type="button">Ver datos del partido</button></div>';
+  }}
+  function focusCoverageState(row,entries){{
+    const f=row?.fixture||{{}}, n=Number(row?.coverage?.analysis_rows||0);
+    if(entries.some(e=>e.active&&String(e.row?.fixture?.fixture_id)===String(f.fixture_id)))return 'forecast';
+    return n>0?'partial':'pending';
+  }}
+  function focusMissing(row){{
+    const codes=row?.screening?.missing_evidence_codes||[];
+    if(codes.includes('RAW_SPORT_NOT_RECORDED'))return 'Sin proyección deportiva guardada';
+    if(codes.includes('SPORT_FEATURE_SNAPSHOT_NOT_RECORDED'))return 'Faltan estadísticas deportivas comprobadas';
+    if(codes.includes('LINEUP_SNAPSHOT_NOT_RECORDED'))return 'Falta alineación confirmada';
+    return 'Sin datos suficientes para un pronóstico';
+  }}
+  function renderSportFocus(){{
+    const entries=sportForecastEntries(),active=entries.filter(e=>e.active);
+    const previous=entries.filter(e=>!e.active);
+    const slate=DATA?.slate?.rows||[],counts={{pending:0,partial:0,forecast:0}};
+    for(const row of slate)counts[focusCoverageState(row,entries)]++;
+    $('kpiFixtures').textContent=DATA?.counts?.fixtures??slate.length;
+    $('kpiPicks').textContent=new Set(active.map(x=>String(x.row.fixture.fixture_id))).size;
+    $('kpiLeans').textContent=new Set(entries.map(x=>String(x.row.fixture.fixture_id))).size;
+    $('kpiWatches').textContent=DATA?.radar?.no_persisted_analysis_count??counts.pending;
+    $('kpiPasses').textContent=DATA?.counts?.picks??0;
+    const status=$('focusStatus'),board=$('focusForecasts'),history=$('focusHistorical');
+    if(!status||!board||!history)return;
+    status.innerHTML=active.length?
+      '<strong>'+active.length+' pronóstico(s) deportivo(s) previo(s)</strong> entre '+slate.length+' partidos · '+counts.pending+' sin análisis guardado. Las probabilidades son experimentales, no apuestas.':
+      '<strong>No hay pronósticos previos al inicio que podamos presentar como vigentes.</strong> Hay '+slate.length+' partidos cargados y '+
+       counts.pending+' sin análisis. Que exista un calendario no significa que el modelo haya evaluado los partidos.';
+    board.innerHTML=active.length?active.slice(0,8).map(focusForecastCard).join(''):
+      '<div class="focus-empty">No voy a inventar porcentajes para rellenar esta pantalla. El motor necesita una proyección deportiva guardada antes de cada encuentro. Abajo puedes ver qué partidos están pendientes.</div>';
+    history.classList.toggle('hidden',previous.length===0);
+    $('focusHistoricalRows').innerHTML=previous.slice(0,10).map(focusForecastCard).join('');
+    const filters=[['pending','Por analizar'],['partial','Datos parciales'],['forecast','Con pronóstico'],['all','Todos']];
+    $('focusFilters').innerHTML=filters.map(([key,label])=>
+      '<button type="button" data-focus-filter="'+key+'" class="'+(focusFilter===key?'active':'')+'">'+label+
+      ' ('+(key==='all'?slate.length:counts[key])+')</button>').join('');
+    $('focusFilters').querySelectorAll('button').forEach(b=>b.onclick=()=>{{focusFilter=b.dataset.focusFilter;renderSportFocus();}});
+    const time=row=>Date.parse(row?.fixture?.kickoff||'')||0;
+    const order=[...slate].sort((a,b)=>{{
+      const ao=time(a)>Date.now()?0:1,bo=time(b)>Date.now()?0:1;
+      return ao-bo||time(a)-time(b);
+    }});
+    const chosen=order.filter(r=>focusFilter==='all'||focusCoverageState(r,entries)===focusFilter);
+    const card=r=>{{
+      const f=r?.fixture||{{}},[clock,date]=dt(f.kickoff),state=focusCoverageState(r,entries);
+      const label=state==='forecast'?'Pronóstico deportivo':state==='partial'?'Análisis parcial':'Por analizar';
+      const reason=state==='forecast'?'Proyección previa registrada':state==='partial'?'Datos parciales; falta análisis completo':focusMissing(r);
+      return '<a class="focus-fixture" href="'+esc(matchPath(f.fixture_id||''))+'" data-focus-fixture="'+esc(f.fixture_id||'')+'">'+
+        '<div><strong>'+esc(f.home_team||'Local')+' vs '+esc(f.away_team||'Visitante')+'</strong>'+
+        '<span>'+esc(f.league||f.country||'Competición')+' · '+esc(date)+' · '+esc(clock)+'</span>'+
+        '<span>'+esc(reason)+'</span></div><div class="focus-state">'+esc(label)+'</div></a>';
+    }};
+    $('focusSlate').innerHTML=chosen.length?chosen.slice(0,12).map(card).join('')+
+      (chosen.length>12?'<p class="sub">Mostrando 12 de '+chosen.length+'. Abre Partidos para el resto.</p>':''):
+      '<div class="focus-empty">No hay partidos en esta categoría.</div>';
+    document.querySelectorAll('.focus-open').forEach(x=>x.onclick=()=>openMatch(x.dataset.fixture));
+    document.querySelectorAll('[data-focus-fixture]').forEach(x=>x.onclick=e=>{{e.preventDefault();openMatch(x.dataset.focusFixture);}});
+    $('focusRefresh').onclick=()=>loadToday();
+    // Translate the product navigation without altering routing or permissions.
+    const translations={{today:'Hoy',picks:'Apuestas',leans:'En observación',matches:'Partidos',performance:'Resultados',myedge:'Guardados',account:'Cuenta'}};
+    document.querySelectorAll('.nav button[data-page],.mobile-nav button[data-page]').forEach(x=>{{
+      const code=x.dataset.page;
+      if(!(code in translations))return;
+      const sym=x.querySelector('i');x.textContent=translations[code];
+      if(sym)x.prepend(sym);
+    }});
+  }}
+
   function renderKpis(){{const c=DATA?.counts||{{}};$('kpiFixtures').textContent=c.fixtures??'—';$('kpiPicks').textContent=c.picks??'—';$('kpiLeans').textContent=c.leans??'—';$('kpiWatches').textContent=c.watches??'—';$('kpiPasses').textContent=c.passes??'—'}}
   function renderHero(){{const picks=DATA?.picks||{{}},leans=DATA?.leans||{{}},watches=DATA?.watches||{{}},hero=$('hero');if(!hero)return;
     if(picks.locked&&picks.total>0){{hero.innerHTML='<div style="padding:24px">'+lock('Verified picks',picks.total)+'</div>';return}}
@@ -662,7 +774,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         DATA=await api('/today');
       }}else throw e
     }}
-    ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate();void loadResearchDesk()
+    ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate();renderSportFocus();void loadResearchDesk()
   }}
   function researchPriceCard(x){{
     const market=esc(x.market_family)+(x.line===null?'':' · '+esc(x.line));
