@@ -27,7 +27,7 @@ def render() -> str:
         }
     )
     return f'''<!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -328,6 +328,36 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
  .mini-proj{{grid-template-columns:repeat(2,1fr)}}.watch-row,.slate-row{{grid-template-columns:64px minmax(0,1fr)}}.row-state{{grid-column:2;justify-self:stretch;text-align:left}}.detail-grid{{grid-template-columns:1fr}}
  .account-card{{grid-template-columns:1fr}}
 }}
+/* Sport-first landing: preserve legacy expert surfaces in other pages but
+   do not make an empty market laboratory the homepage. */
+#today > :not(.page-head):not(.kpis):not(#sportFocus){{display:none!important}}
+#sportFocus{{padding:24px;background:linear-gradient(145deg,#0b2432,#071722);border:1px solid #27516b;box-shadow:none}}
+.focus-heading{{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}}
+.focus-heading h2{{font-size:25px;margin:4px 0 6px;letter-spacing:-.02em}}
+.focus-heading p,.focus-subhead p{{color:#9eb7c6;font-size:13px;line-height:1.5;margin:0}}
+.focus-eyebrow{{color:#4de1ad;font-size:10px;letter-spacing:.12em;font-weight:900}}
+.focus-status{{margin:18px 0 14px;background:#0e3444;border-left:3px solid #5dc3df;padding:14px 16px;color:#cfe8f2;border-radius:6px;font-size:13px;line-height:1.5}}
+.focus-forecast-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}}
+.focus-card{{border:1px solid #29536a;background:#0a202f;border-radius:12px;padding:18px}}
+.focus-card h3{{font-size:16px;line-height:1.4;margin:8px 0 5px}}
+.focus-card .focus-prob{{font-size:32px;font-weight:850;color:#fff;letter-spacing:-.03em;margin-top:14px}}
+.focus-card p{{font-size:12px;line-height:1.5;color:#a9c2d0;margin:8px 0}}
+.focus-card .focus-tag{{font-size:10px;font-weight:850;color:#8fdac7;letter-spacing:.03em}}
+.focus-card.past .focus-tag{{color:#dfbc75}}
+.focus-forecast-grid .focus-empty{{grid-column:1/-1;padding:20px;border:1px dashed #2b566c;border-radius:11px;font-size:13px;color:#b2ccda;line-height:1.7}}
+.focus-subhead{{border-top:1px solid #284a5b;margin-top:23px;padding-top:20px}}
+.focus-subhead h3{{font-size:20px;margin:0 0 6px}}
+.focus-filters{{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 8px}}
+.focus-filters button{{background:#0a2a3a;color:#b2d0df;border:1px solid #275369;border-radius:8px;font-size:12px;font-weight:800;padding:8px 12px}}
+.focus-filters button.active{{background:#145271;color:#fff;border-color:#4db5e0}}
+.focus-fixture{{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid #204458;padding:14px 0;color:inherit;text-decoration:none}}
+.focus-fixture strong{{display:block;font-size:14px;line-height:1.4}}
+.focus-fixture span{{display:block;font-size:11px;color:#98b8c8;margin-top:5px;line-height:1.4}}
+.focus-fixture .focus-state{{white-space:nowrap;font-size:11px;color:#b8d5e3;border:1px solid #28506a;border-radius:7px;padding:7px 10px}}
+.focus-honesty{{margin-top:18px;font-size:12px;color:#94b0c1;line-height:1.6}}
+.focus-disclosure{{border-top:1px solid #244559;padding-top:13px;margin-top:15px;color:#a9c5d5;font-size:12px}}
+.focus-disclosure summary{{cursor:pointer;font-size:12px;font-weight:800;color:#a9daec}}
+@media(max-width:800px){{#sportFocus{{padding:16px}}.focus-heading{{flex-direction:column}}.focus-heading h2{{font-size:22px}}.focus-forecast-grid{{grid-template-columns:1fr}}.focus-card .focus-prob{{font-size:28px}}.kpi span{{font-size:10px}}}}
 </style>
 </head>
 <body>
@@ -361,14 +391,29 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   </div>
 
   <section id="today" class="page active">
-    <div class="page-head"><div><h1>Today</h1><div class="sub">Canonical BETS first, transparent LEANS second, verified WATCH states after that.</div></div><div id="todayStamp" class="fresh-chip">LATEST SNAPSHOT</div></div>
+    <div class="page-head"><div><h1>Hoy · Análisis deportivo</h1><div class="sub">Primero lo que dice el fútbol. Después, y solo con pruebas, el mercado.</div></div><div id="todayStamp" class="fresh-chip">LATEST SNAPSHOT</div></div>
     <div class="kpis">
-      <div class="kpi"><b id="kpiFixtures">—</b><span>fixtures</span></div>
-      <div class="kpi good"><b id="kpiPicks">—</b><span>canonical bets</span></div>
-      <div class="kpi lean"><b id="kpiLeans">—</b><span>leans</span></div>
-      <div class="kpi watch"><b id="kpiWatches">—</b><span>watch</span></div>
-      <div class="kpi"><b id="kpiPasses">—</b><span>pass</span></div>
+      <div class="kpi"><b id="kpiFixtures">—</b><span>Partidos</span></div>
+      <div class="kpi good"><b id="kpiPicks">—</b><span>Pronósticos previos</span></div>
+      <div class="kpi lean"><b id="kpiLeans">—</b><span>Estimaciones guardadas</span></div>
+      <div class="kpi watch"><b id="kpiWatches">—</b><span>Sin análisis</span></div>
+      <div class="kpi"><b id="kpiPasses">—</b><span>Apuestas verificadas</span></div>
     </div>
+    <section id="sportFocus" class="panel" aria-label="Pronósticos deportivos y jornada">
+      <div class="focus-heading"><div><span class="focus-eyebrow">SOCCER EDGE · FÚTBOL PRIMERO</span>
+        <h2>Pronósticos y partidos de hoy</h2><p>Probabilidades deportivas guardadas antes del inicio. Nunca las inventamos a partir de una cuota.</p></div>
+        <button id="focusRefresh" class="secondary" type="button">Actualizar datos</button></div>
+      <div id="focusStatus" class="focus-status" role="status" aria-live="polite">Revisando qué pronósticos hay realmente guardados.</div>
+      <div id="focusForecasts" class="focus-forecast-grid"></div>
+      <details id="focusHistorical" class="focus-disclosure hidden"><summary>Ver análisis guardados de partidos ya iniciados</summary><div id="focusHistoricalRows" class="focus-forecast-grid"></div></details>
+      <div class="focus-subhead"><div><h3>Jornada completa</h3><p>Por qué cada partido tiene o no tiene un pronóstico</p></div></div>
+      <div id="focusFilters" class="focus-filters"></div>
+      <div id="focusSlate" class="focus-slate"></div>
+      <div class="focus-honesty">Una proyección parcial no es una apuesta. Si faltan estadísticas prepartido, alineaciones o precios, el sistema debe decirlo claramente.</div>
+      <details id="focusTechnical" class="focus-disclosure"><summary>Ver diagnóstico técnico y mercados experimentales</summary>
+        <p>Para revisar fuentes, modelos y estados de investigación, consulta las secciones avanzadas del sistema. Los cálculos sin validación no se promocionan a BET.</p>
+      </details>
+    </section>
     <section id="edgeSportRadar" class="panel" aria-label="Edge Radar · análisis deportivo">
       <div class="panel-head"><h2>Edge Radar · Cobertura deportiva real</h2><span class="badge warn">INVESTIGACIÓN · NO BET</span></div>
       <div id="edgeRadarStatus" class="sub" role="status" aria-live="polite">Leyendo únicamente datos de partidos persistidos; no se inventan estadísticas.</div>
