@@ -126,6 +126,8 @@ def analyze_frozen_sport_and_quote(
         return _result("INVALID_OR_MISSING_OPPOSITE_PRICE")
     if len(prices) != (3 if family in {"1X2","1H_1X2","2H_1X2"} else 2):
         return _result("INCOMPLETE_INSTRUMENT")
+    if abs(sum(selection_probs.values()) - 1.0) > 0.002:
+        return _result("RAW_SPORT_PROBABILITY_MASS_INVALID")
     if selection not in prices:
         return _result("SELECTION_NOT_PRICED")
     if not isinstance(market_snapshot.get("snapshot_id"),str) or not market_snapshot["snapshot_id"]:
