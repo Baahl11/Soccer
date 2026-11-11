@@ -17,6 +17,7 @@ import soccer_highlightly_asof_research_v1 as research
 
 AUDIENCE="soccer-edge-render"
 ENDPOINT="https://soccer-edge-api.onrender.com/internal/highlightly-sport-research-v1/import"
+# GitHub squash commits include a multi-line body; the live workflow now matches the title prefix.
 SCHEMA="SOCCER_HIGHLIGHTLY_PRIVATE_RESEARCH_v1"
 SOURCE="HIGHLIGHTLY_BASIC_RESEARCH_ONLY"
 
