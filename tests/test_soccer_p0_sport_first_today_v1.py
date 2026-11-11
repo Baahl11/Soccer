@@ -202,3 +202,8 @@ def test_live_p0_respects_exact_upstream_call_reserve_and_no_odds(monkeypatch):
     ))
     assert denied["attempted"] == 0
     assert denied["deferred_due_to_quota"] >= 1
+
+
+def test_research_p0_never_overwrites_canonical_lifecycle_shortlist():
+    import inspect
+    assert "_shortlist_set" not in inspect.getsource(v5._daily_p0_sport_previews)
