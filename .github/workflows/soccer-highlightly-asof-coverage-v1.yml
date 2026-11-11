@@ -6,10 +6,6 @@ on:
       - '.github/scripts/soccer_highlightly_asof_research_v1.py'
       - '.github/scripts/soccer_highlightly_private_oidc_v1.py'
       - '.github/workflows/soccer-highlightly-asof-coverage-v1.yml'
-  push:
-    branches: [main]
-    paths:
-      - '.github/scripts/soccer_highlightly_private_oidc_v1.py'
   workflow_dispatch:
 
 permissions:
@@ -48,10 +44,7 @@ jobs:
           PY
 
   live-main-private:
-    if: >-
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-       startsWith(github.event.head_commit.message, 'ops(soccer): run Highlightly private asof bridge once (#159)'))
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     needs: offline-tests
     runs-on: ubuntu-latest
     timeout-minutes: 5

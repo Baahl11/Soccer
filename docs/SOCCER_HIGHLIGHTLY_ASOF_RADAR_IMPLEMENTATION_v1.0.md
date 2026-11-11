@@ -33,3 +33,20 @@ Para el encuentro futuro Chernihiv–Inhulets (fixture canónico 1581906, 2026-1
 **Fuentes:** https://highlightly.net/football-api/documentation/ y https://highlightly.net/football-api/documentation/getting-started/pagination/ .
 
 **Versión:** HIGHLIGHTLY_ASOF_RADAR_INTEGRATION_v1.0 (investigación, sin cambiar versión del modelo Soccer).
+
+## End-to-end OIDC resultado real, 2026-11-10 23:14 México central
+
+La ejecución de main [GitHub Actions #42964423528](https://github.com/Baahl11/Soccer/actions/runs/42964423528) terminó SUCCESS y recibió respuesta firmada de la ruta de Render ya desplegada (commit runtime 14bd6ea). Informe de recibo [artifact #13830183850](https://github.com/Baahl11/Soccer/actions/runs/42964423528/artifacts/13830183850).
+
+- Fuente HIGHLIGHTLY_BASIC_RESEARCH_ONLY, 6 GET, remaining **82/100** inmediatamente al último request.
+- 12 identidades evaluadas, 8 matches estrictos, 1 registro con familia FORM capturada antes del partido.
+- **ACK de PostgreSQL recibido:** records_received=12, rows_inserted=12, status VERIFIED_PRIVATE_RESEARCH_IMPORT.
+- El protocolo OIDC admitió exclusivamente el workflow main identificado. No se transmitieron resultados estadísticos numéricos, cuotas, key ni datos personales; únicamente estados, familias y timestamps con flags comerciales false.
+- Runtime /app-v2 dispone de lectura **owner/admin only** de esa tabla privada a través de /app/api/v2/today. No se verificó una sesión real del propietario mediante navegador; el release de Render y los tests de contrato sí pasaron. No reclamar QA visual de cuenta como completado.
+- La herramienta de consultas externas a Render PostgreSQL no puede acceder a esta base, porque el allowlist de IP está vacío. **No abrir acceso externo para comprobarlo**; se mantiene como evidencia el ACK del servidor autenticado y su resultado de inserción, no una consulta independiente directa.
+
+**Cierre operacional:** el workflow vuelve a modo manual-only, sin schedule ni trigger push, tras esta única corrida productiva de investigación. Cualquier futura repetición requiere ejecución explícita y budget verificado. No es un servicio diario de screening total.
+
+## Estado comercial y próximo cuello de botella
+
+La importación de 12 registros de investigación NO significa 12 deep dives completos ni 12 predicciones validadas: solo estado de identidad/calidad de una segunda fuente. Después de esto las siguientes prioridades son **1) screening deportivo de todos los elegibles con colas y caché, 2) datos históricos pre-kickoff comparables por familia y OOS, 3) modelos específicos de córners/cards/player y disponibilidad XI, 4) precios directos ejecutables/EV/CLV, 5) derechos de datos, QA de autenticación/RLS, Stripe sandbox y cumplimiento legal**. Seguimos en RESEARCH/NO-GO comercial.
