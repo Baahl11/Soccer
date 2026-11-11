@@ -12,6 +12,7 @@ from mcp_gateway import automation_v2 as v2
 from mcp_gateway import automation_v3 as v3
 from mcp_gateway import automation_v4 as v4
 from mcp_gateway.soccer_model import build_raw_projection, public_raw_projection
+from mcp_gateway import soccer_p0_sport_preview_v1 as p0_preview
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
 AUTOMATION_VERSION = "1.5.2"
@@ -609,6 +610,64 @@ async def _priority_event(
     return event
 
 
+async def _daily_p0_sport_previews(
+    fixtures: list[dict[str, Any]], now: datetime, local_date: str,
+) -> dict[str, Any]:
+    """Bounded sport-first as-of screening before bets, cached across ticks.
+
+    No market calls, XI guesses, outcome labels or retroactive predictions.
+    """
+    result = {
+        "events": [], "attempted": 0, "modeled_limited": 0,
+        "missing_sport_inputs": 0, "cached_from_prior_tick": 0,
+        "deferred_due_to_quota": 0, "request_cap": p0_preview.MAX_PROVIDER_CALLS_FOR_SCREEN,
+    }
+    started_at = v2._API_CALLS_THIS_TICK
+    candidates = sorted(
+        (fx for fx in fixtures if p0_preview.eligible(fx, now)),
+        key=lambda fx: (base._dt(fx["kickoff"]), _competition_priority(fx), fx["fixture_id"]),
+    )
+    for fx in candidates:
+        if result["attempted"] >= p0_preview.MAX_PER_TICK:
+            break
+        cache_key = f"{local_date}:{fx['fixture_id']}"
+        if base._cache_get("p0_sport_screen_daily", cache_key, timedelta(hours=26), now) is not None:
+            result["cached_from_prior_tick"] += 1
+            continue
+        # Don't exceed the wrapper's dynamic hard tick cap, or starve all
+        # active-game refreshes for a sport-only research screen.
+        remaining = v4._effective_tick_cap() - v2._API_CALLS_THIS_TICK
+        budget_used = v2._API_CALLS_THIS_TICK - started_at
+        if (remaining < p0_preview.MIN_CALLS_RESERVED_FOR_REST_OF_TICK + 2
+                or budget_used >= p0_preview.MAX_PROVIDER_CALLS_FOR_SCREEN - 1
+                or (v2._LAST_DAILY_REMAINING is not None and v2._LAST_DAILY_REMAINING <= 70)):
+            result["deferred_due_to_quota"] += 1
+            break
+        try:
+            sporting = await _cheap_sport_bundle(fx, now)
+            raw = build_raw_projection(fx, sporting, None)
+            shortlist = _screen_shortlist(raw)
+            event = p0_preview.preview_event(fx, now, sporting,
+                public_raw_projection(raw), shortlist)
+            result["events"].append(event)
+            result["attempted"] += 1
+            result["modeled_limited"] += int(event["raw_sport_show_as_forecast"])
+            result["missing_sport_inputs"] += int(not event["raw_sport_show_as_forecast"])
+            # Mark only completed attempts; never re-use a partial failed team pair.
+            base._cache_set("p0_sport_screen_daily", cache_key,
+                {"status": event["raw_sport_screen_status"]}, now)
+            _shortlist_set(fx["fixture_id"], shortlist, now)
+        except v2.TickBudgetExceeded:
+            result["deferred_due_to_quota"] += 1
+            break
+        except Exception:
+            result["missing_sport_inputs"] += 1
+            # Network/provider failure is not counted as a completed screen.
+            continue
+    result["api_calls_used"] = v2._API_CALLS_THIS_TICK - started_at
+    return result
+
+
 async def run_tick() -> dict[str, Any]:
     global _PLAYER_PROPS_XI_RESEARCH_ATTEMPTS
     global _PLAYER_PROPS_XI_RESEARCH_CAPTURED
@@ -670,6 +729,12 @@ async def run_tick() -> dict[str, Any]:
         discovery = await v3._daily_discovery_event(fixtures, now_utc, local_now)
         if discovery is not None:
             events.append(discovery)
+
+        # P0: real pregame SPORT screening. Allocate bounded season-split
+        # reads before deep market-refresh requests, preserve daily reserve.
+        p0 = await _daily_p0_sport_previews(
+            fixtures, now_utc, local_now.date().isoformat())
+        events.extend(p0["events"])
 
         due: list[dict[str, Any]] = []
         low_data_counts: Counter[str] = Counter()
@@ -822,6 +887,14 @@ async def run_tick() -> dict[str, Any]:
             "deep_dive_processed_count": deep_dive_processed,
             "shortlist_event_count": shortlist_events,
             "screened_out_low_data_count": sum(low_data_counts.values()),
+            "p0_sport_preview_attempted_count": p0["attempted"],
+            "p0_sport_preview_modeled_limited_count": p0["modeled_limited"],
+            "p0_sport_preview_missing_inputs_count": p0["missing_sport_inputs"],
+            "p0_sport_preview_cached_count": p0["cached_from_prior_tick"],
+            "p0_sport_preview_deferred_quota_count": p0["deferred_due_to_quota"],
+            "p0_sport_preview_api_calls": p0["api_calls_used"],
+            "p0_sport_preview_no_market_queries": True,
+
             "market_requests_avoided_by_sport_screen": market_requests_avoided_by_screen,
             "player_props_xi_research_attempts": _PLAYER_PROPS_XI_RESEARCH_ATTEMPTS,
             "player_props_xi_research_captured": _PLAYER_PROPS_XI_RESEARCH_CAPTURED,
