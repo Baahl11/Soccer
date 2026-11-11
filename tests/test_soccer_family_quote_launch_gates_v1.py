@@ -313,3 +313,12 @@ def test_frontend_market_catalog_is_only_owner_metadata_not_a_premium_bet():
     assert "familyPanel.classList.toggle('hidden',!owner" in html
     assert "Cuota ejecutable: NO VERIFICADA" in html
     assert "BET: BLOQUEADO" in html
+
+
+def test_market_rejects_raw_probability_mass_that_is_not_one():
+    bad=_frozen()
+    bad["selection_probabilities"]["over_2.5"]=0.98
+    result=market.analyze_frozen_sport_and_quote(
+        bad,_quote(),evaluated_at_utc="2026-11-11T16:07:00Z")
+    assert result["reason"]=="RAW_SPORT_PROBABILITY_MASS_INVALID"
+    assert result["bet_eligible"] is False
