@@ -1463,6 +1463,36 @@ def _access(entitlement: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _public_sport_screening_health(payload: dict[str, Any]) -> dict[str, Any]:
+    """Only aggregate current-tick research attempt counts, never model/fixture data."""
+    counts = {
+        "attempted": "p0_sport_preview_attempted_count",
+        "modeled_research": "p0_sport_preview_modeled_limited_count",
+        "inputs_insufficient": "p0_sport_preview_missing_inputs_count",
+        "previously_screened": "p0_sport_preview_cached_count",
+        "quota_deferred": "p0_sport_preview_deferred_quota_count",
+        "provider_calls": "p0_sport_preview_api_calls",
+    }
+    data: dict[str, Any] = {}
+    for label, source in counts.items():
+        value = payload.get(source)
+        data[label] = value if type(value) is int and 0 <= value <= 10000 else None
+    integrated = all(v is not None for v in data.values())
+    return {
+        "status": ("SPORT_FIRST_SCREEN_RECORDED" if integrated
+                   else "NO_RUNTIME_SPORT_SCREEN_TELEMETRY"),
+        "last_tick_utc": payload.get("generated_at_utc"),
+        "scope": "LAST_PIPELINE_TICK_ONLY",
+        **data,
+        "not_full_slate_coverage": True,
+        "not_customer_forecasts": True,
+        "not_betting_advice": True,
+        "provider_raw_statistics_included": False,
+        "source_redisplay_rights_verified": False,
+        "production_promotion_allowed": False,
+    }
+
+
 def build_contract(payload: dict[str, Any], entitlement: dict[str, Any]) -> dict[str, Any]:
     """Build the read-only V2 subscriber contract from one persisted pipeline snapshot."""
 
@@ -1501,6 +1531,7 @@ def build_contract(payload: dict[str, Any], entitlement: dict[str, Any]) -> dict
         "pipeline_version": source.get("version"),
         "runtime_model_version": source.get("model_version"),
         "access": access,
+        "sport_screening": _public_sport_screening_health(source),
         "counts": {
             "fixtures": len(slate),
             "picks": len(picks),
