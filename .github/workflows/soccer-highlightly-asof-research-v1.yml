@@ -1,0 +1,36 @@
+name: Soccer Highlightly - Strict As-Of Sport-Only Research
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: soccer-highlightly-asof-research-once
+  cancel-in-progress: false
+
+jobs:
+  offline-and-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Static compile and no-lookahead unit tests
+        run: |
+          python -m py_compile .github/scripts/soccer_highlightly_asof_research_v1.py
+          python .github/scripts/soccer_highlightly_asof_research_v1.py --self-test
+      - name: Capped real data read only - no odds
+        env:
+          SOCCER_HIGHLIGHTLY_API_KEY: ${{ secrets.SOCCER_HIGHLIGHTLY_API_KEY }}
+        run: |
+          set -euo pipefail
+          python .github/scripts/soccer_highlightly_asof_research_v1.py | tee /tmp/highlightly_asof_research.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: highlightly-asof-identity-and-sport-data-v1
+          path: /tmp/highlightly_asof_research.json
+          retention-days: 10
+          if-no-files-found: error
