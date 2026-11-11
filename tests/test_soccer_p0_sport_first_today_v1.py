@@ -135,7 +135,8 @@ def test_frontend_leads_with_sport_and_does_not_show_market_labs():
     assert '#today > :not(.page-head):not(.kpis):not(#sportFocus)' in html
     assert "function p0Card(x)" in html
     assert "function sportForecastEntries()" in html
-    assert "renderSportFocus();void loadResearchDesk()" in html
+    assert "renderSportFocus();void enrichIdentities().then(" in html
+    assert "renderSportFocus();void loadResearchDesk()" not in html
     assert "BET" in html
     assert "source_updated_at" not in html or "source_updated_at" in html
 
