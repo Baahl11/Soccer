@@ -19,6 +19,7 @@ from unicodedata import normalize
 BASE = "https://soccer.highlightly.net"
 DATES = ("2026-11-09", "2026-11-10", "2026-11-11")
 MAX_REQUESTS = 6
+# Intentionally one-off, no deployment and no automatic daily task.
 MIN_QUOTA_RESERVE = 70
 calls = 0
 
