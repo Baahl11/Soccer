@@ -10,6 +10,7 @@ from starlette.responses import JSONResponse
 from mcp_gateway import persistence as persistence_base
 from mcp_gateway import highlightly_research_pg_v1
 from mcp_gateway import soccer_family_research_v1
+from mcp_gateway import soccer_p0_persisted_view_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -1612,6 +1613,60 @@ def _attach_owner_family_research_catalog(
     return contract_payload
 
 
+def _attach_owner_p0_sport_previews(
+    contract_payload: dict[str, Any],
+    research: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Own-account SPORT forecasts, not market picks; no public redisplay."""
+    access=_dict(contract_payload.get("access"))
+    if not (access.get("owner") or access.get("admin")):
+        return contract_payload
+    if not isinstance(research,dict):
+        contract_payload["sport_previews"]={
+            "status":"SPORT_PREVIEW_SOURCE_NOT_VERIFIED","rows":[],
+            "forecast_count":None,"provider_requests_added":0,
+            "bet_eligible":False,"commercial_display_allowed":False,
+        }
+        return contract_payload
+    slate=_dict(contract_payload.get("slate"))
+    fixtures={
+        str(_dict(row.get("fixture")).get("fixture_id")):_dict(row.get("fixture"))
+        for row in slate.get("rows",[]) if isinstance(row,dict)
+    }
+    rows=[]
+    for raw in research.get("rows",[]):
+        if not isinstance(raw,dict) or type(raw.get("fixture_id")) is not int:
+            continue
+        fx=fixtures.get(str(raw["fixture_id"]))
+        if not fx or raw.get("bet_eligible") is not False:
+            continue
+        safe={k:raw.get(k) for k in (
+            "fixture_id","kickoff_utc","captured_at_utc",
+            "sport_source","model_version","projection_type",
+            "min_split_sample","raw_probabilities","model_validation",
+            "source_updated_at","market_queried","bet_eligible",
+            "commercial_display_allowed",
+        )}
+        safe["fixture"]={
+            k:fx.get(k) for k in (
+                "fixture_id","home_team","away_team","home_team_logo",
+                "away_team_logo","league","country","kickoff",
+            )
+        }
+        rows.append(safe)
+    contract_payload["sport_previews"]={
+        "status":research.get("status") or "SPORT_PREVIEW_SOURCE_NOT_VERIFIED",
+        "rows":rows,"forecast_count":len(rows),
+        "attempted_count":research.get("attempted_count"),
+        "model_oos_calibrated":False,
+        "source_redisplay_rights_verified":False,
+        "direct_executable_price_verified":False,
+        "provider_requests_added":0,"bet_eligible":False,
+        "commercial_display_allowed":False,
+    }
+    return contract_payload
+
+
 async def _resolve_entitlement(request: Request) -> tuple[dict[str, Any] | None, JSONResponse | None]:
     token = supabase_auth_v4.bearer_token(request.headers.get("authorization"))
     if not token:
@@ -1671,6 +1726,22 @@ async def _contract_for_request(
             contract_payload,supplementary
         )
     contract_payload=_attach_owner_family_research_catalog(contract_payload)
+    access=_dict(contract_payload.get("access"))
+    if access.get("owner") or access.get("admin"):
+        try:
+            ids=[
+                int(_dict(row.get("fixture")).get("fixture_id"))
+                for row in _dict(contract_payload.get("slate")).get("rows",[])
+                if str(_dict(row.get("fixture")).get("fixture_id") or "").isdigit()
+            ]
+            preview_data=await asyncio.to_thread(
+                soccer_p0_persisted_view_v1.read_previews,ids
+            )
+        except Exception:
+            preview_data=None
+        contract_payload=_attach_owner_p0_sport_previews(
+            contract_payload,preview_data
+        )
     return contract_payload, payload, None
 
 
