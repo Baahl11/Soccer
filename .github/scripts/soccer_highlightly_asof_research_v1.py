@@ -25,6 +25,7 @@ from datetime import datetime, timezone, timedelta
 
 HOST = "https://soccer.highlightly.net"
 MAX_REQUESTS = 10
+# One-time authorized manual research run: no scheduler, no retries.
 QUOTA_FLOOR = 70
 # The canonical identity was independently observed via Soccer_Edge_API on
 # 2026-11-11T04:41Z. These references do not contain odds or outcome data.
