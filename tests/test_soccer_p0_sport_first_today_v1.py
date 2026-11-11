@@ -145,3 +145,60 @@ def test_no_live_db_contact_when_fixture_ids_empty(monkeypatch):
     monkeypatch.setattr(storage.persistence,"_connect",
         lambda:(_ for _ in ()).throw(AssertionError("Unexpected DB read")))
     assert storage.read_previews([])["status"]=="NO_SLATE_FIXTURES"
+
+
+def test_active_v7_scheduler_not_orphaning_p0_screen():
+    import inspect
+    from mcp_gateway import automation_v7 as v7
+
+    source = inspect.getsource(v7.run_tick)
+    assert "await v5._daily_p0_sport_previews(" in source
+    assert source.index("await v5._daily_p0_sport_previews(") < source.index("due: list[dict")
+    assert "events.extend(p0_sport[\"events\"])" in source
+    assert 'p0_sport_preview_attempted_count' in source
+    assert 'p0_sport_preview_modeled_limited_count' in source
+    assert 'p0_sport_preview_deferred_quota_count' in source
+    assert 'p0_sport_preview_api_calls' in source
+    assert v7.P0_SPORT_MAX_FIXTURES_PER_TICK == 2
+    assert v7.P0_SPORT_MIN_REMAINING_FOR_CANONICAL == 3
+
+
+def test_live_p0_respects_exact_upstream_call_reserve_and_no_odds(monkeypatch):
+    cache = {}
+    provider = []
+    async def sport(fx, now):
+        provider.append(fx["fixture_id"])
+        v5.v2._API_CALLS_THIS_TICK += 2
+        return {"home_stats": {}, "away_stats": {}, "screen_layer": "CHEAP_SEASON_SPLIT"}
+    monkeypatch.setattr(v5, "_cheap_sport_bundle", sport)
+    monkeypatch.setattr(v5, "build_raw_projection", lambda fx, sport, availability: fake_raw())
+    monkeypatch.setattr(v5, "_screen_shortlist", lambda raw: {"shortlisted": True})
+    monkeypatch.setattr(v5.v4, "_effective_tick_cap", lambda: 8)
+    monkeypatch.setattr(v5.base, "_cache_get", lambda ns, k, ttl, now: cache.get((ns, k)))
+    monkeypatch.setattr(v5.base, "_cache_set", lambda ns, k, value, now: cache.__setitem__((ns, k), value))
+    monkeypatch.setattr(v5, "_shortlist_set", lambda fid, stage, now: None)
+    monkeypatch.setattr(v5.v2, "_API_CALLS_THIS_TICK", 1)
+    monkeypatch.setattr(v5.v2, "_LAST_DAILY_REMAINING", 7000)
+    fixtures = [
+        {**FX, "fixture_id": 99131 + i, "home_team_id": 111 + i * 2,
+         "away_team_id": 112 + i * 2}
+        for i in range(15)
+    ]
+    result = asyncio.run(v5._daily_p0_sport_previews(
+        fixtures, NOW, "2026-11-11", max_fixtures=2, reserve_calls=3,
+    ))
+    assert result["attempted"] == 2
+    assert result["modeled_limited"] == 2
+    assert result["api_calls_used"] == 4
+    assert v5.v2._API_CALLS_THIS_TICK == 5
+    assert 8 - v5.v2._API_CALLS_THIS_TICK >= 3
+    assert all(event["stage"] == "SPORT_PREVIEW"
+               and event["quote_requested"] is False
+               and event["bet_eligible"] is False
+               for event in result["events"])
+    monkeypatch.setattr(v5.v2, "_API_CALLS_THIS_TICK", 6)
+    denied = asyncio.run(v5._daily_p0_sport_previews(
+        fixtures, NOW, "2026-11-11", max_fixtures=2, reserve_calls=3,
+    ))
+    assert denied["attempted"] == 0
+    assert denied["deferred_due_to_quota"] >= 1
