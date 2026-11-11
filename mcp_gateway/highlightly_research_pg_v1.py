@@ -26,7 +26,7 @@ ALLOWED_IDENTITIES = {
 }
 ALLOWED_EVIDENCE = {
     "PREMATCH_RESEARCH_LIMITED", "HISTORY_NOT_PREGAME",
-    "IDENTITY_PENDING", "NO_MATCH",
+    "IDENTITY_EXACT_NO_FEATURES", "IDENTITY_PENDING", "NO_MATCH",
 }
 FAMILIES = {"GOALS", "FORM", "CORNERS", "CARDS", "SHOTS", "SOT", "POSSESSION", "PASSES", "XG"}
 CREATE = """
@@ -129,6 +129,10 @@ def validate_batch(payload: Any, *, now: datetime | None = None) -> list[dict[st
                 raise ValueError("PREMATCH_EVIDENCE_LOOKAHEAD_OR_IDENTITY_FAILED")
         elif fam:
             raise ValueError("NON_PROSPECTIVE_HIGHLIGHTLY_FAMILIES_FORBIDDEN")
+        if evidence == "HISTORY_NOT_PREGAME" and at < kickoff:
+            raise ValueError("HIGHLIGHTLY_HISTORICAL_STATUS_BEFORE_KICKOFF")
+        if evidence == "IDENTITY_EXACT_NO_FEATURES" and (ident != "IDENTITY_EXACT_VERIFIED" or at >= kickoff):
+            raise ValueError("HIGHLIGHTLY_NO_FEATURES_STATUS_INVALID")
         if evidence == "NO_MATCH" and ident != "NO_MATCH_ON_FETCHED_PAGES":
             raise ValueError("NO_MATCH_IDENTITY_MISMATCH")
         if evidence == "IDENTITY_PENDING" and ident in ("NO_MATCH_ON_FETCHED_PAGES", "IDENTITY_EXACT_VERIFIED"):
