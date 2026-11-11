@@ -1,6 +1,10 @@
 name: Soccer Live Slate-to-Frozen-Research Join (Read Only)
 
 on:
+  push:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - '.github/workflows/soccer-live-slate-research-join-readonly.yml'
   pull_request:
     branches: [soccer-edge-mcp-v1]
     paths:
