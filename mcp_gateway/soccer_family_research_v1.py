@@ -203,3 +203,55 @@ def build_family_forecasts(
         "sport_first":True, "market_queried":False, "bet_eligible":False,
         "families":result,
     }
+
+
+_FAMILY_GROUPS = {
+    "1X2": ("GOALS", "Verified independent home/away scoring rates"),
+    "FT_TOTALS": ("GOALS", "Verified independent home/away scoring rates"),
+    "BTTS": ("GOALS", "Verified independent home/away scoring rates"),
+    "TEAM_TOTALS": ("GOALS", "Verified independent team scoring and concession rates"),
+    "1H_1X2": ("PERIODS", "Independent first-half home/away scoring rates"),
+    "1H_TOTALS": ("PERIODS", "Independent first-half home/away scoring rates"),
+    "2H_1X2": ("PERIODS", "Independent second-half home/away scoring rates"),
+    "2H_TOTALS": ("PERIODS", "Independent second-half home/away scoring rates"),
+    "FT_CORNERS": ("CORNERS", "Verified historical team corners for/against"),
+    "TEAM_CORNERS": ("CORNERS", "Verified team corners for/against by venue and opponent"),
+    "FT_CARDS": ("CARDS", "Verified referee and team disciplinary sample"),
+    "PLAYER_SHOTS": ("PLAYER_PROPS", "Verified confirmed XI, player shots and minute expectation"),
+}
+
+
+def research_market_family_catalog() -> dict[str, Any]:
+    """Owner-only code readiness, NOT verified live-slate model coverage.
+
+    No network, no fixture observations and no calibrated performance claim.
+    Every individual family is independent and commercialization-blocked.
+    """
+    assert set(MARKETS) == set(_FAMILY_GROUPS)
+    rows = []
+    for family in MARKETS:
+        group, requirements = _FAMILY_GROUPS[family]
+        rows.append({
+            "family": family, "group": group,
+            "sport_inputs_required": requirements,
+            "implementation_status": "RESEARCH_CODE_ONLY",
+            "live_fixture_feature_coverage": "NOT_VERIFIED",
+            "official_ft_unique_fixtures_validated": None,
+            "oos_brier_verified": False,
+            "calibrated_for_bet": False,
+            "direct_executable_quote_verified": False,
+            "settlement_and_true_clv_verified": False,
+            "bet_eligible": False,
+            "reason": "Independent SPORT input, prospective OOS, executable odds and permissions still gated",
+        })
+    return {
+        "source": "STATIC_RESEARCH_CODE_CATALOG_NOT_LIVE_FORECASTS",
+        "model_version": VERSION,
+        "family_count": len(rows),
+        "families": rows,
+        "calibrated_family_count_for_this_module": 0,
+        "real_quote_family_count_for_this_module": 0,
+        "market_family_betting_activated": False,
+        "provider_calls": 0,
+        "production_promotion_allowed": False,
+    }
