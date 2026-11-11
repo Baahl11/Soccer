@@ -358,6 +358,12 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 .focus-disclosure{{border-top:1px solid #244559;padding-top:13px;margin-top:15px;color:#a9c5d5;font-size:12px}}
 .focus-disclosure summary{{cursor:pointer;font-size:12px;font-weight:800;color:#a9daec}}
 @media(max-width:800px){{#sportFocus{{padding:16px}}.focus-heading{{flex-direction:column}}.focus-heading h2{{font-size:22px}}.focus-forecast-grid{{grid-template-columns:1fr}}.focus-card .focus-prob{{font-size:28px}}.kpi span{{font-size:10px}}}}
+.focus-prob-strip{{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px}}
+.focus-prob-strip.submarkets{{grid-template-columns:repeat(2,1fr);margin-top:7px}}
+.focus-metric{{border:1px solid #2b5367;border-radius:9px;padding:10px 8px;background:#0c2a39}}
+.focus-metric small{{display:block;font-size:10px;color:#a3c5d4;line-height:1.3}}
+.focus-metric b{{display:block;font-size:22px;color:#eaf9ff;margin-top:5px}}
+@media(max-width:680px){{.focus-metric b{{font-size:18px}}.focus-metric small{{font-size:9px}}}}
 </style>
 </head>
 <body>
@@ -641,23 +647,54 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     if(codes.includes('LINEUP_SNAPSHOT_NOT_RECORDED'))return 'Falta alineación confirmada';
     return 'Sin datos suficientes para un pronóstico';
   }}
+
+  function p0Entries(){{
+    const payload=DATA?.sport_previews||{{}};
+    if(payload.status!=='PREMATCH_LIMITED_RESEARCH')return [];
+    return (Array.isArray(payload.rows)?payload.rows:[]).filter(x=>{{
+      const p=x.raw_probabilities||{{}},at=Date.parse(x.captured_at_utc||''),kick=Date.parse(x.kickoff_utc||'');
+      return x.bet_eligible===false&&
+        x.model_validation==='NOT_VERIFIED_OOS'&&
+        Number.isFinite(at)&&Number.isFinite(kick)&&
+        at<=kick-5*60*1000&&kick>Date.now()+5*60*1000&&
+        ['raw_home_win_prob','raw_draw_prob','raw_away_win_prob',
+         'raw_btts_yes_prob','raw_over_2_5_prob'].every(k=>typeof p[k]==='number'&&p[k]>=0&&p[k]<=1);
+    }});
+  }}
+  function p0Card(x){{
+    const f=x.fixture||{{}},p=x.raw_probabilities||{{}},[time,date]=dt(x.kickoff_utc);
+    const metric=(label,value)=>'<div class="focus-metric"><small>'+esc(label)+'</small><b>'+pct(value)+'</b></div>';
+    return '<article class="focus-card"><div class="focus-tag">MODELO DE GOLES · INVESTIGACIÓN PREPARTIDO</div>'+
+      '<h3>'+esc(f.home_team||'Local')+' vs '+esc(f.away_team||'Visitante')+'</h3>'+
+      '<p>'+esc(f.league||f.country||'Competición')+' · '+esc(date)+' · '+esc(time)+'</p>'+
+      '<div class="focus-prob-strip">'+metric('Gana local',p.raw_home_win_prob)+
+      metric('Empate',p.raw_draw_prob)+metric('Gana visita',p.raw_away_win_prob)+'</div>'+
+      '<div class="focus-prob-strip submarkets">'+metric('Más de 2.5',p.raw_over_2_5_prob)+
+      metric('Ambos anotan',p.raw_btts_yes_prob)+'</div>'+
+      '<p>Base de goles observados, NO xG · '+esc(x.min_split_sample)+' juegos mínimos por división local/visitante · sin alineaciones confirmadas ni calibración OOS.</p>'+
+      '<button type="button" class="secondary focus-open" data-fixture="'+esc(x.fixture_id)+'">Ver partido</button></article>';
+  }}
+
   function renderSportFocus(){{
-    const entries=sportForecastEntries(),active=entries.filter(e=>e.active);
+    const entries=sportForecastEntries(),saved=p0Entries();
+    const savedIds=new Set(saved.map(x=>String(x.fixture_id)));
+    const active=entries.filter(e=>e.active&&!savedIds.has(String(e.row.fixture.fixture_id)));
     const previous=entries.filter(e=>!e.active);
+    const forecastCount=new Set([...saved.map(x=>String(x.fixture_id)),...active.map(x=>String(x.row.fixture.fixture_id))]).size;
     const slate=DATA?.slate?.rows||[],counts={{pending:0,partial:0,forecast:0}};
-    for(const row of slate)counts[focusCoverageState(row,entries)]++;
+    for(const row of slate)counts[savedIds.has(String(row?.fixture?.fixture_id))?'forecast':focusCoverageState(row,entries)]++;
     $('kpiFixtures').textContent=DATA?.counts?.fixtures??slate.length;
-    $('kpiPicks').textContent=new Set(active.map(x=>String(x.row.fixture.fixture_id))).size;
-    $('kpiLeans').textContent=new Set(entries.map(x=>String(x.row.fixture.fixture_id))).size;
+    $('kpiPicks').textContent=forecastCount;
+    $('kpiLeans').textContent=new Set([...savedIds,...entries.map(x=>String(x.row.fixture.fixture_id))]).size;
     $('kpiWatches').textContent=DATA?.radar?.no_persisted_analysis_count??counts.pending;
     $('kpiPasses').textContent=DATA?.counts?.picks??0;
     const status=$('focusStatus'),board=$('focusForecasts'),history=$('focusHistorical');
     if(!status||!board||!history)return;
-    status.innerHTML=active.length?
-      '<strong>'+active.length+' pronóstico(s) deportivo(s) previo(s)</strong> entre '+slate.length+' partidos · '+counts.pending+' sin análisis guardado. Las probabilidades son experimentales, no apuestas.':
+    status.innerHTML=forecastCount?
+      '<strong>'+forecastCount+' partido(s) con proyección deportiva previa</strong> entre '+slate.length+' · '+counts.pending+' sin análisis guardado. Las probabilidades provienen de goles observados y NO equivalen a apuestas.':
       '<strong>No hay pronósticos previos al inicio que podamos presentar como vigentes.</strong> Hay '+slate.length+' partidos cargados y '+
        counts.pending+' sin análisis. Que exista un calendario no significa que el modelo haya evaluado los partidos.';
-    board.innerHTML=active.length?active.slice(0,8).map(focusForecastCard).join(''):
+    board.innerHTML=forecastCount?(saved.slice(0,8).map(p0Card).join('')+active.slice(0,Math.max(0,8-saved.length)).map(focusForecastCard).join('')):
       '<div class="focus-empty">No voy a inventar porcentajes para rellenar esta pantalla. El motor necesita una proyección deportiva guardada antes de cada encuentro. Abajo puedes ver qué partidos están pendientes.</div>';
     history.classList.toggle('hidden',previous.length===0);
     $('focusHistoricalRows').innerHTML=previous.slice(0,10).map(focusForecastCard).join('');
@@ -671,9 +708,10 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       const ao=time(a)>Date.now()?0:1,bo=time(b)>Date.now()?0:1;
       return ao-bo||time(a)-time(b);
     }});
-    const chosen=order.filter(r=>focusFilter==='all'||focusCoverageState(r,entries)===focusFilter);
+    const stateOf=r=>savedIds.has(String(r?.fixture?.fixture_id))?'forecast':focusCoverageState(r,entries);
+    const chosen=order.filter(r=>focusFilter==='all'||stateOf(r)===focusFilter);
     const card=r=>{{
-      const f=r?.fixture||{{}},[clock,date]=dt(f.kickoff),state=focusCoverageState(r,entries);
+      const f=r?.fixture||{{}},[clock,date]=dt(f.kickoff),state=stateOf(r);
       const label=state==='forecast'?'Pronóstico deportivo':state==='partial'?'Análisis parcial':'Por analizar';
       const reason=state==='forecast'?'Proyección previa registrada':state==='partial'?'Datos parciales; falta análisis completo':focusMissing(r);
       return '<a class="focus-fixture" href="'+esc(matchPath(f.fixture_id||''))+'" data-focus-fixture="'+esc(f.fixture_id||'')+'">'+
