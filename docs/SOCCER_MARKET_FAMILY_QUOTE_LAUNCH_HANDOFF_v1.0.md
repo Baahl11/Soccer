@@ -66,3 +66,19 @@ Legal checklist (not legal advice):
 **No new provider requests, purchases, auto-recurring tasks, subscriptions, or public billing activation from this change.**
 
 This is a technical gate/architecture completion, **not** a completed launch or validated business. The research family model version differs from existing Soccer Edge Engine v1.0 live baseline; existing historical predictions remain unchanged.
+
+
+## Supabase Soccer Edge — read-only privacy/RLS inspection (2026-11-11 UTC)
+
+Authorized linked project: **Soccer Edge**. Only PostgreSQL catalog, `pg_policies`, access privileges and the Supabase **security advisors** were read. No user profiles, payments, credentials or individual stored items were queried. No SQL writes, auth settings or Stripe functions were changed.
+
+- **6/6 tables in public have RLS enabled:** billing_customers, billing_events, billing_subscriptions, product_analytics_events, subscriber_saved_items and subscription_entitlements.
+- **Billing/analytics tables:** explicit policies deny anon/authenticated and ordinary grants from the read-only privilege check are absent. Do not infer backend service-role is blocked.
+- **subscriber_saved_items:** SELECT, INSERT, UPDATE and DELETE policies require auth.uid() = user_id. UPDATE has WITH CHECK enforcing the owner. The raw anon table grants exist; with RLS and no anon policy these do not establish anonymous row access, but defense-in-depth GRANT review remains advisable.
+- **subscription_entitlements:** authenticated role SELECT is restricted to the same auth.uid(); no anon SELECT privilege observed.
+- **19 INFO advisories** for RLS enabled without policies on internal legacy_soccer_research and soccer_prospective schemas. Their likely intent is deny-by-default; verify Data API exposed schemas and service-role dependencies before adjusting, never add permissive policies merely to clear the linter.
+- **1 WARN advisory:** Supabase Auth leaked-password protection is **disabled**. Official remediation: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection . A change to Auth policy needs separate operational testing; it was **not** made from this research run.
+
+**Scope limitations:** metadata-only audit does not prove cross-user JWT isolation under actual sessions, password expiry/revocation flows, Stripe webhook authorization, or production legal compliance. `SOCCER_PRIVACY_RLS_AUDITED` must remain false until automated two-account JWT/RLS smoke, auth settings, privacy notice/retention and actual deletion flows are verified. Billing flag and Stripe setup remain unchanged.
+
+Supabase docs/changelog consulted: https://supabase.com/changelog.md ; https://supabase.com/docs/guides/api/securing-your-api and https://supabase.com/docs/guides/database/postgres/row-level-security .
