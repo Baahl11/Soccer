@@ -5,6 +5,9 @@ on:
     branches: [soccer-edge-mcp-v1]
     paths:
       - '.github/workflows/soccer-live-slate-research-join-readonly.yml'
+      - 'mcp_gateway/automation_v7.py'
+      - 'mcp_gateway/subscriber_contract_v2.py'
+      - 'mcp_gateway/subscriber_frontend_v2.py'
   pull_request:
     branches: [soccer-edge-mcp-v1]
     paths:
@@ -36,7 +39,31 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsS --retry 3 --retry-delay 3 --max-time 45 "$BASE_URL/health" > /tmp/soccer-health.json
-          curl -fsS --retry 3 --retry-delay 3 --max-time 45 "$BASE_URL/app/api/v2/today" > /tmp/soccer-today.json
+          # A frontend release can be healthy before the previous tick is replaced.
+          # Poll only the read-only contract to verify that the new PUBLIC
+          # aggregate screening schema is actually served, never infer a deploy
+          # from a green unit test or an old screenshot.
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            seen=0
+            for attempt in 1 2 3 4 5 6 7 8; do
+              curl -fsS --retry 2 --retry-delay 2 --max-time 45 "$BASE_URL/app/api/v2/today" > /tmp/soccer-today.json
+              if python - <<'PY'
+          import json
+          d=json.load(open('/tmp/soccer-today.json'))
+          s=d.get('sport_screening') or {}
+          assert s.get('scope')=='LAST_PIPELINE_TICK_ONLY'
+          assert s.get('source_redisplay_rights_verified') is False
+          PY
+              then seen=1; break; fi
+              sleep 15
+            done
+            if [ "$seen" -ne 1 ]; then
+              echo "::error::LIVE_P0_CONTRACT_NOT_DEPLOYED"
+              exit 1
+            fi
+          else
+            curl -fsS --retry 3 --retry-delay 3 --max-time 45 "$BASE_URL/app/api/v2/today" > /tmp/soccer-today.json
+          fi
           curl -fsS --retry 3 --retry-delay 3 --max-time 45 "$BASE_URL/app-v2" > /tmp/soccer-frontend.html
           python - <<'PY'
           import json
@@ -47,6 +74,7 @@ jobs:
           health = json.loads(Path('/tmp/soccer-health.json').read_text())
           today = json.loads(Path('/tmp/soccer-today.json').read_text())
           html = Path('/tmp/soccer-frontend.html').read_text()
+          screening = today.get('sport_screening') or {}
           now = datetime.now(timezone.utc)
           mxdate = now.astimezone(ZoneInfo('America/Mexico_City')).date()
           slate = (today.get('slate') or {}).get('rows') or []
@@ -78,16 +106,26 @@ jobs:
               'render_git_commit': health.get('render_git_commit'),
               'runtime_automation_version': health.get('version'),
               'contract_generated_at': today.get('generated_at_utc'),
+              'p0_contract_health_status': screening.get('status'),
+              'p0_attempted_last_tick': screening.get('attempted'),
+              'p0_modeled_last_tick': screening.get('modeled_research'),
+              'p0_insufficient_last_tick': screening.get('inputs_insufficient'),
+              'p0_quota_deferred_last_tick': screening.get('quota_deferred'),
+              'p0_not_full_slate': screening.get('not_full_slate_coverage'),
               'customer_slate_fixtures': len(ids),
               'frozen_pregame_model_records': len(records),
               'research_valid_today_min_sample_5': len(set(today_models)),
               'research_matches_customer_slate': len(matched),
               'research_missing_from_customer_slate': len(set(today_models) - ids),
               'live_frontend_has_all_filter_default': "let focusFilter='all';" in html,
+              'live_frontend_has_customer_p0_copy': "const screen=DATA?.sport_screening||{};" in html,
               'research_published_to_free': False,
               'audit_not_forecast_promotion': True,
           }, indent=2))
           assert health.get('status') == 'ok'
           assert today.get('status') == 'SUBSCRIBER_CONTRACT_V2_READY'
           assert 'soccer-edge-v2-app' in html
+          if __import__('os').environ.get('GITHUB_EVENT_NAME') == 'push':
+              assert screening.get('scope') == 'LAST_PIPELINE_TICK_ONLY'
+              assert "const screen=DATA?.sport_screening||{};" in html
           PY
