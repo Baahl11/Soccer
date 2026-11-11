@@ -773,3 +773,40 @@ def test_highlightly_research_unavailable_is_unknown_not_zero_for_owner():
     contract=subscriber_contract_v2.build_contract(payload,entitlement)
     contract=subscriber_contract_v2._attach_highlightly_owner_research(contract,None)
     assert contract["radar"]["highlightly_research"]["status"]=="SOURCE_NOT_VERIFIED"
+
+
+def test_p0_sport_screening_health_does_not_confuse_fixture_discovery_and_models():
+    payload=_payload([])
+    payload.update({
+        "fixture_scan_count": 538,
+        "p0_sport_preview_attempted_count": 2,
+        "p0_sport_preview_modeled_limited_count": 1,
+        "p0_sport_preview_missing_inputs_count": 1,
+        "p0_sport_preview_cached_count": 5,
+        "p0_sport_preview_deferred_quota_count": 1,
+        "p0_sport_preview_api_calls": 4,
+    })
+    anonymous=subscriber_contract_v2.build_contract(
+        payload, subscriber_app_v4.anonymous_entitlement()
+    )
+    health=anonymous["sport_screening"]
+    assert health["status"]=="SPORT_FIRST_SCREEN_RECORDED"
+    assert health["scope"]=="LAST_PIPELINE_TICK_ONLY"
+    assert health["attempted"]==2
+    assert health["modeled_research"]==1
+    assert health["inputs_insufficient"]==1
+    assert health["quota_deferred"]==1
+    assert health["provider_calls"]==4
+    assert health["not_full_slate_coverage"] is True
+    assert health["source_redisplay_rights_verified"] is False
+    assert health["production_promotion_allowed"] is False
+    assert "raw_probabilities" not in health
+    assert "fixtures" not in health
+
+    # An old runtime without P0 keys is NOT counted as zero attempts.
+    missing=subscriber_contract_v2.build_contract(
+        _payload([]), subscriber_app_v4.anonymous_entitlement()
+    )["sport_screening"]
+    assert missing["status"]=="NO_RUNTIME_SPORT_SCREEN_TELEMETRY"
+    assert missing["attempted"] is None
+    assert missing["modeled_research"] is None
