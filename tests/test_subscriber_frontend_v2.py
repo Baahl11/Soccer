@@ -340,3 +340,15 @@ def test_match_center_readability_at_desktop_and_mobile():
     assert "#matchDetail .prob-tile b{font-size:27px" in html
     assert "@media(max-width:800px){#matchDetail .overview-primary-grid{grid-template-columns:1fr}}" in html
     assert "#matchDetail .mini-visual-grid,#matchDetail .sport-two-up{grid-template-columns:1fr}" in html
+
+
+def test_customer_home_displays_real_sport_screening_not_an_empty_pick_lab():
+    html=subscriber_frontend_v2.render()
+    assert "let focusFilter='all';" in html
+    assert "const screen=DATA?.sport_screening||{};" in html
+    assert "SPORT_FIRST_SCREEN_RECORDED" in html
+    assert "proyecciones deportivas limitadas" in html
+    assert "No hay pronósticos previos al inicio" not in html
+    assert "Las proyecciones de investigación no autorizadas para publicación" in html
+    assert "focus-empty-compact" in html
+    assert "canReviewPrivateResearch=ACCESS?.owner===true||ACCESS?.admin===true" in html
