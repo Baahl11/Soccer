@@ -1,0 +1,35 @@
+name: Soccer Highlightly - One-time Secret and Football Coverage Probe
+on:
+  push:
+    branches: [research/soccer-highlightly-free-verified-probe-v1]
+    paths:
+      - '.github/scripts/soccer_highlightly_free_probe_v1.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'ops(soccer): verify highlightly secret once'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify source syntax (no secret output)
+        run: python -m py_compile .github/scripts/soccer_highlightly_free_probe_v1.py
+      - name: Probe key and at most six Highlightly GETs
+        env:
+          SOCCER_HIGHLIGHTLY_API_KEY: ${{ secrets.SOCCER_HIGHLIGHTLY_API_KEY }}
+        run: |
+          set -euo pipefail
+          python .github/scripts/soccer_highlightly_free_probe_v1.py | tee /tmp/soccer_highlightly_free_probe_v1.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: soccer-highlightly-free-verify-v1
+          path: /tmp/soccer_highlightly_free_probe_v1.json
+          retention-days: 7
+          if-no-files-found: error
