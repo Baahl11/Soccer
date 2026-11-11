@@ -369,6 +369,70 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 .context span{{font-size:11px}}
 .kpi span{{font-size:10px}}
 @media(max-width:1050px){{.mobile-nav button{{font-size:11px;min-width:75px}}}}
+
+/* Accessible Match Intelligence: forecast-first rather than technical dashboard. */
+#matchDetail .intel-metric{{padding:12px 13px}}
+#matchDetail .intel-metric span{{font-size:11px;color:#a9c5d4;line-height:1.35}}
+#matchDetail .intel-metric b{{font-size:14px;line-height:1.35;margin-top:5px}}
+#matchDetail .intel-tab{{font-size:12px;padding:11px 14px}}
+#matchDetail .intel-body{{padding:20px 22px 28px}}
+#matchDetail .match-reading-banner{{border-left:4px solid #4de1ad;background:#0b2532;border-radius:10px;padding:18px 20px;margin-bottom:14px}}
+#matchDetail .match-reading-banner span{{font-size:11px;color:#89d9bb;font-weight:850;letter-spacing:.07em}}
+#matchDetail .match-reading-banner h2{{font-size:23px;line-height:1.2;margin:8px 0}}
+#matchDetail .match-reading-banner p{{font-size:14px;line-height:1.55;margin:0;color:#c3d9e5}}
+#matchDetail .overview-primary-grid{{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;margin-bottom:12px}}
+#matchDetail .overview-primary-grid>.visual-card{{min-height:220px}}
+#matchDetail .visual-card{{padding:17px}}
+#matchDetail .visual-card-head h3{{font-size:16px;line-height:1.3}}
+#matchDetail .visual-card-head span{{font-size:11px;color:#a6c2d1;text-transform:none;letter-spacing:0;line-height:1.4}}
+#matchDetail .prob-tile b{{font-size:27px}}
+#matchDetail .prob-tile span{{font-size:12px;color:#b3cbd9;text-transform:none;letter-spacing:0}}
+#matchDetail .overview-explainer{{font-size:12px;line-height:1.5;color:#a4bbc9;margin:14px 0 0}}
+#matchDetail .takeaway{{padding:12px;grid-template-columns:26px minmax(0,1fr);gap:10px}}
+#matchDetail .takeaway-num{{width:26px;height:26px;font-size:12px}}
+#matchDetail .takeaway b{{font-size:13px}}
+#matchDetail .takeaway small{{font-size:12px;color:#afc6d3;line-height:1.5}}
+#matchDetail .rate-row{{grid-template-columns:minmax(100px,160px) minmax(0,1fr) 50px;gap:10px}}
+#matchDetail .rate-row label{{font-size:12px;color:#bad1df}}
+#matchDetail .rate-row b{{font-size:13px}}
+#matchDetail .rate-source{{font-size:11px;color:#aac1cf;line-height:1.55}}
+#matchDetail .overview-assurance{{display:flex;gap:12px;padding:13px 16px;margin-bottom:13px;background:#0a2030;border:1px solid #25516a;border-radius:10px}}
+#matchDetail .overview-assurance b{{flex:0 0 auto;font-size:12px;color:#8bd4b9}}
+#matchDetail .overview-assurance span{{font-size:12px;line-height:1.5;color:#bcd0dc}}
+#matchDetail .intel-accordion summary{{font-size:13px;padding:15px 16px;color:#e3f0f7;line-height:1.45}}
+#matchDetail .intel-accordion summary span{{font-size:11px;color:#9db8c9}}
+#matchDetail .intel-accordion-body{{padding:15px}}
+#matchDetail .mini-visual-grid .visual-card{{min-height:0}}
+#matchDetail .coverage-copy b{{font-size:13px}}
+#matchDetail .coverage-copy p{{font-size:11px;color:#a0b9c8;line-height:1.5}}
+#matchDetail .coverage-gauge span{{font-size:9px}}
+#matchDetail .form-team b{{font-size:12px}}
+#matchDetail .form-dot{{width:27px;height:27px;font-size:11px}}
+#matchDetail .form-legend{{font-size:11px;color:#adc3d1;line-height:1.5;margin-top:12px}}
+#matchDetail .intel-snapshot b{{font-size:12px}}
+#matchDetail .intel-snapshot small{{font-size:10px;color:#a3bbca}}
+#matchDetail .intel-snapshot .snap-right{{font-size:11px}}
+#matchDetail .intel-kv-row span,#matchDetail .intel-kv-row b{{font-size:12px;line-height:1.45}}
+#matchDetail .visual-empty{{font-size:13px;min-height:100px;color:#b9ccda}}
+#matchDetail .intel-pill,#matchDetail .intel-footnote{{font-size:11px;line-height:1.5}}
+@media(max-width:800px){{#matchDetail .overview-primary-grid{{grid-template-columns:1fr}}}}
+@media(max-width:700px){{
+ #matchDetail .intel-body{{padding:12px}}
+ #matchDetail .match-reading-banner{{padding:14px}}
+ #matchDetail .match-reading-banner h2{{font-size:20px}}
+ #matchDetail .match-reading-banner p{{font-size:13px}}
+ #matchDetail .intel-tab{{font-size:12px;padding:10px 11px}}
+ #matchDetail .intel-metric{{flex:1 0 125px;padding:10px}}
+ #matchDetail .intel-metric span{{font-size:10px}}
+ #matchDetail .intel-metric b{{font-size:12px}}
+ #matchDetail .mini-visual-grid,#matchDetail .sport-two-up{{grid-template-columns:1fr}}
+ #matchDetail .overview-assurance{{display:block}}
+ #matchDetail .overview-assurance span{{display:block;margin-top:5px}}
+ #matchDetail .visual-card-head{{display:block}}
+ #matchDetail .visual-card-head span{{display:block;text-align:left;margin-top:4px}}
+ #matchDetail .rate-row{{grid-template-columns:80px minmax(0,1fr) 44px;gap:7px}}
+ #matchDetail .rate-row label{{font-size:11px}}
+}}
 </style>
 </head>
 <body>
@@ -1211,14 +1275,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     'availability.home_formation','availability.away_formation',
     'availability.both_xi_confirmed','availability.both_goalkeepers_confirmed'
   ];
-  function nval(v){{const n=Number(v);return Number.isFinite(n)?n:null}}
+  function nval(v){{if(v===null||v===undefined||v===''||typeof v==='boolean')return null;const n=Number(v);return Number.isFinite(n)?n:null}}
   function coreCoverage(features){{const verified=CORE_SPORT_KEYS.filter(k=>featureVerified(features,k)).length,total=CORE_SPORT_KEYS.length;return {{verified,total,pct:total?Math.round((verified/total)*100):0}}}}
-  function coverageGauge(features){{const c=coreCoverage(features);return '<div class="coverage-wrap"><div class="coverage-gauge" style="--coverage:'+esc(c.pct)+'%"><div><b>'+esc(c.pct)+'%</b><span>core coverage</span></div></div><div class="coverage-copy"><b>'+esc(c.verified)+' / '+esc(c.total)+' core sport inputs</b><p>Only verified customer-facing football inputs count toward this gauge. Market rows do not increase it.</p></div></div>'}}
+  function coverageGauge(features){{const c=coreCoverage(features);return '<div class="coverage-wrap"><div class="coverage-gauge" style="--coverage:'+esc(c.pct)+'%"><div><b>'+esc(c.pct)+'%</b><span>campos</span></div></div><div class="coverage-copy"><b>'+esc(c.verified)+' / '+esc(c.total)+' core sport inputs</b><p>Porcentaje de campos disponibles en ESTE partido; no mide confianza del modelo ni porcentaje de partidos analizados. Market rows do not increase it.</p></div></div>'}}
   function formTokens(raw){{const s=String(raw||'').toUpperCase().replace(/[^WDL]/g,'');return [...s].slice(-5)}}
   function formDots(raw){{const rows=formTokens(raw);return rows.length?'<div class="form-dots">'+rows.map(x=>'<span class="form-dot '+x.toLowerCase()+'">'+x+'</span>').join('')+'</div>':'<span class="intel-pill missing">NOT VERIFIED</span>'}}
   function formSpark(raw,cls='home'){{const rows=formTokens(raw);if(!rows.length)return '';const pts=rows.map((x,i)=>{{const y=x==='W'?12:x==='D'?27:42;const xx=8+(i*(84/Math.max(1,rows.length-1)));return xx+','+y}}).join(' ');return '<svg class="form-spark '+cls+'" viewBox="0 0 100 54" role="img" aria-label="Verified form sequence"><polyline points="'+pts+'" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+rows.map((x,i)=>{{const y=x==='W'?12:x==='D'?27:42,xx=8+(i*(84/Math.max(1,rows.length-1)));return '<circle cx="'+xx+'" cy="'+y+'" r="3.4" fill="currentColor"/>'}}).join('')+'</svg>'}}
-  function formCompare(features,f){{const home=featureVerified(features,'team_performance.home_form')?featureValue(features,'team_performance.home_form'):null,away=featureVerified(features,'team_performance.away_form')?featureValue(features,'team_performance.away_form'):null;if(!home&&!away)return '<div class="visual-empty compact">Recent form is NOT VERIFIED.</div>';return '<div class="form-chart"><div class="form-chart-lines">'+formSpark(home,'home')+formSpark(away,'away')+'</div><div class="form-compare"><div class="form-team"><b>'+esc(f.home_team||'Home')+'</b>'+formDots(home)+'</div><div class="form-team"><b>'+esc(f.away_team||'Away')+'</b>'+formDots(away)+'</div></div></div>'}}
-  function rateBars(features,f){{let home=nval(featureValue(features,'team_performance.home_goal_rate_blend')),away=nval(featureValue(features,'team_performance.away_goal_rate_blend')),total=nval(featureValue(features,'team_performance.total_goal_rate_blend')),source='Verified goal-rate baseline';if(home===null&&away===null){{home=featureVerified(features,'team_performance.home_goals_for_avg')?nval(featureValue(features,'team_performance.home_goals_for_avg')):null;away=featureVerified(features,'team_performance.away_goals_for_avg')?nval(featureValue(features,'team_performance.away_goals_for_avg')):null;total=home!==null&&away!==null?home+away:null;source='Team goals for / match';}}if(home===null&&away===null)return '<div class="visual-empty">No verified scoring-rate inputs are available yet.</div>';const vals=[home,away,total].filter(x=>x!==null),mx=Math.max(...vals,1),row=(label,v,cls='')=>v===null?'':'<div class="rate-row"><label>'+esc(label)+'</label><div class="rate-track"><div class="rate-fill '+cls+'" style="width:'+esc(Math.max(3,Math.min(100,(v/mx)*100)).toFixed(1))+'%"></div></div><b>'+esc(v.toFixed(2))+'</b></div>';return '<div class="rate-bars">'+row(f.home_team||'Home',home,'')+row(f.away_team||'Away',away,'away')+row('Combined',total,'total')+'</div><div class="rate-source">'+esc(source)+' · values are not labeled xG unless a verified xG source exists.</div>'}}
+  function formCompare(features,f){{const home=featureVerified(features,'team_performance.home_form')?featureValue(features,'team_performance.home_form'):null,away=featureVerified(features,'team_performance.away_form')?featureValue(features,'team_performance.away_form'):null;if(!home&&!away)return '<div class="visual-empty compact">Forma reciente: NOT VERIFIED.</div>';return '<div class="form-compare"><div class="form-team"><b>'+esc(f.home_team||'Local')+'</b>'+formDots(home)+'</div><div class="form-team"><b>'+esc(f.away_team||'Visitante')+'</b>'+formDots(away)+'</div></div><p class="form-legend">W = victoria · D = empate · L = derrota. Últimos cinco resultados disponibles, no probabilidades.</p>'}}
+  function rateBars(features,f){{let home=featureVerified(features,'team_performance.home_goal_rate_blend')?nval(featureValue(features,'team_performance.home_goal_rate_blend')):null,away=featureVerified(features,'team_performance.away_goal_rate_blend')?nval(featureValue(features,'team_performance.away_goal_rate_blend')):null,total=featureVerified(features,'team_performance.total_goal_rate_blend')?nval(featureValue(features,'team_performance.total_goal_rate_blend')):null,source='Tasa deportiva de goles';if(home===null&&away===null){{home=featureVerified(features,'team_performance.home_goals_for_avg')?nval(featureValue(features,'team_performance.home_goals_for_avg')):null;away=featureVerified(features,'team_performance.away_goals_for_avg')?nval(featureValue(features,'team_performance.away_goals_for_avg')):null;total=home!==null&&away!==null?home+away:null;source='Promedio histórico de goles anotados';}}if(home===null&&away===null)return '<div class="visual-empty compact">No hay tasas de gol verificadas.</div>';const vals=[home,away,total].filter(x=>x!==null),mx=Math.max(...vals,1),row=(label,v,cls='')=>v===null?'':'<div class="rate-row"><label>'+esc(label)+'</label><div class="rate-track"><div class="rate-fill '+cls+'" style="width:'+esc(Math.max(3,Math.min(100,(v/mx)*100)).toFixed(1))+'%"></div></div><b>'+esc(v.toFixed(2))+'</b></div>';return '<div class="rate-bars">'+row(f.home_team||'Local',home,'')+row(f.away_team||'Visitante',away,'away')+row('Combinado',total,'total')+'</div><div class="rate-source">'+esc(source)+' · values are not labeled xG unless a verified xG source exists.</div>'}}
   function p100(v){{const n=nval(v);if(n===null)return null;return Math.max(0,Math.min(100,Math.abs(n)<=1?n*100:n))}}
   function probabilityVisual(probs,f){{const h=p100(probs?.home),d=p100(probs?.draw),a=p100(probs?.away);if(h===null||d===null||a===null)return '<div class="visual-empty">Match-result probabilities are NOT VERIFIED.</div>';const total=h+d+a||1,hs=h/total*100,ds=d/total*100,as=a/total*100;return '<div class="prob-tiles"><div class="prob-tile"><b>'+hs.toFixed(1)+'%</b><span>'+esc(f.home_team||'Home')+'</span></div><div class="prob-tile"><b>'+ds.toFixed(1)+'%</b><span>Draw</span></div><div class="prob-tile"><b>'+as.toFixed(1)+'%</b><span>'+esc(f.away_team||'Away')+'</span></div></div><div class="prob-stack"><i class="home" style="width:'+hs.toFixed(2)+'%"></i><i class="draw" style="width:'+ds.toFixed(2)+'%"></i><i class="away" style="width:'+as.toFixed(2)+'%"></i></div>'}}
   function goalDistribution(rows,f){{if(!rows?.length)return '<div class="visual-empty compact">Goal distribution is NOT VERIFIED.</div>';const buckets=['0','1','2','3','4+'],home=Object.fromEntries(buckets.map(x=>[x,0])),away=Object.fromEntries(buckets.map(x=>[x,0]));for(const row of rows){{const m=String(row?.score||'').match(/^(\\d+)\\s*[-:]\\s*(\\d+)$/);const p=p100(row?.probability);if(!m||p===null)continue;const hg=Number(m[1]),ag=Number(m[2]),hb=hg>=4?'4+':String(hg),ab=ag>=4?'4+':String(ag);home[hb]=(home[hb]||0)+p;away[ab]=(away[ab]||0)+p;}}const mx=Math.max(1,...Object.values(home),...Object.values(away));return '<div class="goal-dist"><div class="goal-dist-legend"><span><i class="h"></i>'+esc(f.home_team||'Home')+'</span><span><i class="a"></i>'+esc(f.away_team||'Away')+'</span></div><div class="goal-dist-bars">'+buckets.map(b=>'<div class="goal-dist-col"><div class="goal-dist-pair"><i class="h" style="height:'+Math.max(3,(home[b]/mx)*100).toFixed(1)+'%"></i><i class="a" style="height:'+Math.max(3,(away[b]/mx)*100).toFixed(1)+'%"></i></div><b>'+b+'</b></div>').join('')+'</div></div>'}}
@@ -1304,27 +1368,29 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   function renderMatch(d){{const box=$('matchDetail'),rawF=d?.fixture||{{}},known=fixtureTargets().find(x=>String(x?.fixture?.fixture_id||'')===String(rawF.fixture_id||''))?.fixture||{{}},f={{...rawF,...known}},c=d?.selected_candidate||{{}},p=d?.projection_ladder||c?.projections||{{}},a=d?.availability||c?.availability||{{}},ctx=d?.sport_context||{{}},decision=d?.decision_summary||c?.decision||{{}},marketCtx=d?.market_context||{{}},modelCtx=d?.model_context||{{}},review=d?.analyst_review||{{}},rel=d?.relational_evidence||{{}},counts=rel.counts||{{}},disc=d?.data_disclosure||{{}},e=d?.evidence||c?.evidence||{{}};
     const selectedMarket=marketCtx.selected||c?.market||{{}},missing=(disc.missing_sections||review.missing_sections||[]),currentMarkets=(review.available_markets||[]),persistedMarkets=(counts.market_names||[]),markets=[...new Set([...currentMarkets,...persistedMarkets].filter(Boolean))],verifiedPrices=(review.verified_price_markets||[]),features=sportFeatures(rel),sportN=sportFeatureCount(features),sportMissing=sportFeatureMissing(features),decisionText=decision.classification||decision.display_bucket||decision.execution_status||review.status||'INSUFFICIENT DATA',fresh=freshnessLabel(counts),coverage=review.status||decisionText||'NOT VERIFIED',tone=coverageTone(coverage),[kickTime,kickDate]=dt(f.kickoff);
     const hero='<div class="intel-hero"><div class="match-brand-row"><div class="match-brand"><span>SE</span><b>SOCCER<br>EDGE</b></div><button id="backToMatches" type="button" class="intel-back">← Matches</button></div><div class="match-context-row"><span>'+esc(f.league||f.country||'Competition')+'</span><b>'+esc(kickDate)+' · '+esc(kickTime)+'</b></div><div class="intel-matchup"><div class="intel-team">'+crest(f.home_team_logo,f.home_team)+'<div class="intel-team-name"><b>'+esc(f.home_team||'Home')+'</b><span>Home</span></div></div><div class="intel-vs">VS</div><div class="intel-team away"><div class="intel-team-name"><b>'+esc(f.away_team||'Away')+'</b><span>Away</span></div>'+crest(f.away_team_logo,f.away_team)+'</div></div><div class="intel-scoreline">'+esc(f.country||'')+'</div></div>';
-    const summary='<div class="intel-summary"><div class="intel-metrics"><div class="intel-metric '+tone+'"><span>Sport coverage</span><b>'+esc(sportN?sportN+' inputs':'NOT VERIFIED')+'</b></div><div class="intel-metric info"><span>Data tier</span><b>'+esc(featureValue(features,'context.data_tier')||a.data_tier||'NOT VERIFIED')+'</b></div><div class="intel-metric"><span>Availability</span><b>'+esc(a.confidence!==null&&a.confidence!==undefined?pct(a.confidence):'NOT VERIFIED')+'</b></div><div class="intel-metric"><span>Freshness</span><b>'+esc(fresh)+'</b></div></div></div>';
-    const tabs=[['overview','Overview'],['sport','Sport'],['periods','1H / 2H / Córners'],['availability','Availability'],['markets','Markets'],['advanced','Advanced']];
+    const summary='<div class="intel-summary"><div class="intel-metrics"><div class="intel-metric '+(ctx.outcome_probabilities?'good':'warn')+'"><span>Pronóstico 1X2</span><b>'+esc(ctx.outcome_probabilities?'Modelo guardado':'NO VERIFICADO')+'</b></div><div class="intel-metric"><span>Alineaciones</span><b>'+esc(featureValue(features,'availability.both_xi_confirmed')===true?'XI confirmados':'Sin confirmar')+'</b></div><div class="intel-metric"><span>Datos actualizados</span><b>'+esc(fresh)+'</b></div></div></div>';
+    const tabs=[['overview','Resumen'],['sport','Pronóstico y goles'],['periods','1H / 2H / Córners'],['availability','Alineaciones'],['markets','Cuotas'],['advanced','Fuentes y datos']];
     const tabHtml='<div class="intel-tabs">'+tabs.map((x,i)=>'<button class="intel-tab '+(i===0?'active':'')+'" data-detail-tab="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
 
-    const coreCov=coreCoverage(features);
+    const coreCov=coreCoverage(features),probs=ctx.outcome_probabilities||null,xg=ctx.expected_goals||null,scoreRows=ctx.score_matrix||[];
+    const hasSportProb=['home','draw','away'].every(k=>p100(probs?.[k])!==null);
+    const goalRateLabel=ctx.goal_rate_semantics==='POISSON_LAMBDA_NOT_XG'?'Poisson λ, no xG':'Tasa de goles del modelo';
     const overview='<section class="intel-section active" data-detail-section="overview">'+
-      '<div class="visual-card overview-feature" style="margin-bottom:8px"><div class="visual-card-head"><h3>Sport-first read</h3><span>primary layer</span></div><div class="coverage-copy"><b>'+esc(analystLens(decisionText,markets,missing,counts,features))+'</b><p>Sporting evidence is shown before price context. Missing inputs remain explicit.</p></div></div>'+
-      '<div class="visual-card goal-card"><div class="visual-card-head"><h3>Goal-rate baseline</h3><span>verified sporting input</span></div>'+rateBars(features,f)+'</div>'+
-      '<div class="mini-visual-grid"><div class="visual-card"><div class="visual-card-head"><h3>Input coverage</h3><span>'+esc(coreCov.verified)+' / '+esc(coreCov.total)+'</span></div>'+coverageGauge(features)+'</div>'+
-      '<div class="visual-card"><div class="visual-card-head"><h3>Form momentum</h3><span>verified W/D/L</span></div>'+formCompare(features,f)+'</div></div>'+
-      '<div class="visual-card" style="margin-bottom:8px"><div class="visual-card-head"><h3>Key takeaways</h3><span>verified facts only</span></div>'+keyTakeaways(features,a,f)+'</div>'+
-      '<div class="intel-accordion"><details><summary>Verified sporting inputs <span>'+esc(sportN)+'</span></summary><div class="intel-accordion-body compact-inputs">'+verifiedSportInputs(features)+'</div></details>'+
-      '<details><summary>Sporting gaps <span>'+esc(sportMissing)+'</span></summary><div class="intel-accordion-body">'+infoPills([!featureVerified(features,'xg.xgf')?'xG / xGA':null,!ctx.outcome_probabilities?'1X2 probabilities':null,!ctx.sport_profile?.length?'Sport profile':null,!featureVerified(features,'team_performance.home_form')||!featureVerified(features,'team_performance.away_form')?'Recent form':null,!featureVerified(features,'availability.both_xi_confirmed')?'Starting XI':null,!featureVerified(features,'availability.both_goalkeepers_confirmed')?'Goalkeepers':null],'missing')+'</div></details>'+
-      '<details><summary>Model & evidence quality <span>'+esc(counts.model_runs??0)+' runs</span></summary><div class="intel-accordion-body">'+intelKV([['Classification',decisionText],['Raw sport',pct(p.raw_sport_probability)],['Market shrunk',pct(p.market_shrunk_probability)],['Market fair',pct(p.fair_market_probability)],['Probability edge',pp(p.probability_edge_pp)],['Core sport coverage',coreCov.verified+' / '+coreCov.total],['Feature snapshots',counts.feature_snapshots??0]])+'</div></details></div></section>';
+      '<div class="match-reading-banner"><span>EL PARTIDO, ANTES QUE LAS CUOTAS</span><h2>'+esc(hasSportProb?'Pronóstico deportivo registrado':'Sin pronóstico 1X2 verificable')+'</h2><p>'+esc(hasSportProb?'Probabilidades deportivas guardadas. No son una apuesta ni una garantía.':'Sin probabilidades completas de modelo: no se infiere quién ganará a partir de cuotas u otros datos incompletos.')+'</p></div>'+
+      '<div class="overview-primary-grid"><div class="visual-card primary-forecast"><div class="visual-card-head"><h3>Victoria · Empate · Derrota</h3><span>Proyección deportiva RAW · no cuota</span></div>'+probabilityVisual(probs,f)+'<p class="overview-explainer">Proyección histórica guardada, no necesariamente actualizada con alineaciones. NOT VERIFIED cuando faltan datos.</p></div>'+
+      '<div class="visual-card primary-takeaways"><div class="visual-card-head"><h3>Qué sabemos del enfrentamiento</h3><span>Key takeaways · hechos registrados</span></div>'+keyTakeaways(features,a,f)+'</div></div>'+
+      '<div class="visual-card goal-card"><div class="visual-card-head"><h3>Goles: base de comparación</h3><span>Goal-rate baseline · no es xG</span></div>'+rateBars(features,f)+'</div>'+
+      '<div class="overview-assurance"><b>Sport-first read</b><span>'+esc(analystLens(decisionText,markets,missing,counts,features))+'</span></div>'+
+      '<div class="intel-accordion"><details><summary>Forma reciente y datos disponibles <span>Input coverage · diagnóstico</span></summary><div class="intel-accordion-body"><div class="mini-visual-grid"><div class="visual-card"><div class="visual-card-head"><h3>Datos disponibles</h3><span>'+esc(coreCov.verified)+' / '+esc(coreCov.total)+'</span></div>'+coverageGauge(features)+'</div><div class="visual-card"><div class="visual-card-head"><h3>Forma reciente</h3><span>Form momentum · W/D/L</span></div>'+formCompare(features,f)+'</div></div></div></details>'+
+      '<details><summary>Qué falta por verificar <span>'+esc(sportMissing)+' campos pendientes</span></summary><div class="intel-accordion-body">'+infoPills([!featureVerified(features,'xg.xgf')?'xG / xGA':null,!hasSportProb?'1X2 probabilities':null,!ctx.sport_profile?.length?'Perfil deportivo':null,!featureVerified(features,'team_performance.home_form')||!featureVerified(features,'team_performance.away_form')?'Forma reciente':null,!featureVerified(features,'availability.both_xi_confirmed')?'XI':null,!featureVerified(features,'availability.both_goalkeepers_confirmed')?'Porteros':null],'missing')+'</div></details>'+
+      '<details><summary>Verified sporting inputs <span>'+esc(sportN)+' campos</span></summary><div class="intel-accordion-body compact-inputs">'+verifiedSportInputs(features)+'</div></details>'+
+      '<details><summary>Model & evidence quality <span>'+esc(counts.model_runs??0)+' ejecuciones</span></summary><div class="intel-accordion-body">'+intelKV([['Clasificación',decisionText],['Raw sport',pct(p.raw_sport_probability)],['Market shrunk',pct(p.market_shrunk_probability)],['Market fair',pct(p.fair_market_probability)],['Probability edge',pp(p.probability_edge_pp)],['Core sport coverage',coreCov.verified+' / '+coreCov.total],['Feature snapshots',counts.feature_snapshots??0]])+'</div></details></div></section>';
 
     const marketsSection='<section class="intel-section" data-detail-section="markets"><div class="intel-card"><div class="intel-section-title"><h3>Market layer</h3><span>secondary · after sport</span></div>'+infoPills(markets,'market')+'</div><div class="intel-card" style="margin-top:10px"><div class="intel-section-title"><h3>Latest market activity</h3><span>context only · not an edge by itself</span></div>'+snapshotCards(rel.market_snapshots||[],'market')+'</div></section>';
 
-    const probs=ctx.outcome_probabilities||null,xg=ctx.expected_goals||null,scoreRows=ctx.score_matrix||[];
     const sportSection='<section class="intel-section" data-detail-section="sport">'+
       '<div class="visual-card sport-top-card"><div class="visual-card-head"><h3>Match result probability</h3><span>verified model only</span></div>'+probabilityVisual(probs,f)+'</div>'+
-      '<div class="visual-card sport-top-card"><div class="visual-card-head"><h3>Expected goals</h3><span>verified source only</span></div>'+xgVisual(xg,f)+'</div>'+
+      '<div class="visual-card sport-top-card"><div class="visual-card-head"><h3>Goles modelados (λ)</h3><span>'+esc(goalRateLabel)+' · Expected goals (xG) NOT VERIFIED sin fuente independiente</span></div>'+xgVisual(xg,f)+'</div>'+
       '<div class="sport-two-up"><div class="visual-card"><div class="visual-card-head"><h3>Score matrix</h3><span>FT probability</span></div>'+scoreMatrix(scoreRows)+'</div>'+
       '<div class="visual-card"><div class="visual-card-head"><h3>Goal distribution</h3><span>from score matrix</span></div>'+goalDistribution(scoreRows,f)+'</div></div>'+
       '<div class="visual-card sport-profile-card"><div class="visual-card-head"><h3>Team sport profile</h3><span>defined model scores only</span></div>'+sportProfile(ctx.sport_profile||[])+'</div>'+

@@ -135,7 +135,7 @@ def test_fe2_match_detail_is_summary_first_and_mobile_safe():
     assert "overflow-x:auto" in html
     assert "Raw current-snapshot market table" in html
     assert "Input coverage" in html
-    assert "Freshness" in html
+    assert "Datos actualizados" in html
     assert "Match result probability" in html
     assert "Expected goals" in html
 
@@ -304,3 +304,39 @@ def test_edge_radar_highlightly_owner_only_metadata_never_becomes_bet():
     assert "sin evidencia apta para modelar" in html
     assert "sin licencia de publicación" in html or "licencia pendiente" in html
     assert "NO BET" in html
+
+
+def test_match_center_sporting_forecast_is_first_and_diagnostics_are_collapsed():
+    html = subscriber_frontend_v2.render()
+    overview = html.split('const overview=', 1)[1].split('const marketsSection=', 1)[0]
+
+    assert "Sin pronóstico 1X2 verificable" in overview
+    assert 'class="match-reading-banner"' in overview
+    assert "Victoria · Empate · Derrota" in overview
+    assert "Key takeaways" in overview
+    assert overview.index('class="match-reading-banner"') < overview.index("Input coverage")
+    assert overview.index("Victoria · Empate · Derrota") < overview.index("Goal-rate baseline")
+    assert "<details><summary>Forma reciente y datos disponibles" in overview
+    assert "no mide confianza del modelo ni porcentaje de partidos analizados" in html
+    assert "['overview','Resumen']" in html
+
+
+def test_match_center_missing_numbers_do_not_become_zero_or_fake_xg():
+    html = subscriber_frontend_v2.render()
+
+    assert "if(v===null||v===undefined||v===''||typeof v==='boolean')return null" in html
+    assert "featureVerified(features,'team_performance.home_goal_rate_blend')" in html
+    assert "featureVerified(features,'team_performance.away_goal_rate_blend')" in html
+    assert "POISSON_LAMBDA_NOT_XG" in html
+    assert "Expected goals (xG) NOT VERIFIED sin fuente independiente" in html
+    assert "No hay tasas de gol verificadas." in html
+
+
+def test_match_center_readability_at_desktop_and_mobile():
+    html = subscriber_frontend_v2.render()
+
+    assert "#matchDetail .intel-tab{font-size:12px" in html
+    assert "#matchDetail .takeaway small{font-size:12px" in html
+    assert "#matchDetail .prob-tile b{font-size:27px" in html
+    assert "@media(max-width:800px){#matchDetail .overview-primary-grid{grid-template-columns:1fr}}" in html
+    assert "#matchDetail .mini-visual-grid,#matchDetail .sport-two-up{grid-template-columns:1fr}" in html
