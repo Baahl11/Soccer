@@ -154,7 +154,7 @@ jobs:
             HTTP_CODE=$(post_tick "$OIDC_TOKEN")
           fi
 
-          jq '{service,version,model_version,generated_at_local,event_count,due_fixture_count,fixture_scan_count,api_calls_this_tick,last_daily_remaining,database_persisted,database_error,error,detail}' /tmp/soccer_tick.json || true
+          jq '{service,version,model_version,generated_at_local,event_count,due_fixture_count,fixture_scan_count,api_calls_this_tick,p0_sport_preview_attempted_count,p0_sport_preview_modeled_limited_count,p0_sport_preview_missing_inputs_count,p0_sport_preview_cached_count,p0_sport_preview_deferred_quota_count,p0_sport_preview_api_calls,last_daily_remaining,database_persisted,database_error,error,detail}' /tmp/soccer_tick.json || true
 
           if [ "$HTTP_CODE" -ne 200 ]; then
             mkdir -p soccer_edge_state
