@@ -5,8 +5,8 @@ Research-only. API-Football references were observed on 2026-11-11 UTC using
 Soccer Edge API get_today_fixtures. A deliberately nonrepresentative 12-fixture
 sample spanning 2026-11-09..11 is NOT a supplier performance estimate.
 
-Requests: 6 OpenFoot official public-demo; 4 TheSportsDB official shared-free;
-1 OpenLigaDB public Bundesliga sanity. Hard total <= 11.
+Requests: 6 OpenFoot public-demo; 4 TheSportsDB shared-free; 1 OpenLigaDB
+Bundesliga sanity; 2 FootyStats official example-key schema calls. Total <=13.
 """
 from __future__ import annotations
 
@@ -37,9 +37,9 @@ SAMPLE = (
     (1559458, "2026-11-11T10:00:00Z", "Germany U17", "Azerbaijan U17", "UEFA U17 qualifying"),
 )
 DAYS = ("2026-11-09", "2026-11-10", "2026-11-11")
-ALLOWED_HOSTS = {"openfootapi.com", "www.thesportsdb.com", "api.openligadb.de"}
+ALLOWED_HOSTS = {"openfootapi.com", "www.thesportsdb.com", "api.openligadb.de", "api.football-data-api.com"}
 HEADERS = {"Accept": "application/json", "User-Agent": "SoccerEdgeResearch/1.0 public-provider-coverage-check"}
-MAX_CALLS = 11
+MAX_CALLS = 13
 
 
 def dt(x):
@@ -225,14 +225,61 @@ def main():
         "scope_note": "German league scores/fixtures control only; no claims about xG or broad international coverage.",
     }
 
+
+    # FootyStats publishes an official example key for a historical
+    # Premier League season; this is a SCHEMA / FIELD test, not live coverage.
+    def observed_field_families(payload):
+        seen = set()
+        families = {
+            "xg": ("xg", "expectedgoal"),
+            "corners": ("corner",),
+            "shots": ("shot",),
+            "cards": ("card", "yellow", "redcard"),
+            "possession": ("possession",),
+            "players": ("player",),
+            "goals": ("goal",),
+        }
+        queue = [payload]
+        nodes = 0
+        while queue and nodes < 2000:
+            node = queue.pop()
+            nodes += 1
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    if v is None or v == "" or v == []:
+                        continue
+                    k_norm = norm(k)
+                    for family, tokens in families.items():
+                        if any(token in k_norm for token in tokens):
+                            seen.add(family)
+                    if isinstance(v, (dict, list)):
+                        queue.append(v)
+            elif isinstance(node, list):
+                queue.extend(node[:30])
+        return sorted(seen)
+
+    ft = fetch("api.football-data-api.com", "/league-teams",
+               {"key": "example", "season_id": 12325, "include": "stats"})
+    fs = fetch("api.football-data-api.com", "/league-season",
+               {"key": "example", "season_id": 12325})
+    report["providers"]["FOOTYSTATS_EXAMPLE"] = {
+        "access": "OFFICIAL_HISTORICAL_EXAMPLE_KEY_ONLY",
+        "league_teams_http": ft["http"],
+        "league_teams_ms": ft["ms"],
+        "league_teams_status": ft["status"],
+        "league_teams_fields_observed": observed_field_families(ft["data"]) if ft["http"] == 200 else [],
+        "league_season_http": fs["http"],
+        "league_season_ms": fs["ms"],
+        "league_season_status": fs["status"],
+        "league_season_fields_observed": observed_field_families(fs["data"]) if fs["http"] == 200 else [],
+        "same_12_fixture_coverage": None,
+        "scope_note": "This is ONLY 2024/25 English Premier League schema under the public example key; paid current competition coverage NOT VERIFIED.",
+    }
+
     report["providers"]["HIGHLIGHTLY"] = {
         "access": "PRIVATE_KEY_REQUIRED",
         "live_sample_count": None,
         "scope_note": "No API key supplied; published league count is NOT a tested coverage count.",
-    }
-    report["providers"]["FOOTYSTATS"] = {
-        "access": "CUSTOM_KEY_REQUIRED_FOR_GENERAL_FIXTURE_BENCHMARK",
-        "live_sample_count": None,
     }
     report["providers"]["SPORTMONKS"] = {
         "access": "PRIVATE_KEY_REQUIRED",
