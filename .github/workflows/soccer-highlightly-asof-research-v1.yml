@@ -1,9 +1,5 @@
 name: Soccer Highlightly - Strict As-Of Sport-Only Research
 on:
-  push:
-    branches: [research/highlightly-precise-asof-radar-v1]
-    paths:
-      - '.github/scripts/soccer_highlightly_asof_research_v1.py'
   workflow_dispatch:
 
 permissions:
@@ -15,7 +11,6 @@ concurrency:
 
 jobs:
   offline-and-live:
-    if: "github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'ops(soccer): run asof highlightly benchmark once'"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
