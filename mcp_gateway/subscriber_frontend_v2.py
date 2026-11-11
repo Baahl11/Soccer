@@ -364,6 +364,11 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 .focus-metric small{{display:block;font-size:10px;color:#a3c5d4;line-height:1.3}}
 .focus-metric b{{display:block;font-size:22px;color:#eaf9ff;margin-top:5px}}
 @media(max-width:680px){{.focus-metric b{{font-size:18px}}.focus-metric small{{font-size:9px}}}}
+.nav button{{font-size:12px}}
+.context b{{font-size:13px}}
+.context span{{font-size:11px}}
+.kpi span{{font-size:10px}}
+@media(max-width:1050px){{.mobile-nav button{{font-size:11px;min-width:75px}}}}
 </style>
 </head>
 <body>
@@ -374,7 +379,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 </div>
 <div class="shell">
 <aside class="side">
-  <div class="brand"><div class="brand-mark">SE</div><div class="brand-copy"><b>Soccer Edge</b><span>MODEL VS MARKET</span></div></div>
+  <div class="brand"><div class="brand-mark">SE</div><div class="brand-copy"><b>Soccer Edge</b><span>FÚTBOL PRIMERO</span></div></div>
   <div class="nav-label">Decision desk</div>
   <nav class="nav">
     <button class="active" data-page="today"><i>◉</i>Today</button>
@@ -392,7 +397,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 </aside>
 <main class="main">
   <div class="topbar">
-    <div class="context"><b>Soccer Edge Intelligence</b><span id="snapshotText">Waiting for persisted snapshot</span></div>
+    <div class="context"><b>Soccer Edge · Análisis</b><span id="snapshotText">Waiting for persisted snapshot</span></div>
     <div class="account-dock"><span id="freshChip" class="fresh-chip">VERIFYING</span><span id="planChip" class="plan-chip">EXPLORER</span><button id="accountBtn" class="icon-btn">Sign in</button></div>
   </div>
 
@@ -686,7 +691,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     $('kpiFixtures').textContent=DATA?.counts?.fixtures??slate.length;
     $('kpiPicks').textContent=forecastCount;
     $('kpiLeans').textContent=new Set([...savedIds,...entries.map(x=>String(x.row.fixture.fixture_id))]).size;
-    $('kpiWatches').textContent=DATA?.radar?.no_persisted_analysis_count??counts.pending;
+    $('kpiWatches').textContent=counts.pending;
     $('kpiPasses').textContent=DATA?.counts?.picks??0;
     const status=$('focusStatus'),board=$('focusForecasts'),history=$('focusHistorical');
     if(!status||!board||!history)return;
@@ -787,7 +792,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const slate=s.map(slateRow).join('')||empty('No eligible fixtures','No eligible fixtures remain in the current slate.');$('todaySlate').innerHTML=slate;$('matchesList').innerHTML=slate;
   }}
   function renderPlan(){{ACCESS=DATA?.access||ACCESS||{{}};const plan=ACCESS?.display_role||ACCESS?.effective_plan||(token()?'FREE':'EXPLORER');$('planChip').textContent=String(plan).toUpperCase();$('accountBtn').textContent=token()?'Account':'Sign in';$('accountPageBtn').textContent=token()?'Manage account':'Sign in';$('accountPlan').textContent=premium()?'Edge Pro':'Explorer';$('accountCopy').textContent=premium()?'Premium decision evidence is unlocked for this account.':'Browse the verified slate and watch states. Premium probability, price and evidence fields remain redacted.';$('signOut').classList.toggle('hidden',!token())}}
-  function renderMeta(){{const raw=DATA?.generated_at_utc||DATA?.generated_at_local||'persisted';$('snapshotText').textContent='Persisted snapshot · '+raw;$('todayStamp').textContent=raw;$('freshChip').textContent=DATA?.status==='SUBSCRIBER_CONTRACT_V2_READY'?'VERIFIED SNAPSHOT':'CHECK STATE'}}
+  function renderMeta(){{const raw=DATA?.generated_at_utc||DATA?.generated_at_local||'',d=new Date(raw);const readable=raw&&!Number.isNaN(d.getTime())?new Intl.DateTimeFormat('es-MX',{{timeZone:'America/Mexico_City',dateStyle:'medium',timeStyle:'short'}}).format(d):'Fecha sin verificar';$('snapshotText').textContent='Datos guardados · '+readable;$('todayStamp').textContent=readable;$('todayStamp').title=raw||'Sin registro';$('freshChip').textContent=DATA?.status==='SUBSCRIBER_CONTRACT_V2_READY'?'DATOS GUARDADOS':'REVISAR DATOS'}}
   async function recoverSession(){{
     const refresh=localStorage.getItem(RK)||'';
     if(refresh&&cfg.auth_configured){{
@@ -812,7 +817,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         DATA=await api('/today');
       }}else throw e
     }}
-    ACCESS=DATA.access||{{}};await enrichIdentities();renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate();renderSportFocus();void loadResearchDesk()
+    ACCESS=DATA.access||{{}};renderMeta();renderPlan();renderKpis();renderHero();renderCards();renderWatchSlate();renderSportFocus();void enrichIdentities().then(()=>{{renderSportFocus();renderCards();renderWatchSlate()}})
   }}
   function researchPriceCard(x){{
     const market=esc(x.market_family)+(x.line===null?'':' · '+esc(x.line));
