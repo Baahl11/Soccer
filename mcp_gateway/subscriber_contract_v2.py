@@ -8,6 +8,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from mcp_gateway import persistence as persistence_base
+from mcp_gateway import highlightly_research_pg_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -1535,6 +1536,68 @@ def build_contract(payload: dict[str, Any], entitlement: dict[str, Any]) -> dict
     }
 
 
+def _attach_highlightly_owner_research(
+    contract_payload: dict[str, Any],
+    rows_by_id: dict[str, dict[str, Any]] | None,
+) -> dict[str, Any]:
+    """Owner-only research supplement; never replace canonical sporting evidence."""
+    access=_dict(contract_payload.get("access"))
+    if not (access.get("owner") or access.get("admin")):
+        return contract_payload
+    slate=_dict(contract_payload.get("slate"))
+    radar=_dict(contract_payload.get("radar"))
+    if rows_by_id is None:
+        radar["highlightly_research"]={
+            "status":"SOURCE_NOT_VERIFIED",
+            "reason":"Base privada de investigación no disponible todavía.",
+            "commercial_display_allowed":False,
+            "canonical_sport_coverage_changed":False,
+        }
+        contract_payload["radar"]=radar
+        return contract_payload
+    rows=slate.get("rows") or []
+    matched=0
+    prematch=0
+    review=0
+    for row in rows:
+        fixture=_dict(row.get("fixture"))
+        research=rows_by_id.get(str(fixture.get("fixture_id") or ""))
+        if not isinstance(research,dict):continue
+        evidence=str(research.get("evidence_status") or "")
+        matching=str(research.get("identity_status") or "")
+        # Only metadata for already-eligible registry fixtures. Not raw data.
+        screening=_dict(row.get("screening"))
+        screening["supplementary_sport_research"]={
+            "source":"HIGHLIGHTLY_BASIC_RESEARCH_ONLY",
+            "identity_status":matching,
+            "evidence_status":evidence,
+            "families_research":list(research.get("families_research") or []),
+            "captured_at":research.get("captured_at"),
+            "source_updated_at_verified":False,
+            "market_price_verified":False,
+            "model_input_allowed":False,
+            "bet_eligible":False,
+            "commercial_display_allowed":False,
+        }
+        row["screening"]=screening
+        matched+=1
+        if evidence=="PREMATCH_RESEARCH_LIMITED":prematch+=1
+        if matching!="IDENTITY_EXACT_VERIFIED":review+=1
+    radar["highlightly_research"]={
+        "status":"OWNER_RESEARCH_COVERAGE_AVAILABLE" if matched else "NO_SAME_SLATE_RESEARCH_RECORDS",
+        "source":"HIGHLIGHTLY_BASIC_RESEARCH_ONLY",
+        "fixture_research_rows_on_slate":matched,
+        "prematch_research_limited_count":prematch,
+        "identity_review_count":review,
+        "commercial_display_allowed":False,
+        "canonical_sport_coverage_changed":False,
+        "model_input_allowed":False,
+        "bet_eligible":False,
+    }
+    contract_payload["radar"]=radar
+    return contract_payload
+
+
 async def _resolve_entitlement(request: Request) -> tuple[dict[str, Any] | None, JSONResponse | None]:
     token = supabase_auth_v4.bearer_token(request.headers.get("authorization"))
     if not token:
@@ -1577,6 +1640,22 @@ async def _contract_for_request(
     except Exception:
         registry = None
     contract_payload = _attach_full_registry_slate(contract_payload, payload, registry)
+    access=_dict(contract_payload.get("access"))
+    if access.get("owner") or access.get("admin"):
+        try:
+            fixture_ids=[
+                int(_dict(row.get("fixture")).get("fixture_id"))
+                for row in _dict(contract_payload.get("slate")).get("rows",[])
+                if str(_dict(row.get("fixture")).get("fixture_id") or "").isdigit()
+            ]
+            supplementary=await asyncio.to_thread(
+                highlightly_research_pg_v1.read_for_fixture_ids,fixture_ids
+            )
+        except Exception:
+            supplementary=None
+        contract_payload=_attach_highlightly_owner_research(
+            contract_payload,supplementary
+        )
     return contract_payload, payload, None
 
 
