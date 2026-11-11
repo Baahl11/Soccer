@@ -1,0 +1,77 @@
+name: Soccer Highlightly Verified SPORT Coverage - Private OIDC Manual
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/scripts/soccer_highlightly_asof_research_v1.py'
+      - '.github/scripts/soccer_highlightly_private_oidc_v1.py'
+      - '.github/workflows/soccer-highlightly-asof-coverage-v1.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/soccer_highlightly_private_oidc_v1.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: soccer-highlightly-basic-private-sport-coverage
+  cancel-in-progress: false
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate no-future-leak, identity and transport firewall
+        run: |
+          set -euo pipefail
+          python -m py_compile .github/scripts/soccer_highlightly_asof_research_v1.py .github/scripts/soccer_highlightly_private_oidc_v1.py
+          python .github/scripts/soccer_highlightly_asof_research_v1.py --self-test
+          python .github/scripts/soccer_highlightly_private_oidc_v1.py --self-test
+          python - <<'PY'
+          from pathlib import Path
+          a=Path('.github/scripts/soccer_highlightly_asof_research_v1.py').read_text()
+          b=Path('.github/scripts/soccer_highlightly_private_oidc_v1.py').read_text()
+          assert 'MAX_REQUESTS = 10' in a
+          assert 'QUOTA_FLOOR = 70' in a
+          assert 'IDENTITY_EXACT_VERIFIED' in a
+          assert 'model_input_promotion_allowed' in b
+          assert 'GITHUB_REF' in b
+          assert '/internal/highlightly-sport-research-v1/import' in b
+          print('HIGHLIGHTLY_PRIVATE_ASOF_WORKFLOW_PASS')
+          PY
+
+  live-main-private:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+       github.event.head_commit.message == 'research(soccer): run Highlightly private asof bridge on merge (#158)')
+    needs: offline-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SOCCER_HIGHLIGHTLY_API_KEY: ${{ secrets.SOCCER_HIGHLIGHTLY_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Capture maximum ten REST calls and send only verified source flags by OIDC
+        run: |
+          set -euo pipefail
+          python .github/scripts/soccer_highlightly_private_oidc_v1.py | tee /tmp/highlightly_private_receipt.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: highlightly-private-asof-oidc-receipt-v1
+          path: /tmp/highlightly_private_receipt.json
+          retention-days: 10
+          if-no-files-found: error
