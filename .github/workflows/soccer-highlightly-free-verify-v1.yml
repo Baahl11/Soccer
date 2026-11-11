@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   verify:
-    if: github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'ops(soccer): verify highlightly secret once'
+    if: "github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'ops(soccer): verify highlightly secret once'"
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
