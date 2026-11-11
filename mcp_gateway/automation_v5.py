@@ -612,6 +612,8 @@ async def _priority_event(
 
 async def _daily_p0_sport_previews(
     fixtures: list[dict[str, Any]], now: datetime, local_date: str,
+    *, max_fixtures: int = p0_preview.MAX_PER_TICK,
+    reserve_calls: int = p0_preview.MIN_CALLS_RESERVED_FOR_REST_OF_TICK,
 ) -> dict[str, Any]:
     """Bounded sport-first as-of screening before bets, cached across ticks.
 
@@ -622,13 +624,15 @@ async def _daily_p0_sport_previews(
         "missing_sport_inputs": 0, "cached_from_prior_tick": 0,
         "deferred_due_to_quota": 0, "request_cap": p0_preview.MAX_PROVIDER_CALLS_FOR_SCREEN,
     }
+    max_fixtures = max(0, min(p0_preview.MAX_PER_TICK, int(max_fixtures)))
+    reserve_calls = max(0, int(reserve_calls))
     started_at = v2._API_CALLS_THIS_TICK
     candidates = sorted(
         (fx for fx in fixtures if p0_preview.eligible(fx, now)),
         key=lambda fx: (base._dt(fx["kickoff"]), _competition_priority(fx), fx["fixture_id"]),
     )
     for fx in candidates:
-        if result["attempted"] >= p0_preview.MAX_PER_TICK:
+        if result["attempted"] >= max_fixtures:
             break
         cache_key = f"{local_date}:{fx['fixture_id']}"
         if base._cache_get("p0_sport_screen_daily", cache_key, timedelta(hours=26), now) is not None:
@@ -638,7 +642,7 @@ async def _daily_p0_sport_previews(
         # active-game refreshes for a sport-only research screen.
         remaining = v4._effective_tick_cap() - v2._API_CALLS_THIS_TICK
         budget_used = v2._API_CALLS_THIS_TICK - started_at
-        if (remaining < p0_preview.MIN_CALLS_RESERVED_FOR_REST_OF_TICK + 2
+        if (remaining < reserve_calls + 2
                 or budget_used >= p0_preview.MAX_PROVIDER_CALLS_FOR_SCREEN - 1
                 or (v2._LAST_DAILY_REMAINING is not None and v2._LAST_DAILY_REMAINING <= 70)):
             result["deferred_due_to_quota"] += 1
@@ -656,7 +660,8 @@ async def _daily_p0_sport_previews(
             # Mark only completed attempts; never re-use a partial failed team pair.
             base._cache_set("p0_sport_screen_daily", cache_key,
                 {"status": event["raw_sport_screen_status"]}, now)
-            _shortlist_set(fx["fixture_id"], shortlist, now)
+            # Research P0 is never allowed to overwrite the canonical
+            # lifecycle shortlist used by later availability/market gates.
         except v2.TickBudgetExceeded:
             result["deferred_due_to_quota"] += 1
             break

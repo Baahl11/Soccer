@@ -16,7 +16,13 @@ from mcp_gateway import automation_v6 as v6
 from mcp_gateway import fair_scheduler
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
-AUTOMATION_VERSION = "1.7.0"
+AUTOMATION_VERSION = "1.7.1-live-p0-sport-first"
+
+# The active v7 scheduler bypasses v5.run_tick(), where P0 was originally
+# installed. Reserve a bounded SPORT-FIRST slice ahead of market refresh.
+# Never use this source as an actionable selection, price or BET.
+P0_SPORT_MAX_FIXTURES_PER_TICK = 2
+P0_SPORT_MIN_REMAINING_FOR_CANONICAL = 3
 
 # Once a fixture has passed the sporting screen, protect its late verification
 # windows before spending the scarce tick budget discovering new candidates.
@@ -218,6 +224,26 @@ async def run_tick() -> dict[str, Any]:
             roster_event = fe11_registry.discovery_event(fe11_roster)
             if roster_event is not None:
                 events.append(roster_event)
+
+        # The production chain enters via v7, not v5.run_tick(). Without this
+        # call the P0 implementation is dead code and daily model counters are
+        # missing even when hundreds of fixtures were scanned.
+        try:
+            p0_sport = await v5._daily_p0_sport_previews(
+                fixtures, now_utc, local_now.date().isoformat(),
+                max_fixtures=P0_SPORT_MAX_FIXTURES_PER_TICK,
+                reserve_calls=P0_SPORT_MIN_REMAINING_FOR_CANONICAL,
+            )
+        except Exception as exc:
+            # A research-only failure must not disrupt canonical fixtures,
+            # urgent availability checks, markets, or postgame processing.
+            p0_sport = {
+                "events": [], "attempted": 0, "modeled_limited": 0,
+                "missing_sport_inputs": 0, "cached_from_prior_tick": 0,
+                "deferred_due_to_quota": 0, "api_calls_used": 0,
+                "error": type(exc).__name__,
+            }
+        events.extend(p0_sport["events"])
 
         due: list[dict[str, Any]] = []
         low_data_counts: Counter[str] = Counter()
@@ -475,6 +501,23 @@ async def run_tick() -> dict[str, Any]:
             "current_halftime_research_fixture_count": len(current_halftime_research_fixtures),
             "current_halftime_research_fixtures": current_halftime_research_fixtures,
             "due_fixture_count": len(due),
+            # Count actual SPORT_PREVIEW attempts, not the number of
+            # fixtures discovered or the availability of market quotes.
+            "p0_sport_preview_attempted_count": p0_sport["attempted"],
+            "p0_sport_preview_modeled_limited_count": p0_sport["modeled_limited"],
+            "p0_sport_preview_missing_inputs_count": p0_sport["missing_sport_inputs"],
+            "p0_sport_preview_cached_count": p0_sport["cached_from_prior_tick"],
+            "p0_sport_preview_deferred_quota_count": p0_sport["deferred_due_to_quota"],
+            "p0_sport_preview_api_calls": p0_sport["api_calls_used"],
+            "p0_sport_preview_status": (
+                "RESEARCH_RUNTIME_ERROR" if p0_sport.get("error")
+                else "MODELED_LIMITED" if p0_sport["modeled_limited"]
+                else "QUOTA_DEFERRED" if p0_sport["deferred_due_to_quota"]
+                else "NO_NEW_ELIGIBLE_SPORT_SAMPLE"
+            ),
+            "p0_sport_preview_error_class": p0_sport.get("error"),
+            "p0_sport_preview_commercial_display_allowed": False,
+            "p0_sport_preview_bet_eligible": False,
             "event_count": len(events),
             "actionable_refresh_count": len(actionable),
             "bet_candidate_count": len(bets),

@@ -345,6 +345,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 .focus-card .focus-tag{{font-size:10px;font-weight:850;color:#8fdac7;letter-spacing:.03em}}
 .focus-card.past .focus-tag{{color:#dfbc75}}
 .focus-forecast-grid .focus-empty{{grid-column:1/-1;padding:20px;border:1px dashed #2b566c;border-radius:11px;font-size:13px;color:#b2ccda;line-height:1.7}}
+.focus-forecast-grid .focus-empty-compact{{padding:12px 14px;line-height:1.55}}
 .focus-subhead{{border-top:1px solid #284a5b;margin-top:23px;padding-top:20px}}
 .focus-subhead h3{{font-size:20px;margin:0 0 6px}}
 .focus-filters{{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 8px}}
@@ -759,12 +760,27 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     $('kpiPasses').textContent=DATA?.counts?.picks??0;
     const status=$('focusStatus'),board=$('focusForecasts'),history=$('focusHistorical');
     if(!status||!board||!history)return;
+    const screen=DATA?.sport_screening||{{}};
+    const hasTickScreen=screen.status==='SPORT_FIRST_SCREEN_RECORDED';
+    const screenSummary=hasTickScreen?
+      'En el último ciclo: '+esc(screen.attempted)+' partidos examinados, '+esc(screen.modeled_research)+
+      ' proyecciones deportivas limitadas, '+esc(screen.inputs_insufficient)+
+      ' sin muestra suficiente y '+esc(screen.quota_deferred)+' diferidos por cuota. Estos conteos NO son apuestas ni representan toda la jornada.':
+      'La ejecución del screening deportivo de este ciclo todavía no está verificada.';
+    const canReviewPrivateResearch=ACCESS?.owner===true||ACCESS?.admin===true;
     status.innerHTML=forecastCount?
-      '<strong>'+forecastCount+' partido(s) con proyección deportiva previa</strong> entre '+slate.length+' · '+counts.pending+' sin análisis guardado. Las probabilidades provienen de goles observados y NO equivalen a apuestas.':
-      '<strong>No hay pronósticos previos al inicio que podamos presentar como vigentes.</strong> Hay '+slate.length+' partidos cargados y '+
-       counts.pending+' sin análisis. Que exista un calendario no significa que el modelo haya evaluado los partidos.';
+      '<strong>'+forecastCount+' partido(s) con proyección deportiva previa</strong> entre '+slate.length+
+      ' · '+counts.pending+' sin análisis guardado. Las probabilidades NO equivalen a apuestas. <span>'+screenSummary+'</span>':
+      '<strong>'+esc(hasTickScreen&&screen.modeled_research>0?'Investigación deportiva registrada, sin pronósticos públicos autorizados.':
+         'Sin proyecciones deportivas publicables para esta sesión.')+'</strong> '+
+      screenSummary+' Hay '+slate.length+' partidos en el calendario; '+counts.pending+
+      ' siguen sin análisis completo. Una estimación de investigación sin fuente publicable o validación suficiente no se publica como pronóstico.';
     board.innerHTML=forecastCount?(saved.slice(0,8).map(p0Card).join('')+active.slice(0,Math.max(0,8-saved.length)).map(focusForecastCard).join('')):
-      '<div class="focus-empty">No voy a inventar porcentajes para rellenar esta pantalla. El motor necesita una proyección deportiva guardada antes de cada encuentro. Abajo puedes ver qué partidos están pendientes.</div>';
+      '<div class="focus-empty focus-empty-compact">'+
+      esc(canReviewPrivateResearch?
+        'No hay probabilidades deportivas verificables para estos partidos en la cuenta actual. Selecciona Todos o Datos parciales para revisar lo guardado.':
+        'Las proyecciones de investigación no autorizadas para publicación no aparecen en modo FREE. Abre Todos para consultar los partidos y sus datos verificados.')+
+      '</div>';
     history.classList.toggle('hidden',previous.length===0);
     $('focusHistoricalRows').innerHTML=previous.slice(0,10).map(focusForecastCard).join('');
     const filters=[['pending','Por analizar'],['partial','Datos parciales'],['forecast','Con pronóstico'],['all','Todos']];

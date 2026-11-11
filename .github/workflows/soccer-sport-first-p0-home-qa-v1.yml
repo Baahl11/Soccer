@@ -4,6 +4,7 @@ on:
     branches: [soccer-edge-mcp-v1]
     paths:
       - 'mcp_gateway/automation_v5.py'
+      - 'mcp_gateway/automation_v7.py'
       - 'mcp_gateway/soccer_p0_sport_preview_v1.py'
       - 'mcp_gateway/soccer_p0_persisted_view_v1.py'
       - 'mcp_gateway/subscriber_contract_v2.py'
@@ -29,7 +30,7 @@ jobs:
       - name: Run P0 source, timestamp, quota and UI contract tests
         run: |
           set -euo pipefail
-          python -m compileall -q mcp_gateway/automation_v5.py mcp_gateway/soccer_p0_sport_preview_v1.py mcp_gateway/soccer_p0_persisted_view_v1.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/subscriber_contract_v2.py
+          python -m compileall -q mcp_gateway/automation_v5.py mcp_gateway/automation_v7.py mcp_gateway/soccer_p0_sport_preview_v1.py mcp_gateway/soccer_p0_persisted_view_v1.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/subscriber_contract_v2.py
           python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_soccer_p0_sport_first_today_v1.py \
             tests/test_isolated_sport_frozen_pg_v1.py \
