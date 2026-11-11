@@ -205,3 +205,62 @@ def test_opt_in_alerts_are_research_only_and_require_rights():
     assert yes["status"]=="RESEARCH_NOTICE_ALLOWED"
     assert yes["notification_sent"] is False
     assert yes["bet_signal_allowed"] is False
+
+
+def test_existing_goal_rate_market_cannot_bet_on_provider_proxy_even_with_edge():
+    """Regression: old Tier-B path accepted non-executable provider odds."""
+    from mcp_gateway import soccer_model
+
+    raw = {
+        "status":"MODELED_LIMITED",
+        "sample":{"minimum_split_sample":12},
+        "raw_home_win_prob":0.555,
+        "raw_draw_prob":0.25,
+        "raw_away_win_prob":0.195,
+        "raw_total_goals":2.70,
+        "raw_btts_yes_prob":0.55,
+        "_total_dist":{2:0.35,3:0.40,4:0.25},
+    }
+    proxy = {"markets":[{
+        "market":"Match Winner","market_id":1,
+        "bookmaker":"Research Provider","bookmaker_id":12,
+        "provider_update":"2026-11-11T15:55:00Z",
+        "values":[
+            {"selection":"Home","price":2.2},
+            {"selection":"Draw","price":3.4},
+            {"selection":"Away","price":3.5},
+        ],
+    }]}
+    outcome = soccer_model.evaluate_market(
+        raw, proxy, {"data_tier":"A"}, 0.94, "T-90", {})
+    assert outcome["bet_eligible"] is False
+    assert outcome["market_verification_status"]=="DIRECT_EXECUTABLE_QUOTE_NOT_VERIFIED"
+    assert all(x["classification"] not in {"BET","LEAN"} for x in outcome["decisions"])
+    assert all(x["stake_units"]==0.0 for x in outcome["decisions"])
+    assert any(x["tier"]=="B" for x in outcome["decisions"])
+    assert all(x["commercial_bet_eligible"] is False for x in outcome["decisions"])
+
+
+def test_public_stripe_checkout_remains_off_when_operator_flag_set_alone(monkeypatch):
+    from mcp_gateway import subscriber_billing_v2
+
+    monkeypatch.setenv("SOCCER_PUBLIC_BILLING_ENABLED","true")
+    for key in safety.REQUIRED:
+        monkeypatch.delenv(key,raising=False)
+    result = subscriber_billing_v2.public_billing_contract()
+    assert result["public_launch_enabled"] is False
+    assert result["checkout_enabled"] is False
+    assert result["launch_safety_status"]=="COMMERCIAL_LAUNCH_BLOCKED"
+    assert "SOCCER_PAYMENT_SANDBOX_APPROVED" in result["launch_missing_gate_codes"]
+    assert result["launch_operator_evidence_review_required"] is True
+
+
+def test_binary_quote_rejects_wrong_period_and_disconnected_player():
+    frozen={**_frozen("1H_TOTALS"),"period":"1H"}
+    quarter={**_quote(),"family":"1H_TOTALS","period":"2H"}
+    assert market.analyze_frozen_sport_and_quote(
+        frozen,quarter,evaluated_at_utc="2026-11-11T16:07:00Z")["reason"]=="PERIOD_MISMATCH"
+    frozen={**_frozen("PLAYER_SHOTS"),"entity_id":999}
+    q={**_quote(),"family":"PLAYER_SHOTS","entity_id":1000}
+    assert market.analyze_frozen_sport_and_quote(
+        frozen,q,evaluated_at_utc="2026-11-11T16:07:00Z")["reason"]=="PLAYER_OR_TEAM_INSTRUMENT_MISMATCH"
