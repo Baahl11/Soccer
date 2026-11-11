@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from mcp_gateway import soccer_launch_safety_v1
 from mcp_gateway import subscriber_billing_market_v226
 from mcp_gateway import supabase_auth_v4
 
@@ -63,7 +64,8 @@ def public_billing_contract() -> dict[str, Any]:
         and auth.get("project_url")
         and auth.get("publishable_key")
     )
-    public_launch_enabled = _flag("SOCCER_PUBLIC_BILLING_ENABLED", False)
+    launch_audit = soccer_launch_safety_v1.audit_launch_gates()
+    public_launch_enabled = bool(launch_audit["billing_enabled"])
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -77,6 +79,10 @@ def public_billing_contract() -> dict[str, Any]:
         ),
         "infrastructure_ready": infrastructure_ready,
         "public_launch_enabled": public_launch_enabled,
+        "launch_safety_status": launch_audit["status"],
+        "launch_attestation_gates_met": launch_audit["all_internal_attestations_present"],
+        "launch_missing_gate_codes": list(launch_audit["missing_gates"]),
+        "launch_operator_evidence_review_required": True,
         "checkout_enabled": infrastructure_ready and public_launch_enabled,
         "portal_enabled": infrastructure_ready,
         "checkout_function": CHECKOUT_FUNCTION,
