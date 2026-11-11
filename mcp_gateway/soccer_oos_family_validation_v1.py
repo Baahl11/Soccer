@@ -87,8 +87,15 @@ def _verified_score(row, family, player_id):
     return {"home":node["home"],"away":node["away"]}
 
 
-def grade_frozen_record(row: dict[str,Any]) -> dict[str,Any]:
-    """One fixture, one binary/1X2 selection, independently audited after FT."""
+def grade_frozen_record(
+    row: dict[str,Any], *,
+    trusted_official_ingestion_ids: frozenset[str] = frozenset(),
+) -> dict[str,Any]:
+    """One frozen selection; do not trust input's own official flag.
+
+    An independent trusted ingestion registry MUST supply the allowlist.
+    Default empty proves nothing; no supplied internet URL certifies the feed.
+    """
     family=row.get("family")
     if family not in MARKETS:return {"status":"NOT_GRADED","reason":"UNSUPPORTED_FAMILY"}
     frozen=_dt(row.get("frozen_at_utc"))
@@ -99,6 +106,10 @@ def grade_frozen_record(row: dict[str,Any]) -> dict[str,Any]:
     observed=_dt(s.get("observed_at_utc")) if isinstance(s,dict) else None
     if not observed or observed<=kickoff:
         return {"status":"NOT_GRADED","reason":"OFFICIAL_FT_POSTKICKOFF_TIME_NOT_VERIFIED"}
+    ingestion_id=s.get("trusted_ingestion_id") if isinstance(s,dict) else None
+    if (not isinstance(ingestion_id,str) or not ingestion_id
+            or ingestion_id not in trusted_official_ingestion_ids):
+        return {"status":"NOT_GRADED","reason":"INDEPENDENT_OFFICIAL_SETTLEMENT_INGEST_NOT_TRUSTED"}
     if row.get("model_version") in (None,""):
         return {"status":"NOT_GRADED","reason":"FROZEN_MODEL_VERSION_MISSING"}
     fixture=row.get("fixture_id")
@@ -137,13 +148,17 @@ def grade_frozen_record(row: dict[str,Any]) -> dict[str,Any]:
             "frozen_fingerprint":fingerprint,"bet_eligible":False}
 
 
-def family_oos_scorecards(records: list[dict[str,Any]]) -> dict[str,Any]:
-    """One probability per unique fixture/family/selection/instrument/version."""
+def family_oos_scorecards(
+    records: list[dict[str,Any]], *,
+    trusted_official_ingestion_ids: frozenset[str] = frozenset(),
+) -> dict[str,Any]:
+    """One probability per unique instrument, trusted ledger IDs required."""
     by_family=defaultdict(list)
     not_graded=defaultdict(int)
     seen=set()
     for row in records:
-        g=grade_frozen_record(row)
+        g=grade_frozen_record(
+            row, trusted_official_ingestion_ids=trusted_official_ingestion_ids)
         if g["status"]!="OFFICIAL_FT_GRADED_RESEARCH_ONLY":
             not_graded[g["reason"]]+=1
             continue
