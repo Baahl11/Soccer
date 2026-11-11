@@ -1,0 +1,28 @@
+name: Soccer Public Free Provider Coverage Probe (No Secrets)
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-public-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile bounded probe with zero credentials and zero canonical DB writes
+        run: python -m py_compile .github/scripts/soccer_public_free_provider_probe_v1.py
+      - name: Run actual public-source requests (13 maximum)
+        run: |
+          set -euo pipefail
+          python .github/scripts/soccer_public_free_provider_probe_v1.py | tee /tmp/soccer_public_free_provider_probe_v1.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: soccer-public-free-provider-probe-v1
+          path: /tmp/soccer_public_free_provider_probe_v1.json
+          retention-days: 7
+          if-no-files-found: error
