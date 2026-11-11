@@ -135,7 +135,7 @@ def test_fe2_match_detail_is_summary_first_and_mobile_safe():
     assert "overflow-x:auto" in html
     assert "Raw current-snapshot market table" in html
     assert "Input coverage" in html
-    assert "Freshness" in html
+    assert "Datos actualizados" in html
     assert "Match result probability" in html
     assert "Expected goals" in html
 
