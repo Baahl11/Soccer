@@ -661,7 +661,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   function empty(title,copy){{return '<div class="empty"><b>'+esc(title)+'</b>'+esc(copy)+'</div>'}}
   function lock(resource,count){{return '<div class="lock"><b>'+esc(resource)+' · Edge Pro</b>'+esc(count||0)+' canonical item'+((count||0)===1?'':'s')+' in this snapshot. Premium probability, price and evidence fields remain server-redacted.</div>'}}
 
-  let focusFilter='pending';
+  let focusFilter='all';
   function sportForecastEntries(){{
     const rows=[...(DATA?.picks?.rows||[]),...(DATA?.leans?.rows||[]),...(DATA?.watches?.rows||[])];
     const seen=new Set(),entries=[];

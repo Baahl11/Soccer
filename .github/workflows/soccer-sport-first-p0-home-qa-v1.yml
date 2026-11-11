@@ -9,6 +9,7 @@ on:
       - 'mcp_gateway/subscriber_contract_v2.py'
       - 'mcp_gateway/subscriber_frontend_v2.py'
       - 'tests/test_soccer_p0_sport_first_today_v1.py'
+      - 'tests/test_isolated_sport_frozen_pg_v1.py'
       - '.github/workflows/soccer-sport-first-p0-home-qa-v1.yml'
 
 permissions:
@@ -31,6 +32,7 @@ jobs:
           python -m compileall -q mcp_gateway/automation_v5.py mcp_gateway/soccer_p0_sport_preview_v1.py mcp_gateway/soccer_p0_persisted_view_v1.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/subscriber_contract_v2.py
           python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_soccer_p0_sport_first_today_v1.py \
+            tests/test_isolated_sport_frozen_pg_v1.py \
             tests/test_subscriber_frontend_v2.py \
             tests/test_subscriber_contract_v2.py
       - name: Verify every generated inline JavaScript parses on Node
