@@ -48,12 +48,12 @@ jobs:
             for attempt in 1 2 3 4 5 6 7 8; do
               curl -fsS --retry 2 --retry-delay 2 --max-time 45 "$BASE_URL/app/api/v2/today" > /tmp/soccer-today.json
               if python - <<'PY'
-import json
-d=json.load(open('/tmp/soccer-today.json'))
-s=d.get('sport_screening') or {}
-assert s.get('scope')=='LAST_PIPELINE_TICK_ONLY'
-assert s.get('source_redisplay_rights_verified') is False
-PY
+          import json
+          d=json.load(open('/tmp/soccer-today.json'))
+          s=d.get('sport_screening') or {}
+          assert s.get('scope')=='LAST_PIPELINE_TICK_ONLY'
+          assert s.get('source_redisplay_rights_verified') is False
+          PY
               then seen=1; break; fi
               sleep 15
             done
