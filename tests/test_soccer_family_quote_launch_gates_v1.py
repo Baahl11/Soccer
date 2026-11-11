@@ -144,6 +144,7 @@ def _graded_input(family="1X2",selection="home",line=None):
         "kickoff_utc":"2026-11-11T18:00:00Z",
         "official_settlement":{
             "status":"FT","source_type":"OFFICIAL_LEAGUE",
+            "trusted_ingestion_id":"synthetic-fixture-151",
             "independent_auditor_verified":True,
             "official_source_url":"https://official.example/fixture/151",
             "observed_at_utc":"2026-11-11T21:00:00Z",
@@ -153,24 +154,43 @@ def _graded_input(family="1X2",selection="home",line=None):
 
 
 def test_official_ft_family_oos_grades_only_prospective_evidence():
-    r=oos.grade_frozen_record(_graded_input())
+    r=oos.grade_frozen_record(
+        _graded_input(),trusted_official_ingestion_ids=frozenset({"synthetic-fixture-151"}))
     assert r["status"]=="OFFICIAL_FT_GRADED_RESEARCH_ONLY"
     assert r["outcome"]==1
     assert r["brier"]==pytest.approx((.61-1)**2)
     row=_graded_input("FT_TOTALS","over_2.5",2.5)
-    assert oos.grade_frozen_record(row)["outcome"]==1
+    assert oos.grade_frozen_record(
+        row,trusted_official_ingestion_ids=frozenset({"synthetic-fixture-151"}))["outcome"]==1
     row=_graded_input("BTTS","yes")
-    assert oos.grade_frozen_record(row)["outcome"]==1
+    assert oos.grade_frozen_record(
+        row,trusted_official_ingestion_ids=frozenset({"synthetic-fixture-151"}))["outcome"]==1
     row=_graded_input("FT_CORNERS","over_9.5",9.5)
-    assert oos.grade_frozen_record(row)["status"]=="NOT_GRADED"
+    assert oos.grade_frozen_record(
+        row,trusted_official_ingestion_ids=frozenset({"synthetic-fixture-151"}))["status"]=="NOT_GRADED"
     invalid=_graded_input();invalid["frozen_at_utc"]="2026-11-11T19:00:00Z"
-    assert oos.grade_frozen_record(invalid)["status"]=="NOT_GRADED"
+    assert oos.grade_frozen_record(
+        invalid,trusted_official_ingestion_ids=frozenset({"synthetic-fixture-151"}))["status"]=="NOT_GRADED"
     invalid=_graded_input();invalid["official_settlement"]["independent_auditor_verified"]=False
-    assert oos.grade_frozen_record(invalid)["status"]=="NOT_GRADED"
+    assert oos.grade_frozen_record(
+        invalid,trusted_official_ingestion_ids=frozenset({"synthetic-fixture-151"}))["status"]=="NOT_GRADED"
+
+
+def test_oos_rejects_self_attested_official_url_without_independent_trusted_ingest():
+    row=_graded_input()
+    assert row["official_settlement"]["independent_auditor_verified"] is True
+    # Provider URL and a claimed auditor flag are NOT independently validated.
+    g=oos.grade_frozen_record(row)
+    assert g["status"]=="NOT_GRADED"
+    assert g["reason"]=="INDEPENDENT_OFFICIAL_SETTLEMENT_INGEST_NOT_TRUSTED"
+    score=oos.family_oos_scorecards([row])
+    assert score["families"]["1X2"]["official_ft_unique_fixtures"]==0
+    assert score["commercial_promotion_allowed"] is False
 
 
 def test_oos_scorecard_does_not_transfer_other_market_families_or_promote():
-    score=oos.family_oos_scorecards([_graded_input(),_graded_input()])
+    score=oos.family_oos_scorecards([_graded_input(),_graded_input()],
+        trusted_official_ingestion_ids=frozenset({"synthetic-fixture-151"}))
     assert score["families"]["1X2"]["official_ft_unique_fixtures"]==1
     assert score["families"]["FT_CORNERS"]["official_ft_unique_fixtures"]==0
     assert score["families"]["1X2"]["research_sample_gate"]=="OOS_SAMPLE_INSUFFICIENT"
