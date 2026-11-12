@@ -94,12 +94,12 @@ def opportunity_from_registry(row: dict[str, Any]) -> dict[str, Any]:
     elif internal == "PASS" and not prices:
         status = "SPORT_SCREEN_PASS"
         reason = "PASS deportivo registrado, sin evidencia suficiente de precio para declarar 'sin valor'."
-    elif internal == "BET" and not prices:
+    elif internal == "BET":
         status = "VERIFICACION_PENDIENTE"
-        reason = "Clasificacion canonica historica; precio ejecutable actual no verificado."
+        reason = "BET canonico historico; vigencia de precio y disponibilidad NO VERIFICADAS ahora."
     else:
         status = OPPORTUNITY_LABELS[internal]
-        reason = state.get("reason_display") or "Decision canonica persistida."
+        reason = state.get("reason_display") or "Decision canonica persistida; precio actual NO VERIFICADO."
     return {
         "status": status,
         "canonical_classification": internal,
@@ -172,7 +172,7 @@ def detail_layers(packet: dict[str, Any]) -> dict[str, Any]:
         out_status = "MERCADO_NO_EVALUADO"
     elif canonical == "PASS" and not verified:
         out_status = "SPORT_SCREEN_PASS"
-    elif canonical == "BET" and not verified:
+    elif canonical == "BET":
         out_status = "VERIFICACION_PENDIENTE"
     else:
         out_status = OPPORTUNITY_LABELS[canonical]
