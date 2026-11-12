@@ -1247,12 +1247,25 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<p>Proyección numérica y datos de proveedores sujetos a licencia y validación OOS; no se inventan porcentajes.</p></div>'+
       '<details class="universal-missing"><summary>Qué falta por verificar ('+m.length+')</summary><div class="universal-missing-body">'+
       (m.length?m.map(x=>'<div>'+esc(x)+'</div>').join(''):'Sin faltantes documentados; no implica cobertura completa.')+'</div></details>'+
-      '<p class="intel-footnote">Un PASS no oculta el análisis. La decisión de mercado no es lo mismo que el estado deportivo.</p></div>';
+      '<p class="intel-footnote">Un PASS no oculta el análisis. La decisión de mercado no es lo mismo que el estado deportivo.</p>'+
+      (token()?'<section class="analyst-notebook"><h3>Mi lectura del partido</h3>'+
+        '<p>Nota privada · No modifica el modelo</p>'+
+        '<textarea id="analystNoteText" maxlength="2000" rows="4" placeholder="Mi hipótesis deportiva…"></textarea>'+
+        '<div class="analyst-note-actions"><button type="button" class="secondary" id="saveAnalystNote">Guardar nota</button>'+
+        '<button type="button" class="secondary" id="deleteAnalystNote">Eliminar</button>'+
+        '<span id="analystNoteStatus">Solo visible para esta cuenta.</span></div></section>':
+        '<section class="analyst-notebook"><h3>Tu lectura del partido</h3>'+
+        '<p>Accede con tu cuenta para guardar hipótesis privadas. No necesitas un plan PRO para crear notas.</p>'+
+        '<button type="button" class="secondary" id="publicNoteLogin">Iniciar sesión</button></section>')+
+      '</div>';
   }}
   function publicMatchFromSlate(fid){{return (DATA?.slate?.rows||[]).find(r=>String(r?.fixture?.fixture_id)===String(fid))||null}}
   function showPublicMatch(fid){{const box=$('matchDetail'),row=publicMatchFromSlate(fid);box.innerHTML=row?publicMatchCard(row):
     empty('Partido no encontrado','No consta este partido en el calendario elegible guardado.');
-    const back=$('publicMatchBack');if(back)back.onclick=closeMatchRoute;box.scrollIntoView({{block:'start'}})}}
+    const back=$('publicMatchBack');if(back)back.onclick=closeMatchRoute;
+    const login=$('publicNoteLogin');if(login)login.onclick=openAuth;
+    if(token())void loadAnalystNote(fid);
+    box.scrollIntoView({{block:'start'}})}}
   async function openMatch(fid,opts={{}}){{if(!fid)return;activate('matches');setMatchRoute(fid,!!opts.replace);showMatchBrowse(false);const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{showPublicMatch(fid);return}}box.innerHTML=empty('Cargando análisis deportivo','Consultando los registros persistidos…');box.scrollIntoView({{block:'start'}});try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d);box.scrollIntoView({{block:'start'}})}}catch(e){{if(e?.status===403)showPublicMatch(fid);else box.innerHTML=empty('Detalle no disponible',e.message)}}}}
 
   async function loadAnalystNote(fid){{
