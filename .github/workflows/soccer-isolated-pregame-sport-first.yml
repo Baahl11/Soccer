@@ -13,10 +13,18 @@ on:
   workflow_dispatch:
   # Strict max 38 provider requests / capture; 18 real fixtures; sport-only no markets.
   schedule:
-    - cron: "50 11 * * *"  # 05:50 Mexico City, prospective morning
-    - cron: "50 15 * * *"  # 09:50 Mexico City, late morning
-    - cron: "50 19 * * *"  # 13:50 Mexico City, afternoon
-    - cron: "50 22 * * *"  # 16:50 Mexico City, late afternoon
+    # Eight staggered sport-only discovery windows: up to 144 distinct
+    # fixture attempts/day before de-duplication, at most 38 provider calls
+    # each (304/day maximum) and the original hard 1000-call reserve.
+    # Both dates are scanned; source-missing fixtures have 8h cooldown.
+    - cron: "50 08 * * *"  # 02:50 Mexico City
+    - cron: "50 11 * * *"  # 05:50 Mexico City
+    - cron: "50 13 * * *"  # 07:50 Mexico City
+    - cron: "50 15 * * *"  # 09:50 Mexico City
+    - cron: "50 17 * * *"  # 11:50 Mexico City
+    - cron: "50 19 * * *"  # 13:50 Mexico City
+    - cron: "50 22 * * *"  # 16:50 Mexico City
+    - cron: "50 01 * * *"  # 19:50 Mexico City previous date
 
 permissions:
   contents: write
@@ -71,6 +79,9 @@ jobs:
           assert '"bet_eligible": False' in s
           assert '"provider_odds_requests_added": 0' in s
           assert "soccer-edge-state" in w
+          assert w.count("- cron:") == 8
+          assert "304/day maximum" in w
+          assert "1000-call reserve" in w
           print("ISOLATED_PROSPECTIVE_SPORT_ONLY_STATIC_CONTRACT_PASS")
           PY
 
