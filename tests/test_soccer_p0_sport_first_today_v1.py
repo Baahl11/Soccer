@@ -159,8 +159,8 @@ def test_active_v7_scheduler_not_orphaning_p0_screen():
     assert 'p0_sport_preview_modeled_limited_count' in source
     assert 'p0_sport_preview_deferred_quota_count' in source
     assert 'p0_sport_preview_api_calls' in source
-    assert v7.P0_SPORT_MAX_FIXTURES_PER_TICK == 2
-    assert v7.P0_SPORT_MIN_REMAINING_FOR_CANONICAL == 3
+    assert v7.P0_SPORT_MAX_FIXTURES_PER_TICK == 6
+    assert v7.P0_SPORT_MIN_REMAINING_FOR_CANONICAL == 8
 
 
 def test_live_p0_respects_exact_upstream_call_reserve_and_no_odds(monkeypatch):
