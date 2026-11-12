@@ -458,6 +458,47 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 .focus-queue-summary strong{{font-size:14px;line-height:1.4;color:#e4f1f7}}
 .focus-queue-summary span{{font-size:13px;line-height:1.5;color:#bad3df}}
 .focus-queue-summary small{{font-size:11px;line-height:1.5;color:#9fbacb}}
+
+/* Mobile match intelligence: no horizontal body overflow and no empty dashboard walls. */
+#matchDetail,#matchDetail .match-detail,#matchDetail .intel-hero,
+#matchDetail .intel-body,#matchDetail .intel-summary,#matchDetail .visual-card,
+#matchDetail .match-event-block,#matchDetail .match-event-alert,
+#matchDetail .match-event-facts,#matchDetail .analyst-notebook{{
+  box-sizing:border-box;min-width:0;max-width:100%;
+}}
+#matchDetail .match-event-block{{padding:14px;display:grid;gap:14px}}
+#matchDetail .match-event-alert{{border:1px solid #916c39;border-left:5px solid #f0b75c;
+  background:#2b231b;border-radius:12px;padding:20px;display:grid;gap:10px}}
+#matchDetail .match-event-alert span{{font-size:12px;font-weight:800;color:#ffc16c;letter-spacing:.04em}}
+#matchDetail .match-event-alert h2{{font-size:23px;line-height:1.2;margin:0;color:#ffe3c0}}
+#matchDetail .match-event-alert p,#matchDetail .match-event-facts p{{
+  font-size:14px;line-height:1.55;color:#d2dfe8;margin:0;overflow-wrap:anywhere}}
+#matchDetail .match-event-facts{{border:1px solid #284a5d;border-radius:12px;padding:18px;display:grid;gap:12px}}
+#matchDetail .match-event-facts h3{{font-size:17px;margin:0}}
+#matchDetail .status-source{{font-size:12px!important;color:#b5c7d5!important;margin-top:6px!important}}
+#matchDetail .verified-history{{border:1px solid #244b63;border-radius:10px;padding:10px}}
+#matchDetail .verified-history summary{{font-size:13px;font-weight:700;cursor:pointer}}
+#matchDetail .intel-tabs{{max-width:100%;box-sizing:border-box}}
+#matchDetail .intel-section,#matchDetail .overview-primary-grid,#matchDetail .sport-two-up{{
+  min-width:0;max-width:100%}}
+@media(max-width:700px){{
+  #matchDetail .intel-metrics{{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  #matchDetail .intel-matchup{{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);gap:5px}}
+  #matchDetail .intel-team{{flex-direction:column;align-items:center;gap:5px;text-align:center}}
+  #matchDetail .intel-team.away{{flex-direction:column-reverse;align-items:center;text-align:center}}
+  #matchDetail .intel-team .crest{{width:52px;height:52px;flex:0 0 52px}}
+  #matchDetail .intel-team-name b{{font-size:15px;line-height:1.2}}
+  #matchDetail .intel-scoreline{{font-size:11px;overflow-wrap:anywhere}}
+  #matchDetail .intel-summary{{padding:10px}}
+  #matchDetail .universal-status-grid{{grid-template-columns:minmax(0,1fr)}}
+  #matchDetail .visual-grid,#matchDetail .overview-primary-grid,#matchDetail .sport-two-up{{
+    grid-template-columns:minmax(0,1fr)}}
+  #matchDetail .visual-card{{min-height:0!important;padding:14px}}
+  #matchDetail .intel-body{{padding:12px}}
+  #matchDetail .intel-tabs{{overflow-x:auto;overscroll-behavior-x:contain}}
+  #matchDetail .intel-tab{{white-space:nowrap}}
+  #matchDetail .analyst-notebook{{padding:14px}}
+}}
 </style>
 </head>
 <body>
@@ -1245,8 +1286,8 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   function routeMatchId(){{const parts=location.pathname.split('/').filter(Boolean);return parts.length===3&&parts[0]==='app'&&parts[1]==='match'&&/^[0-9]+$/.test(parts[2])?parts[2]:null}}
   function setMatchRoute(fid,replace=false){{const url=matchPath(fid);if(location.pathname===url)return;(replace?history.replaceState:history.pushState).call(history,{{page:'match',fixture_id:String(fid)}},'',url)}}
   function showMatchBrowse(show){{const panel=$('matchesBrowsePanel');if(panel)panel.classList.toggle('hidden',!show)}}
-  const analysisLabels={{MODELED_LIMITED:'Proyección RAW registrada',PARTIAL:'Análisis parcial',SPORT_EVIDENCE_ONLY:'Evidencia deportiva',NOT_ANALYZED:'Aún sin screening',DATA_INSUFFICIENT:'Datos insuficientes'}};
-  const valueLabels={{RECOMENDACION_DE_VALOR:'Recomendación de valor',TENDENCIA_FAVORABLE:'Tendencia favorable',EN_OBSERVACION:'En observación',SIN_VALOR:'Sin valor identificado',SPORT_SCREEN_PASS:'Sin shortlist deportiva',MERCADO_NO_EVALUADO:'Mercado no evaluado',VERIFICACION_PENDIENTE:'Verificación pendiente'}};
+  const analysisLabels={{MODELED_LIMITED:'Proyección RAW registrada',PARTIAL:'Análisis parcial',SPORT_EVIDENCE_ONLY:'Evidencia deportiva',NOT_ANALYZED:'Aún sin screening',DATA_INSUFFICIENT:'Datos insuficientes',CANCELLED:'Partido cancelado',POSTPONED:'Partido aplazado'}};
+  const valueLabels={{RECOMENDACION_DE_VALOR:'Recomendación de valor',TENDENCIA_FAVORABLE:'Tendencia favorable',EN_OBSERVACION:'En observación',SIN_VALOR:'Sin valor identificado',SPORT_SCREEN_PASS:'Sin shortlist deportiva',MERCADO_NO_EVALUADO:'Mercado no evaluado',VERIFICACION_PENDIENTE:'Verificación pendiente',EVENTO_NO_VIGENTE:'Evento cancelado/aplazado'}};
   function publicMatchCard(row){{
     const f=row?.fixture||{{}},s=row?.sport_analysis||{{}},o=row?.opportunity||{{}},
       [clock,date]=dt(f.kickoff),m=Array.isArray(s.missing_evidence_codes)?s.missing_evidence_codes:[],
@@ -1477,21 +1518,40 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '</div><div class="intel-footnote" style="margin-top:10px">Bloqueos: correlación y joint OOS NOT VERIFIED; cuota del Bet Builder NOT VERIFIED; '+
       'hándicap y reglas de liquidación requieren confirmación de la casa. Estado WATCH, NO BET.</div>';
   }}
-  function renderMatch(d){{const box=$('matchDetail'),rawF=d?.fixture||{{}},known=fixtureTargets().find(x=>String(x?.fixture?.fixture_id||'')===String(rawF.fixture_id||''))?.fixture||{{}},f={{...rawF,...known}},c=d?.selected_candidate||{{}},p=d?.projection_ladder||c?.projections||{{}},a=d?.availability||c?.availability||{{}},ctx=d?.sport_context||{{}},decision=d?.decision_summary||c?.decision||{{}},marketCtx=d?.market_context||{{}},modelCtx=d?.model_context||{{}},review=d?.analyst_review||{{}},rel=d?.relational_evidence||{{}},counts=rel.counts||{{}},disc=d?.data_disclosure||{{}},e=d?.evidence||c?.evidence||{{}};
+  function renderMatch(d){{const box=$('matchDetail'),rawF=d?.fixture||{{}},known=fixtureTargets().find(x=>String(x?.fixture?.fixture_id||'')===String(rawF.fixture_id||''))?.fixture||{{}},f={{...known,...rawF}},c=d?.selected_candidate||{{}},p=d?.projection_ladder||c?.projections||{{}},a=d?.availability||c?.availability||{{}},ctx=d?.sport_context||{{}},decision=d?.decision_summary||c?.decision||{{}},marketCtx=d?.market_context||{{}},modelCtx=d?.model_context||{{}},review=d?.analyst_review||{{}},rel=d?.relational_evidence||{{}},counts=rel.counts||{{}},disc=d?.data_disclosure||{{}},e=d?.evidence||c?.evidence||{{}};
     const selectedMarket=marketCtx.selected||c?.market||{{}},missing=(disc.missing_sections||review.missing_sections||[]),currentMarkets=(review.available_markets||[]),persistedMarkets=(counts.market_names||[]),markets=[...new Set([...currentMarkets,...persistedMarkets].filter(Boolean))],verifiedPrices=(review.verified_price_markets||[]),features=sportFeatures(rel),sportN=sportFeatureCount(features),sportMissing=sportFeatureMissing(features),decisionText=decision.classification||decision.display_bucket||decision.execution_status||review.status||'INSUFFICIENT DATA',fresh=freshnessLabel(counts),coverage=review.status||decisionText||'NOT VERIFIED',tone=coverageTone(coverage),[kickTime,kickDate]=dt(f.kickoff);
-    const hero='<div class="intel-hero"><div class="match-brand-row"><div class="match-brand"><span>SE</span><b>SOCCER<br>EDGE</b></div><button id="backToMatches" type="button" class="intel-back">← Matches</button></div><div class="match-context-row"><span>'+esc(f.league||f.country||'Competition')+'</span><b>'+esc(kickDate)+' · '+esc(kickTime)+'</b></div><div class="intel-matchup"><div class="intel-team">'+crest(f.home_team_logo,f.home_team)+'<div class="intel-team-name"><b>'+esc(f.home_team||'Home')+'</b><span>Home</span></div></div><div class="intel-vs">VS</div><div class="intel-team away"><div class="intel-team-name"><b>'+esc(f.away_team||'Away')+'</b><span>Away</span></div>'+crest(f.away_team_logo,f.away_team)+'</div></div><div class="intel-scoreline">'+esc(f.country||'')+'</div></div>';
+    const actualStatus=String(d?.live_fixture_status?.source==='API_FOOTBALL_FIXTURE_STATUS_BY_ID'?
+      d.live_fixture_status.status:(f.fixture_status||f.status||'')).toUpperCase();
+    const blockedEvent=['CANC','ABD','AWD','WO','PST','SUSP'].includes(actualStatus);
+    const statusLabel=['CANC','ABD','AWD','WO'].includes(actualStatus)?'CANCELADO':
+      ['PST','SUSP'].includes(actualStatus)?'APLAZADO / SUSPENDIDO':
+      ['FT','AET','PEN'].includes(actualStatus)?'FINALIZADO':actualStatus;
+    const statusObserved=d?.live_fixture_status?.source==='API_FOOTBALL_FIXTURE_STATUS_BY_ID'?
+      d.live_fixture_status.observed_at_utc:f.status_observed_at;
+    const statusProvenance=d?.live_fixture_status?.source==='API_FOOTBALL_FIXTURE_STATUS_BY_ID'?
+      'API-Football · verificación actual':'Registro persistido · puede estar desactualizado';
+    const hero='<div class="intel-hero"><div class="match-brand-row"><div class="match-brand"><span>SE</span><b>SOCCER<br>EDGE</b></div><button id="backToMatches" type="button" class="intel-back">← Matches</button></div><div class="match-context-row"><span>'+esc(f.league||f.country||'Competition')+'</span><b>'+esc(kickDate)+' · '+esc(kickTime)+'</b></div><div class="intel-matchup"><div class="intel-team">'+crest(f.home_team_logo,f.home_team)+'<div class="intel-team-name"><b>'+esc(f.home_team||'Home')+'</b><span>Home</span></div></div><div class="intel-vs">VS</div><div class="intel-team away"><div class="intel-team-name"><b>'+esc(f.away_team||'Away')+'</b><span>Away</span></div>'+crest(f.away_team_logo,f.away_team)+'</div></div><div class="intel-scoreline">'+esc(f.country||'')+
+      (statusLabel?' · Estado: '+esc(statusLabel):'')+'</div></div>';
     const summary='<div class="intel-summary"><div class="intel-metrics"><div class="intel-metric '+(ctx.outcome_probabilities?'good':'warn')+'"><span>Pronóstico 1X2</span><b>'+esc(ctx.outcome_probabilities?'Modelo guardado':'NO VERIFICADO')+'</b></div><div class="intel-metric"><span>Alineaciones</span><b>'+esc(featureValue(features,'availability.both_xi_confirmed')===true?'XI confirmados':'Sin confirmar')+'</b></div><div class="intel-metric"><span>Datos actualizados</span><b>'+esc(fresh)+'</b></div></div></div>';
-    const tabs=[['overview','Resumen'],['sport','Pronóstico y goles'],['periods','1H / 2H / Córners'],['availability','Alineaciones'],['markets','Cuotas'],['advanced','Fuentes y datos']];
+    const tabs=[['overview','Resumen'],...(ctx.outcome_probabilities||sportN>0?[['sport','Pronóstico y goles']]:[]),...(d?.multi_market_research?.status&&d.multi_market_research.status!=='NOT_VERIFIED'?[['periods','1H / 2H / Córners']]:[]),['availability','Alineaciones'],...(markets.length?[['markets','Cuotas']]:[]),['advanced','Fuentes y datos']];
     const tabHtml='<div class="intel-tabs">'+tabs.map((x,i)=>'<button class="intel-tab '+(i===0?'active':'')+'" data-detail-tab="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
 
     const coreCov=coreCoverage(features),probs=ctx.outcome_probabilities||null,xg=ctx.expected_goals||null,scoreRows=ctx.score_matrix||[];
     const hasSportProb=['home','draw','away'].every(k=>p100(probs?.[k])!==null);
     const goalRateLabel=ctx.goal_rate_semantics==='POISSON_LAMBDA_NOT_XG'?'Poisson λ, no xG':'Tasa de goles del modelo';
     const overview='<section class="intel-section active" data-detail-section="overview">'+
-      '<div class="match-reading-banner"><span>EL PARTIDO, ANTES QUE LAS CUOTAS</span><h2>'+esc(hasSportProb?'Pronóstico deportivo registrado':'Sin pronóstico 1X2 verificable')+'</h2><p>'+esc(hasSportProb?'Probabilidades deportivas guardadas. No son una apuesta ni una garantía.':'Sin probabilidades completas de modelo: no se infiere quién ganará a partir de cuotas u otros datos incompletos.')+'</p></div>'+
-      '<div class="overview-primary-grid"><div class="visual-card primary-forecast"><div class="visual-card-head"><h3>Victoria · Empate · Derrota</h3><span>Proyección deportiva RAW · no cuota</span></div>'+probabilityVisual(probs,f)+'<p class="overview-explainer">Proyección histórica guardada, no necesariamente actualizada con alineaciones. NOT VERIFIED cuando faltan datos.</p></div>'+
-      '<div class="visual-card primary-takeaways"><div class="visual-card-head"><h3>Qué sabemos del enfrentamiento</h3><span>Key takeaways · hechos registrados</span></div>'+keyTakeaways(features,a,f)+'</div></div>'+
-      '<div class="visual-card goal-card"><div class="visual-card-head"><h3>Goles: base de comparación</h3><span>Goal-rate baseline · no es xG</span></div>'+rateBars(features,f)+'</div>'+
+      '<div class="match-reading-banner"><span>EL PARTIDO, ANTES QUE LAS CUOTAS</span><h2>'+esc(hasSportProb?'Pronóstico deportivo registrado':sportN>0?'Hay datos deportivos para analizar':'Partido identificado · análisis pendiente')+'</h2><p>'+
+      esc(hasSportProb?'Existe una proyección histórica que debe revisarse junto con la disponibilidad.':
+        sportN>0?'Los datos verificados aparecen a continuación; todavía no existe un modelo 1X2 suficientemente sustentado.':
+        'La ficha identifica el encuentro, pero aún no contiene estadísticas deportivas persistidas. No se infieren porcentajes ni recomendaciones a partir del calendario.')+
+      '</p><p class="status-source">Estado '+esc(statusLabel||'NO VERIFICADO')+
+      ' · '+esc(statusProvenance)+' · '+esc(statusObserved?prettyStamp(statusObserved):'Sin fecha de última verificación')+'</p></div>'+
+      (hasSportProb?'<div class="visual-card primary-forecast"><h3>Victoria · Empate · Derrota</h3>'+
+        probabilityVisual(probs,f)+'</div>':'')+
+      (sportN>0?'<div class="visual-card primary-takeaways"><h3>Datos deportivos que sí tenemos</h3>'+
+        keyTakeaways(features,a,f)+'</div>'+
+        '<div class="visual-card goal-card"><h3>Contexto de goles registrado</h3>'+rateBars(features,f)+'</div>':
+        '<div class="intel-footnote">No hay estadísticas verificadas en el expediente de este partido. Los datos históricos de ambos clubes pueden existir en su competición original; eso requiere una captura diferenciada y validada.</div>')+
       '<div class="overview-assurance"><b>Sport-first read</b><span>'+esc(analystLens(decisionText,markets,missing,counts,features))+'</span></div>'+
       '<div class="intel-accordion"><details><summary>Forma reciente y datos disponibles <span>Input coverage · diagnóstico</span></summary><div class="intel-accordion-body"><div class="mini-visual-grid"><div class="visual-card"><div class="visual-card-head"><h3>Datos disponibles</h3><span>'+esc(coreCov.verified)+' / '+esc(coreCov.total)+'</span></div>'+coverageGauge(features)+'</div><div class="visual-card"><div class="visual-card-head"><h3>Forma reciente</h3><span>Form momentum · W/D/L</span></div>'+formCompare(features,f)+'</div></div></div></details>'+
       '<details><summary>Qué falta por verificar <span>'+esc(sportMissing)+' campos pendientes</span></summary><div class="intel-accordion-body">'+infoPills([!featureVerified(features,'xg.xgf')?'xG / xGA':null,!hasSportProb?'1X2 probabilities':null,!ctx.sport_profile?.length?'Perfil deportivo':null,!featureVerified(features,'team_performance.home_form')||!featureVerified(features,'team_performance.away_form')?'Forma reciente':null,!featureVerified(features,'availability.both_xi_confirmed')?'XI':null,!featureVerified(features,'availability.both_goalkeepers_confirmed')?'Porteros':null],'missing')+'</div></details>'+
@@ -1527,6 +1587,27 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<textarea id="analystNoteText" maxlength="2000" rows="4" placeholder="Mi hipótesis deportiva (no sustituye fuentes verificadas)…"></textarea>'+
       '<div class="analyst-note-actions"><button type="button" class="secondary" id="saveAnalystNote">Guardar nota</button>'+
       '<button type="button" class="secondary" id="deleteAnalystNote">Eliminar</button><span id="analystNoteStatus">Solo visible para esta cuenta.</span></div></section>';
+    if(blockedEvent){{
+      const pastFacts=sportN>0?
+        '<details class="verified-history"><summary>Ver estadísticas deportivas históricas verificadas ('+sportN+')</summary>'+
+        '<div class="intel-accordion-body">'+verifiedSportInputs(features)+'</div></details>':
+        '<div class="intel-footnote">Este expediente todavía no contiene estadísticas deportivas históricas guardadas. No equivale a que los clubes no tengan datos.</div>';
+      const headline=statusLabel==='CANCELADO'?'Este partido está cancelado':'Este partido está aplazado o suspendido';
+      box.innerHTML='<div class="match-detail">'+hero+
+        '<section class="match-event-block"><div class="match-event-alert">'+
+        '<span>ESTADO DEL ENCUENTRO · '+esc(actualStatus)+'</span>'+
+        '<h2>'+esc(headline)+'</h2>'+
+        '<p>No corresponde emitir una proyección vigente ni una recomendación de valor sobre un partido que no se disputará según el estado disponible.</p>'+
+        '<p class="status-source">'+esc(statusProvenance)+' · '+esc(statusObserved?prettyStamp(statusObserved):'Fecha de estado no verificada')+'</p></div>'+
+        '<div class="match-event-facts"><h3>Información que sí conocemos</h3>'+
+        '<p>'+esc(f.home_team||'Local')+' vs '+esc(f.away_team||'Visitante')+' · '+esc(f.league||'Competición')+
+        ' · Inicio originalmente previsto: '+esc(kickDate)+' '+esc(kickTime)+'</p>'+
+        '<p>Estado de oportunidad: evento no vigente. Los antecedentes deportivos, si están guardados, siguen consultables sin promocionarlos a una predicción.</p>'+
+        pastFacts+'</div>'+notesHtml+'</section></div>';
+      void loadAnalystNote(f.fixture_id);
+      const back=$('backToMatches');if(back)back.onclick=closeMatchRoute;
+      return;
+    }}
     box.innerHTML='<div class="match-detail">'+hero+independentStatus+summary+tabHtml+
       '<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+notesHtml+'</div></div>';
     void loadAnalystNote(f.fixture_id);
