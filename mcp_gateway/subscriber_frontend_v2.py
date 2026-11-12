@@ -453,6 +453,11 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 #matchDetail .analyst-notebook textarea{{width:100%;min-height:115px;box-sizing:border-box;padding:12px;border:1px solid #326078;border-radius:8px;background:#081b28;color:#e8f5f8;font:inherit;font-size:14px;resize:vertical}}
 #matchDetail .analyst-note-actions{{display:flex;gap:9px;align-items:center;flex-wrap:wrap}}
 #matchDetail #analystNoteStatus{{font-size:11px;color:#aec5d3;line-height:1.5}}
+
+.focus-queue-summary{{display:grid;gap:6px;margin-top:12px;padding:13px 15px;border:1px solid #295068;border-radius:11px;background:#091c2b}}
+.focus-queue-summary strong{{font-size:14px;line-height:1.4;color:#e4f1f7}}
+.focus-queue-summary span{{font-size:13px;line-height:1.5;color:#bad3df}}
+.focus-queue-summary small{{font-size:11px;line-height:1.5;color:#9fbacb}}
 </style>
 </head>
 <body>
@@ -795,6 +800,20 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
          'Sin proyecciones deportivas publicables para esta sesión.')+'</strong> '+
       screenSummary+' Hay '+slate.length+' partidos en el calendario; '+counts.pending+
       ' siguen sin análisis completo. Una estimación de investigación sin fuente publicable o validación suficiente no se publica como pronóstico.';
+    const queueOverview=DATA?.sport_coverage_queue||{{}},queueCounts=queueOverview.by_sport_queue_status||{{}};
+    const countOrUnknown=v=>Number.isInteger(v)&&v>=0?String(v):'NOT VERIFIED';
+    const queueSummary=queueOverview.all_fixtures_accounted_for===true?
+      '<div class="focus-queue-summary"><strong>Estado deportivo acumulado de la jornada</strong>'+
+      '<span>'+esc(countOrUnknown(queueOverview.total_eligible_fixtures))+' registrados · '+
+      esc(countOrUnknown(queueCounts.MODELED_LIMITED))+' con modelo deportivo limitado · '+
+      esc(countOrUnknown(queueCounts.DATA_INSUFFICIENT))+' examinados sin muestra suficiente · '+
+      esc(countOrUnknown(queueCounts.QUEUED))+' pendientes de screening · '+
+      esc(countOrUnknown(queueCounts.RETRY_REQUIRED))+' por reintentar · '+
+      esc(countOrUnknown(queueCounts.NOT_VERIFIED))+' sin estado comprobado.</span>'+
+      '<small>La cobertura cuenta estados persistidos, NO predicciones publicables ni recomendaciones. Cada partido tiene su expediente.</small></div>':
+      '<div class="focus-queue-summary"><strong>Estado de cobertura no verificado</strong>'+
+      '<span>No se puede afirmar cuántos partidos han sido examinados. Consulta la ficha individual.</span></div>';
+    status.innerHTML+=queueSummary;
     board.innerHTML=forecastCount?(saved.slice(0,8).map(p0Card).join('')+active.slice(0,Math.max(0,8-saved.length)).map(focusForecastCard).join('')):
       '<div class="focus-empty focus-empty-compact">'+
       esc(canReviewPrivateResearch?
