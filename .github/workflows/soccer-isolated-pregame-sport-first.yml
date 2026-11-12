@@ -62,6 +62,11 @@ jobs:
           assert 'MAX_FIXTURES = 18' in s
           assert 'MIN_VERIFIED_SPLIT_SAMPLE = 5' in s
           assert 'NEGATIVE_COOLDOWN = timedelta(hours=8)' in s
+          assert 'TEAM_SPLIT_CACHE_TTL = timedelta(hours=12)' in s
+          assert 'class TeamSeasonSplitCache:' in s
+          assert 'league_coverage_report' in s
+          assert 'season_split_cache_hits_from_original_frozen' in s
+          assert 'season_split_cache_new_public_cache_files_created' in s
           assert 'NEGATIVE_REASONS = frozenset' in s
           assert '_write_negative_cache' in s
           assert '--negative-cache' in s
@@ -136,6 +141,13 @@ jobs:
             and (.new_frozen_pregame_models <= 18)
             and (.negative_cache_deferred_fixtures >= 0)
             and (.negative_cache_policy == "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL")
+            and (.eligible_fixture_ids >= .attempted_fixtures)
+            and (.season_split_cache_hits >= 0)
+            and (.season_split_cache_hits_from_original_frozen >= 0)
+            and (.season_split_cache_new_public_cache_files_created == 0)
+            and (.league_coverage_report_scope == "THIS_CAPTURE_TWO_DATE_WINDOW_ONLY")
+            and (.league_coverage_report | type == "array")
+            and (([.league_coverage_report[].eligible] | add // 0) == .eligible_fixture_ids)
             and (.daily_remaining_reported >= 1000)
           ' state/soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json >/dev/null
       - name: Save genuine pregame observations without rewriting historical predictions
