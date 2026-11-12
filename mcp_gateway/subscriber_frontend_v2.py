@@ -434,6 +434,19 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
  #matchDetail .rate-row{{grid-template-columns:80px minmax(0,1fr) 44px;gap:7px}}
  #matchDetail .rate-row label{{font-size:11px}}
 }}
+
+/* A fixture always has an independent, accessible sporting reading. */
+#matchDetail .universal-match{{padding:20px;display:grid;gap:14px}}
+#matchDetail .public-match-heading{{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}}
+#matchDetail .public-match-heading span{{font-size:11px;color:#8bd4b9;letter-spacing:.07em;font-weight:750}}
+#matchDetail .universal-match h2{{font-size:24px;line-height:1.2;margin:0}}
+#matchDetail .universal-match p{{font-size:13px;line-height:1.55;color:#b8d1de;margin:0}}
+#matchDetail .universal-status-grid{{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+#matchDetail .universal-status-grid strong{{font-size:18px;color:#e8f5f8}}
+#matchDetail .universal-missing{{border:1px solid #23495f;border-radius:9px;padding:11px 15px}}
+#matchDetail .universal-missing summary{{cursor:pointer;font-size:13px;font-weight:650}}
+#matchDetail .universal-missing-body{{padding:12px 0;font-size:12px;color:#b6cedc;line-height:1.6}}
+@media(max-width:700px){{#matchDetail .universal-match{{padding:12px}}#matchDetail .universal-status-grid{{grid-template-columns:1fr}}#matchDetail .universal-match h2{{font-size:20px}}}}
 </style>
 </head>
 <body>
@@ -1204,7 +1217,35 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   function routeMatchId(){{const parts=location.pathname.split('/').filter(Boolean);return parts.length===3&&parts[0]==='app'&&parts[1]==='match'&&/^[0-9]+$/.test(parts[2])?parts[2]:null}}
   function setMatchRoute(fid,replace=false){{const url=matchPath(fid);if(location.pathname===url)return;(replace?history.replaceState:history.pushState).call(history,{{page:'match',fixture_id:String(fid)}},'',url)}}
   function showMatchBrowse(show){{const panel=$('matchesBrowsePanel');if(panel)panel.classList.toggle('hidden',!show)}}
-  async function openMatch(fid,opts={{}}){{if(!fid)return;activate('matches');setMatchRoute(fid,!!opts.replace);showMatchBrowse(false);const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{box.innerHTML=lock('Match Intelligence',1);box.scrollIntoView({{block:'start'}});return}}box.innerHTML=empty('Loading match intelligence','Reading every persisted fact available for this fixture…');box.scrollIntoView({{block:'start'}});try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d);box.scrollIntoView({{block:'start'}})}}catch(e){{box.innerHTML=empty('Match detail unavailable',e.message)}}}}
+  const analysisLabels={{MODELED_LIMITED:'Proyección RAW registrada',PARTIAL:'Análisis parcial',SPORT_EVIDENCE_ONLY:'Evidencia deportiva',NOT_ANALYZED:'Aún sin screening',DATA_INSUFFICIENT:'Datos insuficientes'}};
+  const valueLabels={{RECOMENDACION_DE_VALOR:'Recomendación de valor',TENDENCIA_FAVORABLE:'Tendencia favorable',EN_OBSERVACION:'En observación',SIN_VALOR:'Sin valor identificado',SPORT_SCREEN_PASS:'Sin shortlist deportiva',MERCADO_NO_EVALUADO:'Mercado no evaluado',VERIFICACION_PENDIENTE:'Verificación pendiente'}};
+  function publicMatchCard(row){{
+    const f=row?.fixture||{{}},s=row?.sport_analysis||{{}},o=row?.opportunity||{{}},
+      [clock,date]=dt(f.kickoff),m=Array.isArray(s.missing_evidence_codes)?s.missing_evidence_codes:[],
+      tracks=s.tracks||{{}};
+    return '<div class="universal-match"><div class="public-match-heading"><span>ANÁLISIS DEPORTIVO · REGISTRO VERIFICADO</span>'+
+      '<button type="button" id="publicMatchBack" class="secondary">Volver a los partidos</button></div>'+
+      '<h2>'+esc((f.home_team||'Local')+' vs '+(f.away_team||'Visitante'))+'</h2>'+
+      '<p>'+esc(f.league||f.country||'Competición')+' · '+esc(date)+' · '+esc(clock)+'</p>'+
+      '<div class="universal-status-grid"><div class="visual-card"><div class="visual-card-head"><h3>Estado deportivo</h3></div>'+
+      '<strong>'+esc(analysisLabels[s.status]||'NOT VERIFIED')+'</strong><p>'+esc(s.explanation||'Sin evidencia suficiente.')+'</p>'+
+      '<p>Modelos registrados: '+esc(s.model_run_count??'NOT VERIFIED')+' · Snapshots estadísticos: '+esc(s.verified_feature_snapshot_count??'NOT VERIFIED')+'</p>'+
+      '</div><div class="visual-card"><div class="visual-card-head"><h3>Evaluación de oportunidad</h3></div>'+
+      '<strong>'+esc(valueLabels[o.status]||'Mercado no evaluado')+'</strong><p>'+esc(o.explanation||'No hay evaluación verificable.')+'</p>'+
+      '<p>Clasificación del motor: '+esc(o.canonical_classification||'NO EVALUADA')+'</p></div></div>'+
+      '<div class="visual-card"><h3>Tracks deportivos</h3><div class="sport-stat-grid">'+
+      ['SIDE','GOALS_BTTS','CORNERS'].map(k=>'<div class="sport-stat"><span>'+esc(k)+'</span><b>'+esc(tracks[k]||'NOT VERIFIED')+'</b></div>').join('')+'</div>'+
+      '<p>Proyección numérica y datos de proveedores sujetos a licencia y validación OOS; no se inventan porcentajes.</p></div>'+
+      '<details class="universal-missing"><summary>Qué falta por verificar ('+m.length+')</summary><div class="universal-missing-body">'+
+      (m.length?m.map(x=>'<div>'+esc(x)+'</div>').join(''):'Sin faltantes documentados; no implica cobertura completa.')+'</div></details>'+
+      '<p class="intel-footnote">Un PASS no oculta el análisis. La decisión de mercado no es lo mismo que el estado deportivo.</p></div>';
+  }}
+  function publicMatchFromSlate(fid){{return (DATA?.slate?.rows||[]).find(r=>String(r?.fixture?.fixture_id)===String(fid))||null}}
+  function showPublicMatch(fid){{const box=$('matchDetail'),row=publicMatchFromSlate(fid);box.innerHTML=row?publicMatchCard(row):
+    empty('Partido no encontrado','No consta este partido en el calendario elegible guardado.');
+    const back=$('publicMatchBack');if(back)back.onclick=closeMatchRoute;box.scrollIntoView({{block:'start'}})}}
+  async function openMatch(fid,opts={{}}){{if(!fid)return;activate('matches');setMatchRoute(fid,!!opts.replace);showMatchBrowse(false);const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{showPublicMatch(fid);return}}box.innerHTML=empty('Cargando análisis deportivo','Consultando los registros persistidos…');box.scrollIntoView({{block:'start'}});try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d);box.scrollIntoView({{block:'start'}})}}catch(e){{if(e?.status===403)showPublicMatch(fid);else box.innerHTML=empty('Detalle no disponible',e.message)}}}}
+
   function closeMatchRoute(){{history.pushState({{page:'matches'}},'','/app');showMatchBrowse(true);$('matchDetail').classList.add('hidden');activate('matches')}}
   function detailKV(label,value){{return '<div class="item"><span>'+esc(label)+'</span><span>'+esc(value??'NOT VERIFIED')+'</span></div>'}}
   function marketTable(rows){{if(!rows?.length)return empty('No persisted market rows','This market family has no persisted candidate rows for the fixture.');
