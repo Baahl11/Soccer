@@ -21,8 +21,8 @@ AUTOMATION_VERSION = "1.7.1-live-p0-sport-first"
 # The active v7 scheduler bypasses v5.run_tick(), where P0 was originally
 # installed. Reserve a bounded SPORT-FIRST slice ahead of market refresh.
 # Never use this source as an actionable selection, price or BET.
-P0_SPORT_MAX_FIXTURES_PER_TICK = 2
-P0_SPORT_MIN_REMAINING_FOR_CANONICAL = 3
+P0_SPORT_MAX_FIXTURES_PER_TICK = 6
+P0_SPORT_MIN_REMAINING_FOR_CANONICAL = 8
 
 # Once a fixture has passed the sporting screen, protect its late verification
 # windows before spending the scarce tick budget discovering new candidates.
