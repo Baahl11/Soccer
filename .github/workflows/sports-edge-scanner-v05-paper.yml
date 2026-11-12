@@ -114,6 +114,7 @@ jobs:
             soccer_edge_state/analysis/v4_022_corners_oos_validation.json
             soccer_edge_state/analysis/phase14_cards_referee_validation.json
             soccer_edge_state/analysis/phase15_player_props_validation.json
+            soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json
             soccer_edge_state/analysis/formation_matchup_fm4_style_ablation_v1.json
           sparse-checkout-cone-mode: false
       - uses: actions/setup-python@v5
@@ -163,6 +164,24 @@ jobs:
             echo '::error::El límite de momios debe estar entre 0 y 25.'
             exit 2
           fi
+      - name: Reconcile configured research league scope against existing official capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$GITHUB_WORKSPACE/scripts/soccer_scanner_scope_audit.py" \
+            --receipt "$GITHUB_WORKSPACE/market_evidence/soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json" \
+            --leagues "$LEAGUE_IDS" > /tmp/soccer_scope_audit.json
+          jq '{status,reason,source_scope,total_source_eligible,
+               in_configured_leagues,outside_configured_leagues,
+               uncovered_competitions,provider_requests_added,bet_eligible}' \
+            /tmp/soccer_scope_audit.json
+          echo "## Scope reconciliation (read-only; different source windows)" >> "$GITHUB_STEP_SUMMARY"
+          jq -r '"Two-date pilot: " + (.total_source_eligible|tostring) +
+                 " eligible; in configured leagues: " + (.in_configured_leagues|tostring) +
+                 "; outside: " + (.outside_configured_leagues|tostring) +
+                 "; status: " + .status' \
+            /tmp/soccer_scope_audit.json >> "$GITHUB_STEP_SUMMARY"
+          echo "Not a prediction, promotion, or one-day scanner count." >> "$GITHUB_STEP_SUMMARY"
       - name: Audit full slate and research all configured eligible games
         shell: bash
         run: |
