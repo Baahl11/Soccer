@@ -614,6 +614,7 @@ async def _daily_p0_sport_previews(
     fixtures: list[dict[str, Any]], now: datetime, local_date: str,
     *, max_fixtures: int = p0_preview.MAX_PER_TICK,
     reserve_calls: int = p0_preview.MIN_CALLS_RESERVED_FOR_REST_OF_TICK,
+    queue_states: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Bounded sport-first as-of screening before bets, cached across ticks.
 
@@ -627,11 +628,33 @@ async def _daily_p0_sport_previews(
     max_fixtures = max(0, min(p0_preview.MAX_PER_TICK, int(max_fixtures)))
     reserve_calls = max(0, int(reserve_calls))
     started_at = v2._API_CALLS_THIS_TICK
+    durable = queue_states if isinstance(queue_states, dict) else {}
+    # Cross-tick durable queue is preferred over the process-local SQLite cache.
+    # New/unseen fixtures first; still allow retry for low-sample fixtures later.
+    def queue_rank(fx: dict[str, Any]) -> tuple[Any, ...]:
+        saved = durable.get(str(fx["fixture_id"])) or {}
+        status = saved.get("status")
+        priority = {"QUEUED": 0, "RETRY_REQUIRED": 1,
+                    "DATA_INSUFFICIENT": 2, "MODELED_LIMITED": 3}.get(status, 0)
+        return (priority, base._dt(fx["kickoff"]), _competition_priority(fx), fx["fixture_id"])
     candidates = sorted(
         (fx for fx in fixtures if p0_preview.eligible(fx, now)),
-        key=lambda fx: (base._dt(fx["kickoff"]), _competition_priority(fx), fx["fixture_id"]),
+        key=queue_rank,
     )
     for fx in candidates:
+        saved = durable.get(str(fx["fixture_id"])) or {}
+        if saved.get("status") == "MODELED_LIMITED":
+            result["cached_from_prior_tick"] += 1
+            continue
+        if saved.get("status") == "DATA_INSUFFICIENT":
+            last = saved.get("last_attempt_at")
+            try:
+                attempted_at = base._dt(last) if last else None
+                if attempted_at and (now - attempted_at).total_seconds() < 4 * 3600:
+                    result["cached_from_prior_tick"] += 1
+                    continue
+            except (TypeError, ValueError, KeyError):
+                pass
         if result["attempted"] >= max_fixtures:
             break
         cache_key = f"{local_date}:{fx['fixture_id']}"
