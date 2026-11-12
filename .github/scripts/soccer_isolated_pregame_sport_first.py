@@ -20,7 +20,7 @@ from typing import Any
 import urllib.parse
 import urllib.request
 
-VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.2.0"
+VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.3.0"
 BASE_URL = "https://v3.football.api-sports.io"
 TIMEZONE = ZoneInfo("America/Mexico_City")
 ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})
@@ -33,6 +33,7 @@ MAX_KICKOFF_LOOKAHEAD = timedelta(hours=32)
 MAX_SOURCE_SIZE = 1_000_000
 OUTPUT_LIMIT = 5000
 NEGATIVE_COOLDOWN = timedelta(hours=8)
+NEGATIVE_HISTORY_RETENTION = timedelta(hours=36)
 NEGATIVE_CACHE_MAX_ENTRIES = 2000
 NEGATIVE_REASONS = frozenset({
     "HOME_VERIFIED_SEASON_SPLITS_MISSING",
@@ -79,7 +80,7 @@ def _write_negative_cache(
     entries: dict[int, dict[str, str]] = {
         fid: record for fid, record in current.items()
         if _dt(record.get("retry_after_utc")) and
-           _dt(record["retry_after_utc"]) > now
+           _dt(record["retry_after_utc"]) > now - NEGATIVE_HISTORY_RETENTION
     }
     for row in excluded:
         fid = row.get("fixture_id")
@@ -404,7 +405,14 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
     choices = sorted(
         (f for f in unique.values() if f["fixture_id"] not in already
          and f["fixture_id"] not in deferred),
-        key=lambda f: (f["kickoff"], f["fixture_id"]),
+        # Screen never-attempted fixtures before expired hard failures except
+        # when a retried fixture kicks off within 90 minutes. Preserve old
+        # negative cache metadata briefly solely for fair selection.
+        key=lambda f: (
+            0 if (_dt(f["kickoff"]) - now) <= timedelta(minutes=90) else
+            (1 if f["fixture_id"] not in cached_negative else 2),
+            f["kickoff"], f["fixture_id"],
+        ),
     )
     frozen, excluded = [], []
     for fx in _select_diverse_upcoming(choices, max_fixtures, now):
@@ -424,7 +432,10 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
             for f in unique.values()
         ),
         "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
-        "selection_policy": "UPCOMING_WITHIN_6H_THEN_LATER;DISTINCT_LEAGUES_FIRST;NO_BET_TIER_ASSUMED",
+        "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
+        "previously_negative_eligible": sum(
+            f["fixture_id"] in cached_negative for f in choices
+        ),
         "attempted_fixtures": len(frozen)+len(excluded),
         "new_frozen_pregame_models": len(frozen),
         "excluded": excluded, "frozen": frozen,
