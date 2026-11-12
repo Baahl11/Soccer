@@ -103,16 +103,38 @@ def read_statuses(connect: Any, fixture_ids: list[int]) -> dict[str, dict[str, A
 
 def coverage_summary(queue_rows: dict[str, dict[str, Any]], fixtures: list[dict[str, Any]]) -> dict[str, Any]:
     """All eligible fixtures counted; missing per-fixture queue is UNKNOWN."""
-    counts = {name: 0 for name in ("QUEUED","MODELED_LIMITED","DATA_INSUFFICIENT","RETRY_REQUIRED","NOT_VERIFIED")}
+    names = ("QUEUED","MODELED_LIMITED","DATA_INSUFFICIENT","RETRY_REQUIRED","NOT_VERIFIED")
+    counts = {name: 0 for name in names}
+    by_league: dict[str, dict[str, Any]] = {}
     for f in fixtures:
         fixture = f.get("fixture") if isinstance(f, dict) else {}
         fixture = fixture if isinstance(fixture, dict) else {}
         q = queue_rows.get(str(fixture.get("fixture_id"))) or {}
         key = q.get("status")
-        counts[key if key in STATUS else "NOT_VERIFIED"] += 1
+        key = key if key in STATUS else "NOT_VERIFIED"
+        counts[key] += 1
+        league_id = fixture.get("league_id")
+        if type(league_id) is int and league_id > 0:
+            group_key = str(league_id)
+        else:
+            group_key = "UNIDENTIFIED_" + str(fixture.get("league") or "UNKNOWN")[:90]
+        item = by_league.setdefault(group_key, {
+            "league": str(fixture.get("league") or "Competición sin identificar")[:120],
+            "league_id": league_id if type(league_id) is int and league_id > 0 else None,
+            "eligible": 0, "by_status": {name: 0 for name in names},
+        })
+        item["eligible"] += 1
+        item["by_status"][key] += 1
+    leagues = sorted(
+        by_league.values(), key=lambda x: (-x["eligible"], x["league"])
+    )
     return {
         "total_eligible_fixtures": len(fixtures),
         "by_sport_queue_status": counts,
+        "by_league": leagues[:70],
+        "by_league_total": len(leagues),
+        "by_league_truncated": len(leagues) > 70,
+        "league_scope": "REGISTRY_CURRENT_ELIGIBLE_SLATE_ONLY",
         "all_fixtures_accounted_for": sum(counts.values()) == len(fixtures),
         "note": "Registro de estado; modelado completo y comercializacion NO implicados.",
         "no_market_inputs": True,

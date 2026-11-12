@@ -424,3 +424,13 @@ def test_owner_private_verified_team_stats_visible_without_xg_or_public_promotio
     assert "ownerSeasonResearch+pastFacts" in html
     assert "ownerSeasonResearch+" in html
     assert ".season-facts-grid{grid-template-columns:minmax(0,1fr)}" in html
+
+
+def test_today_has_plain_language_expandable_league_coverage():
+    html = subscriber_frontend_v2.render()
+    assert "Cobertura deportiva por competición" in html
+    assert "const leagueRows=Array.isArray(queueOverview.by_league)" in html
+    assert "focus-league-detail" in html
+    assert "sin datos suficientes" in html
+    assert "pendientes/no verificados" in html
+    assert "no son pronósticos publicables" in html

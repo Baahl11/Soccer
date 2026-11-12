@@ -545,6 +545,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 #matchDetail .recent-form-row b{{text-align:right;color:#effbfb;font-size:13px}}
 #matchDetail .recent-form-team>p{{font-size:12px;color:#acc7d4;line-height:1.5;margin:0}}
 @media(max-width:700px){{#matchDetail .recent-form-teams{{grid-template-columns:1fr}}#matchDetail .verified-recent-form{{padding:12px}}}}
+
+.focus-league-detail{{margin:10px 0 4px;padding:13px 15px;border:1px solid #2a5467;border-radius:10px;background:#0a1d2b}}
+.focus-league-detail summary{{cursor:pointer;font-size:13px;color:#c2e4ed;font-weight:750}}
+.focus-league-rows{{display:grid;gap:7px;max-height:440px;overflow:auto;margin:11px 0}}
+.focus-league-row{{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:space-between;border-bottom:1px solid #244456;padding:8px 0}}
+.focus-league-row strong{{font-size:12px;color:#e8f3f5}}
+.focus-league-row span{{font-size:12px;line-height:1.5;color:#abc5d2}}
+.focus-league-detail small{{font-size:11px;color:#a8bfcb;display:block;line-height:1.5}}
 </style>
 </head>
 <body>
@@ -900,7 +908,22 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<small>La cobertura cuenta estados persistidos, NO predicciones publicables ni recomendaciones. Cada partido tiene su expediente.</small></div>':
       '<div class="focus-queue-summary"><strong>Estado de cobertura no verificado</strong>'+
       '<span>No se puede afirmar cuántos partidos han sido examinados. Consulta la ficha individual.</span></div>';
-    status.innerHTML+=queueSummary;
+    const leagueRows=Array.isArray(queueOverview.by_league)?queueOverview.by_league:[];
+    const leagueSummary=queueOverview.all_fixtures_accounted_for===true&&leagueRows.length?
+      '<details class="focus-league-detail"><summary>Cobertura deportiva por competición ('+
+      esc(queueOverview.by_league_total??leagueRows.length)+')</summary>'+
+      '<div class="focus-league-rows">'+leagueRows.slice(0,25).map(group=>{{
+        const c=group.by_status||{{}};
+        const pending=(c.QUEUED||0)+(c.RETRY_REQUIRED||0)+(c.NOT_VERIFIED||0);
+        return '<div class="focus-league-row"><strong>'+esc(group.league||'Competición no identificada')+
+          '</strong><span>'+esc(group.eligible??'–')+' partidos · '+
+          esc(c.MODELED_LIMITED||0)+' modelados · '+esc(c.DATA_INSUFFICIENT||0)+
+          ' sin datos suficientes · '+esc(pending)+' pendientes/no verificados</span></div>';
+      }}).join('')+'</div>'+
+      (queueOverview.by_league_truncated||leagueRows.length>25?
+        '<small>Se muestran las primeras 25 competiciones. Consulta Partidos para el resto.</small>':'')+
+      '<small>Conteos de la cola de screening; no son pronósticos publicables ni un indicador de precisión.</small></details>':'';
+    status.innerHTML+=queueSummary+leagueSummary;
     board.innerHTML=forecastCount?(saved.slice(0,8).map(p0Card).join('')+active.slice(0,Math.max(0,8-saved.length)).map(focusForecastCard).join('')):
       '<div class="focus-empty focus-empty-compact">'+
       esc(canReviewPrivateResearch?
