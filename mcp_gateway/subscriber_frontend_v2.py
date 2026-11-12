@@ -1600,6 +1600,42 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '</div><div class="intel-footnote" style="margin-top:10px">Bloqueos: correlación y joint OOS NOT VERIFIED; cuota del Bet Builder NOT VERIFIED; '+
       'hándicap y reglas de liquidación requieren confirmación de la casa. Estado WATCH, NO BET.</div>';
   }}
+  // Join EXISTING PostgreSQL feature snapshots already unioned by the match
+  // contract. OWNER only: no second collector, no provider calls, no prices.
+  // Never present a post-kickoff observation as pregame evidence.
+  function ownerPersistedSportEvidence(packet,fixture){{
+    if(ACCESS?.owner!==true&&ACCESS?.admin!==true)return '';
+    const groups=Array.isArray(packet?.evidence_sections)?packet.evidence_sections:[],
+      kickoff=new Date(fixture?.kickoff||'').getTime(),now=Date.now();
+    const validTime=Number.isFinite(kickoff);
+    const allowed=new Set(['TEAMS','GOALS','STATS','CORNERS','CARDS','EVENTS','PLAYERS','AVAILABILITY','CONTEXT','OTHER']);
+    const sections=[];
+    if(validTime)for(const group of groups){{
+      if(!allowed.has(group?.category)||!Array.isArray(group.items))continue;
+      const rows=group.items.filter(item=>{{
+        const captured=new Date(item?.captured_at||'').getTime(),sample=item?.sample_n,
+          value=item?.value;
+        return item?.status==='PERSISTED'&&!!item?.source&&
+          Number.isFinite(captured)&&captured<kickoff&&captured<=now&&
+          value!==null&&value!==undefined&&typeof value!=='object'&&
+          (sample===null||sample===undefined||(Number.isInteger(sample)&&sample>0));
+      }}).slice(0,24);
+      if(rows.length)sections.push('<details><summary>'+esc(group.category)+' · '+rows.length+
+        ' observaciones verificadas</summary><div class="intel-snapshot-list">'+rows.map(item=>
+        '<div class="intel-snapshot"><div><b>'+esc(item.label||item.key||'Dato deportivo')+'</b>'+
+        '<small>'+esc(item.source)+' · '+esc(item.captured_at)+
+        (item.sample_n!==null&&item.sample_n!==undefined?' · n='+esc(item.sample_n):' · n=NO VERIFICADO')+
+        '</small></div><div class="snap-right">'+esc(item.value)+'</div></div>'
+      ).join('')+'</div></details>');
+    }}
+    return '<section class="owner-persisted-sport-evidence"><details><summary>'+
+      'Investigación deportiva ya guardada por partido · '+sections.length+' familias con datos'+
+      '</summary><p class="intel-footnote">Solo OWNER. Unión de registros deportivos existentes por fixture_id; '+
+      'cada valor conserva fuente, captura y muestra. Solo observaciones anteriores al inicio. '+
+      'No son predicciones RAW, OOS ni recomendaciones. NO BET.</p>'+
+      (sections.join('')||'<p class="intel-footnote">Sin observaciones prepartido adicionales verificadas en PostgreSQL para este fixture. NOT VERIFIED no significa cero.</p>')+
+      '</details></section>';
+  }}
   function internalSeasonFacts(packet){{
     const ctx=packet?.private_team_context;
     if(ctx?.status!=='SPORTING_SEASON_CONTEXT_ONLY'||!Array.isArray(ctx.teams)||!ctx.teams.length)return '';
@@ -1728,6 +1764,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '</p><p class="status-source">Estado '+esc(statusLabel||'NO VERIFICADO')+
       ' · '+esc(statusProvenance)+' · '+esc(statusObserved?prettyStamp(statusObserved):'Sin fecha de última verificación')+'</p></div>'+
       ownerResearchCard+ownerRecent+ownerSportRead+ownerSeasonResearch+
+      ownerPersistedSportEvidence(d,f)+
       (hasSportProb?'<div class="visual-card primary-forecast"><h3>Victoria · Empate · Derrota</h3>'+
         probabilityVisual(probs,f)+'</div>':'')+
       (sportN>0?'<div class="visual-card primary-takeaways"><h3>Datos deportivos que sí tenemos</h3>'+
