@@ -411,3 +411,16 @@ def test_match_mobile_must_fit_viewport_and_empty_probability_panels_are_not_rep
     assert "hasSportProb?'<div class=\"visual-card primary-forecast\"" in html
     assert "sportN>0?'<div class=\"visual-card primary-takeaways\"" in html
     assert "No hay estadísticas verificadas en el expediente" in html
+
+
+def test_owner_private_verified_team_stats_visible_without_xg_or_public_promotion():
+    html=subscriber_frontend_v2.render()
+    assert "function internalSeasonFacts(packet)" in html
+    assert "packet?.private_team_context" in html
+    assert "INVESTIGACIÓN PRIVADA" in html
+    assert "Datos históricos verificados" in html
+    assert "NO xG ni un modelo 1X2" in html
+    assert "No tienen validación OOS ni permiso de redistribución comercial." in html
+    assert "ownerSeasonResearch+pastFacts" in html
+    assert "ownerSeasonResearch+" in html
+    assert ".season-facts-grid{grid-template-columns:minmax(0,1fr)}" in html
