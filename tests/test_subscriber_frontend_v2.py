@@ -448,3 +448,30 @@ def test_owner_match_uses_only_exact_asof_private_frozen_model_no_public_promoti
     assert "ownerResearchCard+ownerRecent+ownerSportRead+ownerSeasonResearch" in html
     assert "No validado fuera de muestra" in html
     assert "Precio de mercado: NO CONSULTADO" in html
+
+
+def test_owner_existing_sport_evidence_joins_by_fixture_without_new_collection():
+    html = subscriber_frontend_v2.render()
+    assert "function ownerPersistedSportEvidence(packet,fixture)" in html
+    assert "ownerPersistedSportEvidence(d,f)" in html
+    assert "packet?.evidence_sections" in html
+    assert "Investigación deportiva ya guardada por partido" in html
+    assert "Solo OWNER" in html
+    assert "No son predicciones RAW, OOS ni recomendaciones. NO BET." in html
+    assert "Sin observaciones prepartido adicionales verificadas en PostgreSQL" in html
+
+    function = html.split(
+        "function ownerPersistedSportEvidence(packet,fixture)", 1
+    )[1].split("function internalSeasonFacts(packet)", 1)[0]
+    # Permissions, source, timestamp and sample are checked before a row can
+    # be shown. The code only formats stored evidence from the existing match.
+    assert "ACCESS?.owner!==true&&ACCESS?.admin!==true" in function
+    assert "item?.status==='PERSISTED'" in function
+    assert "!!item?.source" in function
+    assert "captured<kickoff&&captured<=now" in function
+    assert "Number.isInteger(sample)&&sample>0" in function
+    assert "new Set(['TEAMS','GOALS','STATS','CORNERS','CARDS'" in function
+    assert "fetch(" not in function
+    assert "api(" not in function
+    assert "provider" in function.lower()
+    assert "bet_eligible=true" not in function
