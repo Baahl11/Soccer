@@ -528,8 +528,45 @@ def self_test(model_path: Path):
             neg_path, negative, [], [],
             now=now + NEGATIVE_COOLDOWN + timedelta(minutes=1),
         )
+        kept = _read_negative_cache(neg_path)
+        assert f["fixture_id"] in kept  # expiry releases a retry, retains fairness history
+        # When an expired hard failure and a new fixture compete in one
+        # match slot, analyze the never-tried one first, not the stale retry.
+        new_fixture = {
+            **fixture,
+            "fixture": {**fixture["fixture"], "id": 102,
+                        "date": (now+timedelta(hours=5)).isoformat()},
+        }
+        old_fixture = {
+            **fixture,
+            "fixture": {**fixture["fixture"], "id": 101,
+                        "date": (now+timedelta(hours=4)).isoformat()},
+        }
+        class PairProvider(Offline):
+            def get(self, endpoint, params):
+                if endpoint == "fixtures":
+                    self.calls += 1
+                    return {"response": [old_fixture, new_fixture]}
+                return super().get(endpoint, params)
+        expired = {101: {
+            "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING",
+            "retry_after_utc": (now-timedelta(minutes=1)).isoformat(),
+        }}
+        fair_provider = PairProvider()
+        priority_run = capture(
+            fair_provider, model, "fixed-test-repo-sha", [],
+            clock=lambda: now, max_fixtures=1, negative_cache=expired,
+        )
+        assert priority_run["attempted_fixtures"] == 1
+        assert priority_run["frozen"][0]["fixture_id"] == 102
+        assert priority_run["provider_requests_added"] == 4
+        assert priority_run["previously_negative_eligible"] == 1
+        _write_negative_cache(
+            neg_path, kept, [], [],
+            now=now + NEGATIVE_COOLDOWN + NEGATIVE_HISTORY_RETENTION + timedelta(minutes=1),
+        )
         assert _read_negative_cache(neg_path) == {}
-    print("ISOLATED_SPORT_FIRST_OFFLINE_PASS: NO_MARKET, REAL_CANONICAL_MODEL, PREGAME, DEDUP, BOUNDED, NEGATIVE_CACHE")
+    print("ISOLATED_SPORT_FIRST_OFFLINE_PASS: NO_MARKET, REAL_CANONICAL_MODEL, PREGAME, DEDUP, BOUNDED, NEGATIVE_CACHE, FAIR_UNTRIED_PRIORITY")
 
 
 def main():
