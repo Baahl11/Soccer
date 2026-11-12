@@ -19,6 +19,8 @@ on:
       - 'tests/test_soccer_p0_sport_first_today_v1.py'
       - 'tests/test_soccer_universal_match_v1.py'
       - 'tests/test_soccer_sport_queue_and_notes_v1.py'
+      - 'tests/test_soccer_live_audit_heredoc_syntax_v1.py'
+      - '.github/workflows/soccer-live-slate-research-join-readonly.yml'
       - 'tests/test_isolated_sport_frozen_pg_v1.py'
       - '.github/workflows/soccer-sport-first-p0-home-qa-v1.yml'
 
@@ -46,7 +48,8 @@ jobs:
             tests/test_subscriber_frontend_v2.py \
             tests/test_subscriber_contract_v2.py \
             tests/test_soccer_universal_match_v1.py \
-            tests/test_soccer_sport_queue_and_notes_v1.py
+            tests/test_soccer_sport_queue_and_notes_v1.py \
+            tests/test_soccer_live_audit_heredoc_syntax_v1.py
       - name: Verify every generated inline JavaScript parses on Node
         run: |
           python - <<'PY'
