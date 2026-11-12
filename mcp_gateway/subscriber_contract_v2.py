@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import math
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 from starlette.requests import Request
@@ -13,6 +14,7 @@ from mcp_gateway import soccer_family_research_v1
 from mcp_gateway import soccer_p0_persisted_view_v1
 from mcp_gateway import soccer_universal_match_v1
 from mcp_gateway import soccer_sport_queue_v1
+from mcp_gateway import fixture_live_status_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -954,7 +956,8 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
                        f.home_team_id, f.home_team, f.away_team_id, f.away_team,
                        CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.home_goals ELSE NULL END,
                        CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.away_goals ELSE NULL END,
-                       CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.graded_at ELSE NULL END
+                       CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.graded_at ELSE NULL END,
+                       f.last_seen_at
                 FROM soccer_fixtures f
                 LEFT JOIN soccer_results r ON r.fixture_id = f.fixture_id
                 WHERE f.fixture_id = %s
@@ -965,7 +968,7 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
             row = cur.fetchone()
     if not row:
         return None
-    fixture_id, kickoff, status, league, country, home_id, home, away_id, away, home_goals, away_goals, graded_at = row
+    fixture_id, kickoff, status, league, country, home_id, home, away_id, away, home_goals, away_goals, graded_at, last_seen_at = row
     return {
         "fixture_id": fixture_id,
         "kickoff": kickoff.isoformat() if hasattr(kickoff, "isoformat") else kickoff,
@@ -979,6 +982,7 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
         "final_home_goals": home_goals,
         "final_away_goals": away_goals,
         "final_observed_at": _iso_value(graded_at),
+        "status_observed_at": _iso_value(last_seen_at),
     }
 
 
@@ -1187,6 +1191,7 @@ def _registry_fixture(row: dict[str, Any]) -> dict[str, Any]:
             else None
         ),
         "fixture_status": row.get("status"),
+        "status_observed_at": row.get("status_observed_at"),
         "final_home_goals": row.get("final_home_goals"),
         "final_away_goals": row.get("final_away_goals"),
         "final_observed_at": row.get("final_observed_at"),
@@ -2360,7 +2365,7 @@ def _match_fixture_with_registry_identity(
         for key in (
             "home_team_id", "away_team_id", "home_team_logo", "away_team_logo",
             "home_team", "away_team", "league", "country", "kickoff",
-            "fixture_status", "final_home_goals", "final_away_goals", "final_observed_at",
+            "fixture_status", "status_observed_at", "final_home_goals", "final_away_goals", "final_observed_at",
         ):
             if fixture.get(key) in (None, "") and registered.get(key) not in (None, ""):
                 fixture[key] = registered[key]
@@ -2758,6 +2763,33 @@ async def match_detail(request: Request) -> JSONResponse:
     )
     if result is None:
         return _no_store({"error": "FIXTURE_NOT_IN_REGISTRY_OR_PERSISTED_SNAPSHOT"}, status_code=404)
+    # PRO-only, cache-backed official fixture status lookup: at most 12
+    # queries/hour and 36/day per process; never odds or model input.
+    fixture = _dict(result.get("fixture"))
+    result["live_fixture_status"] = {
+        "status": "NOT_VERIFIED",
+        "reason": "LIVE_SOURCE_NOT_CHECKED",
+        "provider_requests_added": 0,
+    }
+    try:
+        scheduled = datetime.fromisoformat(str(fixture.get("kickoff") or "").replace("Z", "+00:00"))
+        if scheduled.tzinfo is not None and abs(
+            (scheduled - datetime.now(timezone.utc)).total_seconds()
+        ) <= 36 * 3600 and fixture.get("fixture_status") not in {"FT", "AET", "PEN"}:
+            live = await asyncio.wait_for(
+                asyncio.to_thread(
+                    fixture_live_status_v1.lookup,
+                    int(fixture.get("fixture_id")), fixture.get("home_team_id"),
+                    fixture.get("away_team_id"),
+                ), timeout=6.0,
+            )
+            result["live_fixture_status"] = live
+            if live.get("source") == "API_FOOTBALL_FIXTURE_STATUS_BY_ID":
+                fixture["fixture_status"] = live["status"]
+                fixture["status_observed_at"] = live["observed_at_utc"]
+                fixture["status_source"] = live["source"]
+    except (TypeError, ValueError, OverflowError, asyncio.TimeoutError):
+        pass
     result.update(soccer_universal_match_v1.detail_layers(result))
     try:
         multimarket = await asyncio.to_thread(

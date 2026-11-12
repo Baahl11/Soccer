@@ -8,7 +8,22 @@ from __future__ import annotations
 
 from typing import Any
 
-VERSION = "SOCCER_UNIVERSAL_INTELLIGENCE_v1.0.0"
+VERSION = "SOCCER_UNIVERSAL_INTELLIGENCE_v1.1.0"
+CANCELLED = frozenset(("CANC", "ABD", "AWD", "WO"))
+POSTPONED = frozenset(("PST", "SUSP"))
+COMPLETED = frozenset(("FT", "AET", "PEN"))
+
+def event_state(row: dict[str, Any]) -> str | None:
+    fx = obj(row.get("fixture"))
+    code = str(fx.get("fixture_status") or fx.get("status") or "").upper()
+    if code in CANCELLED:
+        return "CANCELLED"
+    if code in POSTPONED:
+        return "POSTPONED"
+    if code in COMPLETED:
+        return "COMPLETED"
+    return None
+
 
 CANONICAL = frozenset(("BET", "LEAN", "WATCH", "PASS"))
 PUBLIC_STATES = frozenset(("MODELED_LIMITED", "PARTIAL", "SPORT_EVIDENCE_ONLY",
@@ -46,7 +61,13 @@ def sport_from_registry(row: dict[str, Any]) -> dict[str, Any]:
     availability = positive_int(inventory.get("availability_snapshots"))
     sport = positive_int(coverage.get("sport_evidence_count"))
     analysis = positive_int(coverage.get("analysis_rows"))
-    if raw:
+    current_event = event_state(row)
+    if current_event in ("CANCELLED", "POSTPONED"):
+        status = current_event
+        reason = ("Encuentro cancelado; se conservan los datos históricos, "
+                  "pero no hay pronóstico vigente." if current_event == "CANCELLED"
+                  else "Encuentro aplazado o suspendido; no emitir recomendación vigente.")
+    elif raw:
         status = "MODELED_LIMITED"
         reason = "Proyeccion RAW registrada. Revisar datos, muestra, fecha y validacion."
     elif models or features or analysis:
@@ -73,6 +94,7 @@ def sport_from_registry(row: dict[str, Any]) -> dict[str, Any]:
         missing.insert(0, "RAW_SPORT_NOT_RECORDED")
     return {
         "status": status, "explanation": reason,
+        "fixture_event_state": current_event,
         "raw_projection_recorded": raw,
         "modeled_complete": False,  # no unearned OOS or XI certainty
         "verified_feature_snapshot_count": features,
@@ -101,7 +123,11 @@ def opportunity_from_registry(row: dict[str, Any]) -> dict[str, Any]:
     internal = internal if internal in CANONICAL else None
     prices = list(coverage.get("verified_price_markets") or [])
     prices = [v for v in prices if isinstance(v, str)][:16]
-    if not internal:
+    cancelled = event_state(row)
+    if cancelled in ("CANCELLED", "POSTPONED"):
+        status = "EVENTO_NO_VIGENTE"
+        reason = "Encuentro cancelado/aplazado: no existe recomendación vigente."
+    elif not internal:
         status = "MERCADO_NO_EVALUADO"
         reason = "No existe una decision de mercado canonica verificada."
     elif internal == "PASS" and not prices:
@@ -136,6 +162,7 @@ def add_to_slate_row(row: dict[str, Any]) -> dict[str, Any]:
 def detail_layers(packet: dict[str, Any]) -> dict[str, Any]:
     """Deep analyst packet, *only* after existing PRO authorization is checked."""
     sport = obj(packet.get("sport_context"))
+    current_event = event_state(packet)
     availability = obj(packet.get("availability"))
     evidence = obj(packet.get("evidence"))
     review = obj(packet.get("analyst_review"))
@@ -151,13 +178,17 @@ def detail_layers(packet: dict[str, Any]) -> dict[str, Any]:
     ) and abs(sum(probs.values()) - 1.0) < 0.025
     raw_model = bool(has_full_1x2)
     has_features = bool(packet.get("evidence_sections"))
-    status = ("MODELED_LIMITED" if raw_model else
+    status = (current_event if current_event in ("CANCELLED", "POSTPONED") else
+              "MODELED_LIMITED" if raw_model else
               "PARTIAL" if has_features or positive_int(review.get("persisted_evidence_count"))
               or positive_int(review.get("analysis_rows")) else "NOT_ANALYZED")
     missing = [x for x in review.get("missing_sections", []) if isinstance(x, str)][:30]
     sport_layer = {
         "status": status,
-        "reason": ("Proyeccion deportiva RAW guardada; no equivale a modelo OOS calibrado."
+        "fixture_event_state": current_event,
+        "reason": ("Encuentro cancelado/aplazado: los registros pasados son solo contexto."
+                   if current_event in ("CANCELLED", "POSTPONED") else
+                   "Proyeccion deportiva RAW guardada; no equivale a modelo OOS calibrado."
                    if raw_model else
                    "Sin proyeccion deportiva completa; revisar evidencias persistidas."),
         "tracks": {
@@ -181,7 +212,9 @@ def detail_layers(packet: dict[str, Any]) -> dict[str, Any]:
     canonical = str(decision.get("classification") or "").upper()
     canonical = canonical if canonical in CANONICAL else None
     verified = [m for m in review.get("verified_price_markets", []) if isinstance(m, str)]
-    if not canonical:
+    if current_event in ("CANCELLED", "POSTPONED"):
+        out_status = "EVENTO_NO_VIGENTE"
+    elif not canonical:
         out_status = "MERCADO_NO_EVALUADO"
     elif canonical == "PASS" and not verified:
         out_status = "SPORT_SCREEN_PASS"

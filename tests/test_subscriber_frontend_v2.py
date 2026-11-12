@@ -101,7 +101,7 @@ def test_fe2_every_slate_fixture_is_openable_for_data_review():
     assert "Open data →" in html
     assert "Sport-first read" in html
     assert "Goal-rate baseline" in html
-    assert "Key takeaways" in html
+    assert "Datos deportivos que sí tenemos" in html
     assert 'class="slate-row" href="' in html
     assert "matchPath(f.fixture_id||'')" in html
     assert '[data-intel="1"]' not in html
@@ -310,12 +310,12 @@ def test_match_center_sporting_forecast_is_first_and_diagnostics_are_collapsed()
     html = subscriber_frontend_v2.render()
     overview = html.split('const overview=', 1)[1].split('const marketsSection=', 1)[0]
 
-    assert "Sin pronóstico 1X2 verificable" in overview
+    assert "Partido identificado · análisis pendiente" in overview
     assert 'class="match-reading-banner"' in overview
     assert "Victoria · Empate · Derrota" in overview
-    assert "Key takeaways" in overview
+    assert "Datos deportivos que sí tenemos" in overview
     assert overview.index('class="match-reading-banner"') < overview.index("Input coverage")
-    assert overview.index("Victoria · Empate · Derrota") < overview.index("Goal-rate baseline")
+    assert overview.index("Victoria · Empate · Derrota") < overview.index("Contexto de goles registrado")
     assert "<details><summary>Forma reciente y datos disponibles" in overview
     assert "no mide confianza del modelo ni porcentaje de partidos analizados" in html
     assert "['overview','Resumen']" in html
@@ -389,3 +389,25 @@ def test_today_shows_per_fixture_sport_queue_counts_without_fabricating_forecast
     assert "queueCounts.NOT_VERIFIED" in html
     assert "NO predicciones publicables ni recomendaciones" in html
     assert "Estado de cobertura no verificado" in html
+
+
+def test_live_cancelled_fixture_detail_is_a_real_readable_explanation_not_blank_odds():
+    html = subscriber_frontend_v2.render()
+    assert "d?.live_fixture_status?.source==='API_FOOTBALL_FIXTURE_STATUS_BY_ID'" in html
+    assert "const blockedEvent=" in html
+    assert "Este partido está cancelado" in html
+    assert "Estado de oportunidad: evento no vigente" in html
+    assert "No corresponde emitir una proyección vigente" in html
+    assert "Estado de oportunidad: evento no vigente" in html
+    assert "void loadAnalystNote(f.fixture_id)" in html
+    assert "f={...known,...rawF}" in html
+
+
+def test_match_mobile_must_fit_viewport_and_empty_probability_panels_are_not_repeated():
+    html = subscriber_frontend_v2.render()
+    assert "#matchDetail .intel-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}" in html
+    assert "#matchDetail .universal-status-grid{grid-template-columns:minmax(0,1fr)}" in html
+    assert "#matchDetail .intel-tabs{overflow-x:auto" in html
+    assert "hasSportProb?'<div class=\"visual-card primary-forecast\"" in html
+    assert "sportN>0?'<div class=\"visual-card primary-takeaways\"" in html
+    assert "No hay estadísticas verificadas en el expediente" in html
