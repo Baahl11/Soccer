@@ -20,6 +20,7 @@ from mcp_gateway import subscriber_billing_v2
 from mcp_gateway import subscriber_preview_data_v231
 from mcp_gateway import multimarket_history_bridge_v1
 from mcp_gateway import subscriber_saved_items_v4
+from mcp_gateway import subscriber_match_notes_v1
 from mcp_gateway import subscriber_ui_contract_v231
 from mcp_gateway import subscriber_validation_metrics_v231
 from mcp_gateway import subscription_entitlements_v4
@@ -2037,11 +2038,19 @@ async def my_edge(request: Request) -> JSONResponse:
         return _no_store({"error": "AUTH_INVALID_USER_PAYLOAD", "resource": "my_edge"}, status_code=401)
 
     if request.method == "GET":
-        result = await asyncio.to_thread(
-            subscriber_saved_items_v4.list_saved,
-            token,
-            verified_user_id=user_id,
-        )
+        if request.query_params.get("resource") == "notes":
+            raw_id = request.query_params.get("fixture_id")
+            if raw_id is not None and not raw_id.isdigit():
+                return _no_store({"error": "NOTE_FIXTURE_ID_INVALID"}, status_code=400)
+            result = await asyncio.to_thread(
+                subscriber_match_notes_v1.operate, "GET", token, user_id,
+                fixture_id=int(raw_id) if raw_id is not None else None,
+            )
+        else:
+            result = await asyncio.to_thread(
+                subscriber_saved_items_v4.list_saved, token,
+                verified_user_id=user_id,
+            )
     elif request.method == "POST":
         try:
             body = await request.json()
@@ -2049,28 +2058,41 @@ async def my_edge(request: Request) -> JSONResponse:
             return _no_store({"error": "INVALID_JSON"}, status_code=400)
         if not isinstance(body, dict):
             return _no_store({"error": "INVALID_ITEM_PAYLOAD"}, status_code=400)
-        result = await asyncio.to_thread(
-            subscriber_saved_items_v4.save_item,
-            token,
-            body,
-            verified_user_id=user_id,
-        )
+        if body.get("item_type") == "NOTE":
+            result = await asyncio.to_thread(
+                subscriber_match_notes_v1.operate, "POST", token, user_id,
+                body=body,
+            )
+        else:
+            result = await asyncio.to_thread(
+                subscriber_saved_items_v4.save_item, token, body,
+                verified_user_id=user_id,
+            )
     elif request.method == "DELETE":
-        item_key = str(request.query_params.get("item_key") or "").strip()
-        if not item_key:
-            return _no_store({"error": "ITEM_KEY_REQUIRED"}, status_code=400)
-        result = await asyncio.to_thread(
-            subscriber_saved_items_v4.delete_item,
-            token,
-            item_key,
-            verified_user_id=user_id,
-        )
+        if request.query_params.get("resource") == "notes":
+            raw_id = str(request.query_params.get("fixture_id") or "")
+            if not raw_id.isdigit():
+                return _no_store({"error": "NOTE_FIXTURE_ID_INVALID"}, status_code=400)
+            result = await asyncio.to_thread(
+                subscriber_match_notes_v1.operate, "DELETE", token, user_id,
+                fixture_id=int(raw_id),
+            )
+        else:
+            item_key = str(request.query_params.get("item_key") or "").strip()
+            if not item_key:
+                return _no_store({"error": "ITEM_KEY_REQUIRED"}, status_code=400)
+            result = await asyncio.to_thread(
+                subscriber_saved_items_v4.delete_item, token, item_key,
+                verified_user_id=user_id,
+            )
     else:
         return _no_store({"error": "METHOD_NOT_ALLOWED"}, status_code=405)
 
     if not result.get("ok"):
         status = str(result.get("status") or "MY_EDGE_UNAVAILABLE")
-        code = 400 if status in {
+        code = 400 if status.startswith("NOTE_") and (
+            "INVALID" in status or "LENGTH" in status or "REQUIRED" in status
+        ) else 400 if status in {
             "ITEM_TYPE_NOT_ALLOWED",
             "VALID_FIXTURE_ID_REQUIRED",
             "ITEM_KEY_REQUIRED",
