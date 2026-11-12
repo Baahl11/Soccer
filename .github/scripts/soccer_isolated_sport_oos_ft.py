@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import math
 import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -16,10 +17,43 @@ from soccer_isolated_pregame_sport_first import (
     OfficialProvider, _dt, _integer, _number, _read_rows,
 )
 
-VERSION = "ISOLATED_SOCCER_SPORT_FIRST_OFFICIAL_FT_OOS_v1.0.0"
+VERSION = "ISOLATED_SOCCER_SPORT_FIRST_OFFICIAL_FT_OOS_v1.0.1"
 MAX_FIXTURES_PER_RUN = 4
 WAIT_AFTER_KICKOFF = timedelta(hours=3)
 MAX_POSTGAME_AGE = timedelta(days=14)
+MAX_UNRESOLVED_ATTEMPT_HISTORY = 5000
+
+
+def _read_unresolved_attempt_history(path: Path, now: datetime) -> dict[int, datetime]:
+    """Small retry metadata, not recomputed probabilities or result data."""
+    if not path.exists():
+        return {}
+    if path.stat().st_size > 350_000:
+        raise RuntimeError("FT_OOS_RECEIPT_UNBOUNDED")
+    receipt = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(receipt, dict):
+        raise RuntimeError("FT_OOS_RECEIPT_INVALID")
+    stored = receipt.get("unresolved_attempted_at_utc")
+    if stored is None:
+        legacy = receipt.get("unresolved_fixture_ids") or []
+        at = _dt(receipt.get("generated_at_utc"))
+        if not isinstance(legacy, list) or len(legacy)>MAX_UNRESOLVED_ATTEMPT_HISTORY:
+            raise RuntimeError("FT_OOS_LEGACY_ATTEMPTS_INVALID")
+        stored = {str(fid):at.isoformat() for fid in legacy
+                  if _integer(fid) is not None and at is not None}
+    if not isinstance(stored, dict) or len(stored)>MAX_UNRESOLVED_ATTEMPT_HISTORY:
+        raise RuntimeError("FT_OOS_ATTEMPTS_UNBOUNDED")
+    attempts = {}
+    for raw_id, raw_time in stored.items():
+        if not isinstance(raw_id,str) or not raw_id.isdecimal():
+            raise RuntimeError("FT_OOS_ATTEMPT_ID_INVALID")
+        fid=int(raw_id)
+        stamp=_dt(raw_time)
+        if not 0<fid<10**12 or stamp is None:
+            raise RuntimeError("FT_OOS_ATTEMPT_TIMESTAMP_INVALID")
+        if timedelta(0)<=now-stamp<=MAX_POSTGAME_AGE:
+            attempts[fid]=stamp
+    return attempts
 
 
 def valid_pregame(f: dict[str, Any]) -> bool:
@@ -124,10 +158,14 @@ def grade_if_official_ft(f: dict[str, Any], response: dict[str, Any],
 
 
 def evaluate(frozen: list[dict[str,Any]], existing: list[dict[str,Any]],
-             provider, *, now: datetime) -> dict[str,Any]:
+             provider, *, now: datetime,
+             prior_unresolved_attempts: dict[int,datetime] | None = None) -> dict[str,Any]:
     if now.tzinfo is None:
         raise ValueError("UTC_TIME_REQUIRED")
     known = {x["fixture_id"] for x in existing}
+    previous = prior_unresolved_attempts or {}
+    if len(previous)>MAX_UNRESOLVED_ATTEMPT_HISTORY:
+        raise RuntimeError("FT_OOS_ATTEMPT_HISTORY_UNBOUNDED")
     candidates = []
     invalid=0
     for f in frozen:
@@ -138,15 +176,29 @@ def evaluate(frozen: list[dict[str,Any]], existing: list[dict[str,Any]],
         if (f["fixture_id"] not in known
                 and WAIT_AFTER_KICKOFF <= now-kick <= MAX_POSTGAME_AGE):
             candidates.append(f)
-    candidates.sort(key=lambda f:(f["kickoff"],f["fixture_id"]))
+    # Unchecked originals first; retried originals in oldest-attempt order.
+    # Non-FT matches cannot monopolize the four daily check slots.
+    candidates.sort(key=lambda f:(
+        f["fixture_id"] in previous,
+        previous.get(f["fixture_id"],datetime.min.replace(tzinfo=timezone.utc)),
+        f["kickoff"],f["fixture_id"],
+    ))
+    candidate_ids={f["fixture_id"] for f in candidates}
+    attempts={
+        fid:stamp for fid,stamp in previous.items()
+        if fid in candidate_ids and fid not in known
+        and timedelta(0)<=now-stamp<=MAX_POSTGAME_AGE
+    }
     new=[]; unresolved=[]
     for f in candidates[:MAX_FIXTURES_PER_RUN]:
         response=provider.get("fixtures",{"id":f["fixture_id"]})
         graded=grade_if_official_ft(f,response,now)
         if graded is None:
             unresolved.append(f["fixture_id"])
+            attempts[f["fixture_id"]]=now
         else:
             new.append(graded)
+            attempts.pop(f["fixture_id"],None)
     if provider.calls > MAX_FIXTURES_PER_RUN:
         raise RuntimeError("OFFICIAL_FT_RESULT_CALL_CAP_EXCEEDED")
     return {
@@ -160,6 +212,11 @@ def evaluate(frozen: list[dict[str,Any]], existing: list[dict[str,Any]],
         "new_oos_fixture_rows":len(new),
         "new":new,
         "unresolved_fixture_ids":unresolved,
+        "unresolved_attempted_at_utc":{
+            str(fid):stamp.isoformat() for fid,stamp in sorted(attempts.items())
+        },
+        "unresolved_attempt_history_size":len(attempts),
+        "attempt_selection_policy":"NEVER_CHECKED_THEN_LEAST_RECENT_UNRESOLVED_FT_ONLY",
         "provider_requests_added":provider.calls,
         "daily_remaining_reported":provider.remaining,
         "market_prices_used":False,
@@ -214,7 +271,40 @@ def self_test():
     assert grade_if_official_ft(f,{ "response":[{**game,"teams":{"home":{"id":99},"away":{"id":12}}}]},now) is None
     assert grade_if_official_ft(f,{ "response":[{**game,"goals":{"home":None,"away":1}}]},now) is None
     assert not valid_pregame({**f,"captured_at_utc":(kick+timedelta(minutes=1)).isoformat()})
-    print("ISOLATED_SPORT_FT_OOS_OFFLINE_PASS: FREEZE,FIXTURE,OFFICIAL_FT,NO_ZERO,NO_PRICE,NO_REPLAY")
+    # Twelve frozen fixtures, all lacking FT: every ID checked in 3 runs.
+    pool=[{**f,"fixture_id":i,"fixture":{**f["fixture"],"fixture_id":i}}
+          for i in range(20,32)]
+    class NeverFinished:
+        def __init__(self):
+            self.calls=0
+            self.remaining=7000
+        def get(self,endpoint,params):
+            assert endpoint=="fixtures" and "id" in params
+            self.calls+=1
+            return {"response":[]}
+    history={}
+    checked=[]
+    for minutes in (0,20,40):
+        step=evaluate(pool,[],NeverFinished(),now=now+timedelta(minutes=minutes),
+                      prior_unresolved_attempts=history)
+        checked.extend(step["unresolved_fixture_ids"])
+        assert step["provider_requests_added"]==4
+        assert step["unresolved_attempt_history_size"]==len(checked)
+        history={int(fid):_dt(t) for fid,t in step["unresolved_attempted_at_utc"].items()}
+    assert checked==list(range(20,32))
+    again=evaluate(pool,[],NeverFinished(),now=now+timedelta(hours=1),
+                   prior_unresolved_attempts=history)
+    assert again["unresolved_fixture_ids"]==[20,21,22,23]
+    with tempfile.TemporaryDirectory() as folder:
+        path=Path(folder)/"legacy.json"
+        path.write_text(json.dumps({"generated_at_utc":now.isoformat(),
+                                   "unresolved_fixture_ids":[20,21,22,23]}),encoding="utf-8")
+        migrated=_read_unresolved_attempt_history(path,now)
+        assert sorted(migrated)==[20,21,22,23]
+        next_run=evaluate(pool,[],NeverFinished(),now=now+timedelta(minutes=1),
+                          prior_unresolved_attempts=migrated)
+        assert next_run["unresolved_fixture_ids"]==[24,25,26,27]
+    print("ISOLATED_SPORT_FT_OOS_OFFLINE_PASS: FREEZE,FIXTURE,OFFICIAL_FT,NO_ZERO,NO_PRICE,NO_REPLAY,FAIR_RETRY_ROTATION")
 
 
 def main():
@@ -231,8 +321,11 @@ def main():
         p.error("frozen,oos,receipt required")
     frozen=_read_rows(args.frozen)
     existing=_read_rows(args.oos)
+    now=datetime.now(timezone.utc)
+    previous=_read_unresolved_attempt_history(args.receipt,now)
     provider=OfficialProvider(os.environ.get("API_FOOTBALL_KEY",""))
-    result=evaluate(frozen,existing,provider,now=datetime.now(timezone.utc))
+    result=evaluate(frozen,existing,provider,now=now,
+                    prior_unresolved_attempts=previous)
     if result["new"]:
         args.oos.parent.mkdir(parents=True,exist_ok=True)
         with args.oos.open("a",encoding="utf-8") as out:
