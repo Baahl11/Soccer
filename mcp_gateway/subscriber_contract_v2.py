@@ -2821,6 +2821,22 @@ async def match_detail(request: Request) -> JSONResponse:
         verified_read = soccer_verified_sport_read_v1.read_owner_context(
             result.get("private_team_context"), fixture
         )
+        # A genuine prior P0 SPORT_PREVIEW can contain verified observed
+        # season results even if there was no model-ready minimum sample.
+        # Reuse only identity-matched, pre-kickoff facts; never the private
+        # RAW probabilities or any prices. No new provider request.
+        if verified_read["status"] in (
+            "NO_VERIFIED_SEASON_CONTEXT", "PARTIAL_SEASON_CONTEXT"
+        ):
+            persisted = soccer_verified_sport_read_v1.source_context_from_persisted_p0(
+                _dict(result.get("relational_evidence")).get("refresh_events"),
+                fixture,
+            )
+            prior_read = soccer_verified_sport_read_v1.read_owner_context(
+                persisted, fixture
+            )
+            if prior_read["status"] == "VERIFIED_SEASON_CONTEXT":
+                verified_read = prior_read
         result["private_verified_sport_read"] = verified_read
         if verified_read["status"] in (
             "VERIFIED_SEASON_CONTEXT", "PARTIAL_SEASON_CONTEXT"
