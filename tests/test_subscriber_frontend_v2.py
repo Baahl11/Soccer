@@ -101,7 +101,7 @@ def test_fe2_every_slate_fixture_is_openable_for_data_review():
     assert "Open data →" in html
     assert "Sport-first read" in html
     assert "Goal-rate baseline" in html
-    assert "Key takeaways" in html
+    assert "Datos deportivos que sí tenemos" in html
     assert 'class="slate-row" href="' in html
     assert "matchPath(f.fixture_id||'')" in html
     assert '[data-intel="1"]' not in html
@@ -310,12 +310,12 @@ def test_match_center_sporting_forecast_is_first_and_diagnostics_are_collapsed()
     html = subscriber_frontend_v2.render()
     overview = html.split('const overview=', 1)[1].split('const marketsSection=', 1)[0]
 
-    assert "Sin pronóstico 1X2 verificable" in overview
+    assert "Partido identificado · análisis pendiente" in overview
     assert 'class="match-reading-banner"' in overview
     assert "Victoria · Empate · Derrota" in overview
-    assert "Key takeaways" in overview
+    assert "Datos deportivos que sí tenemos" in overview
     assert overview.index('class="match-reading-banner"') < overview.index("Input coverage")
-    assert overview.index("Victoria · Empate · Derrota") < overview.index("Goal-rate baseline")
+    assert overview.index("Victoria · Empate · Derrota") < overview.index("Contexto de goles registrado")
     assert "<details><summary>Forma reciente y datos disponibles" in overview
     assert "no mide confianza del modelo ni porcentaje de partidos analizados" in html
     assert "['overview','Resumen']" in html
