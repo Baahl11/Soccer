@@ -810,3 +810,37 @@ def test_p0_sport_screening_health_does_not_confuse_fixture_discovery_and_models
     assert missing["status"]=="NO_RUNTIME_SPORT_SCREEN_TELEMETRY"
     assert missing["attempted"] is None
     assert missing["modeled_research"] is None
+
+
+def test_universal_sport_status_exists_for_every_registry_fixture_even_when_pass():
+    rows=[
+        {"fixture_id":70001,"kickoff":"2026-11-12T20:00:00+00:00","status":"NS",
+         "home_team":"A","away_team":"B",
+         "screen_queue":{"status":"QUEUED","attempt_count":0},
+         "evidence_inventory":{"refresh_events":0,"market_snapshots":0,"model_runs":0,
+                               "feature_snapshots":0,"lineup_snapshots":0,"availability_snapshots":0}},
+        {"fixture_id":70002,"kickoff":"2026-11-12T21:00:00+00:00","status":"NS",
+         "home_team":"C","away_team":"D",
+         "screen_queue":{"status":"MODELED_LIMITED","attempt_count":1},
+         "evidence_inventory":{"refresh_events":1,"market_snapshots":0,"model_runs":1,
+                               "feature_snapshots":1,"lineup_snapshots":0,"availability_snapshots":0}},
+    ]
+    contract=subscriber_contract_v2.build_contract(
+        _payload([]), subscriber_app_v4.anonymous_entitlement()
+    )
+    result=subscriber_contract_v2._attach_full_registry_slate(
+        contract, _payload([]),
+        {"status":"FULL_SLATE_READY","slate_date":"2026-11-12",
+         "timezone":"America/Mexico_City","rows":rows}
+    )
+    slate=result["slate"]["rows"]
+    assert len(slate)==2
+    assert all("sport_analysis" in row and "opportunity" in row for row in slate)
+    assert slate[0]["sport_analysis"]["status"]=="NOT_ANALYZED"
+    assert slate[0]["opportunity"]["status"]=="MERCADO_NO_EVALUADO"
+    assert slate[1]["sport_analysis"]["status"]=="PARTIAL"
+    assert slate[1]["sport_analysis"]["probabilities"] is None
+    assert slate[1]["screen_queue"]["attempt_count"]==1
+    assert result["sport_coverage_queue"]["total_eligible_fixtures"]==2
+    assert result["sport_coverage_queue"]["all_fixtures_accounted_for"] is True
+    assert result["sport_intelligence_policy"]["market_not_evaluated_distinct_from_pass"] is True
