@@ -15,6 +15,7 @@ from mcp_gateway import soccer_p0_persisted_view_v1
 from mcp_gateway import soccer_universal_match_v1
 from mcp_gateway import soccer_sport_queue_v1
 from mcp_gateway import fixture_live_status_v1
+from mcp_gateway import fixture_owner_team_context_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -952,7 +953,7 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
                          WHEN f.status IN ('FT','AET','PEN') THEN f.status
                          ELSE COALESCE(f.status, r.final_status)
                        END AS display_status,
-                       f.league, f.country,
+                       f.league, f.country, f.league_id, f.season,
                        f.home_team_id, f.home_team, f.away_team_id, f.away_team,
                        CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.home_goals ELSE NULL END,
                        CASE WHEN r.final_status IN ('FT','AET','PEN') THEN r.away_goals ELSE NULL END,
@@ -968,13 +969,15 @@ def _load_registry_fixture(fixture_value: Any) -> dict[str, Any] | None:
             row = cur.fetchone()
     if not row:
         return None
-    fixture_id, kickoff, status, league, country, home_id, home, away_id, away, home_goals, away_goals, graded_at, last_seen_at = row
+    fixture_id, kickoff, status, league, country, league_id, season, home_id, home, away_id, away, home_goals, away_goals, graded_at, last_seen_at = row
     return {
         "fixture_id": fixture_id,
         "kickoff": kickoff.isoformat() if hasattr(kickoff, "isoformat") else kickoff,
         "status": status,
         "league": league,
         "country": country,
+        "league_id": league_id,
+        "season": season,
         "home_team_id": home_id,
         "home_team": home,
         "away_team_id": away_id,
@@ -1191,6 +1194,8 @@ def _registry_fixture(row: dict[str, Any]) -> dict[str, Any]:
             else None
         ),
         "fixture_status": row.get("status"),
+        "league_id": row.get("league_id"),
+        "season": row.get("season"),
         "status_observed_at": row.get("status_observed_at"),
         "final_home_goals": row.get("final_home_goals"),
         "final_away_goals": row.get("final_away_goals"),
@@ -2365,7 +2370,7 @@ def _match_fixture_with_registry_identity(
         for key in (
             "home_team_id", "away_team_id", "home_team_logo", "away_team_logo",
             "home_team", "away_team", "league", "country", "kickoff",
-            "fixture_status", "status_observed_at", "final_home_goals", "final_away_goals", "final_observed_at",
+            "league_id", "season", "fixture_status", "status_observed_at", "final_home_goals", "final_away_goals", "final_observed_at",
         ):
             if fixture.get(key) in (None, "") and registered.get(key) not in (None, ""):
                 fixture[key] = registered[key]
@@ -2791,6 +2796,24 @@ async def match_detail(request: Request) -> JSONResponse:
     except (TypeError, ValueError, OverflowError, asyncio.TimeoutError):
         pass
     result.update(soccer_universal_match_v1.detail_layers(result))
+    # Internal analyst-only historical context. Two provider calls at most,
+    # source identity / sample verified, no public redistribution or BET.
+    # Never perform this retrieval for commercial PRO or FREE accounts.
+    if access.get("owner") is True or access.get("admin") is True:
+        try:
+            result["private_team_context"] = await asyncio.wait_for(
+                asyncio.to_thread(
+                    fixture_owner_team_context_v1.read_for_owner,
+                    int(fixture.get("fixture_id")),
+                    fixture.get("league_id"), fixture.get("season"),
+                    fixture.get("home_team_id"), fixture.get("away_team_id"),
+                ), timeout=11.5,
+            )
+        except (ValueError, TypeError, asyncio.TimeoutError):
+            result["private_team_context"] = {
+                "status": "NOT_VERIFIED", "provider_requests_added": 0,
+                "commercial_display_allowed": False,
+            }
     try:
         multimarket = await asyncio.to_thread(
             multimarket_history_bridge_v1.read_for_match, fixture_value
