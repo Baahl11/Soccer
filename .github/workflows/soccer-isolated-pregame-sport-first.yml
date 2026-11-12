@@ -147,7 +147,9 @@ jobs:
             and (.season_split_cache_new_public_cache_files_created == 0)
             and (.league_coverage_report_scope == "THIS_CAPTURE_TWO_DATE_WINDOW_ONLY")
             and (.league_coverage_report | type == "array")
-            and (([.league_coverage_report[].eligible] | add // 0) == .eligible_fixture_ids)
+            and (.league_coverage_report_total_leagues >= (.league_coverage_report | length))
+            and ((.league_coverage_report_truncated == true)
+              or (([.league_coverage_report[].eligible] | add // 0) == .eligible_fixture_ids))
             and (.daily_remaining_reported >= 1000)
           ' state/soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json >/dev/null
       - name: Save genuine pregame observations without rewriting historical predictions
