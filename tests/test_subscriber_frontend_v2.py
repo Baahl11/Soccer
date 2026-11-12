@@ -389,3 +389,25 @@ def test_today_shows_per_fixture_sport_queue_counts_without_fabricating_forecast
     assert "queueCounts.NOT_VERIFIED" in html
     assert "NO predicciones publicables ni recomendaciones" in html
     assert "Estado de cobertura no verificado" in html
+
+
+def test_live_cancelled_fixture_detail_is_a_real_readable_explanation_not_blank_odds():
+    html = subscriber_frontend_v2.render()
+    assert "d?.live_fixture_status?.source==='API_FOOTBALL_FIXTURE_STATUS_BY_ID'" in html
+    assert "const blockedEvent=" in html
+    assert "Este partido está cancelado" in html
+    assert "Estado de oportunidad: evento no vigente" in html
+    assert "No corresponde emitir una proyección vigente" in html
+    assert "Estado de oportunidad: evento no vigente" in html
+    assert "void loadAnalystNote(f.fixture_id)" in html
+    assert "f={...known,...rawF}" in html
+
+
+def test_match_mobile_must_fit_viewport_and_empty_probability_panels_are_not_repeated():
+    html = subscriber_frontend_v2.render()
+    assert "#matchDetail .intel-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}" in html
+    assert "#matchDetail .universal-status-grid{grid-template-columns:minmax(0,1fr)}" in html
+    assert "#matchDetail .intel-tabs{overflow-x:auto" in html
+    assert "hasSportProb?'<div class=\"visual-card primary-forecast\"" in html
+    assert "sportN>0?'<div class=\"visual-card primary-takeaways\"" in html
+    assert "No hay estadísticas verificadas en el expediente" in html
