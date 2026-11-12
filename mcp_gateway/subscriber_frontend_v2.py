@@ -1490,7 +1490,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '</strong><p>'+esc(sportState.reason||'El análisis deportivo se evalúa con independencia del mercado.')+'</p></div>'+
       '<div class="visual-card"><h3>Evaluación de valor</h3><strong>'+esc(valueLabels[opportunityState.status]||opportunityState.status||'Mercado no evaluado')+
       '</strong><p>'+esc(opportunityState.reason||'No consta evaluación verificable de valor.')+'</p></div></div>';
-    const notesHtml='<section class="analyst-notebook"><div class="visual-card-head"><h3>Mi lectura del partido</h3><span>Nota privada · NO modifica el modelo</span></div>'+
+    const notesHtml='<section class="analyst-notebook"><div class="visual-card-head"><h3>Mi lectura del partido</h3><span>Nota privada · No modifica el modelo</span></div>'+
       '<p>Registra información que el sistema pudo pasar por alto. No se convierte en estadística verificada ni altera ninguna proyección histórica.</p>'+
       '<textarea id="analystNoteText" maxlength="2000" rows="4" placeholder="Mi hipótesis deportiva (no sustituye fuentes verificadas)…"></textarea>'+
       '<div class="analyst-note-actions"><button type="button" class="secondary" id="saveAnalystNote">Guardar nota</button>'+
