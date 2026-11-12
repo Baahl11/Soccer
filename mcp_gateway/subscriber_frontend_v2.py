@@ -531,6 +531,20 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 #matchDetail .verified-sport-caveats p{{font-size:12px;color:#bed0d9;line-height:1.5;margin:0}}
 #matchDetail .verified-sport-source{{font-size:11px;color:#96bcc8;line-height:1.5}}
 @media(max-width:700px){{#matchDetail .verified-sport-fact-list{{grid-template-columns:1fr}}#matchDetail .verified-sport-heading h2{{font-size:19px}}}}
+
+/* Cross-competition recent results: verified descriptive facts, no odds or RAW model. */
+#matchDetail .verified-recent-form{{padding:16px;border:1px solid #28647f;border-left:5px solid #4bafd1;background:#0b2332;border-radius:12px;display:grid;gap:14px;min-width:0;overflow-wrap:anywhere}}
+#matchDetail .recent-form-teams{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
+#matchDetail .recent-form-team{{padding:13px;border:1px solid #234e68;border-radius:10px;background:#081d2a;display:grid;gap:9px;min-width:0}}
+#matchDetail .recent-form-team h3{{font-size:17px;line-height:1.3;margin:0;color:#e5f1f6}}
+#matchDetail .recent-form-summary{{font-size:13px;font-weight:700;color:#96e7d5}}
+#matchDetail .recent-form-rows{{display:grid;gap:5px}}
+#matchDetail .recent-form-row{{display:grid;grid-template-columns:24px minmax(0,1fr) 52px;gap:8px;align-items:center;padding:8px;border-radius:7px;background:#112a39;font-size:11px;color:#d1e6eb}}
+#matchDetail .recent-form-row strong{{font-size:12px;color:#abddf2}}
+#matchDetail .recent-form-row span{{line-height:1.45;overflow-wrap:anywhere}}
+#matchDetail .recent-form-row b{{text-align:right;color:#effbfb;font-size:13px}}
+#matchDetail .recent-form-team>p{{font-size:12px;color:#acc7d4;line-height:1.5;margin:0}}
+@media(max-width:700px){{#matchDetail .recent-form-teams{{grid-template-columns:1fr}}#matchDetail .verified-recent-form{{padding:12px}}}}
 </style>
 </head>
 <body>
@@ -1572,6 +1586,32 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '. Son datos históricos, NO xG ni un modelo 1X2. No tienen validación OOS ni permiso de redistribución comercial.'+
       ' Las competiciones o rivales pueden ser distintos y las estadísticas no garantizan un pronóstico.</p></section>';
   }}
+  function recentVerifiedForm(packet){{
+    const r=packet?.private_recent_form||{{}};
+    if(!['VERIFIED_RECENT_FORM','PARTIAL_RECENT_FORM'].includes(r.status))return '';
+    const teams=Array.isArray(r.teams)?r.teams.filter(x=>x&&typeof x==='object'):[];
+    return '<section class="verified-recent-form"><div class="verified-sport-heading">'+
+      '<span>DATOS NUEVOS · ÚLTIMOS PARTIDOS OFICIALES</span>'+
+      '<h2>Forma reciente de los equipos</h2>'+
+      '<p>Resultados registrados antes del inicio del encuentro. Incluye distintas competiciones; no equivale a una proyección calibrada.</p></div>'+
+      '<div class="recent-form-teams">'+teams.map(t=>{{
+        const matches=Array.isArray(t.recent_fixtures)?t.recent_fixtures.slice(0,6):[];
+        return '<div class="recent-form-team"><h3>'+esc(t.team_name||'Equipo')+'</h3>'+
+          '<div class="recent-form-summary">'+esc(t.sample??0)+' partidos · '+
+          esc(t.wins??'–')+'V / '+esc(t.draws??'–')+'E / '+esc(t.losses??'–')+'D · '+
+          esc(t.goals_for??'–')+' GF / '+esc(t.goals_against??'–')+' GC</div>'+
+          '<div class="recent-form-rows">'+matches.map(m=>'<div class="recent-form-row">'+
+          '<strong>'+esc(m.result||'–')+'</strong><span>'+esc(m.opponent||'Rival no verificado')+
+          ' · '+esc(m.venue||'')+' · '+esc(m.competition||'')+'</span><b>'+
+          esc(m.goals_for??'–')+'–'+esc(m.goals_against??'–')+'</b></div>').join('')+'</div>'+
+          '<p>Como local: '+esc(t.home_sample??0)+' · Como visitante: '+esc(t.away_sample??0)+'</p></div>';
+      }}).join('')+'</div>'+
+      '<div class="verified-sport-caveats"><strong>Limitaciones</strong>'+
+      '<p>Competición y fuerza de los rivales no ajustadas. Sin xG, once confirmado ni calidad del oponente verificable. Muestra exclusivamente histórica; no produce un pick ni una recomendación.</p></div>'+
+      '<div class="verified-sport-source">Fuente: '+esc(r.source||'NOT VERIFIED')+
+      ' · Captura: '+esc(prettyStamp(r.captured_at_utc))+
+      ' · Acceso: investigación privada · Proyección 1X2: no calculada</div></section>';
+  }}
   function verifiedSportAssessment(packet){{
     const read=packet?.private_verified_sport_read||{{}};
     if(!['VERIFIED_SEASON_CONTEXT','PARTIAL_SEASON_CONTEXT'].includes(read.status))return '';
@@ -1611,7 +1651,8 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const hasSportProb=['home','draw','away'].every(k=>p100(probs?.[k])!==null);
     const goalRateLabel=ctx.goal_rate_semantics==='POISSON_LAMBDA_NOT_XG'?'Poisson λ, no xG':'Tasa de goles del modelo';
     const ownerSeasonResearch=internalSeasonFacts(d);
-    const ownerSportRead=verifiedSportAssessment(d),hasOwnerSportRead=!!ownerSportRead;
+    const ownerSportRead=verifiedSportAssessment(d),ownerRecent=recentVerifiedForm(d),
+      hasOwnerSportRead=!!ownerSportRead||!!ownerRecent;
     const overview='<section class="intel-section active" data-detail-section="overview">'+
       '<div class="match-reading-banner"><span>EL PARTIDO, ANTES QUE LAS CUOTAS</span><h2>'+esc(hasSportProb?'Pronóstico deportivo registrado':sportN>0||hasOwnerSportRead?'Análisis deportivo histórico disponible':'Partido identificado · análisis pendiente')+'</h2><p>'+
       esc(hasSportProb?'Existe una proyección histórica que debe revisarse junto con la disponibilidad.':
@@ -1619,7 +1660,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         'La ficha identifica el encuentro, pero aún no contiene estadísticas deportivas persistidas. No se infieren porcentajes ni recomendaciones a partir del calendario.')+
       '</p><p class="status-source">Estado '+esc(statusLabel||'NO VERIFICADO')+
       ' · '+esc(statusProvenance)+' · '+esc(statusObserved?prettyStamp(statusObserved):'Sin fecha de última verificación')+'</p></div>'+
-      ownerSportRead+ownerSeasonResearch+
+      ownerRecent+ownerSportRead+ownerSeasonResearch+
       (hasSportProb?'<div class="visual-card primary-forecast"><h3>Victoria · Empate · Derrota</h3>'+
         probabilityVisual(probs,f)+'</div>':'')+
       (sportN>0?'<div class="visual-card primary-takeaways"><h3>Datos deportivos que sí tenemos</h3>'+
@@ -1678,7 +1719,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         '<p>'+esc(f.home_team||'Local')+' vs '+esc(f.away_team||'Visitante')+' · '+esc(f.league||'Competición')+
         ' · Inicio originalmente previsto: '+esc(kickDate)+' '+esc(kickTime)+'</p>'+
         '<p>Estado de oportunidad: evento no vigente. Los antecedentes deportivos, si están guardados, siguen consultables sin promocionarlos a una predicción.</p>'+
-        ownerSportRead+ownerSeasonResearch+pastFacts+'</div>'+notesHtml+'</section></div>';
+        ownerRecent+ownerSportRead+ownerSeasonResearch+pastFacts+'</div>'+notesHtml+'</section></div>';
       void loadAnalystNote(f.fixture_id);
       const back=$('backToMatches');if(back)back.onclick=closeMatchRoute;
       return;
