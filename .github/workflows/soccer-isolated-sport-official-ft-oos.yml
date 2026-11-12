@@ -44,6 +44,9 @@ jobs:
           assert '"market_price_verified":False' in s
           assert '"clv_eligible":False' in s
           assert '"model_recomputed_after_result":False' in s
+          assert 'MAX_UNRESOLVED_ATTEMPT_HISTORY = 5000' in s
+          assert '_read_unresolved_attempt_history' in s
+          assert 'NEVER_CHECKED_THEN_LEAST_RECENT_UNRESOLVED_FT_ONLY' in s
           assert 'if (fixture.get("status") or {}).get("short") != "FT":' in s
           print("OFFICIAL_SPORT_OOS_ANTI_LEAKAGE_CONTRACT_PASS")
           PY
@@ -90,6 +93,10 @@ jobs:
             and .retroactive_predictions_created == false
             and .market_prices_used == false
             and (.new_oos_fixture_rows <= 4)
+            and .attempt_selection_policy == "NEVER_CHECKED_THEN_LEAST_RECENT_UNRESOLVED_FT_ONLY"
+            and (.unresolved_attempted_at_utc | type == "object")
+            and (.unresolved_attempt_history_size >= (.unresolved_fixture_ids | length))
+            and (.unresolved_attempt_history_size <= 5000)
             and (.provider_requests_added <= 4)
             and (.provider_requests_added == 0 or .daily_remaining_reported >= 1000)
           ' state/soccer_edge_state/analysis/isolated_sport_first_oos_receipt_v1.json >/dev/null
