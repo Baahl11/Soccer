@@ -36,7 +36,7 @@ def test_prior_results_verified_and_cross_competition_sample_is_not_model(monkey
         assert key==""
         return {"quota":{"daily_remaining":7000},"response":[
             source_fixture(100+tid,tid,900,past,2,1,competition="National Cup"),
-            source_fixture(200+tid,tid,901,before,0,2,
+            source_fixture(200+tid,tid,901,before,2,0,
                            club_home=False,competition="League Championship"),
             source_fixture(300+tid,tid,902,
                            (NOW+timedelta(days=1)).isoformat(),3,0,
@@ -58,7 +58,7 @@ def test_prior_results_verified_and_cross_competition_sample_is_not_model(monkey
     assert value["teams"][0]["multi_competition"] is True
     assert value["teams"][0]["wins"]==1
     assert value["teams"][0]["losses"]==1
-    assert value["teams"][0]["goals_for"]==4  # first 2-1 home, second 2-0 away
+    assert value["teams"][0]["goals_for"]==2  # first 2-1 home, second 0-2 away
     assert all(x["kickoff_utc"]<KICKOFF for t in value["teams"]
                for x in t["recent_fixtures"])
     assert any("NO son equivalentes" in x
