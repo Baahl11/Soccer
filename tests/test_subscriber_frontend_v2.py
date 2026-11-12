@@ -376,3 +376,16 @@ def test_analyst_notebook_uses_authenticated_api_and_does_not_become_model_input
     assert "/my-edge?resource=notes&fixture_id=" in html
     assert "No modifica el modelo" in html
     assert "loadAnalystNote(f.fixture_id)" in html
+
+
+def test_today_shows_per_fixture_sport_queue_counts_without_fabricating_forecasts():
+    html = subscriber_frontend_v2.render()
+    assert "Estado deportivo acumulado de la jornada" in html
+    assert "queueOverview.all_fixtures_accounted_for===true" in html
+    assert "queueCounts.MODELED_LIMITED" in html
+    assert "queueCounts.DATA_INSUFFICIENT" in html
+    assert "queueCounts.QUEUED" in html
+    assert "queueCounts.RETRY_REQUIRED" in html
+    assert "queueCounts.NOT_VERIFIED" in html
+    assert "NO predicciones publicables ni recomendaciones" in html
+    assert "Estado de cobertura no verificado" in html
