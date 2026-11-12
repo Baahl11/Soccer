@@ -1461,7 +1461,13 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 
     const multiMarket='<section class="intel-section" data-detail-section="periods">'+
        fe11MultimarketSection(d?.multi_market_research||null,f)+'</section>';
-    box.innerHTML='<div class="match-detail">'+hero+summary+tabHtml+'<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+'</div></div>';
+    const sportState=d?.sport_analysis||{{}},opportunityState=d?.opportunity||{{}};
+    const independentStatus='<div class="universal-status-grid" style="padding:12px 16px 0">'+
+      '<div class="visual-card"><h3>Lectura deportiva</h3><strong>'+esc(analysisLabels[sportState.status]||sportState.status||'NOT VERIFIED')+
+      '</strong><p>'+esc(sportState.reason||'El análisis deportivo se evalúa con independencia del mercado.')+'</p></div>'+
+      '<div class="visual-card"><h3>Evaluación de valor</h3><strong>'+esc(valueLabels[opportunityState.status]||opportunityState.status||'Mercado no evaluado')+
+      '</strong><p>'+esc(opportunityState.reason||'No consta evaluación verificable de valor.')+'</p></div></div>';
+    box.innerHTML='<div class="match-detail">'+hero+independentStatus+summary+tabHtml+'<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+'</div></div>';
     box.querySelectorAll('[data-detail-tab]').forEach(btn=>btn.onclick=()=>{{const id=btn.dataset.detailTab;box.querySelectorAll('[data-detail-tab]').forEach(x=>x.classList.toggle('active',x===btn));box.querySelectorAll('[data-detail-section]').forEach(x=>x.classList.toggle('active',x.dataset.detailSection===id))}});
     const back=$('backToMatches');if(back)back.onclick=closeMatchRoute;
   }}
