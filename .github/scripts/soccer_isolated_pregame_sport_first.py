@@ -20,7 +20,7 @@ from typing import Any
 import urllib.parse
 import urllib.request
 
-VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.2.0"
+VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.3.0"
 BASE_URL = "https://v3.football.api-sports.io"
 TIMEZONE = ZoneInfo("America/Mexico_City")
 ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})
@@ -33,6 +33,7 @@ MAX_KICKOFF_LOOKAHEAD = timedelta(hours=32)
 MAX_SOURCE_SIZE = 1_000_000
 OUTPUT_LIMIT = 5000
 NEGATIVE_COOLDOWN = timedelta(hours=8)
+NEGATIVE_HISTORY_RETENTION = timedelta(hours=36)
 NEGATIVE_CACHE_MAX_ENTRIES = 2000
 NEGATIVE_REASONS = frozenset({
     "HOME_VERIFIED_SEASON_SPLITS_MISSING",
@@ -79,7 +80,7 @@ def _write_negative_cache(
     entries: dict[int, dict[str, str]] = {
         fid: record for fid, record in current.items()
         if _dt(record.get("retry_after_utc")) and
-           _dt(record["retry_after_utc"]) > now
+           _dt(record["retry_after_utc"]) > now - NEGATIVE_HISTORY_RETENTION
     }
     for row in excluded:
         fid = row.get("fixture_id")
@@ -404,7 +405,14 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
     choices = sorted(
         (f for f in unique.values() if f["fixture_id"] not in already
          and f["fixture_id"] not in deferred),
-        key=lambda f: (f["kickoff"], f["fixture_id"]),
+        # Screen never-attempted fixtures before expired hard failures except
+        # when a retried fixture kicks off within 90 minutes. Preserve old
+        # negative cache metadata briefly solely for fair selection.
+        key=lambda f: (
+            0 if (_dt(f["kickoff"]) - now) <= timedelta(minutes=90) else
+            (1 if f["fixture_id"] not in cached_negative else 2),
+            f["kickoff"], f["fixture_id"],
+        ),
     )
     frozen, excluded = [], []
     for fx in _select_diverse_upcoming(choices, max_fixtures, now):
@@ -424,7 +432,10 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
             for f in unique.values()
         ),
         "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
-        "selection_policy": "UPCOMING_WITHIN_6H_THEN_LATER;DISTINCT_LEAGUES_FIRST;NO_BET_TIER_ASSUMED",
+        "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
+        "previously_negative_eligible": sum(
+            f["fixture_id"] in cached_negative for f in choices
+        ),
         "attempted_fixtures": len(frozen)+len(excluded),
         "new_frozen_pregame_models": len(frozen),
         "excluded": excluded, "frozen": frozen,
@@ -517,8 +528,45 @@ def self_test(model_path: Path):
             neg_path, negative, [], [],
             now=now + NEGATIVE_COOLDOWN + timedelta(minutes=1),
         )
+        kept = _read_negative_cache(neg_path)
+        assert f["fixture_id"] in kept  # expiry releases a retry, retains fairness history
+        # When an expired hard failure and a new fixture compete in one
+        # match slot, analyze the never-tried one first, not the stale retry.
+        new_fixture = {
+            **fixture,
+            "fixture": {**fixture["fixture"], "id": 102,
+                        "date": (now+timedelta(hours=5)).isoformat()},
+        }
+        old_fixture = {
+            **fixture,
+            "fixture": {**fixture["fixture"], "id": 101,
+                        "date": (now+timedelta(hours=4)).isoformat()},
+        }
+        class PairProvider(Offline):
+            def get(self, endpoint, params):
+                if endpoint == "fixtures":
+                    self.calls += 1
+                    return {"response": [old_fixture, new_fixture]}
+                return super().get(endpoint, params)
+        expired = {101: {
+            "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING",
+            "retry_after_utc": (now-timedelta(minutes=1)).isoformat(),
+        }}
+        fair_provider = PairProvider()
+        priority_run = capture(
+            fair_provider, model, "fixed-test-repo-sha", [],
+            clock=lambda: now, max_fixtures=1, negative_cache=expired,
+        )
+        assert priority_run["attempted_fixtures"] == 1
+        assert priority_run["frozen"][0]["fixture_id"] == 102
+        assert priority_run["provider_requests_added"] == 4
+        assert priority_run["previously_negative_eligible"] == 1
+        _write_negative_cache(
+            neg_path, kept, [], [],
+            now=now + NEGATIVE_COOLDOWN + NEGATIVE_HISTORY_RETENTION + timedelta(minutes=1),
+        )
         assert _read_negative_cache(neg_path) == {}
-    print("ISOLATED_SPORT_FIRST_OFFLINE_PASS: NO_MARKET, REAL_CANONICAL_MODEL, PREGAME, DEDUP, BOUNDED, NEGATIVE_CACHE")
+    print("ISOLATED_SPORT_FIRST_OFFLINE_PASS: NO_MARKET, REAL_CANONICAL_MODEL, PREGAME, DEDUP, BOUNDED, NEGATIVE_CACHE, FAIR_UNTRIED_PRIORITY")
 
 
 def main():
