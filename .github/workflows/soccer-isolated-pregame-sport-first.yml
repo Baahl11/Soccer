@@ -11,20 +11,13 @@ on:
       - ".github/scripts/soccer_isolated_pregame_sport_first.py"
       - ".github/workflows/soccer-isolated-pregame-sport-first.yml"
   workflow_dispatch:
-  # Strict max 38 provider requests / capture; 18 real fixtures; sport-only no markets.
+  # Strict max 38 provider requests / capture; at most 18 fixtures per run.
+  # Every hour: at most 24*38=912 official source calls in a UTC day,
+  # before de-duplication; source guard refuses if <1000 calls remain.
+  # Never retroactively model kicked-off fixtures. No odds or BET.
+  # Across 24 windows the attempt capacity is 432 fixtures per day.
   schedule:
-    # Eight staggered sport-only discovery windows: up to 144 distinct
-    # fixture attempts/day before de-duplication, at most 38 provider calls
-    # each (304/day maximum) and the original hard 1000-call reserve.
-    # Both dates are scanned; source-missing fixtures have 8h cooldown.
-    - cron: "50 08 * * *"  # 02:50 Mexico City
-    - cron: "50 11 * * *"  # 05:50 Mexico City
-    - cron: "50 13 * * *"  # 07:50 Mexico City
-    - cron: "50 15 * * *"  # 09:50 Mexico City
-    - cron: "50 17 * * *"  # 11:50 Mexico City
-    - cron: "50 19 * * *"  # 13:50 Mexico City
-    - cron: "50 22 * * *"  # 16:50 Mexico City
-    - cron: "50 01 * * *"  # 19:50 Mexico City previous date
+    - cron: "50 * * * *"  # Hourly at :50 UTC; 24 bounded sport-only windows
 
 permissions:
   contents: write
@@ -79,9 +72,11 @@ jobs:
           assert '"bet_eligible": False' in s
           assert '"provider_odds_requests_added": 0' in s
           assert "soccer-edge-state" in w
-          assert sum(line.strip().startswith("- cron:") for line in w.splitlines()) == 8
-          assert "304/day maximum" in w
-          assert "1000-call reserve" in w
+          assert sum(line.strip().startswith("- cron:") for line in w.splitlines()) == 1
+          assert '50 * * * *' in w
+          assert "at most 24*38=912" in w
+          assert "432 fixtures per day" in w
+          assert "source guard refuses if <1000" in w
           print("ISOLATED_PROSPECTIVE_SPORT_ONLY_STATIC_CONTRACT_PASS")
           PY
 
