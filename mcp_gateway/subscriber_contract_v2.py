@@ -12,6 +12,7 @@ from mcp_gateway import highlightly_research_pg_v1
 from mcp_gateway import soccer_family_research_v1
 from mcp_gateway import soccer_p0_persisted_view_v1
 from mcp_gateway import soccer_universal_match_v1
+from mcp_gateway import soccer_sport_queue_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -809,6 +810,9 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
             fixture_ids = [int(row[0]) for row in db_rows if row and row[0] is not None]
             evidence_by_fixture = _load_evidence_inventory(cur, fixture_ids)
 
+    queue_by_id = soccer_sport_queue_v1.read_statuses(
+        persistence_base._connect, fixture_ids
+    )
     rows: list[dict[str, Any]] = []
     for db_row in db_rows:
         fixture_id, kickoff, status, league, country, home_id, home, away_id, away = db_row
@@ -823,6 +827,11 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
                 "home_team": home,
                 "away_team_id": away_id,
                 "away_team": away,
+                "screen_queue": queue_by_id.get(str(fixture_id), {
+                    "status": "NOT_VERIFIED",
+                    "reason": "No se pudo verificar un estado persistido de screening.",
+                    "attempt_count": None,
+                }),
                 "evidence_inventory": evidence_by_fixture.get(
                     str(fixture_id), _empty_evidence_inventory()
                 ),
@@ -1382,6 +1391,7 @@ def _attach_full_registry_slate(
                 },
                 "coverage": cov,
                 "screening": radar,
+                "screen_queue": row.get("screen_queue"),
             })
         )
 
@@ -1400,6 +1410,10 @@ def _attach_full_registry_slate(
         }
     )
     contract_payload["slate"] = slate
+    contract_payload["sport_coverage_queue"] = soccer_sport_queue_v1.coverage_summary(
+        {str(_dict(r.get("fixture")).get("fixture_id")): _dict(r.get("screen_queue"))
+         for r in full_rows}, full_rows
+    )
     contract_payload["radar"] = {
         "status": "PERSISTED_EVIDENCE_AUDIT_READY",
         "scope": "PERSISTED_ELIGIBLE_SLATE_ONLY",
