@@ -20,7 +20,7 @@ from typing import Any
 import urllib.parse
 import urllib.request
 
-VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.3.0"
+VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.4.0"
 BASE_URL = "https://v3.football.api-sports.io"
 TIMEZONE = ZoneInfo("America/Mexico_City")
 ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})
@@ -32,6 +32,10 @@ MIN_KICKOFF_LEAD = timedelta(minutes=45)
 MAX_KICKOFF_LOOKAHEAD = timedelta(hours=32)
 MAX_SOURCE_SIZE = 1_000_000
 OUTPUT_LIMIT = 5000
+# Private, in-process memoization and read-only reuse of original frozen
+# season-split snapshots. NEVER create a new public provider-data cache file.
+TEAM_SPLIT_CACHE_TTL = timedelta(hours=12)
+MAX_TEAM_SPLIT_CACHE_ENTRIES = 3000
 NEGATIVE_COOLDOWN = timedelta(hours=8)
 NEGATIVE_HISTORY_RETENTION = timedelta(hours=36)
 NEGATIVE_CACHE_MAX_ENTRIES = 2000
@@ -234,6 +238,118 @@ def _valid_team_stats(payload: dict[str, Any], fx: dict[str, Any], team_key: str
             "fixtures": fixtures, "form": response.get("form")}
 
 
+class TeamSeasonSplitCache:
+    """One sport-input key per (team, competition, season, home/away venue).
+
+    Only reuse verified official team stats captured BEFORE this fixture's
+    kickoff and within 12h of now. Seed from original pregame research rows
+    already loaded into memory; do not write/duplicate provider data to a
+    publicly downloadable GitHub cache. An observed source is not a new model.
+    """
+    def __init__(self, originals: list[dict[str, Any]] | None = None):
+        self.entries: dict[tuple[int, int, int, str], dict[str, Any]] = {}
+        self.hits = 0
+        self.from_prior_snapshot = 0
+        self.from_current_capture = 0
+        self.misses = 0
+        self.puts = 0
+        for row in (originals or [])[-15000:]:
+            if not isinstance(row, dict):
+                continue
+            fx = row.get("fixture") or {}
+            if (row.get("status") != "FROZEN_RESEARCH_PREMATCH_SPORT_PROJECTION"
+                    or row.get("provider_observed_before_kickoff") is not True
+                    or row.get("raw_projection_before_market") is not True
+                    or row.get("provider_odds_requests_added") != 0
+                    or not isinstance(fx, dict)):
+                continue
+            at = _dt(row.get("captured_at_utc"))
+            original_kick = _dt(fx.get("kickoff"))
+            if at is None or original_kick is None or at >= original_kick:
+                continue
+            source = row.get("sporting_source") or {}
+            splits = source.get("team_season_splits") or {}
+            if not isinstance(splits, dict):
+                continue
+            for side in ("home", "away"):
+                compact = splits.get(side)
+                if not isinstance(compact, dict):
+                    continue
+                key = self.key(fx, side)
+                if key is None or _verify_cached_split(compact, fx, side) is None:
+                    continue
+                previous = self.entries.get(key)
+                if previous is None or at > previous["observed"]:
+                    self.entries[key] = {
+                        "observed": at, "source": "ORIGINAL_FROZEN_PREGAME",
+                        "stats": compact,
+                    }
+        if len(self.entries) > MAX_TEAM_SPLIT_CACHE_ENTRIES:
+            self.entries = dict(sorted(
+                self.entries.items(), key=lambda x: x[1]["observed"],
+                reverse=True,
+            )[:MAX_TEAM_SPLIT_CACHE_ENTRIES])
+
+    @staticmethod
+    def key(fx: dict[str, Any], side: str) -> tuple[int, int, int, str] | None:
+        vals = (
+            fx.get(f"{side}_team_id"), fx.get("league_id"), fx.get("season"),
+        )
+        if side not in ("home", "away") or any(type(x) is not int or x <= 0 for x in vals):
+            return None
+        return (*vals, side)
+
+    def get(self, fx: dict[str, Any], side: str, at: datetime) -> dict[str, Any] | None:
+        key = self.key(fx, side)
+        entry = self.entries.get(key) if key else None
+        kickoff = _dt(fx.get("kickoff"))
+        if (entry is None or kickoff is None or at.tzinfo is None
+                or at < entry["observed"]
+                or at - entry["observed"] >= TEAM_SPLIT_CACHE_TTL
+                or entry["observed"] >= kickoff):
+            self.misses += 1
+            return None
+        stats = _verify_cached_split(entry["stats"], fx, side)
+        if stats is None:
+            self.misses += 1
+            return None
+        self.hits += 1
+        if entry["source"] == "ORIGINAL_FROZEN_PREGAME":
+            self.from_prior_snapshot += 1
+        else:
+            self.from_current_capture += 1
+        return stats
+
+    def put(self, fx: dict[str, Any], side: str, stats: dict[str, Any], at: datetime) -> None:
+        key = self.key(fx, side)
+        kickoff = _dt(fx.get("kickoff"))
+        if (key is None or kickoff is None or at.tzinfo is None or at >= kickoff
+                or _verify_cached_split(stats, fx, side) is None):
+            return
+        if len(self.entries) >= MAX_TEAM_SPLIT_CACHE_ENTRIES and key not in self.entries:
+            return
+        old = self.entries.get(key)
+        if old is None or old["observed"] <= at:
+            self.entries[key] = {"observed": at, "source": "SAME_CAPTURE", "stats": stats}
+            self.puts += 1
+
+
+def _verify_cached_split(stats: Any, fx: dict[str, Any], side: str) -> dict[str, Any] | None:
+    """Recheck original venue/season model requirements on every cache read."""
+    if not isinstance(stats, dict):
+        return None
+    payload = {
+        "response": {
+            "team": {"id": fx.get(f"{side}_team_id")},
+            "league": {"id": fx.get("league_id"), "season": fx.get("season")},
+            "goals": stats.get("goals"),
+            "fixtures": stats.get("fixtures"),
+            "form": stats.get("form"),
+        }
+    }
+    return _valid_team_stats(payload, fx, side)
+
+
 def _load_canonical_model(model_path: Path):
     if not model_path.is_file():
         raise RuntimeError("CANONICAL_SOCCER_MODEL_NOT_AVAILABLE")
@@ -266,18 +382,24 @@ def _read_rows(path: Path) -> list[dict[str, Any]]:
 
 
 def _build_one(fx: dict[str, Any], provider, model, model_sha: str,
-               clock) -> dict[str, Any]:
+               clock, split_cache: TeamSeasonSplitCache | None = None) -> dict[str, Any]:
     kickoff = _dt(fx["kickoff"])
     if kickoff is None or kickoff <= clock() + MIN_KICKOFF_LEAD:
         raise RuntimeError("KICKOFF_LEAD_NOT_VERIFIED")
     stats = {}
     for team_key in ("home", "away"):
-        source = provider.get("teams/statistics", {
-            "team": fx[f"{team_key}_team_id"],
-            "league": fx["league_id"],
-            "season": fx["season"],
-        })
-        stats[team_key] = _valid_team_stats(source, fx, team_key)
+        cached = split_cache.get(fx, team_key, clock()) if split_cache else None
+        if cached is not None:
+            stats[team_key] = cached
+        else:
+            source = provider.get("teams/statistics", {
+                "team": fx[f"{team_key}_team_id"],
+                "league": fx["league_id"],
+                "season": fx["season"],
+            })
+            stats[team_key] = _valid_team_stats(source, fx, team_key)
+            if stats[team_key] is not None and split_cache is not None:
+                split_cache.put(fx, team_key, stats[team_key], clock())
         if stats[team_key] is None:
             return {
                 "fixture_id": fx["fixture_id"], "status": "NOT_MODELED",
@@ -414,15 +536,55 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
             f["kickoff"], f["fixture_id"],
         ),
     )
+    # Shared season splits across fixtures: in-memory only, fed by immutable
+    # original captures and fresh observations. No public duplicate of source
+    # data; no extra API source or changed calibrated model weights.
+    split_cache = TeamSeasonSplitCache(existing)
     frozen, excluded = [], []
-    for fx in _select_diverse_upcoming(choices, max_fixtures, now):
-        result = _build_one(fx, provider, model, model_sha, clock)
+    selected = _select_diverse_upcoming(choices, max_fixtures, now)
+    for fx in selected:
+        result = _build_one(fx, provider, model, model_sha, clock, split_cache)
         if result.get("status") == "FROZEN_RESEARCH_PREMATCH_SPORT_PROJECTION":
             frozen.append(result)
         else:
             excluded.append(result)
     if provider.calls > MAX_PROVIDER_REQUESTS:
         raise RuntimeError("PROVIDER_CALL_CAP_EXCEEDED")
+    by_league: dict[str, dict[str, Any]] = {}
+    for fx in unique.values():
+        key = str(fx["league_id"])
+        item = by_league.setdefault(key, {
+            "league": fx["league"], "competition_id": fx["league_id"],
+            "eligible": 0, "attempted": 0, "modeled_limited": 0,
+            "missing_or_insufficient": 0, "already_frozen": 0,
+            "deferred_due_to_missing_source": 0, "unattempted": 0,
+            "failure_reasons": {},
+        })
+        item["eligible"] += 1
+        if fx["fixture_id"] in already:
+            item["already_frozen"] += 1
+        elif fx["fixture_id"] in deferred:
+            item["deferred_due_to_missing_source"] += 1
+        else:
+            item["unattempted"] += 1
+    fixture_lookup = {x["fixture_id"]: x for x in unique.values()}
+    for row in frozen:
+        fx = fixture_lookup.get(row["fixture_id"])
+        if fx:
+            item = by_league[str(fx["league_id"])]
+            item["attempted"] += 1
+            item["modeled_limited"] += 1
+            item["unattempted"] -= 1
+    for row in excluded:
+        fx = fixture_lookup.get(row["fixture_id"])
+        if fx:
+            item = by_league[str(fx["league_id"])]
+            item["attempted"] += 1
+            item["missing_or_insufficient"] += 1
+            item["unattempted"] -= 1
+            reason = str(row.get("reason") or "NOT_VERIFIED")[:100]
+            item["failure_reasons"][reason] = item["failure_reasons"].get(reason, 0) + 1
+    report = sorted(by_league.values(), key=lambda x: (-x["eligible"], x["competition_id"]))
     return {
         "status": "CAPTURED_RESEARCH_ONLY" if frozen else "NO_NEW_VALID_PREGAME_MODELS",
         "generated_at_utc": clock().isoformat(),
@@ -438,6 +600,17 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
         ),
         "attempted_fixtures": len(frozen)+len(excluded),
         "new_frozen_pregame_models": len(frozen),
+        "eligible_fixture_ids": len(unique),
+        "league_coverage_report": report[:250],
+        "league_coverage_report_total_leagues": len(report),
+        "league_coverage_report_truncated": len(report) > 250,
+        "league_coverage_report_scope": "THIS_CAPTURE_TWO_DATE_WINDOW_ONLY",
+        "season_split_cache_hits": split_cache.hits,
+        "season_split_cache_hits_from_original_frozen": split_cache.from_prior_snapshot,
+        "season_split_cache_hits_same_capture": split_cache.from_current_capture,
+        "season_split_cache_misses": split_cache.misses,
+        "season_split_cache_new_entries": split_cache.puts,
+        "season_split_cache_new_public_cache_files_created": 0,
         "excluded": excluded, "frozen": frozen,
         "provider_requests_added": provider.calls,
         "daily_remaining_reported": provider.remaining,
@@ -491,6 +664,42 @@ def self_test(model_path: Path):
     assert record["provider_odds_requests_added"] == 0
     deduped = capture(Offline(),model,"fixed-test-repo-sha",[record],clock=lambda:now)
     assert deduped["new_frozen_pregame_models"] == 0
+    assert deduped["league_coverage_report"][0]["already_frozen"] == 1
+    # New eligible game, same home team+league+season. The verified original
+    # pregame snapshot can provide that team's current-season split without
+    # another provider call. Away opponent is fetched from the official source.
+    second_fixture = {
+        **fixture,
+        "fixture": {**fixture["fixture"], "id": 102,
+                    "date": (now+timedelta(hours=5)).isoformat()},
+        "teams": {"home": {"id": 5}, "away": {"id": 7}},
+    }
+    class ReusingProvider(Offline):
+        def get(self, endpoint, params):
+            if endpoint == "fixtures":
+                self.calls += 1
+                return {"response": [fixture, second_fixture]}
+            return super().get(endpoint, params)
+    reused = capture(
+        ReusingProvider(), model, "fixed-test-repo-sha", [record], clock=lambda: now
+    )
+    assert reused["new_frozen_pregame_models"] == 1
+    assert reused["provider_requests_added"] == 3  # 2 dates + 1 new team
+    assert reused["season_split_cache_hits"] == 1
+    assert reused["season_split_cache_hits_from_original_frozen"] == 1
+    assert reused["season_split_cache_misses"] == 1
+    assert reused["season_split_cache_new_public_cache_files_created"] == 0
+    assert reused["league_coverage_report"][0]["eligible"] == 2
+    assert reused["league_coverage_report"][0]["attempted"] == 1
+    assert reused["league_coverage_report"][0]["modeled_limited"] == 1
+    assert reused["league_coverage_report"][0]["already_frozen"] == 1
+    # A cached source from another competition, venue, or after kickoff is
+    # never used as a current pre-match model input.
+    wrong_league = {**f, "league_id": 56}
+    data = TeamSeasonSplitCache([record])
+    assert data.get(wrong_league, "home", now) is None
+    assert data.get(f, "away", now+timedelta(hours=13)) is None
+    assert data.get(f, "home", now-timedelta(minutes=1)) is None
     bad = {**fixture,"teams":{"home":{"id":5},"away":{"id":5}}}
     assert _fixture(bad,now) is None
     sample = [
