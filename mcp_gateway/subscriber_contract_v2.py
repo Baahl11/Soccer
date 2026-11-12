@@ -16,6 +16,7 @@ from mcp_gateway import soccer_universal_match_v1
 from mcp_gateway import soccer_sport_queue_v1
 from mcp_gateway import fixture_live_status_v1
 from mcp_gateway import fixture_owner_team_context_v1
+from mcp_gateway import fixture_owner_recent_context_v1
 from mcp_gateway import soccer_verified_sport_read_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
@@ -2838,6 +2839,39 @@ async def match_detail(request: Request) -> JSONResponse:
             if prior_read["status"] == "VERIFIED_SEASON_CONTEXT":
                 verified_read = prior_read
         result["private_verified_sport_read"] = verified_read
+        # Add a separate, bounded last-12-fixtures source for teams whose
+        # own cup/qualification season has fewer than five splits. Historical
+        # multi-competition form NEVER modifies RAW projections or BET gates.
+        try:
+            result["private_recent_form"] = await asyncio.wait_for(
+                asyncio.to_thread(
+                    fixture_owner_recent_context_v1.read_for_owner,
+                    int(fixture.get("fixture_id")),
+                    fixture.get("home_team_id"), fixture.get("away_team_id"),
+                    str(fixture.get("home_team") or ""),
+                    str(fixture.get("away_team") or ""),
+                    fixture.get("kickoff"),
+                ), timeout=9.0,
+            )
+        except (ValueError, TypeError, asyncio.TimeoutError):
+            result["private_recent_form"] = {
+                "status":"NOT_VERIFIED","provider_requests_added":0,
+                "commercial_display_allowed":False,
+            }
+        if result["private_recent_form"].get("status") in (
+            "VERIFIED_RECENT_FORM", "PARTIAL_RECENT_FORM"
+        ):
+            sport_layer = result.get("sport_analysis")
+            if isinstance(sport_layer,dict) and sport_layer.get("status") in (
+                "NOT_ANALYZED", "PARTIAL", "DATA_INSUFFICIENT"
+            ):
+                sport_layer["status"]="SPORT_EVIDENCE_ONLY"
+                sport_layer["reason"]=(
+                    "Forma reciente observada en partidos anteriores verificados. "
+                    "No equivale a un modelo RAW 1X2 ni a una evaluación de mercado."
+                )
+                sport_layer["evidence_retrieved_owner_only"]=True
+                sport_layer["model_probabilities"]=None
         if verified_read["status"] in (
             "VERIFIED_SEASON_CONTEXT", "PARTIAL_SEASON_CONTEXT"
         ):
