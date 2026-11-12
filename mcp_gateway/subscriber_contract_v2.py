@@ -2030,7 +2030,20 @@ async def my_edge(request: Request) -> JSONResponse:
     if error is not None:
         return error
     assert entitlement is not None
-    if not _my_edge_allowed(entitlement):
+    # Authenticated private notes are a sporting notebook, not PRO decision
+    # entitlements. Keep all original saved BET/LEAN/WATCH resources gated.
+    note_mode = request.query_params.get("resource") == "notes"
+    request_body: dict[str, Any] | None = None
+    if request.method == "POST":
+        try:
+            parsed = await request.json()
+        except Exception:
+            return _no_store({"error": "INVALID_JSON"}, status_code=400)
+        if not isinstance(parsed, dict):
+            return _no_store({"error": "INVALID_ITEM_PAYLOAD"}, status_code=400)
+        request_body = parsed
+        note_mode = parsed.get("item_type") == "NOTE"
+    if not note_mode and not _my_edge_allowed(entitlement):
         return _no_store({"error": "PRO_REQUIRED", "resource": "my_edge"}, status_code=403)
 
     user_id = str(_dict(entitlement.get("user")).get("id") or "").strip()
@@ -2052,13 +2065,8 @@ async def my_edge(request: Request) -> JSONResponse:
                 verified_user_id=user_id,
             )
     elif request.method == "POST":
-        try:
-            body = await request.json()
-        except Exception:
-            return _no_store({"error": "INVALID_JSON"}, status_code=400)
-        if not isinstance(body, dict):
-            return _no_store({"error": "INVALID_ITEM_PAYLOAD"}, status_code=400)
-        if body.get("item_type") == "NOTE":
+        body = request_body or {}
+        if note_mode:
             result = await asyncio.to_thread(
                 subscriber_match_notes_v1.operate, "POST", token, user_id,
                 body=body,
