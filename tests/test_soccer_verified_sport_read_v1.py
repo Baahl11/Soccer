@@ -95,3 +95,54 @@ def test_frontend_prioritizes_verified_evidence_over_pending_banners():
     assert "ownerSportRead+ownerSeasonResearch" in html
     assert "muestra pequeña" in html.lower() or "Lectura deportiva histórica" in html
     assert "Fuente:" in html
+
+
+
+def test_valid_persisted_pregame_p0_season_context_is_reused_without_provider_calls():
+    import copy
+    home=team(1508,"Congo DR","home",2,0,4,1)
+    away=team(1499,"Sierra Leone","away",0,2,2,4)
+    def compact(r):
+        venue=r["venue"]
+        return {
+            "fixtures": {
+                "played":{"total":r["played"],venue:r["played_venue"]},
+                "wins":{"total":r["wins"]},
+                "draws":{"total":r["draws"]},
+                "loses":{"total":r["losses"]},
+            },
+            "goals":{
+                "for":{"total":{"total":r["goals_for"],venue:r["goals_for_venue"]}},
+                "against":{"total":{"total":r["goals_against"],venue:r["goals_against_venue"]}},
+            },
+        }
+    fx={**FIXTURE,"kickoff":"2026-11-12T16:00:00+00:00",
+        "home_team":"Congo DR","away_team":"Sierra Leone",
+        "league":"Africa Cup of Nations - Qualification"}
+    row={
+        "event_type":"SOCCER_REFRESH","stage":"SPORT_PREVIEW",
+        "source":"API_FOOTBALL_TEAM_SEASON_SPLITS",
+        "fixture": copy.deepcopy(fx),
+        "source_observed_at_utc":"2026-11-12T14:00:00+00:00",
+        "quote_requested":False,"bet_eligible":False,
+        "raw_projection":{"raw_home_win_prob":0.999}, # never shown
+        "sporting":{"home_stats":compact(home),"away_stats":compact(away)},
+    }
+    context=sport.source_context_from_persisted_p0([{"payload":row}],fx)
+    assert context["from_persisted_pregame"] is True
+    assert context["provider_requests_added"] == 0
+    assert context["projection"] is None
+    read=sport.read_owner_context(context,fx)
+    assert read["status"]=="VERIFIED_SEASON_CONTEXT"
+    assert read["model_probabilities"] is None
+    assert read["facts"]
+    # False fixture identity or captured after kickoff cannot show history.
+    wrong=copy.deepcopy(row)
+    wrong["fixture"]["away_team_id"]=9876
+    assert sport.source_context_from_persisted_p0([{"payload":wrong}],fx)["teams"] == []
+    late=copy.deepcopy(row)
+    late["source_observed_at_utc"]="2026-11-12T16:05:00+00:00"
+    assert sport.source_context_from_persisted_p0([{"payload":late}],fx)["teams"] == []
+    price=copy.deepcopy(row)
+    price["quote_requested"]=True
+    assert sport.source_context_from_persisted_p0([{"payload":price}],fx)["teams"] == []
