@@ -3,16 +3,16 @@
   "service": "soccer-edge-automation",
   "version": "4.38.8-normalized-primary-clv-anchor-fallback",
   "model_version": "SOCCER EDGE ENGINE v1.7",
-  "generated_at_utc": "2026-11-11T21:13:02.462714+00:00",
-  "generated_at_local": "2026-11-11T15:13:02.462714-06:00",
+  "generated_at_utc": "2026-11-12T05:04:55.105184+00:00",
+  "generated_at_local": "2026-11-11T23:04:55.105184-06:00",
   "timezone": "America/Mexico_City",
-  "fixture_scan_count": 538,
-  "due_fixture_count": 17,
+  "fixture_scan_count": 636,
+  "due_fixture_count": 90,
   "event_count": 5,
-  "actionable_refresh_count": 1,
+  "actionable_refresh_count": 0,
   "bet_candidate_count": 0,
   "api_calls_this_tick": 18,
-  "last_daily_remaining": 7309,
+  "last_daily_remaining": 7466,
   "daily_budget_mode": "NORMAL",
   "database_persisted": true,
   "database_error": null,
@@ -22,12 +22,12 @@
     "min_fixture_count": 12,
     "min_daily_remaining": 4000,
     "triggered": true,
-    "reason": "PRIMARY_SLATE_MEETS_FLOOR_WITH_FUTURE_PREFETCH",
-    "primary_date": "2026-11-11",
+    "reason": "ALREADY_RECONCILED_THIS_TICK",
+    "primary_date": "2026-11-12",
     "reconciliation_date": null,
-    "primary_slate_count": 199,
+    "primary_slate_count": 98,
     "reconciliation_slate_count": 0,
-    "merged_slate_count": 538,
+    "merged_slate_count": 98,
     "api_slate_reconciliation_calls": 2,
     "provider_requests_added_max": 2,
     "future_prefetch_horizon_days": 2,
@@ -35,25 +35,21 @@
     "future_prefetch_cache_hits": 0,
     "future_prefetch_cache_misses": 2,
     "future_prefetch_provider_requests_added": 2,
-    "future_prefetch_fixture_count": 339,
+    "future_prefetch_fixture_count": 340,
     "scan_dates": [
-      "2026-11-11",
-      "2026-11-12",
-      "2026-11-13"
+      "2026-11-12"
     ],
     "scan_date_counts": {
-      "2026-11-11": 199,
-      "2026-11-12": 98,
-      "2026-11-13": 241
+      "2026-11-12": 98
     },
-    "unique_leagues_scanned": 157,
-    "unique_countries_scanned": 64,
+    "unique_leagues_scanned": 39,
+    "unique_countries_scanned": 22,
     "league_allowlist_applied": false,
-    "market_capture_handoff_fixture_count": 219,
+    "market_capture_handoff_fixture_count": 68,
     "market_capture_handoff_tier_counts": {
-      "D": 129,
-      "B": 104,
-      "C": 115
+      "B": 42,
+      "D": 29,
+      "C": 26
     },
     "market_capture_handoff_source": "IN_PROCESS_BULK_COVERAGE",
     "market_capture_handoff_provider_requests_added": 0,
@@ -64,7 +60,7 @@
   "market_maturation_health": {
     "schema_version": "1.0.0",
     "status": "OBSERVABILITY_ONLY",
-    "generated_at_utc": "2026-11-11T21:13:02.462714+00:00",
+    "generated_at_utc": "2026-11-12T05:04:55.105184+00:00",
     "strict_close_semantics_changed": false,
     "model_weights_changed": false,
     "thresholds_changed": false,
@@ -102,9 +98,9 @@
         "rows": 8,
         "unique_fixtures": 8,
         "minimum_rows": 50,
-        "candidate_signal_rows_this_tick": 0,
-        "evaluated_signal_rows_this_tick": 0,
-        "strict_later_quote_rows_this_tick": 0,
+        "candidate_signal_rows_this_tick": 1,
+        "evaluated_signal_rows_this_tick": 1,
+        "strict_later_quote_rows_this_tick": 1,
         "not_matured_rows_this_tick": 0,
         "maturation_state": "NATURAL_MATURATION_REQUIRED",
         "canonical_blockers": [
@@ -2200,7 +2196,8 @@
     "candidate_count": 1,
     "candidate_family_counts": {
       "1X2": 1,
-      "BTTS": 1
+      "BTTS": 1,
+      "FT_TOTALS": 1
     },
     "legacy_mode": "EMERGENCY_FALLBACK_ONLY"
   },
