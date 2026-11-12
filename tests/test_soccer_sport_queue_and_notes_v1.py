@@ -100,3 +100,48 @@ def test_notes_enforce_user_scope_and_never_enter_model(monkeypatch):
                for req in http.calls if req[0] in ("GET","DELETE"))
     assert http.calls[1][2]["json"]["user_id"]==uid
     assert "api-test-secret" not in str(http.calls)
+
+
+def test_authenticated_free_notes_are_separate_from_pro_saved_recommendations(monkeypatch):
+    import asyncio
+    import json
+    from starlette.requests import Request
+    from mcp_gateway import subscriber_contract_v2 as customer
+    from mcp_gateway import subscription_entitlements_v4 as subscriptions
+
+    async def free_entitlement(request):
+        return ({
+            "authenticated": True,
+            "effective_plan": "FREE",
+            "user": {"id": "11111111-1111-4111-8111-111111111111"},
+        }, None)
+
+    def operate(method, token, user_id, *, fixture_id=None, body=None):
+        assert token == "test-access-token"
+        assert user_id == "11111111-1111-4111-8111-111111111111"
+        assert method == "GET"
+        assert fixture_id == 991
+        return {"ok": True, "status": "NOTES_READY",
+                "rows": [{"fixture_id": 991, "note_text": "posible cambio tactico"}]}
+
+    monkeypatch.setattr(customer, "_resolve_entitlement", free_entitlement)
+    monkeypatch.setattr(customer, "_my_edge_allowed", lambda *_: False)
+    monkeypatch.setattr(customer.supabase_auth_v4, "bearer_token", lambda h: "test-access-token")
+    monkeypatch.setattr(customer.subscriber_match_notes_v1, "operate", operate)
+    scope = {
+        "type": "http", "method": "GET", "path": "/app/api/v2/my-edge",
+        "scheme": "https", "server": ("localhost", 443),
+        "headers": [(b"authorization", b"Bearer test-access-token")],
+        "query_string": b"resource=notes&fixture_id=991",
+    }
+    response = asyncio.run(customer.my_edge(Request(scope)))
+    assert response.status_code == 200
+    payload = json.loads(response.body)
+    assert payload["rows"][0]["note_text"] == "posible cambio tactico"
+    assert payload["canonical_bet_logic_changed"] is False
+
+    # No note resource: the original paid saved-item entitlement remains intact.
+    scope = {**scope, "query_string": b""}
+    denied = asyncio.run(customer.my_edge(Request(scope)))
+    assert denied.status_code == 403
+    assert json.loads(denied.body)["error"] == "PRO_REQUIRED"
