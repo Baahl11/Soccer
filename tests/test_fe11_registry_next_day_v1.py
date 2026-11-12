@@ -161,3 +161,22 @@ def test_integration_only_13h_and_quota_reserve_with_existing_persistence():
     assert 'if event.get("event_type") == "DAILY_DISCOVERY":' in persistence
     assert "_upsert_fixture(cur, fx)" in persistence
     assert "ON CONFLICT (fixture_id) DO UPDATE SET" in persistence
+
+
+def test_live_audited_international_leagues_enter_existing_next_day_registry():
+    """New research scope is identity-only and still rejects unknown leagues."""
+    from mcp_gateway.fe11_registry_next_day_v1 import (
+        RESEARCH_ONLY_INTERNATIONAL_LEAGUES,
+        SCANNER_LEGACY_LEAGUES,
+        SCANNER_APPROVED_LEAGUES,
+    )
+    assert RESEARCH_ONLY_INTERNATIONAL_LEAGUES == frozenset({5, 10, 36, 536})
+    assert RESEARCH_ONLY_INTERNATIONAL_LEAGUES.isdisjoint(SCANNER_LEGACY_LEAGUES)
+    assert SCANNER_APPROVED_LEAGUES == SCANNER_LEGACY_LEAGUES | RESEARCH_ONLY_INTERNATIONAL_LEAGUES
+    dates = [official(fixture_id=1300000 + lid, league_id=lid) for lid in sorted(RESEARCH_ONLY_INTERNATIONAL_LEAGUES)]
+    data = select_verified_next_day(dates + [official(fixture_id=1300999, league_id=999)], now_utc=NOW)
+    assert data["status"] == "VERIFIED_PROVIDER_ROSTER"
+    assert data["count"] == 4
+    assert data["bet_eligible"] is False
+    assert data["market_inputs_used"] is False
+    assert {f["league_id"] for f in data["fixtures"]} == RESEARCH_ONLY_INTERNATIONAL_LEAGUES

@@ -193,3 +193,18 @@ def test_schema_has_immutable_pregame_and_append_only_final():
     assert "CREATE TABLE IF NOT EXISTS soccer_fe11_official_outcome_snapshots" in schema
     assert "PRIMARY KEY (fixture_id, observed_at)" in schema
     assert "CHECK (corners_home IS NULL AND corners_away IS NULL)" in schema
+
+
+def test_verified_active_international_competitions_are_pregame_research_only():
+    """Source-seen November league IDs may enter identity/history, never BET."""
+    assert {5, 10, 36, 536}.issubset(universal.APPROVED_LEAGUES)
+    samples = [fixture(200 + lid, league=lid) for lid in (5, 10, 36, 536)]
+    result = capture(samples)
+    assert result["status"] == "VERIFIED_OFFICIAL_ALL_ELIGIBLE_CAPTURE"
+    assert result["eligible_source_count"] == 4
+    assert result["pregame_count"] == 4
+    assert result["market_inputs_used"] is False
+    assert result["bet_eligible"] is False
+    assert result["probabilities_calibrated"] is False
+    assert all(x["league_id"] in {5, 10, 36, 536} for x in result["pregame_fixtures"])
+    assert not capture([fixture(1, league=999)])["pregame_fixtures"]

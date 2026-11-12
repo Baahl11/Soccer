@@ -14,7 +14,15 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 VERSION = "SOCCER_FE11_NEXT_DAY_REGISTRY_PRESEED_v0.1"
-SCANNER_APPROVED_LEAGUES = frozenset({2, 3, 17, 18, 39, 61, 78, 135, 140, 262, 848})
+# Keep the originally selected leagues for the scanner's market research.
+# The identity-only FE11 registry can also observe verified internationals
+# actually present in the full official slate (2026-11-12 source receipt):
+# 5 UEFA Nations League; 10 Friendlies; 36 AFCON qualification;
+# 536 CONCACAF Nations League. These are NOT model/price/BET approvals.
+# Source filters still require positive league/team IDs, season and pregame NS.
+SCANNER_LEGACY_LEAGUES = frozenset({2, 3, 17, 18, 39, 61, 78, 135, 140, 262, 848})
+RESEARCH_ONLY_INTERNATIONAL_LEAGUES = frozenset({5, 10, 36, 536})
+SCANNER_APPROVED_LEAGUES = SCANNER_LEGACY_LEAGUES | RESEARCH_ONLY_INTERNATIONAL_LEAGUES
 LOCAL_TIMEZONE = ZoneInfo("America/Mexico_City")
 MAX_VERIFIED_NEXT_DAY = 200
 PERSISTENCE_FIELDS = (
