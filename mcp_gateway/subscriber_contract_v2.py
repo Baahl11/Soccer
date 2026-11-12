@@ -11,6 +11,7 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import highlightly_research_pg_v1
 from mcp_gateway import soccer_family_research_v1
 from mcp_gateway import soccer_p0_persisted_view_v1
+from mcp_gateway import soccer_universal_match_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -1370,7 +1371,7 @@ def _attach_full_registry_slate(
         radar_summary[radar["status_code"]] += 1
         summary[status] = summary.get(status, 0) + 1
         full_rows.append(
-            {
+            soccer_universal_match_v1.add_to_slate_row({
                 "fixture": fixture,
                 "state": {
                     "classification": cov.get("decision_status"),
@@ -1381,7 +1382,7 @@ def _attach_full_registry_slate(
                 },
                 "coverage": cov,
                 "screening": radar,
-            }
+            })
         )
 
     slate.update(
@@ -1532,6 +1533,12 @@ def build_contract(payload: dict[str, Any], entitlement: dict[str, Any]) -> dict
         "runtime_model_version": source.get("model_version"),
         "access": access,
         "sport_screening": _public_sport_screening_health(source),
+        "sport_intelligence_policy": {
+            "fixture_sport_analysis_visible_independent_of_market_decision": True,
+            "market_not_evaluated_distinct_from_pass": True,
+            "public_raw_probabilities_not_authorized": True,
+            "canonical_bet_logic_changed": False,
+        },
         "counts": {
             "fixtures": len(slate),
             "picks": len(picks),
@@ -2707,6 +2714,7 @@ async def match_detail(request: Request) -> JSONResponse:
     )
     if result is None:
         return _no_store({"error": "FIXTURE_NOT_IN_REGISTRY_OR_PERSISTED_SNAPSHOT"}, status_code=404)
+    result.update(soccer_universal_match_v1.detail_layers(result))
     try:
         multimarket = await asyncio.to_thread(
             multimarket_history_bridge_v1.read_for_match, fixture_value
