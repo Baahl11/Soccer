@@ -70,3 +70,23 @@ def test_bet_not_marked_executable_without_verified_price():
     row = universal.add_to_slate_row(fixture_row(raw=True, sport=2, classification="BET"))
     assert row["opportunity"]["status"] == "VERIFICACION_PENDIENTE"
     assert row["opportunity"]["recommendation_executable"] is False
+
+
+def test_genuine_p0_queue_proves_a_limited_projection_without_republishing_model():
+    row = fixture_row()
+    row["screen_queue"] = {"status": "MODELED_LIMITED", "attempt_count": 1}
+    observed = universal.add_to_slate_row(row)
+    assert observed["sport_analysis"]["status"] == "MODELED_LIMITED"
+    assert observed["sport_analysis"]["raw_projection_recorded"] is True
+    assert observed["sport_analysis"]["probabilities"] is None
+    assert observed["sport_analysis"]["model_run_count"] == 0
+    assert observed["opportunity"]["status"] == "MERCADO_NO_EVALUADO"
+
+
+def test_queue_input_failure_is_explained_not_reported_as_never_analyzed():
+    row = fixture_row()
+    row["screen_queue"] = {"status": "DATA_INSUFFICIENT", "attempt_count": 1}
+    observed = universal.add_to_slate_row(row)
+    assert observed["sport_analysis"]["status"] == "DATA_INSUFFICIENT"
+    assert observed["sport_analysis"]["screen_attempt_count"] == 1
+    assert observed["sport_analysis"]["probabilities"] is None
