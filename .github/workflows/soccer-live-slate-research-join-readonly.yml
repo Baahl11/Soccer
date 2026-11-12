@@ -61,7 +61,7 @@ jobs:
           assert d.get('sport_coverage_queue',{}).get('all_fixtures_accounted_for') is True
           slate=d.get('slate',{}).get('rows') or []
           assert all('sport_analysis' in x and 'opportunity' in x for x in slate)
-          assert all(x.get('sport_analysis',{}).get('probabilities') is None for x in slate)
+          assert all(x.get('sport_analysis',{}).get('probabilities') is None for x in slate))
           PY
               then seen=1; break; fi
               sleep 15
@@ -142,5 +142,5 @@ jobs:
               assert "const screen=DATA?.sport_screening||{};" in html
               assert 'function showPublicMatch(fid)' in html
               assert (today.get('sport_coverage_queue') or {}).get('all_fixtures_accounted_for') is True
-              assert all(x.get('sport_analysis',{}).get('probabilities') is None for x in slate
+              assert all(x.get('sport_analysis',{}).get('probabilities') is None for x in slate)
           PY
