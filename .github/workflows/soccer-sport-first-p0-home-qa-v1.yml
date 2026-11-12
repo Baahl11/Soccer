@@ -11,6 +11,7 @@ on:
       - 'mcp_gateway/soccer_universal_match_v1.py'
       - 'mcp_gateway/fixture_live_status_v1.py'
       - 'mcp_gateway/fixture_owner_team_context_v1.py'
+      - 'mcp_gateway/soccer_verified_sport_read_v1.py'
       - 'mcp_gateway/soccer_sport_queue_v1.py'
       - 'mcp_gateway/subscriber_match_notes_v1.py'
       - 'mcp_gateway/persistence.py'
@@ -22,6 +23,7 @@ on:
       - 'tests/test_soccer_universal_match_v1.py'
       - 'tests/test_soccer_live_fixture_status_v1.py'
       - 'tests/test_fixture_owner_team_context_v1.py'
+      - 'tests/test_soccer_verified_sport_read_v1.py'
       - 'tests/test_soccer_sport_queue_and_notes_v1.py'
       - 'tests/test_soccer_live_audit_heredoc_syntax_v1.py'
       - '.github/workflows/soccer-live-slate-research-join-readonly.yml'
@@ -45,7 +47,7 @@ jobs:
       - name: Run P0 source, timestamp, quota and UI contract tests
         run: |
           set -euo pipefail
-          python -m compileall -q mcp_gateway/automation_v5.py mcp_gateway/automation_v7.py mcp_gateway/soccer_p0_sport_preview_v1.py mcp_gateway/soccer_p0_persisted_view_v1.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/subscriber_contract_v2.py mcp_gateway/soccer_universal_match_v1.py mcp_gateway/fixture_live_status_v1.py mcp_gateway/fixture_owner_team_context_v1.py mcp_gateway/soccer_sport_queue_v1.py mcp_gateway/subscriber_match_notes_v1.py mcp_gateway/persistence.py
+          python -m compileall -q mcp_gateway/automation_v5.py mcp_gateway/automation_v7.py mcp_gateway/soccer_p0_sport_preview_v1.py mcp_gateway/soccer_p0_persisted_view_v1.py mcp_gateway/subscriber_frontend_v2.py mcp_gateway/subscriber_contract_v2.py mcp_gateway/soccer_universal_match_v1.py mcp_gateway/fixture_live_status_v1.py mcp_gateway/fixture_owner_team_context_v1.py mcp_gateway/soccer_verified_sport_read_v1.py mcp_gateway/soccer_sport_queue_v1.py mcp_gateway/subscriber_match_notes_v1.py mcp_gateway/persistence.py
           python -m pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
             tests/test_soccer_p0_sport_first_today_v1.py \
             tests/test_isolated_sport_frozen_pg_v1.py \
@@ -54,6 +56,7 @@ jobs:
             tests/test_soccer_universal_match_v1.py \
             tests/test_soccer_live_fixture_status_v1.py \
             tests/test_fixture_owner_team_context_v1.py \
+            tests/test_soccer_verified_sport_read_v1.py \
             tests/test_soccer_sport_queue_and_notes_v1.py \
             tests/test_soccer_live_audit_heredoc_syntax_v1.py
       - name: Verify every generated inline JavaScript parses on Node
