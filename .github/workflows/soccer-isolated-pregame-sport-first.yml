@@ -79,7 +79,7 @@ jobs:
           assert '"bet_eligible": False' in s
           assert '"provider_odds_requests_added": 0' in s
           assert "soccer-edge-state" in w
-          assert w.count("- cron:") == 8
+          assert sum(line.strip().startswith("- cron:") for line in w.splitlines()) == 8
           assert "304/day maximum" in w
           assert "1000-call reserve" in w
           print("ISOLATED_PROSPECTIVE_SPORT_ONLY_STATIC_CONTRACT_PASS")
