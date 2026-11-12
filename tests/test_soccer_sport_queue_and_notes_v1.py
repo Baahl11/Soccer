@@ -145,3 +145,24 @@ def test_authenticated_free_notes_are_separate_from_pro_saved_recommendations(mo
     denied = asyncio.run(customer.my_edge(Request(scope)))
     assert denied.status_code == 403
     assert json.loads(denied.body)["error"] == "PRO_REQUIRED"
+
+
+def test_league_coverage_retains_unknown_and_does_not_claim_model():
+    fixtures = [
+        {"fixture":{"fixture_id":71,"league_id":1,"league":"A"}},
+        {"fixture":{"fixture_id":72,"league_id":1,"league":"A"}},
+        {"fixture":{"fixture_id":73,"league_id":2,"league":"B"}},
+    ]
+    summary = queue.coverage_summary({
+        "71":{"status":"MODELED_LIMITED"},
+        "72":{"status":"DATA_INSUFFICIENT"},
+    },fixtures)
+    assert summary["all_fixtures_accounted_for"] is True
+    assert summary["by_league_total"] == 2
+    assert sum(row["eligible"] for row in summary["by_league"]) == 3
+    a, b = summary["by_league"]
+    assert a["league"] == "A"
+    assert a["by_status"]["MODELED_LIMITED"] == 1
+    assert a["by_status"]["DATA_INSUFFICIENT"] == 1
+    assert b["by_status"]["NOT_VERIFIED"] == 1
+    assert summary["no_market_inputs"] is True
