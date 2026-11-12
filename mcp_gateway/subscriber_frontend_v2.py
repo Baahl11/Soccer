@@ -447,6 +447,12 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 #matchDetail .universal-missing summary{{cursor:pointer;font-size:13px;font-weight:650}}
 #matchDetail .universal-missing-body{{padding:12px 0;font-size:12px;color:#b6cedc;line-height:1.6}}
 @media(max-width:700px){{#matchDetail .universal-match{{padding:12px}}#matchDetail .universal-status-grid{{grid-template-columns:1fr}}#matchDetail .universal-match h2{{font-size:20px}}}}
+
+#matchDetail .analyst-notebook{{margin-top:15px;padding:16px;border-radius:12px;border:1px solid #244e64;background:#0a2030;display:grid;gap:12px}}
+#matchDetail .analyst-notebook p{{font-size:12px;line-height:1.5;color:#b5cad8;margin:0}}
+#matchDetail .analyst-notebook textarea{{width:100%;min-height:115px;box-sizing:border-box;padding:12px;border:1px solid #326078;border-radius:8px;background:#081b28;color:#e8f5f8;font:inherit;font-size:14px;resize:vertical}}
+#matchDetail .analyst-note-actions{{display:flex;gap:9px;align-items:center;flex-wrap:wrap}}
+#matchDetail #analystNoteStatus{{font-size:11px;color:#aec5d3;line-height:1.5}}
 </style>
 </head>
 <body>
@@ -1246,6 +1252,20 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const back=$('publicMatchBack');if(back)back.onclick=closeMatchRoute;box.scrollIntoView({{block:'start'}})}}
   async function openMatch(fid,opts={{}}){{if(!fid)return;activate('matches');setMatchRoute(fid,!!opts.replace);showMatchBrowse(false);const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{showPublicMatch(fid);return}}box.innerHTML=empty('Cargando análisis deportivo','Consultando los registros persistidos…');box.scrollIntoView({{block:'start'}});try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d);box.scrollIntoView({{block:'start'}})}}catch(e){{if(e?.status===403)showPublicMatch(fid);else box.innerHTML=empty('Detalle no disponible',e.message)}}}}
 
+  async function loadAnalystNote(fid){{
+    const area=$('analystNoteText'),status=$('analystNoteStatus'),save=$('saveAnalystNote'),del=$('deleteAnalystNote');
+    if(!area||!status||!save||!del||!fid)return;
+    save.onclick=async()=>{{const text=area.value.trim();if(!text||text.length>2000){{status.textContent='La nota requiere 1–2000 caracteres.';return}}
+      try{{await apiWrite('/my-edge','POST',{{item_type:'NOTE',fixture_id:Number(fid),note_text:text}});status.textContent='Nota guardada en tu cuenta. No afecta al modelo.'}}
+      catch(e){{status.textContent='No se pudo guardar: '+e.message}}}};
+    del.onclick=async()=>{{try{{await apiWrite('/my-edge?resource=notes&fixture_id='+encodeURIComponent(fid),'DELETE');
+      area.value='';status.textContent='Nota eliminada.'}}catch(e){{status.textContent='No se pudo eliminar: '+e.message}}}};
+    try{{const d=await api('/my-edge?resource=notes&fixture_id='+encodeURIComponent(fid));
+      if(String(routeMatchId())!==String(fid))return;
+      const row=(d.rows||[])[0];if(row&&typeof row.note_text==='string')area.value=row.note_text;
+      status.textContent=row?'Nota privada recuperada.':'Sin notas guardadas todavía.';}}
+    catch(e){{status.textContent='Notas no disponibles: '+e.message}}
+  }}
   function closeMatchRoute(){{history.pushState({{page:'matches'}},'','/app');showMatchBrowse(true);$('matchDetail').classList.add('hidden');activate('matches')}}
   function detailKV(label,value){{return '<div class="item"><span>'+esc(label)+'</span><span>'+esc(value??'NOT VERIFIED')+'</span></div>'}}
   function marketTable(rows){{if(!rows?.length)return empty('No persisted market rows','This market family has no persisted candidate rows for the fixture.');
@@ -1467,7 +1487,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '</strong><p>'+esc(sportState.reason||'El análisis deportivo se evalúa con independencia del mercado.')+'</p></div>'+
       '<div class="visual-card"><h3>Evaluación de valor</h3><strong>'+esc(valueLabels[opportunityState.status]||opportunityState.status||'Mercado no evaluado')+
       '</strong><p>'+esc(opportunityState.reason||'No consta evaluación verificable de valor.')+'</p></div></div>';
-    box.innerHTML='<div class="match-detail">'+hero+independentStatus+summary+tabHtml+'<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+'</div></div>';
+    const notesHtml='<section class="analyst-notebook"><div class="visual-card-head"><h3>Mi lectura del partido</h3><span>Nota privada · NO modifica el modelo</span></div>'+
+      '<p>Registra información que el sistema pudo pasar por alto. No se convierte en estadística verificada ni altera ninguna proyección histórica.</p>'+
+      '<textarea id="analystNoteText" maxlength="2000" rows="4" placeholder="Mi hipótesis deportiva (no sustituye fuentes verificadas)…"></textarea>'+
+      '<div class="analyst-note-actions"><button type="button" class="secondary" id="saveAnalystNote">Guardar nota</button>'+
+      '<button type="button" class="secondary" id="deleteAnalystNote">Eliminar</button><span id="analystNoteStatus">Solo visible para esta cuenta.</span></div></section>';
+    box.innerHTML='<div class="match-detail">'+hero+independentStatus+summary+tabHtml+
+      '<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+notesHtml+'</div></div>';
+    void loadAnalystNote(f.fixture_id);
     box.querySelectorAll('[data-detail-tab]').forEach(btn=>btn.onclick=()=>{{const id=btn.dataset.detailTab;box.querySelectorAll('[data-detail-tab]').forEach(x=>x.classList.toggle('active',x===btn));box.querySelectorAll('[data-detail-section]').forEach(x=>x.classList.toggle('active',x.dataset.detailSection===id))}});
     const back=$('backToMatches');if(back)back.onclick=closeMatchRoute;
   }}
