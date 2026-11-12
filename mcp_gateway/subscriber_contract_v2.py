@@ -16,6 +16,7 @@ from mcp_gateway import soccer_universal_match_v1
 from mcp_gateway import soccer_sport_queue_v1
 from mcp_gateway import fixture_live_status_v1
 from mcp_gateway import fixture_owner_team_context_v1
+from mcp_gateway import soccer_verified_sport_read_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -2814,6 +2815,27 @@ async def match_detail(request: Request) -> JSONResponse:
                 "status": "NOT_VERIFIED", "provider_requests_added": 0,
                 "commercial_display_allowed": False,
             }
+        # Sport-first evidence is meaningful even when the market screen is
+        # empty. Descriptive analysis is only assembled INSIDE the existing
+        # owner/admin permission boundary, never for commercial PRO or FREE.
+        verified_read = soccer_verified_sport_read_v1.read_owner_context(
+            result.get("private_team_context"), fixture
+        )
+        result["private_verified_sport_read"] = verified_read
+        if verified_read["status"] in (
+            "VERIFIED_SEASON_CONTEXT", "PARTIAL_SEASON_CONTEXT"
+        ):
+            sport_layer = result.get("sport_analysis")
+            if isinstance(sport_layer, dict) and sport_layer.get("status") in (
+                "NOT_ANALYZED", "PARTIAL", "DATA_INSUFFICIENT"
+            ):
+                sport_layer["status"] = "SPORT_EVIDENCE_ONLY"
+                sport_layer["reason"] = (
+                    "Estadísticas de temporada verificadas para lectura histórica. "
+                    "No hay modelo RAW 1X2 validado ni recomendación vigente."
+                )
+                sport_layer["evidence_retrieved_owner_only"] = True
+                sport_layer["model_probabilities"] = None
     try:
         multimarket = await asyncio.to_thread(
             multimarket_history_bridge_v1.read_for_match, fixture_value
