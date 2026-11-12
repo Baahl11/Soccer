@@ -27,7 +27,7 @@ ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})
 MAX_PROVIDER_REQUESTS = 38  # 2 date slates + 2 verified season splits for at most 18 fixtures
 MAX_FIXTURES = 18
 MIN_VERIFIED_SPLIT_SAMPLE = 5
-MIN_DAILY_REMAINING = 1000
+MIN_DAILY_REMAINING = 1500  # 20% of 7,500 API-Football Pro assumption
 MIN_KICKOFF_LEAD = timedelta(minutes=45)
 MAX_KICKOFF_LOOKAHEAD = timedelta(hours=32)
 MAX_SOURCE_SIZE = 1_000_000

@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
   # Strict max 38 provider requests / capture; at most 18 fixtures per run.
   # Every hour: at most 24*38=912 official source calls in a UTC day,
-  # before de-duplication; source guard refuses if <1000 calls remain.
+  # before de-duplication; source guard refuses if <1500 calls remain.
   # Never retroactively model kicked-off fixtures. No odds or BET.
   # Across 24 windows the attempt capacity is 432 fixtures per day.
   schedule:
@@ -70,7 +70,7 @@ jobs:
           assert 'NEGATIVE_REASONS = frozenset' in s
           assert '_write_negative_cache' in s
           assert '--negative-cache' in s
-          assert 'MIN_DAILY_REMAINING = 1000' in s
+          assert 'MIN_DAILY_REMAINING = 1500' in s
           assert 'ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})' in s
           assert 'FROZEN_RESEARCH_PREMATCH_SPORT_PROJECTION' in s
           assert '"production_promotion_allowed": False' in s
@@ -81,7 +81,7 @@ jobs:
           assert '50 * * * *' in w
           assert "at most 24*38=912" in w
           assert "432 fixtures per day" in w
-          assert "source guard refuses if <1000" in w
+          assert "source guard refuses if <1500" in w
           print("ISOLATED_PROSPECTIVE_SPORT_ONLY_STATIC_CONTRACT_PASS")
           PY
 
@@ -150,7 +150,7 @@ jobs:
             and (.league_coverage_report_total_leagues >= (.league_coverage_report | length))
             and ((.league_coverage_report_truncated == true)
               or (([.league_coverage_report[].eligible] | add // 0) == .eligible_fixture_ids))
-            and (.daily_remaining_reported >= 1000)
+            and (.daily_remaining_reported >= 1500)
           ' state/soccer_edge_state/analysis/isolated_sport_first_pregame_receipt_v1.json >/dev/null
       - name: Save genuine pregame observations without rewriting historical predictions
         shell: bash
