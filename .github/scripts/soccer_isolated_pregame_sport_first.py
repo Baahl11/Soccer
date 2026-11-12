@@ -14,12 +14,13 @@ import hashlib
 import importlib.util
 import json
 import os
+import tempfile
 from pathlib import Path
 from typing import Any
 import urllib.parse
 import urllib.request
 
-VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.1.0"
+VERSION = "ISOLATED_SOCCER_SPORT_FIRST_PREGAME_v1.2.0"
 BASE_URL = "https://v3.football.api-sports.io"
 TIMEZONE = ZoneInfo("America/Mexico_City")
 ALLOWED_ENDPOINTS = frozenset({"fixtures", "teams/statistics"})
@@ -31,6 +32,84 @@ MIN_KICKOFF_LEAD = timedelta(minutes=45)
 MAX_KICKOFF_LOOKAHEAD = timedelta(hours=32)
 MAX_SOURCE_SIZE = 1_000_000
 OUTPUT_LIMIT = 5000
+NEGATIVE_COOLDOWN = timedelta(hours=8)
+NEGATIVE_CACHE_MAX_ENTRIES = 2000
+NEGATIVE_REASONS = frozenset({
+    "HOME_VERIFIED_SEASON_SPLITS_MISSING",
+    "AWAY_VERIFIED_SEASON_SPLITS_MISSING",
+    "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE",
+})
+
+
+def _read_negative_cache(path: Path) -> dict[int, dict[str, str]]:
+    """Read small source-negative metadata, not stats or model projections."""
+    if not path.exists():
+        return {}
+    if path.stat().st_size > MAX_SOURCE_SIZE:
+        raise RuntimeError("SPORT_NEGATIVE_CACHE_UNBOUNDED")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or data.get("schema_version") != "1.0":
+        raise RuntimeError("SPORT_NEGATIVE_CACHE_SCHEMA_INVALID")
+    entries = data.get("entries")
+    if not isinstance(entries, dict) or len(entries) > NEGATIVE_CACHE_MAX_ENTRIES:
+        raise RuntimeError("SPORT_NEGATIVE_CACHE_ENTRIES_INVALID")
+    result: dict[int, dict[str, str]] = {}
+    for fid, record in entries.items():
+        if not isinstance(fid, str) or not fid.isdecimal() or not isinstance(record, dict):
+            continue
+        numeric = int(fid)
+        if not 0 < numeric < 10**12:
+            continue
+        retry = _dt(record.get("retry_after_utc"))
+        if record.get("reason") not in NEGATIVE_REASONS or retry is None:
+            continue
+        result[numeric] = {
+            "reason": record["reason"],
+            "retry_after_utc": retry.isoformat(),
+        }
+    return result
+
+
+def _write_negative_cache(
+    path: Path, current: dict[int, dict[str, str]],
+    excluded: list[dict[str, Any]], frozen: list[dict[str, Any]],
+    *, now: datetime,
+) -> None:
+    """Expiry-bounded and idempotent; no source payload or personal data stored."""
+    entries: dict[int, dict[str, str]] = {
+        fid: record for fid, record in current.items()
+        if _dt(record.get("retry_after_utc")) and
+           _dt(record["retry_after_utc"]) > now
+    }
+    for row in excluded:
+        fid = row.get("fixture_id")
+        reason = row.get("reason")
+        if type(fid) is int and fid > 0 and reason in NEGATIVE_REASONS:
+            entries[fid] = {
+                "reason": reason,
+                "retry_after_utc": (now + NEGATIVE_COOLDOWN).isoformat(),
+            }
+    for row in frozen:
+        fid = row.get("fixture_id")
+        if type(fid) is int:
+            entries.pop(fid, None)
+    if len(entries) > NEGATIVE_CACHE_MAX_ENTRIES:
+        sorted_entries = sorted(
+            entries.items(), key=lambda item: item[1]["retry_after_utc"],
+            reverse=True,
+        )
+        entries = dict(sorted_entries[:NEGATIVE_CACHE_MAX_ENTRIES])
+    doc = {
+        "schema_version": "1.0",
+        "generated_at_utc": now.isoformat(),
+        "source": "SPORT_INPUT_NEGATIVE_REASON_ONLY",
+        "model_predictions_recomputed": False,
+        "provider_requests_added": 0,
+        "entries": {str(key): value for key, value in sorted(entries.items())},
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(doc, sort_keys=True, indent=2)+"\n",encoding="utf-8")
+
 
 
 def _dt(value: Any) -> datetime | None:
@@ -293,7 +372,8 @@ def _select_diverse_upcoming(choices: list[dict[str, Any]], limit: int, now: dat
 
 
 def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
-            clock, max_fixtures: int = MAX_FIXTURES):
+            clock, max_fixtures: int = MAX_FIXTURES,
+            negative_cache: dict[int, dict[str, str]] | None = None):
     if not 1 <= max_fixtures <= MAX_FIXTURES:
         raise ValueError("UNBOUNDED_SPORT_FIXTURE_CAP")
     now = clock()
@@ -311,11 +391,19 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
             raise RuntimeError("SLATE_UNBOUNDED")
         candidates.extend(f for row in rows if (f := _fixture(row, now)) is not None)
     already = {r["fixture_id"] for r in existing}
+    cached_negative = negative_cache if isinstance(negative_cache, dict) else {}
+    deferred = {
+        fid for fid, record in cached_negative.items()
+        if type(fid) is int and isinstance(record, dict)
+        and record.get("reason") in NEGATIVE_REASONS
+        and (retry := _dt(record.get("retry_after_utc"))) is not None and retry > now
+    }
     unique = {}
     for fx in candidates:
         unique.setdefault(fx["fixture_id"], fx)
     choices = sorted(
-        (f for f in unique.values() if f["fixture_id"] not in already),
+        (f for f in unique.values() if f["fixture_id"] not in already
+         and f["fixture_id"] not in deferred),
         key=lambda f: (f["kickoff"], f["fixture_id"]),
     )
     frozen, excluded = [], []
@@ -331,6 +419,11 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
         "status": "CAPTURED_RESEARCH_ONLY" if frozen else "NO_NEW_VALID_PREGAME_MODELS",
         "generated_at_utc": clock().isoformat(),
         "candidate_fixtures": len(choices),
+        "negative_cache_deferred_fixtures": sum(
+            f["fixture_id"] in deferred and f["fixture_id"] not in already
+            for f in unique.values()
+        ),
+        "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
         "selection_policy": "UPCOMING_WITHIN_6H_THEN_LATER;DISTINCT_LEAGUES_FIRST;NO_BET_TIER_ASSUMED",
         "attempted_fixtures": len(frozen)+len(excluded),
         "new_frozen_pregame_models": len(frozen),
@@ -400,7 +493,32 @@ def self_test(model_path: Path):
     invalid = {"response":{"team":{"id":0},"league":{"id":55,"season":2026},
                "fixtures":{"played":{"home":6}}}}
     assert _valid_team_stats(invalid,f,"home") is None
-    print("ISOLATED_SPORT_FIRST_OFFLINE_PASS: NO_MARKET, REAL_CANONICAL_MODEL, PREGAME, DEDUP, BOUNDED")
+    with tempfile.TemporaryDirectory() as folder:
+        neg_path = Path(folder) / "negative.json"
+        excluded = [{
+            "fixture_id": f["fixture_id"],
+            "status": "NOT_MODELED",
+            "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING",
+        }]
+        _write_negative_cache(neg_path, {}, excluded, [], now=now)
+        negative = _read_negative_cache(neg_path)
+        assert f["fixture_id"] in negative
+        assert negative[f["fixture_id"]]["reason"] in NEGATIVE_REASONS
+        quiet_provider = Offline()
+        suppressed = capture(
+            quiet_provider, model, "fixed-test-repo-sha", [], clock=lambda: now,
+            negative_cache=negative,
+        )
+        assert suppressed["new_frozen_pregame_models"] == 0
+        assert suppressed["attempted_fixtures"] == 0
+        assert suppressed["negative_cache_deferred_fixtures"] == 1
+        assert suppressed["provider_requests_added"] == 2  # fixtures only
+        _write_negative_cache(
+            neg_path, negative, [], [],
+            now=now + NEGATIVE_COOLDOWN + timedelta(minutes=1),
+        )
+        assert _read_negative_cache(neg_path) == {}
+    print("ISOLATED_SPORT_FIRST_OFFLINE_PASS: NO_MARKET, REAL_CANONICAL_MODEL, PREGAME, DEDUP, BOUNDED, NEGATIVE_CACHE")
 
 
 def main():
@@ -410,23 +528,29 @@ def main():
     parser.add_argument("--runtime-model-sha",required=True)
     parser.add_argument("--registry",type=Path)
     parser.add_argument("--receipt",type=Path)
+    parser.add_argument("--negative-cache",type=Path)
     args = parser.parse_args()
     if not args.runtime_model_sha or len(args.runtime_model_sha) > 128:
         parser.error("model SHA must be nonempty and bounded")
     if args.self_test:
         self_test(args.model_file)
         return
-    if args.registry is None or args.receipt is None:
-        parser.error("--registry and --receipt required")
+    if args.registry is None or args.receipt is None or args.negative_cache is None:
+        parser.error("--registry, --receipt and --negative-cache required")
     model = _load_canonical_model(args.model_file)
     prior = _read_rows(args.registry)
+    negatives = _read_negative_cache(args.negative_cache)
     provider = OfficialProvider(os.environ.get("API_FOOTBALL_KEY", ""))
-    result = capture(provider, model, args.runtime_model_sha, prior, clock=lambda:datetime.now(timezone.utc))
+    result = capture(provider, model, args.runtime_model_sha, prior, clock=lambda:datetime.now(timezone.utc), negative_cache=negatives)
     if result["frozen"]:
         args.registry.parent.mkdir(parents=True,exist_ok=True)
         with args.registry.open("a",encoding="utf-8") as file:
             for row in result["frozen"]:
                 file.write(json.dumps(row,sort_keys=True,ensure_ascii=False)+"\n")
+    _write_negative_cache(
+        args.negative_cache, negatives, result["excluded"], result["frozen"],
+        now=_dt(result["generated_at_utc"]) or datetime.now(timezone.utc),
+    )
     receipt = {k:v for k,v in result.items() if k!="frozen"}
     args.receipt.parent.mkdir(parents=True,exist_ok=True)
     args.receipt.write_text(json.dumps(receipt,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
