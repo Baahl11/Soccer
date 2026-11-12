@@ -14,6 +14,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import tempfile
 from pathlib import Path
 from typing import Any
 import urllib.parse
@@ -492,7 +493,32 @@ def self_test(model_path: Path):
     invalid = {"response":{"team":{"id":0},"league":{"id":55,"season":2026},
                "fixtures":{"played":{"home":6}}}}
     assert _valid_team_stats(invalid,f,"home") is None
-    print("ISOLATED_SPORT_FIRST_OFFLINE_PASS: NO_MARKET, REAL_CANONICAL_MODEL, PREGAME, DEDUP, BOUNDED")
+    with tempfile.TemporaryDirectory() as folder:
+        neg_path = Path(folder) / "negative.json"
+        excluded = [{
+            "fixture_id": f["fixture_id"],
+            "status": "NOT_MODELED",
+            "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING",
+        }]
+        _write_negative_cache(neg_path, {}, excluded, [], now=now)
+        negative = _read_negative_cache(neg_path)
+        assert f["fixture_id"] in negative
+        assert negative[f["fixture_id"]]["reason"] in NEGATIVE_REASONS
+        quiet_provider = Offline()
+        suppressed = capture(
+            quiet_provider, model, "fixed-test-repo-sha", [], clock=lambda: now,
+            negative_cache=negative,
+        )
+        assert suppressed["new_frozen_pregame_models"] == 0
+        assert suppressed["attempted_fixtures"] == 0
+        assert suppressed["negative_cache_deferred_fixtures"] == 1
+        assert suppressed["provider_requests_added"] == 2  # fixtures only
+        _write_negative_cache(
+            neg_path, negative, [], [],
+            now=now + NEGATIVE_COOLDOWN + timedelta(minutes=1),
+        )
+        assert _read_negative_cache(neg_path) == {}
+    print("ISOLATED_SPORT_FIRST_OFFLINE_PASS: NO_MARKET, REAL_CANONICAL_MODEL, PREGAME, DEDUP, BOUNDED, NEGATIVE_CACHE")
 
 
 def main():
