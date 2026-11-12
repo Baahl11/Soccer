@@ -1241,7 +1241,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<p>Modelos registrados: '+esc(s.model_run_count??'NOT VERIFIED')+' · Snapshots estadísticos: '+esc(s.verified_feature_snapshot_count??'NOT VERIFIED')+'</p>'+
       '</div><div class="visual-card"><div class="visual-card-head"><h3>Evaluación de oportunidad</h3></div>'+
       '<strong>'+esc(valueLabels[o.status]||'Mercado no evaluado')+'</strong><p>'+esc(o.explanation||'No hay evaluación verificable.')+'</p>'+
-      '<p>Clasificación del motor: '+esc(o.canonical_classification||'NO EVALUADA')+'</p></div></div>'+
+      '<p>Decisión histórica de análisis · Sin precio ejecutable actual verificado.</p></div></div>'+
       '<div class="visual-card"><h3>Tracks deportivos</h3><div class="sport-stat-grid">'+
       ['SIDE','GOALS_BTTS','CORNERS'].map(k=>'<div class="sport-stat"><span>'+esc(k)+'</span><b>'+esc(tracks[k]||'NOT VERIFIED')+'</b></div>').join('')+'</div>'+
       '<p>Proyección numérica y datos de proveedores sujetos a licencia y validación OOS; no se inventan porcentajes.</p></div>'+
