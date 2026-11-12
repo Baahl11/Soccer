@@ -434,3 +434,17 @@ def test_today_has_plain_language_expandable_league_coverage():
     assert "sin datos suficientes" in html
     assert "pendientes/no verificados" in html
     assert "no son pronósticos publicables" in html
+
+
+def test_owner_match_uses_only_exact_asof_private_frozen_model_no_public_promotion():
+    html=subscriber_frontend_v2.render()
+    assert "const ownerP0=(ACCESS?.owner===true||ACCESS?.admin===true)?" in html
+    assert "p0Entries().find(x=>String(x.fixture_id)===String(f.fixture_id)" in html
+    assert "x.market_queried===false&&x.bet_eligible===false" in html
+    assert "x.commercial_display_allowed===false" in html
+    assert "Math.abs(Date.parse(x.kickoff_utc)-Date.parse(f.kickoff))<60*1000" in html
+    assert "Math.abs(ownerRaw.raw_home_win_prob+ownerRaw.raw_draw_prob+" in html
+    assert "Modelo deportivo preliminar guardado" in html
+    assert "ownerResearchCard+ownerRecent+ownerSportRead+ownerSeasonResearch" in html
+    assert "No validado fuera de muestra" in html
+    assert "Precio de mercado: NO CONSULTADO" in html

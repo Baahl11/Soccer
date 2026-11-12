@@ -553,6 +553,19 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 .focus-league-row strong{{font-size:12px;color:#e8f3f5}}
 .focus-league-row span{{font-size:12px;line-height:1.5;color:#abc5d2}}
 .focus-league-detail small{{font-size:11px;color:#a8bfcb;display:block;line-height:1.5}}
+
+#matchDetail .owner-frozen-research{{border:1px solid #276658;border-left:5px solid #39c59b;border-radius:12px;padding:16px;display:grid;gap:13px;background:#0a2a31;min-width:0;overflow-wrap:anywhere}}
+#matchDetail .owner-frozen-title{{display:grid;gap:6px}}
+#matchDetail .owner-frozen-title span{{font-size:11px;color:#76e0bc;font-weight:800;letter-spacing:.045em}}
+#matchDetail .owner-frozen-title h3{{font-size:21px;line-height:1.3;margin:0}}
+#matchDetail .owner-frozen-title p{{font-size:13px;line-height:1.5;margin:0;color:#b8d6df}}
+#matchDetail .owner-frozen-probs{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}}
+#matchDetail .owner-frozen-probs>div{{border:1px solid #2e5d68;border-radius:9px;padding:13px 7px;text-align:center;display:grid;gap:5px}}
+#matchDetail .owner-frozen-probs small{{font-size:11px;line-height:1.35;color:#b0ced6}}
+#matchDetail .owner-frozen-probs b{{font-size:23px;color:#edfbf5}}
+#matchDetail .owner-frozen-extra{{font-size:13px;font-weight:700;color:#ddf5eb}}
+#matchDetail .owner-frozen-source{{font-size:11px;line-height:1.5;color:#a8c8d1;margin:0}}
+@media(max-width:700px){{#matchDetail .owner-frozen-research{{padding:12px}}#matchDetail .owner-frozen-probs b{{font-size:19px}}}}
 </style>
 </head>
 <body>
@@ -1666,7 +1679,37 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       'API-Football · verificación actual':'Registro persistido · puede estar desactualizado';
     const hero='<div class="intel-hero"><div class="match-brand-row"><div class="match-brand"><span>SE</span><b>SOCCER<br>EDGE</b></div><button id="backToMatches" type="button" class="intel-back">← Matches</button></div><div class="match-context-row"><span>'+esc(f.league||f.country||'Competition')+'</span><b>'+esc(kickDate)+' · '+esc(kickTime)+'</b></div><div class="intel-matchup"><div class="intel-team">'+crest(f.home_team_logo,f.home_team)+'<div class="intel-team-name"><b>'+esc(f.home_team||'Home')+'</b><span>Home</span></div></div><div class="intel-vs">VS</div><div class="intel-team away"><div class="intel-team-name"><b>'+esc(f.away_team||'Away')+'</b><span>Away</span></div>'+crest(f.away_team_logo,f.away_team)+'</div></div><div class="intel-scoreline">'+esc(f.country||'')+
       (statusLabel?' · Estado: '+esc(statusLabel):'')+'</div></div>';
-    const summary='<div class="intel-summary"><div class="intel-metrics"><div class="intel-metric '+(ctx.outcome_probabilities?'good':'warn')+'"><span>Pronóstico 1X2</span><b>'+esc(ctx.outcome_probabilities?'Modelo guardado':'NO VERIFICADO')+'</b></div><div class="intel-metric"><span>Alineaciones</span><b>'+esc(featureValue(features,'availability.both_xi_confirmed')===true?'XI confirmados':'Sin confirmar')+'</b></div><div class="intel-metric"><span>Datos actualizados</span><b>'+esc(fresh)+'</b></div></div></div>';
+    // Owners may inspect an independently validated frozen pre-kickoff
+    // research preview that was already delivered by the owner-only slate API.
+    // Never reinterpret it as a canonical BET, current price or OOS model.
+    const ownerP0=(ACCESS?.owner===true||ACCESS?.admin===true)?
+      p0Entries().find(x=>String(x.fixture_id)===String(f.fixture_id)&&
+        x.market_queried===false&&x.bet_eligible===false&&
+        x.commercial_display_allowed===false&&
+        Number.isFinite(Date.parse(f.kickoff||''))&&
+        Math.abs(Date.parse(x.kickoff_utc)-Date.parse(f.kickoff))<60*1000):null;
+    const ownerRaw=ownerP0?.raw_probabilities||{{}};
+    const ownerP0Valid=!!ownerP0&&
+      ['raw_home_win_prob','raw_draw_prob','raw_away_win_prob'].every(k=>
+        typeof ownerRaw[k]==='number'&&Number.isFinite(ownerRaw[k])&&
+        ownerRaw[k]>=0&&ownerRaw[k]<=1)&&
+      Math.abs(ownerRaw.raw_home_win_prob+ownerRaw.raw_draw_prob+
+        ownerRaw.raw_away_win_prob-1)<0.01;
+    const ownerResearchCard=ownerP0Valid?
+      '<section class="owner-frozen-research"><div class="owner-frozen-title">'+
+      '<span>MODELO DEPORTIVO PRELIMINAR · SOLO INVESTIGACIÓN PRIVADA</span>'+
+      '<h3>Probabilidades RAW guardadas antes del partido</h3>'+
+      '<p>Modelo de tasas de goles observados (no xG). No validado fuera de muestra, sin XI confirmado ni recomendación comercial.</p></div>'+
+      '<div class="owner-frozen-probs"><div><small>Gana '+esc(f.home_team||'local')+'</small><b>'+pct(ownerRaw.raw_home_win_prob)+'</b></div>'+
+      '<div><small>Empate</small><b>'+pct(ownerRaw.raw_draw_prob)+'</b></div>'+
+      '<div><small>Gana '+esc(f.away_team||'visita')+'</small><b>'+pct(ownerRaw.raw_away_win_prob)+'</b></div>'+
+      '</div><div class="owner-frozen-extra">Más de 2.5: '+pct(ownerRaw.raw_over_2_5_prob)+
+      ' · Ambos anotan: '+pct(ownerRaw.raw_btts_yes_prob)+'</div>'+
+      '<p class="owner-frozen-source">Capturado: '+esc(prettyStamp(ownerP0.captured_at_utc))+
+      ' · Modelo: '+esc(ownerP0.model_version||'NOT VERIFIED')+
+      ' · Muestra mínima: '+esc(ownerP0.min_split_sample??'NOT VERIFIED')+
+      ' · Precio de mercado: NO CONSULTADO · Validación OOS: PENDIENTE</p></section>':'';
+    const summary='<div class="intel-summary"><div class="intel-metrics"><div class="intel-metric '+(ctx.outcome_probabilities||ownerP0Valid?'good':'warn')+'"><span>Pronóstico 1X2</span><b>'+esc(ctx.outcome_probabilities?'Modelo guardado':ownerP0Valid?'RAW PRELIMINAR':'NO VERIFICADO')+'</b></div><div class="intel-metric"><span>Alineaciones</span><b>'+esc(featureValue(features,'availability.both_xi_confirmed')===true?'XI confirmados':'Sin confirmar')+'</b></div><div class="intel-metric"><span>Datos actualizados</span><b>'+esc(fresh)+'</b></div></div></div>';
     const tabs=[['overview','Resumen'],...(ctx.outcome_probabilities||sportN>0?[['sport','Pronóstico y goles']]:[]),...(d?.multi_market_research?.status&&d.multi_market_research.status!=='NOT_VERIFIED'?[['periods','1H / 2H / Córners']]:[]),['availability','Alineaciones'],...(markets.length?[['markets','Cuotas']]:[]),['advanced','Fuentes y datos']];
     const tabHtml='<div class="intel-tabs">'+tabs.map((x,i)=>'<button class="intel-tab '+(i===0?'active':'')+'" data-detail-tab="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
 
@@ -1677,13 +1720,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const ownerSportRead=verifiedSportAssessment(d),ownerRecent=recentVerifiedForm(d),
       hasOwnerSportRead=!!ownerSportRead||!!ownerRecent;
     const overview='<section class="intel-section active" data-detail-section="overview">'+
-      '<div class="match-reading-banner"><span>EL PARTIDO, ANTES QUE LAS CUOTAS</span><h2>'+esc(hasSportProb?'Pronóstico deportivo registrado':sportN>0||hasOwnerSportRead?'Análisis deportivo histórico disponible':'Partido identificado · análisis pendiente')+'</h2><p>'+
+      '<div class="match-reading-banner"><span>EL PARTIDO, ANTES QUE LAS CUOTAS</span><h2>'+esc(hasSportProb?'Pronóstico deportivo registrado':ownerP0Valid?'Modelo deportivo preliminar guardado':sportN>0||hasOwnerSportRead?'Análisis deportivo histórico disponible':'Partido identificado · análisis pendiente')+'</h2><p>'+
       esc(hasSportProb?'Existe una proyección histórica que debe revisarse junto con la disponibilidad.':
+        ownerP0Valid?'Hay una proyección RAW auténtica capturada antes del inicio. Es investigación no calibrada, NO una recomendación ejecutable.':
         sportN>0||hasOwnerSportRead?'Hay estadísticas verificadas para lectura deportiva. Los resultados observados no equivalen a probabilidades de un modelo 1X2.':
         'La ficha identifica el encuentro, pero aún no contiene estadísticas deportivas persistidas. No se infieren porcentajes ni recomendaciones a partir del calendario.')+
       '</p><p class="status-source">Estado '+esc(statusLabel||'NO VERIFICADO')+
       ' · '+esc(statusProvenance)+' · '+esc(statusObserved?prettyStamp(statusObserved):'Sin fecha de última verificación')+'</p></div>'+
-      ownerRecent+ownerSportRead+ownerSeasonResearch+
+      ownerResearchCard+ownerRecent+ownerSportRead+ownerSeasonResearch+
       (hasSportProb?'<div class="visual-card primary-forecast"><h3>Victoria · Empate · Derrota</h3>'+
         probabilityVisual(probs,f)+'</div>':'')+
       (sportN>0?'<div class="visual-card primary-takeaways"><h3>Datos deportivos que sí tenemos</h3>'+
@@ -1717,8 +1761,8 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
        fe11MultimarketSection(d?.multi_market_research||null,f)+'</section>';
     const sportState=d?.sport_analysis||{{}},opportunityState=d?.opportunity||{{}};
     const independentStatus='<div class="universal-status-grid" style="padding:12px 16px 0">'+
-      '<div class="visual-card"><h3>Lectura deportiva</h3><strong>'+esc(analysisLabels[sportState.status]||sportState.status||'NOT VERIFIED')+
-      '</strong><p>'+esc(sportState.reason||'El análisis deportivo se evalúa con independencia del mercado.')+'</p></div>'+
+      '<div class="visual-card"><h3>Lectura deportiva</h3><strong>'+esc(ownerP0Valid?'Proyección RAW preliminar':analysisLabels[sportState.status]||sportState.status||'NOT VERIFIED')+
+      '</strong><p>'+esc(ownerP0Valid?'Existe una investigación previa al partido, sin validación OOS ni licencia para publicación comercial.':sportState.reason||'El análisis deportivo se evalúa con independencia del mercado.')+'</p></div>'+
       '<div class="visual-card"><h3>Evaluación de valor</h3><strong>'+esc(valueLabels[opportunityState.status]||opportunityState.status||'Mercado no evaluado')+
       '</strong><p>'+esc(opportunityState.reason||'No consta evaluación verificable de valor.')+'</p></div></div>';
     const notesHtml='<section class="analyst-notebook"><div class="visual-card-head"><h3>Mi lectura del partido</h3><span>Nota privada · No modifica el modelo</span></div>'+
