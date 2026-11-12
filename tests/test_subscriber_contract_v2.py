@@ -838,7 +838,8 @@ def test_universal_sport_status_exists_for_every_registry_fixture_even_when_pass
     assert all("sport_analysis" in row and "opportunity" in row for row in slate)
     assert slate[0]["sport_analysis"]["status"]=="NOT_ANALYZED"
     assert slate[0]["opportunity"]["status"]=="MERCADO_NO_EVALUADO"
-    assert slate[1]["sport_analysis"]["status"]=="PARTIAL"
+    # The independent persisted P0 queue confirms a genuine limited RAW model.
+    assert slate[1]["sport_analysis"]["status"]=="MODELED_LIMITED"
     assert slate[1]["sport_analysis"]["probabilities"] is None
     assert slate[1]["screen_queue"]["attempt_count"]==1
     assert result["sport_coverage_queue"]["total_eligible_fixtures"]==2
