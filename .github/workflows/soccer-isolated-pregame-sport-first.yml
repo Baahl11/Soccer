@@ -12,12 +12,14 @@ on:
       - ".github/workflows/soccer-isolated-pregame-sport-first.yml"
   workflow_dispatch:
   # Strict max 38 provider requests / capture; at most 18 fixtures per run.
-  # Every hour: at most 24*38=912 official source calls in a UTC day,
-  # before de-duplication; source guard refuses if <1500 calls remain.
+  # Every 30 minutes: at most 48*38=1824 official source calls/day,
+  # below the 25% sporting research allocation of an assumed 7,500/day.
+  # Source guard refuses if <1500 remain for priority pregame refreshes.
   # Never retroactively model kicked-off fixtures. No odds or BET.
-  # Across 24 windows the attempt capacity is 432 fixtures per day.
+  # Across 48 windows theoretical capacity is 864 fixture attempts per day.
+  # Actual GitHub schedule execution is best-effort, not guaranteed.
   schedule:
-    - cron: "50 * * * *"  # Hourly at :50 UTC; 24 bounded sport-only windows
+    - cron: "20,50 * * * *"  # Every 30 minutes; bounded sport-only windows
 
 permissions:
   contents: write
@@ -78,10 +80,10 @@ jobs:
           assert '"provider_odds_requests_added": 0' in s
           assert "soccer-edge-state" in w
           assert sum(line.strip().startswith("- cron:") for line in w.splitlines()) == 1
-          assert '50 * * * *' in w
-          assert "at most 24*38=912" in w
-          assert "432 fixtures per day" in w
-          assert "source guard refuses if <1500" in w
+          assert '20,50 * * * *' in w
+          assert "48*38=1824" in w
+          assert "864 fixture attempts per day" in w
+          assert "Source guard refuses if <1500" in w
           print("ISOLATED_PROSPECTIVE_SPORT_ONLY_STATIC_CONTRACT_PASS")
           PY
 
