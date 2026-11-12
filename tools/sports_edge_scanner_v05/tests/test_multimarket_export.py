@@ -92,3 +92,20 @@ class FE11ScannerTransportTests(unittest.TestCase):
         self.assertEqual(make_fe11_envelope(summary,screen,{"reports":[]})["reports"],[])
 
 if __name__=="__main__":unittest.main()
+
+
+class ScannerConfiguredLeagueScopeTests(unittest.TestCase):
+    """Research scope includes competition IDs verified in the actual slate."""
+    def test_default_research_scope_does_not_ignore_active_internationals(self):
+        root = Path(__file__).resolve().parents[3]
+        workflow = (root / '.github/workflows/sports-edge-scanner-v05-paper.yml').read_text(encoding='utf-8')
+        # Provider-confirmed Nov 12 competition IDs; no model readiness inferred.
+        scope = '2,3,18,17,39,140,135,78,61,262,848,5,10,36,536'
+        self.assertIn("LEAGUE_IDS: ${{ inputs.league_ids || '" + scope + "' }}", workflow)
+        self.assertIn('RESEARCH ONLY, not BET approvals', workflow)
+        self.assertIn('Esto NO significa cero partidos en el calendario mundial', workflow)
+        self.assertIn('ámbito configurado, NO calendario mundial', workflow)
+        self.assertIn("SOCCER_ADVANCED_DEEP_DIVES: '3'", workflow)
+        self.assertIn("API_FOOTBALL_RESEARCH_DAILY_CAP: '250'", workflow)
+        self.assertIn("API_FOOTBALL_RESEARCH_MONTHLY_CAP: '9300'", workflow)
+        self.assertIn('if [ "$REPORTS" = "0" ]; then', workflow)
