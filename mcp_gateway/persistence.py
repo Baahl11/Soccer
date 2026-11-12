@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from mcp_gateway import soccer_sport_queue_v1
 from mcp_gateway import feature_snapshot_v4, primary_clv_signal_anchor_store_v4
 from mcp_gateway import fe11_universal_persistence_v1
 from mcp_gateway import fe11_corners_persistence_v1
@@ -428,6 +429,10 @@ def persist_tick(tick: dict[str, Any]) -> bool:
                         })
 
                 _persist_refresh_event(cur, persist_tick_view, event)
+                soccer_sport_queue_v1.record_event(cur, event, at=persist_tick_view.get("generated_at_utc"))
+            # Persist a position for EVERY eligible upcoming registry match,
+            # including matches without a SPORT_PREVIEW event this tick.
+            soccer_sport_queue_v1.sync_pending(cur)
             # Always apply terminal scores LAST: backfill events may carry an older
             # registry status; final results must not regress to NS in this tick.
             _persist_final_observations(cur, tick)

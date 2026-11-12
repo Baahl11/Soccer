@@ -159,8 +159,8 @@ def test_active_v7_scheduler_not_orphaning_p0_screen():
     assert 'p0_sport_preview_modeled_limited_count' in source
     assert 'p0_sport_preview_deferred_quota_count' in source
     assert 'p0_sport_preview_api_calls' in source
-    assert v7.P0_SPORT_MAX_FIXTURES_PER_TICK == 2
-    assert v7.P0_SPORT_MIN_REMAINING_FOR_CANONICAL == 3
+    assert v7.P0_SPORT_MAX_FIXTURES_PER_TICK == 6
+    assert v7.P0_SPORT_MIN_REMAINING_FOR_CANONICAL == 8
 
 
 def test_live_p0_respects_exact_upstream_call_reserve_and_no_odds(monkeypatch):
@@ -207,3 +207,43 @@ def test_live_p0_respects_exact_upstream_call_reserve_and_no_odds(monkeypatch):
 def test_research_p0_never_overwrites_canonical_lifecycle_shortlist():
     import inspect
     assert "_shortlist_set" not in inspect.getsource(v5._daily_p0_sport_previews)
+
+
+def test_scheduler_prioritizes_durable_unscreened_over_already_modeled(monkeypatch):
+    cached = {}
+    calls = []
+    async def cheap(fx, at):
+        calls.append(fx["fixture_id"])
+        v5.v2._API_CALLS_THIS_TICK += 2
+        return {"home_stats": {}, "away_stats": {}, "screen_layer": "CHEAP_SEASON_SPLIT"}
+    monkeypatch.setattr(v5, "_cheap_sport_bundle", cheap)
+    monkeypatch.setattr(v5, "build_raw_projection", lambda fx, sporting, av: fake_raw())
+    monkeypatch.setattr(v5, "_screen_shortlist", lambda raw: {"shortlisted": False})
+    monkeypatch.setattr(v5, "_shortlist_set", lambda fid, stage, now: None)
+    monkeypatch.setattr(v5.v4, "_effective_tick_cap", lambda: 20)
+    monkeypatch.setattr(v5.base, "_cache_get", lambda ns, key, ttl, now: cached.get((ns, key)))
+    monkeypatch.setattr(v5.base, "_cache_set", lambda ns, key, value, now: cached.__setitem__((ns, key), value))
+    monkeypatch.setattr(v5.v2, "_API_CALLS_THIS_TICK", 1)
+    monkeypatch.setattr(v5.v2, "_LAST_DAILY_REMAINING", 7300)
+    fixtures = [
+        {**FX, "fixture_id": 910000 + i, "home_team_id": 2000 + i * 2,
+         "away_team_id": 2001 + i * 2}
+        for i in range(3)
+    ]
+    persisted = {
+        str(fixtures[0]["fixture_id"]): {"status": "MODELED_LIMITED", "attempt_count": 1},
+        str(fixtures[1]["fixture_id"]): {"status": "DATA_INSUFFICIENT", "attempt_count": 1,
+                                         "last_attempt_at": NOW.isoformat()},
+        str(fixtures[2]["fixture_id"]): {"status": "QUEUED", "attempt_count": 0},
+    }
+    result = asyncio.run(v5._daily_p0_sport_previews(
+        fixtures, NOW, "2026-11-11", max_fixtures=6, reserve_calls=8,
+        queue_states=persisted,
+    ))
+    assert result["attempted"] == 1
+    assert result["modeled_limited"] == 1
+    assert result["cached_from_prior_tick"] == 2
+    assert result["api_calls_used"] == 2
+    assert calls == [fixtures[2]["fixture_id"]]
+    assert all(event["bet_eligible"] is False and event["quote_requested"] is False
+               for event in result["events"])

@@ -11,6 +11,8 @@ from mcp_gateway import persistence as persistence_base
 from mcp_gateway import highlightly_research_pg_v1
 from mcp_gateway import soccer_family_research_v1
 from mcp_gateway import soccer_p0_persisted_view_v1
+from mcp_gateway import soccer_universal_match_v1
+from mcp_gateway import soccer_sport_queue_v1
 from mcp_gateway import product_views_v4
 from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
@@ -18,6 +20,7 @@ from mcp_gateway import subscriber_billing_v2
 from mcp_gateway import subscriber_preview_data_v231
 from mcp_gateway import multimarket_history_bridge_v1
 from mcp_gateway import subscriber_saved_items_v4
+from mcp_gateway import subscriber_match_notes_v1
 from mcp_gateway import subscriber_ui_contract_v231
 from mcp_gateway import subscriber_validation_metrics_v231
 from mcp_gateway import subscription_entitlements_v4
@@ -808,6 +811,9 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
             fixture_ids = [int(row[0]) for row in db_rows if row and row[0] is not None]
             evidence_by_fixture = _load_evidence_inventory(cur, fixture_ids)
 
+    queue_by_id = soccer_sport_queue_v1.read_statuses(
+        persistence_base._connect, fixture_ids
+    )
     rows: list[dict[str, Any]] = []
     for db_row in db_rows:
         fixture_id, kickoff, status, league, country, home_id, home, away_id, away = db_row
@@ -822,6 +828,11 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
                 "home_team": home,
                 "away_team_id": away_id,
                 "away_team": away,
+                "screen_queue": queue_by_id.get(str(fixture_id), {
+                    "status": "NOT_VERIFIED",
+                    "reason": "No se pudo verificar un estado persistido de screening.",
+                    "attempt_count": None,
+                }),
                 "evidence_inventory": evidence_by_fixture.get(
                     str(fixture_id), _empty_evidence_inventory()
                 ),
@@ -1370,7 +1381,7 @@ def _attach_full_registry_slate(
         radar_summary[radar["status_code"]] += 1
         summary[status] = summary.get(status, 0) + 1
         full_rows.append(
-            {
+            soccer_universal_match_v1.add_to_slate_row({
                 "fixture": fixture,
                 "state": {
                     "classification": cov.get("decision_status"),
@@ -1381,7 +1392,8 @@ def _attach_full_registry_slate(
                 },
                 "coverage": cov,
                 "screening": radar,
-            }
+                "screen_queue": row.get("screen_queue"),
+            })
         )
 
     slate.update(
@@ -1399,6 +1411,10 @@ def _attach_full_registry_slate(
         }
     )
     contract_payload["slate"] = slate
+    contract_payload["sport_coverage_queue"] = soccer_sport_queue_v1.coverage_summary(
+        {str(_dict(r.get("fixture")).get("fixture_id")): _dict(r.get("screen_queue"))
+         for r in full_rows}, full_rows
+    )
     contract_payload["radar"] = {
         "status": "PERSISTED_EVIDENCE_AUDIT_READY",
         "scope": "PERSISTED_ELIGIBLE_SLATE_ONLY",
@@ -1532,6 +1548,12 @@ def build_contract(payload: dict[str, Any], entitlement: dict[str, Any]) -> dict
         "runtime_model_version": source.get("model_version"),
         "access": access,
         "sport_screening": _public_sport_screening_health(source),
+        "sport_intelligence_policy": {
+            "fixture_sport_analysis_visible_independent_of_market_decision": True,
+            "market_not_evaluated_distinct_from_pass": True,
+            "public_raw_probabilities_not_authorized": True,
+            "canonical_bet_logic_changed": False,
+        },
         "counts": {
             "fixtures": len(slate),
             "picks": len(picks),
@@ -2008,7 +2030,20 @@ async def my_edge(request: Request) -> JSONResponse:
     if error is not None:
         return error
     assert entitlement is not None
-    if not _my_edge_allowed(entitlement):
+    # Authenticated private notes are a sporting notebook, not PRO decision
+    # entitlements. Keep all original saved BET/LEAN/WATCH resources gated.
+    note_mode = request.query_params.get("resource") == "notes"
+    request_body: dict[str, Any] | None = None
+    if request.method == "POST":
+        try:
+            parsed = await request.json()
+        except Exception:
+            return _no_store({"error": "INVALID_JSON"}, status_code=400)
+        if not isinstance(parsed, dict):
+            return _no_store({"error": "INVALID_ITEM_PAYLOAD"}, status_code=400)
+        request_body = parsed
+        note_mode = parsed.get("item_type") == "NOTE"
+    if not note_mode and not _my_edge_allowed(entitlement):
         return _no_store({"error": "PRO_REQUIRED", "resource": "my_edge"}, status_code=403)
 
     user_id = str(_dict(entitlement.get("user")).get("id") or "").strip()
@@ -2016,40 +2051,56 @@ async def my_edge(request: Request) -> JSONResponse:
         return _no_store({"error": "AUTH_INVALID_USER_PAYLOAD", "resource": "my_edge"}, status_code=401)
 
     if request.method == "GET":
-        result = await asyncio.to_thread(
-            subscriber_saved_items_v4.list_saved,
-            token,
-            verified_user_id=user_id,
-        )
+        if request.query_params.get("resource") == "notes":
+            raw_id = request.query_params.get("fixture_id")
+            if raw_id is not None and not raw_id.isdigit():
+                return _no_store({"error": "NOTE_FIXTURE_ID_INVALID"}, status_code=400)
+            result = await asyncio.to_thread(
+                subscriber_match_notes_v1.operate, "GET", token, user_id,
+                fixture_id=int(raw_id) if raw_id is not None else None,
+            )
+        else:
+            result = await asyncio.to_thread(
+                subscriber_saved_items_v4.list_saved, token,
+                verified_user_id=user_id,
+            )
     elif request.method == "POST":
-        try:
-            body = await request.json()
-        except Exception:
-            return _no_store({"error": "INVALID_JSON"}, status_code=400)
-        if not isinstance(body, dict):
-            return _no_store({"error": "INVALID_ITEM_PAYLOAD"}, status_code=400)
-        result = await asyncio.to_thread(
-            subscriber_saved_items_v4.save_item,
-            token,
-            body,
-            verified_user_id=user_id,
-        )
+        body = request_body or {}
+        if note_mode:
+            result = await asyncio.to_thread(
+                subscriber_match_notes_v1.operate, "POST", token, user_id,
+                body=body,
+            )
+        else:
+            result = await asyncio.to_thread(
+                subscriber_saved_items_v4.save_item, token, body,
+                verified_user_id=user_id,
+            )
     elif request.method == "DELETE":
-        item_key = str(request.query_params.get("item_key") or "").strip()
-        if not item_key:
-            return _no_store({"error": "ITEM_KEY_REQUIRED"}, status_code=400)
-        result = await asyncio.to_thread(
-            subscriber_saved_items_v4.delete_item,
-            token,
-            item_key,
-            verified_user_id=user_id,
-        )
+        if request.query_params.get("resource") == "notes":
+            raw_id = str(request.query_params.get("fixture_id") or "")
+            if not raw_id.isdigit():
+                return _no_store({"error": "NOTE_FIXTURE_ID_INVALID"}, status_code=400)
+            result = await asyncio.to_thread(
+                subscriber_match_notes_v1.operate, "DELETE", token, user_id,
+                fixture_id=int(raw_id),
+            )
+        else:
+            item_key = str(request.query_params.get("item_key") or "").strip()
+            if not item_key:
+                return _no_store({"error": "ITEM_KEY_REQUIRED"}, status_code=400)
+            result = await asyncio.to_thread(
+                subscriber_saved_items_v4.delete_item, token, item_key,
+                verified_user_id=user_id,
+            )
     else:
         return _no_store({"error": "METHOD_NOT_ALLOWED"}, status_code=405)
 
     if not result.get("ok"):
         status = str(result.get("status") or "MY_EDGE_UNAVAILABLE")
-        code = 400 if status in {
+        code = 400 if status.startswith("NOTE_") and (
+            "INVALID" in status or "LENGTH" in status or "REQUIRED" in status
+        ) else 400 if status in {
             "ITEM_TYPE_NOT_ALLOWED",
             "VALID_FIXTURE_ID_REQUIRED",
             "ITEM_KEY_REQUIRED",
@@ -2707,6 +2758,7 @@ async def match_detail(request: Request) -> JSONResponse:
     )
     if result is None:
         return _no_store({"error": "FIXTURE_NOT_IN_REGISTRY_OR_PERSISTED_SNAPSHOT"}, status_code=404)
+    result.update(soccer_universal_match_v1.detail_layers(result))
     try:
         multimarket = await asyncio.to_thread(
             multimarket_history_bridge_v1.read_for_match, fixture_value

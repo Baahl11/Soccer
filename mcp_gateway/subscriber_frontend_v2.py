@@ -434,6 +434,25 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
  #matchDetail .rate-row{{grid-template-columns:80px minmax(0,1fr) 44px;gap:7px}}
  #matchDetail .rate-row label{{font-size:11px}}
 }}
+
+/* A fixture always has an independent, accessible sporting reading. */
+#matchDetail .universal-match{{padding:20px;display:grid;gap:14px}}
+#matchDetail .public-match-heading{{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}}
+#matchDetail .public-match-heading span{{font-size:11px;color:#8bd4b9;letter-spacing:.07em;font-weight:750}}
+#matchDetail .universal-match h2{{font-size:24px;line-height:1.2;margin:0}}
+#matchDetail .universal-match p{{font-size:13px;line-height:1.55;color:#b8d1de;margin:0}}
+#matchDetail .universal-status-grid{{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+#matchDetail .universal-status-grid strong{{font-size:18px;color:#e8f5f8}}
+#matchDetail .universal-missing{{border:1px solid #23495f;border-radius:9px;padding:11px 15px}}
+#matchDetail .universal-missing summary{{cursor:pointer;font-size:13px;font-weight:650}}
+#matchDetail .universal-missing-body{{padding:12px 0;font-size:12px;color:#b6cedc;line-height:1.6}}
+@media(max-width:700px){{#matchDetail .universal-match{{padding:12px}}#matchDetail .universal-status-grid{{grid-template-columns:1fr}}#matchDetail .universal-match h2{{font-size:20px}}}}
+
+#matchDetail .analyst-notebook{{margin-top:15px;padding:16px;border-radius:12px;border:1px solid #244e64;background:#0a2030;display:grid;gap:12px}}
+#matchDetail .analyst-notebook p{{font-size:12px;line-height:1.5;color:#b5cad8;margin:0}}
+#matchDetail .analyst-notebook textarea{{width:100%;min-height:115px;box-sizing:border-box;padding:12px;border:1px solid #326078;border-radius:8px;background:#081b28;color:#e8f5f8;font:inherit;font-size:14px;resize:vertical}}
+#matchDetail .analyst-note-actions{{display:flex;gap:9px;align-items:center;flex-wrap:wrap}}
+#matchDetail #analystNoteStatus{{font-size:11px;color:#aec5d3;line-height:1.5}}
 </style>
 </head>
 <body>
@@ -706,8 +725,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<button class="secondary focus-open" data-fixture="'+esc(f.fixture_id)+'" type="button">Ver datos del partido</button></div>';
   }}
   function focusCoverageState(row,entries){{
-    const f=row?.fixture||{{}}, n=Number(row?.coverage?.analysis_rows||0);
+    const f=row?.fixture||{{}},sport=row?.sport_analysis||{{}},n=Number(row?.coverage?.analysis_rows||0);
     if(entries.some(e=>e.active&&String(e.row?.fixture?.fixture_id)===String(f.fixture_id)))return 'forecast';
+    if(['MODELED_LIMITED','PARTIAL','SPORT_EVIDENCE_ONLY'].includes(sport.status))return 'partial';
     return n>0?'partial':'pending';
   }}
   function focusMissing(row){{
@@ -797,8 +817,10 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const chosen=order.filter(r=>focusFilter==='all'||stateOf(r)===focusFilter);
     const card=r=>{{
       const f=r?.fixture||{{}},[clock,date]=dt(f.kickoff),state=stateOf(r);
-      const label=state==='forecast'?'Pronóstico deportivo':state==='partial'?'Análisis parcial':'Por analizar';
-      const reason=state==='forecast'?'Proyección previa registrada':state==='partial'?'Datos parciales; falta análisis completo':focusMissing(r);
+      const sa=r?.sport_analysis||{{}},op=r?.opportunity||{{}},queue=r?.screen_queue||{{}};
+      const label=state==='forecast'?'Pronóstico deportivo':state==='partial'?'Análisis deportivo':'Por analizar';
+      const reason=[sa.explanation||focusMissing(r),valueLabels[op.status]||'Mercado no evaluado',
+        queue.attempt_count!==null&&queue.attempt_count!==undefined?'Intentos: '+queue.attempt_count:null].filter(Boolean).join(' · ');
       return '<a class="focus-fixture" href="'+esc(matchPath(f.fixture_id||''))+'" data-focus-fixture="'+esc(f.fixture_id||'')+'">'+
         '<div><strong>'+esc(f.home_team||'Local')+' vs '+esc(f.away_team||'Visitante')+'</strong>'+
         '<span>'+esc(f.league||f.country||'Competición')+' · '+esc(date)+' · '+esc(clock)+'</span>'+
@@ -1204,7 +1226,62 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   function routeMatchId(){{const parts=location.pathname.split('/').filter(Boolean);return parts.length===3&&parts[0]==='app'&&parts[1]==='match'&&/^[0-9]+$/.test(parts[2])?parts[2]:null}}
   function setMatchRoute(fid,replace=false){{const url=matchPath(fid);if(location.pathname===url)return;(replace?history.replaceState:history.pushState).call(history,{{page:'match',fixture_id:String(fid)}},'',url)}}
   function showMatchBrowse(show){{const panel=$('matchesBrowsePanel');if(panel)panel.classList.toggle('hidden',!show)}}
-  async function openMatch(fid,opts={{}}){{if(!fid)return;activate('matches');setMatchRoute(fid,!!opts.replace);showMatchBrowse(false);const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{box.innerHTML=lock('Match Intelligence',1);box.scrollIntoView({{block:'start'}});return}}box.innerHTML=empty('Loading match intelligence','Reading every persisted fact available for this fixture…');box.scrollIntoView({{block:'start'}});try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d);box.scrollIntoView({{block:'start'}})}}catch(e){{box.innerHTML=empty('Match detail unavailable',e.message)}}}}
+  const analysisLabels={{MODELED_LIMITED:'Proyección RAW registrada',PARTIAL:'Análisis parcial',SPORT_EVIDENCE_ONLY:'Evidencia deportiva',NOT_ANALYZED:'Aún sin screening',DATA_INSUFFICIENT:'Datos insuficientes'}};
+  const valueLabels={{RECOMENDACION_DE_VALOR:'Recomendación de valor',TENDENCIA_FAVORABLE:'Tendencia favorable',EN_OBSERVACION:'En observación',SIN_VALOR:'Sin valor identificado',SPORT_SCREEN_PASS:'Sin shortlist deportiva',MERCADO_NO_EVALUADO:'Mercado no evaluado',VERIFICACION_PENDIENTE:'Verificación pendiente'}};
+  function publicMatchCard(row){{
+    const f=row?.fixture||{{}},s=row?.sport_analysis||{{}},o=row?.opportunity||{{}},
+      [clock,date]=dt(f.kickoff),m=Array.isArray(s.missing_evidence_codes)?s.missing_evidence_codes:[],
+      tracks=s.tracks||{{}};
+    return '<div class="universal-match"><div class="public-match-heading"><span>ANÁLISIS DEPORTIVO · REGISTRO VERIFICADO</span>'+
+      '<button type="button" id="publicMatchBack" class="secondary">Volver a los partidos</button></div>'+
+      '<h2>'+esc((f.home_team||'Local')+' vs '+(f.away_team||'Visitante'))+'</h2>'+
+      '<p>'+esc(f.league||f.country||'Competición')+' · '+esc(date)+' · '+esc(clock)+'</p>'+
+      '<div class="universal-status-grid"><div class="visual-card"><div class="visual-card-head"><h3>Estado deportivo</h3></div>'+
+      '<strong>'+esc(analysisLabels[s.status]||'NOT VERIFIED')+'</strong><p>'+esc(s.explanation||'Sin evidencia suficiente.')+'</p>'+
+      '<p>Modelos registrados: '+esc(s.model_run_count??'NOT VERIFIED')+' · Snapshots estadísticos: '+esc(s.verified_feature_snapshot_count??'NOT VERIFIED')+'</p>'+
+      '</div><div class="visual-card"><div class="visual-card-head"><h3>Evaluación de oportunidad</h3></div>'+
+      '<strong>'+esc(valueLabels[o.status]||'Mercado no evaluado')+'</strong><p>'+esc(o.explanation||'No hay evaluación verificable.')+'</p>'+
+      '<p>Decisión histórica de análisis · Sin precio ejecutable actual verificado.</p></div></div>'+
+      '<div class="visual-card"><h3>Tracks deportivos</h3><div class="sport-stat-grid">'+
+      ['SIDE','GOALS_BTTS','CORNERS'].map(k=>'<div class="sport-stat"><span>'+esc(k)+'</span><b>'+esc(tracks[k]||'NOT VERIFIED')+'</b></div>').join('')+'</div>'+
+      '<p>Proyección numérica y datos de proveedores sujetos a licencia y validación OOS; no se inventan porcentajes.</p></div>'+
+      '<details class="universal-missing"><summary>Qué falta por verificar ('+m.length+')</summary><div class="universal-missing-body">'+
+      (m.length?m.map(x=>'<div>'+esc(x)+'</div>').join(''):'Sin faltantes documentados; no implica cobertura completa.')+'</div></details>'+
+      '<p class="intel-footnote">Un PASS no oculta el análisis. La decisión de mercado no es lo mismo que el estado deportivo.</p>'+
+      (token()?'<section class="analyst-notebook"><h3>Mi lectura del partido</h3>'+
+        '<p>Nota privada · No modifica el modelo</p>'+
+        '<textarea id="analystNoteText" maxlength="2000" rows="4" placeholder="Mi hipótesis deportiva…"></textarea>'+
+        '<div class="analyst-note-actions"><button type="button" class="secondary" id="saveAnalystNote">Guardar nota</button>'+
+        '<button type="button" class="secondary" id="deleteAnalystNote">Eliminar</button>'+
+        '<span id="analystNoteStatus">Solo visible para esta cuenta.</span></div></section>':
+        '<section class="analyst-notebook"><h3>Tu lectura del partido</h3>'+
+        '<p>Accede con tu cuenta para guardar hipótesis privadas. No necesitas un plan PRO para crear notas.</p>'+
+        '<button type="button" class="secondary" id="publicNoteLogin">Iniciar sesión</button></section>')+
+      '</div>';
+  }}
+  function publicMatchFromSlate(fid){{return (DATA?.slate?.rows||[]).find(r=>String(r?.fixture?.fixture_id)===String(fid))||null}}
+  function showPublicMatch(fid){{const box=$('matchDetail'),row=publicMatchFromSlate(fid);box.innerHTML=row?publicMatchCard(row):
+    empty('Partido no encontrado','No consta este partido en el calendario elegible guardado.');
+    const back=$('publicMatchBack');if(back)back.onclick=closeMatchRoute;
+    const login=$('publicNoteLogin');if(login)login.onclick=openAuth;
+    if(token())void loadAnalystNote(fid);
+    box.scrollIntoView({{block:'start'}})}}
+  async function openMatch(fid,opts={{}}){{if(!fid)return;activate('matches');setMatchRoute(fid,!!opts.replace);showMatchBrowse(false);const box=$('matchDetail');box.classList.remove('hidden');if(!premium()){{showPublicMatch(fid);return}}box.innerHTML=empty('Cargando análisis deportivo','Consultando los registros persistidos…');box.scrollIntoView({{block:'start'}});try{{const d=await api('/match/'+encodeURIComponent(fid));renderMatch(d);box.scrollIntoView({{block:'start'}})}}catch(e){{if(e?.status===403)showPublicMatch(fid);else box.innerHTML=empty('Detalle no disponible',e.message)}}}}
+
+  async function loadAnalystNote(fid){{
+    const area=$('analystNoteText'),status=$('analystNoteStatus'),save=$('saveAnalystNote'),del=$('deleteAnalystNote');
+    if(!area||!status||!save||!del||!fid)return;
+    save.onclick=async()=>{{const text=area.value.trim();if(!text||text.length>2000){{status.textContent='La nota requiere 1–2000 caracteres.';return}}
+      try{{await apiWrite('/my-edge','POST',{{item_type:'NOTE',fixture_id:Number(fid),note_text:text}});status.textContent='Nota guardada en tu cuenta. No afecta al modelo.'}}
+      catch(e){{status.textContent='No se pudo guardar: '+e.message}}}};
+    del.onclick=async()=>{{try{{await apiWrite('/my-edge?resource=notes&fixture_id='+encodeURIComponent(fid),'DELETE');
+      area.value='';status.textContent='Nota eliminada.'}}catch(e){{status.textContent='No se pudo eliminar: '+e.message}}}};
+    try{{const d=await api('/my-edge?resource=notes&fixture_id='+encodeURIComponent(fid));
+      if(String(routeMatchId())!==String(fid))return;
+      const row=(d.rows||[])[0];if(row&&typeof row.note_text==='string')area.value=row.note_text;
+      status.textContent=row?'Nota privada recuperada.':'Sin notas guardadas todavía.';}}
+    catch(e){{status.textContent='Notas no disponibles: '+e.message}}
+  }}
   function closeMatchRoute(){{history.pushState({{page:'matches'}},'','/app');showMatchBrowse(true);$('matchDetail').classList.add('hidden');activate('matches')}}
   function detailKV(label,value){{return '<div class="item"><span>'+esc(label)+'</span><span>'+esc(value??'NOT VERIFIED')+'</span></div>'}}
   function marketTable(rows){{if(!rows?.length)return empty('No persisted market rows','This market family has no persisted candidate rows for the fixture.');
@@ -1420,7 +1497,20 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 
     const multiMarket='<section class="intel-section" data-detail-section="periods">'+
        fe11MultimarketSection(d?.multi_market_research||null,f)+'</section>';
-    box.innerHTML='<div class="match-detail">'+hero+summary+tabHtml+'<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+'</div></div>';
+    const sportState=d?.sport_analysis||{{}},opportunityState=d?.opportunity||{{}};
+    const independentStatus='<div class="universal-status-grid" style="padding:12px 16px 0">'+
+      '<div class="visual-card"><h3>Lectura deportiva</h3><strong>'+esc(analysisLabels[sportState.status]||sportState.status||'NOT VERIFIED')+
+      '</strong><p>'+esc(sportState.reason||'El análisis deportivo se evalúa con independencia del mercado.')+'</p></div>'+
+      '<div class="visual-card"><h3>Evaluación de valor</h3><strong>'+esc(valueLabels[opportunityState.status]||opportunityState.status||'Mercado no evaluado')+
+      '</strong><p>'+esc(opportunityState.reason||'No consta evaluación verificable de valor.')+'</p></div></div>';
+    const notesHtml='<section class="analyst-notebook"><div class="visual-card-head"><h3>Mi lectura del partido</h3><span>Nota privada · No modifica el modelo</span></div>'+
+      '<p>Registra información que el sistema pudo pasar por alto. No se convierte en estadística verificada ni altera ninguna proyección histórica.</p>'+
+      '<textarea id="analystNoteText" maxlength="2000" rows="4" placeholder="Mi hipótesis deportiva (no sustituye fuentes verificadas)…"></textarea>'+
+      '<div class="analyst-note-actions"><button type="button" class="secondary" id="saveAnalystNote">Guardar nota</button>'+
+      '<button type="button" class="secondary" id="deleteAnalystNote">Eliminar</button><span id="analystNoteStatus">Solo visible para esta cuenta.</span></div></section>';
+    box.innerHTML='<div class="match-detail">'+hero+independentStatus+summary+tabHtml+
+      '<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+notesHtml+'</div></div>';
+    void loadAnalystNote(f.fixture_id);
     box.querySelectorAll('[data-detail-tab]').forEach(btn=>btn.onclick=()=>{{const id=btn.dataset.detailTab;box.querySelectorAll('[data-detail-tab]').forEach(x=>x.classList.toggle('active',x===btn));box.querySelectorAll('[data-detail-section]').forEach(x=>x.classList.toggle('active',x.dataset.detailSection===id))}});
     const back=$('backToMatches');if(back)back.onclick=closeMatchRoute;
   }}

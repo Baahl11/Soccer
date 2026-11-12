@@ -352,3 +352,27 @@ def test_customer_home_displays_real_sport_screening_not_an_empty_pick_lab():
     assert "Las proyecciones de investigación no autorizadas para publicación" in html
     assert "focus-empty-compact" in html
     assert "canReviewPrivateResearch=ACCESS?.owner===true||ACCESS?.admin===true" in html
+
+
+def test_universal_match_remains_available_without_pro_and_pass_cannot_hide_sport():
+    html=subscriber_frontend_v2.render()
+    assert "function showPublicMatch(fid)" in html
+    assert "if(!premium()){showPublicMatch(fid);return}" in html
+    assert "row?.sport_analysis" in html
+    assert "row?.opportunity" in html
+    assert "MERCADO_NO_EVALUADO" in html
+    assert "SPORT_SCREEN_PASS" in html
+    assert "Un PASS no oculta el análisis" in html
+    assert "El análisis deportivo se evalúa con independencia del mercado." in html
+    assert "proyección numérica" not in html.lower() or "licencia" in html.lower()
+
+
+def test_analyst_notebook_uses_authenticated_api_and_does_not_become_model_input():
+    html=subscriber_frontend_v2.render()
+    assert 'id="analystNoteText"' in html
+    assert "maxlength=\"2000\"" in html
+    assert "async function loadAnalystNote(fid)" in html
+    assert "item_type:'NOTE'" in html
+    assert "/my-edge?resource=notes&fixture_id=" in html
+    assert "No modifica el modelo" in html
+    assert "loadAnalystNote(f.fixture_id)" in html

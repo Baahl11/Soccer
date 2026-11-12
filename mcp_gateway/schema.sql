@@ -411,3 +411,23 @@ CREATE TABLE IF NOT EXISTS soccer_isolated_sport_frozen_research_v1 (
     CHECK (source_generated_at <= kickoff - INTERVAL '45 minutes'),
     CHECK (home_team_id <> away_team_id)
 );
+
+
+-- Every eligible fixture has a durable screening position independent of BET.
+-- Do not turn absence of a run into a PASS; keep the first queue timestamp.
+CREATE TABLE IF NOT EXISTS soccer_sport_screen_queue (
+    fixture_id BIGINT PRIMARY KEY REFERENCES soccer_fixtures (fixture_id) ON DELETE CASCADE,
+    kickoff TIMESTAMPTZ NOT NULL,
+    sport_status TEXT NOT NULL DEFAULT 'QUEUED'
+        CHECK (sport_status IN ('QUEUED','MODELED_LIMITED','DATA_INSUFFICIENT','RETRY_REQUIRED')),
+    attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+    last_attempt_at TIMESTAMPTZ,
+    last_completed_at TIMESTAMPTZ,
+    last_model_version TEXT,
+    last_reason TEXT,
+    first_queued_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_soccer_sport_screen_pending_kickoff
+    ON soccer_sport_screen_queue (sport_status, kickoff, last_attempt_at)
+    WHERE sport_status <> 'MODELED_LIMITED';

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections import Counter
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Any
@@ -14,6 +15,8 @@ from mcp_gateway import automation_v4 as v4
 from mcp_gateway import automation_v5 as v5
 from mcp_gateway import automation_v6 as v6
 from mcp_gateway import fair_scheduler
+from mcp_gateway import persistence as sport_queue_persistence
+from mcp_gateway import soccer_sport_queue_v1
 
 MODEL_VERSION = "SOCCER EDGE ENGINE v1.0"
 AUTOMATION_VERSION = "1.7.1-live-p0-sport-first"
@@ -21,8 +24,8 @@ AUTOMATION_VERSION = "1.7.1-live-p0-sport-first"
 # The active v7 scheduler bypasses v5.run_tick(), where P0 was originally
 # installed. Reserve a bounded SPORT-FIRST slice ahead of market refresh.
 # Never use this source as an actionable selection, price or BET.
-P0_SPORT_MAX_FIXTURES_PER_TICK = 2
-P0_SPORT_MIN_REMAINING_FOR_CANONICAL = 3
+P0_SPORT_MAX_FIXTURES_PER_TICK = 6
+P0_SPORT_MIN_REMAINING_FOR_CANONICAL = 8
 
 # Once a fixture has passed the sporting screen, protect its late verification
 # windows before spending the scarce tick budget discovering new candidates.
@@ -225,14 +228,39 @@ async def run_tick() -> dict[str, Any]:
             if roster_event is not None:
                 events.append(roster_event)
 
-        # The production chain enters via v7, not v5.run_tick(). Without this
-        # call the P0 implementation is dead code and daily model counters are
-        # missing even when hundreds of fixtures were scanned.
+        # The production chain enters via v7, not v5.run_tick(). Read the
+        # idempotent queue first to avoid paying for a fixture already modeled
+        # in a previous process/day. This DB lookup uses zero provider calls.
+        queue_states: dict[str, dict[str, Any]] = {}
+        queue_read_status = "NOT_CONFIGURED"
+        if sport_queue_persistence.persistence_configured():
+            queue_read_status = "NOT_VERIFIED"
+            upcoming_ids = [
+                fx["fixture_id"]
+                for fx in sorted(
+                    (fx for fx in fixtures if v5.p0_preview.eligible(fx, now_utc)),
+                    key=lambda fx: base._dt(fx["kickoff"]),
+                )[:500]
+            ]
+            if upcoming_ids:
+                try:
+                    queue_states = await asyncio.wait_for(
+                        asyncio.to_thread(
+                            soccer_sport_queue_v1.read_statuses,
+                            sport_queue_persistence._connect,
+                            upcoming_ids,
+                        ),
+                        timeout=3.0,
+                    )
+                    queue_read_status = "PERSISTED_QUEUE_READ"
+                except Exception:
+                    queue_read_status = "UNAVAILABLE_FALLBACK_SQLITE"
         try:
             p0_sport = await v5._daily_p0_sport_previews(
                 fixtures, now_utc, local_now.date().isoformat(),
                 max_fixtures=P0_SPORT_MAX_FIXTURES_PER_TICK,
                 reserve_calls=P0_SPORT_MIN_REMAINING_FOR_CANONICAL,
+                queue_states=queue_states,
             )
         except Exception as exc:
             # A research-only failure must not disrupt canonical fixtures,
@@ -509,6 +537,8 @@ async def run_tick() -> dict[str, Any]:
             "p0_sport_preview_cached_count": p0_sport["cached_from_prior_tick"],
             "p0_sport_preview_deferred_quota_count": p0_sport["deferred_due_to_quota"],
             "p0_sport_preview_api_calls": p0_sport["api_calls_used"],
+            "p0_sport_durable_queue_read_status": queue_read_status,
+            "p0_sport_durable_queue_known_fixtures": len(queue_states),
             "p0_sport_preview_status": (
                 "RESEARCH_RUNTIME_ERROR" if p0_sport.get("error")
                 else "MODELED_LIMITED" if p0_sport["modeled_limited"]
