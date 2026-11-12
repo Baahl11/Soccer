@@ -499,6 +499,22 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   #matchDetail .intel-tab{{white-space:nowrap}}
   #matchDetail .analyst-notebook{{padding:14px}}
 }}
+
+#matchDetail .season-facts-owner{{margin:10px 0 16px;border:1px solid #2a5765;background:#0a2431;border-radius:12px;padding:16px;display:grid;gap:13px;min-width:0}}
+#matchDetail .season-facts-head{{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}}
+#matchDetail .season-facts-head h3{{margin:0;font-size:19px}}
+#matchDetail .season-facts-head span{{font-size:10px;color:#80dfb1;font-weight:800;letter-spacing:.05em}}
+#matchDetail .season-facts-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
+#matchDetail .season-fact-card{{padding:13px;background:#091b27;border:1px solid #295069;border-radius:10px;min-width:0}}
+#matchDetail .season-fact-card h4{{font-size:17px;margin:0 0 6px}}
+#matchDetail .season-fact-card p,#matchDetail .season-facts-owner>p{{font-size:12px;line-height:1.5;margin:0;color:#aac6d5}}
+#matchDetail .season-fact-stats{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:12px 0}}
+#matchDetail .season-fact-stats span{{display:flex;flex-direction:column;font-size:11px;color:#a5bfd0}}
+#matchDetail .season-fact-stats b{{font-size:21px;color:#ebf3f9}}
+#matchDetail .season-fact-card .season-split{{font-size:12px;line-height:1.5;color:#bed8e6}}
+@media(max-width:700px){{#matchDetail .season-facts-grid{{grid-template-columns:minmax(0,1fr)}}
+#matchDetail .season-facts-owner{{padding:12px}}
+}}
 </style>
 </head>
 <body>
@@ -1518,6 +1534,28 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '</div><div class="intel-footnote" style="margin-top:10px">Bloqueos: correlación y joint OOS NOT VERIFIED; cuota del Bet Builder NOT VERIFIED; '+
       'hándicap y reglas de liquidación requieren confirmación de la casa. Estado WATCH, NO BET.</div>';
   }}
+  function internalSeasonFacts(packet){{
+    const ctx=packet?.private_team_context;
+    if(ctx?.status!=='SPORTING_SEASON_CONTEXT_ONLY'||!Array.isArray(ctx.teams)||!ctx.teams.length)return '';
+    const cards=ctx.teams.filter(x=>Number.isInteger(x?.played)&&x.played>0).map(x=>
+      '<article class="season-fact-card"><h4>'+esc(x.team_name||'Equipo')+'</h4>'+
+      '<p>'+esc(x.competition||'Competición')+' · '+esc(x.season||'')+' · '+esc(x.played)+' partidos</p>'+
+      '<div class="season-fact-stats"><span><b>'+esc(x.wins??'—')+'</b> Ganados</span>'+
+      '<span><b>'+esc(x.draws??'—')+'</b> Empatados</span>'+
+      '<span><b>'+esc(x.losses??'—')+'</b> Perdidos</span>'+
+      '<span><b>'+esc(x.goals_for??'—')+'</b> Goles a favor</span>'+
+      '<span><b>'+esc(x.goals_against??'—')+'</b> Goles contra</span></div>'+
+      '<p class="season-split">'+esc(x.venue==='home'?'Como local':'Como visitante')+': '+
+      esc(x.played_venue??'—')+' partidos; '+esc(x.goals_for_per_match_venue??'—')+
+      ' goles marcados y '+esc(x.goals_against_per_match_venue??'—')+' recibidos por encuentro.</p></article>'
+    ).join('');
+    if(!cards)return '';
+    return '<section class="season-facts-owner"><div class="season-facts-head"><h3>Datos históricos verificados</h3>'+
+      '<span>INVESTIGACIÓN PRIVADA</span></div><div class="season-facts-grid">'+cards+'</div>'+
+      '<p>Fuente: API-Football, estadísticas equipo/temporada · capturadas: '+esc(prettyStamp(ctx.fetched_at_utc))+
+      '. Son datos históricos, NO xG ni un modelo 1X2. No tienen validación OOS ni permiso de redistribución comercial.'+
+      ' Las competiciones o rivales pueden ser distintos y las estadísticas no garantizan un pronóstico.</p></section>';
+  }}
   function renderMatch(d){{const box=$('matchDetail'),rawF=d?.fixture||{{}},known=fixtureTargets().find(x=>String(x?.fixture?.fixture_id||'')===String(rawF.fixture_id||''))?.fixture||{{}},f={{...known,...rawF}},c=d?.selected_candidate||{{}},p=d?.projection_ladder||c?.projections||{{}},a=d?.availability||c?.availability||{{}},ctx=d?.sport_context||{{}},decision=d?.decision_summary||c?.decision||{{}},marketCtx=d?.market_context||{{}},modelCtx=d?.model_context||{{}},review=d?.analyst_review||{{}},rel=d?.relational_evidence||{{}},counts=rel.counts||{{}},disc=d?.data_disclosure||{{}},e=d?.evidence||c?.evidence||{{}};
     const selectedMarket=marketCtx.selected||c?.market||{{}},missing=(disc.missing_sections||review.missing_sections||[]),currentMarkets=(review.available_markets||[]),persistedMarkets=(counts.market_names||[]),markets=[...new Set([...currentMarkets,...persistedMarkets].filter(Boolean))],verifiedPrices=(review.verified_price_markets||[]),features=sportFeatures(rel),sportN=sportFeatureCount(features),sportMissing=sportFeatureMissing(features),decisionText=decision.classification||decision.display_bucket||decision.execution_status||review.status||'INSUFFICIENT DATA',fresh=freshnessLabel(counts),coverage=review.status||decisionText||'NOT VERIFIED',tone=coverageTone(coverage),[kickTime,kickDate]=dt(f.kickoff);
     const actualStatus=String(d?.live_fixture_status?.source==='API_FOOTBALL_FIXTURE_STATUS_BY_ID'?
@@ -1539,6 +1577,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const coreCov=coreCoverage(features),probs=ctx.outcome_probabilities||null,xg=ctx.expected_goals||null,scoreRows=ctx.score_matrix||[];
     const hasSportProb=['home','draw','away'].every(k=>p100(probs?.[k])!==null);
     const goalRateLabel=ctx.goal_rate_semantics==='POISSON_LAMBDA_NOT_XG'?'Poisson λ, no xG':'Tasa de goles del modelo';
+    const ownerSeasonResearch=internalSeasonFacts(d);
     const overview='<section class="intel-section active" data-detail-section="overview">'+
       '<div class="match-reading-banner"><span>EL PARTIDO, ANTES QUE LAS CUOTAS</span><h2>'+esc(hasSportProb?'Pronóstico deportivo registrado':sportN>0?'Hay datos deportivos para analizar':'Partido identificado · análisis pendiente')+'</h2><p>'+
       esc(hasSportProb?'Existe una proyección histórica que debe revisarse junto con la disponibilidad.':
@@ -1546,6 +1585,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         'La ficha identifica el encuentro, pero aún no contiene estadísticas deportivas persistidas. No se infieren porcentajes ni recomendaciones a partir del calendario.')+
       '</p><p class="status-source">Estado '+esc(statusLabel||'NO VERIFICADO')+
       ' · '+esc(statusProvenance)+' · '+esc(statusObserved?prettyStamp(statusObserved):'Sin fecha de última verificación')+'</p></div>'+
+      ownerSeasonResearch+
       (hasSportProb?'<div class="visual-card primary-forecast"><h3>Victoria · Empate · Derrota</h3>'+
         probabilityVisual(probs,f)+'</div>':'')+
       (sportN>0?'<div class="visual-card primary-takeaways"><h3>Datos deportivos que sí tenemos</h3>'+
@@ -1603,7 +1643,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         '<p>'+esc(f.home_team||'Local')+' vs '+esc(f.away_team||'Visitante')+' · '+esc(f.league||'Competición')+
         ' · Inicio originalmente previsto: '+esc(kickDate)+' '+esc(kickTime)+'</p>'+
         '<p>Estado de oportunidad: evento no vigente. Los antecedentes deportivos, si están guardados, siguen consultables sin promocionarlos a una predicción.</p>'+
-        pastFacts+'</div>'+notesHtml+'</section></div>';
+        ownerSeasonResearch+pastFacts+'</div>'+notesHtml+'</section></div>';
       void loadAnalystNote(f.fixture_id);
       const back=$('backToMatches');if(back)back.onclick=closeMatchRoute;
       return;
