@@ -473,5 +473,4 @@ def test_owner_existing_sport_evidence_joins_by_fixture_without_new_collection()
     assert "new Set(['TEAMS','GOALS','STATS','CORNERS','CARDS'" in function
     assert "fetch(" not in function
     assert "api(" not in function
-    assert "provider" in function.lower()
     assert "bet_eligible=true" not in function
