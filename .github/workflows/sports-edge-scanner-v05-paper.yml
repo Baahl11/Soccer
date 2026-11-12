@@ -85,7 +85,9 @@ jobs:
       API_FOOTBALL_QUOTA_FILE: data/quota_api_football_paper.json
       API_FOOTBALL_CACHE_DIR: data/api_football_paper_cache
       MATCH_DATE: ${{ inputs.match_date }}
-      LEAGUE_IDS: ${{ inputs.league_ids || '2,3,18,17,39,140,135,78,61,262,848' }}
+      # Keep scanner research in sync with verified FE11 identity-only league scope.
+      # Newly included international tournaments are RESEARCH ONLY, not BET approvals.
+      LEAGUE_IDS: ${{ inputs.league_ids || '2,3,18,17,39,140,135,78,61,262,848,5,10,36,536' }}
       ODDS_LIMIT: ${{ inputs.reference_odds_limit || '20' }}
     steps:
       - uses: actions/checkout@v4
@@ -186,6 +188,7 @@ jobs:
               f"# SPORTS EDGE SCANNER — {date}",
               f"**Estado:** {summary.get('status', 'NOT_VERIFIED')}",
               f"**Calendario completo:** {summary.get('source_slate_complete_verified', False)}",
+              f"**Competiciones investigadas:** {os.environ.get('LEAGUE_IDS') or 'NOT VERIFIED'} (ámbito configurado, NO calendario mundial)",
               f"**Partidos elegibles:** {summary.get('eligible_games', 0)}",
               f"**Partidos examinados:** {summary.get('sports_screened', 0)}",
               f"**Proyecciones RAW del motor original:** {summary.get('raw_existing_engine_projections', 0)}",
@@ -231,6 +234,8 @@ jobs:
               "",
               "## Prioridad preliminar (no picks)",
           ]
+          if summary.get("eligible_games") == 0:
+              lines.append("**Alcance:** no hubo partidos elegibles en las competiciones configuradas para este ciclo. Esto NO significa cero partidos en el calendario mundial.")
           for category, field in (("Dominio", "preliminary_side_shortlist"),
                                   ("Goles", "preliminary_goals_shortlist")):
               ids = summary.get(field, [])[:5]
