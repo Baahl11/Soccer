@@ -608,7 +608,7 @@ def capture(provider, model, model_sha: str, existing: list[dict[str, Any]], *,
         "season_split_cache_hits_same_capture": split_cache.from_current_capture,
         "season_split_cache_misses": split_cache.misses,
         "season_split_cache_new_entries": split_cache.puts,
-        "season_split_cache_persistent_source_copies_created": 0,
+        "season_split_cache_new_public_cache_files_created": 0,
         "excluded": excluded, "frozen": frozen,
         "provider_requests_added": provider.calls,
         "daily_remaining_reported": provider.remaining,
@@ -662,6 +662,42 @@ def self_test(model_path: Path):
     assert record["provider_odds_requests_added"] == 0
     deduped = capture(Offline(),model,"fixed-test-repo-sha",[record],clock=lambda:now)
     assert deduped["new_frozen_pregame_models"] == 0
+    assert deduped["league_coverage_report"][0]["already_frozen"] == 1
+    # New eligible game, same home team+league+season. The verified original
+    # pregame snapshot can provide that team's current-season split without
+    # another provider call. Away opponent is fetched from the official source.
+    second_fixture = {
+        **fixture,
+        "fixture": {**fixture["fixture"], "id": 102,
+                    "date": (now+timedelta(hours=5)).isoformat()},
+        "teams": {"home": {"id": 5}, "away": {"id": 7}},
+    }
+    class ReusingProvider(Offline):
+        def get(self, endpoint, params):
+            if endpoint == "fixtures":
+                self.calls += 1
+                return {"response": [fixture, second_fixture]}
+            return super().get(endpoint, params)
+    reused = capture(
+        ReusingProvider(), model, "fixed-test-repo-sha", [record], clock=lambda: now
+    )
+    assert reused["new_frozen_pregame_models"] == 1
+    assert reused["provider_requests_added"] == 3  # 2 dates + 1 new team
+    assert reused["season_split_cache_hits"] == 1
+    assert reused["season_split_cache_hits_from_original_frozen"] == 1
+    assert reused["season_split_cache_misses"] == 1
+    assert reused["season_split_cache_new_public_cache_files_created"] == 0
+    assert reused["league_coverage_report"][0]["eligible"] == 2
+    assert reused["league_coverage_report"][0]["attempted"] == 1
+    assert reused["league_coverage_report"][0]["modeled_limited"] == 1
+    assert reused["league_coverage_report"][0]["already_frozen"] == 1
+    # A cached source from another competition, venue, or after kickoff is
+    # never used as a current pre-match model input.
+    wrong_league = {**f, "league_id": 56}
+    data = TeamSeasonSplitCache([record])
+    assert data.get(wrong_league, "home", now) is None
+    assert data.get(f, "away", now+timedelta(hours=13)) is None
+    assert data.get(f, "home", now-timedelta(minutes=1)) is None
     bad = {**fixture,"teams":{"home":{"id":5},"away":{"id":5}}}
     assert _fixture(bad,now) is None
     sample = [
