@@ -725,8 +725,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<button class="secondary focus-open" data-fixture="'+esc(f.fixture_id)+'" type="button">Ver datos del partido</button></div>';
   }}
   function focusCoverageState(row,entries){{
-    const f=row?.fixture||{{}}, n=Number(row?.coverage?.analysis_rows||0);
+    const f=row?.fixture||{{}},sport=row?.sport_analysis||{{}},n=Number(row?.coverage?.analysis_rows||0);
     if(entries.some(e=>e.active&&String(e.row?.fixture?.fixture_id)===String(f.fixture_id)))return 'forecast';
+    if(['MODELED_LIMITED','PARTIAL','SPORT_EVIDENCE_ONLY'].includes(sport.status))return 'partial';
     return n>0?'partial':'pending';
   }}
   function focusMissing(row){{
@@ -816,8 +817,10 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const chosen=order.filter(r=>focusFilter==='all'||stateOf(r)===focusFilter);
     const card=r=>{{
       const f=r?.fixture||{{}},[clock,date]=dt(f.kickoff),state=stateOf(r);
-      const label=state==='forecast'?'Pronóstico deportivo':state==='partial'?'Análisis parcial':'Por analizar';
-      const reason=state==='forecast'?'Proyección previa registrada':state==='partial'?'Datos parciales; falta análisis completo':focusMissing(r);
+      const sa=r?.sport_analysis||{{}},op=r?.opportunity||{{}},queue=r?.screen_queue||{{}};
+      const label=state==='forecast'?'Pronóstico deportivo':state==='partial'?'Análisis deportivo':'Por analizar';
+      const reason=[sa.explanation||focusMissing(r),valueLabels[op.status]||'Mercado no evaluado',
+        queue.attempt_count!==null&&queue.attempt_count!==undefined?'Intentos: '+queue.attempt_count:null].filter(Boolean).join(' · ');
       return '<a class="focus-fixture" href="'+esc(matchPath(f.fixture_id||''))+'" data-focus-fixture="'+esc(f.fixture_id||'')+'">'+
         '<div><strong>'+esc(f.home_team||'Local')+' vs '+esc(f.away_team||'Visitante')+'</strong>'+
         '<span>'+esc(f.league||f.country||'Competición')+' · '+esc(date)+' · '+esc(clock)+'</span>'+
