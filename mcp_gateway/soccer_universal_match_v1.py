@@ -31,8 +31,13 @@ def sport_from_registry(row: dict[str, Any]) -> dict[str, Any]:
     """Produce a safe, explanatory sport status for EVERY registry fixture."""
     coverage = obj(row.get("coverage"))
     screening = obj(row.get("screening"))
+    screen_queue = obj(row.get("screen_queue"))
     inventory = obj(coverage.get("evidence_inventory"))
-    raw = screening.get("raw_projection_recorded") is True or (
+    queue_modeled = (
+        screen_queue.get("status") == "MODELED_LIMITED"
+        and positive_int(screen_queue.get("attempt_count")) > 0
+    )
+    raw = queue_modeled or screening.get("raw_projection_recorded") is True or (
         coverage.get("raw_sport_projection_present") is True
     )
     features = positive_int(inventory.get("feature_snapshots"))
@@ -50,6 +55,12 @@ def sport_from_registry(row: dict[str, Any]) -> dict[str, Any]:
     elif sport or lineup or availability:
         status = "SPORT_EVIDENCE_ONLY"
         reason = "Hay datos deportivos, pero no un modelo RAW completo."
+    elif screen_queue.get("status") == "DATA_INSUFFICIENT" and positive_int(screen_queue.get("attempt_count")) > 0:
+        status = "DATA_INSUFFICIENT"
+        reason = "Se ejecutó el screening deportivo, pero no alcanzó para una proyección."
+    elif screen_queue.get("status") == "RETRY_REQUIRED":
+        status = "DATA_INSUFFICIENT"
+        reason = "Screening pendiente de reintento; datos aún no verificados."
     elif positive_int(coverage.get("market_evidence_count")):
         status = "DATA_INSUFFICIENT"
         reason = "Hay precios, pero faltan fundamentos deportivos verificables."
@@ -67,6 +78,8 @@ def sport_from_registry(row: dict[str, Any]) -> dict[str, Any]:
         "verified_feature_snapshot_count": features,
         "sport_evidence_count": sport,
         "model_run_count": models,
+        "screen_queue_status": screen_queue.get("status") or "NOT_VERIFIED",
+        "screen_attempt_count": screen_queue.get("attempt_count"),
         "missing_evidence_codes": missing,
         "tracks": {
             "SIDE": "RAW_RECORDED" if raw else "NOT_VERIFIED",
@@ -74,7 +87,7 @@ def sport_from_registry(row: dict[str, Any]) -> dict[str, Any]:
             "CORNERS": "NOT_VERIFIED",
         },
         "probabilities": None,  # public slate carries no unlicensed source estimates
-        "source": "POSTGRES_PERSISTED_FIXTURE_EVIDENCE",
+        "source": "POSTGRES_PERSISTED_FIXTURE_EVIDENCE_AND_SCREEN_QUEUE",
         "projection_validated_oos": False,
         "source_redisplay_rights_verified": False,
         "analyst_review_allowed": True,
