@@ -1,0 +1,44 @@
+name: Soccer Universal Intelligence — Disposable PostgreSQL E2E
+on:
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - 'mcp_gateway/schema.sql'
+      - 'mcp_gateway/soccer_sport_queue_v1.py'
+      - 'mcp_gateway/persistence.py'
+      - 'tests/test_soccer_sport_queue_postgres_e2e.py'
+      - '.github/workflows/soccer-universal-intelligence-pg-e2e.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-queue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      pg:
+        image: postgres:16
+        env:
+          POSTGRES_DB: universal_ci_disposable
+          POSTGRES_USER: universal_ci
+          POSTGRES_PASSWORD: ci_only_not_production
+        ports:
+          - '5432:5432'
+        options: >-
+          --health-cmd "pg_isready -U universal_ci -d universal_ci_disposable"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      SOCCER_UNIVERSAL_TEST_POSTGRES_URL: postgresql://universal_ci:ci_only_not_production@127.0.0.1:5432/universal_ci_disposable
+      DATABASE_SSLMODE: disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install gateway and pytest
+        run: python -m pip install -r mcp_gateway/requirements.txt pytest
+      - name: Real queue SQL and anti-promotion
+        run: python -m pytest -v -s tests/test_soccer_sport_queue_postgres_e2e.py
