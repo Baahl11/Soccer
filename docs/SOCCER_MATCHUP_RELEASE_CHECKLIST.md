@@ -27,7 +27,8 @@
 - [ ] 1H/2H: FE11 ya es visible como histórico. No reutilizar el modelo condicionado al marcador del descanso como proyección previa al kickoff; falta confirmar proyecciones prepartido guardadas por periodo.
 - [x] Amarillas FT: mostrar tasa total prepartido guardada separada de rojas/puntos (#200, Render 43483955893).
 - [ ] Verificar una ficha OWNER con la tasa de amarillas guardada. Líneas, tarjetas por equipo y rojas se aceptan por separado solo con salidas verificadas.
-- [ ] Props: verificar fixture, player_id, XI/minutos y procedencia prepartido; conectar tiros/SOT primero, luego demás familias cuando tengan evidencia. No reactivar backfills bloqueados por memoria sin prueba de capacidad.
+- [x] Tiros y tiros a puerta: integrar la lectura de salidas guardadas por jugador y línea, con fixture, XI/minutos y procedencia prepartido (#201, 10 comprobaciones).
+- [ ] Confirmar despliegue de #201 y una ficha OWNER real con props guardadas; conectar las demás familias solo cuando tengan evidencia. No reactivar backfills bloqueados por memoria sin prueba de capacidad.
 - [ ] Para cada familia mostrar por separado evidencia, RAW, OOS y precio; distinguir NO VERIFICADO, muestra insuficiente, aplazado y diferido por cuota. Mantener muestra, fuente y hora al lado del dato.
 
 ## 4. Continuidad y aceptación
