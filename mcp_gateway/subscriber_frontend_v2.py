@@ -1781,6 +1781,25 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         ['Muestra del modelo','Liga: '+(cards.sample?.prior_league_n??'N/D')+
           ' · Árbitro: '+(cards.sample?.referee_prior_n??'N/D')]])+
       '<p class="intel-footnote">No incluye rojas ni puntos de tarjetas. No es una probabilidad por línea.</p></div>':'';
+    const props=packet?.private_pregame_shot_props;
+    const propRows=props?.status==='VERIFIED_SPORTING_INPUTS_RESEARCH_ONLY'&&
+      props?.source==='POSTGRES_REFRESH_EVENTS_PLAYER_SHOTS_SOT'&&props?.bet_eligible===false&&
+      String(props?.fixture_id)===String(fixture?.fixture_id)&&Array.isArray(props?.rows)&&Date.now()<kickoff?
+      props.rows.slice(0,48).filter(x=>{{
+        const stamp=Date.parse(x?.pregame_snapshot_at_utc||'');
+        return x?.classification==='RESEARCH_ONLY'&&x?.bet_eligible===false&&x?.oos_validation_complete===false&&
+          ['SHOTS','SOT'].includes(x?.family)&&String(x?.fixture_id)===String(fixture?.fixture_id)&&
+          Date.parse(x?.kickoff_utc||'')===kickoff&&stamp<kickoff&&stamp<=Date.now()&&Array.isArray(x?.lines);
+      }}):[];
+    const propDetail=propRows.length?'<div class="intel-card"><h3>Tiros y tiros a puerta · proyecciones guardadas</h3>'+
+      '<p class="intel-footnote">Investigación prepartido · PostgreSQL · sin certificación OOS, precio ejecutable ni BET.</p>'+
+      propRows.map(x=>'<details><summary>'+esc(x.player||('Jugador '+x.player_id))+' · '+
+        (x.family==='SHOTS'?'Tiros':'Tiros a puerta')+'</summary><p class="intel-footnote">'+
+        esc(x.model_family)+' · '+esc(x.pregame_snapshot_at_utc)+' · n='+esc(x.historical_played_matches)+
+        ' partidos · '+esc(x.historical_observed_minutes)+' min observados · '+esc(x.expected_minutes)+' min proyectados</p>'+
+        intelKV(x.lines.slice(0,6).filter(y=>[0.5,1.5,2.5,3.5,4.5,5.5].includes(y?.line)&&
+          probability(y?.p_over_raw)&&probability(y?.p_under_raw)).map(y=>
+            [String(y.line),'Más: '+pct(y.p_over_raw)+' · Menos: '+pct(y.p_under_raw)]))+'</details>').join('')+'</div>':'';
     const rows=[
       ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
       ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
@@ -1796,13 +1815,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ['Hándicap y Bet Builder',sameHistory?'Consultar muestra del patrón abajo · sin modelo conjunto':unavailable],
       ['Tarjetas y disciplina',cardsValid?'Tasa de amarillas FT guardada · ver abajo':observations('CARDS')],
       ['Jugadores · contexto y disponibilidad',observations('PLAYERS')],
-      ['Props · tiros, SOT, goles, asistencias, tarjetas y atajadas',unavailable],
+      ['Props · tiros y tiros a puerta',propRows.length?propRows.length+' proyecciones guardadas · ver abajo':unavailable],
+      ['Props · goles, asistencias, tarjetas y atajadas',unavailable],
     ];
     return '<section class="intel-section" data-detail-section="matchup-research">'+
       '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
       '<p class="intel-footnote">Investigación privada. Un histórico no es RAW; RAW no equivale a calibración OOS. '+
       'Esta vista no certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
-      intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+details+
+      intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+propDetail+details+
       fe11MultimarketSection(sameHistory?research:{{reason:research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'?
         'IDENTIDAD_O_TIEMPO_NO_VERIFICADO':research?.reason||research?.status}},fixture)+'</section>';
   }}
