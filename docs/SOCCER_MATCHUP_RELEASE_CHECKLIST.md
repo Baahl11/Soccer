@@ -11,10 +11,12 @@
 - [ ] Comprobar Render: commit esperado, HTML del expediente y acceso sin autorización rechazado. Registrar ejecución y SHA. El HTML no es prueba de sesión autenticada.
 
 ## 2. Prueba real PostgreSQL → match API → navegador
-- [ ] Elegir el último lote FE11 con tres perfiles aún vigentes (NS, kickoff futuro, captura dentro de la vigencia). Registrar IDs del artefacto, instante de prueba y ACK. Si el lote venció, usar el siguiente; no re-fechar.
-- [ ] Con sesión OWNER/admin autorizada, abrir cada ficha y comprobar coincidencia de fixture, local, visitante, kickoff, fuente y n. Evidencia requerida: 3 exportados → 3 registrados → 3 leídos → 3 visibles, o motivo individual verificable. No almacenar tokens, cookies ni HTML privado en logs públicos.
+- [x] Lote FE11 del 13 de noviembre de 2026 (Actions 43470612105): tres perfiles exportados y tres inserciones confirmadas. Captura común `2026-11-13T17:14:03.578710+00:00`.
+- [x] Cerrar la prueba de visualización OWNER del lote: 3 exportados → 3 insertados → 3 leídos y visibles en su ficha. Las capturas coinciden en equipos, fuente temporal y muestras; no muestran el kickoff ni la URL, identificados con el artefacto y las rutas indicadas para la prueba. No se archivaron capturas privadas ni credenciales.
   - [x] `1647362` Argentina–Uruguay: captura OWNER confirma el perfil FE11, con los mismos equipos y timestamp `2026-11-13T17:14:03.578710+00:00` del artefacto del scanner 43470612105. Muestras por localía n=3 por lado, etiquetadas MUESTRA BAJA. Solo histórico; no RAW ni OOS.
-  - [ ] `1640518` Colombia–Chile y `1647364` Perú–Bolivia: exportación/ACK confirmados en el mismo lote; visualización OWNER no verificada. Usar perfiles vigentes si estos caducan.
+  - [x] `1640518` Colombia–Chile: perfil FE11 visible, mismo timestamp, n=3 local y n=4 visitante.
+  - [x] `1647364` Perú–Bolivia: perfil FE11 visible, mismo timestamp, n=0 local (sin dato) y n=1 visitante (los 0.00 goles observados no equivalen a un campo ausente).
+  - [ ] Aclarar el contador «0 familias con datos»: solo cuenta los campos prepartido de la sección de observaciones persistidas, no los perfiles FE11 que aparecen aparte.
 - [ ] Verificar un partido con RAW PostgreSQL y otro sin RAW. Probar enlace directo o recarga sin depender del listado del día. Confirmar que un usuario no OWNER no recibe los campos privados añadidos. Una prueba con datos de ejemplo no cierra este paso.
 
 ## 3. Completar las familias en esa misma ficha, sin recolectores paralelos
