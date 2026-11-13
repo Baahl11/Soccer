@@ -194,3 +194,58 @@ def store_frozen(payload: Any) -> dict[str, Any]:
         "production_promotion_allowed": False,
         "bet_eligible": False,
     }
+
+
+def read_for_owner_match(fixture: dict[str, Any]) -> dict[str, Any] | None:
+    """Only invoked after OWNER/admin entitlement. No schema writes or provider calls."""
+    fid, home, away, league = (fixture.get(k) for k in
+                             ("fixture_id", "home_team_id", "away_team_id", "league_id"))
+    start = _time(fixture.get("kickoff"))
+    if not all(_positive_int(x) for x in (fid, home, away, league)) or not start:
+        return None
+    if not persistence.persistence_configured():
+        return None
+    with persistence._connect() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute("SET TRANSACTION READ ONLY")
+                cur.execute("SET LOCAL statement_timeout = '2000ms'")
+                cur.execute("""
+                    SELECT raw_projection, payload_sha256, source_generated_at
+                    FROM soccer_isolated_sport_frozen_research_v1
+                    WHERE fixture_id = %s AND home_team_id = %s AND away_team_id = %s
+                      AND kickoff = %s AND source_generated_at <= now()
+                      AND classification = 'RESEARCH_ONLY' AND bet_eligible = FALSE
+                      AND production_promotion_allowed = FALSE
+                    ORDER BY source_generated_at ASC LIMIT 1
+                """, (fid, home, away, start))
+                stored = cur.fetchone()
+    if not stored:
+        return None
+    row, digest, stamp = stored
+    try:
+        verified = validated_row(row)
+    except (ValueError, TypeError, OverflowError):
+        return None
+    if (verified["payload_sha256"] != digest or verified["source_generated_at"] != stamp
+            or verified["fixture_id"] != fid or verified["home_team_id"] != home
+            or verified["away_team_id"] != away or verified["kickoff"] != start
+            or row["fixture"]["league_id"] != league or stamp > datetime.now(timezone.utc)):
+        return None
+    season = row["fixture"].get("season")
+    if season is not None and fixture.get("season") is not None and season != fixture["season"]:
+        return None
+    raw = row["raw_sport_projection"]
+    rates = {k: raw[k] for k in ("raw_home_goal_rate", "raw_away_goal_rate")
+             if type(raw.get(k)) in (int, float) and 0.15 <= raw[k] <= 4.5}
+    sample = raw.get("sample")
+    sample = sample.get("minimum_split_sample") if isinstance(sample, dict) else None
+    return {
+        "fixture_id": fid, "kickoff_utc": start.isoformat(), "captured_at_utc": stamp.isoformat(),
+        "source": SOURCE, "storage": "POSTGRES_ISOLATED_SPORT_FROZEN_RESEARCH",
+        "model_version": MODEL, "model_git_sha": verified["model_git_sha"],
+        "min_split_sample": sample if type(sample) is int and sample > 0 else None,
+        "raw_probabilities": {k: raw[k] for k in PROBABILITIES},
+        "raw_goal_rates": rates, "market_queried": False, "bet_eligible": False,
+        "commercial_display_allowed": False, "oos_validated": False,
+    }

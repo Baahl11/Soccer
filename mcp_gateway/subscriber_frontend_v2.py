@@ -1729,11 +1729,18 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         count+' campos prepartido guardados · ver fuentes abajo · sin RAW verificado aquí':
         'Sin evidencia prepartido verificada en este panel · sin RAW';
     }};
+    const rates=packet?.private_frozen_sport_projection?.raw_goal_rates;
+    const ratesValid=raw===packet?.private_frozen_sport_projection?.raw_probabilities&&
+      [rates?.raw_home_goal_rate,rates?.raw_away_goal_rate].every(x=>
+        typeof x==='number'&&Number.isFinite(x)&&x>=0.15&&x<=4.5);
     const rows=[
       ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
       ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
       ['BTTS · ambos anotan',saved('raw_btts_yes_prob')],
-      ['Goles por equipo · DNB · doble oportunidad',unavailable],
+      ['Goles por equipo',ratesValid?'Tasas RAW guardadas (λ, no xG) · local '+
+        rates.raw_home_goal_rate.toFixed(2)+' · visita '+rates.raw_away_goal_rate.toFixed(2)+
+        ' · sin proyección verificada por línea':unavailable],
+      ['DNB · doble oportunidad',unavailable],
       ['Primer tiempo · goles',sample('first_half_goals_total')],
       ['Segundo tiempo · goles',sample('second_half_goals_total')],
       ['Córners totales',sample('total_corners_ft')],
@@ -1768,8 +1775,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     // Owners may inspect an independently validated frozen pre-kickoff
     // research preview that was already delivered by the owner-only slate API.
     // Never reinterpret it as a canonical BET, current price or OOS model.
+    const matchFrozen=d?.private_frozen_sport_projection;
     const ownerP0=(ACCESS?.owner===true||ACCESS?.admin===true)?
-      p0Entries().find(x=>String(x.fixture_id)===String(f.fixture_id)&&
+      [matchFrozen,...p0Entries()].find(x=>x&&String(x.fixture_id)===String(f.fixture_id)&&
         x.market_queried===false&&x.bet_eligible===false&&
         x.commercial_display_allowed===false&&
         Number.isFinite(Date.parse(f.kickoff||''))&&
@@ -1793,6 +1801,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ' · Ambos anotan: '+pct(ownerRaw.raw_btts_yes_prob)+'</div>'+
       '<p class="owner-frozen-source">Capturado: '+esc(prettyStamp(ownerP0.captured_at_utc))+
       ' · Modelo: '+esc(ownerP0.model_version||'NOT VERIFIED')+
+      (ownerP0.storage==='POSTGRES_ISOLATED_SPORT_FROZEN_RESEARCH'?' · Fuente: PostgreSQL, proyección original':'')+
       ' · Muestra mínima: '+esc(ownerP0.min_split_sample??'NOT VERIFIED')+
       ' · Precio de mercado: NO CONSULTADO · Validación OOS: PENDIENTE</p></section>':'';
     const summary='<div class="intel-summary"><div class="intel-metrics"><div class="intel-metric '+(ctx.outcome_probabilities||ownerP0Valid?'good':'warn')+'"><span>Pronóstico 1X2</span><b>'+esc(ctx.outcome_probabilities?'Modelo guardado':ownerP0Valid?'RAW PRELIMINAR':'NO VERIFICADO')+'</b></div><div class="intel-metric"><span>Alineaciones</span><b>'+esc(featureValue(features,'availability.both_xi_confirmed')===true?'XI confirmados':'Sin confirmar')+'</b></div><div class="intel-metric"><span>Datos actualizados</span><b>'+esc(fresh)+'</b></div></div></div>';
