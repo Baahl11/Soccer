@@ -845,3 +845,26 @@ def test_universal_sport_status_exists_for_every_registry_fixture_even_when_pass
     assert result["sport_coverage_queue"]["total_eligible_fixtures"]==2
     assert result["sport_coverage_queue"]["all_fixtures_accounted_for"] is True
     assert result["sport_intelligence_policy"]["market_not_evaluated_distinct_from_pass"] is True
+
+
+def test_owner_pregame_filter_precedes_latest_per_key_join():
+    def snapshot(stamp, value, source="TEAM_HISTORY", observation=None):
+        row = {"value": value, "source": source, "sample_n": 5}
+        if observation is not None:
+            row["captured_at"] = observation
+        return {"captured_at": stamp, "payload": {"features": {"cards.home_yellow": row}}}
+    evidence = {"feature_snapshots": [
+        snapshot("2026-10-07T18:30:00Z", 9),
+        snapshot("2026-10-07T17:45:00Z", 7, ""),
+        snapshot("2026-10-07T17:40:00Z", 6, "API_FOOTBALL_FIXTURE_STATS"),
+        snapshot("2026-10-07T17:30:00Z", 8, observation="2026-10-07T18:00:00Z"),
+        snapshot("2026-10-07T11:00:00-06:00", 0),
+        snapshot("2026-10-07T16:00:00Z", 3),
+    ]}
+    sections = subscriber_contract_v2._match_evidence_sections
+    assert sections(evidence)[0]["items"][0]["value"] == 9
+    verified = sections(evidence, pregame_only=True, kickoff="2026-10-07T18:00:00Z")
+    assert verified[0]["category"] == "CARDS"
+    assert verified[0]["items"][0]["value"] == 0
+    assert verified[0]["items"][0]["sample_n"] == 5
+    assert not sections(evidence, pregame_only=True, kickoff="2026-10-07T18:00:00")

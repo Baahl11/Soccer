@@ -454,7 +454,7 @@ def test_owner_existing_sport_evidence_joins_by_fixture_without_new_collection()
     html = subscriber_frontend_v2.render()
     assert "function ownerPersistedSportEvidence(packet,fixture)" in html
     assert "ownerPersistedSportEvidence(d,f)" in html
-    assert "packet?.evidence_sections" in html
+    assert "packet?.private_pregame_evidence_sections" in html
     assert "Investigación deportiva ya guardada por partido" in html
     assert "Solo OWNER" in html
     assert "No son predicciones RAW, OOS ni recomendaciones. NO BET." in html
@@ -505,7 +505,8 @@ const fe11 = {fixture_id:42,kickoff:fixture.kickoff,source_generated_at_utc:'202
   observations_not_forecasts:true,bet_eligible:false,
   home:{splits:{home:{features:{total_corners_ft:{n:8}}}}}};
 const render = (research,projection=raw,blocked=false) =>
-  ownerMatchupResearch({multi_market_research:research},fixture,projection,'SPORT_EVIDENCE',blocked);
+  ownerMatchupResearch({multi_market_research:research,
+    private_pregame_evidence_sections:[{category:'CARDS',items:[{}]}]},fixture,projection,'SPORT_EVIDENCE',blocked);
 const good=render(fe11);
 assert.match(good,/50.0% \/ 30.0% \/ 20.0%/);
 assert.match(good,/RAW preliminar: 42.0%/);
@@ -513,6 +514,8 @@ assert.match(good,/RAW preliminar: 0.0%/);
 assert.match(good,/n local 8 · n visita N\/D/);
 assert.match(good,/FE11_DETAIL/);
 assert.match(good,/SPORT_EVIDENCE/);
+assert.match(good,/1 campos prepartido guardados/);
+assert.match(good,/Props .*Sin proyección específica verificada/);
 assert.match(good,/Sin muestra FE11 por localía/);
 for (const wrong of [
     {...fe11,fixture_id:99},{...fe11,kickoff:'2026-11-14T12:30:00Z'},
