@@ -13,6 +13,8 @@
 ## 2. Prueba real PostgreSQL → match API → navegador
 - [ ] Elegir el último lote FE11 con tres perfiles aún vigentes (NS, kickoff futuro, captura dentro de la vigencia). Registrar IDs del artefacto, instante de prueba y ACK. Si el lote venció, usar el siguiente; no re-fechar.
 - [ ] Con sesión OWNER/admin autorizada, abrir cada ficha y comprobar coincidencia de fixture, local, visitante, kickoff, fuente y n. Evidencia requerida: 3 exportados → 3 registrados → 3 leídos → 3 visibles, o motivo individual verificable. No almacenar tokens, cookies ni HTML privado en logs públicos.
+  - [x] `1647362` Argentina–Uruguay: captura OWNER confirma el perfil FE11, con los mismos equipos y timestamp `2026-11-13T17:14:03.578710+00:00` del artefacto del scanner 43470612105. Muestras por localía n=3 por lado, etiquetadas MUESTRA BAJA. Solo histórico; no RAW ni OOS.
+  - [ ] `1640518` Colombia–Chile y `1647364` Perú–Bolivia: exportación/ACK confirmados en el mismo lote; visualización OWNER no verificada. Usar perfiles vigentes si estos caducan.
 - [ ] Verificar un partido con RAW PostgreSQL y otro sin RAW. Probar enlace directo o recarga sin depender del listado del día. Confirmar que un usuario no OWNER no recibe los campos privados añadidos. Una prueba con datos de ejemplo no cierra este paso.
 
 ## 3. Completar las familias en esa misma ficha, sin recolectores paralelos
