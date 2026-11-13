@@ -2862,6 +2862,9 @@ async def match_detail(request: Request) -> JSONResponse:
         result["private_red_card_projection"] = red_cards_intelligence.saved_match_probability(
             relational_evidence.get("refresh_events"), fixture,
         )
+        result["private_team_yellow_card_rates"] = cards_intelligence_live.saved_match_rates(
+            relational_evidence.get("refresh_events"), fixture, by_team=True,
+        )
         result["private_ft_yellow_card_rate"] = cards_intelligence_live.saved_match_rates(
             relational_evidence.get("refresh_events"), fixture,
         )

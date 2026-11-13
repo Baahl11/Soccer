@@ -995,3 +995,29 @@ def test_owner_red_card_projection_only_reuses_exact_pregame_yes_no():
     grid["p_no_red"] = .86
     grid["model_inputs"]["scope"] = "BOOKING_POINTS"
     assert read([saved], fx)["status"] == "NOT_VERIFIED"
+
+
+def test_owner_team_yellows_keep_sidecar_scope_and_exact_fixture():
+    from mcp_gateway import cards_intelligence_live as cards
+
+    fx = {"fixture_id": 42, "home_team_id": 10, "away_team_id": 20,
+          "league_id": 55, "season": 2026, "status": "NS",
+          "kickoff": "2026-10-07T18:00:00Z"}
+    model = "TEAM_YELLOW_CARD_POISSON_FROM_DISCIPLINE_LAMBDAS_v0.1"
+    grid = {"fixture_id": 42, "stage": "T-60", "model": model,
+            "status": "LIVE_RESEARCH_MODELED", "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE",
+            "actionable": False, "decision_weight": 0, "home_yellow_lambda": 1.8,
+            "away_yellow_lambda": 2.3, "observed_market_rows": [{"decimal_price": 1.8}]}
+    event = {"event_type": "SOCCER_REFRESH", "stage": "T-60", "fixture": fx,
+             "team_cards_intelligence": grid}
+    saved = {"event_type": "SOCCER_REFRESH", "stage": "T-60", "payload": event,
+             "generated_at": "2026-10-07T17:00:00Z"}
+    view = cards.saved_match_rates([saved], fx, by_team=True)
+    assert view["home_yellow_lambda"] == 1.8 and view["away_yellow_lambda"] == 2.3
+    assert view["sample"] == {} and not view["bet_eligible"]
+    assert "observed_market_rows" not in view and "total_yellow_lambda" not in view
+    assert cards.saved_match_rates([saved], fx)["status"] == "NOT_VERIFIED"
+    assert cards.saved_match_rates([saved], {**fx, "home_team_id": 99}, by_team=True)["status"] == "NOT_VERIFIED"
+    assert cards.saved_match_rates([{**saved, "generated_at": fx["kickoff"]}], fx, by_team=True)["status"] == "NOT_VERIFIED"
+    grid["away_yellow_lambda"] = True
+    assert cards.saved_match_rates([saved], fx, by_team=True)["status"] == "NOT_VERIFIED"

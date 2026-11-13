@@ -526,17 +526,27 @@ const props={status:'VERIFIED_SPORTING_INPUTS_RESEARCH_ONLY',fixture_id:42,
 const red={status:'PERSISTED_RESEARCH_PROJECTION',fixture_id:42,kickoff_utc:fixture.kickoff,
   captured_at_utc:'2026-11-14T10:00:00Z',source:'POSTGRES_REFRESH_EVENTS_ANY_RED_CARD',
   bet_eligible:false,oos_certified_by_this_view:false,p_any_red:.14,p_no_red:.86};
-const render = (research,projection=raw,blocked=false,totals=null,corner=null,yellow=null,playerProps=null,redCard=null) =>
+const render = (research,projection=raw,blocked=false,totals=null,corner=null,yellow=null,playerProps=null,redCard=null,teamYellow=null) =>
   ownerMatchupResearch({multi_market_research:research,
     private_team_total_projection:totals,
     private_ft_corners_rates:corner,
     private_ft_yellow_card_rate:yellow,
     private_pregame_shot_props:playerProps,
     private_red_card_projection:redCard,
+    private_team_yellow_card_rates:teamYellow,
     private_frozen_sport_projection:{raw_probabilities:raw,
       raw_goal_rates:{raw_home_goal_rate:1.52,raw_away_goal_rate:0.81}},
     private_pregame_evidence_sections:[{category:'CARDS',items:[{}]}]},fixture,projection,'SPORT_EVIDENCE',blocked);
 const good=render(fe11);
+const teamYellow={status:'PERSISTED_RESEARCH_RATES',fixture_id:42,kickoff_utc:fixture.kickoff,
+  captured_at_utc:'2026-11-14T10:00:00Z',source:'POSTGRES_REFRESH_EVENTS_TEAM_YELLOW_CARDS',
+  bet_eligible:false,oos_certified_by_this_view:false,home_yellow_lambda:1.8,away_yellow_lambda:2.3};
+const teamCard=(x)=>render(fe11,raw,false,null,null,null,null,null,x);
+assert.match(teamCard(teamYellow),/Amarillas por equipo · tasas guardadas/);
+assert.match(teamCard(teamYellow),/1.80/);
+assert.match(teamCard(teamYellow),/2.30/);
+assert.doesNotMatch(teamCard({...teamYellow,fixture_id:43}),/Amarillas por equipo · tasas guardadas/);
+assert.doesNotMatch(teamCard({...teamYellow,captured_at_utc:fixture.kickoff}),/Amarillas por equipo · tasas guardadas/);
 assert.match(render(fe11,raw,false,null,null,null,null,red),/Al menos una roja · proyección guardada/);
 assert.doesNotMatch(render(fe11,raw,false,null,null,null,null,{...red,fixture_id:43}),/Al menos una roja · proyección guardada/);
 assert.doesNotMatch(render(fe11,raw,false,null,null,null,null,{...red,p_no_red:.8}),/Al menos una roja · proyección guardada/);
