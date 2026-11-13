@@ -1749,6 +1749,23 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ' · No certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
       intelKV(ttRows.map(x=>[(x.team_role==='HOME'?fixture.home_team||'Local':fixture.away_team||'Visitante')+
         ' · '+x.line+' goles','Más: '+pct(x.p_over)+' · Menos: '+pct(x.p_under)]))+'</div>':'';
+    const corners=packet?.private_ft_corners_rates;
+    const cornerStamp=Date.parse(corners?.captured_at_utc||'');
+    const cornerRates=[corners?.home_lambda,corners?.away_lambda,corners?.total_lambda];
+    const cornersValid=corners?.status==='PERSISTED_RESEARCH_RATES'&&
+      corners?.source==='POSTGRES_REFRESH_EVENTS_FT_CORNERS'&&
+      corners?.bet_eligible===false&&corners?.oos_certified_by_this_view===false&&
+      String(corners?.fixture_id)===String(fixture?.fixture_id)&&
+      Date.parse(corners?.kickoff_utc||'')===kickoff&&cornerStamp<kickoff&&cornerStamp<=Date.now()&&
+      cornerRates.every(x=>typeof x==='number'&&Number.isFinite(x)&&x>=1&&x<=20);
+    const cornerDetail=cornersValid?'<div class="intel-card"><h3>Córners FT · tasas del modelo guardado</h3>'+
+      '<p class="intel-footnote">Investigación prepartido · PostgreSQL · '+esc(corners.model||'NOT VERIFIED')+
+      ' · '+esc(corners.captured_at_utc)+' · Tasas λ, no medias FE11 ni probabilidades por línea.</p>'+
+      intelKV([
+        [fixture.home_team||'Local',cornerRates[0].toFixed(2)+' · n localía '+(corners.sample?.prior_home_home_matches??'N/D')],
+        [fixture.away_team||'Visitante',cornerRates[1].toFixed(2)+' · n localía '+(corners.sample?.prior_away_away_matches??'N/D')],
+        ['Total FT',cornerRates[2].toFixed(2)+' · n del grupo base '+(corners.sample?.prior_pool_n??'N/D')],
+      ])+'</div>':'';
     const rows=[
       ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
       ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
@@ -1759,8 +1776,8 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ['DNB · doble oportunidad',unavailable],
       ['Primer tiempo · goles',sample('first_half_goals_total')],
       ['Segundo tiempo · goles',sample('second_half_goals_total')],
-      ['Córners totales',sample('total_corners_ft')],
-      ['Córners por equipo',sample('team_corners_ft')],
+      ['Córners totales',cornersValid?'Tasa prepartido guardada · ver abajo':sample('total_corners_ft')],
+      ['Córners por equipo',cornersValid?'Tasas prepartido guardadas · ver abajo':sample('team_corners_ft')],
       ['Hándicap y Bet Builder',sameHistory?'Consultar muestra del patrón abajo · sin modelo conjunto':unavailable],
       ['Tarjetas y disciplina',observations('CARDS')],
       ['Jugadores · contexto y disponibilidad',observations('PLAYERS')],
@@ -1770,7 +1787,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
       '<p class="intel-footnote">Investigación privada. Un histórico no es RAW; RAW no equivale a calibración OOS. '+
       'Esta vista no certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
-      intelKV(rows)+'</div>'+ttDetail+details+
+      intelKV(rows)+'</div>'+ttDetail+cornerDetail+details+
       fe11MultimarketSection(sameHistory?research:{{reason:research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'?
         'IDENTIDAD_O_TIEMPO_NO_VERIFICADO':research?.reason||research?.status}},fixture)+'</section>';
   }}
