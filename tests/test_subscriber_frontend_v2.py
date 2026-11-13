@@ -505,12 +505,20 @@ const fe11 = {fixture_id:42,kickoff:fixture.kickoff,source_generated_at_utc:'202
   status:'HISTORICAL_DESCRIPTIVE_ONLY',history_fresh:true,
   observations_not_forecasts:true,bet_eligible:false,
   home:{splits:{home:{features:{total_corners_ft:{n:8}}}}}};
-const render = (research,projection=raw,blocked=false) =>
+const teamTotals={status:'PERSISTED_RESEARCH_PROJECTION',fixture_id:42,
+  kickoff_utc:fixture.kickoff,captured_at_utc:'2026-11-14T10:00:00Z',
+  source:'POSTGRES_REFRESH_EVENTS_TEAM_TOTALS',bet_eligible:false,oos_certified_by_this_view:false,
+  rows:[{team_role:'HOME',line:1.5,p_over:.4,p_under:.6}]};
+const render = (research,projection=raw,blocked=false,totals=null) =>
   ownerMatchupResearch({multi_market_research:research,
+    private_team_total_projection:totals,
     private_frozen_sport_projection:{raw_probabilities:raw,
       raw_goal_rates:{raw_home_goal_rate:1.52,raw_away_goal_rate:0.81}},
     private_pregame_evidence_sections:[{category:'CARDS',items:[{}]}]},fixture,projection,'SPORT_EVIDENCE',blocked);
 const good=render(fe11);
+assert.match(render(fe11,raw,false,teamTotals),/Más: 40.0% · Menos: 60.0%/);
+assert.doesNotMatch(render(fe11,raw,false,{...teamTotals,fixture_id:43}),/Más: 40.0%/);
+assert.doesNotMatch(render(fe11,raw,false,{...teamTotals,captured_at_utc:fixture.kickoff}),/Más: 40.0%/);
 assert.match(good,/50.0% \/ 30.0% \/ 20.0%/);
 assert.match(good,/RAW preliminar: 42.0%/);
 assert.match(good,/RAW preliminar: 0.0%/);
