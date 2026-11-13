@@ -23,6 +23,7 @@ from mcp_gateway import public_performance_v4
 from mcp_gateway import subscriber_app_v4
 from mcp_gateway import subscriber_billing_v2
 from mcp_gateway import subscriber_preview_data_v231
+from mcp_gateway import isolated_sport_frozen_pg_v1
 from mcp_gateway import multimarket_history_bridge_v1
 from mcp_gateway import subscriber_saved_items_v4
 from mcp_gateway import subscriber_match_notes_v1
@@ -2843,6 +2844,13 @@ async def match_detail(request: Request) -> JSONResponse:
                 "status": "NOT_VERIFIED", "provider_requests_added": 0,
                 "commercial_display_allowed": False,
             }
+        try:
+            result["private_frozen_sport_projection"] = await asyncio.wait_for(
+                asyncio.to_thread(isolated_sport_frozen_pg_v1.read_for_owner_match, fixture),
+                timeout=3.0,
+            )
+        except Exception:
+            result["private_frozen_sport_projection"] = None
         result["private_pregame_evidence_sections"] = _match_evidence_sections(
             relational_evidence, pregame_only=True, kickoff=fixture.get("kickoff"),
         )
