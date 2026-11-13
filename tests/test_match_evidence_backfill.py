@@ -232,9 +232,10 @@ def test_registry_final_display_keeps_score_separate(monkeypatch):
         def fetchone(self):
             return (
                 1612077, datetime(2026, 10, 8, 22, tzinfo=timezone.utc),
-                "FT", "Reserve League", "Argentina", 18681, "Boca Juniors Res.",
-                18683, "Colón Res.", 1, 0,
+                "FT", "Reserve League", "Argentina", 955, 2026,
+                18681, "Boca Juniors Res.", 18683, "Colón Res.", 1, 0,
                 datetime(2026, 10, 9, 4, 30, tzinfo=timezone.utc),
+                datetime(2026, 10, 9, 4, 35, tzinfo=timezone.utc),
             )
         def __enter__(self):
             return self
@@ -255,6 +256,8 @@ def test_registry_final_display_keeps_score_separate(monkeypatch):
     monkeypatch.setattr(subscriber_contract_v2.persistence_base, "_connect", lambda: conn)
     result = subscriber_contract_v2._load_registry_fixture(1612077)
     assert result["status"] == "FT"
+    assert result["league_id"] == 955 and result["season"] == 2026
+    assert result["status_observed_at"] != result["final_observed_at"]
     assert result["final_home_goals"] == 1
     assert result["final_away_goals"] == 0
     assert conn.cursor_instance.params == (1612077,)
