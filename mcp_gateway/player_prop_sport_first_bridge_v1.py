@@ -457,3 +457,51 @@ def build_live_research(offers: list[dict[str, Any]]) -> dict[str, Any]:
         "bet_eligible":False,
         "provider_requests_added":0,
     }
+
+
+def saved_match_profiles(events: Any, fixture: dict[str, Any], *, now_utc: datetime) -> dict[str, Any]:
+    """Use the same verified sport-first gate on the match's existing refresh rows."""
+    keys = ("fixture_id", "home_team_id", "away_team_id", "league_id", "season")
+    kickoff = _dt(fixture.get("kickoff"))
+    now = _dt(now_utc)
+    records = []
+    if (isinstance(events, list) and kickoff and now and now < kickoff
+            and all(type(fixture.get(k)) is int and _id(fixture[k]) is not None for k in keys)
+            and fixture["home_team_id"] != fixture["away_team_id"]):
+        for entry in events[:12]:
+            if not isinstance(entry, dict) or entry.get("event_type") != "SOCCER_REFRESH":
+                continue
+            e = entry.get("payload")
+            if not isinstance(e, dict) or e.get("stage") != entry.get("stage") or e.get("event_type") != "SOCCER_REFRESH":
+                continue
+            fx = e.get("fixture")
+            if (not isinstance(fx, dict) or fx.get("status") != "NS"
+                    or any(fx.get(k) != fixture[k] for k in keys) or _dt(fx.get("kickoff")) != kickoff):
+                continue
+            captured = _dt(entry.get("generated_at"))
+            if captured is None or captured > now or captured >= kickoff:
+                continue
+            records.append({**{k: fixture[k] for k in keys},
+                "home_team": fixture.get("home_team"), "away_team": fixture.get("away_team"),
+                "kickoff": kickoff, "generated_at": captured, "stage": entry.get("stage"),
+                "shots": e.get("player_shots_intelligence"),
+                "sot": e.get("player_sot_intelligence")})
+    output, seen, reasons = [], set(), {}
+    for record in sorted(records, key=lambda row: row["generated_at"], reverse=True):
+        result = sport_profiles([record], now_utc=now_utc)
+        for reason, count in result["unverified_input_reasons"].items():
+            reasons[reason] = reasons.get(reason, 0) + count
+        for row in result["rows"]:
+            key = (row["player_id"], row["family"])
+            if key not in seen and len(output) < MAX_RESEARCH_PROFILES:
+                output.append(row)
+                seen.add(key)
+    return {
+        "status": "VERIFIED_SPORTING_INPUTS_RESEARCH_ONLY" if output else "NOT_VERIFIED",
+        "source": "POSTGRES_REFRESH_EVENTS_PLAYER_SHOTS_SOT",
+        "fixture_id": fixture.get("fixture_id"),
+        "rows": sorted(output, key=lambda row: (row["team_id"], row["player_id"], row["family"])),
+        "unverified_input_reasons": reasons,
+        "reason": None if output else ("NO_PLAYER_PROFILE_PASSED_PROVENANCE" if records else "NO_MATCHED_PREGAME_PLAYER_SNAPSHOT"),
+        "bet_eligible": False,
+    }
