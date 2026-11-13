@@ -210,3 +210,32 @@ def test_owner_preview_bridge_reads_only_matching_fixtures_with_no_provider_call
 
     no_slates = preview.read_previews([], now=now)
     assert no_slates["status"] == "NO_SLATE_FIXTURES"
+
+
+def test_match_reads_original_projection_with_exact_identity_and_no_writes(monkeypatch):
+    row = snapshot()
+    row["raw_sport_projection"].update({
+        "raw_home_goal_rate": 1.5, "raw_away_goal_rate": 0.8,
+        "sample": {"minimum_split_sample": 7},
+    })
+    verified = v.validated_row(row)
+    conn = FakeConnection()
+    monkeypatch.setattr(v.persistence, "persistence_configured", lambda: True)
+    monkeypatch.setattr(v.persistence, "_connect", lambda: conn)
+    stored = [row, verified["payload_sha256"], verified["source_generated_at"]]
+    monkeypatch.setattr(conn.cur, "fetchone", lambda: tuple(stored))
+    fixture = row["fixture"]
+    view = v.read_for_owner_match(fixture)
+    assert view["raw_probabilities"]["raw_btts_yes_prob"] == .49
+    assert view["raw_goal_rates"] == {"raw_home_goal_rate": 1.5, "raw_away_goal_rate": .8}
+    assert view["min_split_sample"] == 7
+    assert view["bet_eligible"] is view["oos_validated"] is view["commercial_display_allowed"] is False
+    assert conn.cur.queries[0][0] == "SET TRANSACTION READ ONLY"
+    assert conn.cur.queries[-1][1] == (42, 11, 12, verified["kickoff"])
+    assert v.read_for_owner_match({**fixture, "fixture_id": 43}) is None
+    assert v.read_for_owner_match({**fixture, "away_team_id": 13}) is None
+    assert v.read_for_owner_match({**fixture, "league_id": 56}) is None
+    assert v.read_for_owner_match({**fixture, "season": 2027}) is None
+    assert v.read_for_owner_match({**fixture, "kickoff": "2026-11-12T21:00:00Z"}) is None
+    stored[1] = "wrong digest"
+    assert v.read_for_owner_match(fixture) is None
