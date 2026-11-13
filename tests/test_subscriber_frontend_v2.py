@@ -456,7 +456,8 @@ def test_owner_existing_sport_evidence_joins_by_fixture_without_new_collection()
     assert "function ownerPersistedSportEvidence(packet,fixture)" in html
     assert "ownerPersistedSportEvidence(d,f)" in html
     assert "packet?.private_pregame_evidence_sections" in html
-    assert "Investigación deportiva ya guardada por partido" in html
+    assert "Observaciones prepartido guardadas" in html
+    assert "FE11 se muestra aparte" in html
     assert "Solo OWNER" in html
     assert "No son predicciones RAW, OOS ni recomendaciones. NO BET." in html
     assert "Sin observaciones prepartido adicionales verificadas en PostgreSQL" in html
