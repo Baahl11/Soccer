@@ -937,3 +937,31 @@ def test_owner_corners_display_reads_saved_model_only():
     malformed = deepcopy(record)
     malformed["payload"]["corners_intelligence"]["model_inputs"]["total_lambda"] = 12
     assert c.saved_match_rates([malformed], fixture)["status"] == "NOT_VERIFIED"
+
+
+def test_owner_yellow_cards_reads_only_saved_pregame_yellow_rate():
+    from mcp_gateway import cards_intelligence_live as cards
+
+    fx = {"fixture_id": 42, "home_team_id": 10, "away_team_id": 20,
+          "league_id": 55, "season": 2026, "status": "NS",
+          "kickoff": "2026-10-07T18:00:00Z"}
+    model = "TEAM_DISCIPLINE_PLUS_OPTIONAL_REFEREE_YELLOW_CARDS_LIVE_v0.1"
+    grid = {"fixture_id": 42, "stage": "T-60", "model": model,
+            "status": "LIVE_RESEARCH_MODELED", "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE",
+            "actionable": False, "decision_weight": 0,
+            "model_inputs": {"model": model, "total_yellow_lambda": 4.2, "referee_prior_n": 0},
+            "observed_explicit_yellow_market_rows": [{"decimal_price": 1.8}]}
+    event = {"event_type": "SOCCER_REFRESH", "stage": "T-60", "fixture": fx,
+             "cards_intelligence_live": grid}
+    saved = {"event_type": "SOCCER_REFRESH", "stage": "T-60", "payload": event,
+             "generated_at": "2026-10-07T17:00:00Z"}
+    read = cards.saved_match_rates
+    view = read([saved], fx)
+    assert view["total_yellow_lambda"] == 4.2 and view["sample"]["referee_prior_n"] == 0
+    assert not view["bet_eligible"] and not view["oos_certified_by_this_view"]
+    assert "observed_explicit_yellow_market_rows" not in view
+    assert read([saved], {**fx, "season": 2025})["status"] == "NOT_VERIFIED"
+    assert read([{**saved, "generated_at": fx["kickoff"]}], fx)["status"] == "NOT_VERIFIED"
+    grid["model_inputs"].pop("total_yellow_lambda")
+    grid["model_inputs"]["booking_points"] = 42
+    assert read([saved], fx)["status"] == "NOT_VERIFIED"

@@ -1766,6 +1766,21 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         [fixture.away_team||'Visitante',cornerRates[1].toFixed(2)+' · n localía '+(corners.sample?.prior_away_away_matches??'N/D')],
         ['Total FT',cornerRates[2].toFixed(2)+' · n del grupo base '+(corners.sample?.prior_pool_n??'N/D')],
       ])+'</div>':'';
+    const cards=packet?.private_ft_yellow_card_rate;
+    const cardsStamp=Date.parse(cards?.captured_at_utc||'');
+    const cardsValid=cards?.status==='PERSISTED_RESEARCH_RATES'&&
+      cards?.source==='POSTGRES_REFRESH_EVENTS_FT_YELLOW_CARDS'&&
+      cards?.bet_eligible===false&&cards?.oos_certified_by_this_view===false&&
+      String(cards?.fixture_id)===String(fixture?.fixture_id)&&
+      Date.parse(cards?.kickoff_utc||'')===kickoff&&cardsStamp<kickoff&&cardsStamp<=Date.now()&&
+      typeof cards?.total_yellow_lambda==='number'&&Number.isFinite(cards.total_yellow_lambda)&&cards.total_yellow_lambda>0;
+    const cardsDetail=cardsValid?'<div class="intel-card"><h3>Amarillas FT · tasa del modelo guardado</h3>'+
+      '<p class="intel-footnote">Investigación prepartido · PostgreSQL · '+esc(cards.model||'NOT VERIFIED')+
+      ' · '+esc(cards.captured_at_utc)+' · Sin certificación OOS ni precio ejecutable.</p>'+
+      intelKV([['Total de amarillas FT (λ)',cards.total_yellow_lambda.toFixed(2)],
+        ['Muestra del modelo','Liga: '+(cards.sample?.prior_league_n??'N/D')+
+          ' · Árbitro: '+(cards.sample?.referee_prior_n??'N/D')]])+
+      '<p class="intel-footnote">No incluye rojas ni puntos de tarjetas. No es una probabilidad por línea.</p></div>':'';
     const rows=[
       ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
       ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
@@ -1779,7 +1794,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ['Córners totales',cornersValid?'Tasa prepartido guardada · ver abajo':sample('total_corners_ft')],
       ['Córners por equipo',cornersValid?'Tasas prepartido guardadas · ver abajo':sample('team_corners_ft')],
       ['Hándicap y Bet Builder',sameHistory?'Consultar muestra del patrón abajo · sin modelo conjunto':unavailable],
-      ['Tarjetas y disciplina',observations('CARDS')],
+      ['Tarjetas y disciplina',cardsValid?'Tasa de amarillas FT guardada · ver abajo':observations('CARDS')],
       ['Jugadores · contexto y disponibilidad',observations('PLAYERS')],
       ['Props · tiros, SOT, goles, asistencias, tarjetas y atajadas',unavailable],
     ];
@@ -1787,7 +1802,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
       '<p class="intel-footnote">Investigación privada. Un histórico no es RAW; RAW no equivale a calibración OOS. '+
       'Esta vista no certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
-      intelKV(rows)+'</div>'+ttDetail+cornerDetail+details+
+      intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+details+
       fe11MultimarketSection(sameHistory?research:{{reason:research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'?
         'IDENTIDAD_O_TIEMPO_NO_VERIFICADO':research?.reason||research?.status}},fixture)+'</section>';
   }}
