@@ -1800,6 +1800,21 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         intelKV(x.lines.slice(0,6).filter(y=>[0.5,1.5,2.5,3.5,4.5,5.5].includes(y?.line)&&
           probability(y?.p_over_raw)&&probability(y?.p_under_raw)).map(y=>
             [String(y.line),'Más: '+pct(y.p_over_raw)+' · Menos: '+pct(y.p_under_raw)]))+'</details>').join('')+'</div>':'';
+    const teamYellow=packet?.private_team_yellow_card_rates;
+    const teamYellowStamp=Date.parse(teamYellow?.captured_at_utc||'');
+    const teamYellowRates=[teamYellow?.home_yellow_lambda,teamYellow?.away_yellow_lambda];
+    const teamYellowValid=teamYellow?.status==='PERSISTED_RESEARCH_RATES'&&
+      teamYellow?.source==='POSTGRES_REFRESH_EVENTS_TEAM_YELLOW_CARDS'&&
+      teamYellow?.bet_eligible===false&&teamYellow?.oos_certified_by_this_view===false&&
+      String(teamYellow?.fixture_id)===String(fixture?.fixture_id)&&
+      Date.parse(teamYellow?.kickoff_utc||'')===kickoff&&teamYellowStamp<kickoff&&teamYellowStamp<=Date.now()&&
+      teamYellowRates.every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0);
+    const teamYellowDetail=teamYellowValid?'<div class="intel-card"><h3>Amarillas por equipo · tasas guardadas</h3>'+
+      '<p class="intel-footnote">Investigación prepartido · PostgreSQL · '+esc(teamYellow.model||'NOT VERIFIED')+
+      ' · '+esc(teamYellow.captured_at_utc)+' · Muestra del registro: no disponible. '+
+      'Tasas λ, no probabilidades por línea. No incluye rojas ni puntos de tarjetas.</p>'+
+      intelKV([[fixture.home_team||'Local',teamYellowRates[0].toFixed(2)],
+        [fixture.away_team||'Visitante',teamYellowRates[1].toFixed(2)]])+'</div>':'';
     const red=packet?.private_red_card_projection, redStamp=Date.parse(red?.captured_at_utc||'');
     const redValid=red?.status==='PERSISTED_RESEARCH_PROJECTION'&&
       red?.source==='POSTGRES_REFRESH_EVENTS_ANY_RED_CARD'&&red?.bet_eligible===false&&
@@ -1826,6 +1841,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ['Córners por equipo',cornersValid?'Tasas prepartido guardadas · ver abajo':sample('team_corners_ft')],
       ['Hándicap y Bet Builder',sameHistory?'Consultar muestra del patrón abajo · sin modelo conjunto':unavailable],
       ['Tarjetas y disciplina',cardsValid?'Tasa de amarillas FT guardada · ver abajo':observations('CARDS')],
+      ['Amarillas por equipo',teamYellowValid?'Tasas prepartido guardadas · ver abajo':unavailable],
       ['Rojas · al menos una en el partido',redValid?'Proyección prepartido guardada · ver abajo':unavailable],
       ['Jugadores · contexto y disponibilidad',observations('PLAYERS')],
       ['Props · tiros y tiros a puerta',propRows.length?propRows.length+' proyecciones guardadas · ver abajo':unavailable],
@@ -1835,7 +1851,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
       '<p class="intel-footnote">Investigación privada. Un histórico no es RAW; RAW no equivale a calibración OOS. '+
       'Esta vista no certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
-      intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+redDetail+propDetail+details+
+      intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+teamYellowDetail+redDetail+propDetail+details+
       fe11MultimarketSection(sameHistory?research:{{reason:research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'?
         'IDENTIDAD_O_TIEMPO_NO_VERIFICADO':research?.reason||research?.status}},fixture)+'</section>';
   }}
