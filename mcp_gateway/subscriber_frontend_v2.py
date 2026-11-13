@@ -1682,14 +1682,14 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<p>Competición y fuerza de los rivales no ajustadas. Sin xG, once confirmado ni calidad del oponente verificable. Muestra exclusivamente histórica; no produce un pick ni una recomendación.</p></div>'+
       '<div class="verified-sport-source">Fuente: '+esc(r.source||'NOT VERIFIED')+
       ' · Captura: '+esc(prettyStamp(r.captured_at_utc))+
-      ' · Acceso: investigación privada · Proyección 1X2: no calculada</div></section>';
+      ' · Acceso: investigación privada · Esta sección no calcula 1X2</div></section>';
   }}
   function verifiedSportAssessment(packet){{
     const read=packet?.private_verified_sport_read||{{}};
     if(!['VERIFIED_SEASON_CONTEXT','PARTIAL_SEASON_CONTEXT'].includes(read.status))return '';
     const facts=Array.isArray(read.facts)?read.facts.filter(v=>typeof v==='string'):[];
     const warnings=Array.isArray(read.warnings)?read.warnings.filter(v=>typeof v==='string'):[];
-    const headline=read.headline||'Contexto deportivo observado';
+    const headline='Contexto histórico de temporada · no es una proyección';
     return '<section class="verified-sport-read" aria-label="Lectura deportiva histórica">'+
       '<div class="verified-sport-heading"><span>LECTURA DEPORTIVA · INVESTIGACIÓN PRIVADA</span>'+
       '<h2>'+esc(headline)+'</h2>'+
@@ -1699,7 +1699,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       warnings.map(v=>'<p>'+esc(v)+'</p>').join('')+'</div>'+
       '<div class="verified-sport-source">Fuente: '+esc(read.source||'NOT VERIFIED')+
       ' · Consulta: '+esc(prettyStamp(read.observed_at_utc))+
-      ' · Proyección 1X2: no calculada · Uso comercial: no autorizado</div></section>';
+      ' · Esta sección no calcula 1X2 · Uso comercial: no autorizado</div></section>';
   }}
   function ownerMatchupResearch(packet,fixture,raw,details,blocked){{
     if(blocked||(ACCESS?.owner!==true&&ACCESS?.admin!==true))return '';
@@ -1826,6 +1826,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ownerResearchCard+ownerRecent+ownerSportRead+ownerSeasonResearch+
       ownerPersistedSportEvidence(d,f)+
       (hasSportProb?'<div class="visual-card primary-forecast"><h3>Victoria · Empate · Derrota</h3>'+
+        '<p class="intel-footnote">Proyección del contexto deportivo registrado. No sustituye la captura RAW original de PostgreSQL.</p>'+
         probabilityVisual(probs,f)+'</div>':'')+
       (sportN>0?'<div class="visual-card primary-takeaways"><h3>Datos deportivos que sí tenemos</h3>'+
         keyTakeaways(features,a,f)+'</div>'+
@@ -1841,7 +1842,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const marketsSection='<section class="intel-section" data-detail-section="markets"><div class="intel-card"><div class="intel-section-title"><h3>Market layer</h3><span>secondary · after sport</span></div>'+infoPills(markets,'market')+'</div><div class="intel-card" style="margin-top:10px"><div class="intel-section-title"><h3>Latest market activity</h3><span>context only · not an edge by itself</span></div>'+snapshotCards(rel.market_snapshots||[],'market')+'</div></section>';
 
     const sportSection='<section class="intel-section" data-detail-section="sport">'+
-      '<div class="visual-card sport-top-card"><div class="visual-card-head"><h3>Match result probability</h3><span>verified model only</span></div>'+probabilityVisual(probs,f)+'</div>'+
+      '<div class="visual-card sport-top-card"><div class="visual-card-head"><h3>Match result probability</h3><span>Contexto deportivo registrado · separado del RAW original</span></div>'+probabilityVisual(probs,f)+'</div>'+
       '<div class="visual-card sport-top-card"><div class="visual-card-head"><h3>Goles modelados (λ)</h3><span>'+esc(goalRateLabel)+' · Expected goals (xG) NOT VERIFIED sin fuente independiente</span></div>'+xgVisual(xg,f)+'</div>'+
       '<div class="sport-two-up"><div class="visual-card"><div class="visual-card-head"><h3>Score matrix</h3><span>FT probability</span></div>'+scoreMatrix(scoreRows)+'</div>'+
       '<div class="visual-card"><div class="visual-card-head"><h3>Goal distribution</h3><span>from score matrix</span></div>'+goalDistribution(scoreRows,f)+'</div></div>'+
