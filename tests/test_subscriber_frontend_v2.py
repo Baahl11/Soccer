@@ -523,16 +523,23 @@ const shot={fixture_id:42,kickoff_utc:fixture.kickoff,pregame_snapshot_at_utc:'2
   player:'Jugador de prueba',lines:[{line:1.5,p_over_raw:.25,p_under_raw:.75}]};
 const props={status:'VERIFIED_SPORTING_INPUTS_RESEARCH_ONLY',fixture_id:42,
   source:'POSTGRES_REFRESH_EVENTS_PLAYER_SHOTS_SOT',bet_eligible:false,rows:[shot]};
-const render = (research,projection=raw,blocked=false,totals=null,corner=null,yellow=null,playerProps=null) =>
+const red={status:'PERSISTED_RESEARCH_PROJECTION',fixture_id:42,kickoff_utc:fixture.kickoff,
+  captured_at_utc:'2026-11-14T10:00:00Z',source:'POSTGRES_REFRESH_EVENTS_ANY_RED_CARD',
+  bet_eligible:false,oos_certified_by_this_view:false,p_any_red:.14,p_no_red:.86};
+const render = (research,projection=raw,blocked=false,totals=null,corner=null,yellow=null,playerProps=null,redCard=null) =>
   ownerMatchupResearch({multi_market_research:research,
     private_team_total_projection:totals,
     private_ft_corners_rates:corner,
     private_ft_yellow_card_rate:yellow,
     private_pregame_shot_props:playerProps,
+    private_red_card_projection:redCard,
     private_frozen_sport_projection:{raw_probabilities:raw,
       raw_goal_rates:{raw_home_goal_rate:1.52,raw_away_goal_rate:0.81}},
     private_pregame_evidence_sections:[{category:'CARDS',items:[{}]}]},fixture,projection,'SPORT_EVIDENCE',blocked);
 const good=render(fe11);
+assert.match(render(fe11,raw,false,null,null,null,null,red),/Al menos una roja · proyección guardada/);
+assert.doesNotMatch(render(fe11,raw,false,null,null,null,null,{...red,fixture_id:43}),/Al menos una roja · proyección guardada/);
+assert.doesNotMatch(render(fe11,raw,false,null,null,null,null,{...red,p_no_red:.8}),/Al menos una roja · proyección guardada/);
 assert.match(render(fe11,raw,false,null,null,null,props),/Más: 25.0% · Menos: 75.0%/);
 assert.doesNotMatch(render(fe11,raw,false,null,null,null,{...props,rows:[{...shot,fixture_id:43}]}),/Más: 25.0%/);
 assert.doesNotMatch(render(fe11,raw,false,null,null,null,{...props,rows:[{...shot,pregame_snapshot_at_utc:fixture.kickoff}]}),/Más: 25.0%/);
