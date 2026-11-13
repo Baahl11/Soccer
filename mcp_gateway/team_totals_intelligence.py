@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import re
+from datetime import datetime, timezone
 from typing import Any
 
 SCHEMA_VERSION = "1.0.0"
@@ -343,3 +344,79 @@ def attach(payload: dict[str, Any]) -> dict[str, int]:
         "observed_exact_market_rows": observed_rows,
         "unsupported_observed_rows": unsupported_rows,
     }
+
+
+def saved_match_projection(events: Any, fixture: dict[str, Any]) -> dict[str, Any]:
+    """Read only the original saved research grid, never recompute or return prices."""
+    missing = {"status": "NOT_VERIFIED", "reason": "NO_MATCHED_PREGAME_TEAM_TOTAL_GRID",
+               "rows": [], "bet_eligible": False}
+
+    def as_utc(value: Any) -> datetime | None:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return parsed.astimezone(timezone.utc) if parsed.tzinfo is not None else None
+        except (ValueError, OverflowError):
+            return None
+
+    def numeric(x: Any, low: float, high: float) -> bool:
+        return type(x) in (int, float) and low <= x <= high
+
+    keys = ("fixture_id", "home_team_id", "away_team_id", "league_id", "season")
+    start = as_utc(fixture.get("kickoff"))
+    if (start is None or not isinstance(events, list)
+            or not all(type(fixture.get(k)) is int and fixture[k] > 0 for k in keys)
+            or fixture["home_team_id"] == fixture["away_team_id"]):
+        return missing
+    model = "CANONICAL_TEAM_LAMBDA_POISSON_DERIVATION_v0.1"
+    now = datetime.now(timezone.utc)
+    matches = []
+    for saved in events[:12]:
+        if not isinstance(saved, dict):
+            continue
+        observed = as_utc(saved.get("generated_at"))
+        if observed is None or observed >= start or observed > now or saved.get("stage") == "POSTGAME":
+            continue
+        event = saved.get("payload")
+        if (not isinstance(event, dict)
+                or event.get("event_type") not in {"SOCCER_REFRESH", "TEAM_TOTALS_RESEARCH_SPILLOVER"}
+                or event.get("event_type") != saved.get("event_type")
+                or event.get("stage") != saved.get("stage") or event.get("stage") == "POSTGAME"):
+            continue
+        fx, grid = event.get("fixture"), event.get("team_totals_intelligence")
+        if (not isinstance(fx, dict) or any(fx.get(k) != fixture[k] for k in keys)
+                or as_utc(fx.get("kickoff")) != start or not isinstance(grid, dict)
+                or grid.get("fixture_id") != fixture["fixture_id"]
+                or grid.get("stage") != saved.get("stage")
+                or grid.get("status") != "LIVE_RESEARCH_MODELED"
+                or grid.get("model") != model
+                or grid.get("model_source") != "EXISTING_CANONICAL_RAW_HOME_AWAY_GOAL_RATES"
+                or grid.get("actionable") is not False or grid.get("decision_weight") != 0
+                or grid.get("production_status") != "RESEARCH_ONLY_NOT_ACTIONABLE"):
+            continue
+        entries = grid.get("probability_grid")
+        if not isinstance(entries, list) or not 1 <= len(entries) <= 6:
+            continue
+        rows, seen = [], set()
+        for row in entries:
+            if not isinstance(row, dict):
+                break
+            role, line = row.get("team_role"), row.get("line")
+            over, under, rate = row.get("p_over"), row.get("p_under"), row.get("lambda")
+            if (role not in ("HOME", "AWAY") or type(line) not in (int, float)
+                    or line not in SUPPORTED_LINES or (role, line) in seen
+                    or not numeric(over, 0, 1) or not numeric(under, 0, 1)
+                    or abs(over + under - 1) > 0.000002
+                    or not numeric(rate, 0.0001, 20)
+                    or rate != grid.get("home_lambda" if role == "HOME" else "away_lambda")):
+                break
+            seen.add((role, line))
+            rows.append({"team_role": role, "line": line, "p_over": over, "p_under": under})
+        if len(rows) == len(entries):
+            matches.append((observed, rows))
+    if not matches:
+        return missing
+    observed, rows = max(matches, key=lambda x: x[0])
+    return {"status": "PERSISTED_RESEARCH_PROJECTION", "fixture_id": fixture["fixture_id"],
+            "source": "POSTGRES_REFRESH_EVENTS_TEAM_TOTALS", "captured_at_utc": observed.isoformat(),
+            "kickoff_utc": start.isoformat(), "model": model, "rows": rows,
+            "oos_certified_by_this_view": False, "bet_eligible": False}
