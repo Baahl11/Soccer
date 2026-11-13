@@ -28,6 +28,7 @@ from mcp_gateway import multimarket_history_bridge_v1
 from mcp_gateway import team_totals_intelligence
 from mcp_gateway import corners_intelligence
 from mcp_gateway import cards_intelligence_live
+from mcp_gateway import player_prop_sport_first_bridge_v1
 from mcp_gateway import subscriber_saved_items_v4
 from mcp_gateway import subscriber_match_notes_v1
 from mcp_gateway import subscriber_ui_contract_v231
@@ -2854,6 +2855,9 @@ async def match_detail(request: Request) -> JSONResponse:
             )
         except Exception:
             result["private_frozen_sport_projection"] = None
+        result["private_pregame_shot_props"] = player_prop_sport_first_bridge_v1.saved_match_profiles(
+            relational_evidence.get("refresh_events"), fixture, now_utc=datetime.now(timezone.utc),
+        )
         result["private_ft_yellow_card_rate"] = cards_intelligence_live.saved_match_rates(
             relational_evidence.get("refresh_events"), fixture,
         )
