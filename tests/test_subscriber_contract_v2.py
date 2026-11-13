@@ -965,3 +965,33 @@ def test_owner_yellow_cards_reads_only_saved_pregame_yellow_rate():
     grid["model_inputs"].pop("total_yellow_lambda")
     grid["model_inputs"]["booking_points"] = 42
     assert read([saved], fx)["status"] == "NOT_VERIFIED"
+
+
+def test_owner_red_card_projection_only_reuses_exact_pregame_yes_no():
+    from mcp_gateway import red_cards_intelligence as reds
+    fx = {"fixture_id": 42, "home_team_id": 10, "away_team_id": 20,
+          "league_id": 55, "season": 2026, "status": "NS",
+          "kickoff": "2026-10-07T18:00:00Z"}
+    model = "EMPIRICAL_BAYES_ANY_RED_CARD_MATCH_v0.1"
+    grid = {"fixture_id": 42, "stage": "T-60", "model": model,
+            "status": "LIVE_RESEARCH_MODELED", "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE",
+            "actionable": False, "decision_weight": 0,
+            "model_inputs": {"model": model, "scope": "ANY_RED_CARD_IN_MATCH_YES_NO_ONLY",
+                             "prior_league_n": 55, "referee_prior_n": 0},
+            "p_any_red": .14, "p_no_red": .86, "fair_yes_decimal": 7.14}
+    event = {"event_type": "SOCCER_REFRESH", "stage": "T-60", "fixture": fx,
+             "red_cards_intelligence": grid}
+    saved = {"event_type": "SOCCER_REFRESH", "stage": "T-60", "payload": event,
+             "generated_at": "2026-10-07T17:00:00Z"}
+    read = reds.saved_match_probability
+    view = read([saved], fx)
+    assert view["p_any_red"] == .14 and view["p_no_red"] == .86
+    assert view["sample"]["referee_prior_n"] == 0 and not view["bet_eligible"]
+    assert "fair_yes_decimal" not in view and not view["oos_certified_by_this_view"]
+    assert read([saved], {**fx, "away_team_id": 21})["status"] == "NOT_VERIFIED"
+    assert read([{**saved, "generated_at": fx["kickoff"]}], fx)["status"] == "NOT_VERIFIED"
+    grid["p_no_red"] = .80
+    assert read([saved], fx)["status"] == "NOT_VERIFIED"
+    grid["p_no_red"] = .86
+    grid["model_inputs"]["scope"] = "BOOKING_POINTS"
+    assert read([saved], fx)["status"] == "NOT_VERIFIED"
