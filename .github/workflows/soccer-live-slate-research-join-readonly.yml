@@ -137,6 +137,10 @@ jobs:
           assert health.get('status') == 'ok'
           assert today.get('status') == 'SUBSCRIBER_CONTRACT_V2_READY'
           assert 'soccer-edge-v2-app' in html
+          assert 'Expediente deportivo del matchup' in html
+          assert 'function ownerMatchupResearch(' in html
+          assert 'const matchFrozen=d?.private_frozen_sport_projection' in html
+          print('DEPLOYED_MATCHUP_FRONTEND_PRESENT; AUTHENTICATED_FIXTURE_RENDER_NOT_TESTED')
           if __import__('os').environ.get('GITHUB_EVENT_NAME') == 'push':
               assert screening.get('scope') == 'LAST_PIPELINE_TICK_ONLY'
               assert "const screen=DATA?.sport_screening||{};" in html

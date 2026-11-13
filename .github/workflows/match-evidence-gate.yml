@@ -17,6 +17,14 @@ on:
       - "mcp_gateway/persistence.py"
       - "mcp_gateway/persistence_v2.py"
       - ".github/workflows/match-evidence-gate.yml"
+  pull_request:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - "mcp_gateway/subscriber_contract_v2.py"
+      - "mcp_gateway/isolated_sport_frozen_pg_v1.py"
+      - "tests/test_subscriber_contract_v2.py"
+      - "tests/test_match_evidence_backfill.py"
+      - ".github/workflows/match-evidence-gate.yml"
   workflow_dispatch:
 
 permissions:
