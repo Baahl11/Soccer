@@ -439,7 +439,8 @@ def test_today_has_plain_language_expandable_league_coverage():
 def test_owner_match_uses_only_exact_asof_private_frozen_model_no_public_promotion():
     html=subscriber_frontend_v2.render()
     assert "const ownerP0=(ACCESS?.owner===true||ACCESS?.admin===true)?" in html
-    assert "p0Entries().find(x=>String(x.fixture_id)===String(f.fixture_id)" in html
+    assert "[matchFrozen,...p0Entries()].find(x=>x&&String(x.fixture_id)===String(f.fixture_id)" in html
+    assert "const matchFrozen=d?.private_frozen_sport_projection" in html
     assert "x.market_queried===false&&x.bet_eligible===false" in html
     assert "x.commercial_display_allowed===false" in html
     assert "Math.abs(Date.parse(x.kickoff_utc)-Date.parse(f.kickoff))<60*1000" in html
@@ -506,6 +507,8 @@ const fe11 = {fixture_id:42,kickoff:fixture.kickoff,source_generated_at_utc:'202
   home:{splits:{home:{features:{total_corners_ft:{n:8}}}}}};
 const render = (research,projection=raw,blocked=false) =>
   ownerMatchupResearch({multi_market_research:research,
+    private_frozen_sport_projection:{raw_probabilities:raw,
+      raw_goal_rates:{raw_home_goal_rate:1.52,raw_away_goal_rate:0.81}},
     private_pregame_evidence_sections:[{category:'CARDS',items:[{}]}]},fixture,projection,'SPORT_EVIDENCE',blocked);
 const good=render(fe11);
 assert.match(good,/50.0% \/ 30.0% \/ 20.0%/);
@@ -514,6 +517,8 @@ assert.match(good,/RAW preliminar: 0.0%/);
 assert.match(good,/n local 8 · n visita N\/D/);
 assert.match(good,/FE11_DETAIL/);
 assert.match(good,/SPORT_EVIDENCE/);
+assert.match(good,/local 1.52 · visita 0.81 · sin proyección verificada por línea/);
+assert.doesNotMatch(render(fe11, {...raw}),/Tasas RAW guardadas/);
 assert.match(good,/1 campos prepartido guardados/);
 assert.match(good,/Props .*Sin proyección específica verificada/);
 assert.match(good,/Sin muestra FE11 por localía/);
