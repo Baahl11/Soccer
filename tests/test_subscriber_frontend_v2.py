@@ -474,3 +474,60 @@ def test_owner_existing_sport_evidence_joins_by_fixture_without_new_collection()
     assert "fetch(" not in function
     assert "api(" not in function
     assert "bet_eligible=true" not in function
+
+
+def test_owner_matchup_dossier_executes_with_raw_fe11_and_independent_blockers():
+    import subprocess
+    from shutil import which
+    import pytest
+
+    if not which("node"):
+        pytest.skip("Node is required to execute the matchup renderer")
+    html = subscriber_frontend_v2.render()
+    marker = "  function ownerMatchupResearch("
+    source = marker + html.split(marker, 1)[1].split("  function renderMatch(", 1)[0]
+    assert "['matchup-research','Expediente deportivo']" in html
+    assert "(privateMatchup?matchupResearch:multiMarket)" in html
+    script = r"""
+const assert = require('node:assert/strict');
+let ACCESS = {owner:true};
+const pct = p => (100*p).toFixed(1)+'%';
+const intelKV = rows => JSON.stringify(rows);
+const esc = x => String(x);
+const fe11MultimarketSection = x => x.history_fresh ? 'FE11_DETAIL' : 'FE11_MISSING';
+""" + source + r"""
+const fixture = {fixture_id:42,kickoff:'2026-11-14T12:00:00Z'};
+Date.now = () => Date.parse('2026-11-14T11:00:00Z');
+const raw = {raw_home_win_prob:.5,raw_draw_prob:.3,raw_away_win_prob:.2,
+             raw_over_2_5_prob:.42,raw_btts_yes_prob:0};
+const fe11 = {fixture_id:42,kickoff:fixture.kickoff,source_generated_at_utc:'2026-11-14T10:00:00Z',
+  status:'HISTORICAL_DESCRIPTIVE_ONLY',history_fresh:true,
+  observations_not_forecasts:true,bet_eligible:false,
+  home:{splits:{home:{features:{total_corners_ft:{n:8}}}}}};
+const render = (research,projection=raw,blocked=false) =>
+  ownerMatchupResearch({multi_market_research:research},fixture,projection,'SPORT_EVIDENCE',blocked);
+const good=render(fe11);
+assert.match(good,/50.0% \/ 30.0% \/ 20.0%/);
+assert.match(good,/RAW preliminar: 42.0%/);
+assert.match(good,/RAW preliminar: 0.0%/);
+assert.match(good,/n local 8 · n visita N\/D/);
+assert.match(good,/FE11_DETAIL/);
+assert.match(good,/SPORT_EVIDENCE/);
+assert.match(good,/Sin muestra FE11 por localía/);
+for (const wrong of [
+    {...fe11,fixture_id:99},{...fe11,kickoff:'2026-11-14T12:30:00Z'},
+    {...fe11,history_fresh:false},{...fe11,source_generated_at_utc:fixture.kickoff},
+    {...fe11,source_generated_at_utc:'2026-11-14T11:30:00Z'}
+]) {
+    assert.match(render(wrong),/FE11_MISSING/);
+    assert.doesNotMatch(render(wrong),/n local 8/);
+}
+assert.doesNotMatch(render(fe11,null),/RAW preliminar:/);
+assert.equal(render(fe11,raw,true),'');
+ACCESS = {owner:false,admin:false};
+assert.equal(render(fe11),'');
+ACCESS = {admin:true};
+assert.match(render(fe11),/FE11_DETAIL/);
+"""
+    result = subprocess.run(["node", "-"], input=script, text=True, capture_output=True, check=False)
+    assert result.returncode == 0, result.stderr

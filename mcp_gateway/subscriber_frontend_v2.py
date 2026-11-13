@@ -1701,6 +1701,48 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ' · Consulta: '+esc(prettyStamp(read.observed_at_utc))+
       ' · Proyección 1X2: no calculada · Uso comercial: no autorizado</div></section>';
   }}
+  function ownerMatchupResearch(packet,fixture,raw,details,blocked){{
+    if(blocked||(ACCESS?.owner!==true&&ACCESS?.admin!==true))return '';
+    const research=packet?.multi_market_research, kickoff=Date.parse(fixture?.kickoff||''),
+      captured=Date.parse(research?.source_generated_at_utc||'');
+    const sameHistory=Number.isFinite(kickoff)&&Number.isFinite(captured)&&
+      captured<kickoff&&captured<=Date.now()&&!!fixture?.fixture_id&&
+      String(research?.fixture_id)===String(fixture.fixture_id)&&Date.parse(research?.kickoff||'')===kickoff&&
+      research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'&&research?.history_fresh===true&&
+      research?.observations_not_forecasts===true&&research?.bet_eligible===false;
+    const probability=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=1;
+    const resultKeys=['raw_home_win_prob','raw_draw_prob','raw_away_win_prob'];
+    const score=resultKeys.every(k=>probability(raw?.[k]))?
+      resultKeys.map(k=>pct(raw[k])).join(' / '):null;
+    const sample=(metric)=>{{
+      if(!sameHistory)return 'Sin perfil FE11 vigente verificado';
+      const n=['home','away'].map(side=>research[side]?.splits?.[side]?.features?.[metric]?.n);
+      if(!n.some(x=>Number.isInteger(x)&&x>0))return 'Sin muestra FE11 por localía';
+      return 'Histórico FE11 · n local '+(n[0]>0?n[0]:'N/D')+' · n visita '+(n[1]>0?n[1]:'N/D');
+    }};
+    const saved=(key)=>probability(raw?.[key])?'RAW preliminar: '+pct(raw[key]):'Sin RAW verificado en este panel';
+    const unavailable='Sin proyección específica verificada en este panel';
+    const rows=[
+      ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
+      ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
+      ['BTTS · ambos anotan',saved('raw_btts_yes_prob')],
+      ['Goles por equipo · DNB · doble oportunidad',unavailable],
+      ['Primer tiempo · goles',sample('first_half_goals_total')],
+      ['Segundo tiempo · goles',sample('second_half_goals_total')],
+      ['Córners totales',sample('total_corners_ft')],
+      ['Córners por equipo',sample('team_corners_ft')],
+      ['Hándicap y Bet Builder',sameHistory?'Consultar muestra del patrón abajo · sin modelo conjunto':unavailable],
+      ['Tarjetas, faltas y disciplina',unavailable],
+      ['Jugadores · tiros, SOT, goles, asistencias, tarjetas y atajadas',unavailable],
+    ];
+    return '<section class="intel-section" data-detail-section="matchup-research">'+
+      '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
+      '<p class="intel-footnote">Investigación privada. Un histórico no es RAW; RAW no equivale a calibración OOS. '+
+      'Esta vista no certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
+      intelKV(rows)+'</div>'+details+
+      fe11MultimarketSection(sameHistory?research:{{reason:research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'?
+        'IDENTIDAD_O_TIEMPO_NO_VERIFICADO':research?.reason||research?.status}},fixture)+'</section>';
+  }}
   function renderMatch(d){{const box=$('matchDetail'),rawF=d?.fixture||{{}},known=fixtureTargets().find(x=>String(x?.fixture?.fixture_id||'')===String(rawF.fixture_id||''))?.fixture||{{}},f={{...known,...rawF}},c=d?.selected_candidate||{{}},p=d?.projection_ladder||c?.projections||{{}},a=d?.availability||c?.availability||{{}},ctx=d?.sport_context||{{}},decision=d?.decision_summary||c?.decision||{{}},marketCtx=d?.market_context||{{}},modelCtx=d?.model_context||{{}},review=d?.analyst_review||{{}},rel=d?.relational_evidence||{{}},counts=rel.counts||{{}},disc=d?.data_disclosure||{{}},e=d?.evidence||c?.evidence||{{}};
     const selectedMarket=marketCtx.selected||c?.market||{{}},missing=(disc.missing_sections||review.missing_sections||[]),currentMarkets=(review.available_markets||[]),persistedMarkets=(counts.market_names||[]),markets=[...new Set([...currentMarkets,...persistedMarkets].filter(Boolean))],verifiedPrices=(review.verified_price_markets||[]),features=sportFeatures(rel),sportN=sportFeatureCount(features),sportMissing=sportFeatureMissing(features),decisionText=decision.classification||decision.display_bucket||decision.execution_status||review.status||'INSUFFICIENT DATA',fresh=freshnessLabel(counts),coverage=review.status||decisionText||'NOT VERIFIED',tone=coverageTone(coverage),[kickTime,kickDate]=dt(f.kickoff);
     const actualStatus=String(d?.live_fixture_status?.source==='API_FOOTBALL_FIXTURE_STATUS_BY_ID'?
@@ -1746,7 +1788,8 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ' · Muestra mínima: '+esc(ownerP0.min_split_sample??'NOT VERIFIED')+
       ' · Precio de mercado: NO CONSULTADO · Validación OOS: PENDIENTE</p></section>':'';
     const summary='<div class="intel-summary"><div class="intel-metrics"><div class="intel-metric '+(ctx.outcome_probabilities||ownerP0Valid?'good':'warn')+'"><span>Pronóstico 1X2</span><b>'+esc(ctx.outcome_probabilities?'Modelo guardado':ownerP0Valid?'RAW PRELIMINAR':'NO VERIFICADO')+'</b></div><div class="intel-metric"><span>Alineaciones</span><b>'+esc(featureValue(features,'availability.both_xi_confirmed')===true?'XI confirmados':'Sin confirmar')+'</b></div><div class="intel-metric"><span>Datos actualizados</span><b>'+esc(fresh)+'</b></div></div></div>';
-    const tabs=[['overview','Resumen'],...(ctx.outcome_probabilities||sportN>0?[['sport','Pronóstico y goles']]:[]),...(d?.multi_market_research?.status&&d.multi_market_research.status!=='NOT_VERIFIED'?[['periods','1H / 2H / Córners']]:[]),['availability','Alineaciones'],...(markets.length?[['markets','Cuotas']]:[]),['advanced','Fuentes y datos']];
+    const privateMatchup=ACCESS?.owner===true||ACCESS?.admin===true;
+    const tabs=[['overview','Resumen'],...(privateMatchup?[['matchup-research','Expediente deportivo']]:[]),...(ctx.outcome_probabilities||sportN>0?[['sport','Pronóstico y goles']]:[]),...(!privateMatchup&&d?.multi_market_research?.status&&d.multi_market_research.status!=='NOT_VERIFIED'?[['periods','1H / 2H / Córners']]:[]),['availability','Alineaciones'],...(markets.length?[['markets','Cuotas']]:[]),['advanced','Fuentes y datos']];
     const tabHtml='<div class="intel-tabs">'+tabs.map((x,i)=>'<button class="intel-tab '+(i===0?'active':'')+'" data-detail-tab="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
 
     const coreCov=coreCoverage(features),probs=ctx.outcome_probabilities||null,xg=ctx.expected_goals||null,scoreRows=ctx.score_matrix||[];
@@ -1796,6 +1839,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
 
     const multiMarket='<section class="intel-section" data-detail-section="periods">'+
        fe11MultimarketSection(d?.multi_market_research||null,f)+'</section>';
+    const matchupResearch=ownerMatchupResearch(d,f,ownerP0Valid?ownerRaw:null,
+      ownerResearchCard+ownerRecent+ownerSportRead+ownerSeasonResearch+ownerPersistedSportEvidence(d,f),
+      blockedEvent);
     const sportState=d?.sport_analysis||{{}},opportunityState=d?.opportunity||{{}};
     const independentStatus='<div class="universal-status-grid" style="padding:12px 16px 0">'+
       '<div class="visual-card"><h3>Lectura deportiva</h3><strong>'+esc(ownerP0Valid?'Proyección RAW preliminar':analysisLabels[sportState.status]||sportState.status||'NOT VERIFIED')+
@@ -1829,7 +1875,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       return;
     }}
     box.innerHTML='<div class="match-detail">'+hero+independentStatus+summary+tabHtml+
-      '<div class="intel-body">'+overview+sportSection+multiMarket+marketsSection+availabilitySection+advanced+notesHtml+'</div></div>';
+      '<div class="intel-body">'+overview+sportSection+(privateMatchup?matchupResearch:multiMarket)+marketsSection+availabilitySection+advanced+notesHtml+'</div></div>';
     void loadAnalystNote(f.fixture_id);
     box.querySelectorAll('[data-detail-tab]').forEach(btn=>btn.onclick=()=>{{const id=btn.dataset.detailTab;box.querySelectorAll('[data-detail-tab]').forEach(x=>x.classList.toggle('active',x===btn));box.querySelectorAll('[data-detail-section]').forEach(x=>x.classList.toggle('active',x.dataset.detailSection===id))}});
     const back=$('backToMatches');if(back)back.onclick=closeMatchRoute;
