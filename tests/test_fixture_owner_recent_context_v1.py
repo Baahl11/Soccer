@@ -116,5 +116,6 @@ def test_ui_renders_extra_data_while_preserving_private_boundary():
     assert "function recentVerifiedForm(packet)" in html
     assert "private_recent_form" in html
     assert "ownerRecent+ownerSportRead+ownerSeasonResearch" in html
-    assert "Proyección 1X2: no calculada" in html
+    assert "Esta sección no calcula 1X2" in html
+    assert "separado del RAW original" in html
     assert "DATOS NUEVOS · ÚLTIMOS PARTIDOS OFICIALES" in html
