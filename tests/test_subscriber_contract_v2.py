@@ -902,3 +902,38 @@ def test_owner_team_totals_use_saved_lines_only_and_fail_closed():
     broken = deepcopy(saved)
     broken["payload"]["team_totals_intelligence"]["probability_grid"][0]["p_over"] = True
     assert t.saved_match_projection([broken], fx)["rows"] == []
+
+
+def test_owner_corners_display_reads_saved_model_only():
+    from copy import deepcopy
+    from mcp_gateway import corners_intelligence as c
+
+    fixture = {"fixture_id": 42, "home_team_id": 10, "away_team_id": 20,
+               "league_id": 55, "season": 2026, "status": "NS",
+               "kickoff": "2026-10-07T18:00:00Z"}
+    model = "LEAGUE_TEAM_CORNERS_POISSON_LIVE_v0.1"
+    projection = {"status": "LIVE_RESEARCH_MODELED", "model": model, "fixture_id": 42,
+                  "stage": "T-60", "production_status": "LIVE_RESEARCH_NOT_ACTIONABLE",
+                  "actionable": False, "decision_weight": 0,
+                  "model_inputs": {"model": model, "home_lambda": 5.5, "away_lambda": 4,
+                                   "total_lambda": 9.5, "prior_pool_n": 150,
+                                   "prior_home_home_matches": 0, "prior_away_away_matches": 7},
+                  "observed_market_rows": [{"decimal_price": 1.9}]}
+    event = {"event_type": "SOCCER_REFRESH", "stage": "T-60", "fixture": dict(fixture),
+             "corners_intelligence": projection}
+    record = {"event_type": "SOCCER_REFRESH", "stage": "T-60",
+              "generated_at": "2026-10-07T17:00:00Z", "payload": event}
+    view = c.saved_match_rates([record], fixture)
+    assert view["status"] == "PERSISTED_RESEARCH_RATES"
+    assert view["home_lambda"] == 5.5 and view["total_lambda"] == 9.5
+    assert view["sample"]["prior_home_home_matches"] == 0
+    assert not view["bet_eligible"] and "observed_market_rows" not in view
+    assert c.saved_match_rates([record], {**fixture, "league_id": 56})["status"] == "NOT_VERIFIED"
+    assert c.saved_match_rates([{**record, "generated_at": fixture["kickoff"]}], fixture)["status"] == "NOT_VERIFIED"
+    live = deepcopy(record)
+    live["payload"]["fixture"]["status"] = "HT"
+    assert c.saved_match_rates([live, record], fixture) == view
+    assert c.saved_match_rates([live], fixture)["status"] == "NOT_VERIFIED"
+    malformed = deepcopy(record)
+    malformed["payload"]["corners_intelligence"]["model_inputs"]["total_lambda"] = 12
+    assert c.saved_match_rates([malformed], fixture)["status"] == "NOT_VERIFIED"
