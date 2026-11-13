@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from typing import Any
 
 from mcp_gateway import red_cards_rate_registry
@@ -213,3 +215,65 @@ def attach(payload: dict[str, Any]) -> dict[str, int | bool]:
         "provider_requests_added": 0,
         "state_registry_reads_max": 1,
     }
+
+def saved_match_probability(events: Any, fixture: dict[str, Any]) -> dict[str, Any]:
+    """Private display projection: read stored any-red-card probabilities, never prices or booking points."""
+    missing = {"status": "NOT_VERIFIED", "reason": "NO_MATCHED_PREGAME_RED_CARD_PROJECTION",
+               "bet_eligible": False}
+
+    def utc(value: Any) -> datetime | None:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return parsed.astimezone(timezone.utc) if parsed.tzinfo is not None else None
+        except (ValueError, OverflowError):
+            return None
+
+    keys = ("fixture_id", "home_team_id", "away_team_id", "league_id", "season")
+    start = utc(fixture.get("kickoff"))
+    if (start is None or not isinstance(events, list)
+            or not all(type(fixture.get(k)) is int and fixture[k] > 0 for k in keys)
+            or fixture["home_team_id"] == fixture["away_team_id"]):
+        return missing
+    model = "EMPIRICAL_BAYES_ANY_RED_CARD_MATCH_v0.1"
+    now = datetime.now(timezone.utc)
+    eligible = []
+    for stored in events[:12]:
+        if not isinstance(stored, dict):
+            continue
+        stamp = utc(stored.get("generated_at"))
+        stage = stored.get("stage")
+        if (stamp is None or stamp >= start or stamp > now or not isinstance(stage, str)
+                or stage in {"HT", "LIVE", "POSTGAME"} or stored.get("event_type") != "SOCCER_REFRESH"):
+            continue
+        event = stored.get("payload")
+        if not isinstance(event, dict) or event.get("stage") != stage or event.get("event_type") != "SOCCER_REFRESH":
+            continue
+        fx, projection = event.get("fixture"), event.get("red_cards_intelligence")
+        if (not isinstance(fx, dict) or fx.get("status") != "NS"
+                or any(fx.get(k) != fixture[k] for k in keys) or utc(fx.get("kickoff")) != start
+                or not isinstance(projection, dict) or projection.get("fixture_id") != fixture["fixture_id"]
+                or projection.get("stage") != stage or projection.get("model") != model
+                or projection.get("status") != "LIVE_RESEARCH_MODELED"
+                or projection.get("production_status") != "LIVE_RESEARCH_NOT_ACTIONABLE"
+                or projection.get("actionable") is not False or projection.get("decision_weight") != 0):
+            continue
+        inputs = projection.get("model_inputs")
+        if not isinstance(inputs, dict) or inputs.get("model") != model:
+            continue
+        if inputs.get("scope") != "ANY_RED_CARD_IN_MATCH_YES_NO_ONLY":
+            continue
+        yes, no = projection.get("p_any_red"), projection.get("p_no_red")
+        if (not all(type(x) in (int, float) and 0 <= x <= 1 for x in (yes, no))
+                or abs(yes + no - 1) > 0.000002):
+            continue
+        sample = {k: inputs[k] for k in ("prior_league_n", "referee_prior_n")
+                  if type(inputs.get(k)) is int and inputs[k] >= 0}
+        eligible.append((stamp, yes, no, sample))
+    if not eligible:
+        return missing
+    stamp, yes, no, sample = max(eligible, key=lambda x: x[0])
+    return {"status": "PERSISTED_RESEARCH_PROJECTION", "fixture_id": fixture["fixture_id"],
+            "source": "POSTGRES_REFRESH_EVENTS_ANY_RED_CARD", "model": model,
+            "captured_at_utc": stamp.isoformat(), "kickoff_utc": start.isoformat(),
+            "p_any_red": yes, "p_no_red": no, "sample": sample,
+            "oos_certified_by_this_view": False, "bet_eligible": False}
