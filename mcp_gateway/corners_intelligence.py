@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import re
+from datetime import datetime, timezone
 from typing import Any
 
 from mcp_gateway import corners_rate_registry
@@ -135,3 +136,65 @@ def attach(payload: dict[str,Any]) -> dict[str,int|bool]:
         if isinstance(mi,dict) and isinstance(mi.get("areas"),dict):
             mi["areas"]["corners"]= {"status":intel.get("status"),"model_inputs":intel.get("model_inputs"),"observed_market_rows":intel.get("observed_market_rows") or [],"formation_challenger_status":intel.get("formation_challenger_status"),"actionable":False,"decision_weight":0.0,"calibration_gate":intel.get("calibration_gate")}
     return {"corners_rate_registry_loaded":bool(registry),"modeled_events":modeled,"events_with_observed_ft_corners_markets":observed_events,"observed_ft_corners_rows":observed_rows,"provider_requests_added":0,"state_registry_reads_max":1}
+
+
+def saved_match_rates(events: Any, fixture: dict[str, Any]) -> dict[str, Any]:
+    """Private display projection: read stored FT rates, not quotes or FE11 means."""
+    missing = {"status": "NOT_VERIFIED", "reason": "NO_MATCHED_PREGAME_CORNERS_RATES",
+               "bet_eligible": False}
+
+    def utc(value: Any) -> datetime | None:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return parsed.astimezone(timezone.utc) if parsed.tzinfo is not None else None
+        except (ValueError, OverflowError):
+            return None
+
+    keys = ("fixture_id", "home_team_id", "away_team_id", "league_id", "season")
+    start = utc(fixture.get("kickoff"))
+    if (start is None or not isinstance(events, list)
+            or not all(type(fixture.get(k)) is int and fixture[k] > 0 for k in keys)
+            or fixture["home_team_id"] == fixture["away_team_id"]):
+        return missing
+    model = "LEAGUE_TEAM_CORNERS_POISSON_LIVE_v0.1"
+    now = datetime.now(timezone.utc)
+    eligible = []
+    for stored in events[:12]:
+        if not isinstance(stored, dict):
+            continue
+        stamp = utc(stored.get("generated_at"))
+        stage = stored.get("stage")
+        if (stamp is None or stamp >= start or stamp > now or not isinstance(stage, str)
+                or stage in {"HT", "LIVE", "POSTGAME"} or stored.get("event_type") != "SOCCER_REFRESH"):
+            continue
+        event = stored.get("payload")
+        if not isinstance(event, dict) or event.get("stage") != stage or event.get("event_type") != "SOCCER_REFRESH":
+            continue
+        fx, projection = event.get("fixture"), event.get("corners_intelligence")
+        if (not isinstance(fx, dict) or fx.get("status") != "NS"
+                or any(fx.get(k) != fixture[k] for k in keys) or utc(fx.get("kickoff")) != start
+                or not isinstance(projection, dict) or projection.get("fixture_id") != fixture["fixture_id"]
+                or projection.get("stage") != stage or projection.get("model") != model
+                or projection.get("status") != "LIVE_RESEARCH_MODELED"
+                or projection.get("production_status") != "LIVE_RESEARCH_NOT_ACTIONABLE"
+                or projection.get("actionable") is not False or projection.get("decision_weight") != 0):
+            continue
+        inputs = projection.get("model_inputs")
+        if not isinstance(inputs, dict) or inputs.get("model") != model:
+            continue
+        h, a, total = (inputs.get(k) for k in ("home_lambda", "away_lambda", "total_lambda"))
+        if not all(type(x) in (int, float) and 1 <= x <= 10 for x in (h, a)):
+            continue
+        if type(total) not in (int, float) or not math.isfinite(total) or abs(h + a - total) > 1e-6:
+            continue
+        sample = {k: inputs[k] for k in ("prior_pool_n", "prior_home_home_matches", "prior_away_away_matches")
+                  if type(inputs.get(k)) is int and inputs[k] >= 0}
+        eligible.append((stamp, h, a, total, sample))
+    if not eligible:
+        return missing
+    stamp, h, a, total, sample = max(eligible, key=lambda x: x[0])
+    return {"status": "PERSISTED_RESEARCH_RATES", "fixture_id": fixture["fixture_id"],
+            "source": "POSTGRES_REFRESH_EVENTS_FT_CORNERS", "model": model,
+            "captured_at_utc": stamp.isoformat(), "kickoff_utc": start.isoformat(),
+            "home_lambda": h, "away_lambda": a, "total_lambda": total, "sample": sample,
+            "oos_certified_by_this_view": False, "bet_eligible": False}
