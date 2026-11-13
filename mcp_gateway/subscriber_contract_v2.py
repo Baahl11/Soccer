@@ -2290,7 +2290,10 @@ def _relational_raw_sport_context(relational_evidence: dict[str, Any]) -> dict[s
         "goal_rate_semantics": "POISSON_LAMBDA_NOT_XG",
     }
 
-def _match_evidence_sections(relational_evidence: dict[str, Any]) -> list[dict[str, Any]]:
+def _match_evidence_sections(
+    relational_evidence: dict[str, Any], *, pregame_only: bool = False,
+    kickoff: Any = None,
+) -> list[dict[str, Any]]:
     """Union feature values across snapshots, newest valid observation per key.
 
     Refresh ticks can contain fewer fields than an older one. A missing or
@@ -2302,8 +2305,25 @@ def _match_evidence_sections(relational_evidence: dict[str, Any]) -> list[dict[s
     snapshots = evidence.get("feature_snapshots")
     if not isinstance(snapshots, list) or not snapshots:
         return []
+    def utc(value: Any) -> datetime | None:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return parsed.astimezone(timezone.utc) if parsed.tzinfo else None
+        except (ValueError, OverflowError):
+            return None
+
     valid = [s for s in snapshots if isinstance(s, dict)]
-    valid.sort(key=lambda s: str(s.get("captured_at") or ""), reverse=True)
+    if pregame_only:
+        start, now = utc(kickoff), datetime.now(timezone.utc)
+        if start is None:
+            return []
+        valid = [
+            s for s in valid if (stamp := utc(s.get("captured_at")))
+            and stamp < start and stamp <= now
+        ]
+        valid.sort(key=lambda s: utc(s["captured_at"]), reverse=True)
+    else:
+        valid.sort(key=lambda s: str(s.get("captured_at") or ""), reverse=True)
     chosen: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
     for snapshot in valid:
         features = _dict(_dict(snapshot.get("payload")).get("features"))
@@ -2319,6 +2339,13 @@ def _match_evidence_sections(relational_evidence: dict[str, Any]) -> list[dict[s
                 continue
             source = str(raw.get("source") or "").strip()
             sample_n = _number(raw.get("sample_n"))
+            if pregame_only:
+                observed = utc(raw.get("captured_at") or snapshot.get("captured_at"))
+                if (not source or observed is None or observed >= start or observed > now
+                        or source in {"API_FOOTBALL_FIXTURE_STATS", "API_FOOTBALL_FIXTURE_PLAYERS",
+                                      "API_FOOTBALL_FIXTURE_EVENTS"}
+                        or (sample_n is not None and (sample_n <= 0 or sample_n != int(sample_n)))):
+                    continue
             if source == "API_FOOTBALL_TEAM_STATS" and sample_n is not None and sample_n <= 0:
                 continue
             chosen[key] = (raw, snapshot)
@@ -2816,6 +2843,9 @@ async def match_detail(request: Request) -> JSONResponse:
                 "status": "NOT_VERIFIED", "provider_requests_added": 0,
                 "commercial_display_allowed": False,
             }
+        result["private_pregame_evidence_sections"] = _match_evidence_sections(
+            relational_evidence, pregame_only=True, kickoff=fixture.get("kickoff"),
+        )
         # Sport-first evidence is meaningful even when the market screen is
         # empty. Descriptive analysis is only assembled INSIDE the existing
         # owner/admin permission boundary, never for commercial PRO or FREE.
