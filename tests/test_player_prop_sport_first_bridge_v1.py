@@ -243,3 +243,25 @@ def test_database_query_is_bounded_and_sport_first():
     assert "LIMIT %s" in q
     assert "soccer_market_snapshots" not in q
     assert "offered_price" not in q
+
+
+def test_owner_match_adapter_reads_exact_original_shots_and_never_prices():
+    original = input_snapshot()
+    fx = {k: original[k] for k in ("fixture_id", "kickoff", "home_team_id", "away_team_id", "home_team", "away_team")}
+    fx.update({"league_id": 39, "season": 2026, "status": "NS"})
+    event = {"fixture": fx, "event_type": "SOCCER_REFRESH", "stage": original["stage"],
+             "player_shots_intelligence": original["shots"], "offered_price_decimal": 2.1}
+    row = {"event_type": event["event_type"], "stage": event["stage"], "payload": event,
+           "generated_at": original["generated_at"]}
+    read = core.saved_match_profiles
+    report = read([row, row], fx, now_utc=NOW)
+    assert len(report["rows"]) == 1
+    prop = report["rows"][0]
+    assert prop["lines"][0] == {"line": 1.5, "p_over_raw": .68, "p_under_raw": .32}
+    assert prop["player_id"] == 101 and not prop["bet_eligible"]
+    assert "offered_price_decimal" not in prop
+    assert not read([row], {**fx, "season": 2025}, now_utc=NOW)["rows"]
+    assert not read([row], fx, now_utc=fx["kickoff"])["rows"]
+    assert not read([{**row, "generated_at": NOW + timedelta(minutes=1)}], fx, now_utc=NOW)["rows"]
+    original["shots"]["players"][0]["confirmed_starter"] = False
+    assert not read([row], fx, now_utc=NOW)["rows"]
