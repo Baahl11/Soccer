@@ -1605,7 +1605,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
   // Never present a post-kickoff observation as pregame evidence.
   function ownerPersistedSportEvidence(packet,fixture){{
     if(ACCESS?.owner!==true&&ACCESS?.admin!==true)return '';
-    const groups=Array.isArray(packet?.evidence_sections)?packet.evidence_sections:[],
+    const groups=Array.isArray(packet?.private_pregame_evidence_sections)?packet.private_pregame_evidence_sections:[],
       kickoff=new Date(fixture?.kickoff||'').getTime(),now=Date.now();
     const validTime=Number.isFinite(kickoff);
     const allowed=new Set(['TEAMS','GOALS','STATS','CORNERS','CARDS','EVENTS','PLAYERS','AVAILABILITY','CONTEXT','OTHER']);
@@ -1722,6 +1722,13 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     }};
     const saved=(key)=>probability(raw?.[key])?'RAW preliminar: '+pct(raw[key]):'Sin RAW verificado en este panel';
     const unavailable='Sin proyección específica verificada en este panel';
+    const observations=(category)=>{{
+      const groups=packet?.private_pregame_evidence_sections;
+      const count=Array.isArray(groups)?groups.find(g=>g?.category===category)?.items?.length:0;
+      return Number.isInteger(count)&&count>0?
+        count+' campos prepartido guardados · ver fuentes abajo · sin RAW verificado aquí':
+        'Sin evidencia prepartido verificada en este panel · sin RAW';
+    }};
     const rows=[
       ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
       ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
@@ -1732,8 +1739,9 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ['Córners totales',sample('total_corners_ft')],
       ['Córners por equipo',sample('team_corners_ft')],
       ['Hándicap y Bet Builder',sameHistory?'Consultar muestra del patrón abajo · sin modelo conjunto':unavailable],
-      ['Tarjetas, faltas y disciplina',unavailable],
-      ['Jugadores · tiros, SOT, goles, asistencias, tarjetas y atajadas',unavailable],
+      ['Tarjetas y disciplina',observations('CARDS')],
+      ['Jugadores · contexto y disponibilidad',observations('PLAYERS')],
+      ['Props · tiros, SOT, goles, asistencias, tarjetas y atajadas',unavailable],
     ];
     return '<section class="intel-section" data-detail-section="matchup-research">'+
       '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
