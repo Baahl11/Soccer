@@ -1,30 +1,30 @@
 {
   "schema_version": "1.0.0",
   "status": "PASS",
-  "observed_at_utc": "2026-11-12T13:28:45.940021+00:00",
-  "scheduler_latest_tick_utc": "2026-11-12T12:23:29.243977+00:00",
+  "observed_at_utc": "2026-11-13T13:29:30.349866+00:00",
+  "scheduler_latest_tick_utc": "2026-11-13T12:22:35.972521+00:00",
   "scheduler_database_persisted": true,
-  "ledger_latest_evidence_utc": "2026-11-12T05:04:55.105184+00:00",
-  "ledger_rows": 32237,
-  "previous_ledger_rows": 32194,
-  "clv_total_rows": 789,
+  "ledger_latest_evidence_utc": "2026-11-12T19:13:51.423400+00:00",
+  "ledger_rows": 32256,
+  "previous_ledger_rows": 32237,
+  "clv_total_rows": 799,
   "sport_to_market_admission": {
     "status": "GAPS_OBSERVED",
-    "latest_tick_utc": "2026-11-12T12:23:29.243977+00:00",
-    "eligible_tier_ab_due": 74,
+    "latest_tick_utc": "2026-11-13T12:22:35.972521+00:00",
+    "eligible_tier_ab_due": 116,
     "deep_dives_for_due_tier_ab": 1,
-    "sport_deep_dive_coverage": 0.013514,
-    "due_fixtures_all_tiers": 99,
+    "sport_deep_dive_coverage": 0.008621,
+    "due_fixtures_all_tiers": 172,
     "direct_price_candidate_rows": 2,
     "primary_clv_maturation_candidate_fixtures": 0,
     "price_provider_calls_this_tick": 2,
     "price_provider_call_cap_this_tick": 8,
-    "provider_daily_remaining_observed": 7355,
+    "provider_daily_remaining_observed": 7263,
     "low_memory_guard_applied": true,
     "low_memory_cgroup_limit_bytes": 536870912,
     "upstream_calls_deferred_by_resource_guard": 34,
     "low_coverage": true,
-    "consecutive_low_coverage_daily_checks": 3,
+    "consecutive_low_coverage_daily_checks": 4,
     "three_daily_low_coverage_checks": true,
     "warnings": [
       "SPORT_FIRST_DEEP_DIVE_COVERAGE_UNDER_25_PCT",
@@ -39,39 +39,39 @@
       "clv_rows": 53,
       "prior_clv_rows": 53,
       "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 2,
-      "stalled_3plus_days": false,
+      "consecutive_unchanged_daily_checks": 3,
+      "stalled_3plus_days": true,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     },
     "BTTS": {
       "clv_rows": 20,
       "prior_clv_rows": 20,
       "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 2,
-      "stalled_3plus_days": false,
+      "consecutive_unchanged_daily_checks": 3,
+      "stalled_3plus_days": true,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     },
     "FT_TOTALS": {
       "clv_rows": 8,
       "prior_clv_rows": 8,
       "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 2,
-      "stalled_3plus_days": false,
+      "consecutive_unchanged_daily_checks": 3,
+      "stalled_3plus_days": true,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     },
     "HOME_TT": {
-      "clv_rows": 343,
+      "clv_rows": 348,
       "prior_clv_rows": 343,
-      "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 2,
+      "new_verified_clv_rows_since_prior_check": 5,
+      "consecutive_unchanged_daily_checks": 0,
       "stalled_3plus_days": false,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     },
     "AWAY_TT": {
-      "clv_rows": 365,
+      "clv_rows": 370,
       "prior_clv_rows": 365,
-      "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 2,
+      "new_verified_clv_rows_since_prior_check": 5,
+      "consecutive_unchanged_daily_checks": 0,
       "stalled_3plus_days": false,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     }
@@ -79,17 +79,21 @@
   "source_workflows": {
     "postgre_delta_ledger": {
       "status": "RECENT_SUCCESS",
-      "run_id": 43204808811,
-      "last_success": "2026-11-12T10:57:18+00:00"
+      "run_id": 43413084938,
+      "last_success": "2026-11-13T10:57:35+00:00"
     },
     "market_clv": {
       "status": "RECENT_SUCCESS",
-      "run_id": 43209152256,
-      "last_success": "2026-11-12T11:29:27+00:00"
+      "run_id": 43417076898,
+      "last_success": "2026-11-13T11:29:38+00:00"
     }
   },
   "blockers": [],
-  "stalled_market_families_3plus_days": [],
+  "stalled_market_families_3plus_days": [
+    "1X2",
+    "BTTS",
+    "FT_TOTALS"
+  ],
   "provider_requests_added": 0,
   "postgres_write_queries": 0,
   "historical_predictions_recomputed": false,
