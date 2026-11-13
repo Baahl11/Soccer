@@ -25,6 +25,7 @@ from mcp_gateway import subscriber_billing_v2
 from mcp_gateway import subscriber_preview_data_v231
 from mcp_gateway import isolated_sport_frozen_pg_v1
 from mcp_gateway import multimarket_history_bridge_v1
+from mcp_gateway import team_totals_intelligence
 from mcp_gateway import subscriber_saved_items_v4
 from mcp_gateway import subscriber_match_notes_v1
 from mcp_gateway import subscriber_ui_contract_v231
@@ -2851,6 +2852,9 @@ async def match_detail(request: Request) -> JSONResponse:
             )
         except Exception:
             result["private_frozen_sport_projection"] = None
+        result["private_team_total_projection"] = team_totals_intelligence.saved_match_projection(
+            relational_evidence.get("refresh_events"), fixture,
+        )
         result["private_pregame_evidence_sections"] = _match_evidence_sections(
             relational_evidence, pregame_only=True, kickoff=fixture.get("kickoff"),
         )

@@ -868,3 +868,37 @@ def test_owner_pregame_filter_precedes_latest_per_key_join():
     assert verified[0]["items"][0]["value"] == 0
     assert verified[0]["items"][0]["sample_n"] == 5
     assert not sections(evidence, pregame_only=True, kickoff="2026-10-07T18:00:00")
+
+
+def test_owner_team_totals_use_saved_lines_only_and_fail_closed():
+    from copy import deepcopy
+    from mcp_gateway import team_totals_intelligence as t
+
+    fx = {"fixture_id": 42, "home_team_id": 10, "away_team_id": 20,
+          "league_id": 55, "season": 2026, "kickoff": "2026-10-07T18:00:00Z"}
+    event = {"event_type": "SOCCER_REFRESH", "stage": "T-60", "fixture": dict(fx),
+             "raw_projection": {"raw_home_goal_rate": 1.5, "raw_away_goal_rate": .7}}
+    event["team_totals_intelligence"] = t.build(event)
+    saved = {"generated_at": "2026-10-07T16:00:00Z", "event_type": "SOCCER_REFRESH",
+             "stage": "T-60", "payload": event}
+    grid = event["team_totals_intelligence"]
+    grid["observed_exact_market_rows"] = [{"decimal_price": 1.9}]
+    view = t.saved_match_projection([saved], fx)
+    assert view["status"] == "PERSISTED_RESEARCH_PROJECTION"
+    assert len(view["rows"]) == 6
+    assert view["rows"][0] == {k: grid["probability_grid"][0][k]
+                               for k in ("team_role", "line", "p_over", "p_under")}
+    assert all(set(row) == {"team_role", "line", "p_over", "p_under"} for row in view["rows"])
+    assert not view["bet_eligible"] and not view["oos_certified_by_this_view"]
+    for invalid in (
+        {**saved, "generated_at": fx["kickoff"]},
+        {**saved, "generated_at": "2026-10-07T16:00:00"},
+        {**saved, "stage": "POSTGAME"},
+        {**saved, "payload": {**event, "fixture": {**fx, "away_team_id": 21}}},
+        {**saved, "payload": {k: v for k, v in event.items() if k != "team_totals_intelligence"}},
+    ):
+        assert t.saved_match_projection([invalid], fx)["rows"] == []
+        assert t.saved_match_projection([invalid, saved], fx) == view
+    broken = deepcopy(saved)
+    broken["payload"]["team_totals_intelligence"]["probability_grid"][0]["p_over"] = True
+    assert t.saved_match_projection([broken], fx)["rows"] == []

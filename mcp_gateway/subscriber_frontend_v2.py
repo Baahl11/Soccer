@@ -1629,7 +1629,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       ).join('')+'</div></details>');
     }}
     return '<section class="owner-persisted-sport-evidence"><details><summary>'+
-      'Investigación deportiva ya guardada por partido · '+sections.length+' familias con datos'+
+      'Observaciones prepartido guardadas · '+sections.length+' categorías (FE11 se muestra aparte)'+
       '</summary><p class="intel-footnote">Solo OWNER. Unión de registros deportivos existentes por fixture_id; '+
       'cada valor conserva fuente, captura y muestra. Solo observaciones anteriores al inicio. '+
       'No son predicciones RAW, OOS ni recomendaciones. NO BET.</p>'+
@@ -1733,11 +1733,27 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const ratesValid=raw===packet?.private_frozen_sport_projection?.raw_probabilities&&
       [rates?.raw_home_goal_rate,rates?.raw_away_goal_rate].every(x=>
         typeof x==='number'&&Number.isFinite(x)&&x>=0.15&&x<=4.5);
+    const teamTotals=packet?.private_team_total_projection;
+    const ttStamp=Date.parse(teamTotals?.captured_at_utc||'');
+    const ttRows=teamTotals?.status==='PERSISTED_RESEARCH_PROJECTION'&&
+      teamTotals?.bet_eligible===false&&teamTotals?.oos_certified_by_this_view===false&&
+      teamTotals?.source==='POSTGRES_REFRESH_EVENTS_TEAM_TOTALS'&&
+      String(teamTotals?.fixture_id)===String(fixture?.fixture_id)&&
+      Date.parse(teamTotals?.kickoff_utc||'')===kickoff&&ttStamp<kickoff&&ttStamp<=Date.now()&&
+      Array.isArray(teamTotals?.rows)?
+      teamTotals.rows.slice(0,6).filter(x=>['HOME','AWAY'].includes(x?.team_role)&&
+        [0.5,1.5,2.5].includes(x?.line)&&probability(x?.p_over)&&probability(x?.p_under)):[];
+    const ttDetail=ttRows.length?'<div class="intel-card"><h3>Goles por equipo · proyección guardada por línea</h3>'+
+      '<p class="intel-footnote">Investigación prepartido · '+esc(teamTotals.model||'NOT VERIFIED')+
+      ' · PostgreSQL · '+esc(teamTotals.captured_at_utc)+
+      ' · No certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
+      intelKV(ttRows.map(x=>[(x.team_role==='HOME'?fixture.home_team||'Local':fixture.away_team||'Visitante')+
+        ' · '+x.line+' goles','Más: '+pct(x.p_over)+' · Menos: '+pct(x.p_under)]))+'</div>':'';
     const rows=[
       ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
       ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
       ['BTTS · ambos anotan',saved('raw_btts_yes_prob')],
-      ['Goles por equipo',ratesValid?'Tasas RAW guardadas (λ, no xG) · local '+
+      ['Goles por equipo',ttRows.length?'Proyección prepartido guardada · ver líneas abajo':ratesValid?'Tasas RAW guardadas (λ, no xG) · local '+
         rates.raw_home_goal_rate.toFixed(2)+' · visita '+rates.raw_away_goal_rate.toFixed(2)+
         ' · sin proyección verificada por línea':unavailable],
       ['DNB · doble oportunidad',unavailable],
@@ -1754,7 +1770,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
       '<p class="intel-footnote">Investigación privada. Un histórico no es RAW; RAW no equivale a calibración OOS. '+
       'Esta vista no certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
-      intelKV(rows)+'</div>'+details+
+      intelKV(rows)+'</div>'+ttDetail+details+
       fe11MultimarketSection(sameHistory?research:{{reason:research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'?
         'IDENTIDAD_O_TIEMPO_NO_VERIFICADO':research?.reason||research?.status}},fixture)+'</section>';
   }}
