@@ -1827,6 +1827,15 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       intelKV([['Sí',pct(red.p_any_red)],['No',pct(red.p_no_red)],
         ['Muestra del modelo','Liga: '+(red.sample?.prior_league_n??'N/D')+
           ' · Árbitro: '+(red.sample?.referee_prior_n??'N/D')]])+'</div>':'';
+    const periodsDetail='<div class="intel-card"><h3>1H / 2H · cobertura prepartido</h3>'+
+      intelKV([
+        ['1H · evidencia observada',sample('first_half_goals_total')],
+        ['2H · evidencia observada',sample('second_half_goals_total')],
+        ['1H · proyección prepartido','NOT VERIFIED · no hay una salida prepartido verificada en esta ficha'],
+        ['2H · proyección prepartido','NOT VERIFIED · el modelo condicionado al descanso no es prepartido'],
+        ['Calibración OOS','No certificada en esta vista'],
+        ['Precio ejecutable','No verificado en esta vista'],
+      ])+'</div>';
     const rows=[
       ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
       ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
@@ -1851,7 +1860,7 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
       '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
       '<p class="intel-footnote">Investigación privada. Un histórico no es RAW; RAW no equivale a calibración OOS. '+
       'Esta vista no certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
-      intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+teamYellowDetail+redDetail+propDetail+details+
+      intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+teamYellowDetail+redDetail+propDetail+periodsDetail+details+
       fe11MultimarketSection(sameHistory?research:{{reason:research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'?
         'IDENTIDAD_O_TIEMPO_NO_VERIFICADO':research?.reason||research?.status}},fixture)+'</section>';
   }}
