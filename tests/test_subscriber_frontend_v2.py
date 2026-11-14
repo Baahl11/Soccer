@@ -538,6 +538,12 @@ const render = (research,projection=raw,blocked=false,totals=null,corner=null,ye
       raw_goal_rates:{raw_home_goal_rate:1.52,raw_away_goal_rate:0.81}},
     private_pregame_evidence_sections:[{category:'CARDS',items:[{}]}]},fixture,projection,'SPORT_EVIDENCE',blocked);
 const good=render(fe11);
+assert.match(good,/1H \/ 2H · cobertura prepartido/);
+assert.match(good,/1H · proyección prepartido.*NOT VERIFIED/);
+assert.match(good,/2H · proyección prepartido.*el modelo condicionado al descanso no es prepartido/);
+assert.match(good,/Precio ejecutable.*No verificado en esta vista/);
+assert.match(render(null),/1H · evidencia observada.*Sin perfil FE11 vigente verificado/);
+assert.doesNotMatch(render(fe11,raw,true),/cobertura prepartido/);
 const teamYellow={status:'PERSISTED_RESEARCH_RATES',fixture_id:42,kickoff_utc:fixture.kickoff,
   captured_at_utc:'2026-11-14T10:00:00Z',source:'POSTGRES_REFRESH_EVENTS_TEAM_YELLOW_CARDS',
   bet_eligible:false,oos_certified_by_this_view:false,home_yellow_lambda:1.8,away_yellow_lambda:2.3};
