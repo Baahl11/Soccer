@@ -1714,17 +1714,23 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
     const resultKeys=['raw_home_win_prob','raw_draw_prob','raw_away_win_prob'];
     const score=resultKeys.every(k=>probability(raw?.[k]))?
       resultKeys.map(k=>pct(raw[k])).join(' / '):null;
+    const sampleSizes=(metric)=>['home','away'].map(side=>
+      sameHistory?research[side]?.splits?.[side]?.features?.[metric]?.n:null);
+    const hasSample=(metric)=>sampleSizes(metric).some(x=>Number.isInteger(x)&&x>0);
     const sample=(metric)=>{{
       if(!sameHistory)return 'Sin perfil FE11 vigente verificado';
-      const n=['home','away'].map(side=>research[side]?.splits?.[side]?.features?.[metric]?.n);
-      if(!n.some(x=>Number.isInteger(x)&&x>0))return 'Sin muestra FE11 por localía';
+      const n=sampleSizes(metric);
+      if(!hasSample(metric))return 'Sin muestra FE11 por localía';
       return 'Histórico FE11 · n local '+(n[0]>0?n[0]:'N/D')+' · n visita '+(n[1]>0?n[1]:'N/D');
     }};
     const saved=(key)=>probability(raw?.[key])?'RAW preliminar: '+pct(raw[key]):'Sin RAW verificado en este panel';
     const unavailable='Sin proyección específica verificada en este panel';
-    const observations=(category)=>{{
+    const observationCount=(category)=>{{
       const groups=packet?.private_pregame_evidence_sections;
-      const count=Array.isArray(groups)?groups.find(g=>g?.category===category)?.items?.length:0;
+      return Array.isArray(groups)?(groups.find(g=>g?.category===category)?.items?.length||0):0;
+    }};
+    const observations=(category)=>{{
+      const count=observationCount(category);
       return Number.isInteger(count)&&count>0?
         count+' campos prepartido guardados · ver fuentes abajo · sin RAW verificado aquí':
         'Sin evidencia prepartido verificada en este panel · sin RAW';
@@ -1836,31 +1842,40 @@ background:#081b27;border-radius:16px;padding:28px;box-shadow:0 30px 100px #000c
         ['Calibración OOS','No certificada en esta vista'],
         ['Precio ejecutable','No verificado en esta vista'],
       ])+'</div>';
-    const rows=[
-      ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable],
-      ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob')],
-      ['BTTS · ambos anotan',saved('raw_btts_yes_prob')],
+    const lanes=[
+      ['1X2 · local / empate / visita',score?'RAW preliminar: '+score:unavailable,score?'raw':'missing'],
+      ['Altas/bajas FT · más de 2.5',saved('raw_over_2_5_prob'),probability(raw?.raw_over_2_5_prob)?'raw':'missing'],
+      ['BTTS · ambos anotan',saved('raw_btts_yes_prob'),probability(raw?.raw_btts_yes_prob)?'raw':'missing'],
       ['Goles por equipo',ttRows.length?'Proyección prepartido guardada · ver líneas abajo':ratesValid?'Tasas RAW guardadas (λ, no xG) · local '+
         rates.raw_home_goal_rate.toFixed(2)+' · visita '+rates.raw_away_goal_rate.toFixed(2)+
-        ' · sin proyección verificada por línea':unavailable],
-      ['DNB · doble oportunidad',unavailable],
-      ['Primer tiempo · goles',sample('first_half_goals_total')],
-      ['Segundo tiempo · goles',sample('second_half_goals_total')],
-      ['Córners totales',cornersValid?'Tasa prepartido guardada · ver abajo':sample('total_corners_ft')],
-      ['Córners por equipo',cornersValid?'Tasas prepartido guardadas · ver abajo':sample('team_corners_ft')],
-      ['Hándicap y Bet Builder',sameHistory?'Consultar muestra del patrón abajo · sin modelo conjunto':unavailable],
-      ['Tarjetas y disciplina',cardsValid?'Tasa de amarillas FT guardada · ver abajo':observations('CARDS')],
-      ['Amarillas por equipo',teamYellowValid?'Tasas prepartido guardadas · ver abajo':unavailable],
-      ['Rojas · al menos una en el partido',redValid?'Proyección prepartido guardada · ver abajo':unavailable],
-      ['Jugadores · contexto y disponibilidad',observations('PLAYERS')],
-      ['Props · tiros y tiros a puerta',propRows.length?propRows.length+' proyecciones guardadas · ver abajo':unavailable],
-      ['Props · goles, asistencias, tarjetas y atajadas',unavailable],
+        ' · sin proyección verificada por línea':unavailable,ttRows.length?'raw':ratesValid?'rate':'missing'],
+      ['DNB · doble oportunidad',unavailable,'missing'],
+      ['Primer tiempo · goles',sample('first_half_goals_total'),hasSample('first_half_goals_total')?'evidence':'missing'],
+      ['Segundo tiempo · goles',sample('second_half_goals_total'),hasSample('second_half_goals_total')?'evidence':'missing'],
+      ['Córners totales',cornersValid?'Tasa prepartido guardada · ver abajo':sample('total_corners_ft'),
+        cornersValid?'rate':hasSample('total_corners_ft')?'evidence':'missing'],
+      ['Córners por equipo',cornersValid?'Tasas prepartido guardadas · ver abajo':sample('team_corners_ft'),
+        cornersValid?'rate':hasSample('team_corners_ft')?'evidence':'missing'],
+      ['Hándicap y Bet Builder',sameHistory?'Consultar muestra del patrón abajo · sin modelo conjunto':unavailable,'missing'],
+      ['Tarjetas y disciplina',cardsValid?'Tasa de amarillas FT guardada · ver abajo':observations('CARDS'),
+        cardsValid?'rate':observationCount('CARDS')>0?'evidence':'missing'],
+      ['Amarillas por equipo',teamYellowValid?'Tasas prepartido guardadas · ver abajo':unavailable,teamYellowValid?'rate':'missing'],
+      ['Rojas · al menos una en el partido',redValid?'Proyección prepartido guardada · ver abajo':unavailable,redValid?'raw':'missing'],
+      ['Jugadores · contexto y disponibilidad',observations('PLAYERS'),observationCount('PLAYERS')>0?'evidence':'missing'],
+      ['Props · tiros y tiros a puerta',propRows.length?propRows.length+' proyecciones guardadas · ver abajo':unavailable,propRows.length?'raw':'missing'],
+      ['Props · goles, asistencias, tarjetas y atajadas',unavailable,'missing'],
     ];
+    const coverageTypes=[['raw','Proyección disponible'],['rate','Tasa λ, sin probabilidad por línea'],
+      ['evidence','Solo evidencia'],['missing','Sin salida específica verificada']];
+    const coverageSummary='<div data-matchup-coverage-summary><p class="intel-footnote">Cobertura de esta ficha · '+lanes.length+
+      ' apartados. Se cuenta una vez cada apartado por su salida de mayor nivel; no es cobertura del slate ni certificación OOS.</p>'+
+      intelKV(coverageTypes.map(([key,label])=>[label,String(lanes.filter(row=>row[2]===key).length)]))+'</div>';
+    const rows=lanes.map(([label,detail])=>[label,detail]);
     return '<section class="intel-section" data-detail-section="matchup-research">'+
       '<div class="intel-card"><h3>Expediente deportivo del matchup</h3>'+
       '<p class="intel-footnote">Investigación privada. Un histórico no es RAW; RAW no equivale a calibración OOS. '+
       'Esta vista no certifica OOS ni precio ejecutable. Sin habilitación BET.</p>'+
-      intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+teamYellowDetail+redDetail+propDetail+periodsDetail+details+
+      coverageSummary+intelKV(rows)+'</div>'+ttDetail+cornerDetail+cardsDetail+teamYellowDetail+redDetail+propDetail+periodsDetail+details+
       fe11MultimarketSection(sameHistory?research:{{reason:research?.status==='HISTORICAL_DESCRIPTIVE_ONLY'?
         'IDENTIDAD_O_TIEMPO_NO_VERIFICADO':research?.reason||research?.status}},fixture)+'</section>';
   }}
