@@ -1064,3 +1064,68 @@ def test_registry_slate_preserves_competition_and_season_on_both_date_paths(monk
         fx = v2._registry_fixture(slate["rows"][0])
         assert (fx["fixture_id"], fx["league_id"], fx["season"], fx["fixture_status"]) == (42, 55, 2026, "NS")
         assert cursor.fixture_queries == (2 if roll else 1)
+
+
+def test_match_api_isolates_private_raw_for_direct_fixture_route(monkeypatch):
+    import asyncio
+    import json
+    from starlette.requests import Request
+
+    v2 = subscriber_contract_v2
+    reads = []
+    original = {"fixture_id": 1640518, "storage": "POSTGRES_ISOLATED_SPORT_FROZEN_RESEARCH",
+                "raw_probabilities": {"raw_home_win_prob": .432079}}
+    by_id = {
+        1640518: {**_base_row(), "fixture_id": 1640518, "status": "FT",
+                  "home_team": "Colombia", "away_team": "Chile", "league_id": 10, "season": 2026},
+        1647364: {**_base_row(), "fixture_id": 1647364, "status": "FT",
+                  "home_team": "Peru", "away_team": "Bolivia", "league_id": 10, "season": 2026},
+    }
+
+    def resolve(token):
+        plan, role = {"free": (subscription_entitlements_v4.FREE_PLAN, "USER"),
+                      "pro": (subscription_entitlements_v4.PRO_PLAN, "USER"),
+                      "owner": (subscription_entitlements_v4.PRO_PLAN, "OWNER"),
+                      "admin": (subscription_entitlements_v4.PRO_PLAN, "ADMIN")}[token]
+        return {"ok": True, "authenticated": True, "effective_plan": plan, "user": {"role": role}}
+
+    async def snapshot():
+        # Neither fixture is in the latest slate or snapshot.
+        return _payload([])
+
+    def read(fixture):
+        reads.append(fixture["fixture_id"])
+        return original if fixture["fixture_id"] == 1640518 else None
+
+    monkeypatch.setattr(v2.subscription_entitlements_v4, "resolve_entitlement", resolve)
+    monkeypatch.setattr(v2, "_load_snapshot", snapshot)
+    monkeypatch.setattr(v2, "_load_registry_fixture", by_id.get)
+    monkeypatch.setattr(v2, "_load_registry_fixture_evidence", lambda _: {})
+    monkeypatch.setattr(v2.isolated_sport_frozen_pg_v1, "read_for_owner_match", read)
+    monkeypatch.setattr(v2.fixture_owner_team_context_v1, "read_for_owner", lambda *_: {})
+    monkeypatch.setattr(v2.multimarket_history_bridge_v1, "read_for_match", lambda _: {})
+
+    def request(fixture_id, role=None):
+        path = f"/app/api/v2/match/{fixture_id}"
+        headers = [(b"authorization", f"Bearer {role}".encode())] if role else []
+        req = Request({"type": "http", "method": "GET", "path": path, "headers": headers,
+                       "path_params": {"fixture_id": str(fixture_id)}})
+        response = asyncio.run(v2.match_detail(req))
+        assert response.headers["cache-control"] == "no-store"
+        return response.status_code, json.loads(response.body)
+
+    for role in (None, "free"):
+        code, body = request(1640518, role)
+        assert code == 403 and body["error"] == "PRO_REQUIRED"
+        assert not any(key.startswith("private_") for key in body)
+    code, body = request(1640518, "pro")
+    assert code == 200 and body["fixture"]["fixture_id"] == 1640518
+    assert not any(key.startswith("private_") for key in body)
+    assert "POSTGRES_ISOLATED_SPORT_FROZEN_RESEARCH" not in json.dumps(body)
+    assert reads == []
+    for role in ("owner", "admin"):
+        code, body = request(1640518, role)
+        assert code == 200 and body["private_frozen_sport_projection"] == original
+    code, body = request(1647364, "owner")
+    assert code == 200 and body["private_frozen_sport_projection"] is None
+    assert reads == [1640518, 1640518, 1647364]
