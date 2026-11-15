@@ -51,6 +51,27 @@ def accepted(events, fixture, now):
     }
 
 
+def historical_player_families(events, fixture, now, replay=None):
+    """Validate archived inputs at capture, never imply present OWNER visibility."""
+    if replay is None:
+        from mcp_gateway.player_prop_sport_first_bridge_v1 import saved_match_profiles as replay
+
+    found = set()
+    for event in events:
+        payload = event["payload"]
+        relevant = {f for f in ("SHOTS", "SOT") if f not in found and isinstance(payload.get(FIELDS[f]), dict)}
+        if not relevant:
+            continue
+        stamp = datetime.fromisoformat(event["generated_at"])
+        if stamp > now:
+            continue
+        result = replay([event], fixture, now_utc=stamp)
+        found.update(row.get("family") for row in result.get("rows", []) if row.get("family") in relevant)
+        if len(found) == 2:
+            break
+    return found
+
+
 def read_events(cur, fixture_id, kickoff, now, *, archive):
     query = ("SELECT stage, event_type, generated_at, payload FROM soccer_refresh_events "
              "WHERE fixture_id = %s")
@@ -82,7 +103,9 @@ def audit_fixture(cur, fixture_id, now):
     truncated = len(archive) > ARCHIVE_LIMIT
     archive = archive[:ARCHIVE_LIMIT]
     current, full = accepted(window, fixture, now), accepted(archive, fixture, now)
+    historical = historical_player_families(archive, fixture, now)
     return {"fixture_id": fixture_id, "eventos_en_ventana": len(window),
+            "historical_player_families": sorted(historical),
             "archivo_truncado": truncated,
             "familias": {f: summarize(key, window, archive, current[f], full[f], truncated)
                          for f, key in FIELDS.items()}}
@@ -163,6 +186,7 @@ def discover(cur, now, cursor=None):
         checked = 0
         incomplete = 0
         positive = None
+        historical_positive = None
         for fixture_id in ids[:CANDIDATE_LIMIT]:
             if len(errors) >= 2 and fixture_id not in cache and fixture_id not in errors:
                 break
@@ -174,6 +198,8 @@ def discover(cur, now, cursor=None):
                     errors[fixture_id] = failure_reason(exc)
             row = cache.get(fixture_id, {})
             checked += 1
+            if historical_positive is None and family in row.get("historical_player_families", []):
+                historical_positive = fixture_id
             state = row.get("familias", {}).get(family, {}).get("estado")
             if state in {"ACEPTADO_EN_REPLAY_DE_FICHA", "ACEPTADO_FUERA_DE_ULTIMOS_12"}:
                 positive = {"fixture_id": fixture_id, "estado": state}
@@ -181,7 +207,8 @@ def discover(cur, now, cursor=None):
             incomplete += int(state in {None, "ARCHIVO_TRUNCADO_NO_CONCLUYENTE"})
         output[family] = {"candidatos_en_corte": min(len(ids), CANDIDATE_LIMIT),
                           "hay_mas_candidatos": len(ids) > CANDIDATE_LIMIT,
-                          "revisados": checked, "no_concluyentes": incomplete, "positivo": positive}
+                          "revisados": checked, "no_concluyentes": incomplete, "positivo": positive,
+                          "historical_positive_fixture_id": historical_positive}
     return {"lookback_days": LOOKBACK_DAYS, "candidate_limit": CANDIDATE_LIMIT,
             "event_scan_limit": EVENT_SCAN_LIMIT, "families": output,
             "events_scanned": scanned, "scan_complete": complete,
@@ -215,5 +242,5 @@ def run_audit(before_id=None):
                 state = getattr(exc, "sqlstate", None)
                 failure = {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(state, "DISCOVERY_ERROR")
                 raise DiscoveryFailure(failure) from exc
-    return {"audit_version": 2, "audit_at_utc": now.isoformat(), "window": WINDOW,
+    return {"audit_version": 3, "audit_at_utc": now.isoformat(), "window": WINDOW,
             "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery}

@@ -49,3 +49,21 @@ def test_discovery_preserves_first_page_on_second_page_error(monkeypatch):
     assert result["next_before_event_id"] == 77
     assert result["scan_failure"] == {"phase": "EVENT_PAYLOAD_KEYS", "reason": "QUERY_TIMEOUT"}
     assert result["families"]["SHOTS"]["positivo"]["fixture_id"] == 7
+
+def test_historical_player_replay_is_separate_and_reads_past_twelve():
+    from datetime import datetime, timezone
+    from mcp_gateway import match_family_replay_v1 as mod
+
+    events = [{"generated_at": "2026-11-14T01:00:00+00:00",
+               "payload": {"corners_intelligence": {}}} for _ in range(12)]
+    events.append({"generated_at": "2026-11-14T00:00:00+00:00",
+                   "payload": {"player_sot_intelligence": {}}})
+    fixture = {"kickoff": "2026-11-14T02:00:00+00:00"}
+    now = datetime(2026, 11, 15, tzinfo=timezone.utc)
+
+    def replay(rows, fx, *, now_utc):
+        assert rows == [events[-1]] and fx is fixture
+        assert now_utc.isoformat() == events[-1]["generated_at"]
+        return {"rows": [{"family": "SOT"}]}
+
+    assert mod.historical_player_families(events, fixture, now, replay=replay) == {"SOT"}
