@@ -64,6 +64,11 @@ jobs:
                                                headers={"Authorization": "Bearer " + token})
                   with opener.open(req, timeout=35) as response:
                       report = json.load(response)
+                  if "discovery" not in report:
+                      if attempt == 8:
+                          raise SystemExit("Discovery deployment not live")
+                      time.sleep(20)
+                      continue
                   break
               except urllib.error.HTTPError as exc:
                   if exc.code not in {404, 405, 502, 504} or attempt == 8:
@@ -97,5 +102,21 @@ jobs:
               safe["fixtures"].append(item)
           from datetime import datetime
           safe["audit_at_utc"] = datetime.fromisoformat(safe["audit_at_utc"]).isoformat()
+          d = report["discovery"]
+          assert d["lookback_days"] == 30 and d["candidate_limit"] == 8
+          safe["discovery"] = {"lookback_days": 30, "candidate_limit": 8, "families": {}}
+          for family in families:
+              row = d["families"][family]
+              keys = ("candidatos_en_corte", "revisados", "no_concluyentes")
+              assert all(type(row[k]) is int and 0 <= row[k] <= 8 for k in keys)
+              assert type(row["hay_mas_candidatos"]) is bool
+              positive = row["positivo"]
+              if positive is not None:
+                  assert type(positive["fixture_id"]) is int and positive["fixture_id"] > 0
+                  assert positive["estado"] in {"ACEPTADO_EN_REPLAY_DE_FICHA", "ACEPTADO_FUERA_DE_ULTIMOS_12"}
+                  positive = {k: positive[k] for k in ("fixture_id", "estado")}
+              safe["discovery"]["families"][family] = {
+                  **{k: row[k] for k in keys}, "hay_mas_candidatos": row["hay_mas_candidatos"],
+                  "positivo": positive}
           print(json.dumps(safe, indent=2))
           PY

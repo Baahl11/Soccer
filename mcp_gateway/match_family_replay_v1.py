@@ -1,5 +1,5 @@
 """Bounded, private replay of persisted research outputs; no provider calls."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 FIXTURES = (1647362, 1640518, 1647364)
 WINDOW = 12
@@ -88,6 +88,62 @@ def audit_fixture(cur, fixture_id, now):
                          for f, key in FIELDS.items()}}
 
 
+LOOKBACK_DAYS = 30
+CANDIDATE_LIMIT = 8
+
+
+def candidate_ids(cur, now):
+    """Recent matching fixture IDs, independently capped per family."""
+    cur.execute("""
+        WITH ranked AS (
+            SELECT k.field, e.fixture_id, max(e.generated_at) AS latest
+            FROM soccer_refresh_events e
+            JOIN soccer_fixtures f USING (fixture_id)
+            CROSS JOIN unnest(%s::text[]) AS k(field)
+            WHERE e.generated_at >= %s AND e.generated_at <= %s
+              AND e.generated_at < f.kickoff
+              AND jsonb_typeof(e.payload -> k.field) = 'object'
+            GROUP BY k.field, e.fixture_id
+        ), numbered AS (
+            SELECT *, row_number() OVER (
+                PARTITION BY field ORDER BY latest DESC, fixture_id
+            ) AS rn
+            FROM ranked
+        )
+        SELECT field, fixture_id FROM numbered WHERE rn <= %s
+        ORDER BY field, rn
+        """, (list(FIELDS.values()), now - timedelta(days=LOOKBACK_DAYS), now, CANDIDATE_LIMIT + 1))
+    out = {key: [] for key in FIELDS.values()}
+    for field, fixture_id in cur.fetchall():
+        out[field].append(fixture_id)
+    return out
+
+
+def discover(cur, now):
+    by_field = candidate_ids(cur, now)
+    cache = {}
+    output = {}
+    for family, field in FIELDS.items():
+        ids = by_field[field]
+        checked = 0
+        incomplete = 0
+        positive = None
+        for fixture_id in ids[:CANDIDATE_LIMIT]:
+            if fixture_id not in cache:
+                cache[fixture_id] = audit_fixture(cur, fixture_id, now)
+            row = cache[fixture_id]
+            checked += 1
+            state = row.get("familias", {}).get(family, {}).get("estado")
+            if state in {"ACEPTADO_EN_REPLAY_DE_FICHA", "ACEPTADO_FUERA_DE_ULTIMOS_12"}:
+                positive = {"fixture_id": fixture_id, "estado": state}
+                break
+            incomplete += int(state in {None, "ARCHIVO_TRUNCADO_NO_CONCLUYENTE"})
+        output[family] = {"candidatos_en_corte": min(len(ids), CANDIDATE_LIMIT),
+                          "hay_mas_candidatos": len(ids) > CANDIDATE_LIMIT,
+                          "revisados": checked, "no_concluyentes": incomplete, "positivo": positive}
+    return {"lookback_days": LOOKBACK_DAYS, "candidate_limit": CANDIDATE_LIMIT, "families": output}
+
+
 def run_audit():
     from mcp_gateway import persistence
 
@@ -98,5 +154,7 @@ def run_audit():
             cur.execute("SET LOCAL statement_timeout = '2500ms'")
             cur.execute("SET LOCAL lock_timeout = '750ms'")
             results = [audit_fixture(cur, fixture_id, now) for fixture_id in FIXTURES]
+            discovery = discover(cur, now)
     return {"audit_version": 1, "audit_at_utc": now.isoformat(), "window": WINDOW,
-            "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "fixtures": results}
+            "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "fixtures": results,
+            "discovery": discovery}
