@@ -110,6 +110,91 @@ jobs:
                   and kickoff.astimezone(ZoneInfo('America/Mexico_City')).date() == mxdate):
                   today_models.append(row['fixture_id'])
           matched = sorted(set(today_models) & ids)
+          # Scope: public registry slate versus the frozen journal, not PostgreSQL
+          # import or OWNER rendering. Log aggregates only, never probabilities.
+          from collections import Counter, defaultdict
+
+          def instant(value):
+              try:
+                  parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                  return parsed if parsed.tzinfo is not None else None
+              except (AttributeError, TypeError, ValueError):
+                  return None
+
+          def identity(fx):
+              keys = ('fixture_id', 'league_id', 'season', 'home_team_id', 'away_team_id')
+              parts = tuple(fx.get(k) for k in keys)
+              start = instant(fx.get('kickoff'))
+              if start is None or any(type(x) is not int or x <= 0 for x in parts):
+                  return None
+              if parts[-2] == parts[-1]:
+                  return None
+              return (*parts, start)
+
+          families = {
+              '1X2': ('raw_home_win_prob', 'raw_draw_prob', 'raw_away_win_prob'),
+              'FT_OVER_2_5': ('raw_over_2_5_prob',),
+              'BTTS': ('raw_btts_yes_prob',),
+          }
+          journal = defaultdict(set)
+          for record in records:
+              fx = record.get('fixture') or {}
+              key = identity(fx)
+              captured = instant(record.get('captured_at_utc'))
+              raw = record.get('raw_sport_projection') or {}
+              n = (raw.get('sample') or {}).get('minimum_split_sample')
+              if (key is None or captured is None or record.get('fixture_id') != key[0]
+                  or instant(record.get('kickoff')) != key[-1]
+                  or not (captured <= now and captured <= key[-1] - timedelta(minutes=45))
+                  or fx.get('source_status') != 'NS'
+                  or type(n) is not int or n < 5
+                  or record.get('status') != 'FROZEN_RESEARCH_PREMATCH_SPORT_PROJECTION'
+                  or record.get('raw_projection_before_market') is not True
+                  or record.get('historical_predictions_recomputed') is not False
+                  or record.get('bet_eligible') is not False
+                  or record.get('production_promotion_allowed') is not False):
+                  continue
+              for family, names in families.items():
+                  probs = [raw.get(name) for name in names]
+                  if (all(type(p) in (int, float) and 0 <= p <= 1 for p in probs)
+                      and (len(probs) == 1 or abs(sum(probs) - 1) <= 0.00001)):
+                      journal[key].add(family)
+
+          scope, competitions, seen = Counter(), defaultdict(Counter), set()
+          for item in slate:
+              fx = item.get('fixture') or {}
+              key = identity(fx)
+              status = fx.get('fixture_status') or fx.get('status')
+              if status in ('FT', 'AET', 'PEN', 'CANC', 'ABD', 'AWD', 'WO', 'PST', 'SUSP'):
+                  scope['completed_or_blocked'] += 1
+              elif key is None or status != 'NS':
+                  scope['identity_or_status_not_verified'] += 1
+              elif key[-1] <= now:
+                  scope['not_upcoming'] += 1
+              elif key[0] in seen:
+                  scope['duplicate_fixture'] += 1
+              else:
+                  seen.add(key[0])
+                  scope['eligible_upcoming'] += 1
+                  lane = competitions[key[1]]
+                  lane['eligible'] += 1
+                  for family in families:
+                      state = 'journal_match' if family in journal.get(key, ()) else 'no_exact_journal_match'
+                      lane[family + ':' + state] += 1
+          assert sum(scope.values()) == len(slate)
+          for lane in competitions.values():
+              for family in families:
+                  assert lane[family + ':journal_match'] + lane[family + ':no_exact_journal_match'] == lane['eligible']
+          print(json.dumps({
+              'audit': 'EXACT_PUBLIC_SLATE_VS_FROZEN_JOURNAL_V1',
+              'as_of_utc': now.isoformat(),
+              'scope': dict(scope),
+              'by_competition_id': competitions,
+              'postgres_import': 'NOT_CHECKED',
+              'owner_render': 'NOT_CHECKED',
+              'provider_requests_added': 0,
+          }, sort_keys=True))
+
           print(json.dumps({
               'audit': 'SPORT_ONLY_NO_PROVIDER_READ_ONLY',
               'render_git_commit': health.get('render_git_commit'),
