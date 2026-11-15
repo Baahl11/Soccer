@@ -47,6 +47,12 @@ jobs:
               if attempt==8:
                   raise SystemExit("DEPLOYMENT_NOT_CONFIRMED_V2_RESEARCH_ROUTE")
               time.sleep(16)
+          for fid in (1640518, 1647364):
+              code,raw=get(f"/app/api/v2/match/{fid}")
+              match=json.loads(raw)
+              assert code==403 and match.get("error")=="PRO_REQUIRED", (fid,code)
+              assert not any(key.startswith("private_") for key in match), fid
+              print(f"MATCH_ANONYMOUS_DENIED fixture_id={fid} status={code}")
           health_code,health_body=get("/health")
           today_code,today_body=get("/app/api/v2/today")
           assert health_code==200 and today_code==200, (health_code,today_code)
