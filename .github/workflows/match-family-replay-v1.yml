@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Run pinned aggregate replay on Render
         env:
-          BEFORE_EVENT_ID: ${{ inputs.before_event_id || '' }}
+          BEFORE_EVENT_ID: ${{ github.event_name == 'push' && '23056' || inputs.before_event_id || '' }}
           BASE_URL: https://soccer-edge-api.onrender.com
         run: |
           python - <<'PY'
