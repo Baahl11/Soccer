@@ -16,3 +16,23 @@ def test_replay_states(current, full, stored, truncated, state):
     assert result["estado"] == state
     assert result["eventos_prepartido_con_campo"] == int(stored)
     assert "private" not in repr(result)
+
+
+def test_discovery_checks_each_family_and_reuses_fixture_audit(monkeypatch):
+    from mcp_gateway import match_family_replay_v1 as mod
+
+    calls = []
+    monkeypatch.setattr(mod, "candidate_ids", lambda *_: {k: [7] for k in mod.FIELDS.values()})
+
+    def audit(cur, fixture_id, now):
+        calls.append(fixture_id)
+        return {"familias": {"SHOTS": {"estado": "ACEPTADO_FUERA_DE_ULTIMOS_12"},
+                             "SOT": {"estado": "PERSISTIDO_PREPARTIDO_NO_ACEPTADO"}}}
+
+    monkeypatch.setattr(mod, "audit_fixture", audit)
+    rows = mod.discover(None, None)["families"]
+    assert calls == [7]
+    assert rows["SHOTS"]["positivo"] == {"fixture_id": 7, "estado": "ACEPTADO_FUERA_DE_ULTIMOS_12"}
+    assert rows["SOT"]["positivo"] is None
+    assert rows["SOT"]["revisados"] == 1
+    assert rows["CORNERS_FT"]["no_concluyentes"] == 1
