@@ -347,13 +347,17 @@ async def _handle_match_family_replay(scope, receive, send) -> None:
     except Exception:
         await JSONResponse({"error": "unauthorized"}, status_code=401, headers=headers)(scope, receive, send)
         return
+    cursor = request.headers.get("x-audit-before-event-id", "")
+    if cursor and (not cursor.isascii() or not cursor.isdecimal() or len(cursor) > 18 or int(cursor) <= 0):
+        await JSONResponse({"error": "invalid_cursor"}, status_code=400, headers=headers)(scope, receive, send)
+        return
     if _match_family_replay_lock.locked():
         await JSONResponse({"error": "audit_busy"}, status_code=429, headers=headers)(scope, receive, send)
         return
     async with _match_family_replay_lock:
         try:
             from mcp_gateway.match_family_replay_v1 import DiscoveryFailure, run_audit
-            result = await asyncio.to_thread(run_audit)
+            result = await asyncio.to_thread(run_audit, int(cursor) if cursor else None)
             response = JSONResponse(result, headers=headers)
         except DiscoveryFailure as exc:
             response = JSONResponse({"error": "discovery_failed", "reason": str(exc)}, status_code=503, headers=headers)

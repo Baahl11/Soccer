@@ -90,44 +90,72 @@ def audit_fixture(cur, fixture_id, now):
 
 LOOKBACK_DAYS = 30
 CANDIDATE_LIMIT = 8
-EVENT_SCAN_LIMIT = 600
+PAGE_SIZE = 24
+EVENT_SCAN_LIMIT = 96
 
 
-def candidate_ids(cur, now):
-    """Recent matching fixture IDs, independently capped per family."""
+def failure_reason(exc):
+    return {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(
+        getattr(exc, "sqlstate", None), "DISCOVERY_ERROR")
+
+
+def candidate_page(cur, now, cursor):
+    params = [now - timedelta(days=LOOKBACK_DAYS), now]
+    clause = ""
+    if cursor is not None:
+        clause = " AND (generated_at, event_id) < (%s, %s)"
+        params.extend(cursor)
+    cur.execute("SELECT event_id, fixture_id, generated_at FROM soccer_refresh_events "
+                "WHERE generated_at >= %s AND generated_at <= %s" + clause
+                + " ORDER BY generated_at DESC, event_id DESC LIMIT %s", (*params, PAGE_SIZE))
+    return cur.fetchall()
+
+
+def candidate_fields(cur, page):
+    if not page:
+        return []
     cur.execute("""
-        WITH recent AS MATERIALIZED (
-            SELECT event_id, fixture_id, generated_at, payload
-            FROM soccer_refresh_events
-            WHERE generated_at >= %s AND generated_at <= %s
-            ORDER BY generated_at DESC, event_id DESC
-            LIMIT %s
-        ), ranked AS (
-            SELECT k.field, e.fixture_id, max(e.generated_at) AS latest
-            FROM recent e
-            JOIN soccer_fixtures f USING (fixture_id)
-            CROSS JOIN unnest(%s::text[]) AS k(field)
-            WHERE e.generated_at < f.kickoff
-              AND jsonb_typeof(e.payload -> k.field) = 'object'
-            GROUP BY k.field, e.fixture_id
-        ), numbered AS (
-            SELECT *, row_number() OVER (
-                PARTITION BY field ORDER BY latest DESC, fixture_id
-            ) AS rn
-            FROM ranked
+        SELECT e.event_id, ARRAY(
+            SELECT field FROM unnest(%s::text[]) AS keys(field)
+            WHERE jsonb_typeof(e.payload -> field) = 'object'
         )
-        SELECT field, fixture_id FROM numbered WHERE rn <= %s
-        ORDER BY field, rn
-        """, (now - timedelta(days=LOOKBACK_DAYS), now, EVENT_SCAN_LIMIT,
-              list(FIELDS.values()), CANDIDATE_LIMIT + 1))
-    out = {key: [] for key in FIELDS.values()}
-    for field, fixture_id in cur.fetchall():
-        out[field].append(fixture_id)
-    return out
+        FROM unnest(%s::bigint[]) AS ids(id)
+        CROSS JOIN LATERAL (
+            SELECT payload, fixture_id, generated_at, event_id
+            FROM soccer_refresh_events WHERE event_id = ids.id LIMIT 1
+        ) e
+        JOIN soccer_fixtures f ON f.fixture_id = e.fixture_id
+        WHERE e.generated_at < f.kickoff
+        """, (list(FIELDS.values()), [row[0] for row in page]))
+    return cur.fetchall()
 
 
-def discover(cur, now):
-    by_field = candidate_ids(cur, now)
+def discover(cur, now, cursor=None):
+    by_field = {key: [] for key in FIELDS.values()}
+    scanned = 0
+    complete = False
+    failure = None
+    for _ in range(EVENT_SCAN_LIMIT // PAGE_SIZE):
+        phase = "EVENT_METADATA"
+        try:
+            with cur.connection.transaction():
+                page = candidate_page(cur, now, cursor)
+                phase = "EVENT_PAYLOAD_KEYS"
+                by_event = dict(candidate_fields(cur, page))
+        except Exception as exc:
+            failure = {"phase": phase, "reason": failure_reason(exc)}
+            break
+        for event_id, fixture_id, _ in page:
+            for field in by_event.get(event_id, ()):
+                if fixture_id not in by_field[field]:
+                    by_field[field].append(fixture_id)
+        scanned += len(page)
+        if page:
+            cursor = (page[-1][2], page[-1][0])
+        if len(page) < PAGE_SIZE:
+            complete = True
+            break
+    errors = {}
     cache = {}
     output = {}
     for family, field in FIELDS.items():
@@ -136,9 +164,15 @@ def discover(cur, now):
         incomplete = 0
         positive = None
         for fixture_id in ids[:CANDIDATE_LIMIT]:
-            if fixture_id not in cache:
-                cache[fixture_id] = audit_fixture(cur, fixture_id, now)
-            row = cache[fixture_id]
+            if len(errors) >= 2 and fixture_id not in cache and fixture_id not in errors:
+                break
+            if fixture_id not in cache and fixture_id not in errors:
+                try:
+                    with cur.connection.transaction():
+                        cache[fixture_id] = audit_fixture(cur, fixture_id, now)
+                except Exception as exc:
+                    errors[fixture_id] = failure_reason(exc)
+            row = cache.get(fixture_id, {})
             checked += 1
             state = row.get("familias", {}).get(family, {}).get("estado")
             if state in {"ACEPTADO_EN_REPLAY_DE_FICHA", "ACEPTADO_FUERA_DE_ULTIMOS_12"}:
@@ -149,14 +183,18 @@ def discover(cur, now):
                           "hay_mas_candidatos": len(ids) > CANDIDATE_LIMIT,
                           "revisados": checked, "no_concluyentes": incomplete, "positivo": positive}
     return {"lookback_days": LOOKBACK_DAYS, "candidate_limit": CANDIDATE_LIMIT,
-            "event_scan_limit": EVENT_SCAN_LIMIT, "families": output}
+            "event_scan_limit": EVENT_SCAN_LIMIT, "families": output,
+            "events_scanned": scanned, "scan_complete": complete,
+            "next_before_event_id": cursor[1] if cursor and not complete else None,
+            "scan_failure": failure, "fixture_failures": [
+                {"fixture_id": fixture_id, "reason": reason} for fixture_id, reason in errors.items()]}
 
 
 class DiscoveryFailure(RuntimeError):
     pass
 
 
-def run_audit():
+def run_audit(before_id=None):
     from mcp_gateway import persistence
 
     now = datetime.now(timezone.utc)
@@ -165,13 +203,17 @@ def run_audit():
             cur.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
             cur.execute("SET LOCAL statement_timeout = '2500ms'")
             cur.execute("SET LOCAL lock_timeout = '750ms'")
-            results = [audit_fixture(cur, fixture_id, now) for fixture_id in FIXTURES]
             try:
-                discovery = discover(cur, now)
+                cursor = None
+                if before_id is not None:
+                    cur.execute("SELECT generated_at, event_id FROM soccer_refresh_events WHERE event_id = %s", (before_id,))
+                    cursor = cur.fetchone()
+                    if cursor is None:
+                        raise ValueError("unknown cursor")
+                discovery = discover(cur, now, cursor)
             except Exception as exc:
                 state = getattr(exc, "sqlstate", None)
                 failure = {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(state, "DISCOVERY_ERROR")
                 raise DiscoveryFailure(failure) from exc
-    return {"audit_version": 1, "audit_at_utc": now.isoformat(), "window": WINDOW,
-            "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "fixtures": results,
-            "discovery": discovery}
+    return {"audit_version": 2, "audit_at_utc": now.isoformat(), "window": WINDOW,
+            "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery}

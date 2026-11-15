@@ -18,36 +18,34 @@ def test_replay_states(current, full, stored, truncated, state):
     assert "private" not in repr(result)
 
 
-def test_discovery_checks_each_family_and_reuses_fixture_audit(monkeypatch):
+def test_discovery_preserves_first_page_on_second_page_error(monkeypatch):
+    from contextlib import nullcontext
     from mcp_gateway import match_family_replay_v1 as mod
 
-    calls = []
-    monkeypatch.setattr(mod, "candidate_ids", lambda *_: {k: [7] for k in mod.FIELDS.values()})
-
-    def audit(cur, fixture_id, now):
-        calls.append(fixture_id)
-        return {"familias": {"SHOTS": {"estado": "ACEPTADO_FUERA_DE_ULTIMOS_12"},
-                             "SOT": {"estado": "PERSISTIDO_PREPARTIDO_NO_ACEPTADO"}}}
-
-    monkeypatch.setattr(mod, "audit_fixture", audit)
-    rows = mod.discover(None, None)["families"]
-    assert calls == [7]
-    assert rows["SHOTS"]["positivo"] == {"fixture_id": 7, "estado": "ACEPTADO_FUERA_DE_ULTIMOS_12"}
-    assert rows["SOT"]["positivo"] is None
-    assert rows["SOT"]["revisados"] == 1
-    assert rows["CORNERS_FT"]["no_concluyentes"] == 1
-
-def test_candidate_scan_applies_index_order_and_cap_before_json():
-    from datetime import datetime, timezone
-    from mcp_gateway import match_family_replay_v1 as mod
+    class Connection:
+        transaction = staticmethod(nullcontext)
 
     class Cursor:
-        def execute(self, sql, params):
-            assert sql.index("LIMIT %s") < sql.index("jsonb_typeof")
-            assert "ORDER BY generated_at DESC, event_id DESC" in sql
-            assert params[2] == 600 and params[-1] == 9
+        connection = Connection()
 
-        def fetchall(self):
-            return [("player_sot_intelligence", 123)]
+    class Timeout(Exception):
+        sqlstate = "57014"
 
-    assert mod.candidate_ids(Cursor(), datetime.now(timezone.utc))["player_sot_intelligence"] == [123]
+    def page(cur, now, anchor):
+        start = 100 if anchor is None else anchor[1] - 1
+        return [(x, 7, None) for x in range(start, start - mod.PAGE_SIZE, -1)]
+
+    def fields(cur, rows):
+        if rows[0][0] != 100:
+            raise Timeout()
+        return [(100, ["player_shots_intelligence"])]
+
+    monkeypatch.setattr(mod, "candidate_page", page)
+    monkeypatch.setattr(mod, "candidate_fields", fields)
+    monkeypatch.setattr(mod, "audit_fixture", lambda *_: {
+        "familias": {"SHOTS": {"estado": "ACEPTADO_FUERA_DE_ULTIMOS_12"}}})
+    result = mod.discover(Cursor(), None)
+    assert result["events_scanned"] == mod.PAGE_SIZE
+    assert result["next_before_event_id"] == 77
+    assert result["scan_failure"] == {"phase": "EVENT_PAYLOAD_KEYS", "reason": "QUERY_TIMEOUT"}
+    assert result["families"]["SHOTS"]["positivo"]["fixture_id"] == 7

@@ -12,6 +12,11 @@ on:
     paths:
       - '.github/workflows/match-family-replay-v1.yml'
   workflow_dispatch:
+    inputs:
+      before_event_id:
+        description: 'Optional next_before_event_id from prior audit'
+        type: string
+        required: false
 permissions: {}
 concurrency:
   group: match-family-postgres-replay
@@ -41,6 +46,7 @@ jobs:
     steps:
       - name: Run pinned aggregate replay on Render
         env:
+          BEFORE_EVENT_ID: ${{ inputs.before_event_id || '' }}
           BASE_URL: https://soccer-edge-api.onrender.com
         run: |
           python - <<'PY'
@@ -61,10 +67,11 @@ jobs:
                   token = json.load(response)["value"]
               try:
                   req = urllib.request.Request(route, method="POST", data=b"",
-                                               headers={"Authorization": "Bearer " + token})
-                  with opener.open(req, timeout=35) as response:
+                                               headers={"Authorization": "Bearer " + token,
+                                                        "X-Audit-Before-Event-ID": os.environ.get("BEFORE_EVENT_ID", "")})
+                  with opener.open(req, timeout=75) as response:
                       report = json.load(response)
-                  if report.get("discovery", {}).get("event_scan_limit") != 600:
+                  if report.get("audit_version") != 2:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
@@ -84,37 +91,27 @@ jobs:
                   if exc.code not in {404, 405, 502, 504} or attempt == 8:
                       raise SystemExit(f"Replay failed: HTTP {exc.code}") from None
                   time.sleep(20)
-          assert report["audit_version"] == 1 and report["window"] == 12
-          assert report["scope"] == "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER"
-          assert [row["fixture_id"] for row in report["fixtures"]] == [1647362, 1640518, 1647364]
-          safe = {"audit_at_utc": report["audit_at_utc"], "fixtures": []}
-          families = ("GOLES_EQUIPO", "CORNERS_FT", "AMARILLAS_FT", "AMARILLAS_EQUIPO",
-                      "ROJA_SI_NO", "SHOTS", "SOT")
-          counters = ("eventos_con_campo_ventana", "eventos_prepartido_con_campo",
-                      "unidades_aceptadas_ventana", "unidades_aceptadas_archivo")
-          states = {"ACEPTADO_EN_REPLAY_DE_FICHA", "ACEPTADO_FUERA_DE_ULTIMOS_12",
-                    "ARCHIVO_TRUNCADO_NO_CONCLUYENTE", "PERSISTIDO_PREPARTIDO_NO_ACEPTADO",
-                    "SIN_CAMPO_PREPARTIDO_EN_REFRESH_EVENTS"}
-          for row in report["fixtures"]:
-              item = {"fixture_id": row["fixture_id"]}
-              if row.get("estado") == "IDENTIDAD_CANONICA_NO_VERIFICADA":
-                  item["estado"] = "IDENTIDAD_CANONICA_NO_VERIFICADA"
-              else:
-                  assert type(row["archivo_truncado"]) is bool
-                  assert type(row["eventos_en_ventana"]) is int and 0 <= row["eventos_en_ventana"] <= 12
-                  item.update(archivo_truncado=row["archivo_truncado"],
-                              eventos_en_ventana=row["eventos_en_ventana"], familias={})
-                  for family in families:
-                      value = row["familias"][family]
-                      assert value["estado"] in states
-                      assert all(type(value[k]) is int and 0 <= value[k] <= 200 for k in counters)
-                      item["familias"][family] = {k: value[k] for k in ("estado", *counters)}
-              safe["fixtures"].append(item)
           from datetime import datetime
-          safe["audit_at_utc"] = datetime.fromisoformat(safe["audit_at_utc"]).isoformat()
+          assert report["scope"] == "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER"
           d = report["discovery"]
-          assert d["lookback_days"] == 30 and d["candidate_limit"] == 8
-          safe["discovery"] = {"lookback_days": 30, "candidate_limit": 8, "event_scan_limit": 600, "families": {}}
+          assert d["lookback_days"] == 30 and d["event_scan_limit"] == 96
+          assert type(d["scan_complete"]) is bool
+          assert type(d["events_scanned"]) is int and 0 <= d["events_scanned"] <= 96
+          cursor = d["next_before_event_id"]
+          assert cursor is None or (type(cursor) is int and cursor > 0)
+          reasons = {"QUERY_TIMEOUT", "LOCK_TIMEOUT", "DISCOVERY_ERROR"}
+          failure = d["scan_failure"]
+          if failure:
+              assert failure["phase"] in {"EVENT_METADATA", "EVENT_PAYLOAD_KEYS"} and failure["reason"] in reasons
+              failure = {key: failure[key] for key in ("phase", "reason")}
+          safe = {"audit_at_utc": datetime.fromisoformat(report["audit_at_utc"]).isoformat(),
+                  "events_scanned": d["events_scanned"], "scan_complete": d["scan_complete"],
+                  "next_before_event_id": cursor, "scan_failure": failure, "fixture_failures": [],
+                  "discovery": {"lookback_days": 30, "event_scan_limit": 96, "families": {}}}
+          for row in d["fixture_failures"]:
+              assert type(row["fixture_id"]) is int and row["fixture_id"] > 0 and row["reason"] in reasons
+              safe["fixture_failures"].append({key: row[key] for key in ("fixture_id", "reason")})
+          families = ("GOLES_EQUIPO", "CORNERS_FT", "AMARILLAS_FT", "AMARILLAS_EQUIPO", "ROJA_SI_NO", "SHOTS", "SOT")
           for family in families:
               row = d["families"][family]
               keys = ("candidatos_en_corte", "revisados", "no_concluyentes")
@@ -129,4 +126,6 @@ jobs:
                   **{k: row[k] for k in keys}, "hay_mas_candidatos": row["hay_mas_candidatos"],
                   "positivo": positive}
           print(json.dumps(safe, indent=2))
+          if failure or safe['fixture_failures']:
+              raise SystemExit('Partial discovery: inspect stage and retained results')
           PY
