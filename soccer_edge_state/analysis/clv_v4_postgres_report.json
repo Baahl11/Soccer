@@ -3,40 +3,40 @@
   "comparable_true_clv_rows": 799,
   "derivative_anchor_diagnostics": {
     "anchors_replaced": 0,
-    "anchors_resolved": 389,
+    "anchors_resolved": 396,
     "history_rows_scanned": 0,
     "policy": "PER_FAMILY_OLDEST_FIRST_BOUNDED_LOAD_THEN_IN_MEMORY_EXACT_INSTRUMENT_DEDUPE",
     "provider_requests_added": 0,
     "redundant_targeted_history_scan_skipped": true,
     "strict_close_semantics_changed": false,
-    "target_fixture_count": 10,
-    "target_instrument_count": 389
+    "target_fixture_count": 12,
+    "target_instrument_count": 396
   },
-  "derivative_event_rows_loaded": 23,
+  "derivative_event_rows_loaded": 20,
   "derivative_family_counts": {
-    "1H": 263,
-    "2H": 126,
-    "AWAY_TT": 55,
-    "HOME_TT": 56
+    "1H": 309,
+    "2H": 87,
+    "AWAY_TT": 52,
+    "HOME_TT": 52
   },
   "derivative_family_counts_raw": {
-    "1H": 263,
-    "2H": 126,
-    "AWAY_TT": 55,
-    "HOME_TT": 56
+    "1H": 309,
+    "2H": 87,
+    "AWAY_TT": 52,
+    "HOME_TT": 52
   },
   "derivative_market_rows_loaded": 500,
   "derivative_market_rows_loaded_raw": 500,
   "derivative_period_team_total_rows_excluded": 0,
   "derivative_source_counts": {
-    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 263,
-    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 111,
-    "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence": 126
+    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 309,
+    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 104,
+    "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence": 87
   },
   "derivative_source_counts_raw": {
-    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 263,
-    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 111,
-    "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence": 126
+    "DERIVATIVE_INTELLIGENCE:one_h_goals_intelligence": 309,
+    "DERIVATIVE_INTELLIGENCE:team_totals_intelligence": 104,
+    "DERIVATIVE_INTELLIGENCE:two_h_goals_intelligence": 87
   },
   "derivative_validation_reserve_fraction": 0.25,
   "family_counts": {
@@ -48,10 +48,10 @@
   },
   "ft_totals_maturation_funnel": {
     "later_snapshot_without_later_provider_update_rows": 1,
-    "mapped_signal_rows": 3,
-    "no_later_prekickoff_snapshot_rows": 2,
+    "mapped_signal_rows": 4,
+    "no_later_prekickoff_snapshot_rows": 3,
     "policy": "UNPRICED_FT_TOTALS_RESEARCH_PLACEHOLDERS_ARE_DIAGNOSTIC_ONLY; PRICED_ENTRIES_REQUIRE_STRICTLY_LATER_PREKICKOFF_PROVIDER_UPDATE_AND_SELECTION_MATCH",
-    "priced_entry_rows": 3,
+    "priced_entry_rows": 4,
     "provider_requests_added": 0,
     "selection_mismatch_at_close_rows": 0,
     "true_clv_rows": 0,
@@ -59,17 +59,17 @@
   },
   "historical_backfill_rows_added": 0,
   "historical_backfill_unique_fixtures": 0,
-  "legacy_signal_rows_loaded": 15,
+  "legacy_signal_rows_loaded": 19,
   "lookback_days": 4,
   "malformed_fixture_rows_ignored_for_unique_counts": 0,
   "mapped_family_counts": {
-    "1H": 263,
-    "1X2": 5,
-    "2H": 126,
-    "AWAY_TT": 47,
+    "1H": 309,
+    "1X2": 6,
+    "2H": 87,
+    "AWAY_TT": 42,
     "BTTS": 4,
-    "FT_TOTALS": 3,
-    "HOME_TT": 47
+    "FT_TOTALS": 4,
+    "HOME_TT": 41
   },
   "minimum_true_close_rows": 50,
   "model_version": "SOCCER_TRUE_CLV_POSTGRES_V4_1.1.11",
@@ -90,17 +90,17 @@
     "Historical dedicated-close backfill adds at most one latest pre-kickoff row per fixture/family and is skipped whenever Postgres already covers that fixture/family.",
     "Historical Team Totals backfill additionally requires a provider close update strictly after the signal and before kickoff; legacy rows without this provenance cannot re-enter canonical true CLV."
   ],
-  "pipeline_market_rows_loaded": 17,
+  "pipeline_market_rows_loaded": 21,
   "pipeline_signal_window_policy": "DEDUPED_BEFORE_LIMIT;NEWEST_FIRST_WITH_BOUNDED_MAX_SIGNALS;HISTORICAL_TRUE_CLV_PRESERVED_BY_CANONICAL_MERGE",
   "previous_canonical_rows_preserved": 789,
   "priced_entry_family_counts": {
-    "1H": 263,
-    "1X2": 5,
-    "2H": 126,
-    "AWAY_TT": 47,
+    "1H": 309,
+    "1X2": 6,
+    "2H": 87,
+    "AWAY_TT": 42,
     "BTTS": 4,
-    "FT_TOTALS": 3,
-    "HOME_TT": 47
+    "FT_TOTALS": 4,
+    "HOME_TT": 41
   },
   "production_promotion_allowed": false,
   "provider_requests_added": 0,
@@ -114,13 +114,13 @@
   },
   "skip_reason_family_counts": {
     "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": {
-      "1H": 263,
-      "1X2": 4,
-      "2H": 126,
-      "AWAY_TT": 40,
+      "1H": 309,
+      "1X2": 5,
+      "2H": 87,
+      "AWAY_TT": 35,
       "BTTS": 3,
-      "FT_TOTALS": 2,
-      "HOME_TT": 40
+      "FT_TOTALS": 3,
+      "HOME_TT": 34
     },
     "NO_LATER_PROVIDER_UPDATE": {
       "1X2": 1,
@@ -130,18 +130,18 @@
       "HOME_TT": 2
     },
     "UNMAPPED_MARKET_FAMILY": {
-      "UNMAPPED": 5
+      "UNMAPPED": 7
     }
   },
   "skip_reason_market_counts": {
     "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": {
-      "1H | Goals Over/Under First Half": 263,
-      "1X2 | Match Winner": 4,
-      "2H | Goals Over/Under - Second Half": 126,
+      "1H | Goals Over/Under First Half": 309,
+      "1X2 | Match Winner": 5,
+      "2H | Goals Over/Under - Second Half": 87,
       "BTTS | Both Teams Score": 3,
-      "TEAM_TOTALS | Total - Away": 40,
-      "TEAM_TOTALS | Total - Home": 40,
-      "TOTAL | Goals Over/Under": 2
+      "TEAM_TOTALS | Total - Away": 35,
+      "TEAM_TOTALS | Total - Home": 34,
+      "TOTAL | Goals Over/Under": 3
     },
     "NO_LATER_PROVIDER_UPDATE": {
       "1X2 | Match Winner": 1,
@@ -151,13 +151,13 @@
       "TOTAL | Goals Over/Under": 1
     },
     "UNMAPPED_MARKET_FAMILY": {
-      "SPORTING_SCREEN | Research screen": 5
+      "SPORTING_SCREEN | Research screen": 7
     }
   },
   "skip_reasons": {
-    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 478,
+    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 476,
     "NO_LATER_PROVIDER_UPDATE": 7,
-    "UNMAPPED_MARKET_FAMILY": 5
+    "UNMAPPED_MARKET_FAMILY": 7
   },
   "snapshot_fixture_batch_size": 50,
   "status": "ACTIVE_TRUE_CLV_SAMPLE",
@@ -166,17 +166,15 @@
       1528958,
       1528968,
       1545868,
+      1545878,
+      1570021,
+      1570024,
       1581008,
       1586134,
-      1588825,
-      1588833,
-      1638304,
+      1593176,
       1638318,
       1640007,
       1644157,
-      1644336,
-      1644365,
-      1644380,
       1649009,
       1649010,
       1649518
@@ -190,7 +188,7 @@
     ]
   },
   "team_totals_directed_close_audit_counts": {
-    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 17,
+    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 15,
     "NO_LATER_PROVIDER_UPDATE": 1,
     "STRICT_EXACT_CLOSE_EXISTS": 2
   },
@@ -199,28 +197,30 @@
       1528958,
       1528968,
       1545868,
+      1545878,
+      1570021,
+      1570024,
       1581008,
-      1588825,
-      1588833,
-      1638304,
+      1593176,
       1638311,
       1638318,
       1640007,
       1644157,
-      1644336,
-      1644365,
-      1644380,
       1649009,
       1649010,
       1649518
     ],
-    "capture_without_modeled_signal": 6,
+    "capture_without_modeled_signal": 10,
     "capture_without_modeled_signal_fixture_ids": [
+      1520970,
+      1520971,
+      1520972,
       1528959,
-      1545878,
+      1528972,
       1561727,
       1570019,
       1600656,
+      1607728,
       1632091
     ],
     "modeled_signal_fixture_ids": [
@@ -228,39 +228,35 @@
       1528958,
       1528968,
       1545868,
+      1545878,
+      1570021,
+      1570024,
       1581008,
       1586134,
-      1588825,
-      1588833,
-      1638304,
+      1593176,
       1638311,
       1638318,
       1640007,
       1644157,
-      1644336,
-      1644365,
-      1644380,
       1649009,
       1649010,
       1649518
     ],
-    "modeled_signal_unique_fixtures": 19,
-    "modeled_signal_without_later_real_close": 17,
+    "modeled_signal_unique_fixtures": 17,
+    "modeled_signal_without_later_real_close": 15,
     "modeled_signal_without_later_real_close_fixture_ids": [
       1528958,
       1528968,
       1545868,
+      1545878,
+      1570021,
+      1570024,
       1581008,
-      1588825,
-      1588833,
-      1638304,
+      1593176,
       1638311,
       1638318,
       1640007,
       1644157,
-      1644336,
-      1644365,
-      1644380,
       1649009,
       1649010,
       1649518
@@ -269,7 +265,7 @@
     "pending_future_fixture_ids": [],
     "pending_future_fixtures": 0,
     "pending_timing": {
-      "already_kicked_off": 17,
+      "already_kicked_off": 15,
       "beyond_48h": 0,
       "missing_kickoff": 0,
       "within_12h": 0,
@@ -282,33 +278,35 @@
     "policy": "STRICT_CAPTURE_MARKER -> DERIVATIVE_TEAM_TOTALS_MODELED_SIGNAL -> STRICTLY_LATER_PROVIDER_QUOTE -> COMPARABLE_TRUE_CLV",
     "provider_requests_added": 0,
     "strict_capture_fixture_ids": [
+      1520970,
+      1520971,
+      1520972,
       1520976,
       1528958,
       1528959,
       1528968,
+      1528972,
       1545868,
       1545878,
       1561727,
       1570019,
+      1570021,
+      1570024,
       1581008,
       1586134,
-      1588825,
-      1588833,
+      1593176,
       1600656,
+      1607728,
       1632091,
-      1638304,
       1638311,
       1638318,
       1640007,
       1644157,
-      1644336,
-      1644365,
-      1644380,
       1649009,
       1649010,
       1649518
     ],
-    "strict_capture_unique_fixtures": 25,
+    "strict_capture_unique_fixtures": 27,
     "true_clv_directional_target": 20,
     "true_clv_fixture_ids": [
       1520976,
@@ -318,22 +316,20 @@
     "true_clv_unique_fixtures_remaining_to_directional": 18
   },
   "team_totals_skip_fixture_counts": {
-    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 14,
+    "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": 12,
     "NO_LATER_PROVIDER_UPDATE": 1
   },
   "team_totals_skip_fixture_ids": {
     "NO_LATER_PREKICKOFF_MARKET_SNAPSHOT": [
       1528958,
+      1528968,
+      1545868,
+      1545878,
       1581008,
       1586134,
-      1588825,
-      1588833,
-      1638304,
       1638318,
+      1640007,
       1644157,
-      1644336,
-      1644365,
-      1644380,
       1649009,
       1649010,
       1649518
