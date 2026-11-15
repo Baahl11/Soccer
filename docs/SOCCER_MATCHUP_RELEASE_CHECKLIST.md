@@ -17,7 +17,9 @@
   - [x] `1640518` Colombia–Chile: perfil FE11 visible, mismo timestamp, n=3 local y n=4 visitante.
   - [x] `1647364` Perú–Bolivia: perfil FE11 visible, mismo timestamp, n=0 local (sin dato) y n=1 visitante (los 0.00 goles observados no equivalen a un campo ausente).
   - [x] Aclarar el alcance del contador: el texto de #198 dice «Observaciones prepartido guardadas» y aclara que FE11 se muestra aparte.
-- [ ] Verificar un partido con RAW PostgreSQL y otro sin RAW. Probar enlace directo o recarga sin depender del listado del día. Confirmar que un usuario no OWNER no recibe los campos privados añadidos. Una prueba con datos de ejemplo no cierra este paso.
+- [x] Caso positivo OWNER: Colombia–Chile, fixture 1640518. Origen anterior al inicio en commit `30d0165d766a7cf03c178ee75de1d0f1d4c1e5c8`, captura `2026-11-12T22:52:23.128393+00:00`, mismo par ID/hora en el recibo de importación y valores coincidentes en ficha OWNER. No se archivan capturas ni credenciales.
+- [x] Caso negativo visual OWNER: Perú–Bolivia, fixture 1647364, sin tarjeta RAW original en la posición esperada. Ausente en el lote congelado y en su recibo de 188 registros; no equivale a una consulta exhaustiva de toda la base.
+- [ ] Verificación de acceso: probar respuesta de API sin sesión en Render y separación FREE/PRO/OWNER/ADMIN en contrato (#208). La prueba de contrato no sustituye una sesión comercial real en producción.
 
 ## 3. Completar las familias en esa misma ficha, sin recolectores paralelos
 - [x] Goles por equipo: lectura privada por lado y media línea, separada de λ (#198, Render 43482010018).
@@ -32,7 +34,8 @@
 - [ ] Para cada familia mostrar por separado evidencia, RAW, OOS y precio; distinguir NO VERIFICADO, muestra insuficiente, aplazado y diferido por cuota. Mantener muestra, fuente y hora al lado del dato.
 
 ## 4. Continuidad y aceptación
-- [ ] Reconciliar por competición y familia cada fixture elegible (calculado, evidencia solamente, pendiente o bloqueado); medir diferencias entre detectado, importado, leído y mostrado, no solo éxito de Actions.
+- [x] Cruce exacto del calendario público con el diario congelado para 1X2, FT >2.5 y BTTS (#207, Actions 43670726320, Render `7336888`): 19 elegibles con identidad completa en 10 competiciones, sin coincidencias en ese corte.
+- [ ] Extender la conciliación a importado, leído y mostrado por familia y distinguir evidencia, pendiente y bloqueado; el cruce público no certifica esas etapas.
 - [ ] Verificar refrescos y resultado oficial sin alterar la proyección congelada; evaluar OOS por familia y versión, sin extrapolar.
 - [ ] Mantener BET comercial bloqueado mientras no pasen las puertas independientes de OOS, disponibilidad, precio ejecutable, liquidación y derechos. No se necesita abrir BET para dar por terminada la integración del expediente.
 
