@@ -71,7 +71,7 @@ jobs:
                                                         "X-Audit-Before-Event-ID": os.environ.get("BEFORE_EVENT_ID", "")})
                   with opener.open(req, timeout=75) as response:
                       report = json.load(response)
-                  if report.get("audit_version") != 2:
+                  if report.get("audit_version") != 3:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
@@ -122,7 +122,10 @@ jobs:
                   assert type(positive["fixture_id"]) is int and positive["fixture_id"] > 0
                   assert positive["estado"] in {"ACEPTADO_EN_REPLAY_DE_FICHA", "ACEPTADO_FUERA_DE_ULTIMOS_12"}
                   positive = {k: positive[k] for k in ("fixture_id", "estado")}
+              historical = row["historical_positive_fixture_id"]
+              assert historical is None or (family in {"SHOTS", "SOT"} and type(historical) is int and historical > 0)
               safe["discovery"]["families"][family] = {
+                  "historical_positive_fixture_id": historical,
                   **{k: row[k] for k in keys}, "hay_mas_candidatos": row["hay_mas_candidatos"],
                   "positivo": positive}
           print(json.dumps(safe, indent=2))
