@@ -538,6 +538,16 @@ const render = (research,projection=raw,blocked=false,totals=null,corner=null,ye
       raw_goal_rates:{raw_home_goal_rate:1.52,raw_away_goal_rate:0.81}},
     private_pregame_evidence_sections:[{category:'CARDS',items:[{}]}]},fixture,projection,'SPORT_EVIDENCE',blocked);
 const good=render(fe11);
+assert.match(good,/Cobertura de esta ficha · 16 apartados/);
+assert.ok(good.includes(JSON.stringify([["Proyección disponible","3"],
+  ["Tasa λ, sin probabilidad por línea","1"],["Solo evidencia","2"],
+  ["Sin salida específica verificada","10"]])));
+assert.ok(render(null,{}).includes(JSON.stringify([["Proyección disponible","0"],
+  ["Tasa λ, sin probabilidad por línea","0"],["Solo evidencia","1"],
+  ["Sin salida específica verificada","15"]])));
+assert.ok(render(fe11,raw,false,teamTotals).includes(JSON.stringify([["Proyección disponible","4"],
+  ["Tasa λ, sin probabilidad por línea","0"],["Solo evidencia","2"],
+  ["Sin salida específica verificada","10"]])));
 assert.match(good,/1H \/ 2H · cobertura prepartido/);
 assert.match(good,/1H · proyección prepartido.*NOT VERIFIED/);
 assert.match(good,/2H · proyección prepartido.*el modelo condicionado al descanso no es prepartido/);
