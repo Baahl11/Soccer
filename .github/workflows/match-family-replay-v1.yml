@@ -1,0 +1,79 @@
+name: Match Family Postgres Read-Only Replay
+on:
+  push:
+    branches: [soccer-edge-mcp-v1]
+    paths:
+      - '.github/workflows/match-family-replay-v1.yml'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: match-family-postgres-replay
+  cancel-in-progress: false
+jobs:
+  replay:
+    if: github.ref == 'refs/heads/soccer-edge-mcp-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    permissions:
+      id-token: write
+    steps:
+      - name: Run pinned aggregate replay on Render
+        env:
+          BASE_URL: https://soccer-edge-api.onrender.com
+        run: |
+          python - <<'PY'
+          import json, os, time, urllib.error, urllib.parse, urllib.request
+          base = os.environ["BASE_URL"]
+          route = base + "/internal/match-family-replay-v1"
+          # A redirect must not forward the OIDC bearer token to another host.
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+          opener = urllib.request.build_opener(NoRedirect())
+          token_url = os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"]
+          token_url += "&" + urllib.parse.urlencode({"audience": "soccer-edge-render"})
+          for attempt in range(9):
+              req = urllib.request.Request(token_url, headers={
+                  "Authorization": "Bearer " + os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]})
+              with opener.open(req, timeout=12) as response:
+                  token = json.load(response)["value"]
+              try:
+                  req = urllib.request.Request(route, method="POST", data=b"",
+                                               headers={"Authorization": "Bearer " + token})
+                  with opener.open(req, timeout=35) as response:
+                      report = json.load(response)
+                  break
+              except urllib.error.HTTPError as exc:
+                  if exc.code not in {404, 405, 502, 504} or attempt == 8:
+                      raise SystemExit(f"Replay failed: HTTP {exc.code}") from None
+                  time.sleep(20)
+          assert report["audit_version"] == 1 and report["window"] == 12
+          assert report["scope"] == "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER"
+          assert [row["fixture_id"] for row in report["fixtures"]] == [1647362, 1640518, 1647364]
+          safe = {"audit_at_utc": report["audit_at_utc"], "fixtures": []}
+          families = ("GOLES_EQUIPO", "CORNERS_FT", "AMARILLAS_FT", "AMARILLAS_EQUIPO",
+                      "ROJA_SI_NO", "SHOTS", "SOT")
+          counters = ("eventos_con_campo_ventana", "eventos_prepartido_con_campo",
+                      "unidades_aceptadas_ventana", "unidades_aceptadas_archivo")
+          states = {"ACEPTADO_EN_REPLAY_DE_FICHA", "ACEPTADO_FUERA_DE_ULTIMOS_12",
+                    "ARCHIVO_TRUNCADO_NO_CONCLUYENTE", "PERSISTIDO_PREPARTIDO_NO_ACEPTADO",
+                    "SIN_CAMPO_PREPARTIDO_EN_REFRESH_EVENTS"}
+          for row in report["fixtures"]:
+              item = {"fixture_id": row["fixture_id"]}
+              if row.get("estado") == "IDENTIDAD_CANONICA_NO_VERIFICADA":
+                  item["estado"] = "IDENTIDAD_CANONICA_NO_VERIFICADA"
+              else:
+                  assert type(row["archivo_truncado"]) is bool
+                  assert type(row["eventos_en_ventana"]) is int and 0 <= row["eventos_en_ventana"] <= 12
+                  item.update(archivo_truncado=row["archivo_truncado"],
+                              eventos_en_ventana=row["eventos_en_ventana"], familias={})
+                  for family in families:
+                      value = row["familias"][family]
+                      assert value["estado"] in states
+                      assert all(type(value[k]) is int and 0 <= value[k] <= 200 for k in counters)
+                      item["familias"][family] = {k: value[k] for k in ("estado", *counters)}
+              safe["fixtures"].append(item)
+          from datetime import datetime
+          safe["audit_at_utc"] = datetime.fromisoformat(safe["audit_at_utc"]).isoformat()
+          print(json.dumps(safe, indent=2))
+          PY
