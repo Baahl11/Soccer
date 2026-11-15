@@ -769,7 +769,7 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
             )
             cur.execute(
                 """
-                SELECT fixture_id, kickoff, status, league, country,
+                SELECT fixture_id, kickoff, status, league, country, league_id, season,
                        home_team_id, home_team, away_team_id, away_team
                 FROM soccer_fixtures
                 WHERE (kickoff AT TIME ZONE %s)::date = %s::date
@@ -806,7 +806,7 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
                     rolled_forward = True
                     cur.execute(
                         """
-                        SELECT fixture_id, kickoff, status, league, country,
+                        SELECT fixture_id, kickoff, status, league, country, league_id, season,
                                home_team_id, home_team, away_team_id, away_team
                         FROM soccer_fixtures
                         WHERE (kickoff AT TIME ZONE %s)::date = %s::date
@@ -827,7 +827,7 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
     )
     rows: list[dict[str, Any]] = []
     for db_row in db_rows:
-        fixture_id, kickoff, status, league, country, home_id, home, away_id, away = db_row
+        fixture_id, kickoff, status, league, country, league_id, season, home_id, home, away_id, away = db_row
         rows.append(
             {
                 "fixture_id": fixture_id,
@@ -835,6 +835,8 @@ def _load_registry_slate(payload: dict[str, Any]) -> dict[str, Any]:
                 "status": status,
                 "league": league,
                 "country": country,
+                "league_id": league_id,
+                "season": season,
                 "home_team_id": home_id,
                 "home_team": home,
                 "away_team_id": away_id,
