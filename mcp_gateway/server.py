@@ -327,6 +327,39 @@ async def internal_research_price_bridge_check(request: Request) -> Response:
 
 
 
+MATCH_FAMILY_REPLAY_ROUTE = "/internal/match-family-replay-v1"
+MATCH_FAMILY_REPLAY_WORKFLOW = ".github/workflows/match-family-replay-v1.yml"
+MATCH_FAMILY_REPLAY_REF = "refs/heads/soccer-edge-mcp-v1"
+_match_family_replay_lock = asyncio.Lock()
+
+
+async def _handle_match_family_replay(scope, receive, send) -> None:
+    request = Request(scope, receive=receive)
+    headers = {"Cache-Control": "no-store"}
+    try:
+        claims = _base_server._github_oidc_claims(
+            request, {MATCH_FAMILY_REPLAY_WORKFLOW}, required_ref=MATCH_FAMILY_REPLAY_REF
+        )
+        if (claims.get("workflow_ref") !=
+                f"{_base_server.GITHUB_REPOSITORY}/{MATCH_FAMILY_REPLAY_WORKFLOW}@{MATCH_FAMILY_REPLAY_REF}"
+                or claims.get("event_name") not in {"push", "workflow_dispatch"}):
+            raise PermissionError("Exact workflow identity required")
+    except Exception:
+        await JSONResponse({"error": "unauthorized"}, status_code=401, headers=headers)(scope, receive, send)
+        return
+    if _match_family_replay_lock.locked():
+        await JSONResponse({"error": "audit_busy"}, status_code=429, headers=headers)(scope, receive, send)
+        return
+    async with _match_family_replay_lock:
+        try:
+            from mcp_gateway.match_family_replay_v1 import run_audit
+            result = await asyncio.to_thread(run_audit)
+            response = JSONResponse(result, headers=headers)
+        except Exception:
+            response = JSONResponse({"error": "read_only_audit_failed"}, status_code=503, headers=headers)
+    await response(scope, receive, send)
+
+
 FROZEN_PLAYER_READONLY_ROUTE = "/internal/player-frozen-pregame-v1/read"
 FROZEN_PLAYER_READONLY_WORKFLOW = ".github/workflows/player-official-oos-join.yml"
 
@@ -921,6 +954,9 @@ class V215SignalLedgerRouter:
                 return
             if path == ISOLATED_SPORT_FROZEN_IMPORT_ROUTE and method == "POST":
                 await _handle_isolated_sport_frozen_import(scope, receive, send)
+                return
+            if path == MATCH_FAMILY_REPLAY_ROUTE and method == "POST":
+                await _handle_match_family_replay(scope, receive, send)
                 return
             if path == FROZEN_PLAYER_READONLY_ROUTE and method == "POST":
                 await _handle_player_frozen_readonly(scope, receive, send)

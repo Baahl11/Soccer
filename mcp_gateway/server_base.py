@@ -189,7 +189,7 @@ def _compact_fixture(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _github_oidc_claims(request: Request, allowed_workflow_paths: set[str] | None = None) -> dict[str, Any]:
+def _github_oidc_claims(request: Request, allowed_workflow_paths: set[str] | None = None, *, required_ref: str = "refs/heads/main") -> dict[str, Any]:
     auth = request.headers.get("authorization", "")
     if not auth.startswith("Bearer "):
         raise PermissionError("Missing bearer token")
@@ -212,8 +212,8 @@ def _github_oidc_claims(request: Request, allowed_workflow_paths: set[str] | Non
         for path in workflow_paths
     ):
         raise PermissionError("Workflow not allowed")
-    if claims.get("ref") != "refs/heads/main":
-        raise PermissionError("Only main branch scheduler is allowed")
+    if claims.get("ref") != required_ref:
+        raise PermissionError("Workflow ref not allowed")
     return claims
 
 
