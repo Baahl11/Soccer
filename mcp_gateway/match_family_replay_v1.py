@@ -90,18 +90,24 @@ def audit_fixture(cur, fixture_id, now):
 
 LOOKBACK_DAYS = 30
 CANDIDATE_LIMIT = 8
+EVENT_SCAN_LIMIT = 600
 
 
 def candidate_ids(cur, now):
     """Recent matching fixture IDs, independently capped per family."""
     cur.execute("""
-        WITH ranked AS (
+        WITH recent AS MATERIALIZED (
+            SELECT event_id, fixture_id, generated_at, payload
+            FROM soccer_refresh_events
+            WHERE generated_at >= %s AND generated_at <= %s
+            ORDER BY generated_at DESC, event_id DESC
+            LIMIT %s
+        ), ranked AS (
             SELECT k.field, e.fixture_id, max(e.generated_at) AS latest
-            FROM soccer_refresh_events e
+            FROM recent e
             JOIN soccer_fixtures f USING (fixture_id)
             CROSS JOIN unnest(%s::text[]) AS k(field)
-            WHERE e.generated_at >= %s AND e.generated_at <= %s
-              AND e.generated_at < f.kickoff
+            WHERE e.generated_at < f.kickoff
               AND jsonb_typeof(e.payload -> k.field) = 'object'
             GROUP BY k.field, e.fixture_id
         ), numbered AS (
@@ -112,7 +118,8 @@ def candidate_ids(cur, now):
         )
         SELECT field, fixture_id FROM numbered WHERE rn <= %s
         ORDER BY field, rn
-        """, (list(FIELDS.values()), now - timedelta(days=LOOKBACK_DAYS), now, CANDIDATE_LIMIT + 1))
+        """, (now - timedelta(days=LOOKBACK_DAYS), now, EVENT_SCAN_LIMIT,
+              list(FIELDS.values()), CANDIDATE_LIMIT + 1))
     out = {key: [] for key in FIELDS.values()}
     for field, fixture_id in cur.fetchall():
         out[field].append(fixture_id)
@@ -141,7 +148,12 @@ def discover(cur, now):
         output[family] = {"candidatos_en_corte": min(len(ids), CANDIDATE_LIMIT),
                           "hay_mas_candidatos": len(ids) > CANDIDATE_LIMIT,
                           "revisados": checked, "no_concluyentes": incomplete, "positivo": positive}
-    return {"lookback_days": LOOKBACK_DAYS, "candidate_limit": CANDIDATE_LIMIT, "families": output}
+    return {"lookback_days": LOOKBACK_DAYS, "candidate_limit": CANDIDATE_LIMIT,
+            "event_scan_limit": EVENT_SCAN_LIMIT, "families": output}
+
+
+class DiscoveryFailure(RuntimeError):
+    pass
 
 
 def run_audit():
@@ -154,7 +166,12 @@ def run_audit():
             cur.execute("SET LOCAL statement_timeout = '2500ms'")
             cur.execute("SET LOCAL lock_timeout = '750ms'")
             results = [audit_fixture(cur, fixture_id, now) for fixture_id in FIXTURES]
-            discovery = discover(cur, now)
+            try:
+                discovery = discover(cur, now)
+            except Exception as exc:
+                state = getattr(exc, "sqlstate", None)
+                failure = {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(state, "DISCOVERY_ERROR")
+                raise DiscoveryFailure(failure) from exc
     return {"audit_version": 1, "audit_at_utc": now.isoformat(), "window": WINDOW,
             "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "fixtures": results,
             "discovery": discovery}
