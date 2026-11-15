@@ -36,3 +36,18 @@ def test_discovery_checks_each_family_and_reuses_fixture_audit(monkeypatch):
     assert rows["SOT"]["positivo"] is None
     assert rows["SOT"]["revisados"] == 1
     assert rows["CORNERS_FT"]["no_concluyentes"] == 1
+
+def test_candidate_scan_applies_index_order_and_cap_before_json():
+    from datetime import datetime, timezone
+    from mcp_gateway import match_family_replay_v1 as mod
+
+    class Cursor:
+        def execute(self, sql, params):
+            assert sql.index("LIMIT %s") < sql.index("jsonb_typeof")
+            assert "ORDER BY generated_at DESC, event_id DESC" in sql
+            assert params[2] == 600 and params[-1] == 9
+
+        def fetchall(self):
+            return [("player_sot_intelligence", 123)]
+
+    assert mod.candidate_ids(Cursor(), datetime.now(timezone.utc))["player_sot_intelligence"] == [123]

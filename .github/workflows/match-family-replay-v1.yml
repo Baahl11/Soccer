@@ -64,13 +64,23 @@ jobs:
                                                headers={"Authorization": "Bearer " + token})
                   with opener.open(req, timeout=35) as response:
                       report = json.load(response)
-                  if "discovery" not in report:
+                  if report.get("discovery", {}).get("event_scan_limit") != 600:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
                       continue
                   break
               except urllib.error.HTTPError as exc:
+                  if exc.code == 503:
+                      try:
+                          reason = json.loads(exc.read(512)).get("reason")
+                      except (ValueError, AttributeError):
+                          reason = None
+                      if reason in {"QUERY_TIMEOUT", "LOCK_TIMEOUT", "DISCOVERY_ERROR"}:
+                          raise SystemExit(f"Discovery failed: {reason}") from None
+                      if attempt < 8:
+                          time.sleep(20)
+                          continue
                   if exc.code not in {404, 405, 502, 504} or attempt == 8:
                       raise SystemExit(f"Replay failed: HTTP {exc.code}") from None
                   time.sleep(20)
@@ -104,7 +114,7 @@ jobs:
           safe["audit_at_utc"] = datetime.fromisoformat(safe["audit_at_utc"]).isoformat()
           d = report["discovery"]
           assert d["lookback_days"] == 30 and d["candidate_limit"] == 8
-          safe["discovery"] = {"lookback_days": 30, "candidate_limit": 8, "families": {}}
+          safe["discovery"] = {"lookback_days": 30, "candidate_limit": 8, "event_scan_limit": 600, "families": {}}
           for family in families:
               row = d["families"][family]
               keys = ("candidatos_en_corte", "revisados", "no_concluyentes")

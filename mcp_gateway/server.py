@@ -352,9 +352,11 @@ async def _handle_match_family_replay(scope, receive, send) -> None:
         return
     async with _match_family_replay_lock:
         try:
-            from mcp_gateway.match_family_replay_v1 import run_audit
+            from mcp_gateway.match_family_replay_v1 import DiscoveryFailure, run_audit
             result = await asyncio.to_thread(run_audit)
             response = JSONResponse(result, headers=headers)
+        except DiscoveryFailure as exc:
+            response = JSONResponse({"error": "discovery_failed", "reason": str(exc)}, status_code=503, headers=headers)
         except Exception:
             response = JSONResponse({"error": "read_only_audit_failed"}, status_code=503, headers=headers)
     await response(scope, receive, send)
