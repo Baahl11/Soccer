@@ -40,3 +40,9 @@
 - [ ] Mantener BET comercial bloqueado mientras no pasen las puertas independientes de OOS, disponibilidad, precio ejecutable, liquidación y derechos. No se necesita abrir BET para dar por terminada la integración del expediente.
 
 Marcar un punto solo con un resultado verificable y registrar fecha UTC, SHA y ejecución o prueba correspondiente.
+
+### Auditoría en producción: persistencia y validadores
+
+- [x] Primera muestra paginada en Render (`7d62894`, [ejecución 43676778847](https://github.com/Baahl11/Soccer/actions/runs/43676778847/job/132698632979)): 96 eventos, sin errores. En la ventana real de 12: goles por equipo `1520972`; córners FT, amarillas FT/por equipo y roja sí/no `1570021`.
+- [ ] Tiros/SOT: ocho candidatos revisados por familia sin positivo vigente ni válido al momento de captura en el primer corte. Quedan candidatos; cursor `23056`.
+- [ ] Confirmar la respuesta HTTP y la visualización con una sesión OWNER autorizada. Un replay de validadores no sustituye esta prueba.
