@@ -1021,3 +1021,46 @@ def test_owner_team_yellows_keep_sidecar_scope_and_exact_fixture():
     assert cards.saved_match_rates([{**saved, "generated_at": fx["kickoff"]}], fx, by_team=True)["status"] == "NOT_VERIFIED"
     grid["away_yellow_lambda"] = True
     assert cards.saved_match_rates([saved], fx, by_team=True)["status"] == "NOT_VERIFIED"
+
+
+def test_registry_slate_preserves_competition_and_season_on_both_date_paths(monkeypatch):
+    from contextlib import nullcontext
+
+    v2 = subscriber_contract_v2
+    db_fixture = (42, "2026-10-08T18:00:00+00:00", "NS", "League", "Country",
+                  55, 2026, 10, "Home", 20, "Away")
+    monkeypatch.setattr(v2, "_slate_context", lambda _: ("2026-10-07", "America/Mexico_City"))
+    monkeypatch.setattr(v2, "_load_evidence_inventory", lambda _cur, _ids: {})
+    monkeypatch.setattr(v2.soccer_sport_queue_v1, "read_statuses", lambda _connect, _ids: {})
+
+    class Cursor:
+        def __init__(self, roll):
+            self.roll = roll
+            self.fixture_queries = 0
+
+        def execute(self, sql, _params):
+            if "SELECT fixture_id, kickoff" in sql:
+                assert "league_id, season" in sql
+                self.fixture_queries += 1
+
+        def fetchall(self):
+            return [] if self.roll and self.fixture_queries == 1 else [db_fixture]
+
+        def fetchone(self):
+            return ("2026-10-08",)
+
+    class Conn:
+        def __init__(self, cursor):
+            self._cursor = cursor
+
+        def cursor(self):
+            return nullcontext(self._cursor)
+
+    for roll, status in ((False, "FULL_SLATE_READY"), (True, "NEXT_SLATE_READY")):
+        cursor = Cursor(roll)
+        monkeypatch.setattr(v2.persistence_base, "_connect", lambda: nullcontext(Conn(cursor)))
+        slate = v2._load_registry_slate({})
+        assert slate["status"] == status
+        fx = v2._registry_fixture(slate["rows"][0])
+        assert (fx["fixture_id"], fx["league_id"], fx["season"], fx["fixture_status"]) == (42, 55, 2026, "NS")
+        assert cursor.fixture_queries == (2 if roll else 1)
