@@ -1,29 +1,26 @@
 {
-  "status": "NO_NEW_VALID_PREGAME_MODELS",
-  "generated_at_utc": "2026-11-16T09:34:31.084967+00:00",
-  "candidate_fixtures": 6,
-  "negative_cache_deferred_fixtures": 159,
+  "status": "CAPTURED_RESEARCH_ONLY",
+  "generated_at_utc": "2026-11-16T09:53:56.625660+00:00",
+  "candidate_fixtures": 1,
+  "negative_cache_deferred_fixtures": 165,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
   "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
   "previously_negative_eligible": 0,
-  "attempted_fixtures": 6,
-  "new_frozen_pregame_models": 0,
-  "eligible_fixture_ids": 192,
+  "attempted_fixtures": 1,
+  "new_frozen_pregame_models": 1,
+  "eligible_fixture_ids": 193,
   "league_coverage_report": [
     {
       "league": "Friendlies",
       "competition_id": 10,
       "eligible": 28,
-      "attempted": 4,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 4,
+      "missing_or_insufficient": 0,
       "already_frozen": 2,
-      "deferred_due_to_missing_source": 22,
+      "deferred_due_to_missing_source": 26,
       "unattempted": 0,
-      "failure_reasons": {
-        "AWAY_VERIFIED_SEASON_SPLITS_MISSING": 1,
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 3
-      }
+      "failure_reasons": {}
     },
     {
       "league": "UEFA U19 Championship - Qualification",
@@ -158,18 +155,28 @@
       "failure_reasons": {}
     },
     {
+      "league": "UEFA U21 Championship - Qualification",
+      "competition_id": 850,
+      "eligible": 4,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
+      "already_frozen": 1,
+      "deferred_due_to_missing_source": 2,
+      "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
       "league": "U20 Elite League",
       "competition_id": 890,
       "eligible": 4,
-      "attempted": 1,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 1,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 4,
       "unattempted": 0,
-      "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
-      }
+      "failure_reasons": {}
     },
     {
       "league": "Primera División",
@@ -206,20 +213,6 @@
       "deferred_due_to_missing_source": 3,
       "unattempted": 0,
       "failure_reasons": {}
-    },
-    {
-      "league": "UEFA U21 Championship - Qualification",
-      "competition_id": 850,
-      "eligible": 3,
-      "attempted": 1,
-      "modeled_limited": 0,
-      "missing_or_insufficient": 1,
-      "already_frozen": 1,
-      "deferred_due_to_missing_source": 1,
-      "unattempted": 0,
-      "failure_reasons": {
-        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
-      }
     },
     {
       "league": "Prva Liga",
@@ -516,43 +509,12 @@
   "season_split_cache_hits": 0,
   "season_split_cache_hits_from_original_frozen": 0,
   "season_split_cache_hits_same_capture": 0,
-  "season_split_cache_misses": 8,
-  "season_split_cache_new_entries": 3,
+  "season_split_cache_misses": 2,
+  "season_split_cache_new_entries": 2,
   "season_split_cache_new_public_cache_files_created": 0,
-  "excluded": [
-    {
-      "fixture_id": 1632252,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1647644,
-      "status": "NOT_MODELED",
-      "reason": "AWAY_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1645405,
-      "status": "NOT_MODELED",
-      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
-    },
-    {
-      "fixture_id": 1648288,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1649552,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1649027,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    }
-  ],
-  "provider_requests_added": 10,
-  "daily_remaining_reported": 7206,
+  "excluded": [],
+  "provider_requests_added": 4,
+  "daily_remaining_reported": 7196,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
