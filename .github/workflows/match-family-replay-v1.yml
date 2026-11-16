@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Run pinned aggregate replay on Render
         env:
-          BEFORE_EVENT_ID: ${{ github.event_name == 'push' && '23056' || inputs.before_event_id || '' }}
+          BEFORE_EVENT_ID: ${{ github.event_name == 'push' && '22960' || inputs.before_event_id || '' }}
           BASE_URL: https://soccer-edge-api.onrender.com
         run: |
           python - <<'PY'
@@ -71,7 +71,7 @@ jobs:
                                                         "X-Audit-Before-Event-ID": os.environ.get("BEFORE_EVENT_ID", "")})
                   with opener.open(req, timeout=75) as response:
                       report = json.load(response)
-                  if report.get("audit_version") != 3:
+                  if report.get("audit_version") != 4:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
@@ -124,7 +124,13 @@ jobs:
                   positive = {k: positive[k] for k in ("fixture_id", "estado")}
               historical = row["historical_positive_fixture_id"]
               assert historical is None or (family in {"SHOTS", "SOT"} and type(historical) is int and historical > 0)
+              allowed = ["XI_NOT_CONFIRMED","OTHER_PRODUCER_STATE","MODEL_OUTPUT_EVENTS","NO_MODELED_PLAYERS","NO_MATCHED_PREGAME_PLAYER_SNAPSHOT","ACCEPTED_EVENTS","OTHER_VALIDATOR_REASON","SNAPSHOT_NOT_OBJECT","NOT_VERIFIED_ASOF_FIXTURE","MODEL_FIXTURE_MISMATCH","MODEL_PLAYER_LIST_MISSING","MODEL_PLAYER_ID_XI_NOT_VERIFIED","PLAYER_REGISTRY_ASOF_NOT_VERIFIED","HISTORICAL_PLAYER_SAMPLE_INSUFFICIENT","HISTORICAL_PLAYER_MINUTES_INSUFFICIENT","RAW_SHOTS_RATE_NOT_VERIFIED","EXPECTED_MINUTES_NOT_VERIFIED","OPPONENT_CONTEXT_NOT_VERIFIED","MODEL_LINE_DISTRIBUTION_NOT_VERIFIED"]
+              diagnostics = row["diagnostics"]
+              assert isinstance(diagnostics, dict)
+              assert not diagnostics or family in {"SHOTS", "SOT"}
+              assert all(k in allowed and type(v) is int and 0 <= v <= 1000000 for k, v in diagnostics.items())
               safe["discovery"]["families"][family] = {
+                  "diagnostics": diagnostics,
                   "historical_positive_fixture_id": historical,
                   **{k: row[k] for k in keys}, "hay_mas_candidatos": row["hay_mas_candidatos"],
                   "positivo": positive}

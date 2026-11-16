@@ -1,4 +1,5 @@
 """Bounded, private replay of persisted research outputs; no provider calls."""
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 
 FIXTURES = (1647362, 1640518, 1647364)
@@ -72,6 +73,45 @@ def historical_player_families(events, fixture, now, replay=None):
     return found
 
 
+PLAYER_DIAGNOSTIC_KEYS = ['XI_NOT_CONFIRMED','OTHER_PRODUCER_STATE','MODEL_OUTPUT_EVENTS','NO_MODELED_PLAYERS','NO_MATCHED_PREGAME_PLAYER_SNAPSHOT','ACCEPTED_EVENTS','OTHER_VALIDATOR_REASON','SNAPSHOT_NOT_OBJECT','NOT_VERIFIED_ASOF_FIXTURE','MODEL_FIXTURE_MISMATCH','MODEL_PLAYER_LIST_MISSING','MODEL_PLAYER_ID_XI_NOT_VERIFIED','PLAYER_REGISTRY_ASOF_NOT_VERIFIED','HISTORICAL_PLAYER_SAMPLE_INSUFFICIENT','HISTORICAL_PLAYER_MINUTES_INSUFFICIENT','RAW_SHOTS_RATE_NOT_VERIFIED','EXPECTED_MINUTES_NOT_VERIFIED','OPPONENT_CONTEXT_NOT_VERIFIED','MODEL_LINE_DISTRIBUTION_NOT_VERIFIED']
+
+
+def player_diagnostics(events, fixture, now, replay=None):
+    """Count saved event states and family-specific first validator blockers."""
+    if replay is None:
+        from mcp_gateway.player_prop_sport_first_bridge_v1 import saved_match_profiles as replay
+
+    counters = {family: Counter() for family in ("SHOTS", "SOT")}
+    for event in events:
+        stamp = datetime.fromisoformat(event["generated_at"])
+        if stamp > now:
+            continue
+        for family, counts in counters.items():
+            key = FIELDS[family]
+            intel = event["payload"].get(key)
+            if not isinstance(intel, dict):
+                continue
+            if intel.get("reason") == "BOTH_STARTING_XI_NOT_CONFIRMED":
+                counts["XI_NOT_CONFIRMED"] += 1
+                continue
+            if intel.get("status") != f"LIVE_RESEARCH_{family}_PROPS":
+                counts["OTHER_PRODUCER_STATE"] += 1
+                continue
+            counts["MODEL_OUTPUT_EVENTS"] += 1
+            if intel.get("modeled_players") == 0:
+                counts["NO_MODELED_PLAYERS"] += 1
+            other = FIELDS["SOT" if family == "SHOTS" else "SHOTS"]
+            payload = {k: v for k, v in event["payload"].items() if k != other}
+            result = replay([{**event, "payload": payload}], fixture, now_utc=stamp)
+            if result.get("rows"):
+                counts["ACCEPTED_EVENTS"] += 1
+            if result.get("reason") == "NO_MATCHED_PREGAME_PLAYER_SNAPSHOT":
+                counts["NO_MATCHED_PREGAME_PLAYER_SNAPSHOT"] += 1
+            for reason, count in result.get("unverified_input_reasons", {}).items():
+                counts[reason if reason in PLAYER_DIAGNOSTIC_KEYS else "OTHER_VALIDATOR_REASON"] += count
+    return counters
+
+
 def read_events(cur, fixture_id, kickoff, now, *, archive):
     query = ("SELECT stage, event_type, generated_at, payload FROM soccer_refresh_events "
              "WHERE fixture_id = %s")
@@ -106,6 +146,7 @@ def audit_fixture(cur, fixture_id, now):
     historical = historical_player_families(archive, fixture, now)
     return {"fixture_id": fixture_id, "eventos_en_ventana": len(window),
             "historical_player_families": sorted(historical),
+            "player_diagnostics": player_diagnostics(archive, fixture, now),
             "archivo_truncado": truncated,
             "familias": {f: summarize(key, window, archive, current[f], full[f], truncated)
                          for f, key in FIELDS.items()}}
@@ -187,6 +228,7 @@ def discover(cur, now, cursor=None):
         incomplete = 0
         positive = None
         historical_positive = None
+        diagnostics = Counter()
         for fixture_id in ids[:CANDIDATE_LIMIT]:
             if len(errors) >= 2 and fixture_id not in cache and fixture_id not in errors:
                 break
@@ -198,6 +240,7 @@ def discover(cur, now, cursor=None):
                     errors[fixture_id] = failure_reason(exc)
             row = cache.get(fixture_id, {})
             checked += 1
+            diagnostics.update(row.get("player_diagnostics", {}).get(family, {}))
             if historical_positive is None and family in row.get("historical_player_families", []):
                 historical_positive = fixture_id
             state = row.get("familias", {}).get(family, {}).get("estado")
@@ -208,7 +251,8 @@ def discover(cur, now, cursor=None):
         output[family] = {"candidatos_en_corte": min(len(ids), CANDIDATE_LIMIT),
                           "hay_mas_candidatos": len(ids) > CANDIDATE_LIMIT,
                           "revisados": checked, "no_concluyentes": incomplete, "positivo": positive,
-                          "historical_positive_fixture_id": historical_positive}
+                          "historical_positive_fixture_id": historical_positive,
+                          "diagnostics": dict(diagnostics)}
     return {"lookback_days": LOOKBACK_DAYS, "candidate_limit": CANDIDATE_LIMIT,
             "event_scan_limit": EVENT_SCAN_LIMIT, "families": output,
             "events_scanned": scanned, "scan_complete": complete,
@@ -242,5 +286,5 @@ def run_audit(before_id=None):
                 state = getattr(exc, "sqlstate", None)
                 failure = {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(state, "DISCOVERY_ERROR")
                 raise DiscoveryFailure(failure) from exc
-    return {"audit_version": 3, "audit_at_utc": now.isoformat(), "window": WINDOW,
+    return {"audit_version": 4, "audit_at_utc": now.isoformat(), "window": WINDOW,
             "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery}
