@@ -85,3 +85,18 @@ def test_player_diagnostics_separate_producer_and_validator_and_do_not_leak():
     assert result["SHOTS"] == {"XI_NOT_CONFIRMED": 1}
     assert result["SOT"] == {"MODEL_OUTPUT_EVENTS": 1, "OPPONENT_CONTEXT_NOT_VERIFIED": 2,
                              "OTHER_VALIDATOR_REASON": 1}
+
+
+@pytest.mark.parametrize("value, expected", [
+    (None, "PLAYER_REGISTRY_TIMESTAMP_MISSING"),
+    (" ", "PLAYER_REGISTRY_TIMESTAMP_MISSING"),
+    ("bad", "PLAYER_REGISTRY_TIMESTAMP_INVALID"),
+    ("2026-11-14T01:00:00", "PLAYER_REGISTRY_TIMESTAMP_INVALID"),
+    ("2026-11-14T01:00:01Z", "PLAYER_REGISTRY_TIMESTAMP_AFTER_CAPTURE"),
+    ("2026-11-13T19:00:00-06:00", None),
+])
+def test_registry_timestamp_rejection_breakdown(value, expected):
+    from datetime import datetime
+    from mcp_gateway.player_prop_sport_first_bridge_v1 import registry_time_blocker
+
+    assert registry_time_blocker(value, datetime.fromisoformat("2026-11-14T01:00:00+00:00")) == expected

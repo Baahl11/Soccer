@@ -116,7 +116,18 @@ def _model_lines(value: Any) -> list[dict[str, Any]]:
     return result
 
 
-def sport_profiles(rows: list[dict[str, Any]], *, now_utc: datetime) -> dict[str, Any]:
+def registry_time_blocker(value: Any, captured: datetime) -> str | None:
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return "PLAYER_REGISTRY_TIMESTAMP_MISSING"
+    stamp = _dt(value)
+    if stamp is None:
+        return "PLAYER_REGISTRY_TIMESTAMP_INVALID"
+    if stamp > captured:
+        return "PLAYER_REGISTRY_TIMESTAMP_AFTER_CAPTURE"
+    return None
+
+
+def sport_profiles(rows: list[dict[str, Any]], *, now_utc: datetime, audit_registry_time: bool = False) -> dict[str, Any]:
     """Do NOT receive odds or market quotes; output rank is kickoff + player ID."""
     now = _dt(now_utc)
     if not now or not isinstance(rows, list):
@@ -191,7 +202,10 @@ def sport_profiles(rows: list[dict[str, Any]], *, now_utc: datetime) -> dict[str
                 )
                 blockers = []
                 if not reg_ts or not (reg_ts <= captured):
-                    blockers.append("PLAYER_REGISTRY_ASOF_NOT_VERIFIED")
+                    blockers.append(
+                        registry_time_blocker(player.get("registry_generated_at_utc"), captured)
+                        if audit_registry_time else "PLAYER_REGISTRY_ASOF_NOT_VERIFIED"
+                    )
                 if type(n) is not int or n < MIN_PLAYED_MATCHES:
                     blockers.append("HISTORICAL_PLAYER_SAMPLE_INSUFFICIENT")
                 if minutes is None or minutes < MIN_OBSERVED_MINUTES:
@@ -459,7 +473,7 @@ def build_live_research(offers: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def saved_match_profiles(events: Any, fixture: dict[str, Any], *, now_utc: datetime) -> dict[str, Any]:
+def saved_match_profiles(events: Any, fixture: dict[str, Any], *, now_utc: datetime, audit_registry_time: bool = False) -> dict[str, Any]:
     """Use the same verified sport-first gate on the match's existing refresh rows."""
     keys = ("fixture_id", "home_team_id", "away_team_id", "league_id", "season")
     kickoff = _dt(fixture.get("kickoff"))
@@ -488,7 +502,7 @@ def saved_match_profiles(events: Any, fixture: dict[str, Any], *, now_utc: datet
                 "sot": e.get("player_sot_intelligence")})
     output, seen, reasons = [], set(), {}
     for record in sorted(records, key=lambda row: row["generated_at"], reverse=True):
-        result = sport_profiles([record], now_utc=now_utc)
+        result = sport_profiles([record], now_utc=now_utc, audit_registry_time=audit_registry_time)
         for reason, count in result["unverified_input_reasons"].items():
             reasons[reason] = reasons.get(reason, 0) + count
         for row in result["rows"]:

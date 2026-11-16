@@ -73,13 +73,15 @@ def historical_player_families(events, fixture, now, replay=None):
     return found
 
 
-PLAYER_DIAGNOSTIC_KEYS = ['XI_NOT_CONFIRMED','OTHER_PRODUCER_STATE','MODEL_OUTPUT_EVENTS','NO_MODELED_PLAYERS','NO_MATCHED_PREGAME_PLAYER_SNAPSHOT','ACCEPTED_EVENTS','OTHER_VALIDATOR_REASON','SNAPSHOT_NOT_OBJECT','NOT_VERIFIED_ASOF_FIXTURE','MODEL_FIXTURE_MISMATCH','MODEL_PLAYER_LIST_MISSING','MODEL_PLAYER_ID_XI_NOT_VERIFIED','PLAYER_REGISTRY_ASOF_NOT_VERIFIED','HISTORICAL_PLAYER_SAMPLE_INSUFFICIENT','HISTORICAL_PLAYER_MINUTES_INSUFFICIENT','RAW_SHOTS_RATE_NOT_VERIFIED','EXPECTED_MINUTES_NOT_VERIFIED','OPPONENT_CONTEXT_NOT_VERIFIED','MODEL_LINE_DISTRIBUTION_NOT_VERIFIED']
+PLAYER_DIAGNOSTIC_KEYS = ['XI_NOT_CONFIRMED','OTHER_PRODUCER_STATE','MODEL_OUTPUT_EVENTS','NO_MODELED_PLAYERS','NO_MATCHED_PREGAME_PLAYER_SNAPSHOT','ACCEPTED_EVENTS','OTHER_VALIDATOR_REASON','SNAPSHOT_NOT_OBJECT','NOT_VERIFIED_ASOF_FIXTURE','MODEL_FIXTURE_MISMATCH','MODEL_PLAYER_LIST_MISSING','MODEL_PLAYER_ID_XI_NOT_VERIFIED','PLAYER_REGISTRY_ASOF_NOT_VERIFIED','PLAYER_REGISTRY_TIMESTAMP_MISSING','PLAYER_REGISTRY_TIMESTAMP_INVALID','PLAYER_REGISTRY_TIMESTAMP_AFTER_CAPTURE','HISTORICAL_PLAYER_SAMPLE_INSUFFICIENT','HISTORICAL_PLAYER_MINUTES_INSUFFICIENT','RAW_SHOTS_RATE_NOT_VERIFIED','EXPECTED_MINUTES_NOT_VERIFIED','OPPONENT_CONTEXT_NOT_VERIFIED','MODEL_LINE_DISTRIBUTION_NOT_VERIFIED']
 
 
 def player_diagnostics(events, fixture, now, replay=None):
     """Count saved event states and family-specific first validator blockers."""
     if replay is None:
-        from mcp_gateway.player_prop_sport_first_bridge_v1 import saved_match_profiles as replay
+        from mcp_gateway.player_prop_sport_first_bridge_v1 import saved_match_profiles
+        from functools import partial
+        replay = partial(saved_match_profiles, audit_registry_time=True)
 
     counters = {family: Counter() for family in ("SHOTS", "SOT")}
     for event in events:
@@ -286,5 +288,5 @@ def run_audit(before_id=None):
                 state = getattr(exc, "sqlstate", None)
                 failure = {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(state, "DISCOVERY_ERROR")
                 raise DiscoveryFailure(failure) from exc
-    return {"audit_version": 4, "audit_at_utc": now.isoformat(), "window": WINDOW,
+    return {"audit_version": 5, "audit_at_utc": now.isoformat(), "window": WINDOW,
             "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery}
