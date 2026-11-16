@@ -67,3 +67,21 @@ def test_historical_player_replay_is_separate_and_reads_past_twelve():
         return {"rows": [{"family": "SOT"}]}
 
     assert mod.historical_player_families(events, fixture, now, replay=replay) == {"SOT"}
+
+def test_player_diagnostics_separate_producer_and_validator_and_do_not_leak():
+    from datetime import datetime, timezone
+    from mcp_gateway import match_family_replay_v1 as mod
+
+    stamp = "2026-11-14T01:00:00+00:00"
+    events = [{"generated_at": stamp, "payload": {
+        "player_shots_intelligence": {"status": "NOT_VERIFIED", "reason": "BOTH_STARTING_XI_NOT_CONFIRMED"},
+        "player_sot_intelligence": {"status": "LIVE_RESEARCH_SOT_PROPS", "modeled_players": 2},
+    }}]
+    def replay(rows, fixture, *, now_utc):
+        assert "player_shots_intelligence" not in rows[0]["payload"]
+        assert now_utc.isoformat() == stamp
+        return {"unverified_input_reasons": {"OPPONENT_CONTEXT_NOT_VERIFIED": 2, "private": 1}}
+    result = mod.player_diagnostics(events, {}, datetime(2026, 11, 15, tzinfo=timezone.utc), replay)
+    assert result["SHOTS"] == {"XI_NOT_CONFIRMED": 1}
+    assert result["SOT"] == {"MODEL_OUTPUT_EVENTS": 1, "OPPONENT_CONTEXT_NOT_VERIFIED": 2,
+                             "OTHER_VALIDATOR_REASON": 1}
