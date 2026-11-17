@@ -100,3 +100,11 @@ def test_registry_timestamp_rejection_breakdown(value, expected):
     from mcp_gateway.player_prop_sport_first_bridge_v1 import registry_time_blocker
 
     assert registry_time_blocker(value, datetime.fromisoformat("2026-11-14T01:00:00+00:00")) == expected
+
+def test_fresh_capture_filter_excludes_old_and_boundary_events():
+    from datetime import timedelta
+    from mcp_gateway import match_family_replay_v1 as mod
+
+    events = [{"generated_at": (mod.FRESH_CAPTURE_AFTER + timedelta(seconds=delta)).isoformat()}
+              for delta in (-1, 0, 1)]
+    assert mod.fresh_captures(events) == [events[-1]]
