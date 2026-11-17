@@ -7,6 +7,8 @@ on:
       - 'mcp_gateway/match_family_replay_v1.py'
       - 'mcp_gateway/server*.py'
       - 'tests/test_match_family_replay_v1.py'
+      - 'tests/test_oos_canonical_pair_inventory_v1.py'
+      - 'mcp_gateway/oos_canonical_pair_inventory_v1.py'
   push:
     branches: [soccer-edge-mcp-v1]
     paths:
@@ -35,7 +37,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r mcp_gateway/requirements.txt pytest
       - run: python -m py_compile mcp_gateway/server.py mcp_gateway/server_base.py mcp_gateway/match_family_replay_v1.py
-      - run: python -m pytest -q tests/test_match_family_replay_v1.py
+      - run: python -m pytest -q tests/test_match_family_replay_v1.py tests/test_oos_canonical_pair_inventory_v1.py
   replay:
     needs: validate
     if: github.ref == 'refs/heads/soccer-edge-mcp-v1'
@@ -71,7 +73,7 @@ jobs:
                                                         "X-Audit-Before-Event-ID": os.environ.get("BEFORE_EVENT_ID", "")})
                   with opener.open(req, timeout=75) as response:
                       report = json.load(response)
-                  if report.get("audit_version") != 9:
+                  if report.get("audit_version") != 10:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
@@ -181,7 +183,25 @@ jobs:
           evidence_error = report["corners_evidence_error"]
           assert evidence_error is None or evidence_error in reasons
           safe["corners_evidence_error"] = evidence_error
+          pair_error = report["canonical_pair_error"]
+          assert pair_error is None or pair_error in reasons
+          safe["canonical_pair_error"] = pair_error
+          if pair_error is None:
+              pairs = report["canonical_pair_coverage"]
+              n = pairs["sampled"]
+              assert type(n) is int and 0 <= n <= 32
+              assert type(pairs["sample_truncated"]) is bool
+              assert type(pairs["observation_truncated"]) is int and 0 <= pairs["observation_truncated"] <= n
+              safe_pairs = {k: pairs[k] for k in ("sampled", "sample_truncated", "observation_truncated")}
+              safe_pairs["families"] = {}
+              for family in ("FT_CORNERS", "TEAM_CORNERS", "FT_YELLOWS", "TEAM_YELLOWS", "ANY_RED"):
+                  counts = {k: pairs["families"][family][k] for k in ("both", "prediction_only", "outcome_only", "neither")}
+                  assert all(type(v) is int and 0 <= v <= n for v in counts.values()) and sum(counts.values()) == n
+                  safe_pairs["families"][family] = counts
+              safe["canonical_pair_coverage"] = safe_pairs
           print(json.dumps(safe, indent=2))
+          if pair_error:
+              raise SystemExit("Canonical pair coverage inconclusive")
           if evidence_error:
               raise SystemExit("Corners inventory inconclusive")
           if control_failed:
