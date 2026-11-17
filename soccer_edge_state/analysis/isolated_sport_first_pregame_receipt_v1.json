@@ -1,6 +1,6 @@
 {
   "status": "NO_NEW_VALID_PREGAME_MODELS",
-  "generated_at_utc": "2026-11-17T21:23:31.536047+00:00",
+  "generated_at_utc": "2026-11-17T21:52:39.567214+00:00",
   "candidate_fixtures": 7,
   "negative_cache_deferred_fixtures": 96,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
@@ -160,13 +160,15 @@
       "league": "CONCACAF Nations League",
       "competition_id": 536,
       "eligible": 5,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 5,
+      "deferred_due_to_missing_source": 4,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "WSL Cup",
@@ -186,13 +188,15 @@
       "league": "WE League",
       "competition_id": 854,
       "eligible": 5,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 2,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Friendlies",
@@ -205,12 +209,24 @@
       "deferred_due_to_missing_source": 3,
       "unattempted": 0,
       "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
       }
     },
     {
       "league": "UEFA Champions League Women",
       "competition_id": 525,
+      "eligible": 4,
+      "attempted": 0,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 4,
+      "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
+      "league": "LFA First Division",
+      "competition_id": 760,
       "eligible": 4,
       "attempted": 1,
       "modeled_limited": 0,
@@ -221,18 +237,6 @@
       "failure_reasons": {
         "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
       }
-    },
-    {
-      "league": "LFA First Division",
-      "competition_id": 760,
-      "eligible": 4,
-      "attempted": 0,
-      "modeled_limited": 0,
-      "missing_or_insufficient": 0,
-      "already_frozen": 0,
-      "deferred_due_to_missing_source": 4,
-      "unattempted": 0,
-      "failure_reasons": {}
     },
     {
       "league": "Third League - Southwest",
@@ -286,15 +290,13 @@
       "league": "Copa Venezuela",
       "competition_id": 1113,
       "eligible": 3,
-      "attempted": 1,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 1,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 2,
+      "deferred_due_to_missing_source": 3,
       "unattempted": 0,
-      "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
-      }
+      "failure_reasons": {}
     },
     {
       "league": "ASEAN Club Championship",
@@ -367,7 +369,7 @@
       "deferred_due_to_missing_source": 1,
       "unattempted": 0,
       "failure_reasons": {
-        "AWAY_VERIFIED_SEASON_SPLITS_MISSING": 1
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
       }
     },
     {
@@ -794,15 +796,13 @@
       "league": "Paraense U20",
       "competition_id": 1157,
       "eligible": 1,
-      "attempted": 1,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 1,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 0,
+      "deferred_due_to_missing_source": 1,
       "unattempted": 0,
-      "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
-      }
+      "failure_reasons": {}
     }
   ],
   "league_coverage_report_total_leagues": 65,
@@ -811,48 +811,48 @@
   "season_split_cache_hits": 0,
   "season_split_cache_hits_from_original_frozen": 0,
   "season_split_cache_hits_same_capture": 0,
-  "season_split_cache_misses": 9,
-  "season_split_cache_new_entries": 3,
+  "season_split_cache_misses": 10,
+  "season_split_cache_new_entries": 6,
   "season_split_cache_new_public_cache_files_created": 0,
   "excluded": [
     {
-      "fixture_id": 1640519,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1649489,
-      "status": "NOT_MODELED",
-      "reason": "AWAY_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1612681,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1644334,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1638312,
+      "fixture_id": 1647372,
       "status": "NOT_MODELED",
       "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
     },
     {
-      "fixture_id": 1647622,
+      "fixture_id": 1640011,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1648771,
+      "fixture_id": 1649490,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1560979,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1650482,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1612682,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1644346,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     }
   ],
-  "provider_requests_added": 11,
-  "daily_remaining_reported": 5920,
+  "provider_requests_added": 12,
+  "daily_remaining_reported": 5902,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
