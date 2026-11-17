@@ -24,14 +24,22 @@ _PENDING_SQL = """
       AND f.kickoff <= NOW()
       AND f.status IN ('1H','HT','2H','ET','BT','P','FT','AET','PEN')
       AND f.home_team_id > 0 AND f.away_team_id > 0
-      AND NOT EXISTS (
+      AND CASE WHEN f.status IN ('FT','AET','PEN') THEN NOT EXISTS (
+          -- A live capture is not a final observation and must not suppress one.
+          -- A final attempt still gets the existing 48-hour cooldown.
+          SELECT 1 FROM soccer_refresh_events e
+          WHERE e.fixture_id = f.fixture_id
+            AND e.generated_at > NOW() - interval '48 hours'
+            AND e.event_type = 'FIXTURE_OBSERVATION_RESEARCH'
+            AND e.stage = 'FIXTURE_OBSERVATION'
+            AND e.payload #>> '{sporting,collection_scope}' = 'POSTGAME_OBSERVATION'
+            AND e.payload #>> '{fixture,status}' = f.status
+      ) ELSE NOT EXISTS (
           SELECT 1 FROM soccer_feature_snapshots s
           WHERE s.fixture_id = f.fixture_id
             AND s.stage = 'FIXTURE_OBSERVATION'
-            AND s.captured_at > NOW() - CASE
-                WHEN f.status IN ('FT','AET','PEN') THEN interval '48 hours'
-                ELSE interval '20 minutes' END
-      )
+            AND s.captured_at > NOW() - interval '20 minutes'
+      ) END
     ORDER BY CASE WHEN EXISTS (
                 SELECT 1 FROM soccer_model_runs m WHERE m.fixture_id=f.fixture_id
              ) THEN 0 ELSE 1 END,
