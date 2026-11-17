@@ -2,6 +2,8 @@
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
+FRESH_CAPTURE_AFTER = datetime.fromisoformat("2026-11-16T19:52:31.554902+00:00")
+
 FIXTURES = (1647362, 1640518, 1647364)
 WINDOW = 12
 ARCHIVE_LIMIT = 200
@@ -128,6 +130,11 @@ def read_events(cur, fixture_id, kickoff, now, *, archive):
             for stage, event, stamp, payload in cur.fetchall()]
 
 
+def fresh_captures(events):
+    return [event for event in events
+            if datetime.fromisoformat(event["generated_at"]) > FRESH_CAPTURE_AFTER]
+
+
 def audit_fixture(cur, fixture_id, now):
     cur.execute("""SELECT fixture_id, league_id, season, home_team_id, away_team_id,
                           kickoff, home_team, away_team
@@ -145,10 +152,11 @@ def audit_fixture(cur, fixture_id, now):
     truncated = len(archive) > ARCHIVE_LIMIT
     archive = archive[:ARCHIVE_LIMIT]
     current, full = accepted(window, fixture, now), accepted(archive, fixture, now)
-    historical = historical_player_families(archive, fixture, now)
+    fresh_archive = fresh_captures(archive)
+    historical = historical_player_families(fresh_archive, fixture, now)
     return {"fixture_id": fixture_id, "eventos_en_ventana": len(window),
             "historical_player_families": sorted(historical),
-            "player_diagnostics": player_diagnostics(archive, fixture, now),
+            "player_diagnostics": player_diagnostics(fresh_archive, fixture, now),
             "archivo_truncado": truncated,
             "familias": {f: summarize(key, window, archive, current[f], full[f], truncated)
                          for f, key in FIELDS.items()}}
@@ -166,13 +174,13 @@ def failure_reason(exc):
 
 
 def candidate_page(cur, now, cursor):
-    params = [now - timedelta(days=LOOKBACK_DAYS), now]
+    params = [max(now - timedelta(days=LOOKBACK_DAYS), FRESH_CAPTURE_AFTER), now]
     clause = ""
     if cursor is not None:
         clause = " AND (generated_at, event_id) < (%s, %s)"
         params.extend(cursor)
     cur.execute("SELECT event_id, fixture_id, generated_at FROM soccer_refresh_events "
-                "WHERE generated_at >= %s AND generated_at <= %s" + clause
+                "WHERE generated_at > %s AND generated_at <= %s" + clause
                 + " ORDER BY generated_at DESC, event_id DESC LIMIT %s", (*params, PAGE_SIZE))
     return cur.fetchall()
 
@@ -288,5 +296,5 @@ def run_audit(before_id=None):
                 state = getattr(exc, "sqlstate", None)
                 failure = {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(state, "DISCOVERY_ERROR")
                 raise DiscoveryFailure(failure) from exc
-    return {"audit_version": 5, "audit_at_utc": now.isoformat(), "window": WINDOW,
+    return {"audit_version": 6, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(), "audit_at_utc": now.isoformat(), "window": WINDOW,
             "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery}

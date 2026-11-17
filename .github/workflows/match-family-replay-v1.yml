@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Run pinned aggregate replay on Render
         env:
-          BEFORE_EVENT_ID: ${{ github.event_name == 'push' && '22960' || inputs.before_event_id || '' }}
+          BEFORE_EVENT_ID: ${{ inputs.before_event_id || '' }}
           BASE_URL: https://soccer-edge-api.onrender.com
         run: |
           python - <<'PY'
@@ -71,7 +71,7 @@ jobs:
                                                         "X-Audit-Before-Event-ID": os.environ.get("BEFORE_EVENT_ID", "")})
                   with opener.open(req, timeout=75) as response:
                       report = json.load(response)
-                  if report.get("audit_version") != 5:
+                  if report.get("audit_version") != 6:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
@@ -93,6 +93,7 @@ jobs:
                   time.sleep(20)
           from datetime import datetime
           assert report["scope"] == "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER"
+          assert report["fresh_capture_after_utc"] == "2026-11-16T19:52:31.554902+00:00"
           d = report["discovery"]
           assert d["lookback_days"] == 30 and d["event_scan_limit"] == 96
           assert type(d["scan_complete"]) is bool
@@ -105,6 +106,7 @@ jobs:
               assert failure["phase"] in {"EVENT_METADATA", "EVENT_PAYLOAD_KEYS"} and failure["reason"] in reasons
               failure = {key: failure[key] for key in ("phase", "reason")}
           safe = {"audit_at_utc": datetime.fromisoformat(report["audit_at_utc"]).isoformat(),
+                  "fresh_capture_after_utc": report["fresh_capture_after_utc"],
                   "events_scanned": d["events_scanned"], "scan_complete": d["scan_complete"],
                   "next_before_event_id": cursor, "scan_failure": failure, "fixture_failures": [],
                   "discovery": {"lookback_days": 30, "event_scan_limit": 96, "families": {}}}
