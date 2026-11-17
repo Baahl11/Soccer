@@ -314,8 +314,14 @@ def run_audit(before_id=None):
                 discovery = discover(cur, now, cursor)
                 controls = panel_controls(cur, now)
             except Exception as exc:
-                state = getattr(exc, "sqlstate", None)
-                failure = {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(state, "DISCOVERY_ERROR")
-                raise DiscoveryFailure(failure) from exc
-    return {"audit_version": 7, "panel_controls": controls, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(), "audit_at_utc": now.isoformat(), "window": WINDOW,
-            "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery}
+                raise DiscoveryFailure(failure_reason(exc)) from exc
+            from mcp_gateway.corners_evidence_inventory_v1 import inventory
+            try:
+                corners_evidence = inventory(cur, now)
+                corners_evidence_error = None
+            except Exception as exc:
+                corners_evidence, corners_evidence_error = [], failure_reason(exc)
+    return {"audit_version": 8, "panel_controls": controls, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(),
+            "audit_at_utc": now.isoformat(), "window": WINDOW,
+            "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery,
+            "corners_evidence": corners_evidence, "corners_evidence_error": corners_evidence_error}

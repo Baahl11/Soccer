@@ -71,7 +71,7 @@ jobs:
                                                         "X-Audit-Before-Event-ID": os.environ.get("BEFORE_EVENT_ID", "")})
                   with opener.open(req, timeout=75) as response:
                       report = json.load(response)
-                  if report.get("audit_version") != 7:
+                  if report.get("audit_version") != 8:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
@@ -164,7 +164,23 @@ jobs:
                   assert body.get("error") == "PRO_REQUIRED"
                   assert not any(key.startswith("private_") for key in body)
                   item["anonymous_http"] = 403
+          evidence = report["corners_evidence"]
+          assert isinstance(evidence, list) and len(evidence) <= 8
+          safe["corners_evidence"] = []
+          for row in evidence:
+              keys = ("paired", "formation_only", "official_ft_only", "neither")
+              assert all(type(row[k]) is int and 0 <= row[k] <= 128 for k in ("sampled", *keys))
+              assert sum(row[k] for k in keys) == row["sampled"]
+              assert type(row["truncated"]) is bool
+              safe["corners_evidence"].append({
+                  **{k: datetime.fromisoformat(row[k]).isoformat() for k in ("start_utc", "end_utc")},
+                  **{k: row[k] for k in ("sampled", "truncated", *keys)}})
+          evidence_error = report["corners_evidence_error"]
+          assert evidence_error is None or evidence_error in reasons
+          safe["corners_evidence_error"] = evidence_error
           print(json.dumps(safe, indent=2))
+          if evidence_error:
+              raise SystemExit("Corners inventory inconclusive")
           if control_failed:
               raise SystemExit("At least one pinned control is inconclusive")
           if failure or safe['fixture_failures']:
