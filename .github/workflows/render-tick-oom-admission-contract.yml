@@ -5,6 +5,8 @@ on:
     branches:
       - soccer-edge-mcp-v1
     paths:
+      - "mcp_gateway/fixture_observations_v1.py"
+      - "tests/test_fixture_observation_selection.py"
       - "mcp_gateway/server.py"
       - "mcp_gateway/server_base.py"
       - "mcp_gateway/prospective_evaluation_registry_v1.py"
@@ -24,6 +26,15 @@ jobs:
   render-tick-safety:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 3s --health-retries 12
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -31,6 +42,10 @@ jobs:
           python-version: "3.12"
       - name: Install existing API dependencies
         run: pip install -r mcp_gateway/requirements.txt pytest
+      - name: Execute observation selection against PostgreSQL
+        env:
+          TEST_OBSERVATION_DSN: postgresql://postgres:ci-only@localhost:5432/postgres
+        run: PYTHONPATH=. pytest -q tests/test_fixture_observation_selection.py
       - name: Compile server code
         run: python -W error::SyntaxWarning -m py_compile mcp_gateway/server.py mcp_gateway/server_base.py mcp_gateway/prospective_evaluation_registry_v1.py mcp_gateway/prospective_registry_worker.py
       - name: Verify auth, concurrency, memory guard and route integrity
