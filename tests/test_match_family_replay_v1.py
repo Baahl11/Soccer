@@ -130,3 +130,13 @@ def test_panel_controls_isolate_failure_and_do_not_forward_payload():
     assert controls["1647367"]["state"] == "DISCOVERY_ERROR"
     assert controls["1545887"]["state"] == "REPLAYED"
     assert "private" not in repr(controls)
+
+
+def test_corners_evidence_is_pair_specific():
+    from mcp_gateway.corners_evidence_inventory_v1 import bucket
+    snap = {"teams": [{"team_id": 1, "formation": "4-4-2"},
+                      {"team_id": 2, "formation": "4-2-3-1"}]}
+    assert bucket(1, 2, [snap], True) == "paired"
+    assert bucket(1, 2, [snap], False) == "formation_only"
+    assert bucket(1, 3, [snap], True) == "official_ft_only"
+    assert bucket(1, 2, [], False) == "neither"
