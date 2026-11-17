@@ -1,14 +1,14 @@
 {
   "status": "NO_NEW_VALID_PREGAME_MODELS",
-  "generated_at_utc": "2026-11-17T21:52:39.567214+00:00",
-  "candidate_fixtures": 7,
-  "negative_cache_deferred_fixtures": 96,
+  "generated_at_utc": "2026-11-17T22:23:23.077907+00:00",
+  "candidate_fixtures": 11,
+  "negative_cache_deferred_fixtures": 90,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
   "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
-  "previously_negative_eligible": 7,
-  "attempted_fixtures": 7,
+  "previously_negative_eligible": 11,
+  "attempted_fixtures": 11,
   "new_frozen_pregame_models": 0,
-  "eligible_fixture_ids": 186,
+  "eligible_fixture_ids": 184,
   "league_coverage_report": [
     {
       "league": "2. Lig",
@@ -26,13 +26,15 @@
       "league": "Tercera División RFEF - Group 13",
       "competition_id": 451,
       "eligible": 9,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 5,
-      "deferred_due_to_missing_source": 4,
+      "deferred_due_to_missing_source": 3,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Coppa Italia Serie D",
@@ -74,14 +76,14 @@
       "league": "Copa del Rey",
       "competition_id": 143,
       "eligible": 6,
-      "attempted": 1,
+      "attempted": 2,
       "modeled_limited": 0,
-      "missing_or_insufficient": 1,
+      "missing_or_insufficient": 2,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 5,
+      "deferred_due_to_missing_source": 4,
       "unattempted": 0,
       "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 2
       }
     },
     {
@@ -112,13 +114,15 @@
       "league": "Football League - Lowland League",
       "competition_id": 731,
       "eligible": 6,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 5,
-      "deferred_due_to_missing_source": 1,
+      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Reserve League",
@@ -199,20 +203,6 @@
       }
     },
     {
-      "league": "Friendlies",
-      "competition_id": 10,
-      "eligible": 4,
-      "attempted": 1,
-      "modeled_limited": 0,
-      "missing_or_insufficient": 1,
-      "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
-      "unattempted": 0,
-      "failure_reasons": {
-        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
-      }
-    },
-    {
       "league": "UEFA Champions League Women",
       "competition_id": 525,
       "eligible": 4,
@@ -228,14 +218,14 @@
       "league": "LFA First Division",
       "competition_id": 760,
       "eligible": 4,
-      "attempted": 1,
+      "attempted": 3,
       "modeled_limited": 0,
-      "missing_or_insufficient": 1,
+      "missing_or_insufficient": 3,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 1,
       "unattempted": 0,
       "failure_reasons": {
-        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 3
       }
     },
     {
@@ -323,6 +313,20 @@
       "failure_reasons": {}
     },
     {
+      "league": "Friendlies",
+      "competition_id": 10,
+      "eligible": 2,
+      "attempted": 1,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 1,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 1,
+      "unattempted": 0,
+      "failure_reasons": {
+        "AWAY_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
+    },
+    {
       "league": "Non League Premier - Southern South",
       "competition_id": 60,
       "eligible": 2,
@@ -362,15 +366,13 @@
       "league": "Copa Colombia",
       "competition_id": 241,
       "eligible": 2,
-      "attempted": 1,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 1,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 1,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
-      }
+      "failure_reasons": {}
     },
     {
       "league": "Segunda División",
@@ -811,48 +813,68 @@
   "season_split_cache_hits": 0,
   "season_split_cache_hits_from_original_frozen": 0,
   "season_split_cache_hits_same_capture": 0,
-  "season_split_cache_misses": 10,
-  "season_split_cache_new_entries": 6,
+  "season_split_cache_misses": 18,
+  "season_split_cache_new_entries": 13,
   "season_split_cache_new_public_cache_files_created": 0,
   "excluded": [
     {
-      "fixture_id": 1647372,
+      "fixture_id": 1647373,
       "status": "NOT_MODELED",
-      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+      "reason": "AWAY_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1640011,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1649490,
+      "fixture_id": 1644697,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1560979,
+      "fixture_id": 1560982,
       "status": "NOT_MODELED",
       "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
     },
     {
-      "fixture_id": 1650482,
+      "fixture_id": 1650483,
       "status": "NOT_MODELED",
       "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
     },
     {
-      "fixture_id": 1612682,
+      "fixture_id": 1612683,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1644346,
+      "fixture_id": 1616437,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1644353,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1578792,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1650484,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1650485,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1644373,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     }
   ],
-  "provider_requests_added": 12,
-  "daily_remaining_reported": 5902,
+  "provider_requests_added": 20,
+  "daily_remaining_reported": 5880,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
