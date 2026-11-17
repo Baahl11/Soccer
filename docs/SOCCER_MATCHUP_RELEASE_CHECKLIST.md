@@ -46,3 +46,11 @@ Marcar un punto solo con un resultado verificable y registrar fecha UTC, SHA y e
 - [x] Primera muestra paginada en Render (`7d62894`, [ejecución 43676778847](https://github.com/Baahl11/Soccer/actions/runs/43676778847/job/132698632979)): 96 eventos, sin errores. En la ventana real de 12: goles por equipo `1520972`; córners FT, amarillas FT/por equipo y roja sí/no `1570021`.
 - [ ] Tiros/SOT: ocho candidatos revisados por familia sin positivo vigente ni válido al momento de captura en el primer corte. Quedan candidatos; cursor `23056`.
 - [ ] Confirmar la respuesta HTTP y la visualización con una sesión OWNER autorizada. Un replay de validadores no sustituye esta prueba.
+
+
+### Criterio de cierre del panel (incidente #217)
+- [x] Recuperación observada de escritura: [tick canónico](https://github.com/Baahl11/Soccer/actions/runs/43937184150/job/133846227523), 6 eventos en respuesta, `database_persisted=true`; [replay independiente](https://github.com/Baahl11/Soccer/actions/runs/44003306297/job/133846808269), 5 eventos nuevos en `soccer_refresh_events`. Una ejecución no prueba estabilidad de memoria.
+- [ ] Auditar en el mismo flujo la ficha reportada `1647367` y el control positivo de equipo `1545887`. El replay cubre siete familias, no el inventario completo de 16. Confirmar separado que las dos rutas API deniegan acceso anónimo.
+- [ ] Con sesión OWNER autorizada, contrastar los bloques reales de la API y de la ficha para ambos IDs. No usar el token del workflow como sesión OWNER.
+- [ ] Validar una nueva captura de SHOTS/SOT con ambos XI confirmados y timestamp verificable; conservar ausencias legítimas, sin rellenar el histórico.
+- [ ] Confirmar escrituras programadas posteriores, sin cambiar guardia de memoria, cuotas ni puertas comerciales.

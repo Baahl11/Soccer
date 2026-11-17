@@ -108,3 +108,25 @@ def test_fresh_capture_filter_excludes_old_and_boundary_events():
     events = [{"generated_at": (mod.FRESH_CAPTURE_AFTER + timedelta(seconds=delta)).isoformat()}
               for delta in (-1, 0, 1)]
     assert mod.fresh_captures(events) == [events[-1]]
+
+
+def test_panel_controls_isolate_failure_and_do_not_forward_payload():
+    from contextlib import nullcontext
+    from mcp_gateway import match_family_replay_v1 as mod
+
+    class Connection:
+        transaction = staticmethod(nullcontext)
+
+    class Cursor:
+        connection = Connection()
+
+    def replay(cur, fixture, now):
+        if fixture == 1647367:
+            raise RuntimeError("private error")
+        return {"eventos_en_ventana": 1, "archivo_truncado": False, "familias": {},
+                "payload": {"secret": "private data"}}
+
+    controls = mod.panel_controls(Cursor(), None, replay)
+    assert controls["1647367"]["state"] == "DISCOVERY_ERROR"
+    assert controls["1545887"]["state"] == "REPLAYED"
+    assert "private" not in repr(controls)
