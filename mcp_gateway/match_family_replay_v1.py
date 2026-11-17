@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 FRESH_CAPTURE_AFTER = datetime.fromisoformat("2026-11-16T19:52:31.554902+00:00")
 
 FIXTURES = (1647362, 1640518, 1647364)
+PANEL_CONTROLS = (1647367, 1545887)
 WINDOW = 12
 ARCHIVE_LIMIT = 200
 FIELDS = {
@@ -271,6 +272,25 @@ def discover(cur, now, cursor=None):
                 {"fixture_id": fixture_id, "reason": reason} for fixture_id, reason in errors.items()]}
 
 
+def panel_controls(cur, now, replay=None):
+    replay = replay or audit_fixture
+    output = {}
+    for fixture_id in PANEL_CONTROLS:
+        try:
+            with cur.connection.transaction():
+                result = replay(cur, fixture_id, now)
+            output[str(fixture_id)] = {
+                "state": result.get("estado", "REPLAYED"),
+                "window_events": result.get("eventos_en_ventana"),
+                "archive_truncated": result.get("archivo_truncado"),
+                "families": result.get("familias", {}),
+            }
+        except Exception as exc:
+            output[str(fixture_id)] = {"state": failure_reason(exc), "window_events": None,
+                                       "archive_truncated": None, "families": {}}
+    return output
+
+
 class DiscoveryFailure(RuntimeError):
     pass
 
@@ -292,9 +312,10 @@ def run_audit(before_id=None):
                     if cursor is None:
                         raise ValueError("unknown cursor")
                 discovery = discover(cur, now, cursor)
+                controls = panel_controls(cur, now)
             except Exception as exc:
                 state = getattr(exc, "sqlstate", None)
                 failure = {"57014": "QUERY_TIMEOUT", "55P03": "LOCK_TIMEOUT"}.get(state, "DISCOVERY_ERROR")
                 raise DiscoveryFailure(failure) from exc
-    return {"audit_version": 6, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(), "audit_at_utc": now.isoformat(), "window": WINDOW,
+    return {"audit_version": 7, "panel_controls": controls, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(), "audit_at_utc": now.isoformat(), "window": WINDOW,
             "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery}

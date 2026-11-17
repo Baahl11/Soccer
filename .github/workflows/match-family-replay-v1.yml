@@ -71,7 +71,7 @@ jobs:
                                                         "X-Audit-Before-Event-ID": os.environ.get("BEFORE_EVENT_ID", "")})
                   with opener.open(req, timeout=75) as response:
                       report = json.load(response)
-                  if report.get("audit_version") != 6:
+                  if report.get("audit_version") != 7:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
@@ -136,7 +136,37 @@ jobs:
                   "historical_positive_fixture_id": historical,
                   **{k: row[k] for k in keys}, "hay_mas_candidatos": row["hay_mas_candidatos"],
                   "positivo": positive}
+          safe["panel_controls"] = {}
+          control_failed = False
+          for fixture in ("1647367", "1545887"):
+              row = report["panel_controls"][fixture]
+              state = row["state"]
+              assert state in reasons | {"REPLAYED", "IDENTIDAD_CANONICA_NO_VERIFICADA"}
+              control_failed |= state in reasons
+              item = {"state": state}
+              if state == "REPLAYED":
+                  assert type(row["window_events"]) is int and 0 <= row["window_events"] <= 12
+                  assert type(row["archive_truncated"]) is bool
+                  item.update(window_events=row["window_events"], archive_truncated=row["archive_truncated"], families={})
+                  for family in families:
+                      value = row["families"][family]["estado"]
+                      assert value in {"ACEPTADO_EN_REPLAY_DE_FICHA", "ACEPTADO_FUERA_DE_ULTIMOS_12",
+                                       "PERSISTIDO_PREPARTIDO_NO_ACEPTADO", "SIN_CAMPO_PREPARTIDO_EN_REFRESH_EVENTS",
+                                       "ARCHIVO_TRUNCADO_NO_CONCLUYENTE"}
+                      item["families"][family] = value
+              safe["panel_controls"][fixture] = item
+              try:
+                  with opener.open(base + "/app/api/v2/match/" + fixture, timeout=15) as response:
+                      raise SystemExit("Anonymous fixture access was not denied")
+              except urllib.error.HTTPError as exc:
+                  assert exc.code == 403
+                  body = json.loads(exc.read(4096))
+                  assert body.get("error") == "PRO_REQUIRED"
+                  assert not any(key.startswith("private_") for key in body)
+                  item["anonymous_http"] = 403
           print(json.dumps(safe, indent=2))
+          if control_failed:
+              raise SystemExit("At least one pinned control is inconclusive")
           if failure or safe['fixture_failures']:
               raise SystemExit('Partial discovery: inspect stage and retained results')
           PY
