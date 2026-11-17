@@ -140,3 +140,32 @@ def test_corners_evidence_is_pair_specific():
     assert bucket(1, 2, [snap], False) == "formation_only"
     assert bucket(1, 3, [snap], True) == "official_ft_only"
     assert bucket(1, 2, [], False) == "neither"
+
+
+def test_reuse_only_exact_regulation_provider_corners_and_reject_conflicts():
+    from datetime import datetime
+    from copy import deepcopy
+    from mcp_gateway.corners_evidence_inventory_v1 import verified_observation_corners
+
+    stamp = "2026-11-15T14:00:00+00:00"
+    row = {"event_type": "FIXTURE_OBSERVATION_RESEARCH", "stage": "FIXTURE_OBSERVATION",
+           "bet_eligible": False,
+           "fixture": {"fixture_id": 5, "league_id": 6, "home_team_id": 1,
+                       "away_team_id": 2, "status": "FT", "kickoff": stamp},
+           "sporting": {"collection_scope": "POSTGAME_OBSERVATION", "fixture_statistics": [
+               {"team": {"id": 2}, "statistics": [{"type": "Corner Kicks", "value": 0}]},
+               {"team": {"id": 1}, "statistics": [{"type": "Corner Kicks", "value": 7}]},
+           ]}}
+    def lookup(*rows):
+        return verified_observation_corners(rows, 5, datetime.fromisoformat(stamp), 6, 1, 2)
+    assert lookup(row, row) == (7, 0)
+    for field, bad in [("status", "AET"), ("fixture_id", 7), ("kickoff", "2026-11-15T15:00:00Z"),
+                       ("away_team_id", 3)]:
+        other = deepcopy(row)
+        other["fixture"][field] = bad
+        assert lookup(other) is None
+    other = deepcopy(row)
+    other["sporting"]["fixture_statistics"][0]["statistics"][0]["value"] = 2
+    assert lookup(row, other) is None
+    other["sporting"]["fixture_statistics"][0]["statistics"][0]["value"] = None
+    assert lookup(other) is None
