@@ -321,7 +321,7 @@ def run_audit(before_id=None):
                 corners_evidence_error = None
             except Exception as exc:
                 corners_evidence, corners_evidence_error = [], failure_reason(exc)
-    return {"audit_version": 8, "panel_controls": controls, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(),
+    return {"audit_version": 9, "panel_controls": controls, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(),
             "audit_at_utc": now.isoformat(), "window": WINDOW,
             "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery,
             "corners_evidence": corners_evidence, "corners_evidence_error": corners_evidence_error}
