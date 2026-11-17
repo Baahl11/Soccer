@@ -3,6 +3,7 @@ import json
 import logging
 import sys
 import time
+from pathlib import Path
 
 import httpx
 
@@ -93,8 +94,31 @@ def _normalize_refresh_event_model_lineage(payload: dict) -> dict:
     return result
 
 
+def _worker_memory():
+    """Read the same cgroup used by the parent guard, plus this worker RSS."""
+    result = {}
+    for path in ("/sys/fs/cgroup/memory.current", "/sys/fs/cgroup/memory/memory.usage_in_bytes"):
+        try:
+            used = int(Path(path).read_text(encoding="ascii").strip())
+            if used >= 0:
+                result["cgroup_used_bytes"] = used
+                break
+        except (OSError, ValueError):
+            pass
+    try:
+        for line in Path("/proc/self/status").read_text(encoding="ascii").splitlines():
+            if line.startswith(("VmRSS:", "VmHWM:")):
+                label, value, unit = line.split()
+                if unit == "kB" and int(value) >= 0:
+                    key = "worker_rss_bytes" if label == "VmRSS:" else "worker_peak_rss_bytes"
+                    result[key] = int(value) * 1024
+    except (OSError, ValueError):
+        pass
+    return result
+
+
 def _emit_timing(stage: str, **fields: object) -> None:
-    record = {"stage": stage, **fields}
+    record = {"stage": stage, **fields, **_worker_memory()}
     sys.stderr.write(
         "TICK_TIMING "
         + json.dumps(record, ensure_ascii=False, separators=(",", ":"), default=str)
@@ -243,6 +267,10 @@ async def _main() -> int:
         install_sync_timing(v123.v92, "_annotate_decision_separation", "decision_separation_annotate")
         install_sync_timing(v123.v112, "_annotate_phase16", "phase16_annotate")
         install_sync_timing(v123, "_annotate_checkpoint", "price_checkpoint_annotate")
+        install_sync_timing(v125.btts_paid_odds_intelligence, "attach", "v125_btts_paid_odds_attach")
+        install_sync_timing(v126, "_build_post_reserve_verification", "v126_post_reserve_verify")
+        install_sync_timing(v127, "_freeze_exact_payload", "v127_calibrator_payload_freeze")
+        install_sync_timing(v127, "_attach_artifact", "v127_calibrator_artifact_attach")
 
         install_sync_timing(
             v128.market_residual_challenger_v4,
@@ -279,6 +307,7 @@ async def _main() -> int:
         # remaining provider quota and starve real match-stat/player coverage.
         stage_started = time.monotonic()
         try:
+            _emit_timing("fixture_observations_start")
             observed_events = await fixture_observations_v1.collect(payload)
             if observed_events:
                 payload.setdefault("events", []).extend(observed_events)
@@ -298,6 +327,7 @@ async def _main() -> int:
         # and cannot alter sporting projections, market decisions, or prior picks.
         stage_started = time.monotonic()
         try:
+            _emit_timing("research_backfill_start")
             research_events = await research_backfill_v1.collect(payload)
             if research_events:
                 payload.setdefault("events", []).extend(research_events)
