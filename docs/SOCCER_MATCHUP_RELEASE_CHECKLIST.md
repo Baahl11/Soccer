@@ -44,13 +44,14 @@ Marcar un punto solo con un resultado verificable y registrar fecha UTC, SHA y e
 ### Auditoría en producción: persistencia y validadores
 
 - [x] Primera muestra paginada en Render (`7d62894`, [ejecución 43676778847](https://github.com/Baahl11/Soccer/actions/runs/43676778847/job/132698632979)): 96 eventos, sin errores. En la ventana real de 12: goles por equipo `1520972`; córners FT, amarillas FT/por equipo y roja sí/no `1570021`.
-- [ ] Tiros/SOT: ocho candidatos revisados por familia sin positivo vigente ni válido al momento de captura en el primer corte. Quedan candidatos; cursor `23056`.
+- [x] Diagnóstico SHOTS/SOT desde `22960`: [#215/#216, replay de producción](https://github.com/Baahl11/Soccer/actions/runs/43943526242/job/133567197460), 80 eventos sin fallos; por familia, 8 fixtures revisados, 10 eventos sin ambos XI confirmados y 7 rechazos de jugador por timestamp de registro ausente. Los conteos tienen unidades distintas y no se suman entre familias. No se altera el histórico.
 - [ ] Confirmar la respuesta HTTP y la visualización con una sesión OWNER autorizada. Un replay de validadores no sustituye esta prueba.
 
 
 ### Criterio de cierre del panel (incidente #217)
 - [x] Recuperación observada de escritura: [tick canónico](https://github.com/Baahl11/Soccer/actions/runs/43937184150/job/133846227523), 6 eventos en respuesta, `database_persisted=true`; [replay independiente](https://github.com/Baahl11/Soccer/actions/runs/44003306297/job/133846808269), 5 eventos nuevos en `soccer_refresh_events`. Una ejecución no prueba estabilidad de memoria.
-- [ ] Auditar en el mismo flujo la ficha reportada `1647367` y el control positivo de equipo `1545887`. El replay cubre siete familias, no el inventario completo de 16. Confirmar separado que las dos rutas API deniegan acceso anónimo.
-- [ ] Con sesión OWNER autorizada, contrastar los bloques reales de la API y de la ficha para ambos IDs. No usar el token del workflow como sesión OWNER.
-- [ ] Validar una nueva captura de SHOTS/SOT con ambos XI confirmados y timestamp verificable; conservar ausencias legítimas, sin rellenar el histórico.
+- [x] [Replay del 17 nov 05:51 UTC](https://github.com/Baahl11/Soccer/actions/runs/44026820784/job/133849228372): `1647367` y `1545887` pasan las cinco familias de equipo, SHOTS/SOT persistidos no aceptados, HTTP anónimo 403 en ambas rutas. No cubre el inventario completo de 16.
+- [x] `1647367`: [evidencia OWNER registrada en #220](https://github.com/Baahl11/Soccer/pull/220): API `PERSISTED_RESEARCH_PROJECTION` en goles por equipo y cinco tarjetas confirmadas en pantalla. No afirma que se inspeccionaran por separado los otros cuatro bloques del JSON.
+- [ ] Control `1545887`: no consta verificación OWNER de API/navegador. No usar el token del workflow como sesión OWNER.
+- [ ] Validar una captura nueva de SHOTS/SOT con ambos XI confirmados y timestamp verificable. [Replay del 17 nov 06:32 UTC](https://github.com/Baahl11/Soccer/actions/runs/44031807777/job/133865368004): 5 eventos nuevos en la ventana, 2 candidatos por familia, 3 eventos `XI_NOT_CONFIRMED` por familia y ningún positivo. El timestamp no se ejercitó en una salida nueva aceptada; no rellenar el histórico ni relajar el filtro.
 - [ ] Confirmar escrituras programadas posteriores, sin cambiar guardia de memoria, cuotas ni puertas comerciales.
