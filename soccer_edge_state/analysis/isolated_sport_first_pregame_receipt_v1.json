@@ -1,14 +1,14 @@
 {
   "status": "NO_NEW_VALID_PREGAME_MODELS",
-  "generated_at_utc": "2026-11-18T17:23:04.897581+00:00",
-  "candidate_fixtures": 0,
-  "negative_cache_deferred_fixtures": 95,
+  "generated_at_utc": "2026-11-18T17:52:41.556588+00:00",
+  "candidate_fixtures": 8,
+  "negative_cache_deferred_fixtures": 87,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
   "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
-  "previously_negative_eligible": 0,
-  "attempted_fixtures": 0,
+  "previously_negative_eligible": 8,
+  "attempted_fixtures": 8,
   "new_frozen_pregame_models": 0,
-  "eligible_fixture_ids": 153,
+  "eligible_fixture_ids": 151,
   "league_coverage_report": [
     {
       "league": "Serie A",
@@ -26,25 +26,30 @@
       "league": "World Cup - U17",
       "competition_id": 587,
       "eligible": 8,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 8,
+      "deferred_due_to_missing_source": 7,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "UEFA Champions League Women",
       "competition_id": 525,
       "eligible": 7,
-      "attempted": 0,
+      "attempted": 2,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 2,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 7,
+      "deferred_due_to_missing_source": 5,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "AWAY_VERIFIED_SEASON_SPLITS_MISSING": 1,
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Tercera División RFEF - Group 13",
@@ -86,13 +91,15 @@
       "league": "LFA First Division",
       "competition_id": 760,
       "eligible": 5,
-      "attempted": 0,
+      "attempted": 2,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 2,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 5,
+      "deferred_due_to_missing_source": 3,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 2
+      }
     },
     {
       "league": "Second League",
@@ -170,13 +177,15 @@
       "league": "Ligue 1",
       "competition_id": 186,
       "eligible": 3,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Persian Gulf Pro League",
@@ -211,18 +220,6 @@
       "missing_or_insufficient": 0,
       "already_frozen": 0,
       "deferred_due_to_missing_source": 3,
-      "unattempted": 0,
-      "failure_reasons": {}
-    },
-    {
-      "league": "Tercera División RFEF - Group 6",
-      "competition_id": 444,
-      "eligible": 3,
-      "attempted": 0,
-      "modeled_limited": 0,
-      "missing_or_insufficient": 0,
-      "already_frozen": 3,
-      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
       "failure_reasons": {}
     },
@@ -542,13 +539,15 @@
       "league": "1 Lyga",
       "competition_id": 361,
       "eligible": 1,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 1,
+      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Super League",
@@ -611,16 +610,30 @@
       "failure_reasons": {}
     },
     {
-      "league": "Damallsvenskan",
-      "competition_id": 549,
+      "league": "Tercera División RFEF - Group 6",
+      "competition_id": 444,
       "eligible": 1,
       "attempted": 0,
       "modeled_limited": 0,
       "missing_or_insufficient": 0,
-      "already_frozen": 0,
-      "deferred_due_to_missing_source": 1,
+      "already_frozen": 1,
+      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
       "failure_reasons": {}
+    },
+    {
+      "league": "Damallsvenskan",
+      "competition_id": 549,
+      "eligible": 1,
+      "attempted": 1,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 1,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 0,
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Copa do Brasil U20",
@@ -749,12 +762,53 @@
   "season_split_cache_hits": 0,
   "season_split_cache_hits_from_original_frozen": 0,
   "season_split_cache_hits_same_capture": 0,
-  "season_split_cache_misses": 0,
-  "season_split_cache_new_entries": 0,
+  "season_split_cache_misses": 12,
+  "season_split_cache_new_entries": 7,
   "season_split_cache_new_public_cache_files_created": 0,
-  "excluded": [],
-  "provider_requests_added": 2,
-  "daily_remaining_reported": 6847,
+  "excluded": [
+    {
+      "fixture_id": 1546147,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1650489,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1611457,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1649969,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1650232,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1638292,
+      "status": "NOT_MODELED",
+      "reason": "AWAY_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1650490,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1638327,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    }
+  ],
+  "provider_requests_added": 14,
+  "daily_remaining_reported": 6831,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
