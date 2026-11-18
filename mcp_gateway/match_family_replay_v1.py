@@ -328,7 +328,7 @@ def run_audit(before_id=None):
                 pair_error = None
             except Exception as exc:
                 pairs, pair_error = None, failure_reason(exc)
-    return {"audit_version": 10, "canonical_pair_coverage": pairs, "canonical_pair_error": pair_error, "panel_controls": controls, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(),
+    return {"audit_version": 11, "canonical_pair_coverage": pairs, "canonical_pair_error": pair_error, "panel_controls": controls, "fresh_capture_after_utc": FRESH_CAPTURE_AFTER.isoformat(),
             "audit_at_utc": now.isoformat(), "window": WINDOW,
             "scope": "POSTGRES_VALIDATOR_REPLAY_NOT_OWNER_HTTP_OR_BROWSER", "discovery": discovery,
             "corners_evidence": corners_evidence, "corners_evidence_error": corners_evidence_error}

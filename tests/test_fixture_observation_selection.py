@@ -29,7 +29,9 @@ def test_live_capture_does_not_suppress_regulation_final():
             VALUES (1, now()-interval '3 hours','FT',10,20),
                    (2, now()-interval '3 hours','FT',11,21),
                    (3, now()-interval '1 hour','2H',12,22),
-                   (4, now()-interval '3 hours','AET',13,23);
+                   (4, now()-interval '3 hours','AET',13,23),
+                   (5, now()-interval '2 hours','FT',14,24),
+                   (6, now()-interval '4 hours','FT',15,25);
             INSERT INTO soccer_feature_snapshots
             SELECT i,'FIXTURE_OBSERVATION',now() FROM generate_series(1,4) i;
             INSERT INTO soccer_refresh_events VALUES
@@ -40,5 +42,14 @@ def test_live_capture_does_not_suppress_regulation_final():
             (4,'FIXTURE_OBSERVATION','FIXTURE_OBSERVATION_RESEARCH',now(),
                 '{"sporting":{"collection_scope":"POSTGAME_OBSERVATION"},"fixture":{"status":"FT"}}');
         """)
+        cur.execute("""
+            INSERT INTO soccer_refresh_events VALUES
+            (5,'T-20','SOCCER_REFRESH',now()-interval '140 minutes',
+                '{"fixture":{"status":"NS","home_team_id":14,"away_team_id":24},"corners_intelligence":{"status":"LIVE_RESEARCH_MODELED"}}'),
+            (6,'T-20','SOCCER_REFRESH',now()-interval '2 hours',
+                '{"fixture":{"status":"NS","home_team_id":15,"away_team_id":25},"red_cards_intelligence":{"status":"LIVE_RESEARCH_MODELED"}}');
+        """)
+        cur.execute(_PENDING_SQL, (1,))
+        assert [row[0] for row in cur.fetchall()] == [5]
         cur.execute(_PENDING_SQL, (10,))
-        assert [row[0] for row in cur.fetchall()] == [1, 4]
+        assert [row[0] for row in cur.fetchall()] == [5, 6, 1, 4]

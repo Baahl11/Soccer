@@ -19,7 +19,7 @@ WITH sample AS MATERIALIZED (
   ORDER BY kickoff DESC, fixture_id DESC LIMIT %s
 )
 SELECT s.fixture_id, s.league_id, s.season, s.home_team_id, s.away_team_id, s.kickoff,
-       COALESCE(p.snapshots, '[]'::jsonb), COALESCE(o.snapshots, '[]'::jsonb)
+       COALESCE(p.snapshots, '[]'::jsonb), COALESCE(o.snapshots, '[]'::jsonb), COALESCE(c.counts, '[]'::jsonb)
 FROM sample s
 LEFT JOIN LATERAL (
   SELECT jsonb_agg(jsonb_build_object('stage', stage, 'event_type', event_type,
@@ -42,6 +42,19 @@ LEFT JOIN LATERAL (
     ORDER BY generated_at DESC, event_id DESC LIMIT %s
   ) rows
 ) o ON TRUE
+LEFT JOIN LATERAL (
+  SELECT jsonb_agg(jsonb_build_array(c.home_corners, c.away_corners)) AS counts
+  FROM (
+    SELECT c.home_corners, c.away_corners FROM soccer_fe11_verified_corner_snapshots c
+    JOIN soccer_fe11_pregame_baselines b ON b.fixture_id=c.fixture_id
+    WHERE c.fixture_id=s.fixture_id AND c.kickoff=s.kickoff AND b.kickoff=s.kickoff
+      AND b.league_id=s.league_id AND b.home_team_id=s.home_team_id AND b.away_team_id=s.away_team_id
+      AND c.period='FT_90' AND c.source='API_FOOTBALL_FIXTURE_STATISTICS'
+      AND c.source_response_verified IS TRUE AND c.bet_eligible IS FALSE
+      AND c.observed_at > s.kickoff AND c.observed_at <= %s
+    LIMIT %s
+  ) c
+) c ON TRUE
 """
 
 
@@ -63,7 +76,7 @@ def card_counts(raw, home, away, metric):
     return counts[home], counts[away]
 
 
-def outcomes(observations, fixture):
+def outcomes(observations, fixture, fe11=()):
     """Provider FT counts only. Missing, conflicting, or truncated is not zero."""
     seen = {metric: set() for metric in ("corners", "yellow", "red")}
     if len(observations) > EVENTS:
@@ -95,28 +108,39 @@ def outcomes(observations, fixture):
             cards = card_counts(raw, home, away, metric)
             if cards is not None:
                 seen[key].add(cards)
+    if len(fe11) > EVENTS:
+        seen["corners"].clear()
+    else:
+        seen["corners"].update(tuple(pair) for pair in fe11)
     return {metric for metric, values in seen.items() if len(values) == 1}
 
 
 def inventory(cur, now):
-    cur.execute(SQL, (now - timedelta(days=14), now, LIMIT + 1, list(FIELDS), EVENTS, now, EVENTS + 1))
+    cur.execute(SQL, (now - timedelta(days=14), now, LIMIT + 1, list(FIELDS), EVENTS, now, EVENTS + 1, now, EVENTS + 1))
     rows = cur.fetchall()
     counts = {f: Counter() for f in FAMILIES}
     truncated = 0
-    for fid, league, season, home, away, kickoff, events, obs in rows[:LIMIT]:
+    missing = []
+    for fid, league, season, home, away, kickoff, events, obs, fe11 in rows[:LIMIT]:
         fixture = dict(fixture_id=fid, league_id=league, season=season, home_team_id=home,
                        away_team_id=away, kickoff=kickoff.isoformat())
         corners = corners_intelligence.saved_match_rates(events, fixture)["status"] == "PERSISTED_RESEARCH_RATES"
         yellow = cards_intelligence_live.saved_match_rates(events, fixture)["status"] == "PERSISTED_RESEARCH_RATES"
         team_yellow = cards_intelligence_live.saved_match_rates(events, fixture, by_team=True)["status"] == "PERSISTED_RESEARCH_RATES"
         red = red_cards_intelligence.saved_match_probability(events, fixture)["status"] == "PERSISTED_RESEARCH_PROJECTION"
-        truth = outcomes(obs, fixture)
+        truth = outcomes(obs, fixture, fe11)
+        gaps = []
         truncated += int(len(obs) > EVENTS)
         for family, pred, metric in zip(FAMILIES, (corners, corners, yellow, team_yellow, red),
                                         ("corners", "corners", "yellow", "yellow", "red")):
             observed = metric in truth
+            if pred and not observed:
+                gaps.append(family)
             counts[family]["both" if pred and observed else "prediction_only" if pred else
                            "outcome_only" if observed else "neither"] += 1
-    return {"sampled": min(len(rows), LIMIT), "sample_truncated": len(rows) > LIMIT,
+        if gaps:
+            missing.append({"fixture_id": fid, "families": gaps, "final_observation_rows": len(obs),
+                            "alternate_corner_rows": len(fe11)})
+    return {"prediction_only_targets": missing, "sampled": min(len(rows), LIMIT), "sample_truncated": len(rows) > LIMIT,
             "observation_truncated": truncated,
             "families": {f: {k: counts[f][k] for k in STATES} for f in FAMILIES}}

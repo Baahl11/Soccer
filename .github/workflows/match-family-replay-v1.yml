@@ -9,6 +9,8 @@ on:
       - 'tests/test_match_family_replay_v1.py'
       - 'tests/test_oos_canonical_pair_inventory_v1.py'
       - 'mcp_gateway/oos_canonical_pair_inventory_v1.py'
+      - 'mcp_gateway/fixture_observations_v1.py'
+      - 'tests/test_fixture_observation_selection.py'
   push:
     branches: [soccer-edge-mcp-v1]
     paths:
@@ -73,7 +75,7 @@ jobs:
                                                         "X-Audit-Before-Event-ID": os.environ.get("BEFORE_EVENT_ID", "")})
                   with opener.open(req, timeout=75) as response:
                       report = json.load(response)
-                  if report.get("audit_version") != 10:
+                  if report.get("audit_version") != 11:
                       if attempt == 8:
                           raise SystemExit("Discovery deployment not live")
                       time.sleep(20)
@@ -198,6 +200,19 @@ jobs:
                   counts = {k: pairs["families"][family][k] for k in ("both", "prediction_only", "outcome_only", "neither")}
                   assert all(type(v) is int and 0 <= v <= n for v in counts.values()) and sum(counts.values()) == n
                   safe_pairs["families"][family] = counts
+              targets = pairs["prediction_only_targets"]
+              assert isinstance(targets, list) and len(targets) <= n
+              safe_pairs["prediction_only_targets"] = []
+              seen_ids = set()
+              for row in targets:
+                  fid = row["fixture_id"]
+                  assert type(fid) is int and fid > 0 and fid not in seen_ids
+                  seen_ids.add(fid)
+                  assert isinstance(row["families"], list) and 0 < len(row["families"]) <= 5
+                  assert len(set(row["families"])) == len(row["families"])
+                  assert all(f in safe_pairs["families"] for f in row["families"])
+                  assert all(type(row[k]) is int and 0 <= row[k] <= 9 for k in ("final_observation_rows", "alternate_corner_rows"))
+                  safe_pairs["prediction_only_targets"].append({k: row[k] for k in ("fixture_id", "families", "final_observation_rows", "alternate_corner_rows")})
               safe["canonical_pair_coverage"] = safe_pairs
           print(json.dumps(safe, indent=2))
           if pair_error:
