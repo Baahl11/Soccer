@@ -1,12 +1,12 @@
 {
   "status": "NO_NEW_VALID_PREGAME_MODELS",
-  "generated_at_utc": "2026-11-18T20:23:28.248318+00:00",
-  "candidate_fixtures": 0,
-  "negative_cache_deferred_fixtures": 76,
+  "generated_at_utc": "2026-11-18T20:52:02.555212+00:00",
+  "candidate_fixtures": 4,
+  "negative_cache_deferred_fixtures": 72,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
   "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
-  "previously_negative_eligible": 0,
-  "attempted_fixtures": 0,
+  "previously_negative_eligible": 4,
+  "attempted_fixtures": 4,
   "new_frozen_pregame_models": 0,
   "eligible_fixture_ids": 115,
   "league_coverage_report": [
@@ -38,13 +38,15 @@
       "league": "UEFA Champions League Women",
       "competition_id": 525,
       "eligible": 5,
-      "attempted": 0,
+      "attempted": 3,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 3,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 5,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 3
+      }
     },
     {
       "league": "LFA First Division",
@@ -218,13 +220,15 @@
       "league": "Copa Fares Lopes",
       "competition_id": 1165,
       "eligible": 3,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Major League Soccer",
@@ -593,12 +597,33 @@
   "season_split_cache_hits": 0,
   "season_split_cache_hits_from_original_frozen": 0,
   "season_split_cache_hits_same_capture": 0,
-  "season_split_cache_misses": 0,
+  "season_split_cache_misses": 4,
   "season_split_cache_new_entries": 0,
   "season_split_cache_new_public_cache_files_created": 0,
-  "excluded": [],
-  "provider_requests_added": 2,
-  "daily_remaining_reported": 6769,
+  "excluded": [
+    {
+      "fixture_id": 1638286,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1640404,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1638297,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1638338,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    }
+  ],
+  "provider_requests_added": 6,
+  "daily_remaining_reported": 6761,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
