@@ -1,14 +1,14 @@
 {
-  "status": "CAPTURED_RESEARCH_ONLY",
-  "generated_at_utc": "2026-11-18T19:22:23.294625+00:00",
+  "status": "NO_NEW_VALID_PREGAME_MODELS",
+  "generated_at_utc": "2026-11-18T19:52:10.140785+00:00",
   "candidate_fixtures": 1,
-  "negative_cache_deferred_fixtures": 78,
+  "negative_cache_deferred_fixtures": 76,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
   "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
-  "previously_negative_eligible": 0,
+  "previously_negative_eligible": 1,
   "attempted_fixtures": 1,
-  "new_frozen_pregame_models": 1,
-  "eligible_fixture_ids": 117,
+  "new_frozen_pregame_models": 0,
+  "eligible_fixture_ids": 116,
   "league_coverage_report": [
     {
       "league": "Serie A",
@@ -107,28 +107,18 @@
       "failure_reasons": {}
     },
     {
-      "league": "Copa Venezuela",
-      "competition_id": 1113,
-      "eligible": 4,
-      "attempted": 0,
-      "modeled_limited": 0,
-      "missing_or_insufficient": 0,
-      "already_frozen": 0,
-      "deferred_due_to_missing_source": 4,
-      "unattempted": 0,
-      "failure_reasons": {}
-    },
-    {
       "league": "Ligue 1",
       "competition_id": 186,
       "eligible": 3,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Persian Gulf Pro League",
@@ -203,6 +193,18 @@
       "failure_reasons": {}
     },
     {
+      "league": "Copa Venezuela",
+      "competition_id": 1113,
+      "eligible": 3,
+      "attempted": 0,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 3,
+      "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
       "league": "ASEAN Club Championship",
       "competition_id": 1129,
       "eligible": 3,
@@ -230,10 +232,10 @@
       "league": "Major League Soccer",
       "competition_id": 253,
       "eligible": 2,
-      "attempted": 1,
-      "modeled_limited": 1,
+      "attempted": 0,
+      "modeled_limited": 0,
       "missing_or_insufficient": 0,
-      "already_frozen": 1,
+      "already_frozen": 2,
       "deferred_due_to_missing_source": 0,
       "unattempted": 0,
       "failure_reasons": {}
@@ -596,9 +598,15 @@
   "season_split_cache_misses": 2,
   "season_split_cache_new_entries": 2,
   "season_split_cache_new_public_cache_files_created": 0,
-  "excluded": [],
+  "excluded": [
+    {
+      "fixture_id": 1611454,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    }
+  ],
   "provider_requests_added": 4,
-  "daily_remaining_reported": 6787,
+  "daily_remaining_reported": 6773,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
