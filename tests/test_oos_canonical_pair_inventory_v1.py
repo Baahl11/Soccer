@@ -26,3 +26,16 @@ def test_postgame_evidence_ignores_live_and_conflicts():
     assert outcomes([obs(0, "1H")], fixture) == set()
     assert outcomes([obs(0), obs(1)], fixture) == set()
     assert outcomes([obs(0)] * 9, fixture) == set()
+
+
+def test_fe11_corners_recover_absent_stats_but_not_conflicting_truth():
+    fixture = dict(fixture_id=1, league_id=2, home_team_id=10, away_team_id=20,
+                   kickoff="2026-11-17T00:00:00+00:00")
+    assert outcomes([], fixture, [[2, 3]]) == {"corners"}
+    assert outcomes([], fixture, [[2, 3], [3, 3]]) == set()
+    obs = dict(event_type="FIXTURE_OBSERVATION_RESEARCH", stage="FIXTURE_OBSERVATION",
+               bet_eligible=False, fixture={**fixture, "status": "FT"},
+               sporting=dict(collection_scope="POSTGAME_OBSERVATION",
+                             fixture_statistics=raw("Corner Kicks", 2, 3)))
+    assert outcomes([obs], fixture, [[2, 3]]) == {"corners"}
+    assert outcomes([obs], fixture, [[3, 3]]) == set()

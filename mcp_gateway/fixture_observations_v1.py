@@ -40,7 +40,21 @@ _PENDING_SQL = """
             AND s.stage = 'FIXTURE_OBSERVATION'
             AND s.captured_at > NOW() - interval '20 minutes'
       ) END
-    ORDER BY CASE WHEN EXISTS (
+    ORDER BY CASE WHEN f.status = 'FT' AND EXISTS (
+                SELECT 1 FROM soccer_refresh_events p
+                WHERE p.fixture_id = f.fixture_id
+                  AND p.event_type = 'SOCCER_REFRESH'
+                  AND p.generated_at < f.kickoff
+                  AND p.stage NOT IN ('HT','LIVE','POSTGAME')
+                  AND p.payload #>> '{fixture,status}' = 'NS'
+                  AND p.payload #> '{fixture,home_team_id}' = to_jsonb(f.home_team_id)
+                  AND p.payload #> '{fixture,away_team_id}' = to_jsonb(f.away_team_id)
+                  AND (p.payload #>> '{corners_intelligence,status}' = 'LIVE_RESEARCH_MODELED'
+                    OR p.payload #>> '{cards_intelligence_live,status}' = 'LIVE_RESEARCH_MODELED'
+                    OR p.payload #>> '{team_cards_intelligence,status}' = 'LIVE_RESEARCH_MODELED'
+                    OR p.payload #>> '{red_cards_intelligence,status}' = 'LIVE_RESEARCH_MODELED')
+             ) THEN 0 ELSE 1 END,
+             CASE WHEN EXISTS (
                 SELECT 1 FROM soccer_model_runs m WHERE m.fixture_id=f.fixture_id
              ) THEN 0 ELSE 1 END,
              CASE WHEN f.status IN ('FT','AET','PEN') THEN 0 ELSE 1 END,
