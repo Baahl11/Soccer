@@ -1,0 +1,60 @@
+name: Soccer Full Slate Research - automatic coverage
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/soccer-full-slate-research.yml']
+  schedule:
+    - cron: '15 00,06,11,16 * * *'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: soccer-full-slate-research
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Capture eligible pregame fixtures in bounded batches
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A 401 on anonymous POST verifies the protected route is deployed.
+          for check in $(seq 1 18); do
+            http=$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -X POST \
+              https://soccer-edge-api.onrender.com/internal/full-slate-research-v1 || true)
+            if [ "$http" = 401 ]; then break; fi
+            if [ "$check" = 18 ]; then echo "::error::Protected coverage route not ready"; exit 1; fi
+            sleep 10
+          done
+          after=0
+          day=
+          for batch in $(seq 1 80); do
+            token=$(curl -fsS --max-time 15 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=soccer-edge-render" | jq -er '.value')
+            echo "::add-mask::$token"
+            curl --fail-with-body -sS --max-time 140 -X POST -H "Authorization: Bearer $token" \
+              "https://soccer-edge-api.onrender.com/internal/full-slate-research-v1?after=$after" > /tmp/coverage.json
+            cat /tmp/coverage.json
+            jq -e '.bet_eligible == false and (.durable_cards | type == "number")' /tmp/coverage.json >/dev/null
+            current_day=$(jq -er '.date' /tmp/coverage.json)
+            if [ -n "$day" ] && [ "$day" != "$current_day" ]; then
+              echo "::warning::Coverage batch crossed the local day boundary"; exit 1
+            fi
+            day=$current_day
+            if [ "$(jq -r '.blocked // empty' /tmp/coverage.json)" != "" ]; then
+              echo "::warning::Coverage deferred by quota guard"; exit 1
+            fi
+            next=$(jq -r '.next_after // empty' /tmp/coverage.json)
+            if [ -z "$next" ]; then exit 0; fi
+            if [ "$next" -le "$after" ]; then exit 1; fi
+            after=$next
+          done
+          echo "::error::Coverage batch cap reached; slate not fully processed"
+          exit 1
