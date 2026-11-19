@@ -2,8 +2,11 @@ name: Soccer Full Slate Research - automatic coverage
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/soccer-full-slate-research.yml']
   schedule:
-    - cron: '15 05,11,17,23 * * *'
+    - cron: '15 00,06,11,16 * * *'
 
 permissions:
   contents: read
