@@ -937,6 +937,21 @@ class V215SignalLedgerRouter:
         if scope.get("type") == "http":
             path = scope.get("path")
             method = str(scope.get("method") or "").upper()
+            if path == "/internal/full-slate-research-v1" and method == "POST":
+                from mcp_gateway import full_slate_research_v1
+                request = Request(scope, receive=receive)
+                try:
+                    _base_server._github_oidc_claims(request, {".github/workflows/soccer-full-slate-research.yml"})
+                except Exception:
+                    response = full_slate_research_v1.json_reply({"error":"unauthorized"},401)
+                else:
+                    raw = request.query_params.get("after", "0")
+                    if not raw.isascii() or not raw.isdigit() or len(raw) > 16:
+                        response = full_slate_research_v1.json_reply({"error":"INVALID_CURSOR"},400)
+                    else:
+                        response = await full_slate_research_v1.collect(_base_server, scheduled=True, after=int(raw))
+                await response(scope, receive, send)
+                return
             if method == "GET" and (path == "/app/coverage" or path == "/app/api/coverage-v1" or path.startswith("/app/api/coverage-v1/")):
                 from mcp_gateway import full_slate_research_v1
                 if path == "/app/coverage":
