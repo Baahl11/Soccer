@@ -182,7 +182,7 @@ async def handle(request, api, fixture_id=None):
                 lineups = await read("fixtures/lineups",{"fixture":fixture_id})
                 expected = {f["home_team_id"],f["away_team_id"]}
                 complete = {row.get("team",{}).get("id") for row in lineups["response"]
-                            if len(row.get("startXI") or []) == 11}
+                            if len({p.get("player",{}).get("id") for p in row.get("startXI",[]) if type(p.get("player",{}).get("id")) is int}) == 11}
                 xi = ("BOTH_XI_REPORTED" if complete == expected and
                       datetime.now(timezone.utc).timestamp() < f["timestamp"] else "NOT_VERIFIED")
             except (api.APIFootballError, TypeError, KeyError, ValueError):
@@ -204,13 +204,34 @@ def page(token_key):
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Cobertura diaria · Soccer Edge</title>
 <style>body{background:#0e1824;color:#edf3fb;font:16px system-ui;margin:2rem auto;padding:0 1rem;max-width:66rem}button{color:inherit;background:#263b50;padding:.5rem;border:1px solid #496681;border-radius:5px;cursor:pointer}li{margin:.35rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#a6dfff}</style>
 <a href="/app">Volver a Soccer Edge</a><h1>Cobertura diaria</h1><p>Vista privada de investigación. Datos faltantes no son ceros; ninguna cuota es accionable aquí.</p>
-<p id="status">Consultando calendario…</p><section id="detail" aria-live="polite"></section><ol id="slate"></ol>
+<p id="status">Consultando calendario…</p><button id="scan" disabled>Analizar todos los prepartido de la jornada</button><p id="progress" aria-live="polite"></p><section id="detail" aria-live="polite"></section><ol id="slate"></ol>
 <script>
 const root="/app/api/coverage-v1", status=document.querySelector("#status"), slate=document.querySelector("#slate"), detail=document.querySelector("#detail");
 const token=localStorage.getItem(TOKEN_KEY);
-async function get(path){const r=await fetch(root+path,{headers:token?{Authorization:"Bearer "+token}:{},cache:"no-store"});const j=await r.json();if(!r.ok)throw Error(j.error||j.state||r.status);return j;}
+let running=false;
+async function get(path){const r=await fetch(root+path,{headers:token?{Authorization:"Bearer "+token}:{},cache:"no-store"});const j=await r.json();if(!r.ok){const e=Error(j.error||j.state||r.status);e.status=r.status;throw e;}return j;}
 async function openMatch(id){const pre=document.createElement("pre");detail.replaceChildren(pre);pre.textContent="Consultando ficha…";try{const d=await get("/"+id);pre.textContent=JSON.stringify(d,null,2);}catch(e){pre.textContent=e.message;}}
 (async()=>{try{const d=await get("");const c=d.counts;status.textContent=d.date+" · "+c.fixtures+" partidos · "+c.prematch+" prepartido · "+c.projections+" proyecciones capturadas en esta vista · "+c.provider_quote_fixtures+" con precios de referencia · OOS no medido.";
-for(const f of d.fixtures){const li=document.createElement("li"), b=document.createElement("button");b.textContent=f.home_team+" – "+f.away_team+" · "+f.league+" · "+f.status+" · "+f.coverage_status;b.onclick=()=>openMatch(f.fixture_id);li.append(b);slate.append(li);}const id=Number(new URLSearchParams(location.search).get("fixture_id"));if(Number.isSafeInteger(id)&&id>0)openMatch(id);
+for(const f of d.fixtures){const li=document.createElement("li"), b=document.createElement("button");b.textContent=f.home_team+" – "+f.away_team+" · "+f.league+" · "+f.status+" · "+f.coverage_status;b.onclick=()=>openMatch(f.fixture_id);li.append(b);slate.append(li);}const scan=document.querySelector("#scan"), progress=document.querySelector("#progress");
+const targets=d.fixtures.filter(f=>f.status==="NS");
+scan.disabled=!targets.length;
+scan.onclick=async()=>{
+ if(running)return;running=true;scan.disabled=true;
+ let seen=0,model=0,quotes=0,skipped=0,errors=0,halt="";
+ for(const f of targets){
+  try{
+   const x=await get("/"+f.fixture_id);
+   if(x.model)model++;
+   if(Object.values(x.quotes||{}).some(a=>a.length))quotes++;
+   if(x.state!=="RESEARCH_ONLY")skipped++;
+  }catch(e){
+   errors++;if([401,403,429,503].includes(e.status)){halt=" · interrumpido: "+e.message;break;}
+  }finally{
+   seen++;progress.textContent=seen+"/"+targets.length+" intentados · "+model+" con proyección · "+quotes+" con precios de referencia · "+skipped+" omitidos · "+errors+" errores"+halt;
+  }
+ }
+ running=false;scan.disabled=false;
+};
+const id=Number(new URLSearchParams(location.search).get("fixture_id"));if(Number.isSafeInteger(id)&&id>0)openMatch(id);
 }catch(e){status.textContent=e.message==="AUTH_REQUIRED"?"Inicia sesión como propietario en Soccer Edge y vuelve a abrir esta página.":e.message;}})();
 </script></html>""".replace("TOKEN_KEY",repr(token_key)),headers={"Cache-Control":"no-store"})
