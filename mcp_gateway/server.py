@@ -937,6 +937,19 @@ class V215SignalLedgerRouter:
         if scope.get("type") == "http":
             path = scope.get("path")
             method = str(scope.get("method") or "").upper()
+            if method == "GET" and (path == "/app/coverage" or path == "/app/api/coverage-v1" or path.startswith("/app/api/coverage-v1/")):
+                from mcp_gateway import full_slate_research_v1
+                if path == "/app/coverage":
+                    response = full_slate_research_v1.page("soccer_edge_access_token")
+                else:
+                    suffix = path.removeprefix("/app/api/coverage-v1")
+                    if suffix and (not suffix[1:].isascii() or not suffix[1:].isdigit() or len(suffix) > 16):
+                        response = full_slate_research_v1.json_reply({"error":"INVALID_FIXTURE_ID"}, 400)
+                    else:
+                        request = Request(scope, receive=receive)
+                        response = await full_slate_research_v1.handle(request, _base_server, int(suffix[1:]) if suffix else None)
+                await response(scope, receive, send)
+                return
             if path == "/internal/primary-clv-anchor-normalization-v4/build" and method == "POST":
                 request = Request(scope, receive=receive)
                 response = await internal_primary_clv_anchor_normalization_v4_build(request)
