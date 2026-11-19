@@ -25,6 +25,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # A 401 on anonymous POST verifies the protected route is deployed.
+          for check in $(seq 1 18); do
+            http=$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -X POST \
+              https://soccer-edge-api.onrender.com/internal/full-slate-research-v1 || true)
+            if [ "$http" = 401 ]; then break; fi
+            if [ "$check" = 18 ]; then echo "::error::Protected coverage route not ready"; exit 1; fi
+            sleep 10
+          done
           after=0
           day=
           for batch in $(seq 1 80); do
