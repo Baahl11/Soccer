@@ -29,7 +29,7 @@ jobs:
           for check in $(seq 1 18); do
             http=$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -X POST \
               https://soccer-edge-api.onrender.com/internal/full-slate-research-v1 || true)
-            if [ "$http" = 401 ]; then break; fi
+            if [ "$http" = 401 ] && curl -fsS --max-time 10 https://soccer-edge-api.onrender.com/app/coverage | grep -Fq 'OOS no certificado'; then break; fi
             if [ "$check" = 18 ]; then echo "::error::Protected coverage route not ready"; exit 1; fi
             sleep 10
           done
@@ -42,7 +42,10 @@ jobs:
             curl --fail-with-body -sS --max-time 140 -X POST -H "Authorization: Bearer $token" \
               "https://soccer-edge-api.onrender.com/internal/full-slate-research-v1?after=$after" > /tmp/coverage.json
             cat /tmp/coverage.json
-            jq -e '.bet_eligible == false and (.durable_cards | type == "number")' /tmp/coverage.json >/dev/null
+            jq -e '.bet_eligible == false and (.durable_cards | type == "number") and (.evaluated | type == "number")' /tmp/coverage.json >/dev/null
+            if [ "$after" = 0 ] && [ "$(jq -r '.previous_day_state' /tmp/coverage.json)" != "VERIFIED" ]; then
+              echo "::warning::Previous-day grading not verified in this run"
+            fi
             current_day=$(jq -er '.date' /tmp/coverage.json)
             if [ -n "$day" ] && [ "$day" != "$current_day" ]; then
               echo "::warning::Coverage batch crossed the local day boundary"; exit 1
