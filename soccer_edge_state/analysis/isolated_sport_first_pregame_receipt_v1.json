@@ -1,12 +1,12 @@
 {
   "status": "NO_NEW_VALID_PREGAME_MODELS",
-  "generated_at_utc": "2026-11-19T03:26:23.747552+00:00",
-  "candidate_fixtures": 4,
-  "negative_cache_deferred_fixtures": 68,
+  "generated_at_utc": "2026-11-19T03:52:37.208734+00:00",
+  "candidate_fixtures": 1,
+  "negative_cache_deferred_fixtures": 71,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
   "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
-  "previously_negative_eligible": 4,
-  "attempted_fixtures": 4,
+  "previously_negative_eligible": 1,
+  "attempted_fixtures": 1,
   "new_frozen_pregame_models": 0,
   "eligible_fixture_ids": 105,
   "league_coverage_report": [
@@ -98,15 +98,13 @@
       "league": "Paraense U20",
       "competition_id": 1157,
       "eligible": 4,
-      "attempted": 4,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 4,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 0,
+      "deferred_due_to_missing_source": 4,
       "unattempted": 0,
-      "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 4
-      }
+      "failure_reasons": {}
     },
     {
       "league": "Serie A",
@@ -124,13 +122,15 @@
       "league": "Ligue 1",
       "competition_id": 186,
       "eligible": 3,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Persian Gulf Pro League",
@@ -571,33 +571,18 @@
   "season_split_cache_hits": 0,
   "season_split_cache_hits_from_original_frozen": 0,
   "season_split_cache_hits_same_capture": 0,
-  "season_split_cache_misses": 4,
-  "season_split_cache_new_entries": 0,
+  "season_split_cache_misses": 2,
+  "season_split_cache_new_entries": 2,
   "season_split_cache_new_public_cache_files_created": 0,
   "excluded": [
     {
-      "fixture_id": 1648721,
+      "fixture_id": 1611454,
       "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1648775,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1648776,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1648777,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
     }
   ],
-  "provider_requests_added": 6,
-  "daily_remaining_reported": 7413,
+  "provider_requests_added": 4,
+  "daily_remaining_reported": 7407,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
