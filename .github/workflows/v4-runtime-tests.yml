@@ -74,6 +74,7 @@ jobs:
       - name: Run V4 scheduler regression tests
         run: |
           PYTHONPATH=. pytest -q -c /dev/null --rootdir=. -p no:cacheprovider \
+            tests/test_full_slate_research_v1.py \
             tests/test_v4_006_fair_scheduler.py \
             tests/test_slate_floor_reconciliation.py \
             tests/test_v4_007_feature_snapshot.py \

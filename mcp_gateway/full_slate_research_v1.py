@@ -3,7 +3,7 @@ import asyncio
 import math
 import json
 import time
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from html import escape
 from zoneinfo import ZoneInfo
 
@@ -106,7 +106,54 @@ def json_reply(payload, status=200):
     return JSONResponse(payload, status_code=status, headers={"Cache-Control":"private, no-store"})
 
 
-def stored_cards(day, new_cards=()):
+def finals_from_slate(raw, compact):
+    finals = {}
+    for item in raw["response"]:
+        f = compact(item)
+        if f.get("status") not in {"FT", "AET", "PEN"}:
+            continue
+        ft = (item.get("score") or {}).get("fulltime") or {}
+        h, a = ft.get("home"), ft.get("away")
+        if type(h) is int and type(a) is int and min(h,a) >= 0:
+            finals[(f["fixture_id"], f["timestamp"])] = {
+                "home":h,"away":a,"home_team_id":f["home_team_id"],"away_team_id":f["away_team_id"],
+                "period":"FT_90","status":f["status"],"source":"API-Football v3 /fixtures",
+                "observed_at":raw["retrieved_at_utc"]}
+    return finals
+
+
+def evaluate(card, final):
+    f, model = card.get("fixture") or {}, card.get("model")
+    if not model or not final or any(not f.get(k) or f[k] != final.get(k) for k in ("home_team_id","away_team_id")):
+        return None
+    try:
+        observed = datetime.fromisoformat(card["model_captured_at"])
+        if observed.tzinfo is None or observed.timestamp() >= f["timestamp"]:
+            return None
+        if datetime.fromisoformat(final["observed_at"]).timestamp() < f["timestamp"]:
+            return None
+        h,a = final["home"],final["away"]
+        actual = "home" if h>a else "away" if a>h else "draw"
+        p = model["probabilities"]
+        over, btts = h+a>2.5, h>0 and a>0
+        return {"result":final, "actual_1x2":actual, "actual_over_2_5":over, "actual_btts":btts,
+                "absolute_total_goal_error":round(abs(model["lambda_home"]+model["lambda_away"]-h-a),6),
+                "brier_1x2":round(sum((p["1X2"][k]-(k==actual))**2 for k in ("home","draw","away")),6),
+                "brier_over_2_5":round((p["Goles FT"]["2.5"]-over)**2,6),
+                "brier_btts":round((p["BTTS"]["yes"]-btts)**2,6),
+                "scope":"RESEARCH_ONLY_NOT_OOS_CERTIFIED"}
+    except (KeyError,TypeError,ValueError):
+        return None
+
+
+async def read_slate(api, day):
+    raw = await api._get("fixtures", {"date":day,"timezone":str(ZONE)})
+    if (raw.get("paging") or {}).get("total",1) != 1 or raw.get("results") != len(raw.get("response",[])):
+        raise ValueError("PROVIDER_SLATE_INCOMPLETE")
+    return raw, index_slate(raw["response"],api._compact_fixture)
+
+
+def stored_cards(day, new_cards=(), finals=None):
     """Independent research store, first valid projection never overwritten."""
     with persistence._connect() as conn, conn.cursor() as cur:
         cur.execute("""
@@ -114,6 +161,13 @@ def stored_cards(day, new_cards=()):
               match_date date NOT NULL, fixture_id bigint NOT NULL,
               kickoff bigint NOT NULL, has_model boolean NOT NULL,
               card jsonb NOT NULL, PRIMARY KEY (match_date, fixture_id, kickoff)
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS soccer_full_slate_evaluation_v1 (
+              match_date date NOT NULL, fixture_id bigint NOT NULL,
+              kickoff bigint NOT NULL, evaluation jsonb NOT NULL,
+              PRIMARY KEY (match_date, fixture_id, kickoff)
             )
         """)
         for card in new_cards:
@@ -128,7 +182,22 @@ def stored_cards(day, new_cards=()):
               WHERE NOT soccer_full_slate_research_v1.has_model
             """, (day, f["fixture_id"], f["timestamp"], bool(card.get("model")), json.dumps(saved)))
         cur.execute("SELECT fixture_id,kickoff,card FROM soccer_full_slate_research_v1 WHERE match_date=%s", (day,))
-        return {(fid,kickoff):card for fid,kickoff,card in cur.fetchall()}
+        cards = {(fid,kickoff):card for fid,kickoff,card in cur.fetchall()}
+        for key, final in (finals or {}).items():
+            grade = evaluate(cards.get(key,{}),final)
+            if grade is not None:
+                cur.execute("""
+                    INSERT INTO soccer_full_slate_evaluation_v1 VALUES (%s,%s,%s,%s::jsonb)
+                    ON CONFLICT (match_date,fixture_id,kickoff) DO UPDATE
+                    SET evaluation=excluded.evaluation
+                    WHERE soccer_full_slate_evaluation_v1.evaluation->'result'->>'observed_at'
+                          < excluded.evaluation->'result'->>'observed_at'
+                """, (day,*key,json.dumps(grade)))
+        cur.execute("SELECT fixture_id,kickoff,evaluation FROM soccer_full_slate_evaluation_v1 WHERE match_date=%s",(day,))
+        for fid,kickoff,grade in cur.fetchall():
+            if (fid,kickoff) in cards:
+                cards[(fid,kickoff)]["evaluation"] = grade
+        return cards
 
 
 def with_stored(day, slate, cache, saved):
@@ -147,21 +216,29 @@ async def handle(request, api, fixture_id=None):
         return json_reply({"error":"AUTH_REQUIRED"},401)
     if not ent.get("owner"):
         return json_reply({"error":"OWNER_ONLY_PREVIEW"},403)
-    return await collect(api, fixture_id=fixture_id)
+    requested = request.query_params.get("date")
+    today = datetime.now(ZONE).date()
+    if requested:
+        try:
+            selected = date.fromisoformat(requested)
+            if selected.isoformat() != requested or not 0 <= (today-selected).days <= 7:
+                raise ValueError
+        except ValueError:
+            return json_reply({"error":"DATE_OUTSIDE_SEVEN_DAY_WINDOW"},400)
+    return await collect(api, fixture_id=fixture_id, day=requested)
 
 
-async def collect(api, fixture_id=None, *, scheduled=False, after=0):
-    day = datetime.now(ZONE).date().isoformat()
+async def collect(api, fixture_id=None, *, scheduled=False, after=0, day=None):
+    today = datetime.now(ZONE).date()
+    day = day or today.isoformat()
     async with _LOCK:
         try:
             if _CACHE.get("day") != day or time.monotonic() - _CACHE.get("at",0) > 180:
-                raw = await api._get("fixtures", {"date":day,"timezone":str(ZONE)})
-                if (raw.get("paging") or {}).get("total",1) != 1 or raw.get("results") != len(raw.get("response",[])):
-                    return json_reply({"error":"PROVIDER_SLATE_INCOMPLETE"},503)
-                indexed = index_slate(raw["response"], api._compact_fixture)
+                raw, indexed = await read_slate(api, day);
                 old = _CACHE.get("cards",{}) if _CACHE.get("day") == day else {}
                 _CACHE.update(day=day, at=time.monotonic(), slate=indexed, cards=old,
-                              source_time=raw["retrieved_at_utc"], quota=raw.get("quota") or {})
+                              source_time=raw["retrieved_at_utc"], quota=raw.get("quota") or {},
+                              finals=finals_from_slate(raw,api._compact_fixture))
             slate = _CACHE["slate"]
             try:
                 saved = await asyncio.to_thread(stored_cards, day)
@@ -171,6 +248,21 @@ async def collect(api, fixture_id=None, *, scheduled=False, after=0):
                 saved = {}
             cards = with_stored(day, slate, _CACHE["cards"], saved)
             if scheduled:
+                previous_evaluated = None
+                previous_state = "NOT_THIS_BATCH"
+                if after == 0:
+                    prior_day = (today-timedelta(days=1)).isoformat()
+                    try:
+                        if int(_CACHE["quota"].get("daily_remaining") or 0) <= 1505:
+                            previous_state = "QUOTA_DEFERRED"
+                        else:
+                            prior_raw,_ = await read_slate(api, prior_day)
+                            _CACHE["quota"] = prior_raw.get("quota") or {}
+                            prior = await asyncio.to_thread(stored_cards,prior_day,(),finals_from_slate(prior_raw,api._compact_fixture))
+                            previous_evaluated = sum(bool(c.get("evaluation")) for c in prior.values())
+                            previous_state = "VERIFIED"
+                    except Exception:
+                        previous_state = "NOT_VERIFIED"
                 candidates = [k for k,f in sorted(slate.items())
                               if k > after and f.get("status") in PREMATCH
                               and f["timestamp"] > datetime.now(timezone.utc).timestamp()]
@@ -189,7 +281,7 @@ async def collect(api, fixture_id=None, *, scheduled=False, after=0):
                     if card["state"] == "RESEARCH_ONLY":
                         written.append(card)
                 try:
-                    saved = await asyncio.to_thread(stored_cards, day, written)
+                    saved = await asyncio.to_thread(stored_cards, day, written, _CACHE["finals"])
                 except Exception:
                     return json_reply({"error":"RESEARCH_STORE_WRITE_UNVERIFIED"},503)
                 relevant = [saved[(i,f["timestamp"])] for i,f in slate.items() if (i,f["timestamp"]) in saved]
@@ -197,6 +289,8 @@ async def collect(api, fixture_id=None, *, scheduled=False, after=0):
                     "attempted":attempted,"saved_this_batch":len(written),"durable_cards":len(relevant),
                     "projections":sum(bool(c.get("model")) for c in relevant),
                     "price_reference_fixtures":sum(bool(c.get("has_price_reference")) for c in relevant),
+                    "evaluated":sum(bool(c.get("evaluation")) for c in relevant),
+                    "previous_day_evaluated":previous_evaluated,"previous_day_state":previous_state,
                     "blocked":blocked,"next_after":batch[-1] if len(candidates)>len(batch) and not blocked else None,
                     "bet_eligible":False})
             if fixture_id is None:
@@ -205,8 +299,10 @@ async def collect(api, fixture_id=None, *, scheduled=False, after=0):
                               "prematch":sum(f.get("status") in PREMATCH for f in slate.values()),
                               "researched":len(cards), "projections":sum(bool(c.get("model")) for _,c in cards.values()),
                               "provider_quote_fixtures":sum(bool(c.get("has_price_reference") or any(c.get("quotes",{}).values())) for _,c in cards.values()),
-                              "oos":None},
-                    "fixtures":[{**f,"coverage_status": "RESEARCH_CAPTURED" if k in cards else
+                              "evaluated":sum(bool(c.get("evaluation")) for _,c in cards.values()),"oos":None},
+                    "fixtures":[{**f,"coverage_status": "EVALUADO" if k in cards and cards[k][1].get("evaluation") else
+                        "PROYECTADO" if k in cards and cards[k][1].get("model") else
+                        "SIN_INSUMOS" if k in cards else
                         "PENDING_RESEARCH" if f.get("status") in PREMATCH else "NOT_PREMATCH"}
                         for k,f in slate.items()]})
             f = slate.get(fixture_id)
@@ -216,6 +312,8 @@ async def collect(api, fixture_id=None, *, scheduled=False, after=0):
                 at, card = cards[fixture_id]
                 if card.get("model") or time.monotonic()-at < 300 or f["status"] not in PREMATCH:
                     return json_reply({**card,"fixture":f,"cached_capture":True})
+            if day != today.isoformat():
+                return json_reply({"fixture":f,"state":"NO_SAVED_PREMATCH_PROJECTION","bet_eligible":False})
             card = await capture(api, f)
             if card["state"] == "RESEARCH_ONLY":
                 _CACHE["cards"][fixture_id] = (time.monotonic(), card)
@@ -284,14 +382,17 @@ def page(token_key):
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Cobertura diaria · Soccer Edge</title>
 <style>body{background:#0e1824;color:#edf3fb;font:16px system-ui;margin:2rem auto;padding:0 1rem;max-width:66rem}button{color:inherit;background:#263b50;padding:.5rem;border:1px solid #496681;border-radius:5px;cursor:pointer}li{margin:.35rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#a6dfff}</style>
 <a href="/app">Volver a Soccer Edge</a><h1>Cobertura diaria</h1><p>Vista privada de investigación. Las corridas programadas guardan resultados; la revisión manual es opcional. Datos faltantes no son ceros; ninguna cuota es accionable aquí.</p>
-<p id="status">Consultando calendario…</p><button id="scan" disabled>Revisión manual de prepartidos</button><p id="progress" aria-live="polite"></p><section id="detail" aria-live="polite"></section><ol id="slate"></ol>
+<label>Fecha <input type="date" id="day"></label><p id="status">Consultando calendario…</p><button id="scan" disabled>Revisión manual de prepartidos</button><p id="progress" aria-live="polite"></p><section id="detail" aria-live="polite"></section><ol id="slate"></ol>
 <script>
 const root="/app/api/coverage-v1", status=document.querySelector("#status"), slate=document.querySelector("#slate"), detail=document.querySelector("#detail");
 const token=localStorage.getItem(TOKEN_KEY);
 let running=false;
-async function get(path){const r=await fetch(root+path,{headers:token?{Authorization:"Bearer "+token}:{},cache:"no-store"});const j=await r.json();if(!r.ok){const e=Error(j.error||j.state||r.status);e.status=r.status;throw e;}return j;}
-async function openMatch(id){const pre=document.createElement("pre");detail.replaceChildren(pre);pre.textContent="Consultando ficha…";try{const d=await get("/"+id);pre.textContent=JSON.stringify(d,null,2);}catch(e){pre.textContent=e.message;}}
-(async()=>{try{const d=await get("");const c=d.counts;status.textContent=d.date+" · "+c.fixtures+" partidos · "+c.prematch+" prepartido · "+c.projections+" proyecciones disponibles · "+c.provider_quote_fixtures+" con precios de referencia · OOS no medido.";
+const query=new URLSearchParams(location.search), day=query.get("date");
+const dateInput=document.querySelector("#day");
+dateInput.onchange=()=>{if(dateInput.value){query.set("date",dateInput.value);query.delete("fixture_id");location.search=query.toString();}};
+async function get(path){const r=await fetch(root+path+(day?"?date="+encodeURIComponent(day):""),{headers:token?{Authorization:"Bearer "+token}:{},cache:"no-store"});const j=await r.json();if(!r.ok){const e=Error(j.error||j.state||r.status);e.status=r.status;throw e;}return j;}
+async function openMatch(id){const pre=document.createElement("pre");detail.replaceChildren(pre);pre.textContent="Consultando ficha…";try{const d=await get("/"+id);if(d.evaluation){const e=d.evaluation;const h=document.createElement("h2");h.textContent="Evaluado · "+e.result.home+"–"+e.result.away+" (90 min)";detail.prepend(h);}pre.textContent=JSON.stringify(d,null,2);}catch(e){pre.textContent=e.message;}}
+(async()=>{try{const d=await get("");const c=d.counts;dateInput.value=d.date;status.textContent=d.date+" · "+c.fixtures+" partidos · "+c.prematch+" prepartido · "+c.projections+" proyecciones disponibles · "+c.provider_quote_fixtures+" con precios de referencia · "+c.evaluated+" evaluados · OOS no certificado.";
 for(const f of d.fixtures){const li=document.createElement("li"), b=document.createElement("button");b.textContent=f.home_team+" – "+f.away_team+" · "+f.league+" · "+f.status+" · "+f.coverage_status;b.onclick=()=>openMatch(f.fixture_id);li.append(b);slate.append(li);}const scan=document.querySelector("#scan"), progress=document.querySelector("#progress");
 const targets=d.fixtures.filter(f=>f.status==="NS");
 scan.disabled=!targets.length;
