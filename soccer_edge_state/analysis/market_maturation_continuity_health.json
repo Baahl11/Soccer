@@ -1,45 +1,26 @@
 {
   "schema_version": "1.0.0",
-  "status": "PASS",
-  "observed_at_utc": "2026-11-20T13:29:11.919736+00:00",
+  "status": "FAIL_CLOSED",
+  "observed_at_utc": "2026-11-21T13:28:40.828607+00:00",
   "scheduler_latest_tick_utc": "2026-11-19T19:13:19.303822+00:00",
   "scheduler_database_persisted": true,
   "ledger_latest_evidence_utc": "2026-11-19T19:13:19.303822+00:00",
   "ledger_rows": 32439,
-  "previous_ledger_rows": 32412,
+  "previous_ledger_rows": 32439,
   "clv_total_rows": 805,
   "sport_to_market_admission": {
-    "status": "GAPS_OBSERVED",
-    "latest_tick_utc": "2026-11-19T19:13:19.303822+00:00",
-    "eligible_tier_ab_due": 21,
-    "deep_dives_for_due_tier_ab": 4,
-    "sport_deep_dive_coverage": 0.190476,
-    "due_fixtures_all_tiers": 24,
-    "direct_price_candidate_rows": 1,
-    "primary_clv_maturation_candidate_fixtures": 0,
-    "price_provider_calls_this_tick": 1,
-    "price_provider_call_cap_this_tick": 8,
-    "provider_daily_remaining_observed": 6098,
-    "low_memory_guard_applied": true,
-    "low_memory_cgroup_limit_bytes": 536870912,
-    "upstream_calls_deferred_by_resource_guard": 34,
-    "low_coverage": true,
-    "consecutive_low_coverage_daily_checks": 11,
-    "three_daily_low_coverage_checks": true,
+    "status": "SOURCE_NOT_VERIFIED",
     "warnings": [
-      "SPORT_FIRST_DEEP_DIVE_COVERAGE_UNDER_25_PCT",
-      "UPSTREAM_LOW_MEMORY_GUARD_APPLIED"
+      "LATEST_SCHEDULER_TIMESTAMP_INVALID_OR_STALE"
     ],
-    "bet_eligible": false,
-    "no_new_market_evidence_inferred": true,
-    "interpretation": "One tick is descriptive only. A zero CLV candidate count is not proof of odds-provider outage. Source football projection must precede price resolution; CLV additionally requires a later comparable real quote."
+    "three_daily_low_coverage_checks": false
   },
   "families": {
     "1X2": {
       "clv_rows": 53,
       "prior_clv_rows": 53,
       "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 10,
+      "consecutive_unchanged_daily_checks": 11,
       "stalled_3plus_days": true,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     },
@@ -47,7 +28,7 @@
       "clv_rows": 20,
       "prior_clv_rows": 20,
       "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 10,
+      "consecutive_unchanged_daily_checks": 11,
       "stalled_3plus_days": true,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     },
@@ -55,7 +36,7 @@
       "clv_rows": 8,
       "prior_clv_rows": 8,
       "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 10,
+      "consecutive_unchanged_daily_checks": 11,
       "stalled_3plus_days": true,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     },
@@ -63,7 +44,7 @@
       "clv_rows": 351,
       "prior_clv_rows": 351,
       "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 1,
+      "consecutive_unchanged_daily_checks": 2,
       "stalled_3plus_days": false,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     },
@@ -71,28 +52,32 @@
       "clv_rows": 373,
       "prior_clv_rows": 373,
       "new_verified_clv_rows_since_prior_check": 0,
-      "consecutive_unchanged_daily_checks": 2,
-      "stalled_3plus_days": false,
+      "consecutive_unchanged_daily_checks": 3,
+      "stalled_3plus_days": true,
       "assessment": "OBSERVED_COUNTER_ONLY_NOT_EVIDENCE_OF_PROVIDER_AVAILABILITY"
     }
   },
   "source_workflows": {
     "postgre_delta_ledger": {
       "status": "RECENT_SUCCESS",
-      "run_id": 44723473045,
-      "last_success": "2026-11-20T10:57:19+00:00"
+      "run_id": 44896716948,
+      "last_success": "2026-11-21T10:57:15+00:00"
     },
     "market_clv": {
       "status": "RECENT_SUCCESS",
-      "run_id": 44727633905,
-      "last_success": "2026-11-20T11:29:39+00:00"
+      "run_id": 44899144977,
+      "last_success": "2026-11-21T11:29:42+00:00"
     }
   },
-  "blockers": [],
+  "blockers": [
+    "SCHEDULER_HEALTH_STALE_OR_INVALID",
+    "SPORT_TO_PRICE_FUNNEL_SOURCE_NOT_VERIFIED"
+  ],
   "stalled_market_families_3plus_days": [
     "1X2",
     "BTTS",
-    "FT_TOTALS"
+    "FT_TOTALS",
+    "AWAY_TT"
   ],
   "provider_requests_added": 0,
   "postgres_write_queries": 0,
