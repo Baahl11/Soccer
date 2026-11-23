@@ -1,30 +1,32 @@
 {
   "status": "CAPTURED_RESEARCH_ONLY",
-  "generated_at_utc": "2026-11-23T11:23:49.969352+00:00",
-  "candidate_fixtures": 14,
-  "negative_cache_deferred_fixtures": 143,
+  "generated_at_utc": "2026-11-23T11:52:17.411892+00:00",
+  "candidate_fixtures": 83,
+  "negative_cache_deferred_fixtures": 136,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
   "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
-  "previously_negative_eligible": 0,
-  "attempted_fixtures": 14,
-  "new_frozen_pregame_models": 6,
-  "eligible_fixture_ids": 234,
+  "previously_negative_eligible": 9,
+  "attempted_fixtures": 18,
+  "new_frozen_pregame_models": 9,
+  "eligible_fixture_ids": 301,
   "league_coverage_report": [
-    {
-      "league": "World Cup - U17",
-      "competition_id": 587,
-      "eligible": 16,
-      "attempted": 0,
-      "modeled_limited": 0,
-      "missing_or_insufficient": 0,
-      "already_frozen": 0,
-      "deferred_due_to_missing_source": 16,
-      "unattempted": 0,
-      "failure_reasons": {}
-    },
     {
       "league": "AFC Champions League Elite",
       "competition_id": 17,
+      "eligible": 14,
+      "attempted": 1,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 1,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 13,
+      "unattempted": 0,
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
+    },
+    {
+      "league": "World Cup - U17",
+      "competition_id": 587,
       "eligible": 14,
       "attempted": 0,
       "modeled_limited": 0,
@@ -38,27 +40,51 @@
       "league": "Ligue 2",
       "competition_id": 828,
       "eligible": 14,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
+      "missing_or_insufficient": 1,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 13,
+      "unattempted": 0,
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
+    },
+    {
+      "league": "National League - North",
+      "competition_id": 50,
+      "eligible": 12,
+      "attempted": 1,
+      "modeled_limited": 1,
       "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 14,
-      "unattempted": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 11,
+      "failure_reasons": {}
+    },
+    {
+      "league": "National League - South",
+      "competition_id": 51,
+      "eligible": 10,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
+      "already_frozen": 1,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 8,
       "failure_reasons": {}
     },
     {
       "league": "Premier League Cup",
       "competition_id": 871,
       "eligible": 10,
-      "attempted": 4,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 4,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 6,
+      "deferred_due_to_missing_source": 10,
       "unattempted": 0,
-      "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 4
-      }
+      "failure_reasons": {}
     },
     {
       "league": "UEFA Youth League",
@@ -70,6 +96,54 @@
       "already_frozen": 0,
       "deferred_due_to_missing_source": 9,
       "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
+      "league": "National League",
+      "competition_id": 43,
+      "eligible": 9,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 8,
+      "failure_reasons": {}
+    },
+    {
+      "league": "Challenge Cup",
+      "competition_id": 182,
+      "eligible": 8,
+      "attempted": 0,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 8,
+      "failure_reasons": {}
+    },
+    {
+      "league": "League Cup",
+      "competition_id": 559,
+      "eligible": 8,
+      "attempted": 0,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 8,
+      "failure_reasons": {}
+    },
+    {
+      "league": "Championship",
+      "competition_id": 40,
+      "eligible": 7,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 6,
       "failure_reasons": {}
     },
     {
@@ -88,10 +162,10 @@
       "league": "Serie B",
       "competition_id": 136,
       "eligible": 6,
-      "attempted": 5,
-      "modeled_limited": 5,
+      "attempted": 0,
+      "modeled_limited": 0,
       "missing_or_insufficient": 0,
-      "already_frozen": 1,
+      "already_frozen": 6,
       "deferred_due_to_missing_source": 0,
       "unattempted": 0,
       "failure_reasons": {}
@@ -100,13 +174,15 @@
       "league": "Division 1",
       "competition_id": 308,
       "eligible": 6,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 5,
-      "deferred_due_to_missing_source": 1,
+      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Ligue 1",
@@ -145,15 +221,15 @@
       "failure_reasons": {}
     },
     {
-      "league": "Super League",
-      "competition_id": 277,
+      "league": "Non League Premier - Southern South",
+      "competition_id": 60,
       "eligible": 5,
       "attempted": 0,
       "modeled_limited": 0,
       "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 5,
-      "unattempted": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 5,
       "failure_reasons": {}
     },
     {
@@ -169,22 +245,32 @@
       "failure_reasons": {}
     },
     {
-      "league": "EFL Trophy",
-      "competition_id": 46,
-      "eligible": 4,
-      "attempted": 4,
+      "league": "Non League Premier - Southern Central",
+      "competition_id": 931,
+      "eligible": 5,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 4,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
       "deferred_due_to_missing_source": 0,
-      "unattempted": 0,
-      "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 4
-      }
+      "unattempted": 5,
+      "failure_reasons": {}
     },
     {
-      "league": "Premier League",
-      "competition_id": 584,
+      "league": "League One",
+      "competition_id": 41,
+      "eligible": 4,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 3,
+      "failure_reasons": {}
+    },
+    {
+      "league": "EFL Trophy",
+      "competition_id": 46,
       "eligible": 4,
       "attempted": 0,
       "modeled_limited": 0,
@@ -192,6 +278,44 @@
       "already_frozen": 0,
       "deferred_due_to_missing_source": 4,
       "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
+      "league": "Super League",
+      "competition_id": 277,
+      "eligible": 4,
+      "attempted": 0,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 4,
+      "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
+      "league": "Premier League",
+      "competition_id": 584,
+      "eligible": 4,
+      "attempted": 1,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 1,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 3,
+      "unattempted": 0,
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
+    },
+    {
+      "league": "Non League Premier - Isthmian",
+      "competition_id": 58,
+      "eligible": 3,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 2,
       "failure_reasons": {}
     },
     {
@@ -219,28 +343,18 @@
       "failure_reasons": {}
     },
     {
-      "league": "1st Division",
-      "competition_id": 311,
-      "eligible": 3,
-      "attempted": 0,
-      "modeled_limited": 0,
-      "missing_or_insufficient": 0,
-      "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
-      "unattempted": 0,
-      "failure_reasons": {}
-    },
-    {
       "league": "I-League",
       "competition_id": 324,
       "eligible": 3,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Premier League",
@@ -329,18 +443,6 @@
     {
       "league": "Allsvenskan",
       "competition_id": 113,
-      "eligible": 2,
-      "attempted": 0,
-      "modeled_limited": 0,
-      "missing_or_insufficient": 0,
-      "already_frozen": 2,
-      "deferred_due_to_missing_source": 0,
-      "unattempted": 0,
-      "failure_reasons": {}
-    },
-    {
-      "league": "Second League",
-      "competition_id": 173,
       "eligible": 2,
       "attempted": 0,
       "modeled_limited": 0,
@@ -450,25 +552,29 @@
       "league": "Professional League",
       "competition_id": 406,
       "eligible": 2,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 2,
+      "deferred_due_to_missing_source": 1,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "AWAY_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Super League 2",
       "competition_id": 494,
       "eligible": 2,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 1,
-      "deferred_due_to_missing_source": 1,
+      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Premier League",
@@ -498,13 +604,15 @@
       "league": "Campionato Primavera - 1",
       "competition_id": 705,
       "eligible": 2,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 1,
-      "deferred_due_to_missing_source": 1,
+      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE": 1
+      }
     },
     {
       "league": "Cup",
@@ -567,15 +675,27 @@
       "failure_reasons": {}
     },
     {
-      "league": "National League - South",
-      "competition_id": 51,
+      "league": "League Two",
+      "competition_id": 42,
+      "eligible": 1,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
+      "league": "Non League Premier - Northern",
+      "competition_id": 59,
       "eligible": 1,
       "attempted": 0,
       "modeled_limited": 0,
       "missing_or_insufficient": 0,
-      "already_frozen": 1,
+      "already_frozen": 0,
       "deferred_due_to_missing_source": 0,
-      "unattempted": 0,
+      "unattempted": 1,
       "failure_reasons": {}
     },
     {
@@ -622,6 +742,18 @@
       "modeled_limited": 0,
       "missing_or_insufficient": 0,
       "already_frozen": 1,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
+      "league": "Premier League",
+      "competition_id": 110,
+      "eligible": 1,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
       "deferred_due_to_missing_source": 0,
       "unattempted": 0,
       "failure_reasons": {}
@@ -759,14 +891,26 @@
       "failure_reasons": {}
     },
     {
-      "league": "Third League - Northwest",
-      "competition_id": 176,
+      "league": "Second League",
+      "competition_id": 173,
       "eligible": 1,
       "attempted": 0,
       "modeled_limited": 0,
       "missing_or_insufficient": 0,
+      "already_frozen": 1,
+      "deferred_due_to_missing_source": 0,
+      "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
+      "league": "Premiership",
+      "competition_id": 179,
+      "eligible": 1,
+      "attempted": 1,
+      "modeled_limited": 1,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 1,
+      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
       "failure_reasons": {}
     },
@@ -915,6 +1059,18 @@
       "failure_reasons": {}
     },
     {
+      "league": "1st Division",
+      "competition_id": 311,
+      "eligible": 1,
+      "attempted": 0,
+      "modeled_limited": 0,
+      "missing_or_insufficient": 0,
+      "already_frozen": 0,
+      "deferred_due_to_missing_source": 1,
+      "unattempted": 0,
+      "failure_reasons": {}
+    },
+    {
       "league": "1. Division",
       "competition_id": 318,
       "eligible": 1,
@@ -1038,10 +1194,10 @@
       "league": "1. Liga Classic - Group 3",
       "competition_id": 601,
       "eligible": 1,
-      "attempted": 1,
-      "modeled_limited": 1,
+      "attempted": 0,
+      "modeled_limited": 0,
       "missing_or_insufficient": 0,
-      "already_frozen": 0,
+      "already_frozen": 1,
       "deferred_due_to_missing_source": 0,
       "unattempted": 0,
       "failure_reasons": {}
@@ -1086,13 +1242,15 @@
       "league": "Premier League",
       "competition_id": 847,
       "eligible": 1,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 1,
+      "deferred_due_to_missing_source": 0,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Serie C - Girone B",
@@ -1143,59 +1301,64 @@
       "failure_reasons": {}
     }
   ],
-  "league_coverage_report_total_leagues": 94,
+  "league_coverage_report_total_leagues": 106,
   "league_coverage_report_truncated": false,
   "league_coverage_report_scope": "THIS_CAPTURE_TWO_DATE_WINDOW_ONLY",
   "season_split_cache_hits": 0,
   "season_split_cache_hits_from_original_frozen": 0,
   "season_split_cache_hits_same_capture": 0,
-  "season_split_cache_misses": 20,
-  "season_split_cache_new_entries": 12,
+  "season_split_cache_misses": 32,
+  "season_split_cache_new_entries": 27,
   "season_split_cache_new_public_cache_files_created": 0,
   "excluded": [
     {
-      "fixture_id": 1588819,
+      "fixture_id": 1642132,
+      "status": "NOT_MODELED",
+      "reason": "AWAY_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1636995,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1646633,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1627132,
+      "fixture_id": 1649275,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1588839,
+      "fixture_id": 1650849,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1588855,
+      "fixture_id": 1649973,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1629975,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1588868,
+      "fixture_id": 1569434,
       "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
     },
     {
-      "fixture_id": 1627133,
+      "fixture_id": 1604064,
       "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1627134,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
-    },
-    {
-      "fixture_id": 1627135,
-      "status": "NOT_MODELED",
-      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
     }
   ],
-  "provider_requests_added": 22,
-  "daily_remaining_reported": 6443,
+  "provider_requests_added": 34,
+  "daily_remaining_reported": 6407,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
