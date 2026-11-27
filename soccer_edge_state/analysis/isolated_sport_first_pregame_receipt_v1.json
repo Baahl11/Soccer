@@ -1,13 +1,13 @@
 {
-  "status": "CAPTURED_RESEARCH_ONLY",
-  "generated_at_utc": "2026-11-27T00:43:27.113421+00:00",
-  "candidate_fixtures": 4,
-  "negative_cache_deferred_fixtures": 115,
+  "status": "NO_NEW_VALID_PREGAME_MODELS",
+  "generated_at_utc": "2026-11-27T00:56:28.649036+00:00",
+  "candidate_fixtures": 5,
+  "negative_cache_deferred_fixtures": 113,
   "negative_cache_policy": "SOURCE_MISSING_OR_SAMPLE_SMALL_8H_RETRY_NO_MODEL",
   "selection_policy": "NEAR_KICKOFF_THEN_UNTRIED_THEN_EXPIRED_RETRIES;DIVERSE_LEAGUES;NO_BETS",
-  "previously_negative_eligible": 3,
-  "attempted_fixtures": 4,
-  "new_frozen_pregame_models": 1,
+  "previously_negative_eligible": 5,
+  "attempted_fixtures": 5,
+  "new_frozen_pregame_models": 0,
   "eligible_fixture_ids": 352,
   "league_coverage_report": [
     {
@@ -86,13 +86,15 @@
       "league": "Friendlies Women",
       "competition_id": 666,
       "eligible": 6,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 6,
+      "deferred_due_to_missing_source": 5,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Liga 3",
@@ -294,15 +296,13 @@
       "league": "Coupe de France",
       "competition_id": 66,
       "eligible": 3,
-      "attempted": 1,
+      "attempted": 0,
       "modeled_limited": 0,
-      "missing_or_insufficient": 1,
+      "missing_or_insufficient": 0,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 2,
+      "deferred_due_to_missing_source": 3,
       "unattempted": 0,
-      "failure_reasons": {
-        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
-      }
+      "failure_reasons": {}
     },
     {
       "league": "Primera Nacional",
@@ -404,10 +404,10 @@
       "league": "Vysshaya Liga",
       "competition_id": 571,
       "eligible": 3,
-      "attempted": 1,
-      "modeled_limited": 1,
+      "attempted": 0,
+      "modeled_limited": 0,
       "missing_or_insufficient": 0,
-      "already_frozen": 2,
+      "already_frozen": 3,
       "deferred_due_to_missing_source": 0,
       "unattempted": 0,
       "failure_reasons": {}
@@ -488,13 +488,15 @@
       "league": "Paraense U20",
       "competition_id": 1157,
       "eligible": 3,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 3,
+      "deferred_due_to_missing_source": 2,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "CAF Confederation Cup",
@@ -1040,13 +1042,15 @@
       "league": "World Cup - Women - Qualification Concacaf",
       "competition_id": 927,
       "eligible": 2,
-      "attempted": 0,
+      "attempted": 1,
       "modeled_limited": 0,
-      "missing_or_insufficient": 0,
+      "missing_or_insufficient": 1,
       "already_frozen": 0,
-      "deferred_due_to_missing_source": 2,
+      "deferred_due_to_missing_source": 1,
       "unattempted": 0,
-      "failure_reasons": {}
+      "failure_reasons": {
+        "HOME_VERIFIED_SEASON_SPLITS_MISSING": 1
+      }
     },
     {
       "league": "Serie C - Girone C",
@@ -2008,23 +2012,33 @@
   "season_split_cache_new_public_cache_files_created": 0,
   "excluded": [
     {
-      "fixture_id": 1621091,
+      "fixture_id": 1621092,
       "status": "NOT_MODELED",
       "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
     },
     {
-      "fixture_id": 1650303,
+      "fixture_id": 1611663,
+      "status": "NOT_MODELED",
+      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+    },
+    {
+      "fixture_id": 1647628,
       "status": "NOT_MODELED",
       "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     },
     {
-      "fixture_id": 1611662,
+      "fixture_id": 1651244,
       "status": "NOT_MODELED",
-      "reason": "INSUFFICIENT_VERIFIED_HOME_AWAY_SPLIT_SAMPLE"
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
+    },
+    {
+      "fixture_id": 1550710,
+      "status": "NOT_MODELED",
+      "reason": "HOME_VERIFIED_SEASON_SPLITS_MISSING"
     }
   ],
   "provider_requests_added": 9,
-  "daily_remaining_reported": 7489,
+  "daily_remaining_reported": 7480,
   "postgres_write_queries": 0,
   "provider_odds_requests_added": 0,
   "retroactive_pregame_signals_created": false,
